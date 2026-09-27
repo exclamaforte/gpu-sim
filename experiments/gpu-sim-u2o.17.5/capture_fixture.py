@@ -52,7 +52,16 @@ TELEMETRY_FIELDS = ["clocks.sm", "clocks.max.sm", "temperature.gpu",
 
 # ATen dispatch: the op a user calls usually DISPATCHES to a lower-level op
 # that carries the CUDA self time. Same leaf-op mapping as u2o.17.2.
-LEAF = {"aten::relu": "aten::clamp_min", "aten::matmul": "aten::mm"}
+LEAF = {
+    "aten::relu": "aten::clamp_min",
+    "aten::matmul": "aten::mm",
+    # Reviewer BLOCKING 1 on 17.5: torch.max / Tensor.max() dispatches to
+    # aten::max, not aten::amax. My first version looked for amax, found
+    # nothing, and shipped four HOLLOW reduce cases -- no median, no spread, no
+    # raw trace -- whose emptiness nothing in the fixture disclosed.
+    "aten::amax": "aten::max",
+    "aten::sum": "aten::sum",
+}
 
 
 def telemetry(label):
@@ -301,6 +310,15 @@ def main() -> int:
         rec = capture_case(i, desc, thunk, trace_dir)
         if "note" in desc:
             rec["note"] = desc["note"]
+        # Per-case machine state (reviewer MINOR): a before/after pair only
+        # proves throttling happened somewhere in the capture. A per-case stamp
+        # lets 17.4 exclude a contaminated case mechanically instead of by
+        # reading prose in a bd comment.
+        case_tel = telemetry(f"case{i}")
+        rec["telemetry"] = case_tel.get("fields", case_tel)
+        rec["throttle_active"] = (rec["telemetry"].get(
+            "clocks_throttle_reasons.active", "0x0")
+            not in ("0x0000000000000000", "", "Not Supported"))
         records.append(rec)
         if "error" in rec:
             print(f"  !! {rec['op_class']:12s} {rec['op']:12s} {rec['error']}",
@@ -318,6 +336,15 @@ def main() -> int:
           f"failed_as_required={nc['failed_as_required']}", flush=True)
 
     good = [r for r in records if "error" not in r]
+    hollow = [r for r in records if "error" not in r
+              and not r.get("device_ms_median")]
+    if hollow:
+        # Never ship a case with no measurement in it. The previous revision
+        # did: four reduce/max cases with empty profiler_attribution sailed
+        # through because the summary counted only the populated half.
+        for r in hollow:
+            print(f"  !! HOLLOW {r['op_class']}/{r['op']} {r['shapes']}: "
+                  "no device_ms_median despite no capture error", flush=True)
     by_class = {}
     for r in good:
         by_class.setdefault(r["op_class"], []).append(r)
@@ -368,9 +395,13 @@ def main() -> int:
     }
     out = HERE / "canonical_fixture.json"
     out.write_text(json.dumps(fixture, indent=2))
-    print(f"\nwrote {out} ({len(good)} cases over {len(by_class)} op classes)")
+    print(f"\nwrote {out} ({len(good)} measured cases over {len(by_class)} op "
+          f"classes; {len(records)} case records total, {len(hollow)} hollow)")
     if not nc["failed_as_required"]:
         print("FATAL: negative control did NOT fail; fixture is not trustworthy")
+        return 1
+    if hollow:
+        print("FATAL: a case with no measurement would ship; fixture rejected")
         return 1
     return 0
 

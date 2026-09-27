@@ -1,0 +1,93 @@
+=== ts job 2026-09-27T09:31:38-07:00 ===
+========================================================================
+gpu-sim-u2o.17.5 -- canonical real-GPU PyTorch trace fixture
+========================================================================
+28 cases; torch 2.14.0+cu130; device NVIDIA GeForce RTX 5090
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  relu         [1024]           median=     0.870us spread=   53.8% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  sigmoid      [1024]           median=     1.173us spread=    2.8% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  tanh         [1024]           median=     0.867us spread=    7.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  relu         [65536]          median=     0.877us spread=   18.5% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  sigmoid      [65536]          median=     1.187us spread=    2.7% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  tanh         [65536]          median=     0.893us spread=    3.8% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  relu         [1048576]        median=     2.027us spread=    6.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  sigmoid      [1048576]        median=     2.334us spread=    4.1% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  tanh         [1048576]        median=     2.048us spread=    6.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  relu         [16777216]       median=    66.272us spread=   25.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  sigmoid      [16777216]       median=    73.900us spread=    8.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  elementwise  tanh         [16777216]       median=    73.810us spread=   11.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  launch_bound relu         [256]            median=     1.002us spread=    3.2% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  matmul       matmul       [512, 512, 512]  median=    10.771us spread=   35.9% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  matmul       matmul       [1024, 1024, 1024] median=    43.382us spread=   10.6% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  matmul       matmul       [2048, 2048, 2048] median=   248.634us spread=    3.1% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  matmul       matmul       [4096, 4096, 4096] median=  1987.458us spread=    7.3% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  matmul       matmul       [8192, 8192, 8192] median= 16222.023us spread=    9.9% n=20
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:40 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       sum          [16384]          median=     3.282us spread=    2.0% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       max          [16384]          median=     2.786us spread=    2.3% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       sum          [262144]         median=     3.704us spread=    4.7% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       max          [262144]         median=     3.688us spread=    1.9% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       sum          [4194304]        median=     6.063us spread=    2.7% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       max          [4194304]        median=     6.129us spread=    2.8% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       sum          [16777216]       median=    13.083us spread=    1.3% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  reduce       max          [16777216]       median=    13.358us spread=    2.0% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  chain        relu_mul_add [1048576]        median=     2.032us spread=    3.8% n=20
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-09-27 09:31:41 2000124:2000124 SyncActivityProfilerHandler.cpp:46] profiler_stop
+  chain        relu_mul_add [16777216]       median=    57.575us spread=    7.2% n=20
+negative control (CUDA_VISIBLE_DEVICES=): rc=1 failed_as_required=True
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2/experiments/gpu-sim-u2o.17.5/canonical_fixture.json (28 measured cases over 5 op classes; 28 case records total, 0 hollow)
+=== capture exit=0 ===
