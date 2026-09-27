@@ -208,82 +208,131 @@
       {
         "label": "saxpy n=1024 auto/256",
         "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
         "median_us": 2.7680000000000002,
-        "achieved_GBps": 0.002959537572254335
+        "achieved_GBps": 2.9595375722543356
       },
       {
         "label": "relu n=1024 auto/256",
         "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
         "median_us": 2.8,
-        "achieved_GBps": 0.002925714285714286
+        "achieved_GBps": 2.9257142857142857
       },
       {
         "label": "copy n=1024 auto/256",
         "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
         "median_us": 2.56,
-        "achieved_GBps": 0.0031999999999999997
+        "achieved_GBps": 3.2
       },
       {
         "label": "strided_copy n=1024 auto/256",
         "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
         "median_us": 2.624,
-        "achieved_GBps": 0.003121951219512195
+        "achieved_GBps": 3.1219512195121952
       },
       {
         "label": "saxpy n=16384 auto/256",
         "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
         "median_us": 2.784,
-        "achieved_GBps": 0.04708045977011494
+        "achieved_GBps": 47.08045977011494
       },
       {
         "label": "relu n=16384 auto/256",
         "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
         "median_us": 2.656,
-        "achieved_GBps": 0.04934939759036144
+        "achieved_GBps": 49.34939759036144
       },
       {
         "label": "copy n=16384 auto/256",
         "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
         "median_us": 2.272,
-        "achieved_GBps": 0.05769014084507043
+        "achieved_GBps": 57.69014084507044
       },
       {
         "label": "strided_copy n=16384 auto/256",
         "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
         "median_us": 2.6560000000000006,
-        "achieved_GBps": 0.049349397590361437
+        "achieved_GBps": 49.349397590361434
       }
     ],
     "memory_bound_cells": [
       {
         "label": "saxpy n=4194304 auto/256",
         "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
         "median_us": 10.768,
-        "achieved_GBps": 3.116124814264487
+        "achieved_GBps": 3116.1248142644877
       },
       {
         "label": "relu n=4194304 auto/256",
         "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
         "median_us": 10.544,
-        "achieved_GBps": 3.18232473444613
+        "achieved_GBps": 3182.32473444613
       },
       {
         "label": "copy n=4194304 auto/256",
         "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
         "median_us": 10.447999999999999,
-        "achieved_GBps": 3.2115650842266463
+        "achieved_GBps": 3211.5650842266464
       },
       {
         "label": "strided_copy n=4194304 auto/256",
         "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
         "median_us": 10.815999999999999,
-        "achieved_GBps": 3.1022958579881657
+        "achieved_GBps": 3102.295857988166
+      },
+      {
+        "label": "relu n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 348.736,
+        "achieved_GBps": 1539.4766012112314
+      },
+      {
+        "label": "copy n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 349.104,
+        "achieved_GBps": 1537.8537971492738
+      },
+      {
+        "label": "strided_copy n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 348.32,
+        "achieved_GBps": 1541.3152044097383
       }
     ],
     "launch_to_memory_crossover_n": 262144,
     "crossover_definition": "smallest measured n (auto/256 elementwise) whose achieved bandwidth reaches 10% of the measured ceiling; below it the measurement is launch overhead, not data movement -- from the data, not theory",
-    "measured_memory_ceiling_GBps": 3.2115650842266463,
-    "memory_ceiling_definition": "best achieved bytes/s over the auto/256 elementwise cells, 2*n*4 bytes moved (one read + one write, fp32)"
+    "measured_memory_ceiling_GBps": 1541.3152044097383,
+    "memory_ceiling_source_cell": "saxpy n=67108864 auto/256",
+    "memory_ceiling_definition": "best achieved bytes/s among the HBM-bound cells (the largest n, 2^26), 2*n*4 bytes moved (one read + one write, fp32). NOT the best cell overall: the n=2^22 cell is L2-resident on this part and sustains far more, so taking the maximum would publish a cache bandwidth as the memory ceiling and calibrate every later roofline against cache."
   },
   "reproducibility": {
     "across_invocation_cv_median_all": 0.02489400341220939,
@@ -321,7 +370,9 @@
         0.00168
       ],
       "across_invocation_cv": 0.19752724681044434,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=1024 auto/256",
@@ -352,7 +403,9 @@
         0.0023680000000000003
       ],
       "across_invocation_cv": 0.08481491471252788,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=1024 auto/1024",
@@ -383,7 +436,9 @@
         0.001856
       ],
       "across_invocation_cv": 0.14548709851861463,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=1024 auto/1024",
@@ -414,7 +469,9 @@
         0.001616
       ],
       "across_invocation_cv": 0.18745053161932737,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=1024 1block/1024",
@@ -445,7 +502,9 @@
         0.001536
       ],
       "across_invocation_cv": 0.06754055811745026,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=1024 1block/1024",
@@ -476,7 +535,9 @@
         0.0024159999999999997
       ],
       "across_invocation_cv": 0.2360052113628648,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=65536 auto/256",
@@ -507,7 +568,9 @@
         0.002032
       ],
       "across_invocation_cv": 0.18759729146278295,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=65536 auto/256",
@@ -538,7 +601,9 @@
         0.0023039999999999996
       ],
       "across_invocation_cv": 0.09846405376497887,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=65536 auto/1024",
@@ -569,7 +634,9 @@
         0.001632
       ],
       "across_invocation_cv": 0.17834807460212665,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=65536 auto/1024",
@@ -600,7 +667,9 @@
         0.002528
       ],
       "across_invocation_cv": 0.21240897204286088,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=65536 1block/1024",
@@ -631,7 +700,9 @@
         0.0015999999999999999
       ],
       "across_invocation_cv": 0.04306895171309236,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=65536 1block/1024",
@@ -662,7 +733,9 @@
         0.0024000000000000002
       ],
       "across_invocation_cv": 0.19964275053347447,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=4194304 auto/256",
@@ -693,7 +766,9 @@
         0.00952
       ],
       "across_invocation_cv": 0.006722689075630234,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=4194304 auto/256",
@@ -724,7 +799,9 @@
         0.009856
       ],
       "across_invocation_cv": 0.04222236688327339,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=4194304 auto/1024",
@@ -755,7 +832,9 @@
         0.005248
       ],
       "across_invocation_cv": 0.03854937036048393,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=4194304 auto/1024",
@@ -786,7 +865,9 @@
         0.0050880000000000005
       ],
       "across_invocation_cv": 0.06757926217799544,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "empty n=4194304 1block/1024",
@@ -817,7 +898,9 @@
         0.001536
       ],
       "across_invocation_cv": 0.19569331316368122,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "noop_store n=4194304 1block/1024",
@@ -848,7 +931,9 @@
         0.001536
       ],
       "across_invocation_cv": 0.26394446070640165,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=1024 auto/256",
@@ -879,7 +964,11 @@
         0.002768
       ],
       "across_invocation_cv": 0.023451364899385204,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 2959537572.2543354,
+      "_working_set_mb": 0.0078125,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=1024 auto/256",
@@ -910,7 +999,11 @@
         0.0028
       ],
       "across_invocation_cv": 0.026336641925033575,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 2925714285.714286,
+      "_working_set_mb": 0.0078125,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=1024 auto/256",
@@ -941,7 +1034,11 @@
         0.00256
       ],
       "across_invocation_cv": 0.252373841284273,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 3200000000.0,
+      "_working_set_mb": 0.0078125,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=1024 auto/256",
@@ -972,7 +1069,11 @@
         0.0016640000000000001
       ],
       "across_invocation_cv": 0.2435430462990564,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 3121951219.512195,
+      "_working_set_mb": 0.0078125,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=1024 auto/1024",
@@ -1003,7 +1104,9 @@
         0.002752
       ],
       "across_invocation_cv": 0.010128952091046129,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=1024 auto/1024",
@@ -1034,7 +1137,9 @@
         0.002672
       ],
       "across_invocation_cv": 0.07436228308244777,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=1024 auto/1024",
@@ -1065,7 +1170,9 @@
         0.002736
       ],
       "across_invocation_cv": 0.0,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=1024 auto/1024",
@@ -1096,7 +1203,9 @@
         0.002736
       ],
       "across_invocation_cv": 0.021590127397987987,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=1024 1block/1024",
@@ -1127,7 +1236,9 @@
         0.0026880000000000003
       ],
       "across_invocation_cv": 0.07959308494836483,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=1024 1block/1024",
@@ -1158,7 +1269,9 @@
         0.002912
       ],
       "across_invocation_cv": 0.18744428576661284,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=1024 1block/1024",
@@ -1189,7 +1302,9 @@
         0.0037920000000000002
       ],
       "across_invocation_cv": 0.2492743466785398,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=1024 1block/1024",
@@ -1220,7 +1335,9 @@
         0.002752
       ],
       "across_invocation_cv": 0.02133462293173961,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=16384 auto/256",
@@ -1251,7 +1368,11 @@
         0.002784
       ],
       "across_invocation_cv": 0.06875719133089404,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 47080459770.114944,
+      "_working_set_mb": 0.125,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=16384 auto/256",
@@ -1282,7 +1403,11 @@
         0.002704
       ],
       "across_invocation_cv": 0.16444111928639382,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 49349397590.36144,
+      "_working_set_mb": 0.125,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=16384 auto/256",
@@ -1313,7 +1438,11 @@
         0.002624
       ],
       "across_invocation_cv": 0.10898290399914075,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 57690140845.070435,
+      "_working_set_mb": 0.125,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=16384 auto/256",
@@ -1344,7 +1473,11 @@
         0.0026880000000000003
       ],
       "across_invocation_cv": 0.12626572152296003,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 49349397590.361435,
+      "_working_set_mb": 0.125,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=16384 auto/1024",
@@ -1375,7 +1508,9 @@
         0.002672
       ],
       "across_invocation_cv": 0.03189712672173417,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=16384 auto/1024",
@@ -1406,7 +1541,9 @@
         0.002688
       ],
       "across_invocation_cv": 0.01226915127386724,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=16384 auto/1024",
@@ -1437,7 +1574,9 @@
         0.002608
       ],
       "across_invocation_cv": 0.09029190376770693,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=16384 auto/1024",
@@ -1468,7 +1607,9 @@
         0.002592
       ],
       "across_invocation_cv": 0.048599206213217054,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=16384 1block/1024",
@@ -1499,7 +1640,9 @@
         0.004832
       ],
       "across_invocation_cv": 0.0554292382520685,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=16384 1block/1024",
@@ -1530,7 +1673,9 @@
         0.004736
       ],
       "across_invocation_cv": 0.010206181948676772,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=16384 1block/1024",
@@ -1561,7 +1706,9 @@
         0.004751999999999999
       ],
       "across_invocation_cv": 0.0,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=16384 1block/1024",
@@ -1592,7 +1739,9 @@
         0.004736
       ],
       "across_invocation_cv": 0.008435569201419857,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=262144 auto/256",
@@ -1623,7 +1772,11 @@
         0.002752
       ],
       "across_invocation_cv": 0.10355267059820548,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 744727272727.2728,
+      "_working_set_mb": 2.0,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=262144 auto/256",
@@ -1654,7 +1807,11 @@
         0.002752
       ],
       "across_invocation_cv": 0.10355267059820548,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 744727272727.2728,
+      "_working_set_mb": 2.0,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=262144 auto/256",
@@ -1685,7 +1842,11 @@
         0.002688
       ],
       "across_invocation_cv": 0.04689747302445535,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 771011764705.8823,
+      "_working_set_mb": 2.0,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=262144 auto/256",
@@ -1716,7 +1877,11 @@
         0.003456
       ],
       "across_invocation_cv": 0.12278182636050868,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 624152380952.381,
+      "_working_set_mb": 2.0,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=262144 auto/1024",
@@ -1747,7 +1912,9 @@
         0.003504
       ],
       "across_invocation_cv": 0.13633855560950242,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=262144 auto/1024",
@@ -1778,7 +1945,9 @@
         0.00288
       ],
       "across_invocation_cv": 0.04462999814803807,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=262144 auto/1024",
@@ -1809,7 +1978,9 @@
         0.00272
       ],
       "across_invocation_cv": 0.0176933424515669,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=262144 auto/1024",
@@ -1840,7 +2011,9 @@
         0.002816
       ],
       "across_invocation_cv": 0.011783015091317786,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=262144 1block/1024",
@@ -1871,7 +2044,9 @@
         0.040464
       ],
       "across_invocation_cv": 0.002640447370183515,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=262144 1block/1024",
@@ -1902,7 +2077,9 @@
         0.037648
       ],
       "across_invocation_cv": 0.0017158725803824296,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=262144 1block/1024",
@@ -1933,7 +2110,9 @@
         0.03776
       ],
       "across_invocation_cv": 0.010647669951510957,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=262144 1block/1024",
@@ -1964,7 +2143,9 @@
         0.036784
       ],
       "across_invocation_cv": 0.008498864945842835,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=4194304 auto/256",
@@ -1995,7 +2176,11 @@
         0.0108
       ],
       "across_invocation_cv": 0.009590900806556942,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 3116124814264.488,
+      "_working_set_mb": 32.0,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=4194304 auto/256",
@@ -2026,7 +2211,11 @@
         0.010544000000000001
       ],
       "across_invocation_cv": 0.04919943230780819,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 3182324734446.1304,
+      "_working_set_mb": 32.0,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=4194304 auto/256",
@@ -2057,7 +2246,11 @@
         0.010784
       ],
       "across_invocation_cv": 0.04534047244310247,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 3211565084226.6465,
+      "_working_set_mb": 32.0,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=4194304 auto/256",
@@ -2088,7 +2281,11 @@
         0.010816
       ],
       "across_invocation_cv": 0.03175341057613394,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 3102295857988.166,
+      "_working_set_mb": 32.0,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=4194304 auto/1024",
@@ -2119,7 +2316,9 @@
         0.012992
       ],
       "across_invocation_cv": 0.021463242773195317,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=4194304 auto/1024",
@@ -2150,7 +2349,9 @@
         0.011488
       ],
       "across_invocation_cv": 0.027774890226670845,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=4194304 auto/1024",
@@ -2181,7 +2382,9 @@
         0.01152
       ],
       "across_invocation_cv": 0.026487444471849034,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=4194304 auto/1024",
@@ -2212,7 +2415,9 @@
         0.01432
       ],
       "across_invocation_cv": 0.021754599804263267,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=4194304 1block/1024",
@@ -2243,7 +2448,9 @@
         0.605456
       ],
       "across_invocation_cv": 0.00031758108858975976,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=4194304 1block/1024",
@@ -2274,7 +2481,9 @@
         0.5702240000000001
       ],
       "across_invocation_cv": 0.0004492301633394169,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=4194304 1block/1024",
@@ -2305,7 +2514,9 @@
         0.5724
       ],
       "across_invocation_cv": 0.0007548754404959995,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=4194304 1block/1024",
@@ -2336,7 +2547,9 @@
         0.549952
       ],
       "across_invocation_cv": 0.0003950958251334967,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=67108864 auto/256",
@@ -2367,7 +2580,11 @@
         0.510256
       ],
       "across_invocation_cv": 0.0009313978158289471,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 1052159919726.5685,
+      "_working_set_mb": 512.0,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=67108864 auto/256",
@@ -2398,7 +2615,11 @@
         0.348736
       ],
       "across_invocation_cv": 0.0003998989856459134,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 1539476601211.2314,
+      "_working_set_mb": 512.0,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=67108864 auto/256",
@@ -2429,7 +2650,11 @@
         0.350304
       ],
       "across_invocation_cv": 0.0026742624882637772,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 1537853797149.2737,
+      "_working_set_mb": 512.0,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=67108864 auto/256",
@@ -2460,7 +2685,11 @@
         0.34828800000000004
       ],
       "across_invocation_cv": 0.00024304164165567065,
-      "throttle_active": false
+      "throttle_active": false,
+      "_bps": 1541315204409.7383,
+      "_working_set_mb": 512.0,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=67108864 auto/1024",
@@ -2491,7 +2720,9 @@
         0.508
       ],
       "across_invocation_cv": 0.0015809439541538122,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=67108864 auto/1024",
@@ -2522,7 +2753,9 @@
         0.360592
       ],
       "across_invocation_cv": 0.0005183273124634097,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=67108864 auto/1024",
@@ -2553,7 +2786,9 @@
         0.360384
       ],
       "across_invocation_cv": 0.00015594052504140597,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=67108864 auto/1024",
@@ -2584,7 +2819,9 @@
         0.373616
       ],
       "across_invocation_cv": 0.0017435237717048034,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "saxpy n=67108864 1block/1024",
@@ -2615,7 +2852,9 @@
         22.9207205
       ],
       "across_invocation_cv": 0.0011172403673104054,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "relu n=67108864 1block/1024",
@@ -2646,7 +2885,9 @@
         21.938415499999998
       ],
       "across_invocation_cv": 1.1150576810035579e-05,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "copy n=67108864 1block/1024",
@@ -2677,7 +2918,9 @@
         21.949087
       ],
       "across_invocation_cv": 0.0007842374181824749,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "strided_copy n=67108864 1block/1024",
@@ -2708,7 +2951,9 @@
         21.656912
       ],
       "across_invocation_cv": 0.001295900656319103,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=4096 auto/256",
@@ -2739,7 +2984,9 @@
         0.003408
       ],
       "across_invocation_cv": 0.1268107949799447,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4096,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=4096 auto/1024",
@@ -2770,7 +3017,9 @@
         0.0033759999999999997
       ],
       "across_invocation_cv": 0.08316137983360501,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4096,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=65536 auto/256",
@@ -2801,7 +3050,9 @@
         0.002752
       ],
       "across_invocation_cv": 0.01226915127386724,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=65536 auto/1024",
@@ -2832,7 +3083,9 @@
         0.002928
       ],
       "across_invocation_cv": 0.07210239985243123,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=1048576 auto/256",
@@ -2863,7 +3116,9 @@
         0.006912
       ],
       "across_invocation_cv": 0.010981755909184925,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=1048576 auto/1024",
@@ -2894,7 +3149,9 @@
         0.010832
       ],
       "across_invocation_cv": 0.05822993591083524,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=16777216 auto/256",
@@ -2925,7 +3182,9 @@
         0.064592
       ],
       "across_invocation_cv": 0.0031648848127921662,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16777216,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "block_sum n=16777216 auto/1024",
@@ -2956,7 +3215,9 @@
         0.116272
       ],
       "across_invocation_cv": 0.00315614503209793,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16777216,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 512^3 32x32",
@@ -2987,7 +3248,9 @@
         0.039599999999999996
       ],
       "across_invocation_cv": 0.0012340314245203082,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 512^3 16x16",
@@ -3018,7 +3281,9 @@
         0.012927999999999999
       ],
       "across_invocation_cv": 0.0012360939431397089,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 1024^3 32x32",
@@ -3049,7 +3314,9 @@
         0.25673599999999996
       ],
       "across_invocation_cv": 0.0006321327664337373,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 1024^3 16x16",
@@ -3080,7 +3347,9 @@
         0.061967999999999995
       ],
       "across_invocation_cv": 0.0018288190972497766,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 2048^3 32x32",
@@ -3111,7 +3380,9 @@
         1.815616
       ],
       "across_invocation_cv": 0.00014990659235005057,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 2048^3 16x16",
@@ -3142,7 +3413,9 @@
         0.405888
       ],
       "across_invocation_cv": 0.0009008939630513225,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 4096^3 32x32",
@@ -3173,7 +3446,9 @@
         14.981888000000001
       ],
       "across_invocation_cv": 0.0008500333707291055,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 16777216,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
     {
       "label": "tiled_gemm 4096^3 16x16",
@@ -3204,7 +3479,9 @@
         3.081184
       ],
       "across_invocation_cv": 0.00041656419838737615,
-      "throttle_active": false
+      "throttle_active": false,
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     }
   ],
   "failed_cells": []
