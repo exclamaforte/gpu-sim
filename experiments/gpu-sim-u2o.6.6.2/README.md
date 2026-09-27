@@ -23,6 +23,10 @@ source, so this bead cannot be bitten by the same class of bug.
 | cells under 10 µs | **0.074** |
 | cells over 10 µs | **0.0013** |
 
+Within-process `cv` over the same sub-10 µs cells actually spans
+**0.114–3.306** (my earlier comment said 0.3–0.7; that range came from an
+earlier round, not from this artifact).
+
 This is the number job `9c2420b3` never measured, and it is the one that
 decides reproducibility. **The 20-trial single-launch protocol would not have
 been adequate** for the sub-10 µs cells: across-invocation CV of 7.4% means
@@ -31,7 +35,7 @@ involved, so a 20-trial median is not a stable target there. Above 10 µs the
 same protocol is fine (0.13%).
 
 Note the contrast with the within-process `cv` field in the same records,
-which is 0.3–0.7 for the sub-10 µs cells: within-process spread badly
+which spans 0.114–3.306 for the sub-10 µs cells: within-process spread badly
 understates the disagreement between processes, exactly as gpu-sim-u2o.6.6.1
 found. The bead's headline is that larger number, not the prettier one.
 
@@ -50,10 +54,19 @@ found. The bead's headline is that larger number, not the prettier one.
 * **Launch-bound** (achieved bandwidth below 10% of the measured ceiling):
   n = 1 024 and n = 16 384, all four elementwise kernels — 0.003 to
   0.058 GB/s, i.e. the time is not moving data at all.
-* **Memory-bound** (≥ 80% of the measured ceiling): n = 4 194 304 and above,
-  at **3.1–3.2 GB/s**... note this is the *achieved* rate for 2·n·4 bytes, and
-  the ceiling is whatever the hardware actually sustained here, not a
-  datasheet number. Nothing in this bead is compared to marketing figures.
+* **Memory-bound**: n = 4 194 304 at **3.10–3.21 TB/s** and n = 67 108 864 at
+  **1.54 TB/s**. Both are *achieved* rates for 2·n·4 bytes moved, not datasheet
+  figures.
+* **The ceiling is the HBM one: 1541 GB/s**, taken from the n = 2²⁶ cell. The
+  reviewer was right that my previous revision took the ceiling from the best
+  cell, which is the n = 2²² case — L2-resident on this part, sustaining
+  3.1 TB/s. Publishing that as "the memory ceiling" would calibrate every
+  later roofline against cache. Each cell now carries `working_set_MB` and an
+  `l2_resident` flag so a consumer can see which regime a number came from.
+  (The earlier 3.2 GB/s figure in this file was also a 1000× unit error:
+  `median_ms` is milliseconds, so bytes/ms is 1000× short of bytes/s. Both
+  defects are fixed in `merge_metrics.py` and recomputed from data already
+  collected — no re-run.)
 * **Crossover: n = 262 144** — the smallest measured size whose achieved
   bandwidth reaches 10% of the ceiling. Between 16 384 and 262 144 the
   elementwise families cross from "measuring the launch" to "measuring the
@@ -61,12 +74,22 @@ found. The bead's headline is that larger number, not the prettier one.
 * The tiled GEMM is the compute-bound end of the ladder and is by far the most
   reproducible thing measured: 4096³ at 3.08 ms with across-invocation CV
   0.0004.
+* Every cell also carries `covers` = elements actually processed
+  (`min(n_problem_size, grid*block)`). The deliberately-poor `1block/1024`
+  rows are labelled `n=2^26` but cover 1024 elements, which the label alone
+  did not make obvious.
 
 I deliberately did **not** use "within 10% of the empty-kernel median" as the
 launch-bound test: single-launch timing adds ~1 µs on top of the 1.68 µs
 launch cost, so every small-n cell lands near 2.7 µs and that test would
 mislabel the whole sweep. The bandwidth-ratio test is in the code with its
 definition recorded next to the number.
+
+That test is scale-invariant — the threshold and the measurement carry the same
+unit error — which is why the crossover value of **n = 262 144** survived both
+corrections unchanged. The reviewer recomputed it three ways and got the same
+answer, and I agree that the value being right did not excuse the reasoning
+being wrong.
 
 ## Three rounds, and why the first two were thrown away
 

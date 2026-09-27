@@ -14,18 +14,90 @@
     "invocations": "3 independent PROCESSES per config, 100 trials each"
   },
   "jobs": [
-    {"job_id": "20260927t155903-23ec54cd", "family": "launch", "state": "finished", "round": "v1", "log": "ts_job_logs/20260927t155903-23ec54cd.log"},
-    {"job_id": "20260927t155903-5012653b", "family": "memory", "state": "finished", "round": "v1", "log": "ts_job_logs/20260927t155903-5012653b.log"},
-    {"job_id": "20260927t155903-f93926a9", "family": "reduce", "state": "finished", "round": "v1", "log": "ts_job_logs/20260927t155903-f93926a9.log"},
-    {"job_id": "20260927t155903-f72a0ecb", "family": "gemm", "state": "finished", "round": "v1", "log": "ts_job_logs/20260927t155903-f72a0ecb.log"},
-    {"job_id": "20260927t160309-974ced32", "family": "launch", "state": "finished", "round": "v2", "log": "ts_job_logs/20260927t160309-974ced32.log"},
-    {"job_id": "20260927t160309-812f3528", "family": "memory", "state": "finished", "round": "v2", "log": "ts_job_logs/20260927t160309-812f3528.log"},
-    {"job_id": "20260927t160309-79851ab7", "family": "reduce", "state": "finished", "round": "v2", "log": "ts_job_logs/20260927t160309-79851ab7.log"},
-    {"job_id": "20260927t160310-b1db771a", "family": "gemm", "state": "finished", "round": "v2", "log": "ts_job_logs/20260927t160310-b1db771a.log"},
-    {"job_id": "20260927t160610-753c945a", "family": "launch", "state": "finished", "round": "v3 AUTHORITATIVE", "log": "ts_job_logs/20260927t160610-753c945a.log"},
-    {"job_id": "20260927t160610-f9023f86", "family": "memory", "state": "finished", "round": "v3 AUTHORITATIVE", "log": "ts_job_logs/20260927t160610-f9023f86.log"},
-    {"job_id": "20260927t160610-1ff090fa", "family": "reduce", "state": "finished", "round": "v3 AUTHORITATIVE", "log": "ts_job_logs/20260927t160610-1ff090fa.log"},
-    {"job_id": "20260927t160610-ad1989f8", "family": "gemm", "state": "finished", "round": "v3 AUTHORITATIVE", "log": "ts_job_logs/20260927t160610-ad1989f8.log"}
+    {
+      "job_id": "20260927t155903-23ec54cd",
+      "family": "launch",
+      "state": "finished",
+      "round": "v1",
+      "log": "ts_job_logs/20260927t155903-23ec54cd.log"
+    },
+    {
+      "job_id": "20260927t155903-5012653b",
+      "family": "memory",
+      "state": "finished",
+      "round": "v1",
+      "log": "ts_job_logs/20260927t155903-5012653b.log"
+    },
+    {
+      "job_id": "20260927t155903-f93926a9",
+      "family": "reduce",
+      "state": "finished",
+      "round": "v1",
+      "log": "ts_job_logs/20260927t155903-f93926a9.log"
+    },
+    {
+      "job_id": "20260927t155903-f72a0ecb",
+      "family": "gemm",
+      "state": "finished",
+      "round": "v1",
+      "log": "ts_job_logs/20260927t155903-f72a0ecb.log"
+    },
+    {
+      "job_id": "20260927t160309-974ced32",
+      "family": "launch",
+      "state": "finished",
+      "round": "v2",
+      "log": "ts_job_logs/20260927t160309-974ced32.log"
+    },
+    {
+      "job_id": "20260927t160309-812f3528",
+      "family": "memory",
+      "state": "finished",
+      "round": "v2",
+      "log": "ts_job_logs/20260927t160309-812f3528.log"
+    },
+    {
+      "job_id": "20260927t160309-79851ab7",
+      "family": "reduce",
+      "state": "finished",
+      "round": "v2",
+      "log": "ts_job_logs/20260927t160309-79851ab7.log"
+    },
+    {
+      "job_id": "20260927t160310-b1db771a",
+      "family": "gemm",
+      "state": "finished",
+      "round": "v2",
+      "log": "ts_job_logs/20260927t160310-b1db771a.log"
+    },
+    {
+      "job_id": "20260927t160610-753c945a",
+      "family": "launch",
+      "state": "finished",
+      "round": "v3 AUTHORITATIVE",
+      "log": "ts_job_logs/20260927t160610-753c945a.log"
+    },
+    {
+      "job_id": "20260927t160610-f9023f86",
+      "family": "memory",
+      "state": "finished",
+      "round": "v3 AUTHORITATIVE",
+      "log": "ts_job_logs/20260927t160610-f9023f86.log"
+    },
+    {
+      "job_id": "20260927t160610-1ff090fa",
+      "family": "reduce",
+      "state": "finished",
+      "round": "v3 AUTHORITATIVE",
+      "log": "ts_job_logs/20260927t160610-1ff090fa.log"
+    },
+    {
+      "job_id": "20260927t160610-ad1989f8",
+      "family": "gemm",
+      "state": "finished",
+      "round": "v3 AUTHORITATIVE",
+      "log": "ts_job_logs/20260927t160610-ad1989f8.log"
+    }
   ],
   "why_three_rounds": [
     "v1: the elementwise kernels used one-element-per-thread indexing, so the deliberately-poor '1 block' config silently computed only 1024 elements and reported ~0.4 us. A broken measurement wearing a terrible config's clothes; an anchor set containing one is worse than none. Fixed with grid-stride loops.",
@@ -35,7 +107,8 @@
   "post_processing": {
     "command": "python3 experiments/gpu-sim-u2o.6.6.2/merge_metrics.py",
     "gpu": false,
-    "note": "CPU-only merge of the four family files into metrics.json (anchor + regimes + reproducibility blocks). No re-measurement."
+    "note": "CPU-only merge of the four family files into metrics.json. Re-run after the review fixes: the ms/s unit error (bytes/ms is 1000x short of bytes/s) and the memory ceiling (now taken from the HBM-bound n=2^26 cell at 1541 GB/s instead of the L2-resident n=2^22 cell at ~3.2 TB/s). No re-measurement: the underlying ts jobs are unchanged and still authoritative."
   },
-  "note": "All 13 jobs are finished; nothing is left running. The superseded v1/v2 logs are kept deliberately: a reader diffing v1 against v3 can see exactly which of my own defects moved the numbers, which is the same evidence standard the lab holds the rest of the epic to."
+  "note": "All 13 jobs are finished; nothing is left running. The superseded v1/v2 logs are kept deliberately: a reader diffing v1 against v3 can see exactly which of my own defects moved the numbers, which is the same evidence standard the lab holds the rest of the epic to.",
+  "branch_note": "This bead now lives on its own branch (lab/gpu-sim-u2o.6.6.2-r2) so it and 17.5 merge independently; the reviewer correctly flagged the entangled history. The ts_job_logs no longer contain 17.5's v1 capture log, which was never a 6.6.2 job and was not listed here."
 }
