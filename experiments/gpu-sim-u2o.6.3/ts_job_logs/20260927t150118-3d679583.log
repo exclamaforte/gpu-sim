@@ -1,0 +1,19 @@
+=== ts job: gabe at 2026-09-27T08:31:46-07:00 ===
+--- CPU unit tests (no GPU) ---
+PASS  harness: preflight refuses oversized spec (returns FAILED)  Pre-flight FAILED: VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+
+0 failure(s)
+cpu tests exit=0
+--- GPU validation ---
+device: NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB
+CUDA_VISIBLE_DEVICES= 0
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/experiments/gpu-sim-u2o.6.3/verify_budgets.py", line 170, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/experiments/gpu-sim-u2o.6.3/verify_budgets.py", line 56, in main
+    big = spec_from_stage1("scale", [4, 1, 1], [256, 1, 1], 1 << 30)   # 8 GiB of buffers
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/epic_u2o/kernel_driver.py", line 161, in spec_from_stage1
+    raise RuntimeError("generator produced no spec")
+RuntimeError: generator produced no spec
+=== cpu_rc=0 gpu_rc=1 ===

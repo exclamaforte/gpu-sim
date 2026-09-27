@@ -46,6 +46,9 @@ def _chain_preexec(fns):
 
 # Default configuration
 DEFAULT_TIMEOUT_SEC = int(os.environ.get("CUDA_RUN_TIMEOUT", "30"))
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from epic_u2o.resource_limits import ScratchDir  # noqa: E402
 DEFAULT_VRAM_LIMIT_MB = int(os.environ.get("CUDA_VRAM_LIMIT_MB", "24576"))  # 24 GB
 DEFAULT_PREFLIGHT_TIMEOUT_SEC = int(os.environ.get("CUDA_PREFLIGHT_TIMEOUT", "60"))
 
@@ -91,6 +94,13 @@ class ResourceLimits:
     # cgroup v2 pids.max cap (tasks_max below). RLIMIT_NPROC stays unset.
     processes_limit: int = 0  # 0 = leave RLIMIT_NPROC untouched
 
+    # Per-file hard backstop (RLIMIT_FSIZE) and per-run directory quota
+    # (gpu-sim-u2o.6.3). See resource_limits.ScratchDir: the quota is
+    # accounted in Python, the rlimit is a per-file backstop, not a
+    # per-directory quota.
+    file_size_limit_mb: int = 256
+    scratch_base: str = ''
+
     # Per-run TASK cap via cgroup v2 pids.max (gpu-sim-u2o.6.1.2). This is the
     # containment that disabling RLIMIT_NPROC cost us. 0 disables it. The
     # default is a cap no kernel driver would notice and a fork bomb cannot
@@ -124,13 +134,32 @@ class ResourceLimits:
         # Open files
         resource.setrlimit(resource.RLIMIT_NOFILE, (self.open_files_limit, self.open_files_limit))
         
-        # Processes (skipped when processes_limit == 0; see the class comment --
-        # any low RLIMIT_NPROC breaks the CUDA driver on a busy multi-tenant box)
-        if self.processes_limit:
+        # Processes (skipped when processes_limit == 0)
+        if self.processes_limit:  # 0 = never touch NPROC (see class comment)
             resource.setrlimit(resource.RLIMIT_NPROC, (self.processes_limit, self.processes_limit))
         
         # Core dump size (disable)
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+
+        # Per-file size backstop (RLIMIT_FSIZE)
+        fs_bytes = max(1, min(self.file_size_limit_mb, self.disk_quota_mb)) * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_FSIZE, (fs_bytes, fs_bytes))
+
+    def policy(self):
+        """The same budget as a resource_limits.ResourcePolicy (single source
+        of truth for the VRAM/disk checks in preflight)."""
+        from epic_u2o.resource_limits import ResourcePolicy
+        return ResourcePolicy(
+            vram_limit_mb=self.vram_limit_mb,
+            disk_quota_mb=self.disk_quota_mb,
+            file_size_limit_mb=self.file_size_limit_mb,
+            timeout_sec=DEFAULT_TIMEOUT_SEC,
+            cpu_time_limit_sec=self.cpu_time_limit_sec,
+            memory_limit_mb=self.memory_limit_mb,
+            address_space_limit_mb=self.address_space_limit_mb,
+            open_files_limit=self.open_files_limit,
+            processes_limit=self.processes_limit,
+        )
 
 
 def _check_gpu_health_once(gpu_id: int = 0) -> tuple[str, bool]:
@@ -163,6 +192,21 @@ def _check_gpu_health_once(gpu_id: int = 0) -> tuple[str, bool]:
     return state, False
 
 
+def enforce_device_vram_cap(mem: dict, cap_mb: int) -> tuple[bool, str]:
+    """Device-side VRAM cap (gpu-sim-u2o.6.3).
+
+    `mem` is the {"mem": {...}} record the synthesized driver prints from
+    cudaMemGetInfo. The cap is applied to `delta_mb` (free-before minus
+    free-after = THIS run's footprint), never to `device_used_mb`, because on
+    a shared GPU the device-wide figure includes other tenants and would flag
+    innocent runs.
+    """
+    delta = float(mem.get('delta_mb', 0.0))
+    if cap_mb > 0 and delta > cap_mb:
+        return False, (f"this run's device footprint {delta:.1f} MB > cap {cap_mb} MB")
+    return True, f"device footprint {delta:.1f} MB within cap {cap_mb} MB"
+
+
 class SafeHarness:
     """Main harness for safe kernel execution."""
     
@@ -174,7 +218,15 @@ class SafeHarness:
         log_dir: Optional[str] = None,
         use_fakegpu_preflight: bool = True,
         tasks_max: int = DEFAULT_TASKS_MAX,
+        disk_quota_mb: int = 1024,
+        scratch_base: str = '',
     ):
+        self.disk_quota_mb = disk_quota_mb
+        # Empty scratch_base keeps legacy behaviour (tempfiles, no quota
+        # accounting). Set it to a per-project directory to get the
+        # accounted disk quota from resource_limits.ScratchDir.
+        self.scratch_base = scratch_base
+        self.last_vram_check = ''
         self.timeout_sec = timeout_sec
         self.vram_limit_mb = vram_limit_mb
         self.gpu_id = gpu_id
@@ -226,6 +278,19 @@ class SafeHarness:
             errors.append(f"grid dims {grid} must all be >= 1")
         if shared_mem < 0 or shared_mem > 228 * 1024:
             errors.append(f"shared_mem={shared_mem} exceeds 228KB/SM")
+
+        # 1b. Static VRAM budget (gpu-sim-u2o.6.3). A pathological problem_size
+        # must be refused BEFORE it can OOM the shared GPU.
+        if spec is not None:
+            try:
+                from epic_u2o.resource_limits import check_vram_budget
+                vram_ok, vram_msg = check_vram_budget(
+                    spec, ResourceLimits(vram_limit_mb=self.vram_limit_mb).policy())
+                self.last_vram_check = vram_msg
+                if not vram_ok:
+                    errors.append(vram_msg)
+            except Exception as e:
+                errors.append(f"VRAM budget check error: {e}")
 
         # 2. Disallowed-construct scan.
         try:
@@ -354,6 +419,15 @@ class SafeHarness:
         """Run compiled kernel with isolation and timeout."""
         args = args or []
         env = env or {}
+
+        # Disk quota (gpu-sim-u2o.6.3): give the child its own accounted
+        # scratch directory when a base is configured, and check the quota
+        # after it exits. Without a base this is a no-op (legacy behaviour).
+        scratch = None
+        if self.scratch_base:
+            scratch = ScratchDir(self.scratch_base, quota_mb=self.disk_quota_mb,
+                                 name='kern')
+            scratch.__enter__()  # raises RuntimeError if base is over quota
         
         # Build environment
         run_env = os.environ.copy()
@@ -426,8 +500,12 @@ class SafeHarness:
                 start_new_session=True,  # Isolate in new session
                 env=run_env,
                 preexec_fn=_chain_preexec([
-                    ResourceLimits(vram_limit_mb=self.vram_limit_mb).apply]
+                    ResourceLimits(vram_limit_mb=self.vram_limit_mb,
+                                   disk_quota_mb=self.disk_quota_mb).apply]
                     + preexec_parts),
+                # The child runs INSIDE its accounted scratch directory
+                # (gpu-sim-u2o.6.3); without this the quota is decorative.
+                cwd=str(scratch.path) if scratch is not None else None,
                 text=True,  # Get strings instead of bytes
             )
             # Wait with timeout
@@ -512,6 +590,20 @@ class SafeHarness:
             if cgroup_dir is not None:
                 cleanup_cgroup(cgroup_dir)
                 task_info["cgroup_cleaned"] = not cgroup_dir.exists()
+
+            # Disk accounting: record what the run left behind, then clean up
+            # (gpu-sim-u2o.6.3). A quota violation is recorded, not fatal -- the
+            # child already finished, and the directory is removed either way.
+            if scratch is not None:
+                ok, disk_msg = scratch.check_quota()
+                result.metadata['disk'] = {
+                    'scratch': str(scratch.path),
+                    'used_mb': round(scratch.size_mb(), 3),
+                    'quota_mb': scratch.quota_mb,
+                    'within_quota': ok,
+                    'message': disk_msg,
+                }
+                scratch.__exit__(None, None, None)
 
         return result
     
@@ -627,6 +719,30 @@ class SafeHarness:
             self._log_run(result, khash)
             if not result.success:
                 return [], result
+            # Device-side VRAM accounting (gpu-sim-u2o.6.3): the driver
+            # prints a {"mem": {"delta_mb": ...}} line from cudaMemGetInfo
+            # (free-before minus free-after, i.e. THIS run's footprint -- not
+            # the device-wide figure, which on a shared GPU includes other
+            # tenants). The device-side check catches allocations the static
+            # spec estimate could not see.
+            # A run that
+            # exceeds the cap is reported as failed, not silently accepted.
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if not line.startswith('{'):
+                    continue
+                try:
+                    rec = json.loads(line)
+                except ValueError:
+                    continue
+                if 'mem' in rec:
+                    result.metadata['device_mem'] = rec['mem']
+                    ok_cap, cap_msg = enforce_device_vram_cap(
+                        rec['mem'], self.vram_limit_mb)
+                    result.metadata['device_vram_check'] = cap_msg
+                    if not ok_cap:
+                        result.success = False
+                        result.metadata['vram_violation'] = cap_msg
             trials = []
             for line in result.stdout.splitlines():
                 line = line.strip()

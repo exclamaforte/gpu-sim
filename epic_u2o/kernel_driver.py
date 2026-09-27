@@ -117,11 +117,21 @@ def synthesize(spec: dict) -> str:
         '    dim3 grid(%d, %d, %d);' % (gx, gy, gz),
         '    dim3 block(%d, %d, %d);' % (bx, by, bz),
         '\n'.join(decls),
+        '    size_t dev_free_before_b = 0, dev_total_b = 0;',
+        '    CHECK(cudaMemGetInfo(&dev_free_before_b, &dev_total_b));',
         '\n'.join(mallocs),
         '\n'.join(fills),
         '    cudaEvent_t start, stop;',
         '    CHECK(cudaEventCreate(&start));',
         '    CHECK(cudaEventCreate(&stop));',
+        '    size_t dev_free_after_b = 0;',
+        '    CHECK(cudaMemGetInfo(&dev_free_after_b, &dev_total_b));',
+        '    printf("{\\"mem\\": {\\"delta_mb\\": %.1f, \\"free_after_mb\\": %.1f, \\"total_mb\\": %.1f, \\"device_used_mb\\": %.1f}}\\n",',
+        '           (dev_free_before_b - dev_free_after_b) / 1048576.0,',
+        '           dev_free_after_b / 1048576.0, dev_total_b / 1048576.0,',
+        '           (dev_total_b - dev_free_after_b) / 1048576.0);',
+        '    /* delta_mb is this run footprint; device_used_mb is device-wide */',
+        '    fflush(stdout);',
         '    for (int w = 0; w < %d; w++) { %s; }' % (WARMUP, call),
         '    CHECK(cudaDeviceSynchronize());',
         '    for (int t = 0; t < %d; t++) {' % TRIALS,
@@ -146,10 +156,7 @@ def synthesize(spec: dict) -> str:
 def spec_from_stage1(op='scale', grid=None, block=None, n=4096):
     """Convenience: build one stage-1 KernelSpec dict without importing the
     generator module (keeps ts jobs dependency-light)."""
-    # Derive the repo root from this file so the function works in a lab
-    # worktree (or any checkout), not just the original clone path.
-    import os as _os
-    sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+    sys.path.insert(0, '/home/gabe/Documents/gpu-sim')
     from epic_u2o.generator_stage1 import generate_kernels
     for spec in generate_kernels(
             ops=[op], grid_sweeps=[grid or [4, 1, 1]],
