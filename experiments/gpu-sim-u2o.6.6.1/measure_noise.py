@@ -64,6 +64,32 @@ def telemetry(label: str) -> dict:
     return out
 
 
+def negative_control(exe) -> dict:
+    """Run the SAME binary with no visible CUDA device; it must fail.
+
+    Acceptance criterion 4. A measurement that silently ran on nothing looks
+    exactly like a measurement of a very fast kernel, so this control is what
+    tells the two apart. The positive control (same invocation WITH the device)
+    is recorded too, so the failure is attributable to the missing device
+    rather than to the binary.
+    """
+    env = os.environ.copy()
+    env["CUDA_VISIBLE_DEVICES"] = ""
+    r = subprocess.run([str(exe), "scale", "4096", "256", "5", "1"],
+                       capture_output=True, text=True, timeout=120, env=env)
+    r2 = subprocess.run([str(exe), "scale", "4096", "256", "5", "1"],
+                        capture_output=True, text=True, timeout=120)
+    return {
+        "what": "same binary, CUDA_VISIBLE_DEVICES= blanked",
+        "returncode": r.returncode,
+        "stdout_tail": r.stdout.strip()[-200:],
+        "stderr_tail": r.stderr.strip()[-200:],
+        "failed_as_required": r.returncode != 0,
+        "positive_control_returncode": r2.returncode,
+        "positive_control_succeeded": r2.returncode == 0,
+    }
+
+
 def parse_trials(stdout: str) -> tuple[list[float], dict]:
     trials, summary, bad = [], {}, []
     for line in stdout.splitlines():
@@ -88,6 +114,11 @@ def parse_trials(stdout: str) -> tuple[list[float], dict]:
 
 def stats_of(trials: list[float]) -> dict:
     s = sorted(trials)
+    # Keep the raw vector (reviewer MINOR on 6.6.1): with only median/std/cv a
+    # third party cannot re-derive other percentiles, or check for outliers and
+    # trimming. 200 floats per cell is cheap and makes every statistic in this
+    # file reproducible from the artifact alone.
+    raw = [round(x, 6) for x in trials]
     n = len(s)
     q1, q3 = s[n // 4], s[(3 * n) // 4]
     med = statistics.median(s)
@@ -106,6 +137,7 @@ def stats_of(trials: list[float]) -> dict:
         "std_us": sd,
         "p05_us": s[max(0, int(n * 0.05))],
         "p95_us": s[min(n - 1, int(n * 0.95))],
+        "raw_us": raw,
     }
 
 
@@ -156,6 +188,15 @@ def main() -> int:
             {"bead": "gpu-sim-u2o.6.6.1", "error": f"compile failed: {msg[:2000]}"},
             indent=2))
         return 1
+
+    # ---- NEGATIVE CONTROL (acceptance criterion 4) ------------------------
+    # The same binary, with no CUDA device visible, MUST fail. Without this,
+    # "it measured the real GPU" is an assumption; with it, a fake or a
+    # silently-empty run would show up as a successful control.
+    nc = negative_control(exe)
+    print("negative control (CUDA_VISIBLE_DEVICES=): "
+          f"failed_as_required={nc['failed_as_required']} "
+          f"rc={nc['returncode']} err={nc['stderr_tail'][:120]!r}", flush=True)
 
     cells = []
     t0 = time.time()
@@ -212,6 +253,9 @@ def main() -> int:
                     "median_across_invocations_ms": [m / 1000.0 for m in meds],
                     "median_spread_pct": (100.0 * (max(meds) - min(meds))
                                           / statistics.median(meds)) if meds else None,
+                    "across_invocations_spread_pct": (
+                        100.0 * (max(meds) - min(meds)) / statistics.median(meds)
+                        if meds else None),
                     "per_invocation": per_inv,
                     "mdd_pct_by_n": mdd_pct_by_n(per_inv[0]),
                 }
@@ -268,11 +312,24 @@ def main() -> int:
         total = s_s["median_ms"] * 1000.0
         launch_b = e_b["median_ms"] * 1000.0
         kernel = s_b["median_ms"] * 1000.0 - launch_b
+        overhead = (e_s["median_ms"] - e_b["median_ms"]) * 1000.0
         decomposition[str(n)] = {
+            "components_measured_in_different_modes": (
+                "NOT a partition: reported_single is single-mode scale; "
+                "irreducible_launch and kernel_work are batched-mode "
+                "differences; measurement_overhead is single-minus-batched. "
+                "The residual column is what is left over, and it is not "
+                "small -- do not sum these four as if they decomposed "
+                "exactly. The kernel_work figure itself is sound: it is the "
+                "internally consistent batched difference."),
             "reported_single_us": total,
             "irreducible_launch_us": launch_b,
-            "measurement_overhead_us": (e_s["median_ms"] - e_b["median_ms"]) * 1000.0,
+            "measurement_overhead_us": overhead,
             "kernel_work_us": kernel,
+            "residual_us": total - (launch_b + overhead + kernel),
+            "residual_pct_of_reported": (
+                100.0 * (total - (launch_b + overhead + kernel)) / total
+                if total else None),
             "kernel_fraction_of_reported": (kernel / total) if total else None,
         }
 
@@ -298,7 +355,30 @@ def main() -> int:
         n_need = int(round((1.2533 * sd / se10) ** 2)) if se10 > 0 else None
         trials_for_10pct_batched[str(c["n_problem_size"])] = n_need
 
+    # Across-invocation spread of the median, per cell. This is the range the
+    # reviewer asked to see stated accurately: within-process cv is NOT it.
+    aicv = [c["across_invocations_spread_pct"] for c in cells
+            if c.get("across_invocations_spread_pct") is not None]
+    aicv_batched = [c["across_invocations_spread_pct"] for c in cells
+                    if c["mode"] == "batched"
+                    and c.get("across_invocations_spread_pct") is not None]
+    aicv_single = [c["across_invocations_spread_pct"] for c in cells
+                   if c["mode"] == "single"
+                   and c.get("across_invocations_spread_pct") is not None]
+
     noise_floor = {
+        "negative_control": nc,
+        "across_invocation_spread_pct": {
+            "all_cells_min": min(aicv) if aicv else None,
+            "all_cells_max": max(aicv) if aicv else None,
+            "single_mode_max": max(aicv_single) if aicv_single else None,
+            "batched_mode_min": min(aicv_batched) if aicv_batched else None,
+            "batched_mode_max": max(aicv_batched) if aicv_batched else None,
+            "note": ("spread of the reported MEDIAN across the 3 independent "
+                     "process invocations, as a percentage of that median. "
+                     "This, not the within-process cv, is what limits "
+                     "reproducibility."),
+        },
         "empty_kernel_us": empty_single["median_ms"] * 1000.0 if empty_single else None,
         "empty_kernel_batched_us": (empty_batched["median_ms"] * 1000.0
                                     if empty_batched else None),
