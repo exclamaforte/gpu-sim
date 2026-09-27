@@ -17,12 +17,44 @@
     "negative_control": "same binary with CUDA_VISIBLE_DEVICES= blanked must fail; recorded in metrics.json at noise_floor.negative_control, together with a positive control (same invocation with the device: rc 0)"
   },
   "jobs": [
-    {"job_id": "20260927t154858-71fa45c8", "state": "failed", "purpose": "first attempt; crashed parsing stdout (JSON error), no data kept", "log": "ts_job_logs/20260927t154858-71fa45c8.log"},
-    {"job_id": "20260927t154936-b1b133bc", "state": "failed", "purpose": "tolerant parse added; crashed on the return-tuple change before reaching the summary", "log": "ts_job_logs/20260927t154936-b1b133bc.log"},
-    {"job_id": "20260927t154954-2de31b37", "state": "failed", "purpose": "all 20 cells measured; crashed in the noise-floor summary (cell dicts expose median_ms, not median_us)", "log": "ts_job_logs/20260927t154954-2de31b37.log"},
-    {"job_id": "20260927t155030-79877e21", "state": "failed", "purpose": "same summary bug, re-run to confirm the cell data was complete", "log": "ts_job_logs/20260927t155030-79877e21.log"},
-    {"job_id": "20260927t155125-9cc71df8", "state": "finished", "purpose": "summary fixed; produced a full noise_floor block, but the crossover definition compared single-mode medians so it was rejected and redefined from the data. SUPERSEDED -- an earlier draft of the README/comment quoted this run's numbers, which is exactly the stale-number problem the reviewer caught.", "log": "ts_job_logs/20260927t155125-9cc71df8.log"},
-    {"job_id": "20260927t162535-cb00ea78", "state": "finished", "purpose": "FINAL / AUTHORITATIVE: adds the negative control (+ positive control), stores every raw per-trial vector, adds the residual column to the decomposition, and records the across-invocation spread range per mode. 20 cells, 15.6 s", "log": "ts_job_logs/20260927t162535-cb00ea78.log"}
+    {
+      "job_id": "20260927t154858-71fa45c8",
+      "state": "failed",
+      "purpose": "first attempt; crashed parsing stdout (JSON error), no data kept",
+      "log": "ts_job_logs/20260927t154858-71fa45c8.log"
+    },
+    {
+      "job_id": "20260927t154936-b1b133bc",
+      "state": "failed",
+      "purpose": "tolerant parse added; crashed on the return-tuple change before reaching the summary",
+      "log": "ts_job_logs/20260927t154936-b1b133bc.log"
+    },
+    {
+      "job_id": "20260927t154954-2de31b37",
+      "state": "failed",
+      "purpose": "all 20 cells measured; crashed in the noise-floor summary (cell dicts expose median_ms, not median_us)",
+      "log": "ts_job_logs/20260927t154954-2de31b37.log"
+    },
+    {
+      "job_id": "20260927t155030-79877e21",
+      "state": "failed",
+      "purpose": "same summary bug, re-run to confirm the cell data was complete",
+      "log": "ts_job_logs/20260927t155030-79877e21.log"
+    },
+    {
+      "job_id": "20260927t155125-9cc71df8",
+      "state": "finished",
+      "purpose": "summary fixed; produced a full noise_floor block, but the crossover definition compared single-mode medians so it was rejected and redefined from the data. SUPERSEDED -- an earlier draft of the README/comment quoted this run's numbers, which is exactly the stale-number problem the reviewer caught.",
+      "log": "ts_job_logs/20260927t155125-9cc71df8.log"
+    },
+    {
+      "job_id": "20260927t162535-cb00ea78",
+      "state": "finished",
+      "purpose": "FINAL / AUTHORITATIVE: adds the negative control (+ positive control), stores every raw per-trial vector, adds the residual column to the decomposition, and records the across-invocation spread range per mode. 20 cells, 15.6 s",
+      "log": "ts_job_logs/20260927t162535-cb00ea78.log"
+    }
   ],
-  "note": "6 jobs: 4 failed, 2 finished. All are terminal; nothing is left running. The failures are kept rather than tidied away: three were bugs in my experiment script, one was an invalid JSON format string in the reference kernel, and the second 'finished' run was superseded by my own judgement of its crossover definition."
+  "note": "6 jobs: 4 failed, 2 finished. All are terminal; nothing is left running. The failures are kept rather than tidied away: three were bugs in my experiment script, one was an invalid JSON format string in the reference kernel, and the second 'finished' run was superseded by my own judgement of its crossover definition.",
+  "measurement_version": 1,
+  "frozen": "noise_floor_v1, from final_job 20260927t162535-cb00ea78. metrics.json carries the same measurement_version; the two files name the same run so neither can drift alone."
 }

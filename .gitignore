@@ -5,3 +5,8 @@
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+
+# build artifacts that must never be committed (gpu-sim-u2o.6.6.1)
+**__pycache__/
+*.pyc
+*.out

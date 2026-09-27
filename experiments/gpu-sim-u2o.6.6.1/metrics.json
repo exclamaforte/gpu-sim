@@ -135,7 +135,7 @@
       "100": 16.257227597208242,
       "200": 11.495595877279031
     },
-    "mdd_pct_by_n_note": "MDD is computed on the EMPTY kernel cell (the worst case: the smallest, most overhead-dominated signal on this box). Per-cell MDD is in each cell's mdd_pct_by_n.",
+    "mdd_pct_by_n_note": "These MDD values are the per-trial-count curve of EXACTLY ONE cell: kernel=empty (k_empty), mode=single, n_problem_size=1024, grid=4, block=(1,1,256), from ts job 20260927t162535-cb00ea78. It is the empty kernel at the smallest problem size: the most overhead-dominated signal on this box, and therefore the worst case. Every other cell carries its own mdd_pct_by_n; do not read this block as a property of the noise floor in general.",
     "trials_needed_for_10pct_difference": {
       "1024": 59,
       "16384": 110,
@@ -149,6 +149,25 @@
       "262144": 28,
       "4194304": 0,
       "67108864": 0
+    },
+    "mdd_pct_by_n_source_cell": {
+      "kernel": "empty",
+      "mode": "single",
+      "n_problem_size": 1024,
+      "grid": 4,
+      "block": 256,
+      "ts_job": "20260927t162535-cb00ea78"
+    },
+    "within_process_cv_range": {
+      "field": "cells[].cv = the cell's median across invocations of the per-invocation cv",
+      "min": 0.0016482563226612348,
+      "max": 0.44078257950479627,
+      "not_to_be_confused_with": {
+        "field": "per_invocation[0].cv",
+        "min": 0.0016482563226612348,
+        "max": 0.546938120357119
+      },
+      "note": "Two different fields, two different ranges. An earlier README quoted 0.002-0.547 under the name of the 0.002-0.441 field."
     }
   },
   "cells": [
@@ -13853,5 +13872,7 @@
       }
     }
   ],
-  "total_wall_sec": 15.645256042480469
+  "total_wall_sec": 15.645256042480469,
+  "measurement_version": 1,
+  "frozen": "noise_floor_v1: authoritative run ts job 20260927t162535-cb00ea78 (2026-09-27). Later work must be a noise_floor_v2 with a stated reason, never an in-place edit."
 }

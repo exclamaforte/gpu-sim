@@ -1,5 +1,11 @@
 # gpu-sim-u2o.6.6.1 — the noise floor of the real measurement path
 
+**`measurement_version: 1` — FROZEN.** Authoritative run: ts job
+`20260927t162535-cb00ea78` (2026-09-27). Any later change to these numbers
+must be a `noise_floor_v2` with a stated reason, never an in-place edit: the
+6.1.1 closing run is diffed against this file, and an unstamped successor
+makes that diff wrong invisibly.
+
 One short `ts` job, read-only, fixed hand-written reference kernel,
 `preflight_check` bypassed on purpose. Full data in `metrics.json` (including
 every raw per-trial vector), transcript in `output.log`, job ids in `job.json`.
@@ -60,7 +66,12 @@ the 67 108 864 elements — a compute-bound datapoint, not a full-size one.
 
 ## Minimum detectable difference (2σ, two-sample)
 
-Worst case — the empty kernel, the most overhead-dominated signal on the box:
+**The top-level MDD block is the curve for exactly one cell**, and it is named
+in the artifact: `kernel=empty, mode=single, n_problem_size=1024, grid=4,
+block=(1,1,256)`, from ts job `20260927t162535-cb00ea78`. That is the empty
+kernel at the smallest problem size — the most overhead-dominated signal on
+this box, and the worst case. Every other cell carries its own
+`mdd_pct_by_n`; this block is not a property of the noise floor in general.
 
 | trials | 10 | 20 | 50 | 100 | 200 |
 |---|---|---|---|---|---|
@@ -88,8 +99,13 @@ design change *and* its benefit is smaller than one clean run suggests.
 
 ## Within-process vs across-invocation spread
 
-Three independent *processes* per cell. Within-process cv ranges 0.002–0.547
-and badly understates the disagreement between processes: single-mode medians
+Three independent *processes* per cell. The artifact's `cells[].cv` field
+(the cell's median across invocations of the per-invocation cv) ranges
+**0.002–0.441**; the *different* field `per_invocation[0].cv` ranges
+0.002–0.547 over the same cells. Both are recorded in the artifact under
+`noise_floor.within_process_cv_range` so they cannot be conflated again. Either
+way, within-process cv badly understates the disagreement between processes:
+single-mode medians
 differ by up to **37.7%** between processes of the same config. That is why
 three of four stage-1 kernels failed `measurement_stats`' own `max_cv=0.15`
 gate — and why judging reproducibility from within-process cv alone would be
