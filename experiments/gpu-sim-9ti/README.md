@@ -35,19 +35,47 @@ passed as source>)`, so the mismatch is not representable.
 
 ## The test that would have caught it (CPU-only, ~90 s, no GPU)
 
-`test_kernel_names.py` — 15 checks, all green:
+`test_kernel_names.py` — **20 checks, all green**:
 
 * resolver/checker unit behaviour, including the multi-kernel "refuse to
   guess" case and the `extern "C" __global__ __device__` parse;
 * for **every generator, stage 1 through 5**: 12 specs each, assert
   `kernel_name` is one of the `__global__`s in its source;
 * and the part that actually matters: **each emitted driver is compiled with
-  `nvcc`**, 60/60 across the five stages.
+  `nvcc`** (`-cudart=shared`; see the note below), 60/60 across the five
+  stages;
+* plus a **before/after control** that compiles the *same* pre-fix spec under
+  the old launch-name logic (must fail) and the new one (must succeed). The
+  reviewer built this by hand to verify my claim; it is now permanent,
+  because once the fix is in, a wrong `kernel_name` is no longer an error
+  anywhere by design, and this is the only check that would notice if
+  `resolve_kernel_name()` ever stopped being used.
 
 `negative_control.py` shows the defence in depth: a hand-built pre-fix spec
 (`kernel_name='reduce_sum_block_kernel'`, source declaring
 `reduce_sum_block`) is reported by `check_kernel_name` *and* still yields a
-driver that launches the right function.
+driver that launches the right function. It does not revert the generators —
+its old header said it did, and the comment on the bead described it
+correctly; the header now matches what the script does.
+
+## The real limitation (corrected, and more useful than what I first claimed)
+
+An earlier version of the bead comment said stage2-5 specs "reach the compiler
+but not the driver generator" and called a driver-per-family piece of work
+outstanding. That was wrong: the reviewer synthesized **all 10 116 specs** from
+all five stages with zero failures, and they are synthesizable today.
+
+The limitation that actually exists, and that will matter to the 9.x work:
+`kernel_driver.synthesize` sizes **every** pointer argument at `N` elements
+and pre-fills it host-side. For a stage-2 block reduction with n=1024,
+`d_out` is allocated at 4 KiB for a kernel that writes ~8 values (32 B) — an
+over-allocation of ~128× that scales with n — and the driver additionally does
+a full H2D `cudaMemcpy` of `d_out` before the kernel overwrites it. Both sit
+**outside** the `cudaEvent` region, so kernel timing is unaffected; the damage
+is to device-memory footprint and to any bytes-moved / roofline accounting,
+which will be wrong for every non-elementwise family. The synthesized driver
+also performs no output validation, so a wrong result from a non-elementwise
+kernel would not be caught by anything.
 
 ## Why no `ts` job
 

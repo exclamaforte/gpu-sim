@@ -14,22 +14,25 @@ from pathlib import Path
 
 
 
+from epic_u2o.kernel_names import declared_kernel_names
+
+
 def _kernel_function_name(source: str) -> str:
     """The __global__ function actually declared in `source` (gpu-sim-9ti).
 
     This generator used to set kernel_name=f"{op}_kernel" while its templates
     declare `__global__ void {op}(...)`, so every synthesized driver called a
     kernel that did not exist and failed to COMPILE. Deriving the name from
-    the source makes the two impossible to disagree. The shared implementation
-    lives in epic_u2o/kernel_names.py; the fallback keeps this module usable
-    standalone if it is imported without the package on the path.
+    the source makes the two impossible to disagree.
+
+    The implementation is imported UNCONDITIONALLY from epic_u2o.kernel_names
+    rather than duplicated behind an ImportError fallback. The earlier
+    fallback re-implemented the pattern in a weaker form (it missed
+    extern "C", __device__-marked and non-void returns), which is a silent
+    semantic difference in a defensive path that will drift -- and
+    kernel_driver.py hard-requires epic_u2o.kernel_names anyway, so the
+    standalone case it protected is close to vestigial (reviewer, gpu-sim-9ti).
     """
-    try:
-        from epic_u2o.kernel_names import declared_kernel_names
-    except ImportError:  # standalone import
-        import re
-        declared_kernel_names = lambda s: [m.group(1) for m in re.finditer(  # noqa: E731
-            r"__global__\s+void\s+(\w+)\s*\(", s or "")]
     names = declared_kernel_names(source)
     if not names:
         raise ValueError("kernel template declares no __global__ function; "

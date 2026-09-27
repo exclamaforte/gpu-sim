@@ -16,4 +16,8 @@ PASS  generator_stage4: 12/12 drivers compile
 PASS  generator_stage5: kernel_name matches source for 12 specs  mismatched: []
 PASS  generator_stage5: 12/12 drivers compile
 
+PASS  control: OLD launch-name logic fails to compile  ['/tmp/tmpy3xi9y0c/control_old.cu(29): error: identifier "reduce_sum_block_kernel" is undefined']
+PASS  control: NEW logic compiles the same spec
+PASS  control: check_kernel_name still reports the disagreement
+
 0 failure(s)

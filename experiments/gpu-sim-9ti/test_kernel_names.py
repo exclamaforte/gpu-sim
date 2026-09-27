@@ -15,7 +15,14 @@ generated spec, that:
   1. spec['kernel_name'] is one of the __global__ functions in spec['source'];
   2. kernel_driver.synthesize(spec) launches a name that IS declared in the
      emitted source (the compiler is the judge, not this test);
-  3. the emitted driver actually compiles with nvcc -cudart=none.
+  3. the emitted driver actually compiles (`nvcc -cudart=shared`, see the
+     NOTE above -- an earlier draft of this line said `-cudart=none` and
+     contradicted both the code and its own NOTE; reviewer, gpu-sim-9ti).
+
+  4. and, as a direct before/after control, that the OLD launch-name logic
+     (trusting spec['kernel_name']) produces a driver that FAILS to compile
+     while the NEW one (resolve_kernel_name) succeeds -- the reviewer's
+     stronger control, kept permanently.
 
 (3) is CPU-only -- nvcc is a compiler, and compiling touches no GPU. That is
 what caught the original bug: the stage2-5 drivers did not compile. The GPU
@@ -128,6 +135,45 @@ for stage in STAGES:
             compile_errors.append("; ".join(head))
     check(f"{stage}: {compiled}/{len(specs)} drivers compile",
           compiled == len(specs), compile_errors[:2])
+
+print()
+# --- 3. before/after control: the OLD launch-name logic must still fail ----
+# The reviewer rebuilt this by hand and it is worth keeping permanently: it is
+# the only check that would notice if resolve_kernel_name() ever silently
+# stopped being used, because once the fix is in, a spec whose kernel_name is
+# WRONG is no longer an error anywhere -- by design.
+old_spec = {
+    "source": "__global__ void reduce_sum_block(const float* a, float* b, int n) { }\n",
+    "kernel_name": "reduce_sum_block_kernel",       # the pre-fix f-string
+    "grid": [8, 1, 1], "block": [256, 1, 1], "shared_mem_bytes": 0,
+    "args": [{"name": "a", "type": "const float*", "ptr": True},
+             {"name": "b", "type": "float*", "ptr": True},
+             {"name": "n", "type": "int", "ptr": False}],
+    "problem_size": 1024,
+}
+
+
+def compile_src(src, tag):
+    cu = tmp / f"control_{tag}.cu"
+    cu.write_text(src)
+    return subprocess.run(
+        ["nvcc", "-cudart=shared", "-arch=sm_120", "-O2", str(cu),
+         "-o", str(tmp / f"control_{tag}.out")],
+        capture_output=True, text=True, timeout=600)
+
+
+# OLD path: launch the name the dict claims, exactly as the code used to.
+old_src = synthesize(dict(old_spec)).replace(
+    "reduce_sum_block<<<", "reduce_sum_block_kernel<<<")
+r_old = compile_src(old_src, "old")
+r_new = compile_src(synthesize(old_spec), "new")
+check("control: OLD launch-name logic fails to compile",
+      r_old.returncode != 0,
+      [x for x in r_old.stderr.splitlines() if "error" in x][:1])
+check("control: NEW logic compiles the same spec", r_new.returncode == 0,
+      [x for x in r_new.stderr.splitlines() if "error" in x][:1])
+check("control: check_kernel_name still reports the disagreement",
+      check_kernel_name(old_spec) is not None)
 
 print()
 print(f"{len(FAILS)} failure(s)" + (": " + ", ".join(FAILS) if FAILS else ""))

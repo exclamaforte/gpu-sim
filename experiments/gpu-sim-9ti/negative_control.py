@@ -1,4 +1,18 @@
-# Prove the test FAILS on the pre-fix generators (negative control for the test).
+"""What this actually does (its header previously said otherwise, while the bd
+comment described it correctly -- reviewer, gpu-sim-9ti):
+
+It does NOT revert anything and does not re-run the generators. It builds a
+hand-made spec shaped exactly as the pre-fix generators emitted it
+(kernel_name='reduce_sum_block_kernel', source declaring 'reduce_sum_block')
+and shows BOTH layers handling it:
+  * check_kernel_name() reports the disagreement, and
+  * synthesize() still emits a driver that launches the real function.
+
+The stronger control -- compiling the same spec under the OLD and the NEW
+launch-name logic and asserting old-fails / new-succeeds -- is not here; it is
+a permanent part of test_kernel_names.py, where it also guards against
+resolve_kernel_name() silently ceasing to be used.
+"""
 import re, subprocess, sys, tempfile
 from pathlib import Path
 REPO = Path('.').resolve()

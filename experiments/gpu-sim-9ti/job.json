@@ -4,8 +4,15 @@
   "gpu_used": false,
   "note": "NO ts job was needed. This bead is CPU-only by nature: the bug is that a generated driver fails to COMPILE, and proving a file compiles needs nvcc, not a GPU. Everything here runs outside the queue; nothing touched the RTX 5090.",
   "commands": [
-    "python3 experiments/gpu-sim-9ti/test_kernel_names.py    # 15 checks, all stages",
-    "python3 experiments/gpu-sim-9ti/negative_control.py     # pre-fix spec still drives a correct driver"
+    "python3 experiments/gpu-sim-9ti/test_kernel_names.py    # 20 checks, 0 failures",
+    "python3 experiments/gpu-sim-9ti/negative_control.py     # hand-built pre-fix spec handled by both layers"
   ],
-  "artifacts": ["test_kernel_names.py", "negative_control.py", "negative_control.log", "output.log", "README.md"]
+  "artifacts": [
+    "test_kernel_names.py",
+    "negative_control.py",
+    "negative_control.log",
+    "output.log",
+    "README.md"
+  ],
+  "checks": "20 (7 resolver/checker units + 2 per stage x 5 stages, each stage's second check compiling 12 drivers, + 3 before/after control checks)"
 }
