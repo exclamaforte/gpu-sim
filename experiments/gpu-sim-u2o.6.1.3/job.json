@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-u2o.6.1.3",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "note": "NO ts job was needed. Every step of this bead is CPU-only: the work is header/shim C code plus nvcc compilation and linking, which never touches the GPU. Per the skill, GPU-touching commands go through the ts queue; none of these do, and nothing was run on the shared RTX 5090. The one binary executed here (build/test_cudart_none) runs with CUDA_VISIBLE_DEVICES= blanked and links neither libcudart nor libcuda, so it is structurally incapable of touching a GPU.",
+  "commands": [
+    "make                     # builds libfakegpu.so (gcc, no GPU)",
+    "make check               # quality gate incl. the new test; exit 0",
+    "bash tests/test_cudart_none.sh",
+    "python3 experiments/gpu-sim-u2o.6.1.3/enumerate_requirements.py"
+  ],
+  "artifacts": [
+    "metrics.json  (requirement enumeration across stage1..5 generators)",
+    "output.log    (make check + enumeration transcript)",
+    "job.json",
+    "README.md"
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "bead": "gpu-sim-u2o.6.1.3",
+  "stages": {
+    "generator_stage1": {
+      "linked": 3,
+      "synthesizable": 3,
+      "unlinkable_due_to_unsupported_spec": 0,
+      "failures": [],
+      "missing_symbols": []
+    },
+    "generator_stage2": {
+      "linked": 3,
+      "synthesizable": 3,
+      "unlinkable_due_to_unsupported_spec": 0,
+      "failures": [],
+      "missing_symbols": [],
+      "kernel_name_mismatches": [
+        {
+          "spec": 0,
+          "declared": "reduce_sum_block_kernel",
+          "actual": "reduce_sum_block"
+        },
+        {
+          "spec": 1,
+          "declared": "reduce_sum_block_kernel",
+          "actual": "reduce_sum_block"
+        },
+        {
+          "spec": 2,
+          "declared": "reduce_sum_block_kernel",
+          "actual": "reduce_sum_block"
+        }
+      ]
+    },
+    "generator_stage3": {
+      "linked": 3,
+      "synthesizable": 3,
+      "unlinkable_due_to_unsupported_spec": 0,
+      "failures": [],
+      "missing_symbols": [],
+      "kernel_name_mismatches": [
+        {
+          "spec": 0,
+          "declared": "coalesced_read_kernel",
+          "actual": "coalesced_read"
+        },
+        {
+          "spec": 1,
+          "declared": "coalesced_read_kernel",
+          "actual": "coalesced_read"
+        },
+        {
+          "spec": 2,
+          "declared": "coalesced_read_kernel",
+          "actual": "coalesced_read"
+        }
+      ]
+    },
+    "generator_stage4": {
+      "linked": 3,
+      "synthesizable": 3,
+      "unlinkable_due_to_unsupported_spec": 0,
+      "failures": [],
+      "missing_symbols": [],
+      "kernel_name_mismatches": [
+        {
+          "spec": 0,
+          "declared": "gemm_naive_kernel",
+          "actual": "gemm_naive"
+        },
+        {
+          "spec": 1,
+          "declared": "gemm_naive_kernel",
+          "actual": "gemm_naive"
+        },
+        {
+          "spec": 2,
+          "declared": "gemm_naive_kernel",
+          "actual": "gemm_naive"
+        }
+      ]
+    },
+    "generator_stage5": {
+      "linked": 3,
+      "synthesizable": 3,
+      "unlinkable_due_to_unsupported_spec": 0,
+      "failures": [],
+      "missing_symbols": [],
+      "kernel_name_mismatches": [
+        {
+          "spec": 0,
+          "declared": "divergent_branch_kernel",
+          "actual": "divergent_branch"
+        },
+        {
+          "spec": 1,
+          "declared": "divergent_branch_kernel",
+          "actual": "divergent_branch"
+        },
+        {
+          "spec": 2,
+          "declared": "divergent_branch_kernel",
+          "actual": "divergent_branch"
+        }
+      ]
+    }
+  },
+  "all_linked": true,
+  "canonical_stage1_driver": {
+    "linked": true,
+    "missing": []
+  },
+  "test_cudart_none_sh": {
+    "rc": 0,
+    "output": "PASS: links with -cudart=none -lfakegpu\nPASS: ldd matches neither libcudart nor libcuda\nPASS: ldd shows libfakegpu as the provider\nPASS: smoke run exits 0 with CUDA_VISIBLE_DEVICES= (no GPU contact)\nPASS: printed 3 trial JSON lines\nPASS: reported the fake's configured latency (2 ms)\nPASS: invalid launch config is rejected by the fake\nPASS: same compile without -lfakegpu fails to link (no silent fallthrough)\nPASS: all new symbols exported by libfakegpu.so\n"
+  }
+}
