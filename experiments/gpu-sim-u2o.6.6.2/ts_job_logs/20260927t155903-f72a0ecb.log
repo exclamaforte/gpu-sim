@@ -1,0 +1,26 @@
+=== ts job 2026-09-27T09:00:21-07:00 family=gemm ===
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'gemm'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2475 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "39", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+gemm: 8 configs x 3 process invocations x 100 trials
+  tiled_gemm 512^3 32x32       grid=   [16, 16, 1] med=   39.664us iqr=   0.768us cv=0.039 ai_cv=0.0051
+  tiled_gemm 512^3 16x16       grid=   [16, 16, 1] med=   12.960us iqr=   0.288us cv=0.043 ai_cv=0.0056
+  tiled_gemm 1024^3 32x32      grid=   [32, 32, 1] med=  256.544us iqr=   0.384us cv=0.005 ai_cv=0.0006
+  tiled_gemm 1024^3 16x16      grid=   [32, 32, 1] med=   62.016us iqr=   0.320us cv=0.024 ai_cv=0.0016
+  tiled_gemm 2048^3 32x32      grid=   [64, 64, 1] med= 1810.912us iqr=   2.912us cv=0.002 ai_cv=0.0007
+  tiled_gemm 2048^3 16x16      grid=   [64, 64, 1] med=  404.720us iqr=   1.408us cv=0.007 ai_cv=0.001
+  tiled_gemm 4096^3 32x32      grid= [128, 128, 1] med=14951.760us iqr=  14.048us cv=0.013 ai_cv=0.0005
+  tiled_gemm 4096^3 16x16      grid= [128, 128, 1] med= 3079.408us iqr=   7.936us cv=0.025 ai_cv=0.0
+telemetry after:  {"clocks.sm": "2925 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "46", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2/experiments/gpu-sim-u2o.6.6.2/family_gemm.json
+gemm: 8/8 configs measured, 8.9s
+=== family=gemm exit=0 ===
