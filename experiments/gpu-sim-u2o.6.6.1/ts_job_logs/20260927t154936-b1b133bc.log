@@ -1,0 +1,24 @@
+=== ts job: gabe at 2026-09-27T08:49:36-07:00 ===
+========================================================================
+gpu-sim-u2o.6.6.1 -- noise floor of the real measurement path
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: SafeHarness.preflight_check()
+currently executes on the real GPU (PI ruling on 6.1.1), so calling
+it here would add a second, unaccounted GPU execution to a
+measurement experiment. compile_kernel() and run_kernel() are called
+directly instead. Kernel is a FIXED hand-written reference kernel:
+no generated or untrusted code, no dependency on the fake path.
+No sudo, no clock locking, no persistence-mode change; nvidia-smi is
+used only for read-only telemetry queries.
+========================================================================
+telemetry before: {"clocks.sm": "195 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "35", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "11.28 W", "power.limit": "575.00 W", "utilization.gpu": "0 %", "memory.used": "443 MiB"}
+compile_kernel -> ok=True Compilation successful
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.1/experiments/gpu-sim-u2o.6.6.1/measure_noise.py", line 277, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.1/experiments/gpu-sim-u2o.6.6.1/measure_noise.py", line 174, in main
+    trials, summary = parse_trials(res.stdout)
+    ^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 2, got 3)
+=== measure_noise exit=1 ===

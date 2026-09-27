@@ -1,0 +1,165 @@
+=== ts job: gabe at 2026-09-27T08:49:54-07:00 ===
+========================================================================
+gpu-sim-u2o.6.6.1 -- noise floor of the real measurement path
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: SafeHarness.preflight_check()
+currently executes on the real GPU (PI ruling on 6.1.1), so calling
+it here would add a second, unaccounted GPU execution to a
+measurement experiment. compile_kernel() and run_kernel() are called
+directly instead. Kernel is a FIXED hand-written reference kernel:
+no generated or untrusted code, no dependency on the fake path.
+No sudo, no clock locking, no persistence-mode change; nvidia-smi is
+used only for read-only telemetry queries.
+========================================================================
+telemetry before: {"clocks.sm": "195 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "35", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "10.80 W", "power.limit": "575.00 W", "utilization.gpu": "0 %", "memory.used": "443 MiB"}
+compile_kernel -> ok=True Compilation successful
+  !! empty n=1024 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":1024,"block":256,"grid":4,"batch":1,"trials":200,"median_us":2.272000,"p05_us":1.248000,"p95_us":3.104000,"min_us":1.184000,"max_us":8.288000}'
+     raw stdout saved to raw_stdout_empty_1024_single.txt
+  empty n=1024      single inv0  trials=200  median=2.2560us iqr=1.2480us cv=0.4040 grid=None
+  !! empty n=1024 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":1024,"block":256,"grid":4,"batch":1,"trials":200,"median_us":1.824000,"p05_us":1.216000,"p95_us":3.040000,"min_us":1.184000,"max_us":7.456000}'
+  empty n=1024      single inv1  trials=200  median=1.7760us iqr=1.4080us cv=0.3954 grid=None
+  !! empty n=1024 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":1024,"block":256,"grid":4,"batch":1,"trials":200,"median_us":1.504000,"p05_us":1.216000,"p95_us":2.880000,"min_us":1.184000,"max_us":10.304000}'
+  empty n=1024      single inv2  trials=200  median=1.4880us iqr=1.3440us cv=0.5893 grid=None
+  !! empty n=1024 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":1024,"block":256,"grid":4,"batch":100,"trials":200,"median_us":1.343360,"p05_us":1.297600,"p95_us":1.701120,"min_us":1.222720,"max_us":2.237120}'
+     raw stdout saved to raw_stdout_empty_1024_batched.txt
+  empty n=1024      batched inv0  trials=200  median=1.3429us iqr=0.1187us cv=0.0964 grid=None
+  !! empty n=1024 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":1024,"block":256,"grid":4,"batch":100,"trials":200,"median_us":1.322240,"p05_us":1.295360,"p95_us":1.532160,"min_us":1.224640,"max_us":2.441920}'
+  empty n=1024      batched inv1  trials=200  median=1.3213us iqr=0.0512us cv=0.0952 grid=None
+  !! empty n=1024 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":1024,"block":256,"grid":4,"batch":100,"trials":200,"median_us":1.307840,"p05_us":1.264000,"p95_us":1.369600,"min_us":1.196160,"max_us":1.609600}'
+  empty n=1024      batched inv2  trials=200  median=1.3078us iqr=0.0285us cv=0.0331 grid=None
+  !! empty n=16384 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":16384,"block":256,"grid":64,"batch":1,"trials":200,"median_us":1.728000,"p05_us":1.248000,"p95_us":3.456000,"min_us":1.216000,"max_us":8.800000}'
+     raw stdout saved to raw_stdout_empty_16384_single.txt
+  empty n=16384     single inv0  trials=200  median=1.7120us iqr=1.2480us cv=0.4765 grid=None
+  !! empty n=16384 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":16384,"block":256,"grid":64,"batch":1,"trials":200,"median_us":2.016000,"p05_us":1.248000,"p95_us":2.976000,"min_us":1.216000,"max_us":8.352000}'
+  empty n=16384     single inv1  trials=200  median=2.0160us iqr=1.2480us cv=0.4554 grid=None
+  !! empty n=16384 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":16384,"block":256,"grid":64,"batch":1,"trials":200,"median_us":1.696000,"p05_us":1.248000,"p95_us":2.976000,"min_us":1.216000,"max_us":10.848000}'
+  empty n=16384     single inv2  trials=200  median=1.6960us iqr=1.1520us cv=0.4853 grid=None
+  !! empty n=16384 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":16384,"block":256,"grid":64,"batch":100,"trials":200,"median_us":1.351680,"p05_us":1.299840,"p95_us":1.615040,"min_us":1.224320,"max_us":2.682880}'
+     raw stdout saved to raw_stdout_empty_16384_batched.txt
+  empty n=16384     batched inv0  trials=200  median=1.3514us iqr=0.0672us cv=0.0963 grid=None
+  !! empty n=16384 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":16384,"block":256,"grid":64,"batch":100,"trials":200,"median_us":1.354560,"p05_us":1.294400,"p95_us":1.853120,"min_us":1.229760,"max_us":2.913920}'
+  empty n=16384     batched inv1  trials=200  median=1.3539us iqr=0.0717us cv=0.1605 grid=None
+  !! empty n=16384 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":16384,"block":256,"grid":64,"batch":100,"trials":200,"median_us":1.379840,"p05_us":1.304320,"p95_us":1.842240,"min_us":1.253440,"max_us":2.928960}'
+  empty n=16384     batched inv2  trials=200  median=1.3789us iqr=0.2736us cv=0.1699 grid=None
+  !! empty n=262144 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":262144,"block":256,"grid":1024,"batch":1,"trials":200,"median_us":2.656000,"p05_us":1.664000,"p95_us":3.872000,"min_us":1.568000,"max_us":10.688000}'
+     raw stdout saved to raw_stdout_empty_262144_single.txt
+  empty n=262144    single inv0  trials=200  median=2.6560us iqr=0.3840us cv=0.4055 grid=None
+  !! empty n=262144 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":262144,"block":256,"grid":1024,"batch":1,"trials":200,"median_us":2.688000,"p05_us":1.632000,"p95_us":3.616000,"min_us":1.600000,"max_us":9.728000}'
+  empty n=262144    single inv1  trials=200  median=2.6880us iqr=0.3840us cv=0.2911 grid=None
+  !! empty n=262144 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":262144,"block":256,"grid":1024,"batch":1,"trials":200,"median_us":2.688000,"p05_us":1.664000,"p95_us":3.392000,"min_us":1.600000,"max_us":9.568000}'
+  empty n=262144    single inv2  trials=200  median=2.6880us iqr=0.4800us cv=0.3254 grid=None
+  !! empty n=262144 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":262144,"block":256,"grid":1024,"batch":100,"trials":200,"median_us":1.423360,"p05_us":1.347200,"p95_us":1.875520,"min_us":1.269440,"max_us":2.317760'
+     raw stdout saved to raw_stdout_empty_262144_batched.txt
+  empty n=262144    batched inv0  trials=200  median=1.4232us iqr=0.1520us cv=0.1175 grid=None
+  !! empty n=262144 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":262144,"block":256,"grid":1024,"batch":100,"trials":200,"median_us":1.463040,"p05_us":1.370560,"p95_us":2.179200,"min_us":1.298240,"max_us":2.818560'
+  empty n=262144    batched inv1  trials=200  median=1.4614us iqr=0.1920us cv=0.1643 grid=None
+  !! empty n=262144 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":262144,"block":256,"grid":1024,"batch":100,"trials":200,"median_us":1.505600,"p05_us":1.340800,"p95_us":2.039360,"min_us":0.948480,"max_us":2.949120'
+  empty n=262144    batched inv2  trials=200  median=1.5043us iqr=0.3520us cv=0.1762 grid=None
+  !! empty n=4194304 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":4194304,"block":256,"grid":16384,"batch":1,"trials":200,"median_us":9.600000,"p05_us":8.800000,"p95_us":10.912000,"min_us":8.736000,"max_us":24.7360'
+     raw stdout saved to raw_stdout_empty_4194304_single.txt
+  empty n=4194304   single inv0  trials=200  median=9.5680us iqr=1.7280us cv=0.1479 grid=None
+  !! empty n=4194304 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":4194304,"block":256,"grid":16384,"batch":1,"trials":200,"median_us":9.728000,"p05_us":8.832000,"p95_us":10.912000,"min_us":8.768000,"max_us":14.2720'
+  empty n=4194304   single inv1  trials=200  median=9.7120us iqr=1.7600us cv=0.0911 grid=None
+  !! empty n=4194304 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":4194304,"block":256,"grid":16384,"batch":1,"trials":200,"median_us":9.760000,"p05_us":8.800000,"p95_us":10.784000,"min_us":8.768000,"max_us":18.6560'
+  empty n=4194304   single inv2  trials=200  median=9.7440us iqr=1.6320us cv=0.1005 grid=None
+  !! empty n=4194304 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":4194304,"block":256,"grid":16384,"batch":100,"trials":200,"median_us":8.091840,"p05_us":8.082240,"p95_us":8.117120,"min_us":8.080000,"max_us":8.2118'
+     raw stdout saved to raw_stdout_empty_4194304_batched.txt
+  empty n=4194304   batched inv0  trials=200  median=8.0918us iqr=0.0112us cv=0.0022 grid=None
+  !! empty n=4194304 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":4194304,"block":256,"grid":16384,"batch":100,"trials":200,"median_us":8.088320,"p05_us":8.081920,"p95_us":8.102080,"min_us":8.079040,"max_us":8.1772'
+  empty n=4194304   batched inv1  trials=200  median=8.0883us iqr=0.0096us cv=0.0012 grid=None
+  !! empty n=4194304 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":4194304,"block":256,"grid":16384,"batch":100,"trials":200,"median_us":8.090880,"p05_us":8.082560,"p95_us":8.115520,"min_us":8.078400,"max_us":8.2144'
+  empty n=4194304   batched inv2  trials=200  median=8.0909us iqr=0.0102us cv=0.0020 grid=None
+  !! empty n=67108864 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":67108864,"block":256,"grid":65535,"batch":1,"trials":200,"median_us":33.280000,"p05_us":31.968001,"p95_us":33.631999,"min_us":31.679999,"max_us":41.'
+     raw stdout saved to raw_stdout_empty_67108864_single.txt
+  empty n=67108864  single inv0  trials=200  median=33.2800us iqr=0.3840us cv=0.0285 grid=None
+  !! empty n=67108864 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":67108864,"block":256,"grid":65535,"batch":1,"trials":200,"median_us":33.312000,"p05_us":31.872001,"p95_us":33.599999,"min_us":31.647999,"max_us":42.'
+  empty n=67108864  single inv1  trials=200  median=33.3120us iqr=0.4160us cv=0.0258 grid=None
+  !! empty n=67108864 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":67108864,"block":256,"grid":65535,"batch":1,"trials":200,"median_us":33.183999,"p05_us":31.840000,"p95_us":34.047998,"min_us":31.647999,"max_us":43.'
+  empty n=67108864  single inv2  trials=200  median=33.1840us iqr=1.2480us cv=0.0362 grid=None
+  !! empty n=67108864 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":67108864,"block":256,"grid":65535,"batch":100,"trials":200,"median_us":30.974720,"p05_us":30.959041,"p95_us":32.457600,"min_us":30.953920,"max_us":3'
+     raw stdout saved to raw_stdout_empty_67108864_batched.txt
+  empty n=67108864  batched inv0  trials=200  median=30.9747us iqr=0.0154us cv=0.0136 grid=None
+  !! empty n=67108864 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":67108864,"block":256,"grid":65535,"batch":100,"trials":200,"median_us":30.970559,"p05_us":30.959361,"p95_us":32.441919,"min_us":30.952959,"max_us":3'
+  empty n=67108864  batched inv1  trials=200  median=30.9706us iqr=0.0118us cv=0.0157 grid=None
+  !! empty n=67108864 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"empty","kernel":k_empty,"n":67108864,"block":256,"grid":65535,"batch":100,"trials":200,"median_us":30.969279,"p05_us":30.958719,"p95_us":31.058559,"min_us":30.944641,"max_us":3'
+  empty n=67108864  batched inv2  trials=200  median=30.9691us iqr=0.0106us cv=0.0097 grid=None
+  !! scale n=1024 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":1024,"block":256,"grid":4,"batch":1,"trials":200,"median_us":2.720000,"p05_us":1.536000,"p95_us":3.072000,"min_us":1.504000,"max_us":8.032000}'
+     raw stdout saved to raw_stdout_scale_1024_single.txt
+  scale n=1024      single inv0  trials=200  median=2.7200us iqr=0.4800us cv=0.2851 grid=None
+  !! scale n=1024 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":1024,"block":256,"grid":4,"batch":1,"trials":200,"median_us":1.696000,"p05_us":1.504000,"p95_us":4.384000,"min_us":1.504000,"max_us":11.040000}'
+  scale n=1024      single inv1  trials=200  median=1.6960us iqr=1.1520us cv=0.6727 grid=None
+  !! scale n=1024 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":1024,"block":256,"grid":4,"batch":1,"trials":200,"median_us":2.752000,"p05_us":1.536000,"p95_us":3.072000,"min_us":1.504000,"max_us":9.696000}'
+  scale n=1024      single inv2  trials=200  median=2.7520us iqr=0.4160us cv=0.2829 grid=None
+  !! scale n=1024 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":1024,"block":256,"grid":4,"batch":100,"trials":200,"median_us":1.358400,"p05_us":1.304640,"p95_us":1.441600,"min_us":1.268800,"max_us":1.572160}'
+     raw stdout saved to raw_stdout_scale_1024_batched.txt
+  scale n=1024      batched inv0  trials=200  median=1.3582us iqr=0.0515us cv=0.0342 grid=None
+  !! scale n=1024 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":1024,"block":256,"grid":4,"batch":100,"trials":200,"median_us":1.365120,"p05_us":1.310080,"p95_us":1.577280,"min_us":1.247680,"max_us":1.765760}'
+  scale n=1024      batched inv1  trials=200  median=1.3648us iqr=0.0602us cv=0.0578 grid=None
+  !! scale n=1024 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":1024,"block":256,"grid":4,"batch":100,"trials":200,"median_us":1.347840,"p05_us":1.296960,"p95_us":1.478080,"min_us":1.231680,"max_us":1.664000}'
+  scale n=1024      batched inv2  trials=200  median=1.3477us iqr=0.0723us cv=0.0432 grid=None
+  !! scale n=16384 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":16384,"block":256,"grid":64,"batch":1,"trials":200,"median_us":2.656000,"p05_us":1.632000,"p95_us":2.944000,"min_us":1.536000,"max_us":8.864000}'
+     raw stdout saved to raw_stdout_scale_16384_single.txt
+  scale n=16384     single inv0  trials=200  median=2.6560us iqr=0.2880us cv=0.2403 grid=None
+  !! scale n=16384 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":16384,"block":256,"grid":64,"batch":1,"trials":200,"median_us":2.592000,"p05_us":1.568000,"p95_us":3.584000,"min_us":1.536000,"max_us":11.008000}'
+  scale n=16384     single inv1  trials=200  median=2.5920us iqr=1.0560us cv=0.5039 grid=None
+  !! scale n=16384 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":16384,"block":256,"grid":64,"batch":1,"trials":200,"median_us":2.752000,"p05_us":1.568000,"p95_us":3.424000,"min_us":1.536000,"max_us":9.824000}'
+  scale n=16384     single inv2  trials=200  median=2.7520us iqr=0.5440us cv=0.3531 grid=None
+  !! scale n=16384 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":16384,"block":256,"grid":64,"batch":100,"trials":200,"median_us":1.413120,"p05_us":1.347200,"p95_us":1.697280,"min_us":1.285120,"max_us":2.700800}'
+     raw stdout saved to raw_stdout_scale_16384_batched.txt
+  scale n=16384     batched inv0  trials=200  median=1.4120us iqr=0.0694us cv=0.1238 grid=None
+  !! scale n=16384 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":16384,"block":256,"grid":64,"batch":100,"trials":200,"median_us":1.382720,"p05_us":1.316800,"p95_us":1.533760,"min_us":1.263360,"max_us":1.705280}'
+  scale n=16384     batched inv1  trials=200  median=1.3811us iqr=0.0643us cv=0.0507 grid=None
+  !! scale n=16384 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":16384,"block":256,"grid":64,"batch":100,"trials":200,"median_us":1.358080,"p05_us":1.313920,"p95_us":1.455040,"min_us":1.231680,"max_us":1.604800}'
+  scale n=16384     batched inv2  trials=200  median=1.3579us iqr=0.0448us cv=0.0365 grid=None
+  !! scale n=262144 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":262144,"block":256,"grid":1024,"batch":1,"trials":200,"median_us":2.720000,"p05_us":2.304000,"p95_us":3.488000,"min_us":1.984000,"max_us":8.352000}'
+     raw stdout saved to raw_stdout_scale_262144_single.txt
+  scale n=262144    single inv0  trials=200  median=2.7200us iqr=0.2560us cv=0.2224 grid=None
+  !! scale n=262144 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":262144,"block":256,"grid":1024,"batch":1,"trials":200,"median_us":2.816000,"p05_us":2.336000,"p95_us":3.392000,"min_us":1.952000,"max_us":20.352000}'
+  scale n=262144    single inv1  trials=200  median=2.8160us iqr=0.2880us cv=0.4547 grid=None
+  !! scale n=262144 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":262144,"block":256,"grid":1024,"batch":1,"trials":200,"median_us":2.720000,"p05_us":2.240000,"p95_us":2.944000,"min_us":2.016000,"max_us":8.224000}'
+  scale n=262144    single inv2  trials=200  median=2.7200us iqr=0.2560us cv=0.1748 grid=None
+  !! scale n=262144 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":262144,"block":256,"grid":1024,"batch":100,"trials":200,"median_us":1.408640,"p05_us":1.335040,"p95_us":1.546880,"min_us":1.239040,"max_us":1.940800'
+     raw stdout saved to raw_stdout_scale_262144_batched.txt
+  scale n=262144    batched inv0  trials=200  median=1.4086us iqr=0.0707us cv=0.0525 grid=None
+  !! scale n=262144 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":262144,"block":256,"grid":1024,"batch":100,"trials":200,"median_us":1.394880,"p05_us":1.339840,"p95_us":1.760000,"min_us":1.249280,"max_us":2.038080'
+  scale n=262144    batched inv1  trials=200  median=1.3949us iqr=0.0611us cv=0.0868 grid=None
+  !! scale n=262144 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":262144,"block":256,"grid":1024,"batch":100,"trials":200,"median_us":1.356160,"p05_us":1.307200,"p95_us":1.418880,"min_us":1.228480,"max_us":1.570560'
+  scale n=262144    batched inv2  trials=200  median=1.3549us iqr=0.0371us cv=0.0304 grid=None
+  !! scale n=4194304 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":4194304,"block":256,"grid":16384,"batch":1,"trials":200,"median_us":10.784000,"p05_us":9.504000,"p95_us":11.040000,"min_us":9.024000,"max_us":12.576'
+     raw stdout saved to raw_stdout_scale_4194304_single.txt
+  scale n=4194304   single inv0  trials=200  median=10.7840us iqr=0.3200us cv=0.0437 grid=None
+  !! scale n=4194304 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":4194304,"block":256,"grid":16384,"batch":1,"trials":200,"median_us":9.504000,"p05_us":9.152000,"p95_us":10.784000,"min_us":9.024000,"max_us":11.6160'
+  scale n=4194304   single inv1  trials=200  median=9.5040us iqr=0.2560us cv=0.0484 grid=None
+  !! scale n=4194304 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":4194304,"block":256,"grid":16384,"batch":1,"trials":200,"median_us":10.784000,"p05_us":9.344000,"p95_us":11.040000,"min_us":9.024000,"max_us":16.000'
+  scale n=4194304   single inv2  trials=200  median=10.7840us iqr=0.3200us cv=0.0608 grid=None
+  !! scale n=4194304 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":4194304,"block":256,"grid":16384,"batch":100,"trials":200,"median_us":8.330560,"p05_us":8.318720,"p95_us":8.376960,"min_us":8.312320,"max_us":8.4060'
+     raw stdout saved to raw_stdout_scale_4194304_batched.txt
+  scale n=4194304   batched inv0  trials=200  median=8.3304us iqr=0.0102us cv=0.0019 grid=None
+  !! scale n=4194304 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":4194304,"block":256,"grid":16384,"batch":100,"trials":200,"median_us":8.331520,"p05_us":8.320000,"p95_us":8.361600,"min_us":8.313280,"max_us":8.4428'
+  scale n=4194304   batched inv1  trials=200  median=8.3315us iqr=0.0102us cv=0.0021 grid=None
+  !! scale n=4194304 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":4194304,"block":256,"grid":16384,"batch":100,"trials":200,"median_us":8.331840,"p05_us":8.326080,"p95_us":8.351680,"min_us":8.317120,"max_us":8.4793'
+  scale n=4194304   batched inv2  trials=200  median=8.3318us iqr=0.0115us cv=0.0021 grid=None
+  !! scale n=67108864 single inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":67108864,"block":256,"grid":65535,"batch":1,"trials":200,"median_us":69.247998,"p05_us":67.135997,"p95_us":73.311999,"min_us":65.504000,"max_us":78.'
+     raw stdout saved to raw_stdout_scale_67108864_single.txt
+  scale n=67108864  single inv0  trials=200  median=69.2480us iqr=1.8880us cv=0.0258 grid=None
+  !! scale n=67108864 single inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":67108864,"block":256,"grid":65535,"batch":1,"trials":200,"median_us":69.183998,"p05_us":67.263998,"p95_us":71.552001,"min_us":66.592000,"max_us":84.'
+  scale n=67108864  single inv1  trials=200  median=69.1840us iqr=1.7280us cv=0.0244 grid=None
+  !! scale n=67108864 single inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":67108864,"block":256,"grid":65535,"batch":1,"trials":200,"median_us":69.279999,"p05_us":67.295998,"p95_us":71.071997,"min_us":64.736001,"max_us":83.'
+  scale n=67108864  single inv2  trials=200  median=69.2640us iqr=1.9200us cv=0.0248 grid=None
+  !! scale n=67108864 batched inv0: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":67108864,"block":256,"grid":65535,"batch":100,"trials":200,"median_us":71.132798,"p05_us":70.713282,"p95_us":74.392958,"min_us":70.045438,"max_us":7'
+     raw stdout saved to raw_stdout_scale_67108864_batched.txt
+  scale n=67108864  batched inv0  trials=200  median=71.1326us iqr=0.2144us cv=0.0196 grid=None
+  !! scale n=67108864 batched inv1: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":67108864,"block":256,"grid":65535,"batch":100,"trials":200,"median_us":71.108479,"p05_us":70.355201,"p95_us":71.370239,"min_us":70.054722,"max_us":7'
+  scale n=67108864  batched inv1  trials=200  median=71.1080us iqr=0.1533us cv=0.0075 grid=None
+  !! scale n=67108864 batched inv2: 1 unparseable stdout line(s); first: '{"summary":true,"mode":"scale","kernel":k_scale,"n":67108864,"block":256,"grid":65535,"batch":100,"trials":200,"median_us":71.174402,"p05_us":70.743680,"p95_us":74.471359,"min_us":69.949441,"max_us":7'
+  scale n=67108864  batched inv2  trials=200  median=71.1744us iqr=0.9974us cv=0.0213 grid=None
+telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "44", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "379.05 W", "power.limit": "575.00 W", "utilization.gpu": "100 %", "memory.used": "443 MiB"}
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.1/experiments/gpu-sim-u2o.6.6.1/measure_noise.py", line 289, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.1/experiments/gpu-sim-u2o.6.6.1/measure_noise.py", line 236, in main
+    floor_us = empty_single["median_us"]
+               ~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'median_us'
+=== measure_noise exit=1 ===

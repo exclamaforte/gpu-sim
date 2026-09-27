@@ -1,0 +1,103 @@
+=== ts job: gabe at 2026-09-27T08:51:25-07:00 ===
+========================================================================
+gpu-sim-u2o.6.6.1 -- noise floor of the real measurement path
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: SafeHarness.preflight_check()
+currently executes on the real GPU (PI ruling on 6.1.1), so calling
+it here would add a second, unaccounted GPU execution to a
+measurement experiment. compile_kernel() and run_kernel() are called
+directly instead. Kernel is a FIXED hand-written reference kernel:
+no generated or untrusted code, no dependency on the fake path.
+No sudo, no clock locking, no persistence-mode change; nvidia-smi is
+used only for read-only telemetry queries.
+========================================================================
+telemetry before: {"clocks.sm": "255 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "36", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "13.05 W", "power.limit": "575.00 W", "utilization.gpu": "0 %", "memory.used": "443 MiB"}
+compile_kernel -> ok=True Compilation successful
+  empty n=1024      single inv0  trials=200  median=2.0640us iqr=1.4080us cv=0.4063 grid=4
+  empty n=1024      single inv1  trials=200  median=2.2720us iqr=1.3760us cv=0.3636 grid=4
+  empty n=1024      single inv2  trials=200  median=2.2880us iqr=1.4400us cv=0.4072 grid=4
+  empty n=1024      batched inv0  trials=200  median=1.3061us iqr=0.0272us cv=0.0297 grid=4
+  empty n=1024      batched inv1  trials=200  median=1.3035us iqr=0.0211us cv=0.0291 grid=4
+  empty n=1024      batched inv2  trials=200  median=1.2976us iqr=0.0179us cv=0.0191 grid=4
+  empty n=16384     single inv0  trials=200  median=2.1760us iqr=1.4080us cv=0.4162 grid=64
+  empty n=16384     single inv1  trials=200  median=2.0960us iqr=1.3440us cv=0.5589 grid=64
+  empty n=16384     single inv2  trials=200  median=1.5680us iqr=1.2800us cv=0.4476 grid=64
+  empty n=16384     batched inv0  trials=200  median=1.3085us iqr=0.0298us cv=0.0725 grid=64
+  empty n=16384     batched inv1  trials=200  median=1.3520us iqr=0.3584us cv=0.1349 grid=64
+  empty n=16384     batched inv2  trials=200  median=1.3054us iqr=0.0307us cv=0.0922 grid=64
+  empty n=262144    single inv0  trials=200  median=2.7520us iqr=0.2560us cv=0.1827 grid=1024
+  empty n=262144    single inv1  trials=200  median=2.7200us iqr=0.3520us cv=0.3576 grid=1024
+  empty n=262144    single inv2  trials=200  median=2.7200us iqr=0.9920us cv=0.3500 grid=1024
+  empty n=262144    batched inv0  trials=200  median=1.3200us iqr=0.0355us cv=0.0711 grid=1024
+  empty n=262144    batched inv1  trials=200  median=1.3165us iqr=0.0147us cv=0.0425 grid=1024
+  empty n=262144    batched inv2  trials=200  median=1.3187us iqr=0.0563us cv=0.0805 grid=1024
+  empty n=4194304   single inv0  trials=200  median=9.6320us iqr=1.7600us cv=0.1893 grid=16384
+  empty n=4194304   single inv1  trials=200  median=9.8720us iqr=1.7280us cv=0.0867 grid=16384
+  empty n=4194304   single inv2  trials=200  median=9.6480us iqr=1.7280us cv=0.1156 grid=16384
+  empty n=4194304   batched inv0  trials=200  median=8.0842us iqr=0.0080us cv=0.0017 grid=16384
+  empty n=4194304   batched inv1  trials=200  median=8.0850us iqr=0.0090us cv=0.0008 grid=16384
+  empty n=4194304   batched inv2  trials=200  median=8.0890us iqr=0.0122us cv=0.0017 grid=16384
+  empty n=67108864  single inv0  trials=200  median=33.3120us iqr=0.2880us cv=0.0288 grid=65535
+  empty n=67108864  single inv1  trials=200  median=32.2560us iqr=1.2160us cv=0.0303 grid=65535
+  empty n=67108864  single inv2  trials=200  median=33.3760us iqr=0.3200us cv=0.0264 grid=65535
+  empty n=67108864  batched inv0  trials=200  median=31.0154us iqr=0.0205us cv=0.0080 grid=65535
+  empty n=67108864  batched inv1  trials=200  median=31.0146us iqr=0.0131us cv=0.0078 grid=65535
+  empty n=67108864  batched inv2  trials=200  median=31.0106us iqr=0.0102us cv=0.0067 grid=65535
+  scale n=1024      single inv0  trials=200  median=2.6240us iqr=0.4160us cv=0.8813 grid=4
+  scale n=1024      single inv1  trials=200  median=2.6880us iqr=0.3840us cv=0.5336 grid=4
+  scale n=1024      single inv2  trials=200  median=2.6240us iqr=0.3520us cv=0.2705 grid=4
+  scale n=1024      batched inv0  trials=200  median=1.3387us iqr=0.0522us cv=0.0944 grid=4
+  scale n=1024      batched inv1  trials=200  median=1.3382us iqr=0.0512us cv=0.0504 grid=4
+  scale n=1024      batched inv2  trials=200  median=1.3152us iqr=0.0179us cv=0.0199 grid=4
+  scale n=16384     single inv0  trials=200  median=2.6240us iqr=0.6080us cv=0.2524 grid=64
+  scale n=16384     single inv1  trials=200  median=2.5920us iqr=0.6080us cv=0.7176 grid=64
+  scale n=16384     single inv2  trials=200  median=2.6240us iqr=0.4480us cv=0.4007 grid=64
+  scale n=16384     batched inv0  trials=200  median=1.3158us iqr=0.0157us cv=0.0254 grid=64
+  scale n=16384     batched inv1  trials=200  median=1.3282us iqr=0.0502us cv=0.0615 grid=64
+  scale n=16384     batched inv2  trials=200  median=1.3277us iqr=0.0387us cv=0.0458 grid=64
+  scale n=262144    single inv0  trials=200  median=2.7520us iqr=0.2560us cv=0.2009 grid=1024
+  scale n=262144    single inv1  trials=200  median=2.7520us iqr=0.2240us cv=0.3996 grid=1024
+  scale n=262144    single inv2  trials=200  median=2.8160us iqr=0.2560us cv=0.1870 grid=1024
+  scale n=262144    batched inv0  trials=200  median=1.4150us iqr=0.2003us cv=0.1383 grid=1024
+  scale n=262144    batched inv1  trials=200  median=1.3438us iqr=0.0602us cv=0.0760 grid=1024
+  scale n=262144    batched inv2  trials=200  median=1.3286us iqr=0.0314us cv=0.0449 grid=1024
+  scale n=4194304   single inv0  trials=200  median=10.8480us iqr=0.2560us cv=0.0386 grid=16384
+  scale n=4194304   single inv1  trials=200  median=10.8480us iqr=0.3520us cv=0.0559 grid=16384
+  scale n=4194304   single inv2  trials=200  median=10.8480us iqr=0.3840us cv=0.0522 grid=16384
+  scale n=4194304   batched inv0  trials=200  median=8.3296us iqr=0.0083us cv=0.0014 grid=16384
+  scale n=4194304   batched inv1  trials=200  median=8.3379us iqr=0.0166us cv=0.0011 grid=16384
+  scale n=4194304   batched inv2  trials=200  median=8.3400us iqr=0.0150us cv=0.0021 grid=16384
+  scale n=67108864  single inv0  trials=200  median=69.1520us iqr=2.1440us cv=0.0347 grid=65535
+  scale n=67108864  single inv1  trials=200  median=69.2800us iqr=1.8240us cv=0.0206 grid=65535
+  scale n=67108864  single inv2  trials=200  median=69.2800us iqr=2.3360us cv=0.0349 grid=65535
+  scale n=67108864  batched inv0  trials=200  median=71.1181us iqr=0.1795us cv=0.0145 grid=65535
+  scale n=67108864  batched inv1  trials=200  median=71.0962us iqr=0.1558us cv=0.0114 grid=65535
+  scale n=67108864  batched inv2  trials=200  median=71.1000us iqr=0.2285us cv=0.0167 grid=65535
+telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "47", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "374.65 W", "power.limit": "575.00 W", "utilization.gpu": "100 %", "memory.used": "443 MiB"}
+
+=== NOISE FLOOR ===
+{
+  "empty_kernel_us": 2.272,
+  "empty_kernel_batched_us": 1.30352,
+  "grid_cap_note": "grid.x is capped at 65535 (classic launch bound), so at n > 65535*block = 16777216 the kernel only covers grid*block elements. The n=2^26 cell therefore measures the first 16777216 elements, not 67108864.",
+  "launch_overhead_us_single_minus_batched": 0.9684799999999997,
+  "launch_bound_crossover_n": 1024,
+  "mdd_pct_by_n": {
+    "10": 44.28113546852303,
+    "20": 31.311491168432784,
+    "50": 19.8031258056989,
+    "100": 14.002924545900003,
+    "200": 9.90156290284945
+  },
+  "mdd_pct_by_n_note": "MDD is computed on the EMPTY kernel cell (the worst case: the smallest, most overhead-dominated signal on this box). Per-cell MDD is in each cell's mdd_pct_by_n.",
+  "trials_needed_for_10pct_difference": {
+    "1024": 988,
+    "16384": 70,
+    "262144": 50,
+    "4194304": 2,
+    "67108864": 1
+  }
+}
+
+total wall 15.6s, 20 cells
+=== measure_noise exit=0 ===

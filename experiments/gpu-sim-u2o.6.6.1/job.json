@@ -1,0 +1,26 @@
+{
+  "bead": "gpu-sim-u2o.6.6.1",
+  "queue": "ts (task-spooler) on gpu 0 -- GPU-touching work goes through the queue, per gpu-sim-u2o.6.8",
+  "final_job": "20260927t155323-7762efe5",
+  "final_state": "finished",
+  "gpu_time_sec": 15.7,
+  "constraints_honoured": {
+    "preflight_bypassed": true,
+    "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); this experiment must not inherit an unaccounted second execution. compile_kernel/run_kernel called directly; stated at the top of output.log",
+    "fixed_reference_kernel_only": true,
+    "no_generated_or_untrusted_kernels": true,
+    "no_sudo": true,
+    "no_clock_locking": true,
+    "no_persistence_mode_change": true,
+    "nvidia_smi_usage": "read-only --query-gpu telemetry only, before and after the run"
+  },
+  "jobs": [
+    {"job_id": "20260927t154858-71fa45c8", "state": "failed", "purpose": "first attempt; crashed parsing stdout (JSON error), no data kept", "log": "ts_job_logs/20260927t154858-71fa45c8.log"},
+    {"job_id": "20260927t154936-b1b133bc", "state": "failed", "purpose": "tolerant parse added; crashed on the return-tuple change before reaching the summary", "log": "ts_job_logs/20260927t154936-b1b133bc.log"},
+    {"job_id": "20260927t154954-2de31b37", "state": "failed", "purpose": "all 20 cells measured; crashed in the noise-floor summary (cell dicts expose median_ms, not median_us)", "log": "ts_job_logs/20260927t154954-2de31b37.log"},
+    {"job_id": "20260927t155030-79877e21", "state": "failed", "purpose": "same summary bug, re-run to confirm the cell data was complete", "log": "ts_job_logs/20260927t155030-79877e21.log"},
+    {"job_id": "20260927t155125-9cc71df8", "state": "finished", "purpose": "summary fixed; full noise_floor block produced, but the crossover definition was a poor one (compared single-mode medians), so it was redefined from the data and re-run", "log": "ts_job_logs/20260927t155125-9cc71df8.log"},
+    {"job_id": "20260927t155323-7762efe5", "state": "finished", "purpose": "FINAL: data-derived crossover, per-size decomposition, batched-mode trial requirements; 20 cells, 15.7 s", "log": "ts_job_logs/20260927t155323-7762efe5.log"}
+  ],
+  "note": "All jobs are finished or failed; nothing is left running. The five failures are kept rather than tidied away: three were my own bugs in the experiment script, one was an invalid JSON format string in the reference kernel, and the last was a crossover definition I rejected as not defensible."
+}
