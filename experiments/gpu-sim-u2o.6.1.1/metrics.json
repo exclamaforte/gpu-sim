@@ -210,5 +210,7 @@
       "discard_reason": "none",
       "first_trial_ms": 0.008288
     }
-  ]
+  ],
+  "measurement_version": 1,
+  "frozen": "measurement_version 1: the stage-1 end-to-end measurement of record, from ts job 20260927t145454-9c2420b3 (2026-09-27, 4 kernels x 20 real cudaEvent trials, medians 0.0026-0.0028 ms). This artifact predates the 6.1.3/6.1.1 rework: preflight_check ran on the real GPU immediately before the measured run, so this run inherited a clock ramp the closing run will not. It is still the declared PREDECESSOR the closing run is diffed against. Any change to these numbers is measurement_version 2 with a stated reason, never an in-place edit."
 }
