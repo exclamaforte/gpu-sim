@@ -1,0 +1,26 @@
+=== ts job: gabe at 2026-09-27T08:32:56-07:00 ===
+--- CPU unit tests (no GPU) ---
+PASS  harness: preflight refuses oversized spec (returns FAILED)  Pre-flight FAILED: VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+
+0 failure(s)
+cpu tests exit=0
+--- GPU validation ---
+device: NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB
+CUDA_VISIBLE_DEVICES= 0
+[PASS] A1 static VRAM cap rejects 8 GiB spec  VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+[PASS] A2 measure_spec refuses oversized spec (RuntimeError)  Pre-flight FAILED: VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+[PASS] A3 refusal was fast (no GPU work, <5s)  0.15s
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/experiments/gpu-sim-u2o.6.3/verify_budgets.py", line 172, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/experiments/gpu-sim-u2o.6.3/verify_budgets.py", line 79, in main
+    trials, res = harness.measure_spec(good, arch="sm_120")
+                  ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/epic_u2o/safe_harness.py", line 615, in measure_spec
+    result = self.run_kernel(exec_path)
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/epic_u2o/safe_harness.py", line 402, in run_kernel
+    run_env.update(env)
+    ~~~~~~~~~~~~~~^^^^^
+TypeError: 'NoneType' object is not iterable
+=== cpu_rc=0 gpu_rc=1 ===
