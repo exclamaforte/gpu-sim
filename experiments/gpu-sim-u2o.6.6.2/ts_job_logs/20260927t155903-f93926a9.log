@@ -1,0 +1,26 @@
+=== ts job 2026-09-27T09:00:14-07:00 family=reduce ===
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'reduce'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2422 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "39", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+reduce: 8 configs x 3 process invocations x 100 trials
+  block_sum n=4096 auto/256    grid=    [16, 1, 1] med=    0.368us iqr=   0.704us cv=1.197 ai_cv=0.6837
+  block_sum n=4096 auto/1024   grid=     [4, 1, 1] med=    0.352us iqr=   0.512us cv=0.561 ai_cv=0.6928
+  block_sum n=65536 auto/256   grid=   [256, 1, 1] med=    0.384us iqr=   0.256us cv=1.439 ai_cv=0.3464
+  block_sum n=65536 auto/1024  grid=    [64, 1, 1] med=    0.384us iqr=   0.000us cv=1.618 ai_cv=0.0
+  block_sum n=1048576 auto/256 grid=  [4096, 1, 1] med=    0.384us iqr=   0.384us cv=0.492 ai_cv=0.4595
+  block_sum n=1048576 auto/1024 grid=  [1024, 1, 1] med=    0.384us iqr=   0.000us cv=0.180 ai_cv=0.0
+  block_sum n=16777216 auto/256 grid= [65536, 1, 1] med=    0.384us iqr=   0.288us cv=0.379 ai_cv=0.3616
+  block_sum n=16777216 auto/1024 grid= [16384, 1, 1] med=    0.384us iqr=   0.032us cv=0.179 ai_cv=0.0468
+telemetry after:  {"clocks.sm": "2437 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "39", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2/experiments/gpu-sim-u2o.6.6.2/family_reduce.json
+reduce: 8/8 configs measured, 7.0s
+=== family=reduce exit=0 ===
