@@ -1,0 +1,30 @@
+{
+  "bead": "gpu-sim-u2o.6.3",
+  "queue": "ts (task-spooler) on gpu 0 -- every GPU-touching command, per gpu-sim-u2o.6.8",
+  "jobs": [
+    {
+      "job_id": "20260927t150118-3d679583",
+      "state": "failed",
+      "purpose": "first attempt: generator emitted no spec for n=2^30 (grid*block must cover n/4); CPU unit tests already passed",
+      "log": "ts_job_logs/20260927t150118-3d679583.log"
+    },
+    {
+      "job_id": "20260927t153256-8f6b147f",
+      "state": "failed",
+      "purpose": "second attempt: A1-A3 static VRAM cap PASSED on the real 5090; crashed on a bad edit in run_kernel (env=None) found by the job",
+      "log": "ts_job_logs/20260927t153256-8f6b147f.log"
+    },
+    {
+      "job_id": "20260927t153321-c63662b2",
+      "state": "failed",
+      "purpose": "third attempt: 11/13 checks passed; two real defects surfaced -- malformed driver JSON for the mem line, and a wrong test expectation about RLIMIT_FSIZE ordering",
+      "log": "ts_job_logs/20260927t153321-c63662b2.log"
+    },
+    {
+      "job_id": "20260927t153415-d811e1d5",
+      "state": "finished",
+      "purpose": "SUCCESS: 19/19 checks (13 GPU-side + CPU suite) on NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB",
+      "log": "ts_job_logs/20260927t153415-d811e1d5.log"
+    }
+  ]
+}
