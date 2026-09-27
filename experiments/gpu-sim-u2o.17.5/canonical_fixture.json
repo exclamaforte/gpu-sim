@@ -1,0 +1,1288 @@
+{
+  "bead": "gpu-sim-u2o.17.5",
+  "fixture_version": 1,
+  "what": "canonical real-GPU PyTorch trace fixture, op classes x shapes. Ground truth for 17.3 (simulated path) and 17.4 (parity gate). This bead decides nothing; 17.4 owns pass/fail.",
+  "produced": "2026-09-27T09:01:30-0700",
+  "device": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "capability": "12.0",
+    "total_memory_bytes": 33693827072,
+    "multi_processor_count": 170,
+    "driver_version": "610.57.04",
+    "torch_version": "2.14.0+cu130",
+    "python": "3.14.7"
+  },
+  "protocol": {
+    "profiler": "torch.profiler, CPU+CUDA activities, record_shapes=True",
+    "warmup": 5,
+    "repetitions_per_case": 20,
+    "seed": 0,
+    "extraction": "profiler_key_averages() self_device_time_total/count for the leaf op (relu->clamp_min, matmul->mm), plus per-event durations parsed out of the exported chrome trace for the median and the spread",
+    "negative_control": {
+      "returncode": 1,
+      "stdout_tail": "",
+      "stderr_tail": "b/python3.14/site-packages/torch/cuda/__init__.py\", line 560, in init\n    _lazy_init()\n    ~~~~~~~~~~^^\n  File \"/home/gabe/.local/lib/python3.14/site-packages/torch/cuda/__init__.py\", line 591, in _lazy_init\n    torch._C._cuda_init()\n    ~~~~~~~~~~~~~~~~~~~^^\nRuntimeError: No CUDA GPUs are available",
+      "failed_as_required": true
+    }
+  },
+  "telemetry_before": {
+    "label": "before",
+    "at": 1790524887.9754643,
+    "rc": 0,
+    "csv": "2407 MHz, 3105 MHz, 39, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2407 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "39",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "telemetry_after": {
+    "label": "after",
+    "at": 1790524889.3597867,
+    "rc": 0,
+    "csv": "2242 MHz, 3105 MHz, 54, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2242 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "54",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "op_classes": [
+    "chain",
+    "elementwise",
+    "launch_bound",
+    "matmul",
+    "reduce"
+  ],
+  "n_cases": 24,
+  "spread_by_op_class": {
+    "elementwise": {
+      "n_cases": 12,
+      "max_spread_pct_of_median": 44.56018518518518,
+      "median_spread_pct_of_median": 11.93937197425025
+    },
+    "launch_bound": {
+      "n_cases": 1,
+      "max_spread_pct_of_median": 6.451612903225812,
+      "median_spread_pct_of_median": 6.451612903225812
+    },
+    "matmul": {
+      "n_cases": 5,
+      "max_spread_pct_of_median": 230.76792450253504,
+      "median_spread_pct_of_median": 210.20865091463418
+    },
+    "reduce": {
+      "n_cases": 4,
+      "max_spread_pct_of_median": 190.02267573696145,
+      "median_spread_pct_of_median": 171.91102123356924
+    },
+    "chain": {
+      "n_cases": 2,
+      "max_spread_pct_of_median": 71.52153618665378,
+      "median_spread_pct_of_median": 50.62893215582689
+    }
+  },
+  "cases": [
+    {
+      "op_class": "elementwise",
+      "op": "relu",
+      "profiler_key": "aten::clamp_min",
+      "shapes": [
+        1024
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0008671499999999923,
+      "device_ms_n": 20,
+      "device_us_total": 17.342999999999847,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 17.342999999999847,
+          "count": 20,
+          "self_device_time_avg_us": 0.8671499999999923
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 17.342999999999847,
+          "count": 20,
+          "self_device_time_avg_us": 0.8671499999999923
+        }
+      },
+      "raw_trace": "case_00_elementwise_relu.json",
+      "capture_wall_sec": 0.6067264080047607,
+      "device_event_us_median": 0.864,
+      "device_event_us_min": 0.831,
+      "device_event_us_max": 1.216,
+      "device_event_us_iqr": 0.03200000000000003,
+      "device_ms_spread": 0.00038500000000000003,
+      "device_ms_spread_pct_of_median": 44.56018518518518,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "sigmoid",
+      "profiler_key": "aten::sigmoid",
+      "shapes": [
+        1024
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0011792500000000188,
+      "device_ms_n": 20,
+      "device_us_total": 23.585000000000377,
+      "profiler_attribution": {
+        "aten::sigmoid": {
+          "self_device_time_total_us": 23.585000000000377,
+          "count": 20,
+          "self_device_time_avg_us": 1.1792500000000188
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 23.585000000000377,
+          "count": 20,
+          "self_device_time_avg_us": 1.1792500000000188
+        },
+        "cudaDeviceSynchronize": {
+          "self_device_time_total_us": 2.3360000000000127,
+          "count": 2,
+          "self_device_time_avg_us": 1.1680000000000064
+        }
+      },
+      "raw_trace": "case_01_elementwise_sigmoid.json",
+      "capture_wall_sec": 0.008616924285888672,
+      "device_event_us_median": 1.1684999999999999,
+      "device_event_us_min": 1.152,
+      "device_event_us_max": 1.376,
+      "device_event_us_iqr": 0.03200000000000003,
+      "device_ms_spread": 0.00022399999999999997,
+      "device_ms_spread_pct_of_median": 19.16987590928541,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "tanh",
+      "profiler_key": "aten::tanh",
+      "shapes": [
+        1024
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0008690500000000213,
+      "device_ms_n": 20,
+      "device_us_total": 17.381000000000427,
+      "profiler_attribution": {
+        "aten::tanh": {
+          "self_device_time_total_us": 17.381000000000427,
+          "count": 20,
+          "self_device_time_avg_us": 0.8690500000000213
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 17.381000000000427,
+          "count": 20,
+          "self_device_time_avg_us": 0.8690500000000213
+        }
+      },
+      "raw_trace": "case_02_elementwise_tanh.json",
+      "capture_wall_sec": 0.0064389705657958984,
+      "device_event_us_median": 0.864,
+      "device_event_us_min": 0.832,
+      "device_event_us_max": 0.897,
+      "device_event_us_iqr": 0.0010000000000000009,
+      "device_ms_spread": 6.500000000000006e-05,
+      "device_ms_spread_pct_of_median": 7.523148148148154,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "relu",
+      "profiler_key": "aten::clamp_min",
+      "shapes": [
+        65536
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.000870399999999998,
+      "device_ms_n": 20,
+      "device_us_total": 17.40799999999996,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 17.40799999999996,
+          "count": 20,
+          "self_device_time_avg_us": 0.870399999999998
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 17.40799999999996,
+          "count": 20,
+          "self_device_time_avg_us": 0.870399999999998
+        }
+      },
+      "raw_trace": "case_03_elementwise_relu.json",
+      "capture_wall_sec": 0.0035614967346191406,
+      "device_event_us_median": 0.864,
+      "device_event_us_min": 0.863,
+      "device_event_us_max": 0.96,
+      "device_event_us_iqr": 0.0,
+      "device_ms_spread": 9.699999999999997e-05,
+      "device_ms_spread_pct_of_median": 11.22685185185185,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "sigmoid",
+      "profiler_key": "aten::sigmoid",
+      "shapes": [
+        65536
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0011903999999999997,
+      "device_ms_n": 20,
+      "device_us_total": 23.807999999999993,
+      "profiler_attribution": {
+        "aten::sigmoid": {
+          "self_device_time_total_us": 23.807999999999993,
+          "count": 20,
+          "self_device_time_avg_us": 1.1903999999999997
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 23.807999999999993,
+          "count": 20,
+          "self_device_time_avg_us": 1.1903999999999997
+        }
+      },
+      "raw_trace": "case_04_elementwise_sigmoid.json",
+      "capture_wall_sec": 0.0036602020263671875,
+      "device_event_us_median": 1.184,
+      "device_event_us_min": 1.184,
+      "device_event_us_max": 1.217,
+      "device_event_us_iqr": 0.001000000000000112,
+      "device_ms_spread": 3.300000000000014e-05,
+      "device_ms_spread_pct_of_median": 2.7871621621621743,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "tanh",
+      "profiler_key": "aten::tanh",
+      "shapes": [
+        65536
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0008911999999999949,
+      "device_ms_n": 20,
+      "device_us_total": 17.8239999999999,
+      "profiler_attribution": {
+        "aten::tanh": {
+          "self_device_time_total_us": 17.8239999999999,
+          "count": 20,
+          "self_device_time_avg_us": 0.8911999999999949
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 17.8239999999999,
+          "count": 20,
+          "self_device_time_avg_us": 0.8911999999999949
+        }
+      },
+      "raw_trace": "case_05_elementwise_tanh.json",
+      "capture_wall_sec": 0.003069639205932617,
+      "device_event_us_median": 0.896,
+      "device_event_us_min": 0.864,
+      "device_event_us_max": 0.928,
+      "device_event_us_iqr": 0.0,
+      "device_ms_spread": 6.400000000000005e-05,
+      "device_ms_spread_pct_of_median": 7.1428571428571495,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "relu",
+      "profiler_key": "aten::clamp_min",
+      "shapes": [
+        1048576
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.002068700000000007,
+      "device_ms_n": 20,
+      "device_us_total": 41.37400000000014,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 41.37400000000014,
+          "count": 20,
+          "self_device_time_avg_us": 2.068700000000007
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 41.37400000000014,
+          "count": 20,
+          "self_device_time_avg_us": 2.068700000000007
+        }
+      },
+      "raw_trace": "case_06_elementwise_relu.json",
+      "capture_wall_sec": 0.005601167678833008,
+      "device_event_us_median": 2.048,
+      "device_event_us_min": 1.984,
+      "device_event_us_max": 2.336,
+      "device_event_us_iqr": 0.03299999999999992,
+      "device_ms_spread": 0.0003519999999999999,
+      "device_ms_spread_pct_of_median": 17.187499999999993,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "sigmoid",
+      "profiler_key": "aten::sigmoid",
+      "shapes": [
+        1048576
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0023504499999999835,
+      "device_ms_n": 20,
+      "device_us_total": 47.00899999999967,
+      "profiler_attribution": {
+        "aten::sigmoid": {
+          "self_device_time_total_us": 47.00899999999967,
+          "count": 20,
+          "self_device_time_avg_us": 2.3504499999999835
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 47.00899999999967,
+          "count": 20,
+          "self_device_time_avg_us": 2.3504499999999835
+        }
+      },
+      "raw_trace": "case_07_elementwise_sigmoid.json",
+      "capture_wall_sec": 0.0033659934997558594,
+      "device_event_us_median": 2.368,
+      "device_event_us_min": 2.24,
+      "device_event_us_max": 2.4,
+      "device_event_us_iqr": 0.03200000000000003,
+      "device_ms_spread": 0.0001599999999999997,
+      "device_ms_spread_pct_of_median": 6.756756756756745,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "tanh",
+      "profiler_key": "aten::tanh",
+      "shapes": [
+        1048576
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0020848000000000012,
+      "device_ms_n": 20,
+      "device_us_total": 41.696000000000026,
+      "profiler_attribution": {
+        "aten::tanh": {
+          "self_device_time_total_us": 41.696000000000026,
+          "count": 20,
+          "self_device_time_avg_us": 2.0848000000000013
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 41.696000000000026,
+          "count": 20,
+          "self_device_time_avg_us": 2.0848000000000013
+        }
+      },
+      "raw_trace": "case_08_elementwise_tanh.json",
+      "capture_wall_sec": 0.00351715087890625,
+      "device_event_us_median": 2.048,
+      "device_event_us_min": 2.016,
+      "device_event_us_max": 2.4,
+      "device_event_us_iqr": 0.06400000000000006,
+      "device_ms_spread": 0.0003839999999999999,
+      "device_ms_spread_pct_of_median": 18.749999999999996,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "relu",
+      "profiler_key": "aten::clamp_min",
+      "shapes": [
+        16777216
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.06615040000000003,
+      "device_ms_n": 20,
+      "device_us_total": 1323.0080000000003,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 1323.0080000000003,
+          "count": 20,
+          "self_device_time_avg_us": 66.15040000000002
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 1323.0080000000003,
+          "count": 20,
+          "self_device_time_avg_us": 66.15040000000002
+        }
+      },
+      "raw_trace": "case_09_elementwise_relu.json",
+      "capture_wall_sec": 0.005210399627685547,
+      "device_event_us_median": 66.27199999999999,
+      "device_event_us_min": 55.808,
+      "device_event_us_max": 78.432,
+      "device_event_us_iqr": 5.311999999999998,
+      "device_ms_spread": 0.022624000000000002,
+      "device_ms_spread_pct_of_median": 34.138097537421544,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "sigmoid",
+      "profiler_key": "aten::sigmoid",
+      "shapes": [
+        16777216
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.07520045,
+      "device_ms_n": 20,
+      "device_us_total": 1504.009,
+      "profiler_attribution": {
+        "aten::sigmoid": {
+          "self_device_time_total_us": 1504.009,
+          "count": 20,
+          "self_device_time_avg_us": 75.20045
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 1504.009,
+          "count": 20,
+          "self_device_time_avg_us": 75.20045
+        }
+      },
+      "raw_trace": "case_10_elementwise_sigmoid.json",
+      "capture_wall_sec": 0.00444483757019043,
+      "device_event_us_median": 74.96000000000001,
+      "device_event_us_min": 71.456,
+      "device_event_us_max": 79.873,
+      "device_event_us_iqr": 2.3999999999999915,
+      "device_ms_spread": 0.008417000000000001,
+      "device_ms_spread_pct_of_median": 11.228655282817504,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "elementwise",
+      "op": "tanh",
+      "profiler_key": "aten::tanh",
+      "shapes": [
+        16777216
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.07354854999999998,
+      "device_ms_n": 20,
+      "device_us_total": 1470.9709999999995,
+      "profiler_attribution": {
+        "aten::tanh": {
+          "self_device_time_total_us": 1470.9709999999995,
+          "count": 20,
+          "self_device_time_avg_us": 73.54854999999998
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 1470.9709999999995,
+          "count": 20,
+          "self_device_time_avg_us": 73.54854999999998
+        }
+      },
+      "raw_trace": "case_11_elementwise_tanh.json",
+      "capture_wall_sec": 0.003934621810913086,
+      "device_event_us_median": 73.873,
+      "device_event_us_min": 68.449,
+      "device_event_us_max": 77.794,
+      "device_event_us_iqr": 3.937000000000012,
+      "device_ms_spread": 0.009345,
+      "device_ms_spread_pct_of_median": 12.650088665682993,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::tanh_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#2}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ]
+    },
+    {
+      "op_class": "launch_bound",
+      "op": "relu",
+      "profiler_key": "aten::clamp_min",
+      "shapes": [
+        256
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0010047999999999945,
+      "device_ms_n": 20,
+      "device_us_total": 20.09599999999989,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 20.09599999999989,
+          "count": 20,
+          "self_device_time_avg_us": 1.0047999999999946
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 20.09599999999989,
+          "count": 20,
+          "self_device_time_avg_us": 1.0047999999999946
+        }
+      },
+      "raw_trace": "case_12_launch_bound_relu.json",
+      "capture_wall_sec": 0.0061511993408203125,
+      "device_event_us_median": 0.992,
+      "device_event_us_min": 0.96,
+      "device_event_us_max": 1.024,
+      "device_event_us_iqr": 0.03200000000000003,
+      "device_ms_spread": 6.400000000000005e-05,
+      "device_ms_spread_pct_of_median": 6.451612903225812,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)"
+      ],
+      "note": "256 elements: device time here is launch/dispatch dominated, NOT a bandwidth result. Recorded explicitly so a later fit does not treat it as one (cf. gpu-sim-u2o.6.6.1: ~1.3 us of the measured time is irreducible dispatch on this part)."
+    },
+    {
+      "op_class": "matmul",
+      "op": "matmul",
+      "profiler_key": "aten::mm",
+      "shapes": [
+        512,
+        512,
+        512
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "cuBLAS SGEMM selects its own tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.01084159999999999,
+      "device_ms_n": 20,
+      "device_us_total": 216.83199999999977,
+      "profiler_attribution": {
+        "aten::mm": {
+          "self_device_time_total_us": 216.83199999999977,
+          "count": 20,
+          "self_device_time_avg_us": 10.841599999999989
+        },
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_128x64_8x5_nn_align1>(cutlass_80_simt_sgemm_128x64_8x5_nn_align1::Params)": {
+          "self_device_time_total_us": 165.6959999999998,
+          "count": 20,
+          "self_device_time_avg_us": 8.28479999999999
+        },
+        "void cublasLt::splitKreduce_kernel<32, 16, int, float, float, float, float, false, float, float, float, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, float const*, float*, float*, float const*, float const*, float const*, float const*, float*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)": {
+          "self_device_time_total_us": 51.13599999999997,
+          "count": 20,
+          "self_device_time_avg_us": 2.556799999999998
+        }
+      },
+      "raw_trace": "case_13_matmul_matmul.json",
+      "capture_wall_sec": 0.1273479461669922,
+      "device_event_us_median": 5.4879999999999995,
+      "device_event_us_min": 2.464,
+      "device_event_us_max": 11.008,
+      "device_event_us_iqr": 5.632,
+      "device_ms_spread": 0.008544,
+      "device_ms_spread_pct_of_median": 155.68513119533526,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "void cublasLt::splitKreduce_kernel<32, 16, int, float, float, float, float, false, float, float, float, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, float const*, float*, float*, float const*, float const*, float const*, float const*, float*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_128x64_8x5_nn_align1>(cutlass_80_simt_sgemm_128x64_8x5_nn_align1::Params)"
+      ]
+    },
+    {
+      "op_class": "matmul",
+      "op": "matmul",
+      "profiler_key": "aten::mm",
+      "shapes": [
+        1024,
+        1024,
+        1024
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "cuBLAS SGEMM selects its own tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.04349149999999998,
+      "device_ms_n": 20,
+      "device_us_total": 869.8299999999996,
+      "profiler_attribution": {
+        "aten::mm": {
+          "self_device_time_total_us": 869.8299999999996,
+          "count": 20,
+          "self_device_time_avg_us": 43.49149999999998
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 8.289999999999907,
+          "count": 20,
+          "self_device_time_avg_us": 0.4144999999999953
+        },
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_128x64_8x5_nn_align1>(cutlass_80_simt_sgemm_128x64_8x5_nn_align1::Params)": {
+          "self_device_time_total_us": 861.5399999999996,
+          "count": 20,
+          "self_device_time_avg_us": 43.076999999999984
+        }
+      },
+      "raw_trace": "case_14_matmul_matmul.json",
+      "capture_wall_sec": 0.006535530090332031,
+      "device_event_us_median": 20.991999999999997,
+      "device_event_us_min": 0.289,
+      "device_event_us_max": 44.416,
+      "device_event_us_iqr": 42.720000000000006,
+      "device_ms_spread": 0.04412699999999999,
+      "device_ms_spread_pct_of_median": 210.20865091463418,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_128x64_8x5_nn_align1>(cutlass_80_simt_sgemm_128x64_8x5_nn_align1::Params)"
+      ]
+    },
+    {
+      "op_class": "matmul",
+      "op": "matmul",
+      "profiler_key": "aten::mm",
+      "shapes": [
+        2048,
+        2048,
+        2048
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "cuBLAS SGEMM selects its own tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.24890479999999993,
+      "device_ms_n": 20,
+      "device_us_total": 4978.095999999999,
+      "profiler_attribution": {
+        "aten::mm": {
+          "self_device_time_total_us": 4978.095999999999,
+          "count": 20,
+          "self_device_time_avg_us": 248.90479999999994
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 10.0139999999991,
+          "count": 20,
+          "self_device_time_avg_us": 0.5006999999999551
+        },
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_256x128_8x4_nn_align1>(cutlass_80_simt_sgemm_256x128_8x4_nn_align1::Params)": {
+          "self_device_time_total_us": 4968.0819999999985,
+          "count": 20,
+          "self_device_time_avg_us": 248.40409999999991
+        }
+      },
+      "raw_trace": "case_15_matmul_matmul.json",
+      "capture_wall_sec": 0.010434150695800781,
+      "device_event_us_median": 125.13650000000001,
+      "device_event_us_min": 0.32,
+      "device_event_us_max": 255.937,
+      "device_event_us_iqr": 247.394,
+      "device_ms_spread": 0.25561700000000004,
+      "device_ms_spread_pct_of_median": 204.2705365740611,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_256x128_8x4_nn_align1>(cutlass_80_simt_sgemm_256x128_8x4_nn_align1::Params)"
+      ]
+    },
+    {
+      "op_class": "matmul",
+      "op": "matmul",
+      "profiler_key": "aten::mm",
+      "shapes": [
+        4096,
+        4096,
+        4096
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "cuBLAS SGEMM selects its own tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 1.9908729000000014,
+      "device_ms_n": 20,
+      "device_us_total": 39817.45800000003,
+      "profiler_attribution": {
+        "aten::mm": {
+          "self_device_time_total_us": 39817.45800000003,
+          "count": 20,
+          "self_device_time_avg_us": 1990.8729000000014
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 13.759000000019114,
+          "count": 20,
+          "self_device_time_avg_us": 0.6879500000009557
+        },
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_256x128_8x4_nn_align1>(cutlass_80_simt_sgemm_256x128_8x4_nn_align1::Params)": {
+          "self_device_time_total_us": 39803.69900000001,
+          "count": 20,
+          "self_device_time_avg_us": 1990.1849500000003
+        }
+      },
+      "raw_trace": "case_16_matmul_matmul.json",
+      "capture_wall_sec": 0.047696828842163086,
+      "device_event_us_median": 982.1500000000001,
+      "device_event_us_min": 0.448,
+      "device_event_us_max": 2099.021,
+      "device_event_us_iqr": 1967.02,
+      "device_ms_spread": 2.0985730000000005,
+      "device_ms_spread_pct_of_median": 213.6713332993942,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_256x128_8x4_nn_align1>(cutlass_80_simt_sgemm_256x128_8x4_nn_align1::Params)"
+      ]
+    },
+    {
+      "op_class": "matmul",
+      "op": "matmul",
+      "profiler_key": "aten::mm",
+      "shapes": [
+        8192,
+        8192,
+        8192
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "cuBLAS SGEMM selects its own tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 16.33576919999999,
+      "device_ms_n": 20,
+      "device_us_total": 326715.3839999998,
+      "profiler_attribution": {
+        "aten::mm": {
+          "self_device_time_total_us": 326715.3839999998,
+          "count": 20,
+          "self_device_time_avg_us": 16335.76919999999
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 26.495999999903916,
+          "count": 20,
+          "self_device_time_avg_us": 1.3247999999951958
+        },
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_256x128_8x4_nn_align1>(cutlass_80_simt_sgemm_256x128_8x4_nn_align1::Params)": {
+          "self_device_time_total_us": 326688.8879999999,
+          "count": 20,
+          "self_device_time_avg_us": 16334.444399999997
+        }
+      },
+      "raw_trace": "case_17_matmul_matmul.json",
+      "capture_wall_sec": 0.3474581241607666,
+      "device_event_us_median": 7578.8505000000005,
+      "device_event_us_min": 0.896,
+      "device_event_us_max": 17490.452,
+      "device_event_us_iqr": 16483.982,
+      "device_ms_spread": 17.489556,
+      "device_ms_spread_pct_of_median": 230.76792450253504,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void cutlass::Kernel2<cutlass_80_simt_sgemm_256x128_8x4_nn_align1>(cutlass_80_simt_sgemm_256x128_8x4_nn_align1::Params)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "sum",
+      "profiler_key": "aten::sum",
+      "shapes": [
+        16384
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.003297700000000009,
+      "device_ms_n": 20,
+      "device_us_total": 65.95400000000018,
+      "profiler_attribution": {
+        "aten::sum": {
+          "self_device_time_total_us": 65.95400000000018,
+          "count": 20,
+          "self_device_time_avg_us": 3.2977000000000087
+        },
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)": {
+          "self_device_time_total_us": 65.95400000000018,
+          "count": 20,
+          "self_device_time_avg_us": 3.2977000000000087
+        }
+      },
+      "raw_trace": "case_18_reduce_sum.json",
+      "capture_wall_sec": 0.01119232177734375,
+      "device_event_us_median": 3.296,
+      "device_event_us_min": 3.264,
+      "device_event_us_max": 3.329,
+      "device_event_us_iqr": 0.03200000000000003,
+      "device_ms_spread": 6.500000000000039e-05,
+      "device_ms_spread_pct_of_median": 1.9720873786407886,
+      "device_event_us_n": 20,
+      "device_event_names": [
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "max",
+      "shapes": [
+        16384
+      ],
+      "dtype": "torch.float32",
+      "error": "no self CUDA time for aten::amax",
+      "profiler_keys": [
+        "aten::max",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "sum",
+      "profiler_key": "aten::sum",
+      "shapes": [
+        262144
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.00408005,
+      "device_ms_n": 20,
+      "device_us_total": 81.601,
+      "profiler_attribution": {
+        "aten::sum": {
+          "self_device_time_total_us": 81.601,
+          "count": 20,
+          "self_device_time_avg_us": 4.08005
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 6.592000000000212,
+          "count": 20,
+          "self_device_time_avg_us": 0.3296000000000106
+        },
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)": {
+          "self_device_time_total_us": 75.00899999999979,
+          "count": 20,
+          "self_device_time_avg_us": 3.750449999999989
+        }
+      },
+      "raw_trace": "case_20_reduce_sum.json",
+      "capture_wall_sec": 0.004816293716430664,
+      "device_event_us_median": 2.208,
+      "device_event_us_min": 0.256,
+      "device_event_us_max": 3.904,
+      "device_event_us_iqr": 3.4560000000000004,
+      "device_ms_spread": 0.0036479999999999998,
+      "device_ms_spread_pct_of_median": 165.21739130434779,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "max",
+      "shapes": [
+        262144
+      ],
+      "dtype": "torch.float32",
+      "error": "no self CUDA time for aten::amax",
+      "profiler_keys": [
+        "Memset (Device)",
+        "aten::max",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "sum",
+      "profiler_key": "aten::sum",
+      "shapes": [
+        4194304
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.006683350000000002,
+      "device_ms_n": 20,
+      "device_us_total": 133.66700000000003,
+      "profiler_attribution": {
+        "aten::sum": {
+          "self_device_time_total_us": 133.66700000000003,
+          "count": 20,
+          "self_device_time_avg_us": 6.683350000000002
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 7.168999999999983,
+          "count": 20,
+          "self_device_time_avg_us": 0.35844999999999916
+        },
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)": {
+          "self_device_time_total_us": 126.49800000000005,
+          "count": 20,
+          "self_device_time_avg_us": 6.324900000000002
+        }
+      },
+      "raw_trace": "case_22_reduce_sum.json",
+      "capture_wall_sec": 0.004645824432373047,
+      "device_event_us_median": 3.44,
+      "device_event_us_min": 0.256,
+      "device_event_us_max": 6.4,
+      "device_event_us_iqr": 6.048,
+      "device_ms_spread": 0.006144,
+      "device_ms_spread_pct_of_median": 178.6046511627907,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "max",
+      "shapes": [
+        4194304
+      ],
+      "dtype": "torch.float32",
+      "error": "no self CUDA time for aten::amax",
+      "profiler_keys": [
+        "Memset (Device)",
+        "aten::max",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "sum",
+      "profiler_key": "aten::sum",
+      "shapes": [
+        16777216
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.013945949999999993,
+      "device_ms_n": 20,
+      "device_us_total": 278.91899999999987,
+      "profiler_attribution": {
+        "aten::sum": {
+          "self_device_time_total_us": 278.91899999999987,
+          "count": 20,
+          "self_device_time_avg_us": 13.945949999999993
+        },
+        "Memset (Device)": {
+          "self_device_time_total_us": 7.072999999999865,
+          "count": 20,
+          "self_device_time_avg_us": 0.35364999999999325
+        },
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)": {
+          "self_device_time_total_us": 271.846,
+          "count": 20,
+          "self_device_time_avg_us": 13.5923
+        }
+      },
+      "raw_trace": "case_24_reduce_sum.json",
+      "capture_wall_sec": 0.008867502212524414,
+      "device_event_us_median": 7.056,
+      "device_event_us_min": 0.288,
+      "device_event_us_max": 13.696,
+      "device_event_us_iqr": 13.28,
+      "device_ms_spread": 0.013408,
+      "device_ms_spread_pct_of_median": 190.02267573696145,
+      "device_event_us_n": 40,
+      "device_event_names": [
+        "Memset (Device)",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "reduce",
+      "op": "max",
+      "shapes": [
+        16777216
+      ],
+      "dtype": "torch.float32",
+      "error": "no self CUDA time for aten::amax",
+      "profiler_keys": [
+        "Memset (Device)",
+        "aten::max",
+        "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::MaxNanFunctor<float> >, unsigned int, float, 4, 4>)"
+      ]
+    },
+    {
+      "op_class": "chain",
+      "op": "relu_mul_add",
+      "profiler_key": "aten::mul",
+      "shapes": [
+        1048576
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.0020321499999999847,
+      "device_ms_n": 20,
+      "device_us_total": 40.64299999999969,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 40.99199999999985,
+          "count": 20,
+          "self_device_time_avg_us": 2.0495999999999923
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 40.99199999999985,
+          "count": 20,
+          "self_device_time_avg_us": 2.0495999999999923
+        },
+        "aten::mul": {
+          "self_device_time_total_us": 40.64299999999969,
+          "count": 20,
+          "self_device_time_avg_us": 2.0321499999999846
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>, false>(int, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 40.64299999999969,
+          "count": 20,
+          "self_device_time_avg_us": 2.0321499999999846
+        },
+        "aten::add": {
+          "self_device_time_total_us": 51.519999999999754,
+          "count": 20,
+          "self_device_time_avg_us": 2.5759999999999876
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>, false>(int, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>)": {
+          "self_device_time_total_us": 51.519999999999754,
+          "count": 20,
+          "self_device_time_avg_us": 2.5759999999999876
+        }
+      },
+      "raw_trace": "case_26_chain_relu_mul_add.json",
+      "capture_wall_sec": 0.018418550491333008,
+      "device_event_us_median": 2.048,
+      "device_event_us_min": 1.984,
+      "device_event_us_max": 2.593,
+      "device_event_us_iqr": 0.512,
+      "device_ms_spread": 0.000609,
+      "device_ms_spread_pct_of_median": 29.736328125,
+      "device_event_us_n": 60,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)",
+        "void at::native::vectorized_elementwise_kernel<4, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>, false>(int, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>)",
+        "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>, false>(int, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>)"
+      ],
+      "note": "multi-op dependency; the profiler attributes self time per op, so this row carries the clamp_min/mul/add keys"
+    },
+    {
+      "op_class": "chain",
+      "op": "relu_mul_add",
+      "profiler_key": "aten::mul",
+      "shapes": [
+        16777216
+      ],
+      "dtype": "torch.float32",
+      "launch_config": {
+        "grid": null,
+        "block": null,
+        "note": "ATen/cuBLAS chooses the tiling"
+      },
+      "warmup": 5,
+      "reps": 20,
+      "device_ms_median": 0.058270799999999984,
+      "device_ms_n": 20,
+      "device_us_total": 1165.4159999999997,
+      "profiler_attribution": {
+        "aten::clamp_min": {
+          "self_device_time_total_us": 1456.487999999999,
+          "count": 20,
+          "self_device_time_avg_us": 72.82439999999994
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 1456.487999999999,
+          "count": 20,
+          "self_device_time_avg_us": 72.82439999999994
+        },
+        "aten::mul": {
+          "self_device_time_total_us": 1165.4159999999997,
+          "count": 20,
+          "self_device_time_avg_us": 58.27079999999999
+        },
+        "aten::add": {
+          "self_device_time_total_us": 2093.1340000000014,
+          "count": 20,
+          "self_device_time_avg_us": 104.65670000000007
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>, false>(int, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>)": {
+          "self_device_time_total_us": 1165.4159999999997,
+          "count": 20,
+          "self_device_time_avg_us": 58.27079999999999
+        },
+        "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>, false>(int, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>)": {
+          "self_device_time_total_us": 2093.1340000000014,
+          "count": 20,
+          "self_device_time_avg_us": 104.65670000000007
+        }
+      },
+      "raw_trace": "case_27_chain_relu_mul_add.json",
+      "capture_wall_sec": 0.012073993682861328,
+      "device_event_us_median": 73.3765,
+      "device_event_us_min": 56.257,
+      "device_event_us_max": 108.737,
+      "device_event_us_iqr": 44.64000000000001,
+      "device_ms_spread": 0.05248,
+      "device_ms_spread_pct_of_median": 71.52153618665378,
+      "device_event_us_n": 60,
+      "device_event_names": [
+        "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, false>(int, at::native::(anonymous namespace)::launch_clamp_scalar(at::TensorIteratorBase&, c10::Scalar, c10::Scalar, at::native::detail::ClampLimits)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>)",
+        "void at::native::vectorized_elementwise_kernel<4, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>, false>(int, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>)",
+        "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>, false>(int, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>)"
+      ],
+      "note": "multi-op dependency; the profiler attributes self time per op, so this row carries the clamp_min/mul/add keys"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'reduce'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "45", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+reduce: 8 configs x 3 process invocations x 100 trials
+  block_sum n=4096 auto/256    grid=    [16, 1, 1] med=    2.848us iqr=   0.832us cv=0.510 ai_cv=0.1268
+  block_sum n=4096 auto/1024   grid=     [4, 1, 1] med=    3.376us iqr=   0.736us cv=0.502 ai_cv=0.0832
+  block_sum n=65536 auto/256   grid=   [256, 1, 1] med=    2.704us iqr=   0.352us cv=0.471 ai_cv=0.0123
+  block_sum n=65536 auto/1024  grid=    [64, 1, 1] med=    3.040us iqr=   1.408us cv=0.482 ai_cv=0.0721
+  block_sum n=1048576 auto/256 grid=  [4096, 1, 1] med=    6.912us iqr=   0.288us cv=0.215 ai_cv=0.011
+  block_sum n=1048576 auto/1024 grid=  [1024, 1, 1] med=   10.832us iqr=   0.576us cv=0.086 ai_cv=0.0582
+  block_sum n=16777216 auto/256 grid= [65536, 1, 1] med=   64.592us iqr=   1.568us cv=0.030 ai_cv=0.0032
+  block_sum n=16777216 auto/1024 grid= [16384, 1, 1] med=  116.624us iqr=   1.280us cv=0.018 ai_cv=0.0032
+telemetry after:  {"clocks.sm": "2482 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "44", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2/experiments/gpu-sim-u2o.6.6.2/family_reduce.json
+reduce: 8/8 configs measured, 7.1s
