@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-u2o.17.5",
+  "queue": "ts (task-spooler) on gpu 0",
+  "final_job": "20260927t161205-c5437cf0",
+  "final_state": "finished",
+  "decides_pass_fail": false,
+  "note": "This bead produces the FIXTURE only. 17.4 owns pass/fail. 17.3 fits against the committed fixture instead of re-running the GPU.",
+  "negative_control": {"command": "python3 capture_fixture.py --self-test with CUDA_VISIBLE_DEVICES= blanked", "returncode": 1, "result": "RuntimeError: No CUDA GPUs are available; no fixture written"},
+  "jobs": [
+    {"job_id": "20260927t160032-a26c31c1", "state": "finished", "purpose": "v1: 24 cases captured, but the spread metric pooled all device events in a case trace and reported 155-230% for matmul. Rejected.", "log": "ts_job_logs/20260927t160032-a26c31c1.log"},
+    {"job_id": "20260927t161205-c5437cf0", "state": "finished", "purpose": "v2 AUTHORITATIVE: spread is now the p05-p95 band of the DOMINANT kernel's device-event durations; per-case min/max retained separately as device_ms_full_range_pct_of_median", "log": "ts_job_logs/20260927t161205-c5437cf0.log"}
+  ],
+  "machine_state": {
+    "telemetry_before": {"clocks.sm": "2415 MHz", "temperature.gpu": "44", "clocks_throttle_reasons.active": "0x0", "persistence_mode": "Disabled"},
+    "telemetry_after": {"clocks.sm": "2197 MHz", "temperature.gpu": "49", "clocks_throttle_reasons.active": "0x0000000000000004 (SW Power Cap)", "persistence_mode": "Disabled"},
+    "consequence": "the capture ran into the SW power cap partway through; recorded inside the fixture so a later parity failure can be attributed to machine state rather than to the model"
+  }
+}

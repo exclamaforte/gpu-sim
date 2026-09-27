@@ -99,7 +99,13 @@ def gpu_event_durations(trace_path: Path, substrings):
             continue
         durs.append(float(dur))
         names.append(name)
-    return durs, names
+    if not durs:
+        return [], []
+    by_name = {}
+    for d, nm in zip(durs, names):
+        by_name.setdefault(nm, []).append(d)
+    dominant = max(by_name.items(), key=lambda kv: (sum(kv[1]), len(kv[1])))
+    return sorted(dominant[1]), [dominant[0]]
 
 
 def capture_case(index, desc, thunk, trace_dir: Path):
@@ -162,7 +168,19 @@ def capture_case(index, desc, thunk, trace_dir: Path):
         rec["device_event_us_min"] = durs[0]
         rec["device_event_us_max"] = durs[-1]
         rec["device_event_us_iqr"] = (durs[3 * n_ev // 4] - durs[n_ev // 4])
-        rec["device_ms_spread"] = (durs[-1] - durs[0]) / 1000.0
+        # Robust spread: the p05-p95 band, NOT min..max. A single first-call
+        # outlier (cuBLAS init, allocator warm-up) otherwise dominates the range
+        # and the fixture reports a 200% spread for a kernel whose steady-state
+        # time is reproducible to 0.1%. min/max are still recorded, separately.
+        p05 = durs[max(0, int(0.05 * (n_ev - 1)))]
+        p95 = durs[min(n_ev - 1, int(0.95 * (n_ev - 1)))]
+        rec["device_event_us_p05"] = p05
+        rec["device_event_us_p95"] = p95
+        rec["device_ms_spread"] = (p95 - p05) / 1000.0
+        rec["device_ms_spread_definition"] = "p95 - p05 of the dominant kernel's device-event durations"
+        rec["device_ms_spread_pct_of_median"] = (100.0 * (p95 - p05) / med if med else None)
+        rec["device_ms_full_range_pct_of_median"] = (
+            100.0 * (durs[-1] - durs[0]) / med if med else None)
         rec["device_ms_spread_pct_of_median"] = (
             100.0 * (durs[-1] - durs[0]) / med if med else None)
         rec["device_event_us_n"] = n_ev
