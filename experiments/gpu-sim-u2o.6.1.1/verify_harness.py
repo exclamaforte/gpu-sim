@@ -105,6 +105,22 @@ def main() -> int:
             print(f"  NO TRIALS rc={run.returncode} stderr={run.stderr[:400]!r}")
         results.append(entry)
 
+    # Item 6: record the queue state and any overlapping JOB_IDs AT MEASUREMENT
+    # TIME. Under the PI's standing rule a measurement without this is
+    # unauditable and must be treated as unverified -- and it is the check that
+    # separates a lost clock ramp from a co-tenant on the box. Record only:
+    # no detection, no filtering, no discarded samples (that is 6.6.3's bead).
+    q_before = qs.queue_state(
+        own_description_substr=OWN_JOB_DESCRIPTION,
+        own_command_substr="experiments/gpu-sim-u2o.6.1.1/run.sh")
+    print("queue before: " + json.dumps(
+        {k: q_before[k] for k in ("own_job_id", "n_other_active",
+                                   "n_other_running_at_sample_time")}),
+        flush=True)
+    print("overlapping jobs: " + json.dumps(
+        [{"id": j["id"], "state": j["state"], "description": j["description"]}
+         for j in q_before["other_active_jobs"]]), flush=True)
+
     summary = {
         "bead": "gpu-sim-u2o.6.1.1",
         "what": "end-to-end SafeHarness.measure_spec() on the real RTX 5090",

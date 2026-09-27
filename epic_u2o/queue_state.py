@@ -21,14 +21,53 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+import time
 
-QUEUE_DIR = Path(os.environ.get("GPQUEUE_STATE_DIR",
-                                Path.home() / ".local/state/gpqueue/jobs"))
+def _resolve_queue_dir() -> Path:
+    """Find the directory holding one JSON file per job.
+
+    gpqueue exports GPQUEUE_STATE_DIR inside a job, but it points at the queue
+    ROOT (~/.local/state/gpqueue), not the jobs/ subdirectory that holds the
+    files; outside a job the variable is unset. So accept either, and decide by
+    looking for the files rather than by trusting the path. Getting this wrong
+    is silent -- the glob simply matches nothing and the record claims an empty
+    queue, which is the one failure this module must not make.
+    """
+    env = os.environ.get("GPQUEUE_STATE_DIR")
+    cands = []
+    if env:
+        cands += [Path(env) / "jobs", Path(env)]
+    cands.append(Path.home() / ".local/state/gpqueue/jobs")
+    for c in cands:
+        try:
+            if c.is_dir() and any(c.glob("*.json")):
+                return c
+        except Exception:
+            continue
+    return cands[0]
+
+
+QUEUE_DIR = _resolve_queue_dir()
 ACTIVE = ("running", "queued", "starting")
 TERMINAL = ("finished", "failed", "cancelled", "canceled")
 
 
 def _load_all() -> list[dict]:
+    out = []
+    for p in sorted(glob.glob(str(QUEUE_DIR / "*.json"))):
+        # The daemon writes these files while we read them, so a partial file
+        # is a normal transient, not an error. Retry briefly: a job we fail to
+        # parse is a job we cannot report as "ours", which is exactly the
+        # auditability this module exists to provide.
+        for _ in range(3):
+            try:
+                out.append(json.loads(Path(p).read_text()))
+                break
+            except FileNotFoundError:
+                break
+            except Exception:
+                time.sleep(0.05)
+    return out
     out = []
     for p in sorted(glob.glob(str(QUEUE_DIR / "*.json"))):
         try:
@@ -39,7 +78,8 @@ def _load_all() -> list[dict]:
 
 
 def queue_state(own_job_id: str | None = None,
-                own_description_substr: str | None = None) -> dict:
+                own_description_substr: str | None = None,
+                own_command_substr: str | None = None) -> dict:
     """A snapshot of the queue, plus which jobs overlap this one.
 
     `own_description_substr` lets a job identify itself when it cannot know
@@ -50,6 +90,14 @@ def queue_state(own_job_id: str | None = None,
     for j in jobs:
         by_state[j.get("state", "?")] = by_state.get(j.get("state", "?"), 0) + 1
 
+    # Fallback: match on our own command line, which is always present even if
+    # the description was truncated. An unidentified "own job" would make the
+    # whole record unauditable, which is the one outcome this must not have.
+    if own_job_id is None and own_command_substr:
+        for j in reversed(jobs):
+            if own_command_substr in " ".join(j.get("command") or []):
+                own_job_id = j.get("id")
+                break
     if own_job_id is None and own_description_substr:
         for j in reversed(jobs):
             if own_description_substr in (j.get("description") or ""):

@@ -45,8 +45,15 @@
       "log": "ts_job_logs/20260927t145454-9c2420b3.log"
     }
   ],
-  "measurement_version": 1,
-  "authoritative_run": "20260927t145454-9c2420b3",
-  "final_job": "20260927t145454-9c2420b3",
-  "frozen": "measurement_version 1 == the numbers in metrics.json, produced by final_job. Previously nothing tied job.json to metrics.json: the jobs lived in job.json, the numbers in metrics.json, and 'which run produced these' was not answerable from the artifact."
+  "measurement_version": 2,
+  "authoritative_run": "20260927t180239-90a79c87",
+  "final_job": "20260927t180239-90a79c87",
+  "frozen": "measurement_version 2 == the post-rework closing run, ts job 20260927t180239-90a79c87. The v1 baseline it is diffed against is preserved verbatim as metrics_v1.json (measurement_version 1, ts job 20260927t145454-9c2420b3) and the script asserts that before every write.",
+  "closing_run": {
+    "result": "4/4 kernels, 20 real cudaEvent trials each",
+    "diff_against_v1": "metrics.json -> diff_against_v1 (three-axis, per the PI's check order)",
+    "v1_queue_state": "NOT RECORDED (predates the item-6 rule) -- v1 is unauditable on the contention axis",
+    "v2_queue_state": "empty queue: 0 other active, 0 other running",
+    "timing": "all four medians move -5.1% to +7.4%, inside the ~7% across-invocation spread 6.6.1 measured for this regime; no sign claimed"
+  }
 }
