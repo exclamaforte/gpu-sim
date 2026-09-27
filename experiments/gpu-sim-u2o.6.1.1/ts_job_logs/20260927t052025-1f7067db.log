@@ -1,0 +1,22 @@
+=== ts job: gabe at 2026-09-27T01:05:37-07:00 ===
+/home/gabe/.local/bin/nvcc
+Cuda compilation tools, release 13.3, V13.3.73
+Build cuda_13.3.r13.3/compiler.38244171_0
+CUDA_VISIBLE_DEVICES=0
+host=gabe python=3.14.7
+CUDA_VISIBLE_DEVICES=0
+gpu: 'NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB'
+
+=== scale grid=[4, 1, 1] block=[256, 1, 1] n=1024 kernel=scale_kernel ===
+  NO TRIALS rc=2 stderr='{"error": "/tmp/tmpscv5t1yk.cu:23 OS call failed or operation not supported on this OS"} \n'
+
+=== add grid=[8, 1, 1] block=[256, 1, 1] n=2048 kernel=add_kernel ===
+  NO TRIALS rc=2 stderr='{"error": "/tmp/tmpfpuyw5vg.cu:25 OS call failed or operation not supported on this OS"} \n'
+
+=== relu grid=[16, 1, 1] block=[256, 1, 1] n=4096 kernel=relu_kernel ===
+  NO TRIALS rc=2 stderr='{"error": "/tmp/tmpyvmnqp_5.cu:23 OS call failed or operation not supported on this OS"} \n'
+
+=== saxpy grid=[32, 1, 1] block=[256, 1, 1] n=8192 kernel=saxpy_kernel ===
+  NO TRIALS rc=2 stderr='{"error": "/tmp/tmpdp8e7snh.cu:23 OS call failed or operation not supported on this OS"} \n'
+
+SUMMARY {"n_cases": 4, "n_succeeded": 0, "n_with_trials": 0, "total_wall_sec": 4.7740278244018555}

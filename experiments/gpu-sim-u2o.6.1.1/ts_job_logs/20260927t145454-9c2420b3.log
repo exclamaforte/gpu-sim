@@ -1,0 +1,23 @@
+=== ts job: gabe at 2026-09-27T07:54:54-07:00 ===
+/home/gabe/.local/bin/nvcc
+Cuda compilation tools, release 13.3, V13.3.73
+Build cuda_13.3.r13.3/compiler.38244171_0
+CUDA_VISIBLE_DEVICES=0
+host=gabe python=3.14.7
+CUDA_VISIBLE_DEVICES=0
+gpu: 'NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB'
+
+=== scale grid=[4, 1, 1] block=[256, 1, 1] n=1024 kernel=scale_kernel ===
+  trials=20 median=0.002624ms mean=0.002528ms cv=0.2479 reliable=False wall=0.13s
+
+=== add grid=[8, 1, 1] block=[256, 1, 1] n=2048 kernel=add_kernel ===
+  trials=20 median=0.002592ms mean=0.002563ms cv=0.2337 reliable=False wall=0.12s
+
+=== relu grid=[16, 1, 1] block=[256, 1, 1] n=4096 kernel=relu_kernel ===
+  trials=20 median=0.002688ms mean=0.002378ms cv=0.2677 reliable=False wall=0.12s
+
+=== saxpy grid=[32, 1, 1] block=[256, 1, 1] n=8192 kernel=saxpy_kernel ===
+  trials=20 median=0.002848ms mean=0.002820ms cv=0.0965 reliable=True wall=0.13s
+
+SUMMARY {"n_cases": 4, "n_succeeded": 4, "n_with_trials": 4, "total_wall_sec": 5.273228883743286}
+=== verify_harness exit=0 ===

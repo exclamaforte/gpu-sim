@@ -1,0 +1,14 @@
+CUDA_VISIBLE_DEVICES=0
+shell NOFILE soft/hard: (65536, 524288)
+shell NPROC soft/hard: (123418, 123418)
+1_bare                 rc=0 err='' out0='{"trial": 0, "time_ms": 0.008448}'
+2_fakegpu_env          rc=0 err='' out0='{"trial": 0, "time_ms": 0.009600}'
+3_nofile256            rc=0 err='' out0='{"trial": 0, "time_ms": 0.008768}'
+4_nproc32              rc=2 err='{"error": "/tmp/tmp_lbuijkg/scale.cu:23 OS call failed or operation not supported on this OS"}' out0=''
+5_full_harness_set     rc=2 err='{"error": "/tmp/tmp_lbuijkg/scale.cu:23 OS call failed or operation not supported on this OS"}' out0=''
+CULPRIT: RLIMIT_NPROC=32
+scale  NO TRIALS rc=2 '{"error": "/tmp/tmpv4oclhzs.cu:23 OS call failed or operation not supported on this OS"} \n'
+add    NO TRIALS rc=2 '{"error": "/tmp/tmpo0wv0ehn.cu:25 OS call failed or operation not supported on this OS"} \n'
+relu   NO TRIALS rc=2 '{"error": "/tmp/tmpt0bzttuz.cu:23 OS call failed or operation not supported on this OS"} \n'
+saxpy  NO TRIALS rc=2 '{"error": "/tmp/tmprvl7n5u1.cu:23 OS call failed or operation not supported on this OS"} \n'
+SUMMARY {"culprit": "RLIMIT_NPROC=32", "n_cases": 4, "n_with_trials": 0, "total_wall_sec": 4.817702054977417}

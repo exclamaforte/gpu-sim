@@ -1,0 +1,24 @@
+CUDA_VISIBLE_DEVICES=0
+--- host memory ---
+               total        used        free      shared  buff/cache   available
+Mem:           31123       16301        4700         467       12333       14822
+Swap:          62247        7151       55095
+--- A: no rlimits ---
+{"stage":"ctx","rc":0,"msg":"no error"}
+{"stage":"malloc1k","rc":0,"msg":"no error","ptr":0x73caf9000000}
+{"stage":"props","rc":0,"name":"NVIDIA GeForce RTX 5090","totalMemMB":32132,"canMapHost":1}
+A rc=0
+--- B: harness ResourceLimits (AS=256G, DATA=8G, CPU=60s) ---
+{"stage":"ctx","rc":0,"msg":"no error"}
+{"stage":"malloc1k","rc":0,"msg":"no error","ptr":0x729b99000000}
+{"stage":"props","rc":0,"name":"NVIDIA GeForce RTX 5090","totalMemMB":32132,"canMapHost":1}
+B rc=0
+--- C: kernel_driver-synthesized scale program, no rlimits ---
+{"trial": 0, "time_ms": 0.009472}
+{"trial": 1, "time_ms": 0.001632}
+{"trial": 2, "time_ms": 0.002944}
+C rc=141
+--- D: same binary via SafeHarness.run_kernel (harness rlimits) ---
+D rc=2 timeout=False stderr='{"error": "/tmp/tmp.k5ik7qSkqR/scale.cu:23 OS call failed or operation not supported on this OS"} \n'
+D stdout_head=[]
+=== diag done ===

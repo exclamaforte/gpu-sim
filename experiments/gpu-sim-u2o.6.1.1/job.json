@@ -1,0 +1,48 @@
+{
+  "bead": "gpu-sim-u2o.6.1.1",
+  "queue": "ts (task-spooler) on gpu 0 -- every GPU-touching command, per gpu-sim-u2o.6.8",
+  "jobs": [
+    {
+      "job_id": "20260927t052025-1f7067db",
+      "script": "experiments/gpu-sim-u2o.6.1.1/run.sh",
+      "state": "failed",
+      "purpose": "first end-to-end measure_spec run; 4/4 kernels died at cudaMalloc with 'OS call failed or operation not supported on this OS'",
+      "log": "ts_job_logs/20260927t052025-1f7067db.log"
+    },
+    {
+      "job_id": "20260927t080641-e98c84db",
+      "script": "experiments/gpu-sim-u2o.6.1.1/diagnose_malloc.sh",
+      "state": "failed",
+      "purpose": "rlimit vs env bisect, attempt 1 (invalid: CUDA_VISIBLE_DEVICES was blanked and cwd was wrong)",
+      "log": "ts_job_logs/20260927t080641-e98c84db.log"
+    },
+    {
+      "job_id": "20260927t094146-52fd3783",
+      "script": "experiments/gpu-sim-u2o.6.1.1/diagnose_malloc.sh",
+      "state": "finished",
+      "purpose": "probe works with and without harness rlimits; the synthesized scale program produces REAL trials standalone (0.0095/0.0016/0.0029 ms) but fails inside run_kernel",
+      "log": "ts_job_logs/20260927t094146-52fd3783.log"
+    },
+    {
+      "job_id": "20260927t121130-e7031d8b",
+      "script": "experiments/gpu-sim-u2o.6.1.1/run_bisect.sh",
+      "state": "failed",
+      "purpose": "bisect attempt 1 (script SyntaxError: 'as' used as kwarg name)",
+      "log": "ts_job_logs/20260927t121130-e7031d8b.log"
+    },
+    {
+      "job_id": "20260927t123630-05fd9bd0",
+      "script": "experiments/gpu-sim-u2o.6.1.1/run_bisect.sh",
+      "state": "finished",
+      "purpose": "DECISIVE: bare / FAKEGPU env / NOFILE=256 all fine; RLIMIT_NPROC=32 and 512 both kill the CUDA driver at the first cudaMalloc",
+      "log": "ts_job_logs/20260927t123630-05fd9bd0.log"
+    },
+    {
+      "job_id": "20260927t145454-9c2420b3",
+      "script": "experiments/gpu-sim-u2o.6.1.1/run.sh",
+      "state": "finished",
+      "purpose": "SUCCESS: full generate->synthesize->preflight->compile->run pipeline on the real RTX 5090 after the RLIMIT_NPROC fix; 4/4 kernels, 20 trials each",
+      "log": "ts_job_logs/20260927t145454-9c2420b3.log"
+    }
+  ]
+}

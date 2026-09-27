@@ -1,0 +1,20 @@
+--- host memory ---
+               total        used        free      shared  buff/cache   available
+Mem:           31123       14989        8295         432        9995       16134
+Swap:          62247        7304       54942
+--- A: no rlimits ---
+{"stage":"ctx","rc":100,"msg":"no CUDA-capable device is detected"}
+{"stage":"malloc1k","rc":100,"msg":"no CUDA-capable device is detected","ptr":(nil)}
+{"stage":"props","rc":100,"name":"?","totalMemMB":0,"canMapHost":0}
+A rc=1
+--- B: harness ResourceLimits (AS=256G, DATA=8G, CPU=60s) ---
+{"stage":"ctx","rc":100,"msg":"no CUDA-capable device is detected"}
+{"stage":"malloc1k","rc":100,"msg":"no CUDA-capable device is detected","ptr":(nil)}
+{"stage":"props","rc":100,"name":"?","totalMemMB":0,"canMapHost":0}
+B rc=1
+--- C: kernel_driver-synthesized scale program, no rlimits ---
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+ModuleNotFoundError: No module named 'epic_u2o'
+cc1plus: fatal error: /tmp/u2o611_scale.cu: No such file or directory
+compilation terminated.
