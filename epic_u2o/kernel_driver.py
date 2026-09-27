@@ -51,7 +51,13 @@ def synthesize(spec: dict) -> str:
         if key not in spec:
             raise ValueError(f"KernelSpec missing required key: {key}")
     src = spec['source']
-    kname = spec['kernel_name']
+    # gpu-sim-9ti: the name to launch comes from the SOURCE, not from the
+    # dict's kernel_name. generator_stage2..5 declared f"{op}_kernel" while
+    # their source defines {op}, so every stage2-5 driver failed to compile
+    # with "identifier X is undefined". The source is the authority here; a
+    # spec whose source declares no __global__ at all is a real error.
+    from epic_u2o.kernel_names import resolve_kernel_name
+    kname = resolve_kernel_name(spec)
     grid = spec['grid']
     block = spec['block']
     args = spec['args']

@@ -1,0 +1,19 @@
+PASS  resolver: matching name is used
+PASS  checker: matching name is clean
+PASS  resolver: source wins over a mismatched dict
+PASS  checker: mismatch is reported, not silent  kernel_name='fake_name_kernel' does not match the __global__ function in its source ['real_name']; launching 'real_name' instead (gpu-sim-9ti)
+PASS  resolver: source with no __global__ raises  kernel spec declares no __global__ function in its source; spec['kernel_name']='whatever' 
+PASS  resolver: refuses to guess with several kernels  spec['kernel_name']='c3' is not among the __global__ functions declared in its source ['a1
+PASS  parser: sees templated/inline qualifiers
+PASS  generator_stage1: kernel_name matches source for 12 specs  mismatched: []
+PASS  generator_stage1: 12/12 drivers compile
+PASS  generator_stage2: kernel_name matches source for 12 specs  mismatched: []
+PASS  generator_stage2: 12/12 drivers compile
+PASS  generator_stage3: kernel_name matches source for 12 specs  mismatched: []
+PASS  generator_stage3: 12/12 drivers compile
+PASS  generator_stage4: kernel_name matches source for 12 specs  mismatched: []
+PASS  generator_stage4: 12/12 drivers compile
+PASS  generator_stage5: kernel_name matches source for 12 specs  mismatched: []
+PASS  generator_stage5: 12/12 drivers compile
+
+0 failure(s)
