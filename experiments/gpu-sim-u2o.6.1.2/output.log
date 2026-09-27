@@ -1,0 +1,15 @@
+========================================================================
+gpu-sim-u2o.6.1.2 -- real kernel under the per-run task cap
+========================================================================
+preflight_check BYPASSED on purpose: it executes on the real GPU (PI ruling 6.1.1) and this experiment must not inherit an unaccounted second execution. Fixed hand-written kernel.
+  mechanism systemd-run    available=True  cgroup2=cgroup2fs pids=True systemd-run=/usr/bin/systemd-run
+  mechanism cgroup         available=True  own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20260927t164508-b0857879.scope writable=True
+  mechanism rlimit_nproc   available=True  live tasks=3059, fallback would be live+64 (never a constant)
+  mechanism none           available=True  no task containment
+  live task count: 3058
+  telemetry before: {'rc': 0, 'csv': 'NVIDIA GeForce RTX 5090, 2415 MHz, 41, 0x0000000000000000'}
+compile_kernel -> ok=True Compilation successful
+  capped    runs=3 median=0.00272 ms medians=[0.00248, 0.002768, 0.00272]
+  uncapped  runs=3 median=0.002704 ms medians=[0.002752, 0.002672, 0.002704]
+
+capped median 0.00272 ms vs reference 0.002848 ms -> within 10%: True

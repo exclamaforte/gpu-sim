@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-u2o.6.1.2",
+  "queue": "ts (task-spooler) on gpu 0",
+  "jobs": [
+    {"job_id": "20260927t164508-b0857879", "state": "finished", "purpose": "CPU enforcement test (cap fires with EAGAIN at 63 children under TasksMax=64) + GPU proof (saxpy n=8192 grid 32x1x1 block 256, capped median 0.00272 ms vs the 6.1.1 reference 0.002848 ms, within 10%)", "log": "20260927t164508-b0857879.log"}
+  ],
+  "constraints_honoured": {
+    "preflight_bypassed": true,
+    "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); an unaccounted second execution is exactly what this run must not carry",
+    "fixed_hand_written_kernel": true,
+    "no_sudo": true,
+    "no_clock_locking": true,
+    "no_rlimit_nproc_constant": true,
+    "nvidia_smi_usage": "read-only --query-gpu telemetry before and after"
+  },
+  "mechanism_chosen": "systemd-run --user --wait --pipe --collect -p TasksMax=N (cgroup v2 pids.max)",
+  "note": "One ts job covered both halves: the CPU enforcement test runs with CUDA_VISIBLE_DEVICES= and needs no queue, but folding it into the same job means the enforcement evidence and the GPU proof come from the same machine state, and the job was already queued for the GPU half."
+}

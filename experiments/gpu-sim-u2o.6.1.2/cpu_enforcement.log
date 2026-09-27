@@ -1,0 +1,12 @@
+mechanism: systemd-run  (cgroup2=cgroup2fs pids=True systemd-run=/usr/bin/systemd-run)
+live task count for uid 1000: 3080
+PASS  mechanism is a cgroup route, not RLIMIT_NPROC  systemd-run
+PASS  uncapped child forks to completion  {'blocked': False, 'children': 200} in 0.1s
+PASS  capped child FAILS to fork past the cap  {'blocked': True, 'children': 63, 'errno': 'EAGAIN', 'msg': 'Resource temporarily unavailable'} in 0.0s
+PASS  the failure is EAGAIN/EPERM, not something else  EAGAIN
+PASS  the cap fired at roughly the configured task count  blocked after 63 children, TasksMax=64
+PASS  a small child is unaffected by the default cap (TasksMax=256)  {'blocked': False, 'children': 8}
+PASS  RLIMIT_NPROC fallback is computed relative to the live count  live=3058 -> nproc=3146
+PASS  the fallback is mechanism 3, not the default  systemd-run
+
+0 failure(s)

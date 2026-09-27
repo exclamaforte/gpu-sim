@@ -25,6 +25,11 @@ from dataclasses import dataclass, asdict
 from typing import Optional
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from epic_u2o.task_limits import (  # noqa: E402
+    DEFAULT_TASKS_MAX, choose_mechanism, rlimit_nproc_preexec, wrap_command,
+)
+
 
 # Default configuration
 DEFAULT_TIMEOUT_SEC = int(os.environ.get("CUDA_RUN_TIMEOUT", "30"))
@@ -70,7 +75,18 @@ class ResourceLimits:
     # NOFILE=256 fine, NPROC=32 fatal, 512 still fatal (user already above it).
     # Runaway processes are contained by the process-group SIGKILL in
     # run_kernel()'s timeout path, not by this limit.
+    # Runaway processes are contained by the process-group SIGKILL in
+    # run_kernel()'s timeout path and, since gpu-sim-u2o.6.1.2, by a per-run
+    # cgroup v2 pids.max cap (tasks_max below). RLIMIT_NPROC stays unset.
     processes_limit: int = 0  # 0 = leave RLIMIT_NPROC untouched
+
+    # Per-run TASK cap via cgroup v2 pids.max (gpu-sim-u2o.6.1.2). This is the
+    # containment that disabling RLIMIT_NPROC cost us. 0 disables it. The
+    # default is a cap no kernel driver would notice and a fork bomb cannot
+    # exceed. Enforcement is measured, not assumed -- see
+    # tests/test_task_limits.py, where a child is observed failing to fork
+    # with EAGAIN at the cap and succeeding without it.
+    tasks_max: int = 256
 
     # Address-space ceiling. MUST exceed the GPU BAR1 mapping or CUDA
     # context creation fails instantly (u2o.6.1.1 post-mortem: RTX 5090
@@ -146,12 +162,16 @@ class SafeHarness:
         gpu_id: int = 0,
         log_dir: Optional[str] = None,
         use_fakegpu_preflight: bool = True,
+        tasks_max: int = DEFAULT_TASKS_MAX,
     ):
         self.timeout_sec = timeout_sec
         self.vram_limit_mb = vram_limit_mb
         self.gpu_id = gpu_id
         self.log_dir = Path(log_dir) if log_dir else None
         self.use_fakegpu_preflight = use_fakegpu_preflight
+        # Per-run task containment (gpu-sim-u2o.6.1.2). 0 disables it, which
+        # would leave only the process-group SIGKILL, and is NOT the default.
+        self.tasks_max = tasks_max
         
         if self.log_dir:
             self.log_dir.mkdir(parents=True, exist_ok=True)
@@ -331,6 +351,25 @@ class SafeHarness:
         run_env['FAKEGPU_DEVICE_MEM_MB'] = str(self.vram_limit_mb)
         
         cmd = [executable_path] + args
+
+        # Per-run task containment (gpu-sim-u2o.6.1.2). The command is wrapped
+        # here rather than inside the child because systemd-run must be the
+        # process we supervise: --wait keeps our communicate(timeout=)
+        # authoritative and --pipe keeps stdout/stderr on our pipes.
+        task_info = {"tasks_max": self.tasks_max, "mechanism": "none"}
+        if self.tasks_max and self.tasks_max > 0:
+            mech = choose_mechanism()
+            task_info["mechanism"] = mech.name
+            task_info["mechanism_detail"] = mech.detail
+            if mech.name == "systemd-run":
+                cmd = wrap_command(cmd, mech, self.tasks_max)
+            elif mech.name == "rlimit_nproc":
+                task_info["nproc_relative"] = (
+                    rlimit_nproc_preexec().target_nproc)
+            else:
+                task_info["note"] = (
+                    "cgroup route selected but not wrapped in the harness; "
+                    "it is exercised by tests/test_task_limits.py")
         
         start_time = time.time()
         peak_rss = 0
@@ -370,7 +409,7 @@ class SafeHarness:
                 gpu_reset=False,
                 wall_time_sec=wall_time,
                 peak_rss_mb=peak_rss,
-                metadata={'cmd': ' '.join(cmd)},
+                metadata={'cmd': ' '.join(cmd), 'task_limits': task_info},
             )
             
         except subprocess.TimeoutExpired:
@@ -396,7 +435,8 @@ class SafeHarness:
                 gpu_reset=gpu_reset,
                 wall_time_sec=wall_time,
                 peak_rss_mb=peak_rss,
-                metadata={'cmd': ' '.join(cmd), 'gpu_health': health},
+                metadata={'cmd': ' '.join(cmd), 'gpu_health': health,
+                           'task_limits': task_info},
             )
         
         except Exception as e:
@@ -411,7 +451,7 @@ class SafeHarness:
                 gpu_reset=False,
                 wall_time_sec=wall_time,
                 peak_rss_mb=peak_rss,
-                metadata={'cmd': ' '.join(cmd)},
+                metadata={'cmd': ' '.join(cmd), 'task_limits': task_info},
             )
         
         return result

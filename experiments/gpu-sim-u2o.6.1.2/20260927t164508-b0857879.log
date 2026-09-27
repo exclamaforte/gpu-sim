@@ -1,0 +1,32 @@
+=== ts job 2026-09-27T10:48:32-07:00 ===
+--- CPU: does the cap actually fire? ---
+mechanism: systemd-run  (cgroup2=cgroup2fs pids=True systemd-run=/usr/bin/systemd-run)
+live task count for uid 1000: 3080
+PASS  mechanism is a cgroup route, not RLIMIT_NPROC  systemd-run
+PASS  uncapped child forks to completion  {'blocked': False, 'children': 200} in 0.1s
+PASS  capped child FAILS to fork past the cap  {'blocked': True, 'children': 63, 'errno': 'EAGAIN', 'msg': 'Resource temporarily unavailable'} in 0.0s
+PASS  the failure is EAGAIN/EPERM, not something else  EAGAIN
+PASS  the cap fired at roughly the configured task count  blocked after 63 children, TasksMax=64
+PASS  a small child is unaffected by the default cap (TasksMax=256)  {'blocked': False, 'children': 8}
+PASS  RLIMIT_NPROC fallback is computed relative to the live count  live=3058 -> nproc=3146
+PASS  the fallback is mechanism 3, not the default  systemd-run
+
+0 failure(s)
+cpu enforcement exit=0
+--- GPU: real kernel under the cap ---
+========================================================================
+gpu-sim-u2o.6.1.2 -- real kernel under the per-run task cap
+========================================================================
+preflight_check BYPASSED on purpose: it executes on the real GPU (PI ruling 6.1.1) and this experiment must not inherit an unaccounted second execution. Fixed hand-written kernel.
+  mechanism systemd-run    available=True  cgroup2=cgroup2fs pids=True systemd-run=/usr/bin/systemd-run
+  mechanism cgroup         available=True  own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20260927t164508-b0857879.scope writable=True
+  mechanism rlimit_nproc   available=True  live tasks=3059, fallback would be live+64 (never a constant)
+  mechanism none           available=True  no task containment
+  live task count: 3058
+  telemetry before: {'rc': 0, 'csv': 'NVIDIA GeForce RTX 5090, 2415 MHz, 41, 0x0000000000000000'}
+compile_kernel -> ok=True Compilation successful
+  capped    runs=3 median=0.00272 ms medians=[0.00248, 0.002768, 0.00272]
+  uncapped  runs=3 median=0.002704 ms medians=[0.002752, 0.002672, 0.002704]
+
+capped median 0.00272 ms vs reference 0.002848 ms -> within 10%: True
+=== cpu_rc=0 gpu_rc=0 ===
