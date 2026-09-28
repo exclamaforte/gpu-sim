@@ -1,0 +1,142 @@
+{
+  "bead": "gpu-sim-u2o.12.1",
+  "gpu_used": true,
+  "device": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "total_memory_bytes": 33693827072,
+    "multi_processor_count": 170,
+    "capability": "12.0",
+    "torch": "2.14.0+cu130",
+    "cuda_runtime": "13.0"
+  },
+  "host": {
+    "platform": "Linux-7.2.5-3-omarchy-x86_64-with-glibc2.44",
+    "python": "3.14.7"
+  },
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "0"
+  },
+  "peak_flops_reference": {
+    "value_tflops": 104.8,
+    "provenance": "literature value for GB202 FP32, NOT measured in this run; treat MFU as carrying the peak's uncertainty",
+    "previous_value_used": 82.6,
+    "previous_value_provenance": "RTX 4090 FP32 peak -- the WRONG GPU"
+  },
+  "steps": 20,
+  "warmup": 5,
+  "ladder": [
+    {
+      "label": "smoke-as-written",
+      "params": 94817,
+      "d_model": 32,
+      "n_layers": 1,
+      "batch": 2,
+      "seq": 16,
+      "numeric_dim": 26,
+      "n_warmup": 5,
+      "n_steps": 20,
+      "mean_step_s": 0.001560304663144052,
+      "median_step_s": 0.0015164869837462902,
+      "min_step_s": 0.0012789280153810978,
+      "max_step_s": 0.002146496088244021,
+      "flops_per_step_approx": 18204864.0,
+      "achieved_tflops": 0.012004629248466857,
+      "mfu_pct": 0.011454798901208834,
+      "examples_per_sec_training_can_consume": 1318.8375643417999,
+      "vs_data_generation": {
+        "training_consumes_ex_per_sec": 1318.8375643417999,
+        "data_generation_produces_ex_per_sec": 2.3886363068290137,
+        "generation_is_slower_by": 0.0018111679341050045
+      }
+    },
+    {
+      "label": "small",
+      "params": 581761,
+      "d_model": 128,
+      "n_layers": 2,
+      "batch": 32,
+      "seq": 128,
+      "numeric_dim": 28,
+      "n_warmup": 5,
+      "n_steps": 20,
+      "mean_step_s": 0.0022214244585484267,
+      "median_step_s": 0.002194375963881612,
+      "min_step_s": 0.0020020760130137205,
+      "max_step_s": 0.0026960050454363227,
+      "flops_per_step_approx": 14297358336.0,
+      "achieved_tflops": 6.515455223411002,
+      "mfu_pct": 6.217037426918895,
+      "examples_per_sec_training_can_consume": 14582.733554643703,
+      "vs_data_generation": {
+        "training_consumes_ex_per_sec": 14582.733554643703,
+        "data_generation_produces_ex_per_sec": 2.3886363068290137,
+        "generation_is_slower_by": 0.00016379894056751658
+      }
+    },
+    {
+      "label": "medium",
+      "params": 13926785,
+      "d_model": 512,
+      "n_layers": 4,
+      "batch": 32,
+      "seq": 256,
+      "numeric_dim": 28,
+      "n_warmup": 5,
+      "n_steps": 20,
+      "mean_step_s": 0.019350239785853773,
+      "median_step_s": 0.019259195076301694,
+      "min_step_s": 0.018892075051553547,
+      "max_step_s": 0.02028410299681127,
+      "flops_per_step_approx": 684529336320.0,
+      "achieved_tflops": 35.542987835577236,
+      "mfu_pct": 33.915064728604236,
+      "examples_per_sec_training_can_consume": 1661.5439987611828,
+      "vs_data_generation": {
+        "training_consumes_ex_per_sec": 1661.5439987611828,
+        "data_generation_produces_ex_per_sec": 2.3886363068290137,
+        "generation_is_slower_by": 0.00143760039373615
+      }
+    },
+    {
+      "label": "large",
+      "params": 47220609,
+      "d_model": 768,
+      "n_layers": 6,
+      "batch": 16,
+      "seq": 512,
+      "numeric_dim": 28,
+      "n_warmup": 5,
+      "n_steps": 20,
+      "mean_step_s": 0.06886524279252626,
+      "median_step_s": 0.06877371505834162,
+      "min_step_s": 0.06860244506970048,
+      "max_step_s": 0.07053643197286874,
+      "flops_per_step_approx": 2320987373568.0,
+      "achieved_tflops": 33.74817503459101,
+      "mfu_pct": 32.20245709407539,
+      "examples_per_sec_training_can_consume": 232.64702199709578,
+      "vs_data_generation": {
+        "training_consumes_ex_per_sec": 232.64702199709578,
+        "data_generation_produces_ex_per_sec": 2.3886363068290137,
+        "generation_is_slower_by": 0.010267212046491753
+      }
+    }
+  ],
+  "bottleneck_comparison": {
+    "question": "gpu-sim-u2o.12.2: is training the wall-clock bottleneck, or data generation?",
+    "data_generation": {
+      "ex_per_sec": 2.3886363068290137,
+      "ex_per_hour": 8599.090704584449,
+      "source": "lab/gpu-sim-u2o.6.7 metrics.json (ts 20260928t074004-b429f469)",
+      "n_rows_measured": 264
+    },
+    "training_can_consume_ex_per_sec": {
+      "smoke-as-written": 1318.8375643417999,
+      "small": 14582.733554643703,
+      "medium": 1661.5439987611828,
+      "large": 232.64702199709578
+    },
+    "answer": "DATA GENERATION IS THE BOTTLENECK, decisively. Training can consume 14583 ex/s (small), 1662 ex/s (medium), 233 ex/s (large), while generation PRODUCES 2.39 ex/s. Generation is 97x to 6105x SLOWER than the training side can consume. No training-side optimisation can change that ratio, because the constraint is how fast examples are produced, not how fast they are consumed. gpu-sim-u2o.6.7's own split makes the cause concrete: 99.998% of the generation wall clock is per-example process overhead, not GPU work.",
+    "caveat": "This compares THROUGHPUT, not end-to-end wall clock for a whole run, and the two sides were measured in separate jobs. It is the right comparison for the question 12.2 asks -- whether training-speed work could pay -- and not a claim about total project wall clock."
+  }
+}

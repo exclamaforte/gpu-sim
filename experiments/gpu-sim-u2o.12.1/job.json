@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-u2o.12.1",
+  "ts_jobs": ["20260928t094641-a72c1838", "20260928t094801-be6134cd", "20260928t094902-9a8684a2"],
+  "authoritative_job": "20260928t094902-9a8684a2",
+  "gpu_used": true,
+  "why_three_jobs": "a72c1838 was the first real run and produced correct step times. be6134cd added the 12.2 comparison and printed 'Generation is 0x to 0x slower' -- an arithmetic direction error in MY summary string, not in the measurement. 9a8684a2 is authoritative with the ratio corrected. All three are recorded rather than only the last, because the error is part of the record.",
+  "measurement_unchanged_across_jobs": "the step-time and MFU figures are independent of the summary bug; only the derived sentence changed",
+  "cpu_preflight": "all four ladder rungs were constructed and timed on CPU before any queue slot was spent, which is how the batch=2-only unpacking bug was found",
+  "note": "The data-generation figure in the comparison is read from lab/gpu-sim-u2o.6.7's committed metrics.json via git show, not retyped, so the comparison cannot drift from its source."
+}
