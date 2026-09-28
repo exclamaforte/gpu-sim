@@ -1,0 +1,28 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "question": "is the 264-row dataset RETAINED, REGENERATED, or HELD?",
+  "DECISION": "HELD",
+  "in_my_words": "HELD means: keep the 264 rows exactly as committed, use them for nothing that depends on their absolute scale, and do not regenerate them yet. It is NOT 'retained as authoritative' and it is NOT 'discarded'. The three states are genuinely different and I am choosing the middle one for a reason I can measure rather than for caution.",
+  "why_not_RETAINED": "Retaining them as authoritative would mean accepting that each label was measured in a process that PAID A COLD START. The batched path pays none, and a real caller pays none. So the two paths are not measuring the same thing on the same footing, and a dataset whose per-example measurement includes paying for something a caller never pays is measuring the measurement apparatus as much as the kernel. That is a FIDELITY problem, which is a different problem from being reproducible, and it does not go away by declaring the numbers reproducible.",
+  "why_not_REGENERATED": "Regenerating now would be premature in both directions. If I regenerate with the batched path I bake in the confound I have already identified -- my driver is NOT 7.1's per-kernel binary, so regenerating would replace one non-authoritative dataset with a different one. And if I regenerate with the single-run path I get the same numbers I already have. Neither buys anything until the binary question is settled, and regenerating twice is worse than regenerating once.",
+  "the_number_that_decided_it": "The offset between the two paths is -0.30 us (median signed difference, 70.5% of rows faster under batching). The 264 rows' OWN per-invocation spread is a median of 0.408 us. The difference between the protocols is SMALLER THAN THE DATASET'S OWN MEASURED DISPERSION. So the dataset cannot arbitrate its own authority: it is not precise enough to distinguish the two paths, and no amount of re-reading these 264 rows will settle which is right. That is the finding, and it is why the answer is HELD rather than either extreme.",
+  "conditions_that_would_change_it": [
+    {
+      "id": "C1",
+      "condition": "the binary confound is resolved -- the batched path measures 7.1's OWN per-kernel binaries via kernel_driver.synthesize()",
+      "then": "if the offset collapses, RETAIN the single-run rows and fix the batched driver. If it persists, the paths measure different quantities and the dataset question becomes a protocol decision rather than a bug."
+    },
+    {
+      "id": "C2",
+      "condition": "a noise floor is measured PER PROTOCOL (6.6.1's 7.4% sub-10us floor was measured under the single-run protocol only)",
+      "then": "the reproduction fraction becomes interpretable; until then it swings 50-83% on identical data and settles nothing."
+    },
+    {
+      "id": "C3",
+      "condition": "a decision is recorded on whether a cold start is part of the quantity of interest",
+      "then": "if it is NOT, the labels must be regenerated warm, and the disposition becomes REGENERATED. That is a judgement about what the project is predicting, not about which number is reproducible, so it belongs to this rule and not to a comment."
+    }
+  ],
+  "what_may_not_be_built_on_it_meanwhile": "No ABSOLUTE timing claim. The 264 rows' medians are fine for relative structure (which families exist, what the split looks like, what the feature vector collapses) and unusable for 'this kernel takes X microseconds'. 8.3's 0.462-0.53 Spearman and 9.4's roofline ratios are relative and survive; an absolute throughput or latency claim does not.",
+  "machine_readable_because": "The PI's point, which I accept: naming a failure mode does not immunise you from it, and a check that lives in a careful sentence is not a check. This decision, its conditions, and the invariant that follows from it are asserted in tests/test_dataset_disposition.py, so a later change that quietly promotes HELD to RETAINED without satisfying a condition fails a test rather than requiring someone to re-read a paragraph."
+}

@@ -93,3 +93,69 @@ Until (1) and (2) are done, the honest status is: **criterion 2 fails, the
 cause is unidentified, and the dataset's authority is undetermined.** Nothing
 downstream should be re-measured or defended on the assumption that it will
 survive.
+
+
+---
+
+## The dataset's disposition: **HELD**
+
+Stated here, in my words, because a decision that lives only in a comment is a
+decision nobody made. It is also mirrored machine-readably in
+`dataset_disposition.json` and **asserted by
+`tests/test_dataset_disposition.py`**, so promoting HELD to RETAINED later
+without satisfying a condition fails a test rather than requiring someone to
+re-read a paragraph. Naming a failure mode does not immunise you from it; a
+check that lives in a careful sentence is not a check.
+
+**HELD** means: keep the 264 rows exactly as committed, build on them only the
+claims their precision supports, and do not re-measure them until a named
+condition is met. It is not "retained as authoritative" and it is not
+"discarded".
+
+**Why not RETAINED.** Retaining them as authoritative means accepting that each
+label was measured in a process that **paid a cold start**. The batched path pays
+none and a real caller pays none. A dataset whose per-example measurement
+includes paying for something a caller never pays is measuring the measurement
+apparatus as much as the kernel. That is a **fidelity** problem, and it does not
+go away by declaring the numbers reproducible.
+
+**Why not REGENERATED.** Regenerating now is premature in both directions: with
+the batched path I bake in the confound I introduced (my driver is *not* 7.1's
+per-kernel binary), and with the single-run path I reproduce the rows I already
+have. Neither buys anything until the binary question is settled, and
+regenerating twice is worse than regenerating once.
+
+### The number that decided it
+
+The offset between the two paths is **−0.30 µs** (median signed difference;
+70.5% of rows faster under batching). The 264 rows' **own** per-invocation
+spread is a median of **0.408 µs**.
+
+**The difference between the protocols is smaller than the dataset's own
+measured dispersion.** So the dataset cannot arbitrate its own authority — it is
+not precise enough to distinguish the two paths, and no amount of re-reading
+these rows will settle which is right. That is why the answer is HELD rather
+than either extreme.
+
+### What may not be built on it meanwhile
+
+**No absolute timing claim.** The rows' medians are sound for *relative*
+structure — which families exist, what the split looks like, what the feature
+vector collapses — and unusable for "this kernel takes X microseconds". 8.3's
+0.462–0.53 Spearman and 9.4's roofline ratios are relative and survive; an
+absolute throughput or latency claim does not.
+
+### Two sentences that belong on this rule rather than in a comment
+
+**A REDUCED VARIANCE IS NOT EVIDENCE OF INCREASED FIDELITY.** Those are different
+properties, and confusing them is how "tighter" became evidence *for* my
+hypothesis instead of against it. Faster and tighter together are the signature
+of a *different quantity* — a warm process does not pay the cold-start path —
+and a cleaner number is not the same number.
+
+**THE SIGN CARRIES THE SIGNAL AND THE COUNT CARRIES THE NOISE.** The reproduction
+count swung 161→218 of 264 on identical configurations and 50%→83% across
+tolerance rules: fragile, and incapable of settling anything. The signed median
+difference is −0.30 µs with 70.5% of rows faster, and is 12.6% under all three
+rules: robust to the rule while the count is not. Noise gives symmetry; a
+systematic offset gives a direction.
