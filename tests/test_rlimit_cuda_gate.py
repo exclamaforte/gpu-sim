@@ -18,7 +18,8 @@ sys.path.insert(0, str(REPO))
 from epic_u2o.rlimit_cuda_gate import (  # noqa: E402
     LIMIT_TABLE, PROBE_SOURCE, RlimitReintroductionError,
     assert_address_space_independent_of_vram, assert_nproc_never_set,
-    diagnose_probe_failure, limits_harness_applies, nproc_is_never_set,
+    assert_smoke_binary_is_pure, diagnose_probe_failure,
+    limits_harness_applies, nproc_is_never_set, smoke_binary_is_pure,
     untested_limits,
 )
 from epic_u2o.safe_harness import ResourceLimits  # noqa: E402
@@ -135,6 +136,84 @@ class TestLimitTable(unittest.TestCase):
                          "FSIZE is now applied; update the table entry")
 
 
+class TestSmokePurity(unittest.TestCase):
+    """The PI's MANDATED assertion, verbatim from the 2026-09-27 correction:
+
+    "the purity assertion belongs in this bead's part (1) -- 'ldd <smoke exe>'
+    must match neither cudart nor libcuda, checked automatically, so the probe
+    in part (2) can never be 'GPU-free' in name only."
+
+    Load-bearing HERE specifically: this probe is about RLIMITS. If the smoke
+    path reverts to nvcc's default -cudart=static -- the 6.1.1 defect, where the
+    preflight smoke compile ran on the real 5090 -- the probe would still report
+    PASS, because nothing about an rlimit probe notices that it executed on the
+    device.
+    """
+
+    PURE = ("\tlinux-vdso.so.1 (0x00007ffd)\n"
+            "\tlibfakegpu.so => /repo/libfakegpu.so (0x00007f00)\n"
+            "\tlibc.so.6 => /lib/libc.so.6 (0x00007e00)\n"
+            "\tlibm.so.6 => /lib/libm.so.6 (0x00007e00)\n")
+
+    def test_pure_binary_passes(self):
+        assert_smoke_binary_is_pure(self.PURE)      # must not raise
+        self.assertTrue(smoke_binary_is_pure(self.PURE))
+
+    def test_static_cudart_link_reports_no_libraries(self):
+        """THE LIMITATION OF THIS CHECK, stated rather than papered over.
+
+        The exact 6.1.1 defect was a -cudart=STATIC link, and a statically
+        linked cudart leaves NO trace in ldd: the symbols are inside the
+        executable and the dynamic listing is nearly empty. So this check
+        detects the DYNAMIC case and CANNOT, by itself, detect the static one.
+
+        That is why the fix mandated alongside it is '-cudart=none' at COMPILE
+        time (gpu-sim-u2o.6.1.3), not a runtime inspection. This test records
+        the boundary so nobody later reads a green ldd as proof of purity when
+        the dangerous link mode is the one that leaves no evidence.
+        """
+        static_ldd = ("\tnot a dynamic executable\n"
+                      "\tstatically linked, no shared library dependencies\n")
+        # the honest result: ldd shows nothing, so this check has nothing to go on
+        self.assertTrue(smoke_binary_is_pure(static_ldd))
+        self.assertNotIn("libcudart", static_ldd)
+
+    def test_dynamic_cudart_is_rejected(self):
+        ldd_out = self.PURE + "\tlibcudart.so.12 => /usr/lib/libcudart.so.12 (0x00007d00)\n"
+        self.assertFalse(smoke_binary_is_pure(ldd_out))
+        with self.assertRaises(RlimitReintroductionError) as cm:
+            assert_smoke_binary_is_pure(ldd_out)
+        self.assertIn("NOT GPU-free", str(cm.exception))
+        self.assertIn("libcudart", str(cm.exception))
+
+    def test_libcuda_is_rejected(self):
+        ldd_out = self.PURE + "\tlibcuda.so.1 => /usr/lib/libcuda.so.1 (0x00007c00)\n"
+        self.assertFalse(smoke_binary_is_pure(ldd_out))
+        with self.assertRaises(RlimitReintroductionError):
+            assert_smoke_binary_is_pure(ldd_out)
+
+    def test_nvml_is_rejected(self):
+        """libnvidia-ml is the management path to the same device."""
+        self.assertFalse(smoke_binary_is_pure(
+            self.PURE + "\tlibnvidia-ml.so.1 => /usr/lib/libnvidia-ml.so.1\n"))
+
+    def test_error_names_the_fix(self):
+        with self.assertRaises(RlimitReintroductionError) as cm:
+            assert_smoke_binary_is_pure("libcuda.so.1 => /usr/lib/libcuda.so.1")
+        self.assertIn("-cudart=none", str(cm.exception))
+
+    def test_check_exists_in_this_bead_not_only_in_6_1_3(self):
+        """The PI put the assertion in THIS bead, not only in 6.1.3's shell test.
+
+        A reviewer's item was that neither this test file nor the gate module
+        mentioned purity at all, while the capability sat in
+        tests/test_cudart_none.sh. Asserted so the wiring cannot be dropped.
+        """
+        gate = (REPO / "epic_u2o" / "rlimit_cuda_gate.py").read_text()
+        self.assertIn("purity", gate)
+        self.assertIn("ldd", gate)
+
+
 class TestPreflightWiring(unittest.TestCase):
     """Criterion 3, at the call site a user actually reaches."""
 
@@ -208,6 +287,56 @@ class TestProbeSource(unittest.TestCase):
     def test_probe_is_cheap(self):
         # a batch job runs this every time; a 1M-element launch is ~ms
         self.assertIn("1 << 20", PROBE_SOURCE)
+
+
+
+
+class TestHarnessDocGenerator(unittest.TestCase):
+    """harness.md is GENERATED, and two bugs in that generator are worth freezing.
+
+    Both earlier versions destroyed content or grew the file on every run, and
+    both looked fine on the run that produced them.
+    """
+
+    RENDERER = REPO / "experiments" / "gpu-sim-u2o.6.3.1" / "render_harness_md.py"
+    TARGET = REPO / "epic_u2o" / "harness.md"
+
+    def test_table_lands_beside_the_code_it_describes(self):
+        """Not a root harness.md: epic_u2o/safe_harness.py is what it describes."""
+        self.assertIn('REPO / "epic_u2o" / "harness.md"', self.RENDERER.read_text())
+        self.assertFalse((REPO / "harness.md").exists(),
+                         "a root harness.md would be a SECOND harness document")
+
+    def test_generated_region_is_delimited(self):
+        txt = self.TARGET.read_text()
+        self.assertIn("<!-- BEGIN GENERATED: gpu-sim-u2o.6.3.1 rlimit table -->", txt)
+        self.assertIn("<!-- END GENERATED: gpu-sim-u2o.6.3.1 rlimit table -->", txt)
+
+    def test_generator_is_idempotent(self):
+        """The bug that bit: run twice, the file GREW.
+
+        The second version split on headers and re-appended its own output, so
+        every run duplicated its generated sections. You cannot tell a stale
+        file from a correct one when the generator is not a fixed point.
+        """
+        import subprocess
+        before = self.TARGET.read_text()
+        r1 = subprocess.run([sys.executable, str(self.RENDERER)],
+                            cwd=REPO, capture_output=True, text=True)
+        after1 = self.TARGET.read_text()
+        subprocess.run([sys.executable, str(self.RENDERER)],
+                       cwd=REPO, capture_output=True, text=True)
+        after2 = self.TARGET.read_text()
+        self.assertEqual(r1.returncode, 0, r1.stderr)
+        self.assertEqual(after1, after2, "generator is not a fixed point")
+        self.assertEqual(before, after1, "re-running changed a committed artifact")
+
+    def test_generator_preserves_other_beads_sections(self):
+        """6.1.2's containment ladder and 6.11's note must survive verbatim."""
+        txt = self.TARGET.read_text()
+        self.assertIn("cgroup v2", txt)
+        self.assertIn("only safe value", txt)
+        self.assertIn("VOLATILE", txt)
 
 
 if __name__ == "__main__":

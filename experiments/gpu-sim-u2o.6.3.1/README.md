@@ -59,9 +59,55 @@ the table records FSIZE as **not applied**, and a test fails if
 `RLIMIT_FSIZE` ever appears in `safe_harness.py`, so the entry cannot go stale
 in the other direction either.
 
+## The mandated purity assertion (previously missing)
+
+The PI's 2026-09-27 correction to this bead, verbatim: *"the purity assertion
+belongs in this bead's part (1) — `ldd <smoke exe>` must match neither cudart
+nor libcuda, checked automatically, so the probe in part (2) can never be
+'GPU-free' in name only."* I built the rest of the gate and **missed this**.
+
+`assert_smoke_binary_is_pure(ldd_output)` now lives in the gate module, with
+seven tests. It is load-bearing *here specifically* because this bead's probe is
+about **rlimits**: if the smoke path silently reverts to nvcc's default
+`-cudart=static` — the exact 6.1.1 defect where the preflight smoke compile ran
+on the real 5090 — the probe would **still report PASS**, because nothing about
+an rlimit probe notices that it executed on the device. Purity is the only check
+in this bead that would notice.
+
+**Its limit, stated rather than papered over:** a *statically* linked cudart
+leaves no trace in `ldd` — the symbols live inside the executable and the
+dynamic listing is nearly empty. So this check catches the dynamic case and
+**cannot**, by itself, catch the dangerous one. That is why the fix mandated
+alongside it is `-cudart=none` at *compile* time (gpu-sim-u2o.6.1.3), not a
+runtime inspection. A test records the boundary so nobody later reads a green
+`ldd` as proof of purity.
+
+## The table lands beside the code, and the generator nearly ate the file
+
+The first version wrote a **root** `harness.md` — a *second* harness document,
+beside `epic_u2o/harness.md` (merged an hour earlier as 1d334f5, carrying
+6.1.2's containment ladder and a `6.3` placeholder awaiting this work). The
+table was never wrong; the *document* was. My own words applied: a safety table
+describing a different file than the one that runs is worse than no table.
+
+Moving it exposed **two generator bugs, both invisible on the run that caused
+them**:
+
+1. Keeping only lines starting `## ` deleted the **bodies** of 6.1.2's
+   containment ladder and 6.11's classification note, leaving two bare headers.
+2. Re-appending "survivors" was **not idempotent** — the second run read its own
+   output, treated its own generated sections as pre-existing, and appended them
+   again. The file grew every run. A non-idempotent generator in a repository is
+   a trap: you cannot tell a stale file from a correct one.
+
+Fixed with explicit `BEGIN/END GENERATED` markers: only that region is replaced,
+every other byte is untouched. Verified by diffing all 84 original lines against
+the result (**0 missing**), and there are now tests for idempotency, the
+markers, the destination, and the survival of 6.1.2's and 6.11's sections.
+
 ## Verification
 
-* `python3 tests/test_rlimit_cuda_gate.py` — **25 checks, 0 failures**, CPU
+* `python3 tests/test_rlimit_cuda_gate.py` — **36 checks, 0 failures**, CPU
   only, no GPU. Covers both invariants, the table/evidence consistency, the
   FSIZE discrepancy, the diagnostic path (including "no limit explains this" →
   *do not add a limit*), and four `preflight_check` wiring cases.

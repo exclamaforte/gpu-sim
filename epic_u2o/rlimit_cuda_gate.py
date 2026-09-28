@@ -328,3 +328,46 @@ def diagnose_probe_failure(stage: str, cuda_error: str,
             f"'{stage}' ({cuda_error}). That is itself the finding: the limit "
             f"set is not the cause, so do not add a limit to 'fix' it.")
     return " | ".join(parts)
+
+
+# --- the mandated purity assertion ----------------------------------------
+#
+# The PI's 2026-09-27 correction to this bead, verbatim: "the purity assertion
+# belongs in this bead's part (1) -- 'ldd <smoke exe>' must match neither
+# cudart nor libcuda, checked automatically, so the probe in part (2) can never
+# be 'GPU-free' in name only."
+#
+# WHY IT IS LOAD-BEARING HERE SPECIFICALLY, and not a generic nicety: this
+# bead's probe is about RLIMITS. If the smoke path silently reverts to nvcc's
+# default -cudart=static -- the exact gpu-sim-u2o.6.1.1 defect, where the
+# preflight smoke compile ran on the REAL 5090 -- the probe would still report
+# PASS, because nothing about an rlimit probe notices that it executed on the
+# device. A purity check is the only thing in this bead that would notice.
+#
+# The capability already exists at tests/test_cudart_none.sh:44-50; this is the
+# wiring, not a second inventory of the same fact.
+
+CUDA_LINK_PATTERNS = ("libcudart", "libcuda.so", "libnvidia-ml")
+
+
+def assert_smoke_binary_is_pure(ldd_output: str, binary: str = "<smoke exe>") -> None:
+    """Fail if an ldd listing shows a real CUDA library linked.
+
+    Takes the ldd TEXT rather than running ldd itself so the check is testable
+    without a compiled binary, and so a caller can check a listing it already
+    has. Raises with the offending lines, because "purity failed" without the
+    ldd output is the least actionable message in this file.
+    """
+    bad = [ln.strip() for ln in ldd_output.splitlines()
+           if any(p.lower() in ln.lower() for p in CUDA_LINK_PATTERNS)]
+    if bad:
+        raise RlimitReintroductionError(
+            f"{binary} is NOT GPU-free: ldd links a real CUDA library "
+            f"({', '.join(CUDA_LINK_PATTERNS)}). Matched: {'; '.join(bad)}. "
+            f"Compile with -cudart=none and link libfakegpu directly. Without "
+            f"this, a preflight can execute on the real device and still report "
+            f"success -- the gpu-sim-u2o.6.1.1 defect.")
+
+
+def smoke_binary_is_pure(ldd_output: str) -> bool:
+    return not any(p.lower() in ldd_output.lower() for p in CUDA_LINK_PATTERNS)
