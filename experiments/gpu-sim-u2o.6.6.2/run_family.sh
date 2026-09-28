@@ -8,6 +8,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PATH="$HOME/.local/bin:$PATH"
 cd "$HERE"
 
+# Unique per family: the four anchor jobs share a command prefix, so a
+# generic substring made every one of them claim the same JOB_ID.
+export U2O_JOB_DESC="u2o.6.6.2 anchor: $FAM"
+
 echo "=== ts job $(date -Is) family=$FAM ==="
 python3 measure_family.py "$FAM" 2>&1 | tee "output_${FAM}.log"
 rc=${PIPESTATUS[0]}

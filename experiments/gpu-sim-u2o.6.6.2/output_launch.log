@@ -1,5 +1,36 @@
-Traceback (most recent call last):
-  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/measure_family.py", line 31, in <module>
-    OWN_JOB_DESCRIPTION = os.environ.get("U2O_JOB_DESC", "u2o.6.6.2 anchor")
-                          ^^
-NameError: name 'os' is not defined. Did you mean: 'qs'? Or did you forget to import 'os'?
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'launch'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "225 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "37", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t032427-a8e9b1eb", "n_other_active": 2, "n_other_running_at_sample_time": 1}
+overlapping jobs: [{"id": "20260928t032427-07ffc5d6", "state": "running", "description": "u2o.6.6.2 anchor v5: launch"}, {"id": "20260928t032427-34442b74", "state": "queued", "description": "u2o.6.6.2 anchor v5: reduce"}]
+launch: 18 configs x 3 process invocations x 100 trials
+  empty n=1024 auto/256        grid=     [4, 1, 1] med=    1.792us iqr=   1.280us cv=0.562 ai_cv=0.1506
+  noop_store n=1024 auto/256   grid=     [4, 1, 1] med=    2.080us iqr=   1.312us cv=0.635 ai_cv=0.1458
+  empty n=1024 auto/1024       grid=     [1, 1, 1] med=    1.664us iqr=   1.408us cv=0.741 ai_cv=0.2278
+  noop_store n=1024 auto/1024  grid=     [1, 1, 1] med=    2.304us iqr=   1.216us cv=0.686 ai_cv=0.2188
+  empty n=1024 1block/1024     grid=     [1, 1, 1] med=    1.440us iqr=   1.376us cv=0.664 ai_cv=0.161
+  noop_store n=1024 1block/1024 grid=     [1, 1, 1] med=    1.904us iqr=   1.504us cv=0.577 ai_cv=0.3309
+  empty n=65536 auto/256       grid=   [256, 1, 1] med=    1.760us iqr=   1.184us cv=0.641 ai_cv=0.0458
+  noop_store n=65536 auto/256  grid=   [256, 1, 1] med=    2.224us iqr=   1.408us cv=0.663 ai_cv=0.0454
+  empty n=65536 auto/1024      grid=    [64, 1, 1] med=    1.744us iqr=   0.928us cv=0.624 ai_cv=0.0323
+  noop_store n=65536 auto/1024 grid=    [64, 1, 1] med=    1.888us iqr=   1.344us cv=0.721 ai_cv=0.2163
+  empty n=65536 1block/1024    grid=     [1, 1, 1] med=    1.904us iqr=   1.152us cv=0.687 ai_cv=0.1969
+  noop_store n=65536 1block/1024 grid=     [1, 1, 1] med=    2.000us iqr=   1.120us cv=0.808 ai_cv=0.1125
+  empty n=4194304 auto/256     grid= [16384, 1, 1] med=   10.240us iqr=   1.696us cv=0.099 ai_cv=0.0722
+  noop_store n=4194304 auto/256 grid= [16384, 1, 1] med=    9.200us iqr=   1.728us cv=0.141 ai_cv=0.0206
+  empty n=4194304 auto/1024    grid=  [4096, 1, 1] med=    5.200us iqr=   0.928us cv=0.258 ai_cv=0.0521
+  noop_store n=4194304 auto/1024 grid=  [4096, 1, 1] med=    5.040us iqr=   1.632us cv=0.195 ai_cv=0.0421
+  empty n=4194304 1block/1024  grid=     [1, 1, 1] med=    1.488us iqr=   1.056us cv=0.747 ai_cv=0.027
+  noop_store n=4194304 1block/1024 grid=     [1, 1, 1] med=    1.776us iqr=   1.312us cv=0.724 ai_cv=0.1357
+telemetry after:  {"clocks.sm": "2460 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "39", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/family_launch.json
+launch: 18/18 configs measured, 15.4s
