@@ -1,5 +1,148 @@
 {
   "bead": "gpu-sim-u2o.6.6.2",
+  "queue_state_by_family": {
+    "launch": {
+      "recorded_at": "2026-09-28T03:27:17.988985+00:00",
+      "own_job_id": "20260928t032717-6356dbf2",
+      "own_description_substr": "u2o.6.6.2 anchor: launch",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 290,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "queued": 3,
+        "running": 1
+      },
+      "n_active_including_self": 4,
+      "n_other_active": 3,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032717-3f5587a6",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: gemm",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032717-5c2e74a0",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: memory",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032717-ff2f2da2",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: reduce",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    },
+    "memory": {
+      "recorded_at": "2026-09-28T03:27:33.572955+00:00",
+      "own_job_id": "20260928t032717-5c2e74a0",
+      "own_description_substr": "u2o.6.6.2 anchor: memory",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 291,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "queued": 2,
+        "running": 1
+      },
+      "n_active_including_self": 3,
+      "n_other_active": 2,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032717-3f5587a6",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: gemm",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032717-ff2f2da2",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: reduce",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    },
+    "reduce": {
+      "recorded_at": "2026-09-28T03:29:03.311855+00:00",
+      "own_job_id": "20260928t032717-ff2f2da2",
+      "own_description_substr": "u2o.6.6.2 anchor: reduce",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 292,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "queued": 2,
+        "running": 1
+      },
+      "n_active_including_self": 3,
+      "n_other_active": 2,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032717-3f5587a6",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: gemm",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032742-7f556080",
+          "state": "queued",
+          "description": "",
+          "created_at": "2026-09-28T03:27:42+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    },
+    "gemm": {
+      "recorded_at": "2026-09-28T03:29:10.727705+00:00",
+      "own_job_id": "20260928t032717-3f5587a6",
+      "own_description_substr": "u2o.6.6.2 anchor: gemm",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 293,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "running": 1,
+        "queued": 1
+      },
+      "n_active_including_self": 2,
+      "n_other_active": 1,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032742-7f556080",
+          "state": "queued",
+          "description": "",
+          "created_at": "2026-09-28T03:27:42+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    }
+  },
+  "queue_state_caveat": "own_job_entry is ABSENT on these records: the family files were produced at 20260928t032717, which PREDATES the 6.6.6 implementation committed at 20:33:17. It is an ordering artefact and it cannot be retrofitted, so the emptiness claim in these records is a WELL-CORROBORATED ASSERTION, not a verified fact: it is consistent with the per-family files, the ts logs and the queue, but the in-record cross-check against a false positive is impossible on THIS artifact. gpu-sim-u2o.6.6.6 closes that for future runs.",
   "what": "anchor + scaling set measured on the CURRENT measurement path (synthesize -> compile_kernel -> run_kernel) BEFORE the 6.1.3/6.1.1 rework, so 6.1.1's closing run can be diffed against it",
   "preflight_bypassed": true,
   "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); an anchor must not carry an unaccounted extra execution",
@@ -228,7 +371,8 @@
         "working_set_MB": 0.0078125,
         "l2_resident": true,
         "median_us": 2.736,
-        "achieved_GBps": 2.9941520467836256
+        "achieved_GBps": 4.491228070175438,
+        "bytes_moved": 12288
       },
       {
         "label": "relu n=1024 auto/256",
@@ -236,7 +380,8 @@
         "working_set_MB": 0.0078125,
         "l2_resident": true,
         "median_us": 2.64,
-        "achieved_GBps": 3.103030303030303
+        "achieved_GBps": 3.103030303030303,
+        "bytes_moved": 8192
       },
       {
         "label": "copy n=1024 auto/256",
@@ -244,7 +389,8 @@
         "working_set_MB": 0.0078125,
         "l2_resident": true,
         "median_us": 2.7680000000000002,
-        "achieved_GBps": 2.9595375722543356
+        "achieved_GBps": 2.9595375722543356,
+        "bytes_moved": 8192
       },
       {
         "label": "strided_read n=1024 stride=17 auto/256",
@@ -252,7 +398,8 @@
         "working_set_MB": 0.0078125,
         "l2_resident": true,
         "median_us": 2.784,
-        "achieved_GBps": 2.942528735632184
+        "achieved_GBps": 1.5574712643678161,
+        "bytes_moved": 4336
       },
       {
         "label": "scatter_write n=1024 auto/256",
@@ -260,7 +407,8 @@
         "working_set_MB": 0.0078125,
         "l2_resident": true,
         "median_us": 2.7520000000000002,
-        "achieved_GBps": 2.9767441860465116
+        "achieved_GBps": 2.9767441860465116,
+        "bytes_moved": 8192
       },
       {
         "label": "random_access n=1024 auto/256",
@@ -268,7 +416,8 @@
         "working_set_MB": 0.0078125,
         "l2_resident": true,
         "median_us": 2.7680000000000002,
-        "achieved_GBps": 2.9595375722543356
+        "achieved_GBps": 2.9595375722543356,
+        "bytes_moved": 8192
       },
       {
         "label": "saxpy n=16384 auto/256",
@@ -276,7 +425,8 @@
         "working_set_MB": 0.125,
         "l2_resident": true,
         "median_us": 2.8640000000000003,
-        "achieved_GBps": 45.76536312849162
+        "achieved_GBps": 68.64804469273743,
+        "bytes_moved": 196608
       },
       {
         "label": "relu n=16384 auto/256",
@@ -284,7 +434,8 @@
         "working_set_MB": 0.125,
         "l2_resident": true,
         "median_us": 2.56,
-        "achieved_GBps": 51.2
+        "achieved_GBps": 51.2,
+        "bytes_moved": 131072
       },
       {
         "label": "copy n=16384 auto/256",
@@ -292,7 +443,8 @@
         "working_set_MB": 0.125,
         "l2_resident": true,
         "median_us": 2.72,
-        "achieved_GBps": 48.188235294117646
+        "achieved_GBps": 48.188235294117646,
+        "bytes_moved": 131072
       },
       {
         "label": "strided_read n=16384 stride=17 auto/256",
@@ -300,7 +452,8 @@
         "working_set_MB": 0.125,
         "l2_resident": true,
         "median_us": 2.816,
-        "achieved_GBps": 46.545454545454554
+        "achieved_GBps": 24.640625,
+        "bytes_moved": 69388
       },
       {
         "label": "scatter_write n=16384 auto/256",
@@ -308,7 +461,8 @@
         "working_set_MB": 0.125,
         "l2_resident": true,
         "median_us": 2.7520000000000002,
-        "achieved_GBps": 47.627906976744185
+        "achieved_GBps": 47.627906976744185,
+        "bytes_moved": 131072
       },
       {
         "label": "random_access n=16384 auto/256",
@@ -316,7 +470,8 @@
         "working_set_MB": 0.125,
         "l2_resident": true,
         "median_us": 2.7520000000000002,
-        "achieved_GBps": 47.627906976744185
+        "achieved_GBps": 47.627906976744185,
+        "bytes_moved": 131072
       }
     ],
     "memory_bound_cells": [
@@ -326,7 +481,8 @@
         "working_set_MB": 32.0,
         "l2_resident": true,
         "median_us": 10.848,
-        "achieved_GBps": 3093.1445427728613
+        "achieved_GBps": 4639.716814159292,
+        "bytes_moved": 50331648
       },
       {
         "label": "relu n=4194304 auto/256",
@@ -334,7 +490,8 @@
         "working_set_MB": 32.0,
         "l2_resident": true,
         "median_us": 10.735999999999999,
-        "achieved_GBps": 3125.4128166915057
+        "achieved_GBps": 3125.4128166915057,
+        "bytes_moved": 33554432
       },
       {
         "label": "copy n=4194304 auto/256",
@@ -342,7 +499,8 @@
         "working_set_MB": 32.0,
         "l2_resident": true,
         "median_us": 10.512,
-        "achieved_GBps": 3192.0121765601216
+        "achieved_GBps": 3192.0121765601216,
+        "bytes_moved": 33554432
       },
       {
         "label": "strided_read n=4194304 stride=17 auto/256",
@@ -350,7 +508,8 @@
         "working_set_MB": 32.0,
         "l2_resident": true,
         "median_us": 10.768,
-        "achieved_GBps": 3116.1248142644877
+        "achieved_GBps": 1649.712852897474,
+        "bytes_moved": 17764108
       },
       {
         "label": "random_access n=4194304 auto/256",
@@ -358,7 +517,17 @@
         "working_set_MB": 32.0,
         "l2_resident": true,
         "median_us": 10.911999999999999,
-        "achieved_GBps": 3075.0029325513196
+        "achieved_GBps": 3075.0029325513196,
+        "bytes_moved": 33554432
+      },
+      {
+        "label": "saxpy n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 511.03999999999996,
+        "achieved_GBps": 1575.8186599874768,
+        "bytes_moved": 805306368
       },
       {
         "label": "relu n=67108864 auto/256",
@@ -366,7 +535,8 @@
         "working_set_MB": 512.0,
         "l2_resident": false,
         "median_us": 349.296,
-        "achieved_GBps": 1537.0084741880812
+        "achieved_GBps": 1537.0084741880812,
+        "bytes_moved": 536870912
       },
       {
         "label": "copy n=67108864 auto/256",
@@ -374,15 +544,8 @@
         "working_set_MB": 512.0,
         "l2_resident": false,
         "median_us": 350.30400000000003,
-        "achieved_GBps": 1532.5857312505707
-      },
-      {
-        "label": "strided_read n=67108864 stride=17 auto/256",
-        "n_problem_size": 67108864,
-        "working_set_MB": 512.0,
-        "l2_resident": false,
-        "median_us": 349.168,
-        "achieved_GBps": 1537.5719195344361
+        "achieved_GBps": 1532.5857312505707,
+        "bytes_moved": 536870912
       },
       {
         "label": "random_access n=67108864 auto/256",
@@ -390,7 +553,8 @@
         "working_set_MB": 512.0,
         "l2_resident": false,
         "median_us": 348.912,
-        "achieved_GBps": 1538.7000504425187
+        "achieved_GBps": 1538.7000504425187,
+        "bytes_moved": 536870912
       }
     ],
     "launch_to_memory_crossover_n": 262144,
@@ -406,21 +570,21 @@
       "excluded_and_why": "n=2^22 is L2-resident on this part and sustains far more than HBM; including it would publish a cache bandwidth as the memory ceiling",
       "ranked": [
         {
+          "label": "saxpy n=67108864 auto/256",
+          "kernel": "k_saxpy",
+          "n_problem_size": 67108864,
+          "median_ms": 0.5110399999999999,
+          "bytes_moved": 805306368,
+          "achieved_GBps": 1575.8186599874768,
+          "l2_resident": false
+        },
+        {
           "label": "random_access n=67108864 auto/256",
           "kernel": "k_random_access",
           "n_problem_size": 67108864,
           "median_ms": 0.348912,
           "bytes_moved": 536870912,
           "achieved_GBps": 1538.7000504425187,
-          "l2_resident": false
-        },
-        {
-          "label": "strided_read n=67108864 stride=17 auto/256",
-          "kernel": "k_strided_read",
-          "n_problem_size": 67108864,
-          "median_ms": 0.34916800000000003,
-          "bytes_moved": 284225776,
-          "achieved_GBps": 1537.5719195344361,
           "l2_resident": false
         },
         {
@@ -442,12 +606,12 @@
           "l2_resident": false
         },
         {
-          "label": "saxpy n=67108864 auto/256",
-          "kernel": "k_saxpy",
+          "label": "strided_read n=67108864 stride=17 auto/256",
+          "kernel": "k_strided_read",
           "n_problem_size": 67108864,
-          "median_ms": 0.5110399999999999,
-          "bytes_moved": 805306368,
-          "achieved_GBps": 1050.5457733249846,
+          "median_ms": 0.34916800000000003,
+          "bytes_moved": 284225776,
+          "achieved_GBps": 814.0086605874536,
           "l2_resident": false
         },
         {
@@ -461,7 +625,16 @@
         }
       ]
     },
-    "ceiling_candidates_ranked_all_cells": [
+    "ceiling_candidates": [
+      {
+        "label": "saxpy n=4194304 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010848,
+        "bytes_moved": 50331648,
+        "achieved_GBps": 4639.716814159292,
+        "l2_resident": true
+      },
       {
         "label": "copy n=4194304 auto/256",
         "kernel": "k_copy",
@@ -481,21 +654,60 @@
         "l2_resident": true
       },
       {
+        "label": "random_access n=4194304 auto/256",
+        "kernel": "k_random_access",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010912,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3075.0029325513196,
+        "l2_resident": true
+      },
+      {
         "label": "strided_read n=4194304 stride=17 auto/256",
         "kernel": "k_strided_read",
         "n_problem_size": 4194304,
         "median_ms": 0.010768,
         "bytes_moved": 17764108,
-        "achieved_GBps": 3116.1248142644877,
+        "achieved_GBps": 1649.712852897474,
         "l2_resident": true
       },
+      {
+        "label": "saxpy n=67108864 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 67108864,
+        "median_ms": 0.5110399999999999,
+        "bytes_moved": 805306368,
+        "achieved_GBps": 1575.8186599874768,
+        "l2_resident": false
+      }
+    ],
+    "ceiling_candidates_note": "Key name matters: this list can only exist if the item-2/5 code actually RAN, so it is proof of execution rather than a claim about it. ceiling_candidate_set.ranked is the HBM-only set the ceiling is actually taken from; this list ranks all cells so the choice is auditable against alternatives.",
+    "ceiling_candidates_ranked_all_cells": [
       {
         "label": "saxpy n=4194304 auto/256",
         "kernel": "k_saxpy",
         "n_problem_size": 4194304,
         "median_ms": 0.010848,
         "bytes_moved": 50331648,
-        "achieved_GBps": 3093.1445427728613,
+        "achieved_GBps": 4639.716814159292,
+        "l2_resident": true
+      },
+      {
+        "label": "copy n=4194304 auto/256",
+        "kernel": "k_copy",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010512,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3192.0121765601216,
+        "l2_resident": true
+      },
+      {
+        "label": "relu n=4194304 auto/256",
+        "kernel": "k_relu",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010735999999999999,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3125.4128166915057,
         "l2_resident": true
       },
       {
@@ -508,18 +720,27 @@
         "l2_resident": true
       },
       {
-        "label": "random_access n=67108864 auto/256",
-        "kernel": "k_random_access",
+        "label": "strided_read n=4194304 stride=17 auto/256",
+        "kernel": "k_strided_read",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010768,
+        "bytes_moved": 17764108,
+        "achieved_GBps": 1649.712852897474,
+        "l2_resident": true
+      },
+      {
+        "label": "saxpy n=67108864 auto/256",
+        "kernel": "k_saxpy",
         "n_problem_size": 67108864,
-        "median_ms": 0.348912,
-        "bytes_moved": 536870912,
-        "achieved_GBps": 1538.7000504425187,
+        "median_ms": 0.5110399999999999,
+        "bytes_moved": 805306368,
+        "achieved_GBps": 1575.8186599874768,
         "l2_resident": false
       }
     ],
     "crossover_definition": "smallest measured n (auto/256 elementwise) whose achieved bandwidth reaches 10% of the measured ceiling; below it the measurement is launch overhead, not data movement -- from the data, not theory",
-    "measured_memory_ceiling_GBps": 1538.7000504425187,
-    "memory_ceiling_source_cell": "random_access n=67108864 auto/256",
+    "measured_memory_ceiling_GBps": 1575.8186599874768,
+    "memory_ceiling_source_cell": "saxpy n=67108864 auto/256",
     "memory_ceiling_definition": "best achieved bytes/s among the HBM-bound cells (the largest n, 2^26), 2*n*4 bytes moved (one read + one write, fp32). NOT the best cell overall: the n=2^22 cell is L2-resident on this part and sustains far more, so taking the maximum would publish a cache bandwidth as the memory ceiling and calibrate every later roofline against cache."
   },
   "reproducibility": {
@@ -3649,7 +3870,7 @@
       "across_invocation_cv": 0.0007420749470220552,
       "throttle_active": false,
       "_working_set_mb": 512.0,
-      "regime": "compute-bound",
+      "regime": "memory-bound",
       "covers": 67108864,
       "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
@@ -3754,7 +3975,7 @@
       "across_invocation_cv": 0.0007373872595386635,
       "throttle_active": false,
       "_working_set_mb": 512.0,
-      "regime": "memory-bound",
+      "regime": "compute-bound",
       "covers": 67108864,
       "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     },
@@ -4781,26 +5002,5 @@
       "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
     }
   ],
-  "failed_cells": [],
-  "anchor_version": 1,
-  "anchor_frozen": "anchor_v1, 2026-09-28. FROZEN. Consists of the hand-written kernels from 98fe697 (launch/memory/reduce/gemm) PLUS the one-time lift of strided_read, scatter_write and random_access from epic_u2o/generator_stage3.py as of master a688a84. Measured by ts jobs 20260928t032717-6356dbf2 (launch), 5c2e74a0 (memory), ff2f2da2 (reduce), 3f5587a6 (gemm). A later change to any kernel here is anchor_v2 with a stated reason, never an in-place edit: the 6.1.1 closing diff is taken against this version.",
-  "tree_state": {
-    "branch": "lab/gpu-sim-u2o.6.6.2-r2",
-    "measured_at_commits": [
-      "4e934ef (anchor + measurement code)",
-      "168b516 (static preflight)",
-      "THIS COMMIT (queue-state fix + re-run)"
-    ],
-    "base": "master a688a84 plus the untracked epic_u2o/ modules copied in, which is the honest dirty-tree form: epic_u2o/ is still untracked in master, so a fresh checkout does not contain the code that produced these numbers"
-  },
-  "supersedes": {
-    "previous_anchor_commit": "98fe697",
-    "what_changed": [
-      "strided/scatter/random access-pattern contrast lifted in",
-      "ceiling = argmax index over a STATED HBM candidate set",
-      "per-cell byte convention instead of one global assumption",
-      "per-cell regime flag on all 124 cells",
-      "queue state recorded (item 8)"
-    ]
-  }
+  "failed_cells": []
 }
