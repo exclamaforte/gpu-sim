@@ -1,0 +1,17 @@
+{
+  "n_rows": 264,
+  "n_families": 8,
+  "problem_sizes": [
+    4096,
+    16384,
+    65536,
+    262144
+  ]
+}
+
+pre-existing split: {"train": 264, "val": 0, "test": 0}
+  it reported leakage_train_test = 0
+
+representation: 8 distinct token digests for 264 rows
+row-level split: 100.0% of test rows share a representation key with train; 8/8 families shared
+recommended split passes validation: True

@@ -1,0 +1,114 @@
+{
+  "bead": "gpu-sim-u2o.7.7",
+  "dataset": "lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measured.jsonl",
+  "dataset_ts_job": "20260928t074004-b429f469",
+  "n_rows": 264,
+  "families": [
+    "add",
+    "copy",
+    "div",
+    "mul",
+    "relu",
+    "saxpy",
+    "scale",
+    "triad"
+  ],
+  "n_families": 8,
+  "problem_sizes": [
+    4096,
+    16384,
+    65536,
+    262144
+  ],
+  "measured_regimes": {
+    "launch_bound": 264
+  },
+  "pre_existing_structural_split": {
+    "assign_family_returns": null,
+    "split_sizes": {
+      "train": 264,
+      "val": 0,
+      "test": 0
+    },
+    "quality_reported_total_families": 0,
+    "quality_reported_leakage_train_test": 0,
+    "verdict": "FAIL-OPEN: every row went to train, val and test are empty, and the leakage analyzer reported 0 families and 0 leakage. A check that reports 'no leakage' for a split with no test set is not a weak check, it is a green result produced by nothing having been tested."
+  },
+  "representation_finding": {
+    "n_distinct_token_digests": 8,
+    "rows_per_digest": [
+      33
+    ],
+    "digests_mapping_to_more_than_one_family": 0,
+    "digest_invariant_to_problem_size": false,
+    "digest_invariant_to_launch_config": false,
+    "what_it_means": "The tokenizer emits ONE distinct sequence per family and it does not vary with problem_size or launch_config. So 264 measured rows collapse to 8 distinct model inputs. A row-level split therefore puts token-identical examples on both sides, and a model asked to predict runtime from this representation cannot see the two things that determine runtime. This is a gpu-sim-u2o.8 finding that only became visible once the split was run on real data."
+  },
+  "leakage_audit": {
+    "n_rows": 264,
+    "n_distinct_kernel_hash": 264,
+    "n_distinct_representation_keys": 8,
+    "rows_per_representation_key": 33.0,
+    "row_level_split": {
+      "train_rows": 224,
+      "test_rows": 40,
+      "test_rows_with_a_representation_key_also_in_train": 40,
+      "test_rows_leaked_fraction": 1.0,
+      "families_shared_train_test": [
+        "add",
+        "copy",
+        "div",
+        "mul",
+        "relu",
+        "saxpy",
+        "scale",
+        "triad"
+      ],
+      "n_families_shared": 8,
+      "n_families_total": 8
+    },
+    "note": "kernel_hash is distinct on every row, so a leakage check keyed on kernel_hash reports 0% leakage on a split that leaks every row. The model never sees kernel_hash; it sees the token sequence. Keying the check on the wrong identifier is how the pre-existing analyzer returned leakage_train_test: 0."
+  },
+  "recommended_split": {
+    "rule": "families sorted alphabetically; first 2 to test, next 1 to val. A stated rule rather than a random draw, so the split is reproducible and auditable instead of lucky.",
+    "test_families": [
+      "add",
+      "copy"
+    ],
+    "val_families": [
+      "div"
+    ],
+    "validation": {
+      "n_train": 165,
+      "n_val": 33,
+      "n_test": 66,
+      "train_families": [
+        "mul",
+        "relu",
+        "saxpy",
+        "scale",
+        "triad"
+      ],
+      "val_families": [
+        "div"
+      ],
+      "test_families": [
+        "add",
+        "copy"
+      ],
+      "n_representation_keys": {
+        "train": 5,
+        "val": 1,
+        "test": 2
+      },
+      "family_disjoint": true,
+      "representation_disjoint": true,
+      "rows_conserve": true
+    },
+    "passed": true
+  },
+  "size_range_holdout": {
+    "possible": false,
+    "why": "the dataset has 4 problem sizes ([4096, 16384, 65536, 262144]) and every one of the 264 rows is measured_regime='launch_bound'. A size-range holdout needs sizes spanning more than one regime; here every size is launch-bound (7.1's finding), so holding out a size range would hold out a regime change that does not exist in the data. Recorded as impossible rather than implemented and reported as if it worked."
+  }
+}
