@@ -11,15 +11,25 @@ and `safe_harness.preflight_check()` reaches this module.
 
 ## The defect, demonstrated rather than described
 
-`demo_pre_fix_stub.py` calls the pre-fix method directly:
+`demo_before_after.py` shows **both sides** and is self-contained: the pre-fix
+module is committed beside it as `pv_pre_fix.py`, so there is no `/tmp`
+dependency and a reader can re-run it from a clean checkout.
 
 ```
-PRE-FIX  _run_under_fakegpu -> (True, 'Preflight passed (placeholder)', '')
-PRE-FIX  same call, empty config -> (True, 'Preflight passed (placeholder)', '')
+BEFORE  a kernel that does not exist  -> passed=True   'Preflight passed (placeholder)'
+BEFORE  an empty launch config        -> passed=True   'Preflight passed (placeholder)'
+AFTER   a kernel that does not exist  -> passed=False  'invalid launch config: block 999999x1x1 ... (max 1024)'
+AFTER   an empty launch config        -> passed=True   'launch_done grid=(1,1,1) block=(1,1,1) failures=0'
+AFTER   a good kernel (end to end)    -> passed=True   evidence: launch_done present
+AFTER   cannot check (no libfakegpu)  -> passed=False  "cannot run ... 'cannot check' is NOT a pass"
 ```
 
-The same two calls on the repaired version return `False`. A config naming a
-kernel that does not exist, and an empty config, both used to pass.
+Note the third row honestly: the repaired module **passes** the empty-config
+probe, because an empty config defaults to a legal 1×1×1 launch and the
+kernel really does run. That is correct behaviour, and it is also a claim I got
+wrong first time — a draft of this file said the repaired module "answers
+False to both probes", which its own output contradicts. The sentence was
+written before the data existed.
 
 ## What it does now
 
