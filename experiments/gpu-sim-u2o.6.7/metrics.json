@@ -1,0 +1,62 @@
+{
+  "bead": "gpu-sim-u2o.6.7",
+  "source": "lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measured.jsonl and lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measure_summary.json",
+  "ts_job": "20260928t074004-b429f469",
+  "gpu_used": false,
+  "n_rows_measured": 264,
+  "n_failed": 0,
+  "throughput": {
+    "harness_wall": {
+      "n_rows": 264,
+      "wall_sec": 110.52331376075745,
+      "examples_per_sec": 2.3886363068290137,
+      "examples_per_hour": 8599.090704584449,
+      "seconds_per_row": 0.4186489157604449,
+      "derivation": "measure_summary.wall_sec (harness clock)"
+    },
+    "timestamp_span": {
+      "n_rows": 264,
+      "wall_sec": 111.0,
+      "examples_per_sec": 2.3783783783783785,
+      "examples_per_hour": 8562.162162162163,
+      "seconds_per_row": 0.42045454545454547,
+      "derivation": "per-row measured_at span (independent of the harness's own wall clock)"
+    },
+    "cross_check": {
+      "examples_per_sec_harness_wall": 2.3886363068290137,
+      "examples_per_sec_timestamp_span": 2.3783783783783785,
+      "disagreement_pct": 0.42944706238066566,
+      "agree_within_tolerance": true,
+      "tolerance_pct": 5.0,
+      "a_derivation": "measure_summary.wall_sec (harness clock)",
+      "b_derivation": "per-row measured_at span (independent of the harness's own wall clock)"
+    }
+  },
+  "bottleneck": {
+    "wall_sec": 110.52331376075745,
+    "measured_kernel_sec": 0.001751888,
+    "overhead_sec": 110.52156187275745,
+    "overhead_fraction_of_wall": 0.9999841491542337,
+    "kernel_fraction_of_wall": 1.585084576628056e-05,
+    "n_rows": 264,
+    "launches_per_row": 40,
+    "total_launches": 10560,
+    "wall_sec_per_launch": 0.010466222894011121,
+    "kernel_us_per_launch_median": 0.16589848484848485,
+    "verdict": "100.00% of the measurement wall clock is NOT the kernel running. The GPU is asked to do 0.002% of the work and the rest is process spawn, driver init and per-row setup. So the bottleneck is per-EXAMPLE OVERHEAD, not GPU throughput and not training throughput -- and the fix is batching or a persistent worker, not a faster GPU."
+  },
+  "fabricated_artifact": {
+    "path": "runs/logs/throughput_demo_run.jsonl",
+    "not_in_this_worktree": true,
+    "searched_main_checkout": "/home/gabe/Documents/gpu-sim/runs/logs/throughput_demo_run.jsonl",
+    "refused": true,
+    "reason": "5 of 15 rows carry no measured trials. A row with no measurements must not contribute to a rate, and marking it 'completed' is how the fabricated artifact reported 15 completed with 5 of them holding nothing.",
+    "n_rows": 15,
+    "n_distinct_kernel_hash": 10,
+    "n_rows_with_no_trials_but_marked_completed": 5,
+    "claimed_examples_per_sec": 99.17018962500592,
+    "claimed_examples_per_hour": 357012.6826500213,
+    "overstatement_vs_real": 41.51749236226645,
+    "was_tracked_in_git": false
+  }
+}
