@@ -1,4 +1,3 @@
-
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
@@ -7,6 +6,16 @@
 *.gate.lock*
 
 # fakegpu build artifacts
+#
+# libfakegpu.so is the one that matters most: a fresh checkout without a
+# build has no libfakegpu.so, so `make check` can pass VACUOUSLY. Ignoring a
+# build product is not cosmetic here -- it must never be committed, and its
+# absence must never be mistaken for a green quality gate.
 *.o
 libfakegpu.so
 build/
+
+# build artifacts that must never be committed (gpu-sim-u2o.6.6.1)
+**__pycache__/
+*.pyc
+*.out

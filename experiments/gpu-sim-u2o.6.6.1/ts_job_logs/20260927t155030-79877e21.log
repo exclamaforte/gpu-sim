@@ -1,0 +1,85 @@
+=== ts job: gabe at 2026-09-27T08:50:30-07:00 ===
+========================================================================
+gpu-sim-u2o.6.6.1 -- noise floor of the real measurement path
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: SafeHarness.preflight_check()
+currently executes on the real GPU (PI ruling on 6.1.1), so calling
+it here would add a second, unaccounted GPU execution to a
+measurement experiment. compile_kernel() and run_kernel() are called
+directly instead. Kernel is a FIXED hand-written reference kernel:
+no generated or untrusted code, no dependency on the fake path.
+No sudo, no clock locking, no persistence-mode change; nvidia-smi is
+used only for read-only telemetry queries.
+========================================================================
+telemetry before: {"clocks.sm": "255 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "36", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "14.07 W", "power.limit": "575.00 W", "utilization.gpu": "0 %", "memory.used": "443 MiB"}
+compile_kernel -> ok=True Compilation successful
+  empty n=1024      single inv0  trials=200  median=1.5040us iqr=0.2880us cv=0.4980 grid=4
+  empty n=1024      single inv1  trials=200  median=1.5200us iqr=1.1200us cv=0.6594 grid=4
+  empty n=1024      single inv2  trials=200  median=1.7280us iqr=1.2480us cv=0.3891 grid=4
+  empty n=1024      batched inv0  trials=200  median=1.3288us iqr=0.0694us cv=0.0882 grid=4
+  empty n=1024      batched inv1  trials=200  median=1.3216us iqr=0.0474us cv=0.0347 grid=4
+  empty n=1024      batched inv2  trials=200  median=1.3310us iqr=0.0458us cv=0.0423 grid=4
+  empty n=16384     single inv0  trials=200  median=2.4320us iqr=1.2800us cv=0.4228 grid=64
+  empty n=16384     single inv1  trials=200  median=2.2080us iqr=1.2800us cv=0.3757 grid=64
+  empty n=16384     single inv2  trials=200  median=2.2080us iqr=1.4080us cv=0.4416 grid=64
+  empty n=16384     batched inv0  trials=200  median=1.3662us iqr=0.0557us cv=0.0481 grid=64
+  empty n=16384     batched inv1  trials=200  median=1.3170us iqr=0.0349us cv=0.0384 grid=64
+  empty n=16384     batched inv2  trials=200  median=1.3198us iqr=0.0490us cv=0.0560 grid=64
+  empty n=262144    single inv0  trials=200  median=2.4320us iqr=1.3120us cv=0.4399 grid=1024
+  empty n=262144    single inv1  trials=200  median=2.8480us iqr=1.2480us cv=0.5903 grid=1024
+  empty n=262144    single inv2  trials=200  median=2.4960us iqr=0.5760us cv=0.3038 grid=1024
+  empty n=262144    batched inv0  trials=200  median=1.4082us iqr=0.1888us cv=0.1537 grid=1024
+  empty n=262144    batched inv1  trials=200  median=1.3432us iqr=0.0701us cv=0.0719 grid=1024
+  empty n=262144    batched inv2  trials=200  median=1.3613us iqr=0.0643us cv=0.1253 grid=1024
+  empty n=4194304   single inv0  trials=200  median=9.8560us iqr=1.7280us cv=0.0984 grid=16384
+  empty n=4194304   single inv1  trials=200  median=9.6800us iqr=1.7280us cv=0.1109 grid=16384
+  empty n=4194304   single inv2  trials=200  median=9.5520us iqr=1.6320us cv=0.0919 grid=16384
+  empty n=4194304   batched inv0  trials=200  median=8.0899us iqr=0.0099us cv=0.0024 grid=16384
+  empty n=4194304   batched inv1  trials=200  median=8.0899us iqr=0.0096us cv=0.0010 grid=16384
+  empty n=4194304   batched inv2  trials=200  median=8.0885us iqr=0.0102us cv=0.0017 grid=16384
+  empty n=67108864  single inv0  trials=200  median=33.3120us iqr=0.3200us cv=0.0332 grid=65535
+  empty n=67108864  single inv1  trials=200  median=33.2160us iqr=0.9280us cv=0.0285 grid=65535
+  empty n=67108864  single inv2  trials=200  median=33.2160us iqr=0.5760us cv=0.0317 grid=65535
+  empty n=67108864  batched inv0  trials=200  median=30.9696us iqr=0.0179us cv=0.0013 grid=65535
+  empty n=67108864  batched inv1  trials=200  median=30.9758us iqr=0.0330us cv=0.0125 grid=65535
+  empty n=67108864  batched inv2  trials=200  median=30.9699us iqr=0.0208us cv=0.0067 grid=65535
+  scale n=1024      single inv0  trials=200  median=2.6560us iqr=0.3840us cv=0.2825 grid=4
+  scale n=1024      single inv1  trials=200  median=2.6560us iqr=0.4160us cv=0.2446 grid=4
+  scale n=1024      single inv2  trials=200  median=2.6880us iqr=0.3200us cv=0.2340 grid=4
+  scale n=1024      batched inv0  trials=200  median=1.3168us iqr=0.0307us cv=0.0540 grid=4
+  scale n=1024      batched inv1  trials=200  median=1.3296us iqr=0.0515us cv=0.0438 grid=4
+  scale n=1024      batched inv2  trials=200  median=1.3498us iqr=0.0576us cv=0.1025 grid=4
+  scale n=16384     single inv0  trials=200  median=2.7200us iqr=0.2560us cv=0.2761 grid=64
+  scale n=16384     single inv1  trials=200  median=2.6240us iqr=0.2880us cv=0.3051 grid=64
+  scale n=16384     single inv2  trials=200  median=2.6560us iqr=0.5120us cv=0.3226 grid=64
+  scale n=16384     batched inv0  trials=200  median=1.3786us iqr=0.1062us cv=0.1312 grid=64
+  scale n=16384     batched inv1  trials=200  median=1.6283us iqr=0.3050us cv=0.1255 grid=64
+  scale n=16384     batched inv2  trials=200  median=1.4677us iqr=0.2454us cv=0.2538 grid=64
+  scale n=262144    single inv0  trials=200  median=2.7840us iqr=0.4160us cv=0.3461 grid=1024
+  scale n=262144    single inv1  trials=200  median=2.6880us iqr=0.3200us cv=0.2292 grid=1024
+  scale n=262144    single inv2  trials=200  median=3.0080us iqr=0.7360us cv=0.4258 grid=1024
+  scale n=262144    batched inv0  trials=200  median=1.4694us iqr=0.1642us cv=0.1512 grid=1024
+  scale n=262144    batched inv1  trials=200  median=1.4846us iqr=0.1642us cv=0.1293 grid=1024
+  scale n=262144    batched inv2  trials=200  median=1.3597us iqr=0.0624us cv=0.0777 grid=1024
+  scale n=4194304   single inv0  trials=200  median=10.7520us iqr=0.2880us cv=0.0677 grid=16384
+  scale n=4194304   single inv1  trials=200  median=10.8160us iqr=0.2880us cv=0.0690 grid=16384
+  scale n=4194304   single inv2  trials=200  median=10.8160us iqr=0.2880us cv=0.0384 grid=16384
+  scale n=4194304   batched inv0  trials=200  median=8.3296us iqr=0.0099us cv=0.0015 grid=16384
+  scale n=4194304   batched inv1  trials=200  median=8.3312us iqr=0.0109us cv=0.0013 grid=16384
+  scale n=4194304   batched inv2  trials=200  median=8.3318us iqr=0.0115us cv=0.0015 grid=16384
+  scale n=67108864  single inv0  trials=200  median=68.9760us iqr=1.7920us cv=0.0229 grid=65535
+  scale n=67108864  single inv1  trials=200  median=69.2320us iqr=2.1440us cv=0.0312 grid=65535
+  scale n=67108864  single inv2  trials=200  median=69.1520us iqr=2.3360us cv=0.0358 grid=65535
+  scale n=67108864  batched inv0  trials=200  median=71.1458us iqr=0.2093us cv=0.0223 grid=65535
+  scale n=67108864  batched inv1  trials=200  median=71.1602us iqr=0.8154us cv=0.0217 grid=65535
+  scale n=67108864  batched inv2  trials=200  median=71.1219us iqr=0.5238us cv=0.0210 grid=65535
+telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "48", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "378.41 W", "power.limit": "575.00 W", "utilization.gpu": "100 %", "memory.used": "443 MiB"}
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.1/experiments/gpu-sim-u2o.6.6.1/measure_noise.py", line 289, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.1/experiments/gpu-sim-u2o.6.6.1/measure_noise.py", line 236, in main
+    floor_us = empty_single["median_us"]
+               ~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'median_us'
+=== measure_noise exit=1 ===

@@ -1,0 +1,150 @@
+=== ts job: gabe at 2026-09-27T08:53:24-07:00 ===
+========================================================================
+gpu-sim-u2o.6.6.1 -- noise floor of the real measurement path
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: SafeHarness.preflight_check()
+currently executes on the real GPU (PI ruling on 6.1.1), so calling
+it here would add a second, unaccounted GPU execution to a
+measurement experiment. compile_kernel() and run_kernel() are called
+directly instead. Kernel is a FIXED hand-written reference kernel:
+no generated or untrusted code, no dependency on the fake path.
+No sudo, no clock locking, no persistence-mode change; nvidia-smi is
+used only for read-only telemetry queries.
+========================================================================
+telemetry before: {"clocks.sm": "232 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "37", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "13.53 W", "power.limit": "575.00 W", "utilization.gpu": "0 %", "memory.used": "443 MiB"}
+compile_kernel -> ok=True Compilation successful
+  empty n=1024      single inv0  trials=200  median=1.9040us iqr=1.3760us cv=0.5036 grid=4
+  empty n=1024      single inv1  trials=200  median=1.7440us iqr=1.3440us cv=0.4792 grid=4
+  empty n=1024      single inv2  trials=200  median=1.4880us iqr=1.3440us cv=0.4403 grid=4
+  empty n=1024      batched inv0  trials=200  median=1.3192us iqr=0.0813us cv=0.1130 grid=4
+  empty n=1024      batched inv1  trials=200  median=1.3176us iqr=0.0445us cv=0.0896 grid=4
+  empty n=1024      batched inv2  trials=200  median=1.3282us iqr=0.3194us cv=0.1328 grid=4
+  empty n=16384     single inv0  trials=200  median=2.2400us iqr=1.3760us cv=0.5018 grid=64
+  empty n=16384     single inv1  trials=200  median=1.6960us iqr=1.2480us cv=0.5877 grid=64
+  empty n=16384     single inv2  trials=200  median=2.2240us iqr=1.3760us cv=0.4476 grid=64
+  empty n=16384     batched inv0  trials=200  median=1.3192us iqr=0.0416us cv=0.0502 grid=64
+  empty n=16384     batched inv1  trials=200  median=1.3325us iqr=0.0627us cv=0.0620 grid=64
+  empty n=16384     batched inv2  trials=200  median=1.3219us iqr=0.0477us cv=0.1020 grid=64
+  empty n=262144    single inv0  trials=200  median=2.7200us iqr=0.2240us cv=0.2616 grid=1024
+  empty n=262144    single inv1  trials=200  median=2.6880us iqr=0.2880us cv=0.1977 grid=1024
+  empty n=262144    single inv2  trials=200  median=2.7200us iqr=0.2880us cv=0.2618 grid=1024
+  empty n=262144    batched inv0  trials=200  median=1.3467us iqr=0.0602us cv=0.2514 grid=1024
+  empty n=262144    batched inv1  trials=200  median=1.3568us iqr=0.0774us cv=0.0952 grid=1024
+  empty n=262144    batched inv2  trials=200  median=1.3374us iqr=0.0662us cv=0.0849 grid=1024
+  empty n=4194304   single inv0  trials=200  median=9.6640us iqr=0.4800us cv=0.0924 grid=16384
+  empty n=4194304   single inv1  trials=200  median=9.5360us iqr=0.4480us cv=0.0672 grid=16384
+  empty n=4194304   single inv2  trials=200  median=9.7440us iqr=1.7920us cv=0.0902 grid=16384
+  empty n=4194304   batched inv0  trials=200  median=8.0909us iqr=0.0115us cv=0.0130 grid=16384
+  empty n=4194304   batched inv1  trials=200  median=8.0851us iqr=0.0106us cv=0.0026 grid=16384
+  empty n=4194304   batched inv2  trials=200  median=8.0870us iqr=0.0102us cv=0.0170 grid=16384
+  empty n=67108864  single inv0  trials=200  median=33.3760us iqr=0.2880us cv=0.0300 grid=65535
+  empty n=67108864  single inv1  trials=200  median=33.3760us iqr=0.2560us cv=0.0326 grid=65535
+  empty n=67108864  single inv2  trials=200  median=33.3120us iqr=0.5440us cv=0.0318 grid=65535
+  empty n=67108864  batched inv0  trials=200  median=31.0101us iqr=0.0173us cv=0.0145 grid=65535
+  empty n=67108864  batched inv1  trials=200  median=31.0146us iqr=0.0349us cv=0.0170 grid=65535
+  empty n=67108864  batched inv2  trials=200  median=31.0173us iqr=0.0406us cv=0.0130 grid=65535
+  scale n=1024      single inv0  trials=200  median=2.6240us iqr=0.3840us cv=0.2452 grid=4
+  scale n=1024      single inv1  trials=200  median=2.6240us iqr=0.3520us cv=0.2031 grid=4
+  scale n=1024      single inv2  trials=200  median=2.5920us iqr=0.4800us cv=0.3533 grid=4
+  scale n=1024      batched inv0  trials=200  median=1.3717us iqr=0.1024us cv=0.1127 grid=4
+  scale n=1024      batched inv1  trials=200  median=1.3582us iqr=0.0890us cv=0.1029 grid=4
+  scale n=1024      batched inv2  trials=200  median=1.3528us iqr=0.0704us cv=0.0428 grid=4
+  scale n=16384     single inv0  trials=200  median=2.6560us iqr=0.4800us cv=0.2566 grid=64
+  scale n=16384     single inv1  trials=200  median=2.6880us iqr=0.3520us cv=0.3922 grid=64
+  scale n=16384     single inv2  trials=200  median=2.6240us iqr=0.5760us cv=0.3648 grid=64
+  scale n=16384     batched inv0  trials=200  median=1.4995us iqr=0.2986us cv=0.1694 grid=64
+  scale n=16384     batched inv1  trials=200  median=1.3859us iqr=0.1008us cv=0.1280 grid=64
+  scale n=16384     batched inv2  trials=200  median=1.3253us iqr=0.0317us cv=0.0322 grid=64
+  scale n=262144    single inv0  trials=200  median=2.6720us iqr=0.2240us cv=0.2021 grid=1024
+  scale n=262144    single inv1  trials=200  median=2.6560us iqr=0.2880us cv=0.2053 grid=1024
+  scale n=262144    single inv2  trials=200  median=2.7520us iqr=0.2240us cv=0.2207 grid=1024
+  scale n=262144    batched inv0  trials=200  median=1.4181us iqr=0.0768us cv=0.0749 grid=1024
+  scale n=262144    batched inv1  trials=200  median=1.3770us iqr=0.0768us cv=0.0684 grid=1024
+  scale n=262144    batched inv2  trials=200  median=1.3482us iqr=0.0490us cv=0.0680 grid=1024
+  scale n=4194304   single inv0  trials=200  median=10.8480us iqr=0.2560us cv=0.0496 grid=16384
+  scale n=4194304   single inv1  trials=200  median=10.8480us iqr=0.3520us cv=0.0508 grid=16384
+  scale n=4194304   single inv2  trials=200  median=10.8480us iqr=0.2240us cv=0.0439 grid=16384
+  scale n=4194304   batched inv0  trials=200  median=8.3306us iqr=0.0093us cv=0.0019 grid=16384
+  scale n=4194304   batched inv1  trials=200  median=8.3366us iqr=0.0179us cv=0.0018 grid=16384
+  scale n=4194304   batched inv2  trials=200  median=8.3373us iqr=0.0176us cv=0.0016 grid=16384
+  scale n=67108864  single inv0  trials=200  median=69.5680us iqr=3.2960us cv=0.0337 grid=65535
+  scale n=67108864  single inv1  trials=200  median=69.1040us iqr=2.1120us cv=0.0252 grid=65535
+  scale n=67108864  single inv2  trials=200  median=69.1040us iqr=1.9200us cv=0.0240 grid=65535
+  scale n=67108864  batched inv0  trials=200  median=71.0717us iqr=0.9139us cv=0.0188 grid=65535
+  scale n=67108864  batched inv1  trials=200  median=71.1054us iqr=0.1414us cv=0.0118 grid=65535
+  scale n=67108864  batched inv2  trials=200  median=71.0934us iqr=0.1699us cv=0.0153 grid=65535
+telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "48", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled", "power.draw": "380.86 W", "power.limit": "575.00 W", "utilization.gpu": "85 %", "memory.used": "443 MiB"}
+
+=== NOISE FLOOR ===
+{
+  "empty_kernel_us": 1.744,
+  "empty_kernel_batched_us": 1.3192,
+  "grid_cap_note": "grid.x is capped at 65535 (classic launch bound), so at n > 65535*block = 16777216 the kernel only covers grid*block elements. The n=2^26 cell therefore measures the first 16777216 elements, not 67108864.",
+  "launch_overhead_us_single_minus_batched": 0.4247999999999999,
+  "launch_bound_crossover_n": 67108864,
+  "crossover_definition": "smallest n where (batched scale - batched empty) exceeds 10% of that cell's empty-kernel launch cost; below it, measuring this kernel measures launch overhead",
+  "crossover_kernel_cost_us": 40.078881,
+  "n_where_kernel_work_exceeds_1us": 67108864,
+  "reported_time_decomposition": {
+    "1024": {
+      "reported_single_us": 2.624,
+      "irreducible_launch_us": 1.3192,
+      "measurement_overhead_us": 0.4247999999999999,
+      "kernel_work_us": 0.039039999999999964,
+      "kernel_fraction_of_reported": 0.01487804878048779
+    },
+    "16384": {
+      "reported_single_us": 2.656,
+      "irreducible_launch_us": 1.32192,
+      "measurement_overhead_us": 0.9020800000000002,
+      "kernel_work_us": 0.06400000000000006,
+      "kernel_fraction_of_reported": 0.024096385542168693
+    },
+    "262144": {
+      "reported_single_us": 2.672,
+      "irreducible_launch_us": 1.34672,
+      "measurement_overhead_us": 1.3732800000000003,
+      "kernel_work_us": 0.030240000000000045,
+      "kernel_fraction_of_reported": 0.011317365269461093
+    },
+    "4194304": {
+      "reported_single_us": 10.848,
+      "irreducible_launch_us": 8.08704,
+      "measurement_overhead_us": 1.5769599999999988,
+      "kernel_work_us": 0.24959999999999916,
+      "kernel_fraction_of_reported": 0.023008849557522044
+    },
+    "67108864": {
+      "reported_single_us": 69.10399699999999,
+      "irreducible_launch_us": 31.014559499999997,
+      "measurement_overhead_us": 2.3614415000000055,
+      "kernel_work_us": 40.078881,
+      "kernel_fraction_of_reported": 0.5799792014924984
+    }
+  },
+  "mdd_pct_by_n": {
+    "10": 59.33311303059898,
+    "20": 41.954846572844446,
+    "50": 26.534574810619574,
+    "100": 18.762777784490847,
+    "200": 13.267287405309787
+  },
+  "mdd_pct_by_n_note": "MDD is computed on the EMPTY kernel cell (the worst case: the smallest, most overhead-dominated signal on this box). Per-cell MDD is in each cell's mdd_pct_by_n.",
+  "trials_needed_for_10pct_difference": {
+    "1024": 68,
+    "16384": 83,
+    "262144": 52,
+    "4194304": 3,
+    "67108864": 1
+  },
+  "trials_needed_for_10pct_difference_batched": {
+    "1024": 16,
+    "16384": 40,
+    "262144": 7,
+    "4194304": 0,
+    "67108864": 0
+  }
+}
+
+total wall 15.7s, 20 cells
+=== measure_noise exit=0 ===
