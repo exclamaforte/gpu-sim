@@ -1,0 +1,7 @@
+{
+  "bead": "gpu-sim-u2o.9.4",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "input": "lab/gpu-sim-u2o.6.6.2-r2:experiments/gpu-sim-u2o.6.6.2/metrics.json, 124 real measured cells, read read-only via git show",
+  "note": "The audit note for this bead is that the baseline was only ever evaluated against compare_baselines.py's _synthetic_kernel() fixtures. This evaluates it against real measured kernels. Criterion 3's reconciliation reads the COMMITTED artifact rather than recomputing it locally, because a check against fresh output is an identity once both fields share a helper."
+}

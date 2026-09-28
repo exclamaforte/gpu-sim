@@ -1,0 +1,494 @@
+{
+  "bead": "gpu-sim-u2o.9.4",
+  "gpu_used": false,
+  "baseline": "analytic roofline, ZERO learned parameters: max(compute_time, memory_time)",
+  "why_max_not_min": "for a FIXED amount of work the kernel is bounded BELOW by both resources, so the floor is max(...). gpu-sim-u2o.6.6.4 measured min() under-predicting ~100% at every size on this same anchor.",
+  "device": {
+    "name": "RTX 5090",
+    "fp32_peak_tflops": 104.8,
+    "hbm_peak_gbps": 1792.0,
+    "peak_provenance": "spec-sheet figures, NOT measured in this file. A baseline built on an unmeasured peak inherits its uncertainty; the ACHIEVED column in the artifact is measured and is the one to check against.",
+    "l2_bytes": 100663296
+  },
+  "anchor": {
+    "ref": "lab/gpu-sim-u2o.6.6.2-r2:experiments/gpu-sim-u2o.6.6.2/metrics.json",
+    "ts_jobs": [
+      {
+        "job_id": "20260928t032717-6356dbf2",
+        "family": "launch",
+        "state": "finished",
+        "configs": "18/18"
+      },
+      {
+        "job_id": "20260928t032717-5c2e74a0",
+        "family": "memory",
+        "state": "finished",
+        "configs": "90/90"
+      },
+      {
+        "job_id": "20260928t032717-ff2f2da2",
+        "family": "reduce",
+        "state": "finished",
+        "configs": "8/8"
+      },
+      {
+        "job_id": "20260928t032717-3f5587a6",
+        "family": "gemm",
+        "state": "finished",
+        "configs": "8/8"
+      }
+    ],
+    "n_cells": 124
+  },
+  "criterion_1_byte_convention": {
+    "rule": "per-kernel array touches x 4 bytes x n, from the kernel bodies; NEVER a flat 2*n*4",
+    "per_kernel_touches": {
+      "k_saxpy": {
+        "reads": 2,
+        "writes": 1,
+        "arrays": 3,
+        "why": "y[j] = alpha * x[j] + y[j] reads x, reads y, writes y",
+        "special_case": ""
+      },
+      "k_copy": {
+        "reads": 1,
+        "writes": 1,
+        "arrays": 2,
+        "why": "dst[j] = src[j] reads src, writes dst",
+        "special_case": ""
+      },
+      "k_relu": {
+        "reads": 1,
+        "writes": 1,
+        "arrays": 2,
+        "why": "y[j] = x[j] > 0 ? x[j] : 0 reads x, writes y",
+        "special_case": ""
+      },
+      "k_strided_read": {
+        "reads": 1,
+        "writes": 1,
+        "arrays": 2,
+        "why": "out[i] = in[i*stride] reads in, writes out",
+        "special_case": "strided"
+      },
+      "k_scatter_write": {
+        "reads": 2,
+        "writes": 1,
+        "arrays": 3,
+        "why": "out[indices[i]] = in[i] reads in, reads indices, writes out",
+        "special_case": "scatter"
+      },
+      "k_random_access": {
+        "reads": 2,
+        "writes": 1,
+        "arrays": 3,
+        "why": "reads seeds, reads in[rand], writes out",
+        "special_case": "random"
+      },
+      "k_block_sum": {
+        "reads": 1,
+        "writes": 1,
+        "arrays": 2,
+        "why": "reads in, writes one partial per block",
+        "special_case": ""
+      },
+      "k_tiled_gemm": {
+        "reads": 2,
+        "writes": 1,
+        "arrays": 3,
+        "why": "reads A, reads B, writes C (tiled, so A and B are re-read per tile)",
+        "special_case": "tiled"
+      },
+      "k_noop_store": {
+        "reads": 0,
+        "writes": 0,
+        "arrays": 0,
+        "why": "out[0] = out[0] touches ONE element",
+        "special_case": "degenerate"
+      },
+      "k_empty": {
+        "reads": 0,
+        "writes": 0,
+        "arrays": 0,
+        "why": "empty body",
+        "special_case": "degenerate"
+      }
+    },
+    "vs_flat_2n4": {
+      "k_saxpy": 1.5,
+      "k_copy": 1.0,
+      "k_relu": 1.0,
+      "k_strided_read": 1.0,
+      "k_scatter_write": 1.5,
+      "k_random_access": 1.5,
+      "k_block_sum": 1.0,
+      "k_tiled_gemm": 1.5,
+      "k_noop_store": "n/a -- degenerate kernel",
+      "k_empty": "n/a -- degenerate kernel"
+    }
+  },
+  "criterion_2_ceiling": {
+    "ceiling_GBps": 1584.949237939287,
+    "ceiling_from_cell": "saxpy n=67108864 auto/1024",
+    "membership_rule": "largest problem size (HBM-bound), streaming kernels only, both sides uncontended",
+    "top_candidates": [
+      {
+        "rank": 1,
+        "label": "saxpy n=67108864 auto/1024",
+        "kernel": "k_saxpy",
+        "n_problem_size": 67108864,
+        "bytes_moved": 805306368,
+        "median_ms": 0.508096,
+        "achieved_gbps": 1584.949237939287
+      },
+      {
+        "rank": 2,
+        "label": "saxpy n=67108864 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 67108864,
+        "bytes_moved": 805306368,
+        "median_ms": 0.5110399999999999,
+        "achieved_gbps": 1575.8186599874768
+      },
+      {
+        "rank": 3,
+        "label": "relu n=67108864 auto/256",
+        "kernel": "k_relu",
+        "n_problem_size": 67108864,
+        "bytes_moved": 536870912,
+        "median_ms": 0.349296,
+        "achieved_gbps": 1537.0084741880812
+      },
+      {
+        "rank": 4,
+        "label": "copy n=67108864 auto/256",
+        "kernel": "k_copy",
+        "n_problem_size": 67108864,
+        "bytes_moved": 536870912,
+        "median_ms": 0.350304,
+        "achieved_gbps": 1532.5857312505707
+      }
+    ],
+    "n_candidates": 9,
+    "rejected_count": 115,
+    "rejected_reasons": {
+      "not the largest problem size": 89,
+      "L2-resident": 17,
+      "strided": 3,
+      "scatter": 3,
+      "random": 3
+    }
+  },
+  "criterion_3_reconciliation": {
+    "checked_against": "lab/gpu-sim-u2o.6.6.2-r2:experiments/gpu-sim-u2o.6.6.2/metrics.json (the COMMITTED path)",
+    "n_cells_reconciled": 21,
+    "n_mismatches": 0,
+    "mismatches": [],
+    "note": "achieved_GBps == bytes_moved/(median/1e6)/1e9 recomputed here from the artifact's own stored fields. A fresh computation would be an identity once both share a helper, which is why the values come from the committed file."
+  },
+  "criterion_4_census": {
+    "n_cells": 124,
+    "per_family_cells": {
+      "access": 45,
+      "gemm": 8,
+      "launch": 18,
+      "memory": 45,
+      "reduce": 8
+    },
+    "per_kernel_cells": {
+      "k_block_sum": 8,
+      "k_copy": 15,
+      "k_empty": 9,
+      "k_noop_store": 9,
+      "k_random_access": 15,
+      "k_relu": 15,
+      "k_saxpy": 15,
+      "k_scatter_write": 15,
+      "k_strided_read": 15,
+      "k_tiled_gemm": 8
+    },
+    "n_kernels": 10,
+    "single_kernel_families": [
+      "gemm",
+      "reduce"
+    ],
+    "warning": "families ['gemm', 'reduce'] each rest on ONE kernel, so a per-family figure computed from them is a PER-KERNEL measurement wearing a family label. Report both, and do not describe those families' numbers as family-level evidence."
+  },
+  "criterion_5_contention": {
+    "multipliers": {
+      "memory-bound": 2.33,
+      "compute-bound": 1.0,
+      "launch-bound": 1.19,
+      "source": "gpu-sim-u2o.6.6.3 ts 20260928t072008-b34ddec9",
+      "note": "compute-bound is NOT MEASURED: no co-tenant effect was recorded for that regime, so its 1.0 is an ASSUMPTION, unlike the two multipliers that were measured. A roofline calibrated on contended cells reads HIGH, because sharing the memory system LOWERS achieved bandwidth. So the bias is quiet: the baseline understates the achievable ceiling rather than failing loudly. Criterion 5."
+    },
+    "cells_used_for_ceiling_contention_state": "uncontended",
+    "basis": "every anchor family recorded n_other_running=0 on both sides; the queue_state is in the artifact's queue_state_by_family",
+    "refusal": "is_ceiling_eligible() REFUSES any cell whose contention_state != 'uncontended', so a contended cell cannot quietly become a ceiling"
+  },
+  "criterion_6_regime_weighting": {
+    "why": "a single global error bar is wrong: the measured co-tenant effect is 2.33x on a memory-bound cell and 1.05-1.19x on a sub-10us one, so the discard threshold must be regime-weighted",
+    "multipliers": {
+      "memory-bound": 2.33,
+      "compute-bound": 1.0,
+      "launch-bound": 1.19
+    }
+  },
+  "criterion_7_no_clock_detector": {
+    "forbidden": [
+      "clocks.sm",
+      "clocks.max.sm"
+    ],
+    "measured_relative_spread": {
+      "clocks.sm": 0.098,
+      "power.draw": 0.866,
+      "utilization.gpu": 0.939
+    },
+    "enforced_by": "assert_no_clock_contention(), which raises"
+  },
+  "headline_finding": {
+    "my_first_hypothesis_was_wrong": "WRONG, and recorded rather than deleted. I expected to find the anchor's ceiling overstated 1.50x, on the reading that it used a flat 2*n*4. CHECKING showed the anchor's saxpy n=2^26 cell already carries 805,306,368 bytes = 3*n*4, which is the CORRECT per-kernel accounting (its commit 734980f is literally 'one byte convention in the file, and the artifact regenerated with it'). The 1.50x figure came from the anchor's PROSE, which still says 2*n*4 -- I believed the prose over the numbers, which is the exact inversion of the standard this lab applies everywhere else.",
+    "ceiling_unchanged": {
+      "anchor_published_GBps": 1575.8186599874768,
+      "argmax_over_corrected_accounting_GBps": 1584.949237939287,
+      "difference_is_launch_config_not_bytes": "the anchor's ceiling cell is 'saxpy n=67108864 auto/256' and my argmax is 'saxpy n=67108864 auto/1024' -- same kernel, same n, different block size. The 0.6% gap is a launch config difference, NOT a byte correction. The published ceiling STANDS."
+    },
+    "two_residual_defects_found": [
+      {
+        "defect": "stale convention prose",
+        "where": "regimes.memory_ceiling_definition",
+        "says": "2*n*4 bytes moved (one read + one write, fp32)",
+        "but_the_numbers_use": "3*n*4 for the very cell it describes",
+        "impact": "no numerical effect -- the fields are right -- but it is a prose/artifact disagreement of exactly the class gpu-sim-u2o.6.11.1's lint exists to catch, and it misleads the next reader into auditing correct numbers."
+      },
+      {
+        "defect": "k_scatter_write ALSO credited 2*n*4 but moves 3 arrays",
+        "evidence": "out[indices[i]] = in[i] reads in, reads indices, writes out = 3 touches; the anchor carries 2*n*4 for all four scatter_write cells.",
+        "impact": "1.50x on those cells' achieved GB/s; not the ceiling."
+      },
+      {
+        "defect": "k_random_access credited 2*n*4 but moves 3 arrays",
+        "evidence": "anchor ceiling_candidates: random_access n=4194304 carries 33,554,432 = 2*n*4, but the body is seed = seeds[i]; idx = seed % n; out[i] = in[idx] -- reads seeds, reads in[rand], writes out = 3 array touches = 3*n*4.",
+        "impact": "its achieved_GBps is overstated 1.50x. It does NOT move the memory ceiling, because random_access is not the argmax, but it corrupts any per-family bandwidth figure for the 'access' family -- which is 45 of the 124 cells, the largest family in the anchor.",
+        "corrected_GBps": null
+      }
+    ],
+    "per_kernel_accounting_check": {
+      "note": "criterion 1 checked as a per-kernel comparison between THIS accounting and the anchor's committed bytes_moved, so agreement and disagreement are both findings rather than assertions",
+      "rows": [
+        {
+          "label": "copy n=1024 auto/256",
+          "kernel": "k_copy",
+          "n": 1024,
+          "anchor_bytes_moved": 8192,
+          "our_bytes_moved": 8192,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 1024
+        },
+        {
+          "label": "copy n=16384 auto/256",
+          "kernel": "k_copy",
+          "n": 16384,
+          "anchor_bytes_moved": 131072,
+          "our_bytes_moved": 131072,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 16384
+        },
+        {
+          "label": "copy n=4194304 auto/256",
+          "kernel": "k_copy",
+          "n": 4194304,
+          "anchor_bytes_moved": 33554432,
+          "our_bytes_moved": 33554432,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 4194304
+        },
+        {
+          "label": "copy n=67108864 auto/256",
+          "kernel": "k_copy",
+          "n": 67108864,
+          "anchor_bytes_moved": 536870912,
+          "our_bytes_moved": 536870912,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 67108864
+        },
+        {
+          "label": "random_access n=1024 auto/256",
+          "kernel": "k_random_access",
+          "n": 1024,
+          "anchor_bytes_moved": 8192,
+          "our_bytes_moved": 12288,
+          "agrees": false,
+          "factor": 0.6666666666666666,
+          "n_problem_size": 1024
+        },
+        {
+          "label": "random_access n=16384 auto/256",
+          "kernel": "k_random_access",
+          "n": 16384,
+          "anchor_bytes_moved": 131072,
+          "our_bytes_moved": 196608,
+          "agrees": false,
+          "factor": 0.6666666666666666,
+          "n_problem_size": 16384
+        },
+        {
+          "label": "random_access n=4194304 auto/256",
+          "kernel": "k_random_access",
+          "n": 4194304,
+          "anchor_bytes_moved": 33554432,
+          "our_bytes_moved": 50331648,
+          "agrees": false,
+          "factor": 0.6666666666666666,
+          "n_problem_size": 4194304
+        },
+        {
+          "label": "random_access n=67108864 auto/256",
+          "kernel": "k_random_access",
+          "n": 67108864,
+          "anchor_bytes_moved": 536870912,
+          "our_bytes_moved": 805306368,
+          "agrees": false,
+          "factor": 0.6666666666666666,
+          "n_problem_size": 67108864
+        },
+        {
+          "label": "relu n=1024 auto/256",
+          "kernel": "k_relu",
+          "n": 1024,
+          "anchor_bytes_moved": 8192,
+          "our_bytes_moved": 8192,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 1024
+        },
+        {
+          "label": "relu n=16384 auto/256",
+          "kernel": "k_relu",
+          "n": 16384,
+          "anchor_bytes_moved": 131072,
+          "our_bytes_moved": 131072,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 16384
+        },
+        {
+          "label": "relu n=4194304 auto/256",
+          "kernel": "k_relu",
+          "n": 4194304,
+          "anchor_bytes_moved": 33554432,
+          "our_bytes_moved": 33554432,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 4194304
+        },
+        {
+          "label": "relu n=67108864 auto/256",
+          "kernel": "k_relu",
+          "n": 67108864,
+          "anchor_bytes_moved": 536870912,
+          "our_bytes_moved": 536870912,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 67108864
+        },
+        {
+          "label": "saxpy n=1024 auto/256",
+          "kernel": "k_saxpy",
+          "n": 1024,
+          "anchor_bytes_moved": 12288,
+          "our_bytes_moved": 12288,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 1024
+        },
+        {
+          "label": "saxpy n=16384 auto/256",
+          "kernel": "k_saxpy",
+          "n": 16384,
+          "anchor_bytes_moved": 196608,
+          "our_bytes_moved": 196608,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 16384
+        },
+        {
+          "label": "saxpy n=4194304 auto/256",
+          "kernel": "k_saxpy",
+          "n": 4194304,
+          "anchor_bytes_moved": 50331648,
+          "our_bytes_moved": 50331648,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 4194304
+        },
+        {
+          "label": "saxpy n=67108864 auto/256",
+          "kernel": "k_saxpy",
+          "n": 67108864,
+          "anchor_bytes_moved": 805306368,
+          "our_bytes_moved": 805306368,
+          "agrees": true,
+          "factor": 1.0,
+          "n_problem_size": 67108864
+        },
+        {
+          "label": "scatter_write n=1024 auto/256",
+          "kernel": "k_scatter_write",
+          "n": 1024,
+          "anchor_bytes_moved": 8192,
+          "our_bytes_moved": 12288,
+          "agrees": false,
+          "factor": 0.6666666666666666,
+          "n_problem_size": 1024
+        },
+        {
+          "label": "scatter_write n=16384 auto/256",
+          "kernel": "k_scatter_write",
+          "n": 16384,
+          "anchor_bytes_moved": 131072,
+          "our_bytes_moved": 196608,
+          "agrees": false,
+          "factor": 0.6666666666666666,
+          "n_problem_size": 16384
+        },
+        {
+          "label": "strided_read n=1024 stride=17 auto/256",
+          "kernel": "k_strided_read",
+          "n": 1024,
+          "anchor_bytes_moved": 4336,
+          "our_bytes_moved": 8192,
+          "agrees": false,
+          "factor": 0.529296875,
+          "n_problem_size": 1024
+        },
+        {
+          "label": "strided_read n=16384 stride=17 auto/256",
+          "kernel": "k_strided_read",
+          "n": 16384,
+          "anchor_bytes_moved": 69388,
+          "our_bytes_moved": 131072,
+          "agrees": false,
+          "factor": 0.529388427734375,
+          "n_problem_size": 16384
+        },
+        {
+          "label": "strided_read n=4194304 stride=17 auto/256",
+          "kernel": "k_strided_read",
+          "n": 4194304,
+          "anchor_bytes_moved": 17764108,
+          "our_bytes_moved": 33554432,
+          "agrees": false,
+          "factor": 0.5294116735458374,
+          "n_problem_size": 4194304
+        }
+      ]
+    },
+    "accounting_agrees_on_12_of_21": "per-kernel, our accounting agrees with the anchor's committed bytes_moved on 12 of 21 reconciled cells. The 9 disagreements split BOTH WAYS, which is why the check is two-sided: we are more correct on scatter_write and random_access (3 array touches, anchor says 2) and CRUDER on strided_read (we ignore the stride footprint, the anchor deliberately accounts for it). Neither kernel is the ceiling, so the published ceiling is unaffected -- but the anchor's access-family bandwidth figures for scatter and random are 1.50x optimistic, and strided is a different convention rather than a different answer.",
+    "what_this_bead_actually_delivers": "the baseline itself, with all seven criteria evidenced, plus a verified statement that the published memory ceiling is NOT inflated by a byte-accounting error -- which is a result, and it is the opposite of the one I set out expecting."
+  }
+}
