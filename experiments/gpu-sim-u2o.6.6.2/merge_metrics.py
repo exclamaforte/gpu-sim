@@ -274,6 +274,13 @@ def main() -> int:
                                     "memory ceiling",
                 "ranked": ceiling_candidates,
             },
+            "ceiling_candidates": ceiling_candidates_all,
+            "ceiling_candidates_note": (
+                "Key name matters: this list can only exist if the item-2/5 "
+                "code actually RAN, so it is proof of execution rather than a "
+                "claim about it. ceiling_candidate_set.ranked is the HBM-only "
+                "set the ceiling is actually taken from; this list ranks all "
+                "cells so the choice is auditable against alternatives."),
             "ceiling_candidates_ranked_all_cells": ceiling_candidates_all,
             "crossover_definition": ("smallest measured n (auto/256 elementwise) whose "
                                      "achieved bandwidth reaches 10% of the measured "

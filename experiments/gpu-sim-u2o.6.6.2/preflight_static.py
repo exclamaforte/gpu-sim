@@ -72,7 +72,35 @@ for name in sorted(set(TARGETS)):
     else:
         print(f"OK  {name}")
 
-# the imported modules must also actually import
+# MODULE-LEVEL EXECUTION, not just import. An import check that skips
+# module-level code would miss exactly the class that cost us four jobs: the
+# NameError was raised by a line at module scope in measure_family.py, and a
+# name-resolution pass over the AST had missed it because the offending
+# expression was only evaluated when the module body ran. So each experiment
+# script is EXECUTED with --help-like stubs in sys.argv and its exit status
+# checked; a script that cannot even reach its argument handling is not ready
+# to be handed to the queue.
+import runpy  # noqa: E402
+
+for script in ("measure_family.py", "merge_metrics.py", "anchor_kernels.py"):
+    path = HERE / script
+    if not path.exists():
+        continue
+    saved_argv = list(sys.argv)
+    try:
+        sys.argv = [str(path), "--preflight-only"]
+        # __name__ != "__main__" so main() does not run and touch the GPU; the
+        # module BODY still executes, which is the part that must not raise.
+        runpy.run_path(str(path), run_name="preflight")
+        print(f"OK  module body executes: {script}")
+    except SystemExit:
+        print(f"OK  module body executes: {script} (exited)")
+    except Exception as e:
+        fails.append(f"module body raised in {script}: "
+                     f"{type(e).__name__}: {e}")
+    finally:
+        sys.argv = saved_argv
+
 for mod in ("epic_u2o.kernel_driver", "epic_u2o.safe_harness",
             "epic_u2o.queue_state", "anchor_kernels"):
     try:
@@ -80,6 +108,18 @@ for mod in ("epic_u2o.kernel_driver", "epic_u2o.safe_harness",
         print(f"OK  import {mod}")
     except Exception as e:
         fails.append(f"import {mod}: {type(e).__name__}: {e}")
+
+# the queue_state regression tests, run as part of the gate: the module whose
+# silence produced two false records must be green before we spend GPU time.
+import subprocess  # noqa: E402
+qt = REPO / "tests" / "test_queue_state.py"
+if qt.exists():
+    r = subprocess.run([sys.executable, str(qt)], capture_output=True,
+                       text=True, timeout=300, cwd=str(REPO))
+    if r.returncode == 0:
+        print("OK  tests/test_queue_state.py")
+    else:
+        fails.append("tests/test_queue_state.py fails:\n" + r.stdout[-800:])
 
 print()
 if fails:
