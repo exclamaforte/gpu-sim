@@ -103,10 +103,51 @@ On failure, `diagnose_probe_failure()` names the offending limit by stage. When
 no limit in the set explains a failure it says exactly that — "cannot diagnose"
 must never degrade into "add a limit to fix it".
 """
-    out = HEADER + "\n".join(rows) + "\n" + tail
-    (REPO / "harness.md").write_text(out)
-    print(f"harness.md written: {len(LIMIT_TABLE)} limits, "
-          f"{len(applied)} actually applied")
+    # The table goes NEXT TO THE CODE IT DESCRIBES. The first version wrote a
+    # ROOT-level harness.md, which would have produced a SECOND harness document
+    # beside epic_u2o/harness.md -- the file gpu-sim-u2o.6.11 merged, carrying
+    # 6.1.2's containment ladder. Two harness documents is exactly the defect
+    # this bead's own words name: "a safety table describing a different file
+    # than the one that runs is worse than no table." The DOCUMENT was wrong,
+    # not the table, so the destination moved rather than the prose.
+    target = REPO / "epic_u2o" / "harness.md"
+
+    # REGION MARKERS, and this is the second attempt. Two earlier versions
+    # failed in instructive ways and both are worth recording:
+    #
+    #  (1) Keeping only lines that start "## " deleted the BODIES of 6.1.2's
+    #      containment ladder and 6.11's classification note, leaving two bare
+    #      headers. A generator that eats other people's verified sections is
+    #      worse than one that refuses to write.
+    #  (2) Splitting on headers and re-appending the survivors was NOT
+    #      IDEMPOTENT: the second run read its own output, treated its own
+    #      generated sections as pre-existing, and appended them again, so the
+    #      file grew every run. A non-idempotent generator in a repository is a
+    #      trap -- you cannot tell a stale file from a correct one.
+    #
+    # So: delimit the generated region explicitly, replace ONLY that region, and
+    # leave every other byte of the file untouched. Everything outside the
+    # markers belongs to other beads and this generator has no business
+    # rewriting it.
+    BEGIN = "<!-- BEGIN GENERATED: gpu-sim-u2o.6.3.1 rlimit table -->"
+    END = "<!-- END GENERATED: gpu-sim-u2o.6.3.1 rlimit table -->"
+    body = f"{BEGIN}\n{HEADER}{chr(10).join(rows)}\n{tail}\n{END}"
+
+    existing = target.read_text() if target.exists() else ""
+    if BEGIN in existing and END in existing:
+        head, _, rest = existing.partition(BEGIN)
+        _, _, tail_part = rest.partition(END)
+        out = head + body + tail_part
+    elif existing:
+        # first run: keep the whole file, append the generated region
+        out = existing.rstrip("\n") + "\n\n---\n\n" + body + "\n"
+    else:
+        out = body + "\n"
+    target.write_text(out)
+    replaced = existing.count(BEGIN) == 1
+    print(f"epic_u2o/harness.md written: {len(LIMIT_TABLE)} limits, "
+          f"{len(applied)} actually applied; "
+          f"{'region replaced' if replaced else 'region appended'}")
     return 0
 
 
