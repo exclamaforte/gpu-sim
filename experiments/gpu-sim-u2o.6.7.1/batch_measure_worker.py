@@ -274,7 +274,9 @@ def main() -> int:
                          "the thing it is diagnosing is the same class of "
                          "defect as a stale artifact, wearing a fresh "
                          "timestamp.")
-    ap.add_argument("--mode", choices=("warm", "cold", "reset"), default="warm",
+    ap.add_argument("--mode",
+                    choices=("warm", "cold", "reset", "perproc"),
+                    default="warm",
                     help="warm: persistent process, state carries (current). "
                          "cold: buffers freed and reallocated between EXAMPLES "
                          "(tests warm-state carryover). reset: "
@@ -361,6 +363,12 @@ def main() -> int:
     # --- the ONE process, and everything timed against it -----------------
     t_start = time.time()
     started_at = datetime.now(timezone.utc).isoformat()
+
+    if args.mode == "perproc":
+        return _run_per_invocation_process(args, specs, exe, td, t_start,
+                                          started_at, sampling_wall
+                                          if False else None)
+
     p = subprocess.Popen([str(exe), str(specfile), args.mode],
                          stdout=subprocess.PIPE,
                          text=True, bufsize=1)
@@ -432,13 +440,22 @@ def main() -> int:
         return 11
     rows = [rows_by_hash[s["kernel_hash"]] for s in specs
             if s["kernel_hash"] in rows_by_hash]
-    for r in rows:
-        r["mode"] = args.mode
-    (HERE / args.out).write_text("".join(json.dumps(r) + "\n" for r in rows))
 
     # Derived BEFORE the summary that reports them. My first version computed
     # these after the dict literal, so the dict raised UnboundLocalError on a
     # value it had already used -- caught by running, not by reading.
+    launches_per_example = (WARMUP + TIMED) * INVOCATIONS
+    timed_launches_per_example = TIMED * INVOCATIONS
+    warmup_launches_per_example = WARMUP * INVOCATIONS
+    return _finish(args, rows, wall, started_at, sampling_wall,
+                   n_begin, n_end)
+
+
+def _finish(args, rows, wall, started_at, sampling_wall, n_begin, n_end,
+            processes=None):
+    # Derived here, not in main(): _finish is also the per-invocation path's
+    # exit, and the first version of that path raised NameError on it. Anything
+    # the summary reports must be computed INSIDE the summary.
     launches_per_example = (WARMUP + TIMED) * INVOCATIONS
     timed_launches_per_example = TIMED * INVOCATIONS
     warmup_launches_per_example = WARMUP * INVOCATIONS
@@ -463,14 +480,18 @@ def main() -> int:
                     "warm-state carryover",
             "reset": "cudaDeviceReset between the two INVOCATIONS; isolates a "
                      "shared CUDA context",
+            "perproc": "an INDEPENDENT PROCESS per invocation, which is 7.1's "
+                       "isolation, with everything else identical. The decisive "
+                       "arm: it separates 'the estimator changed' from 'the "
+                       "environment changed'.",
         }[args.mode],
         "protocol": "IDENTICAL in all modes: 2 invocations x (5 warmup + 20 "
                     "timed) = 40 timed launches per example. Only the ISOLATION "
                     "varies, which is the point -- this experiment varies one "
                     "thing at a time rather than optimising two at once.",
         "worker": {
-            "processes_started": 1,
-            "contexts_created": 1,
+            "processes_started": (processes if processes is not None else 1),
+            "contexts_created": (processes if processes is not None else 1),
             "examples": n,
             "warmup_launches_per_example": WARMUP,
             "timed_launches_per_example": TIMED,
@@ -523,6 +544,15 @@ def main() -> int:
         "n_begin_markers": n_begin, "n_end_markers": n_end,
     }
     (HERE / args.summary_out).write_text(json.dumps(out, indent=2))
+    for r in rows:
+        r["mode"] = args.mode
+    (HERE / args.out).write_text("".join(json.dumps(r) + "\n" for r in rows))
+
+    if n == 0:
+        raise SystemExit(
+            f"FATAL: {args.mode} produced 0 examples in {wall:.1f}s. A run that "
+            f"measured nothing must not print a throughput line, because the "
+            f"zero reads as a measurement of a very slow batch.")
     print(f"\n{n} examples in {wall:.2f}s = {out['throughput']['examples_per_sec']:.2f} ex/s "
           f"({out['throughput']['examples_per_hour']:,.0f}/hour)")
     print(f"processes started: 1   device time/example: "
@@ -623,6 +653,77 @@ class _Nvml:
 
 
 _NVML = None
+
+
+def _run_per_invocation_process(args, specs, exe, td, t_start, started_at, _):
+    """gpu-sim-u2o.6.7.1: the DECISIVE arm.
+
+    Independent PROCESS per invocation, which is 7.1's isolation, with
+    everything else held identical: same examples, same 5 warmup + 20 timed per
+    invocation, same median-of-invocation-medians estimator, same per-example
+    sampling. The ONLY thing that changes against the `warm` arm is the process
+    boundary, so this separates "the estimator changed" from "the environment
+    changed" -- which is the question the whole episode turns on.
+
+    It needs no driver change: the driver already takes a specfile, so each
+    invocation is simply a one-spec file and a fresh process.
+    """
+    per_example, rows_by_hash, spec_by_hash = {}, {}, {}
+    kidx_of = {}
+    for s in specs:
+        spec_by_hash[s["kernel_hash"]] = s
+        if s["kernel_hash"] not in kidx_of:
+            kidx_of[s["kernel_hash"]] = len(kidx_of)
+    n_inv = INVOCATIONS
+    sampling = 0.0
+    for idx, s in enumerate(specs):
+        h = s["kernel_hash"]
+        one = td / f"one_{h}.txt"
+        # FIVE fields: the driver's fscanf is "%63s %d %d %d %d" (hash, kernel
+        # index, grid, block, n). My first version wrote four and every
+        # invocation silently matched zero specs, so the run reported 0 examples
+        # in 65.85 s -- a FAILURE that looked like a result because it printed
+        # a well-formed throughput line.
+        one.write_text(f"{h} {kidx_of[h]} {s['grid'][0]} {s['block'][0]} "
+                       f"{s['problem_size']}\n")
+        inv_meds = []
+        for _inv in range(n_inv):
+            r = subprocess.run([str(exe), str(one), "warm"],
+                               capture_output=True, text=True, timeout=300)
+            if r.returncode != 0:
+                raise SystemExit(
+                    f"per-invocation process failed for {h}: {r.stderr[-400:]}")
+            trials = []
+            for line in r.stdout.splitlines():
+                if line.startswith("TRIAL "):
+                    _, _hh, _iv, _t, ms = line.split()
+                    trials.append(float(ms))
+            if trials:
+                inv_meds.append(statistics.median(trials))
+        if not inv_meds:
+            continue
+        t_s0 = time.time()
+        qstate = qs.queue_state()
+        telemetry = _telemetry()
+        sampling += time.time() - t_s0
+        rows_by_hash[h] = {
+            "kernel_hash": h, "op_type": s.get("op_type"),
+            "problem_size": s["problem_size"],
+            "grid": s["grid"], "block": s["block"],
+            "n_trials": len(inv_meds), "n_invocations": len(inv_meds),
+            "invocation_medians_ms": inv_meds,
+            "n_timed_launches": len(inv_meds) * TIMED,
+            "median_runtime_ms": statistics.median(inv_meds),
+            "trials_ms": [],
+            "sampled_at": datetime.fromtimestamp(t_s0, timezone.utc).isoformat(),
+            "sampled_at_epoch": t_s0,
+            "queue_state": qstate, "telemetry": telemetry,
+        }
+    rows = [rows_by_hash[s["kernel_hash"]] for s in specs
+            if s["kernel_hash"] in rows_by_hash]
+    wall = time.time() - t_start
+    return _finish(args, rows, wall, started_at, sampling, n_begin=len(rows),
+                   n_end=len(rows), processes=len(rows) * n_inv)
 
 
 def _telemetry() -> dict:

@@ -1,0 +1,39 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "experiment": "the decisive arm named on the bead: restore 7.1's ISOLATION (an independent process per invocation) while holding the examples, the 5 warmup + 20 timed per invocation, the 40 timed launches and the median-of-invocation-medians estimator identical. Only the process boundary changes. ts 20260928t125506-50c9a9b3.",
+  "arms": [
+    {
+      "arm": "batched, ONE shared context (warm)",
+      "ex_per_sec": 167.3,
+      "reproducing": "206/264",
+      "median_rel_diff": 0.1255,
+      "fraction_faster": 0.7045,
+      "ai_cv_mean": 0.0344
+    },
+    {
+      "arm": "batched, 528 independent processes (perproc)",
+      "ex_per_sec": 3.78,
+      "reproducing": "210/264",
+      "median_rel_diff": 0.1249,
+      "fraction_faster": 0.8447,
+      "ai_cv_mean": 0.0724
+    }
+  ],
+  "reference": {
+    "single_run_7_1": {
+      "ex_per_sec": 2.389,
+      "ai_cv_mean": 0.112
+    }
+  },
+  "RESULT": "PROCESS ISOLATION IS NOT THE CAUSE. The decisive arm reproduces 7.1's isolation exactly and the divergence DOES NOT COLLAPSE: 210/264 at 12.5% median, against the shared-context arm's 206/264 at 12.6%. Combined with the earlier arms this eliminates all three hypotheses I had:",
+  "eliminated": {
+    "H1_shared_CUDA_context": "REFUTED by the reset arm and now by this one",
+    "H2_warm_state_between_examples": "REFUTED by the cold arm (205/264, 11.9%)",
+    "H_tolerance_rule": "REFUTED: 12.6% median under all three like-for-like rules",
+    "H_process_isolation": "REFUTED HERE: restoring independent processes leaves 12.5%"
+  },
+  "and_the_smoking_gun_is_a_confound_I_INTRODUCED": "7.1 does NOT measure with a batched driver. It calls epic_u2o.kernel_driver.synthesize() to build a SEPARATE binary per kernel (k_<hash>.out) and runs each through safe_harness.run_kernel(). My batched worker builds ONE binary containing all 8 kernels with a dispatch switch, and allocates four buffers of a shared capacity regardless of the kernel's arity. So my repeated claim that the PROTOCOL is identical overstated what is held fixed: the examples, the launch counts and the estimator are identical, but THE BINARY IS NOT. Same isolation, same estimator, different executable -- and the offset persists. That makes the binary the leading candidate, and it is a difference I introduced rather than one the data contains.",
+  "what_this_means_for_the_two_claims": "PROCESS ISOLATION WAS NOT WORTH 70x ANYWAY. The per-invocation-process arm runs at 3.78 ex/s against 7.1's 2.39 -- a 1.6x win, not 70x. So the 70x depended entirely on sharing one context, and if the shared-context measurements are not comparable to 7.1's then the 70x and the criterion-2 failure are the SAME fact seen from two sides: the speed comes from exactly the change that breaks comparability.",
+  "next_step": "Make the batched path use 7.1's OWN per-kernel binaries -- call kernel_driver.synthesize() per kernel and dispatch to them from the persistent process, or measure the 7.1 binaries directly. If the offset then collapses, the binary was the cause and the fix is to synthesise 7.1's driver rather than my own, which is a small change. Until then criterion 2 fails, the cause is unidentified, and under R1 the single-run path remains authoritative.",
+  "status": "criterion 2 still fails. Four hypotheses eliminated, the binary identified as the leading candidate and as a confound of my own making. No re-measurement yet."
+}

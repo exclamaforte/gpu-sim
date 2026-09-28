@@ -16,7 +16,11 @@
     "20260928t121126-77415fac",
     "20260928t121233-9fc66049",
     "20260928t121521-a515d937",
-    "20260928t121926-ab46f839"
+    "20260928t121926-ab46f839",
+    "20260928t124811-f6457da5",
+    "20260928t125019-cf25145a",
+    "20260928t125232-12502001",
+    "20260928t125506-50c9a9b3"
   ],
   "authoritative_job": "20260928t121926-ab46f839",
   "gpu_used": true,
@@ -37,5 +41,12 @@
     "what": "the PI caught that criterion 7 asserted only that overhead falls and device time holds, so it PASSED on a run whose medians moved 15-25%. A throughput acceptance that certifies a run whose numbers changed is a speedometer, not an acceptance.",
     "fix": "TestMediansReproduce is now inside the same suite as the speed guards, as an ordinary assertion rather than a note, so if the medians move the suite fails",
     "status": "IT FAILS, and that failure is the bead's real status rather than a broken test. 14 tests: 13 pass, 1 fails, and the one that fails is criterion 2."
-  }
+  },
+  "decisive_arm": {
+    "20260928t124811-f6457da5": "per-invocation-process arm v1: NameError, timed_launches_per_example was computed in main() and _finish is also the other arm's exit",
+    "20260928t125019-cf25145a": "v2: 0 examples in 65.85 s -- the one-spec file had 4 fields where the driver's fscanf wants 5 (hash, kernel index, grid, block, n). It PRINTED A WELL-FORMED 0.00 ex/s LINE, so a run that measured nothing looked like a measurement of a very slow batch. Empty runs now fail loudly.",
+    "20260928t125232-12502001": "v3: 264 examples at 3.82 ex/s but NO rows artifact -- the rows write sat in main() AFTER the return _finish(), so the per-invocation arm never reached it",
+    "20260928t125506-50c9a9b3": "AUTHORITATIVE: 264 examples, 528 processes, 3.78 ex/s, 264/264 distinct sample times"
+  },
+  "crashes_kept_because_each_one_looked_like_a_result": "Three of the four jobs above failed SILENTLY in a way that printed well-formed output: a NameError after the summary was built, a run that measured nothing and printed '0.00 ex/s', and a run that measured everything and wrote no artifact. A crash that looks like a measurement is more dangerous than one that looks like a crash, so all three are recorded rather than cleaned up."
 }
