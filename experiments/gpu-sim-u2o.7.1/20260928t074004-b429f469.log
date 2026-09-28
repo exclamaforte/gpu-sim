@@ -1,0 +1,26 @@
+OK  names resolve: build_batch.py
+OK  names resolve: measure_batch.py
+built 264 specs -> /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.7.1/experiments/gpu-sim-u2o.7.1/build/manifest.json
+  deliberately_poor: 8   launch_bound_expected: 136
+OK  manifest: 264 rows, all with required keys
+OK  every kernel_name appears in its own source (9ti guard)
+OK  6 sampled drivers synthesize + compile
+OK  tokenizer produces 56 model ids for a sample source
+OK  all 264 drivers prebuilt; phase B will not compile
+
+safe to submit the batch
+=== ts job 2026-09-28T00:41:02-07:00 ===
+measuring 264 specs (20 trials x 2 processes each)
+device: NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB, 225 MHz, 3105 MHz, 41, 15.82 W, 0x0000000000000000, Disabled
+queue at start: {"own_job_id": "20260928t074004-b429f469", "n_other_active": 0, "n_other_running_at_sample_time": 0}
+  40/264  last median=0.0032 ms (17s)
+  80/264  last median=0.0035 ms (33s)
+  120/264  last median=0.0031 ms (50s)
+  160/264  last median=0.0036 ms (67s)
+  200/264  last median=0.0038 ms (84s)
+  240/264  last median=0.0037 ms (101s)
+
+measured 264/264  failed=0  wall=111s
+  launch-bound (measured < 10 us): 264
+  ai_cv > 0.15 (unreliable):        70
+=== exit=0 ===

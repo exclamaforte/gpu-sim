@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-u2o.7.1",
+  "final_job": "20260928t074004-b429f469",
+  "state": "finished",
+  "phase_a_compile": {"where": "CPU, unqueued", "n": 264, "failed": 0, "seconds": 230},
+  "phase_b_measure": {"where": "ts, one job", "n_measured": 264, "failed": 0, "seconds": 111},
+  "superseded_jobs": [
+    {"job_id": "20260928t072959-85612b2e", "state": "killed_underused",
+     "reason": ("gpqueue killed it: GPU utilisation averaged 0.7% over 5 min, "
+                "below the 10% floor, because 264 nvcc invocations and 528 "
+                "process starts ran inside the queued job. 150 rows had been "
+                "written when it died. The queue was right and the fix was to "
+                "stop being the bottleneck, not to ask for an exemption: "
+                "compilation moved to an unqueued CPU phase, and the queued job "
+                "now only measures.")}
+  ],
+  "note": "no tenant job was jumped: the batch queued behind a running conway job."
+}
