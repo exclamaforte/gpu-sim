@@ -1,0 +1,29 @@
+========================================================================
+gpu-sim-8dw -- the preflight that could not fail, before and after
+========================================================================
+pre-fix module : experiments/gpu-sim-8dw/pv_pre_fix.py
+repaired module: epic_u2o/preflight_validator.py
+
+--- BEFORE: _run_under_fakegpu as it was ---
+  a kernel that does not exist     -> passed=True  'Preflight passed (placeholder)'
+  an empty launch config           -> passed=True  'Preflight passed (placeholder)'
+
+--- AFTER: the same two probes, plus one good kernel ---
+  a kernel that does not exist     -> passed=False  'invalid launch config: block 999999x1x1 = 999999 threads (max 1024)'
+  an empty launch config           -> passed=True  'launch_done grid=(1,1,1) block=(1,1,1)\nfailures=0'
+  a good kernel (end to end)       -> passed=True  evidence: True
+
+--- AFTER: the case the stub could never satisfy ---
+  cannot check (no libfakegpu)     -> passed=False  '["Fakegpu run failed: preflight cannot run: definitely-not-here.so not found, an'
+
+Reading this honestly, which is the point of running it:
+  * the stub answered True to EVERY probe, including one naming a
+    kernel that does not exist and one with no config at all;
+  * the repaired module refuses the impossible launch (999999 threads)
+    and refuses outright when it cannot check;
+  * but it PASSES the empty config, because an empty config defaults
+    to a legal 1x1x1 launch and add_k really does run on the fake.
+    That is correct behaviour, not a miss -- and an earlier draft of
+    this file's closing sentence claimed the repaired module answered
+    False to BOTH probes, which the output above contradicts. The
+    sentence was written before the data existed.
