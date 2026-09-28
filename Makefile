@@ -10,6 +10,7 @@
 #   make check
 
 CC ?= gcc
+NVCC ?= nvcc
 CFLAGS  = -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default
 LDFLAGS = -shared
 INCLUDES = -Iinclude -Ishim
@@ -54,6 +55,9 @@ check: guard-build-inputs $(LIB)
 	LD_PRELOAD=$(CURDIR)/$(LIB) FAKEGPU_NUM_DEVICES=4 $(RING_BIN)
 	@echo "--- -cudart=none fake path, no LD_PRELOAD (gpu-sim-u2o.6.1.3) ---"
 	@bash tests/test_cudart_none.sh
+	@echo "--- real-layout device-property overlay (gpu-sim-u2o.19) ---"
+	@$(NVCC) -cudart=none -arch=sm_120 -Xlinker -rpath -Xlinker $(CURDIR) tests/test_device_prop_overlay.cu -o build/test_device_prop_overlay -L. -lfakegpu
+	@./build/test_device_prop_overlay
 
 .PHONY: guard-build-inputs
 # The guard runs FIRST, as a prerequisite: a red guard stops the suite before

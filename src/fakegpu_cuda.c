@@ -403,7 +403,11 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
     prop->totalGlobalMem          = (size_t)c->device_mem_mb * 1024 * 1024;
     prop->sharedMemPerBlock       = 48 * 1024;
     prop->maxThreadsPerBlock      = 1024;
-    prop->maxThreadsPerMultiProcessor = 2048;
+    /* gpu-sim-u2o.19: 1536, measured on the real 5090 -- see the overlay
+     * comment below for provenance. The shim-struct assignment and the
+     * real-layout overlay MUST agree, or the same field reports two different
+     * values depending on which header the caller was built against. */
+    prop->maxThreadsPerMultiProcessor = 1536;
     prop->multiProcessorCount     = 170;   /* match real RTX 5090 */
     prop->clockRate               = 1590000;   /* kHz, fake */
     /* Real-layout overlay: third-party binaries (e.g. PyTorch) are built
@@ -420,12 +424,39 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
         size_t shmem = 48 * 1024;
         size_t const_mem = 64 * 1024;
         size_t pitch = 2147483647u;
-        size_t shmem_sm = (size_t)228 * 1024;   /* per-SM, matches RTX 5090 */
+        size_t shmem_sm = (size_t)102400;   /* per-SM, measured on RTX 5090 (ts
+                                             * 20260928t105453-2dc7af7c); was
+                                             * 228 KB, which is not this part */
         int max_threads = 1024, major = 12, minor = 0, sm_count = 170;
         int regs_block = 65536, warp = 32, one = 1;
         int max_dim[3] = {1024, 1024, 64};
         int max_grid[3] = {2147483647, 65535, 65535};
-        int max_thr_sm = 2048, regs_sm = 65536, l2 = 128 * 1024 * 1024;
+        /* gpu-sim-u2o.19. These three VALUES were wrong; the OFFSETS were not.
+         *
+         * The bead was reopened saying "the hardcoded byte offsets for these
+         * three are wrong for this CUDA version". They are not. Verified with
+         * offsetof() against the real CUDA 13.3 headers:
+         *   l2CacheSize                 @ 596, size 4
+         *   maxThreadsPerMultiProcessor @ 604, size 4
+         *   sharedMemPerMultiprocessor  @ 624, size 8
+         * and sizeof(cudaDeviceProp) = 1008. The three memcpy targets below
+         * match those offsets exactly.
+         *
+         * What WAS wrong is the intent. The code set 2048 / 233472 / 128 MB,
+         * which are not this part's numbers. Read off a real RTX 5090
+         * (ts 20260928t105453-2dc7af7c, gpu-sim-u2o.19):
+         *   maxThreadsPerMultiProcessor = 1536
+         *   sharedMemPerMultiprocessor  = 102400   (100 KB)
+         *   l2CacheSize                 = 100663296 (96 MB)
+         *
+         * So a fake reporting 2048 threads/SM and 128 MB of L2 for a GB202
+         * would overstate occupancy by 1.33x and cache by 1.33x. That matters
+         * more than 'low priority' suggests: PyTorch reads
+         * maxThreadsPerMultiProcessor when it computes occupancy, so an
+         * occupancy-sensitive kernel launched under the fake would be sized
+         * against a part that does not exist.
+         */
+        int max_thr_sm = 1536, regs_sm = 65536, l2 = 100663296;
         memcpy(base + 288, &total_mem, sizeof(total_mem));
         memcpy(base + 296, &shmem, sizeof(shmem));
         memcpy(base + 304, &regs_block, sizeof(regs_block));
@@ -472,7 +503,10 @@ cudaError_t cudaDeviceGetAttribute(int *pi, int attr, int device)
         return (cudaError_t)cudaErrorInvalidDevice;
     switch (attr) {
     case cudaDevAttrMaxThreadsPerBlock:          *pi = 1024; break;
-    case cudaDevAttrMaxThreadsPerMultiProcessor: *pi = 2048; break;
+    /* gpu-sim-u2o.19: 1536, measured on the real 5090. This is a THIRD
+     * place the same number appears; if it drifts from the overlay the fake
+     * becomes self-inconsistent, so the test pins all three. */
+    case cudaDevAttrMaxThreadsPerMultiProcessor: *pi = 1536; break;
     case cudaDevAttrMultiProcessorCount:         *pi = 170;  break;   /* match real RTX 5090 */
     case cudaDevAttrMaxSharedMemoryPerBlock:     *pi = 48 * 1024; break;
     case cudaDevAttrClockRate:                   *pi = 1590000; break;
