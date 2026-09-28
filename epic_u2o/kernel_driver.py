@@ -156,7 +156,12 @@ def synthesize(spec: dict) -> str:
 def spec_from_stage1(op='scale', grid=None, block=None, n=4096):
     """Convenience: build one stage-1 KernelSpec dict without importing the
     generator module (keeps ts jobs dependency-light)."""
-    sys.path.insert(0, '/home/gabe/Documents/gpu-sim')
+    # Derive the repo root from this file so the function works in a lab
+    # worktree (or any checkout), not just the original clone path.
+    # (gpu-sim-u2o.6.1.1; this branch predates the fix and carried a stale
+    # full copy of the file, so the rebase replayed the old line.)
+    import os as _os
+    sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
     from epic_u2o.generator_stage1 import generate_kernels
     for spec in generate_kernels(
             ops=[op], grid_sweeps=[grid or [4, 1, 1]],
