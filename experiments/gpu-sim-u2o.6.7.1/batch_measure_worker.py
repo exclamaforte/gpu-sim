@@ -129,6 +129,8 @@ DRIVER_TEMPLATE = r"""
  * one kernel -- would have quietly destroyed the bead. */
 {body}
 
+enum {{ MODE_WARM = 0, MODE_COLD = 1, MODE_RESET = 2 }};
+
 struct Spec {{
     int kidx; int grid, block, n; const char *hash;
 }};
@@ -143,7 +145,13 @@ static void launch(int kidx, int grid, int block, int n,
 
 /* ONE context for the whole batch. 7.1 paid this twice per example. */
 int main(int argc, char **argv) {{
-    if (argc < 2) {{ fprintf(stderr, "usage: %s <specfile>\n", argv[0]); return 2; }}
+    if (argc < 3) {{
+        fprintf(stderr, "usage: %s <specfile> <warm|cold|reset>\n", argv[0]);
+        return 2;
+    }}
+    const char *mode_s = argv[2];
+    int mode = (strcmp(mode_s, "cold") == 0) ? MODE_COLD
+             : (strcmp(mode_s, "reset") == 0) ? MODE_RESET : MODE_WARM;
     FILE *f = fopen(argv[1], "r");
     if (!f) {{ fprintf(stderr, "no specfile\n"); return 2; }}
     static Spec specs[{nmax}];
@@ -164,6 +172,27 @@ int main(int argc, char **argv) {{
 
     for (int s = 0; s < nspec; s++) {{
         Spec sp = specs[s];
+        /* gpu-sim-u2o.6.7.1 discriminator. Criterion 2 fails (medians do not
+         * reproduce 7.1's) and I named TWO candidate causes: the two invocations
+         * no longer have independent CUDA contexts, and warm state carries
+         * between examples in a persistent process. Profiling cannot separate
+         * them, so this varies ONE THING per run:
+         *
+         *   warm   -- current behaviour, the baseline to beat
+         *   cold   -- free and reallocate the buffers between EXAMPLES, so no
+         *             L2/TLB/allocator state carries from one example to the
+         *             next. Tests the WARM-STATE cause.
+         *   reset  -- cudaDeviceReset() between the two INVOCATIONS of an
+         *             example, so they do not share a context. Tests the
+         *             SHARED-CONTEXT cause.
+         *
+         * The protocol is identical in all three: 2 invocations x (5 warmup +
+         * 20 timed) = 40 timed launches per example. Only the isolation varies.
+         */
+        if (mode == MODE_COLD && cap > 0) {{
+            for (int q = 0; q < 4; q++) {{ if (bufs[q]) cudaFree(bufs[q]); }}
+            cap = 0;
+        }}
         if ((size_t)sp.n > cap) {{
             for (int q = 0; q < 4; q++) {{ if (bufs[q]) cudaFree(bufs[q]); }}
             cap = sp.n;
@@ -181,6 +210,30 @@ int main(int argc, char **argv) {{
          * invocation is median-of-20, and the example's value is the median of
          * the two invocation medians, which is 7.1's structure exactly. */
         for (int inv = 0; inv < {invocations}; inv++) {{
+            /* reset BETWEEN the invocations of this example, so they do not
+             * share a CUDA context. Diagnostic only: it is far slower than a
+             * real context init, and that is the point -- it tells us whether
+             * the context is what moved the numbers, not what a fix would
+             * cost. */
+            if (mode == MODE_RESET && inv > 0) {{
+                for (int q = 0; q < 4; q++) {{ if (bufs[q]) cudaFree(bufs[q]); }}
+                cap = 0;
+                CHECK(cudaDeviceReset());
+                /* REALLOCATE HERE. My first version set cap = 0 and expected
+                 * the per-example allocation path to notice -- but that path is
+                 * OUTSIDE this loop, so invocation 1 launched through freed
+                 * pointers and died with "an illegal memory access was
+                 * encountered". The diagnostic mode was the only one that
+                 * crashed, which is at least a legible failure rather than a
+                 * silently wrong number. */
+                for (int q = 0; q < 4; q++) {{
+                    CHECK(cudaMalloc(&bufs[q], (size_t)sp.n * sizeof(float)));
+                    CHECK(cudaMemset(bufs[q], 0, (size_t)sp.n * sizeof(float)));
+                }}
+                cap = (size_t)sp.n;
+                CHECK(cudaEventCreate(&start));
+                CHECK(cudaEventCreate(&stop));
+            }}
         for (int t = 0; t < {warmup} + {timed}; t++) {{
             if (t == {warmup} && inv == 0) {{ printf("BEGIN %s\n", sp.hash); fflush(stdout); }}
             CHECK(cudaEventRecord(start));
@@ -211,6 +264,12 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0,
                     help="measure only the first N examples (0 = all)")
     ap.add_argument("--out", default="batch_rows.jsonl")
+    ap.add_argument("--mode", choices=("warm", "cold", "reset"), default="warm",
+                    help="warm: persistent process, state carries (current). "
+                         "cold: buffers freed and reallocated between EXAMPLES "
+                         "(tests warm-state carryover). reset: "
+                         "cudaDeviceReset between the two INVOCATIONS (tests "
+                         "shared CUDA context).")
     args = ap.parse_args()
 
     specs = load_specs()
@@ -292,7 +351,8 @@ def main() -> int:
     # --- the ONE process, and everything timed against it -----------------
     t_start = time.time()
     started_at = datetime.now(timezone.utc).isoformat()
-    p = subprocess.Popen([str(exe), str(specfile)], stdout=subprocess.PIPE,
+    p = subprocess.Popen([str(exe), str(specfile), args.mode],
+                         stdout=subprocess.PIPE,
                          text=True, bufsize=1)
     per_example: dict = {}
     rows_by_hash: dict = {}
@@ -362,6 +422,8 @@ def main() -> int:
         return 11
     rows = [rows_by_hash[s["kernel_hash"]] for s in specs
             if s["kernel_hash"] in rows_by_hash]
+    for r in rows:
+        r["mode"] = args.mode
     (HERE / args.out).write_text("".join(json.dumps(r) + "\n" for r in rows))
 
     # Derived BEFORE the summary that reports them. My first version computed
@@ -383,6 +445,19 @@ def main() -> int:
     out = {
         "bead": "gpu-sim-u2o.6.7.1",
         "gpu_used": True,
+        "mode": args.mode,
+        "mode_meaning": {
+            "warm": "one process, one context, state carries between examples "
+                    "-- the configuration in which criterion 2 failed",
+            "cold": "buffers freed and reallocated between EXAMPLES; isolates "
+                    "warm-state carryover",
+            "reset": "cudaDeviceReset between the two INVOCATIONS; isolates a "
+                     "shared CUDA context",
+        }[args.mode],
+        "protocol": "IDENTICAL in all modes: 2 invocations x (5 warmup + 20 "
+                    "timed) = 40 timed launches per example. Only the ISOLATION "
+                    "varies, which is the point -- this experiment varies one "
+                    "thing at a time rather than optimising two at once.",
         "worker": {
             "processes_started": 1,
             "contexts_created": 1,

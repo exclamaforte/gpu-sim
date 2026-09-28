@@ -12,11 +12,19 @@
     "20260928t111129-c64cef28",
     "20260928t111224-46c287f9",
     "20260928t111322-e0720458",
-    "20260928t112353-9a17d97c"
+    "20260928t112353-9a17d97c",
+    "20260928t121126-77415fac",
+    "20260928t121233-9fc66049",
+    "20260928t121521-a515d937"
   ],
   "authoritative_job": "20260928t112353-9a17d97c",
   "gpu_used": true,
   "failed_jobs_kept": "eleven submissions are recorded, not one. Seven failed BEFORE any GPU work (a KeyError on a missing field, a template signature that had drifted from its call site, a missing brace) and one succeeded while VIOLATING the protocol -- it ran 25 launches per example instead of 40, which is what the device-time assertion caught. All are cheap because the preflight and the assertions are CPU-side, but the record matters: the protocol violation is the interesting one and it would have been invisible without criterion 2b.",
-  "note": "The queue was empty before submission and no tenant was jumped. The job carried a 10m max-runtime. Superseded job 20260928t111322-e0720458 (25.05 ex/s, nvidia-smi sampling) by 20260928t112353-9a17d97c (168.81 ex/s, in-process NVML sampling). Both are kept: the first is the evidence for the 39 ms per-example sample cost that motivated the increment, and the second is the result of acting on it.",
-  "next_increment": "queue_state() is now 94% of the remaining per-example cost (6.09 ms/call, it re-reads all ~500 job files per example). Fixing it touches a 6.6.6-owned module, so it belongs on its own bead."
+  "note": "The queue was empty before submission and no tenant was jumped. The job carried a 10m max-runtime. Superseded job 20260928t111322-e0720458 (25.05 ex/s, nvidia-smi sampling) by 20260928t112353-9a17d97c (168.81 ex/s, in-process NVML sampling). Both are kept: the first is the evidence for the 39 ms per-example sample cost that motivated the increment, and the second is the result of acting on it. The discriminator's own first two versions reported a confident H1 from a single run per mode, which the repeats showed was noise. Both are kept in job.json because a verdict retracted after three runs is part of the record, not something to quietly overwrite.",
+  "next_increment": "queue_state() is now 94% of the remaining per-example cost (6.09 ms/call, it re-reads all ~500 job files per example). Fixing it touches a 6.6.6-owned module, so it belongs on its own bead.",
+  "discriminator_jobs": {
+    "20260928t121126-77415fac": "first attempt, 1 run per mode; reset mode CRASHED (illegal memory access) and the argmax verdict picked H1 from 1 sample",
+    "20260928t121233-9fc66049": "reset fixed; verdict STILL came from an argmax over single runs and again said H1",
+    "20260928t121521-a515d937": "AUTHORITATIVE: 2 repeats per mode (6 GPU runs); the within-mode spread (0.186) exceeds the best-minus-warm gap (0.068), so the script REFUSES to attribute. Verdict: UNDERPOWERED, no attribution."
+  }
 }

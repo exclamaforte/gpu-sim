@@ -1,6 +1,9 @@
 {
   "bead": "gpu-sim-u2o.6.7.1",
   "gpu_used": true,
+  "mode": "reset",
+  "mode_meaning": "cudaDeviceReset between the two INVOCATIONS; isolates a shared CUDA context",
+  "protocol": "IDENTICAL in all modes: 2 invocations x (5 warmup + 20 timed) = 40 timed launches per example. Only the ISOLATION varies, which is the point -- this experiment varies one thing at a time rather than optimising two at once.",
   "worker": {
     "processes_started": 1,
     "contexts_created": 1,
@@ -14,30 +17,28 @@
   },
   "throughput": {
     "examples": 264,
-    "wall_sec": 1.563894271850586,
-    "examples_per_sec": 168.80936566613534,
-    "examples_per_hour": 607713.7163980872,
-    "ms_per_example": 5.923841938827977
+    "wall_sec": 35.02177548408508,
+    "examples_per_sec": 7.5381672217038025,
+    "examples_per_hour": 27137.40199813369,
+    "ms_per_example": 132.65824047001925
   },
   "device_time_per_example": {
     "asserted_us": 126.0,
-    "measured_us": 138.90151515151516,
+    "measured_us": 135.2560606060606,
     "unchanged": true,
     "note": "derived from the committed cells' medians x launches per example; this is the quantity the throughput fix must NOT move"
   },
   "per_example_sampling": {
     "rows": 264,
     "distinct_sample_times": 264,
-    "sample_time_span_sec": 1.4640307426452637,
+    "sample_time_span_sec": 34.76897859573364,
     "sampled_per_row_not_per_batch": true,
-    "sampling_wall_sec": 1.46185302734375,
-    "sampling_ms_per_example": 5.53732207327178,
-    "sampling_is_a_real_cost": "per-example telemetry costs 5.5 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
+    "sampling_wall_sec": 3.7734344005584717,
+    "sampling_ms_per_example": 14.293312123327544,
+    "sampling_is_a_real_cost": "per-example telemetry costs 14.3 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
     "note": "every row carries its own queue_state and its own telemetry, taken at that row's time. A per-batch sample stamped onto many rows would satisfy the letter of the row carrying a field while observing nothing."
   },
-  "started_at": "2026-09-28T11:23:55.794190+00:00",
+  "started_at": "2026-09-28T12:16:06.035061+00:00",
   "n_begin_markers": 264,
-  "n_end_markers": 264,
-  "ts_job": "20260928t112353-9a17d97c",
-  "telemetry_path": "nvml-ctypes (in-process); nvidia-smi fallback retained and recorded per row"
+  "n_end_markers": 264
 }

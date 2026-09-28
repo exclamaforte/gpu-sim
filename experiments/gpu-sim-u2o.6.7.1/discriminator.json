@@ -1,0 +1,100 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "question": "which of the two candidate causes moved the medians?",
+  "method": "three runs, protocol IDENTICAL (40 timed launches, 2 invocations x 20), varying only the ISOLATION. One thing at a time, which is the discipline every wrong cause tonight was missing.",
+  "results": {
+    "warm": {
+      "repeats": [
+        {
+          "rows_compared": 264,
+          "rows_reproducing": 210,
+          "fraction": 0.7954545454545454,
+          "median_rel_diff": 0.10687092095721545,
+          "p90_rel_diff": 0.3017543859649122
+        },
+        {
+          "rows_compared": 264,
+          "rows_reproducing": 161,
+          "fraction": 0.6098484848484849,
+          "median_rel_diff": 0.21581295941909753,
+          "p90_rel_diff": 0.4607594936708861
+        }
+      ],
+      "n_repeats": 2,
+      "fraction_mean": 0.7026515151515151,
+      "fraction_min": 0.6098484848484849,
+      "fraction_max": 0.7954545454545454,
+      "fraction_spread": 0.18560606060606055,
+      "median_rel_diff_mean": 0.1613419401881565,
+      "rows_reproducing": [
+        210,
+        161
+      ],
+      "tests": "baseline: state carries between examples"
+    },
+    "cold": {
+      "repeats": [
+        {
+          "rows_compared": 264,
+          "rows_reproducing": 202,
+          "fraction": 0.7651515151515151,
+          "median_rel_diff": 0.12343714064688789,
+          "p90_rel_diff": 0.34337349397590367
+        },
+        {
+          "rows_compared": 264,
+          "rows_reproducing": 205,
+          "fraction": 0.7765151515151515,
+          "median_rel_diff": 0.11959880173779386,
+          "p90_rel_diff": 0.37119113573407203
+        }
+      ],
+      "n_repeats": 2,
+      "fraction_mean": 0.7708333333333333,
+      "fraction_min": 0.7651515151515151,
+      "fraction_max": 0.7765151515151515,
+      "fraction_spread": 0.011363636363636354,
+      "median_rel_diff_mean": 0.12151797119234087,
+      "rows_reproducing": [
+        202,
+        205
+      ],
+      "tests": "removing carryover between EXAMPLES (tests H2)"
+    },
+    "reset": {
+      "repeats": [
+        {
+          "rows_compared": 264,
+          "rows_reproducing": 218,
+          "fraction": 0.8257575757575758,
+          "median_rel_diff": 0.10942350332594238,
+          "p90_rel_diff": 0.24798387096774177
+        },
+        {
+          "rows_compared": 264,
+          "rows_reproducing": 186,
+          "fraction": 0.7045454545454546,
+          "median_rel_diff": 0.16569939012394252,
+          "p90_rel_diff": 0.36363636363636354
+        }
+      ],
+      "n_repeats": 2,
+      "fraction_mean": 0.7651515151515151,
+      "fraction_min": 0.7045454545454546,
+      "fraction_max": 0.8257575757575758,
+      "fraction_spread": 0.12121212121212122,
+      "median_rel_diff_mean": 0.13756144672494244,
+      "rows_reproducing": [
+        218,
+        186
+      ],
+      "tests": "removing the shared context between INVOCATIONS (tests H1)"
+    }
+  },
+  "best_mode": "cold",
+  "gap_to_warm": 0.06818181818181812,
+  "within_mode_spread": 0.18560606060606055,
+  "attribution_supported": false,
+  "verdict": "UNDERPOWERED -- NO ATTRIBUTION. The best mode beats warm by +0.068 while the SAME configuration varies by 0.186 across repeats, so the modes are indistinguishable at this sample size. Reporting H1 or H2 here would be reporting noise with a mechanism attached, which is worse than reporting nothing. Three runs of one configuration gave 207, 189 and 173 rows reproducing.",
+  "if_neither": "the remaining suspect is the ESTIMATOR's context: 7.1 measured each invocation in a process that had just started, so its 20 trials include the driver's own warm-up path. A long-lived process may simply report a cleaner kernel time, in which case the batching is not WRONG, it is measuring something slightly different, and the fix is to state which rather than to pretend the two are the same quantity."
+}
