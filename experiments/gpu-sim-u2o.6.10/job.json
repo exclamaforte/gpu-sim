@@ -1,0 +1,11 @@
+{
+  "bead": "gpu-sim-u2o.6.10",
+  "queue": "ts (task-spooler), one supervised dose, queue verified EMPTY immediately before submitting",
+  "final_job": "20260928t072424-9816875f",
+  "state": "finished",
+  "doses": 1,
+  "steps": ["normal stage-1 kernel (device-side timing confirmed)",
+            "--test-hang kernel, once, 4 s timeout, watched",
+            "recovery probe: normal kernel immediately after the kill"],
+  "note": "The job exited 1 on a unit error in MY summary arithmetic (seconds divided by milliseconds); the hang, the kill and the recovery all succeeded. Corrected from the same stored run in report.json -- no second dose was spent, because re-hanging a GPU three other projects share to fix a division would be the wrong trade."
+}
