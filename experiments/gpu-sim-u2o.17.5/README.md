@@ -53,8 +53,34 @@ somewhere in the capture; the per-case stamp localises it, and 17.4 can now
 exclude contaminated cases mechanically instead of by reading a bd comment.
 
 The four exclusions above are the cases to avoid on spread grounds; the 11
-throttle-flagged cases are the ones to exclude on machine-state grounds. They
-overlap only once.
+throttle-flagged cases are the ones to exclude on machine-state grounds.
+
+**The two sets are DISJOINT — the overlap is zero, not one.** An earlier
+version of this file said they "overlapped only once, so any given row has two
+independent reasons to be distrusted". That was wrong, and wrong in the
+direction that flatters the fixture: recomputed case by case, none of
+relu[1024], relu[65536], relu[2^24] or matmul[512^3] is throttle-flagged, and
+the one throttled matmul (8192^3, 9.9% spread) is not spread-excluded. So
+every excluded row has exactly ONE reason, not two — a weaker guarantee than
+this file previously claimed, and 17.4 should not plan around "two
+independent reasons".
+
+**Consequence for the two beads this one blocks, and it is material.** The
+un-throttled case counts are: elementwise 12/12, matmul 4/5, launch_bound
+1/1, **reduce 0/8, chain 0/2**. After the spread exclusions there is no
+usable data at all for two of the five op classes. 17.3's job is to fit a
+PER-OP-CLASS model, and for reduce and chain it would be fitting to numbers
+that were all taken under an active power cap. The honest form of the
+criterion-5 answer is therefore: the fixture supports a per-op-class claim for
+**elementwise, matmul and launch_bound**, with four elementwise/matmul rows
+excluded on spread; **reduce and chain are present as qualitative evidence
+only**. A 2% spread under an active power cap is a good measurement — it is
+just not a parity target, which is a different question.
+
+(An earlier comment on this bead called reduce "the cleanest class in the
+fixture". That is now exactly inverted: reduce's 2.2% median spread was
+measured entirely on throttled data. The measurement is fine; the
+interpretation was not.)
 
 ## Machine state, capture-level
 
