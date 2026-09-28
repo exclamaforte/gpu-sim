@@ -97,8 +97,15 @@ def measure_family(family: str) -> dict:
     # item 6: the three-axis diff needs BOTH sides to carry it. Record only --
     # no contention detection and no sample discarded on the basis of this
     # (that is 6.6.3's question).
+    # Match on the COMMAND plus the family argument, not on a hand-written
+    # description substring. The v7 run recorded a stale own_job_id because
+    # U2O_JOB_DESC said "anchor: memory" while the description actually
+    # submitted to ts was "anchor v7: memory", so the description match found
+    # only an OLDER job with the same command. The family's own argument is in
+    # the command line, so matching on it is exact and needs no agreement
+    # between a string I write here and a string typed at submit time.
     q_before = qs.queue_state(own_description_substr=OWN_JOB_DESCRIPTION,
-                              own_command_substr="run_family.sh")
+                              own_command_substr=f"run_family.sh {family}")
     print("queue before: " + json.dumps(
         {k: q_before[k] for k in ("own_job_id", "n_other_active",
                                    "n_other_running_at_sample_time")}),
@@ -186,7 +193,7 @@ def measure_family(family: str) -> dict:
     print("telemetry after:  " + json.dumps(tel_after.get("fields", tel_after)),
           flush=True)
     q_after = qs.queue_state(own_description_substr=OWN_JOB_DESCRIPTION,
-                             own_command_substr="run_family.sh")
+                             own_command_substr=f"run_family.sh {family}")
     return {
         "bead": "gpu-sim-u2o.6.6.2",
         "family": family,

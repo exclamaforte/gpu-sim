@@ -110,27 +110,40 @@ def queue_state(own_job_id: str | None = None,
         pool = sorted(pool, key=lambda j: j.get("id") or "")
         return pool[-1].get("id"), ("running" if running else "newest-match")
 
-    # PRECEDENCE, and the order matters: the DESCRIPTION is tried FIRST, and
-    # the command is only a fallback for when no description matches. The
-    # first version did the opposite -- command first -- so in the four-family
-    # case, where every job shares a command prefix, the command match found
-    # a different (running) job and overrode a perfectly good description
-    # match. tests/test_queue_state.py caught that; the fix and the test were
-    # written in the same pass, which is the only reason it did not ship.
-    how = None
-    for kind, needle in (("description", own_description_substr),
-                         ("command", own_command_substr)):
-        if own_job_id is not None or not needle:
+    # PRECEDENCE, revised TWICE, and the sequence is the whole lesson:
+    #   v1: command first, description second -> in the four-family case the
+    #       shared command prefix matched a SIBLING and overrode a good
+    #       description match (caught by the test).
+    #   v2: description first, command second -> the v7 run set a description
+    #       substring that did not match what was actually submitted
+    #       ("anchor: memory" vs "anchor v7: memory"), so the description
+    #       match found an OLDER finished job with the same command and named
+    #       that one (also caught by the test).
+    #   v3: rank candidates from BOTH matchers by (liveness, specificity,
+    #       recency). A job that is running now, matched by a command
+    #       carrying the family's own argument, beats a stale finished job
+    #       that merely contains a description substring.
+    def _score(j, spec):
+        return (1 if j.get("state") in ("running", "starting") else 0, spec,
+                j.get("id") or "")
+
+    best, how = None, None
+    for kind, needle, spec in (
+            ("command", own_command_substr, 2),      # includes the family arg
+            ("description", own_description_substr, 1)):
+        if not needle:
             continue
-        if kind == "description":
-            cands = [j for j in jobs if needle in (j.get("description") or "")]
-        else:
+        if kind == "command":
             cands = [j for j in jobs
                      if needle in " ".join(j.get("command") or [])]
-        if not cands:
-            continue
-        own_job_id, rule = _pick(cands)
-        how = f"{kind}:{rule}"
+        else:
+            cands = [j for j in jobs if needle in (j.get("description") or "")]
+        for j in cands:
+            s = _score(j, spec)
+            if best is None or s > _score(best[0], best[1]):
+                best, how = (j, spec), f"{kind}:{'running' if s[0] else 'newest'}"
+    if best is not None:
+        own_job_id = best[0].get("id")
 
     if own_job_id is None:
         # Requirement 1: raise rather than write a null own_job_id. A null is
