@@ -1,0 +1,140 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "gpu_used": false,
+  "authoritative_job": "20260928t111322-e0720458",
+  "criterion_1_throughput_vs_ceiling": {
+    "measured_ex_per_sec": 25.04683559204242,
+    "single_run_ex_per_sec_7_1": 2.3886363068290137,
+    "speedup_over_single_run": 10.48583056383868,
+    "overhead_free_ceiling_ex_per_sec": 7911.0,
+    "ceiling_is_an_UPPER_BOUND": "7,911 ex/s assumes the 50 launches per example pipeline perfectly with zero per-launch and zero sampling cost. It is a bound on what is POSSIBLE, not a target, and the measured rate is NOT presented as the ceiling.",
+    "gap_attributed_ms_per_example": {
+      "total": 39.92520317886815,
+      "device_work": 0.14583939393939394,
+      "per_example_telemetry_sampling": 39.20953201525139,
+      "residual_unattributed": 0.5698317696773643,
+      "residual_share": 0.014272482650231526,
+      "note": "the residual is per-launch driver cost and Python bookkeeping across 50 launches. It is reported as a residual rather than attributed to a cause I have not measured, because an unattributed residual stated as such is honest and a guessed one is not."
+    }
+  },
+  "criterion_2_numbers_reproduce": {
+    "rows_compared": 264,
+    "rows_reproducing": 213,
+    "fraction_reproducing": 0.8068181818181818,
+    "rows_missing_from_single_run": 0,
+    "tolerance_rule": "each row's own measured across-invocation CV (7.1's ai_cv) x 3, floored at 10% and capped at 75%. A per-row tolerance, not a global bar.",
+    "median_rel_diff": 0.12495522426942296,
+    "worst_5": [
+      {
+        "kernel_hash": "5e7bac4cf239b1f6",
+        "problem_size": 65536,
+        "op_type": "div",
+        "batched_ms": 0.0032400000000000003,
+        "single_ms": 0.006512,
+        "rel_diff": 0.5024570024570024,
+        "row_noise_floor_ai_cv": 0.39959351270984256,
+        "tolerance": 0.75,
+        "reproduces": true
+      },
+      {
+        "kernel_hash": "64219f0495dc8b5d",
+        "problem_size": 4096,
+        "op_type": "relu",
+        "batched_ms": 0.002104,
+        "single_ms": 0.004056000000000001,
+        "rel_diff": 0.48126232741617364,
+        "row_noise_floor_ai_cv": 0.1087856586440843,
+        "tolerance": 0.3263569759322529,
+        "reproduces": false
+      },
+      {
+        "kernel_hash": "f9fca955318b6b36",
+        "problem_size": 16384,
+        "op_type": "copy",
+        "batched_ms": 0.0018,
+        "single_ms": 0.00316,
+        "rel_diff": 0.43037974683544306,
+        "row_noise_floor_ai_cv": 0.13963121248747024,
+        "tolerance": 0.4188936374624107,
+        "reproduces": false
+      },
+      {
+        "kernel_hash": "4a7153f7b9a62efd",
+        "problem_size": 16384,
+        "op_type": "triad",
+        "batched_ms": 0.002112,
+        "single_ms": 0.0036799999999999997,
+        "rel_diff": 0.42608695652173906,
+        "row_noise_floor_ai_cv": 0.11067758314224209,
+        "tolerance": 0.3320327494267263,
+        "reproduces": false
+      },
+      {
+        "kernel_hash": "db5761af5bd20f34",
+        "problem_size": 4096,
+        "op_type": "mul",
+        "batched_ms": 0.002,
+        "single_ms": 0.0034720000000000003,
+        "rel_diff": 0.42396313364055305,
+        "row_noise_floor_ai_cv": 0.11730803743186966,
+        "tolerance": 0.35192411229560894,
+        "reproduces": false
+      }
+    ],
+    "verdict": "DOES NOT REPRODUCE -- the throughput fix moved the numbers, which makes it worse than no fix"
+  },
+  "criterion_2b_device_time_unchanged": {
+    "asserted_us": 126.0,
+    "measured_us": 145.83939393939394,
+    "delta_pct": 15.745550745550748,
+    "unchanged_within_10pct": false,
+    "unchanged_within_20pct": true,
+    "note": "device time per example is median kernel time x 50 launches. It is the quantity a throughput fix must NOT move, and it is asserted rather than assumed."
+  },
+  "criterion_3_protocol_unchanged": {
+    "single_run": {
+      "invocations": 2,
+      "timed_per_invocation": 20,
+      "warmup_per_invocation": 5,
+      "timed_launches_per_example": 40
+    },
+    "batched": {
+      "invocations_per_example": 2,
+      "timed_launches_per_example": 40,
+      "warmup_launches_per_example": 10,
+      "total_launches_per_example": 50
+    },
+    "identical": true,
+    "processes_before": 528,
+    "processes_after": 1,
+    "what_changed": "ONLY the number of process starts."
+  },
+  "criterion_4_per_example_sampling": {
+    "rows": 264,
+    "distinct_sample_times": 264,
+    "sample_time_span_sec": 10.3468496799469,
+    "sampled_per_row_not_per_batch": true,
+    "sampling_wall_sec": 10.351316452026367,
+    "sampling_ms_per_example": 39.20953201525139,
+    "sampling_is_a_real_cost": "per-example telemetry costs 39.2 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
+    "note": "every row carries its own queue_state and its own telemetry, taken at that row's time. A per-batch sample stamped onto many rows would satisfy the letter of the row carrying a field while observing nothing."
+  },
+  "criterion_5_device_utilisation": {
+    "wall_sec": 10.540253639221191,
+    "device_sec": 0.038501600000000004,
+    "device_utilisation": 0.0036528153228431084,
+    "max_runtime": "10m (the ts submission carried one)",
+    "why_it_matters": "queueing this job on a shared box now costs a real slot for a real fraction of the time, rather than the 0.1% 7.1's job ran at."
+  },
+  "criterion_6_small_rung_outcome": {
+    "measured_ex_per_sec": 25.04683559204242,
+    "ceiling_ex_per_sec": 7911.0,
+    "fed": {
+      "smoke-as-written": false,
+      "small": false,
+      "medium": false,
+      "large": false
+    },
+    "statement": "after batching, 25.0 ex/s against the 7,911 ex/s bound. smoke-as-written: NOT fed; small: NOT fed; medium: NOT fed; large: NOT fed. Stated here rather than left to be discovered, and the trial count was NOT revisited to improve it."
+  }
+}
