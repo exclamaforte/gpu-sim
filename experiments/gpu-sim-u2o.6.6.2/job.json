@@ -1,114 +1,38 @@
 {
   "bead": "gpu-sim-u2o.6.6.2",
-  "queue": "ts (task-spooler) on gpu 0, one job per kernel family",
-  "authoritative_run": "v3",
-  "constraints_honoured": {
-    "preflight_bypassed": true,
-    "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution. Stated at the top of every output_<family>.log",
-    "hand_checked_kernels_only": true,
-    "generator_output_used": false,
-    "no_sudo": true,
-    "no_clock_locking": true,
-    "no_persistence_mode_change": true,
-    "nvidia_smi_usage": "read-only --query-gpu telemetry before and after each family",
-    "invocations": "3 independent PROCESSES per config, 100 trials each"
-  },
-  "jobs": [
+  "anchor_version": 1,
+  "queue": "ts (task-spooler) on gpu 0, one job per family",
+  "authoritative_jobs": [
     {
-      "job_id": "20260927t155903-23ec54cd",
+      "job_id": "20260928t032717-6356dbf2",
       "family": "launch",
       "state": "finished",
-      "round": "v1",
-      "log": "ts_job_logs/20260927t155903-23ec54cd.log"
+      "configs": "18/18"
     },
     {
-      "job_id": "20260927t155903-5012653b",
+      "job_id": "20260928t032717-5c2e74a0",
       "family": "memory",
       "state": "finished",
-      "round": "v1",
-      "log": "ts_job_logs/20260927t155903-5012653b.log"
+      "configs": "90/90"
     },
     {
-      "job_id": "20260927t155903-f93926a9",
+      "job_id": "20260928t032717-ff2f2da2",
       "family": "reduce",
       "state": "finished",
-      "round": "v1",
-      "log": "ts_job_logs/20260927t155903-f93926a9.log"
+      "configs": "8/8"
     },
     {
-      "job_id": "20260927t155903-f72a0ecb",
+      "job_id": "20260928t032717-3f5587a6",
       "family": "gemm",
       "state": "finished",
-      "round": "v1",
-      "log": "ts_job_logs/20260927t155903-f72a0ecb.log"
-    },
-    {
-      "job_id": "20260927t160309-974ced32",
-      "family": "launch",
-      "state": "finished",
-      "round": "v2",
-      "log": "ts_job_logs/20260927t160309-974ced32.log"
-    },
-    {
-      "job_id": "20260927t160309-812f3528",
-      "family": "memory",
-      "state": "finished",
-      "round": "v2",
-      "log": "ts_job_logs/20260927t160309-812f3528.log"
-    },
-    {
-      "job_id": "20260927t160309-79851ab7",
-      "family": "reduce",
-      "state": "finished",
-      "round": "v2",
-      "log": "ts_job_logs/20260927t160309-79851ab7.log"
-    },
-    {
-      "job_id": "20260927t160310-b1db771a",
-      "family": "gemm",
-      "state": "finished",
-      "round": "v2",
-      "log": "ts_job_logs/20260927t160310-b1db771a.log"
-    },
-    {
-      "job_id": "20260927t160610-753c945a",
-      "family": "launch",
-      "state": "finished",
-      "round": "v3 AUTHORITATIVE",
-      "log": "ts_job_logs/20260927t160610-753c945a.log"
-    },
-    {
-      "job_id": "20260927t160610-f9023f86",
-      "family": "memory",
-      "state": "finished",
-      "round": "v3 AUTHORITATIVE",
-      "log": "ts_job_logs/20260927t160610-f9023f86.log"
-    },
-    {
-      "job_id": "20260927t160610-1ff090fa",
-      "family": "reduce",
-      "state": "finished",
-      "round": "v3 AUTHORITATIVE",
-      "log": "ts_job_logs/20260927t160610-1ff090fa.log"
-    },
-    {
-      "job_id": "20260927t160610-ad1989f8",
-      "family": "gemm",
-      "state": "finished",
-      "round": "v3 AUTHORITATIVE",
-      "log": "ts_job_logs/20260927t160610-ad1989f8.log"
+      "configs": "8/8"
     }
   ],
-  "why_three_rounds": [
-    "v1: the elementwise kernels used one-element-per-thread indexing, so the deliberately-poor '1 block' config silently computed only 1024 elements and reported ~0.4 us. A broken measurement wearing a terrible config's clothes; an anchor set containing one is worse than none. Fixed with grid-stride loops.",
-    "v2: k_block_sum's shared tile was REDUCE_TILE=256 while the sweep also ran block=1024 configs -- an out-of-bounds shared-memory write. Fixed to 1024.",
-    "v2 also exposed the worst of the three: the block size was passed as dim3.z while the kernels index with threadIdx.x, so EVERY 1-D config ran with one active thread per block. v3 fixes the block tuple to (block, 1, 1) and re-measures everything."
-  ],
-  "post_processing": {
-    "command": "python3 experiments/gpu-sim-u2o.6.6.2/merge_metrics.py",
-    "gpu": false,
-    "note": "CPU-only merge of the four family files into metrics.json. Re-run after the review fixes: the ms/s unit error (bytes/ms is 1000x short of bytes/s) and the memory ceiling (now taken from the HBM-bound n=2^26 cell at 1541 GB/s instead of the L2-resident n=2^22 cell at ~3.2 TB/s). No re-measurement: the underlying ts jobs are unchanged and still authoritative."
+  "superseded_jobs": {
+    "v1_20260927t1559xx/1606xx": "first sweeps; kernels degenerate (copy == strided_copy)",
+    "v4_20260928t030010-*": "failed: NameError os -- a defect a static check now prevents",
+    "v5_20260928t032427-*": "measured, but own_job_id was misattributed in 3 of 4 families"
   },
-  "note": "All 13 jobs are finished; nothing is left running. The superseded v1/v2 logs are kept deliberately: a reader diffing v1 against v3 can see exactly which of my own defects moved the numbers, which is the same evidence standard the lab holds the rest of the epic to.",
-  "branch_note": "This bead now lives on its own branch (lab/gpu-sim-u2o.6.6.2-r2) so it and 17.5 merge independently; the reviewer correctly flagged the entangled history. The ts_job_logs no longer contain 17.5's v1 capture log, which was never a 6.6.2 job and was not listed here."
+  "queue_state": "recorded in every family file (item 8); each family carries its own JOB_ID",
+  "note": "The four authoritative jobs ran back to back with no other GPU job active at sample time (n_other_running_at_sample_time = 0 in all four), so this anchor is contention-free by record, not by assumption."
 }

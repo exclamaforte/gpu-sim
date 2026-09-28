@@ -110,10 +110,26 @@ def main() -> int:
     # under a 2-buffer convention. Nothing about a ceiling is defensible if the
     # number and the label come from different cells. The full ranked list is
     # emitted so the choice is checkable.
-    ranked = sorted(mem, key=lambda c: -c["_bps"])
+    # CANDIDATE SET, stated and then applied: the HBM-bound cells only (the
+    # largest problem size). An argmax over ALL memory cells picks the
+    # L2-resident n=2^22 case at ~3.2 TB/s, which is a CACHE number being
+    # published as the memory ceiling -- the exact defect this item exists to
+    # fix. So: filter to the candidate set FIRST, then take the argmax INDEX
+    # within it, and emit the full ranked list of the whole set alongside.
+    max_n = max((c["n_problem_size"] for c in mem), default=0)
+    candidates = [c for c in mem if c["n_problem_size"] == max_n]
+    ranked = sorted(candidates, key=lambda c: -c["_bps"])
     ceiling_cell = ranked[0] if ranked else None
     ceiling_bytes_per_s = ceiling_cell["_bps"] if ceiling_cell else 0.0
     ceiling_source_label = ceiling_cell["label"] if ceiling_cell else None
+    ceiling_candidates_all = [
+        {"label": c["label"], "kernel": c["kernel"],
+         "n_problem_size": c["n_problem_size"],
+         "median_ms": c["median_ms"],
+         "bytes_moved": bytes_moved(c),
+         "achieved_GBps": c["_bps"] / 1e9,
+         "l2_resident": 2 * c["n_problem_size"] * 4 / 1048576.0 <= 96}
+        for c in sorted(mem, key=lambda c: -c["_bps"])[:6]]
     ceiling_candidates = [
         {"label": c["label"], "kernel": c["kernel"],
          "n_problem_size": c["n_problem_size"],
@@ -249,7 +265,16 @@ def main() -> int:
                                         "not a measurement made in this file"),
                 "memory_bound": "achieved >= 80% of the measured ceiling",
             },
-            "ceiling_candidates_ranked": ceiling_candidates,
+            "ceiling_candidate_set": {
+                "rule": "cells at the largest problem size (HBM-bound), "
+                        "n_problem_size = %d" % max_n,
+                "excluded_and_why": "n=2^22 is L2-resident on this part and "
+                                    "sustains far more than HBM; including it "
+                                    "would publish a cache bandwidth as the "
+                                    "memory ceiling",
+                "ranked": ceiling_candidates,
+            },
+            "ceiling_candidates_ranked_all_cells": ceiling_candidates_all,
             "crossover_definition": ("smallest measured n (auto/256 elementwise) whose "
                                      "achieved bandwidth reaches 10% of the measured "
                                      "ceiling; below it the measurement is launch "

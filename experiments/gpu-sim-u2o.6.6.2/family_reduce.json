@@ -2,96 +2,72 @@
   "bead": "gpu-sim-u2o.6.6.2",
   "family": "reduce",
   "queue_state_before": {
-    "recorded_at": "2026-09-28T03:26:13.097720+00:00",
-    "own_job_id": "20260928t032427-a8e9b1eb",
-    "own_description_substr": "u2o.6.6.2 anchor",
+    "recorded_at": "2026-09-28T03:29:03.311855+00:00",
+    "own_job_id": "20260928t032717-ff2f2da2",
+    "own_description_substr": "u2o.6.6.2 anchor: reduce",
+    "own_job_id_resolution": "running",
     "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
     "counts_by_state": {
-      "finished": 287,
+      "finished": 292,
       "failed": 116,
       "canceled": 32,
       "timed_out": 6,
-      "running": 1,
-      "queued": 2
+      "queued": 2,
+      "running": 1
     },
     "n_active_including_self": 3,
-    "n_other_active": 3,
-    "n_other_running_at_sample_time": 1,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 0,
     "other_active_jobs": [
       {
-        "id": "20260928t032427-34442b74",
-        "state": "running",
-        "description": "u2o.6.6.2 anchor v5: reduce",
-        "created_at": "2026-09-28T03:24:27+00:00"
-      },
-      {
-        "id": "20260928t032427-3aa8f2b0",
+        "id": "20260928t032717-3f5587a6",
         "state": "queued",
-        "description": "u2o.6.6.2 anchor v5: gemm",
-        "created_at": "2026-09-28T03:24:27+00:00"
+        "description": "u2o.6.6.2 anchor v6: gemm",
+        "created_at": "2026-09-28T03:27:17+00:00"
       },
       {
-        "id": "20260928t032519-9e898d5f",
+        "id": "20260928t032742-7f556080",
         "state": "queued",
         "description": "",
-        "created_at": "2026-09-28T03:25:19+00:00"
+        "created_at": "2026-09-28T03:27:42+00:00"
       }
     ],
-    "other_running_jobs": [
-      {
-        "id": "20260928t032427-34442b74",
-        "state": "running",
-        "description": "u2o.6.6.2 anchor v5: reduce",
-        "created_at": "2026-09-28T03:24:27+00:00"
-      }
-    ],
+    "other_running_jobs": [],
     "queue_was_empty": false,
     "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
   },
   "queue_state_after": {
-    "recorded_at": "2026-09-28T03:26:20.165465+00:00",
-    "own_job_id": "20260928t032427-a8e9b1eb",
-    "own_description_substr": "u2o.6.6.2 anchor",
+    "recorded_at": "2026-09-28T03:29:10.467026+00:00",
+    "own_job_id": "20260928t032717-ff2f2da2",
+    "own_description_substr": "u2o.6.6.2 anchor: reduce",
+    "own_job_id_resolution": "running",
     "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
     "counts_by_state": {
-      "finished": 287,
+      "finished": 292,
       "failed": 116,
       "canceled": 32,
       "timed_out": 6,
-      "running": 1,
-      "queued": 2
+      "queued": 2,
+      "running": 1
     },
     "n_active_including_self": 3,
-    "n_other_active": 3,
-    "n_other_running_at_sample_time": 1,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 0,
     "other_active_jobs": [
       {
-        "id": "20260928t032427-34442b74",
-        "state": "running",
-        "description": "u2o.6.6.2 anchor v5: reduce",
-        "created_at": "2026-09-28T03:24:27+00:00"
-      },
-      {
-        "id": "20260928t032427-3aa8f2b0",
+        "id": "20260928t032717-3f5587a6",
         "state": "queued",
-        "description": "u2o.6.6.2 anchor v5: gemm",
-        "created_at": "2026-09-28T03:24:27+00:00"
+        "description": "u2o.6.6.2 anchor v6: gemm",
+        "created_at": "2026-09-28T03:27:17+00:00"
       },
       {
-        "id": "20260928t032519-9e898d5f",
+        "id": "20260928t032742-7f556080",
         "state": "queued",
         "description": "",
-        "created_at": "2026-09-28T03:25:19+00:00"
+        "created_at": "2026-09-28T03:27:42+00:00"
       }
     ],
-    "other_running_jobs": [
-      {
-        "id": "20260928t032427-34442b74",
-        "state": "running",
-        "description": "u2o.6.6.2 anchor v5: reduce",
-        "created_at": "2026-09-28T03:24:27+00:00"
-      }
-    ],
+    "other_running_jobs": [],
     "queue_was_empty": false,
     "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
   },
@@ -99,26 +75,26 @@
   "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
   "telemetry_before": {
     "label": "before",
-    "at": 1790565973.0795877,
+    "at": 1790566143.2899535,
     "rc": 0,
-    "csv": "2415 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
+    "csv": "2415 MHz, 3105 MHz, 44, 0x0000000000000000, Disabled",
     "fields": {
       "clocks.sm": "2415 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "42",
+      "temperature.gpu": "44",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
   },
   "telemetry_after": {
     "label": "after",
-    "at": 1790565980.1445646,
+    "at": 1790566150.4475038,
     "rc": 0,
-    "csv": "2452 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
+    "csv": "2490 MHz, 3105 MHz, 45, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "2452 MHz",
+      "clocks.sm": "2490 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "42",
+      "temperature.gpu": "45",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
@@ -148,17 +124,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0028799999999999997,
-      "iqr_ms": 0.00041600000000000014,
-      "mean_ms": 0.00312,
-      "std_ms": 0.0013413953777026495,
-      "cv": 0.4299344159303364,
+      "median_ms": 0.00328,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.0034410666666666668,
+      "std_ms": 0.0015825649837158712,
+      "cv": 0.45990535407118077,
       "medians_across_invocations_ms": [
-        0.0028799999999999997,
-        0.002928,
-        0.002816
+        0.00336,
+        0.0030080000000000003,
+        0.00328
       ],
-      "across_invocation_cv": 0.01954666744499582,
+      "across_invocation_cv": 0.05737593330681985,
       "throttle_active": false
     },
     {
@@ -180,16 +156,16 @@
       "n_trials": 100,
       "n_invocations": 3,
       "median_ms": 0.0028640000000000002,
-      "iqr_ms": 0.0010240000000000002,
-      "mean_ms": 0.0034853333333333333,
-      "std_ms": 0.001677000496919028,
-      "cv": 0.4811592856500654,
+      "iqr_ms": 0.0005439999999999998,
+      "mean_ms": 0.0034378666666666667,
+      "std_ms": 0.0016520390632992512,
+      "cv": 0.4805419242454384,
       "medians_across_invocations_ms": [
-        0.002896,
+        0.002912,
         0.0028640000000000002,
         0.0028640000000000002
       ],
-      "across_invocation_cv": 0.006426904666303795,
+      "across_invocation_cv": 0.009622504486493735,
       "throttle_active": false
     },
     {
@@ -210,17 +186,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002816,
-      "iqr_ms": 0.0008320000000000003,
-      "mean_ms": 0.0034416000000000004,
-      "std_ms": 0.0016463146228130683,
-      "cv": 0.4783573404268562,
+      "median_ms": 0.0033439999999999998,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.0035050666666666666,
+      "std_ms": 0.0015844720862452563,
+      "cv": 0.4520519113983347,
       "medians_across_invocations_ms": [
-        0.002816,
-        0.003504,
-        0.002752
+        0.00344,
+        0.0033439999999999998,
+        0.002928
       ],
-      "across_invocation_cv": 0.13787104995550672,
+      "across_invocation_cv": 0.08406820970130524,
       "throttle_active": false
     },
     {
@@ -241,17 +217,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00296,
-      "iqr_ms": 0.0008959999999999997,
-      "mean_ms": 0.0034832,
-      "std_ms": 0.001506678610022159,
-      "cv": 0.43255587104448756,
+      "median_ms": 0.002944,
+      "iqr_ms": 0.001248,
+      "mean_ms": 0.003553066666666667,
+      "std_ms": 0.0015021347731931907,
+      "cv": 0.4227713449020163,
       "medians_across_invocations_ms": [
+        0.0030879999999999996,
         0.002896,
-        0.00296,
-        0.003456
+        0.002944
       ],
-      "across_invocation_cv": 0.09874868072509282,
+      "across_invocation_cv": 0.03357525805590528,
       "throttle_active": false
     },
     {
@@ -273,16 +249,16 @@
       "n_trials": 100,
       "n_invocations": 3,
       "median_ms": 0.006912,
-      "iqr_ms": 0.00028800000000000006,
-      "mean_ms": 0.007189866666666667,
-      "std_ms": 0.0014655539528453277,
-      "cv": 0.20383604047066162,
+      "iqr_ms": 0.0004480000000000005,
+      "mean_ms": 0.007096000000000001,
+      "std_ms": 0.0013476705325882806,
+      "cv": 0.1899197481099606,
       "medians_across_invocations_ms": [
         0.0068000000000000005,
         0.006912,
-        0.006944
+        0.00696
       ],
-      "across_invocation_cv": 0.010981755909184925,
+      "across_invocation_cv": 0.011915483218529876,
       "throttle_active": false
     },
     {
@@ -303,17 +279,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.010848,
-      "iqr_ms": 0.0003199999999999991,
-      "mean_ms": 0.0109664,
-      "std_ms": 0.0012581221842525767,
-      "cv": 0.11472517729178006,
+      "median_ms": 0.01088,
+      "iqr_ms": 0.0003839999999999989,
+      "mean_ms": 0.010893866666666667,
+      "std_ms": 0.000465717142155166,
+      "cv": 0.04275039858714071,
       "medians_across_invocations_ms": [
-        0.010848,
-        0.010768,
-        0.010944
+        0.010992,
+        0.01088,
+        0.0108
       ],
-      "across_invocation_cv": 0.00811926862007783,
+      "across_invocation_cv": 0.008855602997073981,
       "throttle_active": false
     },
     {
@@ -334,17 +310,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.06416,
-      "iqr_ms": 0.0010559999999999875,
-      "mean_ms": 0.06457866666666666,
-      "std_ms": 0.0007512129551297701,
-      "cv": 0.011632525010268152,
+      "median_ms": 0.064864,
+      "iqr_ms": 0.0014080000000000065,
+      "mean_ms": 0.06524213333333333,
+      "std_ms": 0.0016159905129217514,
+      "cv": 0.024769124342782858,
       "medians_across_invocations_ms": [
-        0.06416,
-        0.064096,
-        0.064816
+        0.06459200000000001,
+        0.064992,
+        0.064864
       ],
-      "across_invocation_cv": 0.0061920506648620735,
+      "across_invocation_cv": 0.0031516033904722845,
       "throttle_active": false
     },
     {
@@ -365,19 +341,19 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.116,
-      "iqr_ms": 0.001343999999999998,
-      "mean_ms": 0.11634613333333334,
-      "std_ms": 0.0016738637680899515,
-      "cv": 0.014386930791196196,
+      "median_ms": 0.11664,
+      "iqr_ms": 0.0017280000000000073,
+      "mean_ms": 0.11644426666666667,
+      "std_ms": 0.0008222023724381596,
+      "cv": 0.007060909016601014,
       "medians_across_invocations_ms": [
-        0.11566399999999999,
-        0.116032,
-        0.116
+        0.11601600000000001,
+        0.116912,
+        0.11664
       ],
-      "across_invocation_cv": 0.0017589172015661505,
+      "across_invocation_cv": 0.003942402834611617,
       "throttle_active": false
     }
   ],
-  "wall_sec": 7.067687511444092
+  "wall_sec": 7.155068397521973
 }

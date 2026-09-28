@@ -8,19 +8,19 @@ diffed against a later run. synthesize -> compile_kernel -> run_kernel
 only. Kernels are hand-written (anchor_kernels.py), not generated:
 gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
 No sudo, no clock locking, no persistence-mode change.
-telemetry before: {"clocks.sm": "2422 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "42", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
-queue before: {"own_job_id": "20260928t032427-a8e9b1eb", "n_other_active": 2, "n_other_running_at_sample_time": 1}
-overlapping jobs: [{"id": "20260928t032427-3aa8f2b0", "state": "running", "description": "u2o.6.6.2 anchor v5: gemm"}, {"id": "20260928t032519-9e898d5f", "state": "queued", "description": ""}]
+telemetry before: {"clocks.sm": "2415 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "44", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t032717-3f5587a6", "n_other_active": 1, "n_other_running_at_sample_time": 0}
+overlapping jobs: [{"id": "20260928t032742-7f556080", "state": "queued", "description": ""}]
 gemm: 8 configs x 3 process invocations x 100 trials
-  tiled_gemm 512^3 32x32       grid=   [16, 16, 1] med=   39.760us iqr=   0.864us cv=0.033 ai_cv=0.0081
-  tiled_gemm 512^3 16x16       grid=   [16, 16, 1] med=   13.104us iqr=   0.832us cv=0.081 ai_cv=0.0247
-  tiled_gemm 1024^3 32x32      grid=   [32, 32, 1] med=  256.592us iqr=   0.384us cv=0.007 ai_cv=0.0001
-  tiled_gemm 1024^3 16x16      grid=   [32, 32, 1] med=   62.032us iqr=   0.256us cv=0.020 ai_cv=0.0003
-  tiled_gemm 2048^3 32x32      grid=   [64, 64, 1] med= 1811.888us iqr=   6.528us cv=0.002 ai_cv=0.0014
-  tiled_gemm 2048^3 16x16      grid=   [64, 64, 1] med=  404.560us iqr=   1.088us cv=0.010 ai_cv=0.0007
-  tiled_gemm 4096^3 32x32      grid= [128, 128, 1] med=14938.208us iqr=  16.096us cv=0.001 ai_cv=0.0007
-  tiled_gemm 4096^3 16x16      grid= [128, 128, 1] med= 3079.312us iqr=   1.632us cv=0.001 ai_cv=0.0
-telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "46", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+  tiled_gemm 512^3 32x32       grid=   [16, 16, 1] med=   39.648us iqr=   0.320us cv=0.011 ai_cv=0.0012
+  tiled_gemm 512^3 16x16       grid=   [16, 16, 1] med=   13.024us iqr=   0.288us cv=0.090 ai_cv=0.0012
+  tiled_gemm 1024^3 32x32      grid=   [32, 32, 1] med=  257.168us iqr=   0.864us cv=0.008 ai_cv=0.0007
+  tiled_gemm 1024^3 16x16      grid=   [32, 32, 1] med=   62.112us iqr=   0.288us cv=0.020 ai_cv=0.0008
+  tiled_gemm 2048^3 32x32      grid=   [64, 64, 1] med= 1815.408us iqr=   1.152us cv=0.002 ai_cv=0.0001
+  tiled_gemm 2048^3 16x16      grid=   [64, 64, 1] med=  406.160us iqr=   1.216us cv=0.006 ai_cv=0.0002
+  tiled_gemm 4096^3 32x32      grid= [128, 128, 1] med=15000.160us iqr=  54.880us cv=0.015 ai_cv=0.0019
+  tiled_gemm 4096^3 16x16      grid= [128, 128, 1] med= 3078.672us iqr=   1.984us cv=0.001 ai_cv=0.0
+telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "53", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
 
 wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/family_gemm.json
-gemm: 8/8 configs measured, 8.9s
+gemm: 8/8 configs measured, 9.0s
