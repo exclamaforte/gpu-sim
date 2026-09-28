@@ -1,0 +1,62 @@
+/* gpu-sim-u2o.6.7.1 — the driver for the per-kernel confound test.
+ *
+ * A real file, not a Python string. It was a string for five build iterations
+ * and every one of them was an escaping bug: an f-string turns \n into a real
+ * newline INSIDE the C string literals, while the C line separators need real
+ * newlines and the string literals need the two-character \n. Keeping the
+ * driver in a .cu file removes an entire class of failure from the experiment
+ * and makes the generated code reviewable, which matters here because the
+ * confound I am removing lives in generated code.
+ *
+ * %(decls)s   -- one extern per DISTINCT kernel, each its own translation unit
+ * %(switch)s  -- the dispatch, kernel index -> that kernel's renamed entry point
+ * %(geom)s    -- per spec: N, grid, block, set before each call
+ *
+ * One process, ONE CUDA context. That is the thing being preserved from the
+ * fast arm; everything else about the executable is now 7.1's.
+ */
+/* DEFINED here, once. The per-kernel translation units declare them extern.
+ * My first version prepended a DEFINITION to every kernel source, so eight
+ * objects each defined N/grid/block and the linker rejected it. The rule is the
+ * same one the per-spec attempt broke from the other side: one definition, one
+ * place. */
+extern "C" {
+int N;
+dim3 grid;
+dim3 block;
+}
+
+#include <cstdio>
+#include <cstdlib>
+
+%(decls)s
+
+static int u2o_dispatch(int i)
+{
+    switch (i) {
+%(switch)s
+    }
+    return 2;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc < 2) {
+        fprintf(stderr, "usage: %%s <n>\n", argv[0]);
+        return 2;
+    }
+    int n = atoi(argv[1]);
+    for (int i = 0; i < n; i++) {
+        for (int inv = 0; inv < 2; inv++) {
+%(geom)s
+            printf("BEGIN %%d %%d\n", i, inv);
+            fflush(stdout);
+            if (u2o_dispatch(i) != 0)
+                return 3;
+            printf("END %%d %%d\n", i, inv);
+            fflush(stdout);
+        }
+    }
+    printf("DONE %%d\n", n);
+    return 0;
+}
