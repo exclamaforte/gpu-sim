@@ -1,0 +1,33 @@
+{
+  "bead": "gpu-sim-u2o.6.6.3",
+  "queue": "ts (task-spooler), one job; the burner ran INSIDE it, so no GPU work ran outside the queue",
+  "final_job": "20260928t072008-b34ddec9",
+  "jobs": [
+    {
+      "job_id": "20260928t071545-9c6debf2",
+      "state": "failed",
+      "reason": "ImportError: epic_u2o.task_limits (6.1.2, unmerged) \u2014 fixed by importing it optionally"
+    },
+    {
+      "job_id": "20260928t071629-16f1c848",
+      "state": "failed",
+      "reason": "no anchor config for memory n=1048576 \u2014 that size is not in the anchor's list; the launch cell now uses the launch family"
+    },
+    {
+      "job_id": "20260928t071746-bbd89965",
+      "state": "failed",
+      "reason": "SafeHarness got an unexpected 'tasks_max' kwarg in compile_cell \u2014 same kwarg in a second place"
+    },
+    {
+      "job_id": "20260928t071857-9ada63e9",
+      "state": "failed",
+      "reason": "the SAME kwarg again, this time in measure(); the gate only exercised compile_cell"
+    },
+    {
+      "job_id": "20260928t072008-b34ddec9",
+      "state": "finished",
+      "reason": "SUCCESS: 3 cells x 3 conditions, telemetry + queue state per condition"
+    }
+  ],
+  "note": "Four jobs died before measuring anything, all on CPU-detectable defects: an import of a module another branch owns, a cell size not in the anchor's list, and the same unknown kwarg passed in two places. Each is now covered by preflight_static.py, which executes the module body, resolves every name, dry-COMPILES all three cells with nvcc, and calls measure() itself. The last gate addition exists because the previous gate covered compile_cell but not measure(), and the job died in the gap."
+}

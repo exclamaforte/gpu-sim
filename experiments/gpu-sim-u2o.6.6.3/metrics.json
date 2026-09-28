@@ -1,0 +1,558 @@
+{
+  "bead": "gpu-sim-u2o.6.6.3",
+  "what": "contention delta on the 6.6.2 anchor cells, and whether a co-tenant is detectable from read-only signals",
+  "anchor_provenance": "kernels copied verbatim from lab/gpu-sim-u2o.6.6.2-r2 @ 3eb7583 (anchor_v1)",
+  "invocations_per_condition": 3,
+  "task_limit_source": "epic_u2o.task_limits NOT AVAILABLE (gpu-sim-u2o.6.1.2 unmerged); containment disabled",
+  "telemetry_fields": [
+    "clocks.sm",
+    "clocks.max.sm",
+    "temperature.gpu",
+    "power.draw",
+    "clocks_throttle_reasons.active",
+    "utilization.gpu",
+    "memory.used"
+  ],
+  "cells": {
+    "launch_bound": {
+      "uncontended": {
+        "median_us": 2.352,
+        "medians_us": [
+          2.976,
+          2.352,
+          2.3040000000000003
+        ],
+        "ai_cv": 0.147363201432201,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 2.976
+          },
+          {
+            "n": 20,
+            "median_us": 2.352
+          },
+          {
+            "n": 20,
+            "median_us": 2.3040000000000003
+          }
+        ]
+      },
+      "queued_routed": {
+        "median_us": 2.8,
+        "medians_us": [
+          2.8,
+          2.192,
+          2.832
+        ],
+        "ai_cv": 0.13827518612987288,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 2.8
+          },
+          {
+            "n": 20,
+            "median_us": 2.192
+          },
+          {
+            "n": 20,
+            "median_us": 2.832
+          }
+        ]
+      },
+      "unqueued": {
+        "median_us": 2.48,
+        "medians_us": [
+          3.088,
+          2.112,
+          2.48
+        ],
+        "ai_cv": 0.19253652250936704,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 3.088
+          },
+          {
+            "n": 20,
+            "median_us": 2.112
+          },
+          {
+            "n": 20,
+            "median_us": 2.48
+          }
+        ]
+      },
+      "ratio_queued_routed": 1.1904761904761905,
+      "ratio_unqueued": 1.054421768707483
+    },
+    "memory_bound": {
+      "uncontended": {
+        "median_us": 10.544,
+        "medians_us": [
+          10.544,
+          9.92,
+          10.752
+        ],
+        "ai_cv": 0.04161198051213698,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 10.544
+          },
+          {
+            "n": 20,
+            "median_us": 9.92
+          },
+          {
+            "n": 20,
+            "median_us": 10.752
+          }
+        ]
+      },
+      "queued_routed": {
+        "median_us": 24.544,
+        "medians_us": [
+          24.544,
+          26.32,
+          15.056000000000001
+        ],
+        "ai_cv": 0.2756088000594061,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 24.544
+          },
+          {
+            "n": 20,
+            "median_us": 26.32
+          },
+          {
+            "n": 20,
+            "median_us": 15.056000000000001
+          }
+        ]
+      },
+      "unqueued": {
+        "median_us": 24.64,
+        "medians_us": [
+          25.232,
+          24.64,
+          12.527999999999999
+        ],
+        "ai_cv": 0.34470551705930713,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 25.232
+          },
+          {
+            "n": 20,
+            "median_us": 24.64
+          },
+          {
+            "n": 20,
+            "median_us": 12.527999999999999
+          }
+        ]
+      },
+      "ratio_queued_routed": 2.3277693474962065,
+      "ratio_unqueued": 2.3368740515933233
+    },
+    "compute_bound": {
+      "uncontended": {
+        "median_us": 258.86400000000003,
+        "medians_us": [
+          257.696,
+          259.67999999999995,
+          258.86400000000003
+        ],
+        "ai_cv": 0.003853926829233384,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 257.696
+          },
+          {
+            "n": 20,
+            "median_us": 259.67999999999995
+          },
+          {
+            "n": 20,
+            "median_us": 258.86400000000003
+          }
+        ]
+      },
+      "queued_routed": {
+        "median_us": 274.352,
+        "medians_us": [
+          274.48,
+          274.352,
+          274.288
+        ],
+        "ai_cv": 0.0003563087332068195,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 274.48
+          },
+          {
+            "n": 20,
+            "median_us": 274.352
+          },
+          {
+            "n": 20,
+            "median_us": 274.288
+          }
+        ]
+      },
+      "unqueued": {
+        "median_us": 274.144,
+        "medians_us": [
+          274.144,
+          274.384,
+          273.984
+        ],
+        "ai_cv": 0.0007343196875203149,
+        "per_invocation": [
+          {
+            "n": 20,
+            "median_us": 274.144
+          },
+          {
+            "n": 20,
+            "median_us": 274.384
+          },
+          {
+            "n": 20,
+            "median_us": 273.984
+          }
+        ]
+      },
+      "ratio_queued_routed": 1.0598306446628343,
+      "ratio_unqueued": 1.0590271339390567
+    }
+  },
+  "telemetry_delta": {
+    "uncontended": {
+      "before": {
+        "label": "uncontended:before",
+        "at": 1790580015.0802088,
+        "at_iso": "2026-09-28T00:20:15-0700",
+        "rc": 0,
+        "fields": {
+          "clocks.sm": "300 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "38",
+          "power.draw": "25.89 W",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "utilization.gpu": "0 %",
+          "memory.used": "425 MiB"
+        }
+      },
+      "after": {
+        "label": "uncontended:after",
+        "at": 1790580017.084176,
+        "at_iso": "2026-09-28T00:20:17-0700",
+        "rc": 0,
+        "fields": {
+          "clocks.sm": "2490 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "40",
+          "power.draw": "76.94 W",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "utilization.gpu": "6 %",
+          "memory.used": "425 MiB"
+        }
+      },
+      "burner": null,
+      "queue_state": {
+        "recorded_at": "2026-09-28T07:20:15.129303+00:00",
+        "own_job_id": "20260928t072008-b34ddec9",
+        "own_description_substr": "u2o.6.6.3",
+        "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+        "counts_by_state": {
+          "finished": 320,
+          "failed": 121,
+          "canceled": 39,
+          "timed_out": 6,
+          "killed_underused": 2,
+          "running": 1
+        },
+        "n_active_including_self": 1,
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0,
+        "other_active_jobs": [],
+        "other_running_jobs": [],
+        "queue_was_empty": true,
+        "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+      }
+    },
+    "queued_routed": {
+      "before": {
+        "label": "queued_routed:before",
+        "at": 1790580021.1096985,
+        "at_iso": "2026-09-28T00:20:21-0700",
+        "rc": 0,
+        "fields": {
+          "clocks.sm": "2737 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "57",
+          "power.draw": "574.93 W",
+          "clocks_throttle_reasons.active": "0x0000000000000004",
+          "utilization.gpu": "98 %",
+          "memory.used": "1101 MiB"
+        }
+      },
+      "after": {
+        "label": "queued_routed:after",
+        "at": 1790580024.0574844,
+        "at_iso": "2026-09-28T00:20:24-0700",
+        "rc": 0,
+        "fields": {
+          "clocks.sm": "2745 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "59",
+          "power.draw": "574.30 W",
+          "clocks_throttle_reasons.active": "0x0000000000000004",
+          "utilization.gpu": "97 %",
+          "memory.used": "1101 MiB"
+        }
+      },
+      "burner": {
+        "shape": "compute",
+        "seconds_requested": 900,
+        "has_ts_job_id": false,
+        "detached_from_job_session": false,
+        "pid": 3680355,
+        "note": "started INSIDE this ts job, so no GPU work runs outside the queue; what is modelled is a tenant invisible to the queue channel, not a decision to bypass it"
+      },
+      "queue_state": {
+        "recorded_at": "2026-09-28T07:20:21.155148+00:00",
+        "own_job_id": "20260928t072008-b34ddec9",
+        "own_description_substr": "u2o.6.6.3",
+        "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+        "counts_by_state": {
+          "finished": 320,
+          "failed": 121,
+          "canceled": 39,
+          "timed_out": 6,
+          "killed_underused": 2,
+          "running": 1
+        },
+        "n_active_including_self": 1,
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0,
+        "other_active_jobs": [],
+        "other_running_jobs": [],
+        "queue_was_empty": true,
+        "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+      }
+    },
+    "unqueued": {
+      "before": {
+        "label": "unqueued:before",
+        "at": 1790580028.257107,
+        "at_iso": "2026-09-28T00:20:28-0700",
+        "rc": 0,
+        "fields": {
+          "clocks.sm": "2722 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "59",
+          "power.draw": "574.70 W",
+          "clocks_throttle_reasons.active": "0x0000000000000004",
+          "utilization.gpu": "98 %",
+          "memory.used": "1101 MiB"
+        }
+      },
+      "after": {
+        "label": "unqueued:after",
+        "at": 1790580031.2655253,
+        "at_iso": "2026-09-28T00:20:31-0700",
+        "rc": 0,
+        "fields": {
+          "clocks.sm": "2760 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "60",
+          "power.draw": "573.73 W",
+          "clocks_throttle_reasons.active": "0x0000000000000004",
+          "utilization.gpu": "98 %",
+          "memory.used": "1101 MiB"
+        }
+      },
+      "burner": {
+        "shape": "compute",
+        "seconds_requested": 900,
+        "has_ts_job_id": false,
+        "detached_from_job_session": true,
+        "pid": 129847,
+        "note": "started INSIDE this ts job, so no GPU work runs outside the queue; what is modelled is a tenant invisible to the queue channel, not a decision to bypass it"
+      },
+      "queue_state": {
+        "recorded_at": "2026-09-28T07:20:28.295440+00:00",
+        "own_job_id": "20260928t072008-b34ddec9",
+        "own_description_substr": "u2o.6.6.3",
+        "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+        "counts_by_state": {
+          "finished": 320,
+          "failed": 121,
+          "canceled": 39,
+          "timed_out": 6,
+          "killed_underused": 2,
+          "running": 1
+        },
+        "n_active_including_self": 1,
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0,
+        "other_active_jobs": [],
+        "other_running_jobs": [],
+        "queue_was_empty": true,
+        "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+      }
+    }
+  },
+  "detection": {
+    "signals": {
+      "clocks.sm": {
+        "uncontended": 2490.0,
+        "queued_routed": 2745.0,
+        "unqueued": 2760.0,
+        "relative_spread": 0.09782608695652174,
+        "discriminates": true
+      },
+      "temperature.gpu": {
+        "uncontended": 40.0,
+        "queued_routed": 59.0,
+        "unqueued": 60.0,
+        "relative_spread": 0.3333333333333333,
+        "discriminates": true
+      },
+      "power.draw": {
+        "uncontended": 76.94,
+        "queued_routed": 574.3,
+        "unqueued": 573.73,
+        "relative_spread": 0.866028208253526,
+        "discriminates": true
+      },
+      "utilization.gpu": {
+        "uncontended": 6.0,
+        "queued_routed": 97.0,
+        "unqueued": 98.0,
+        "relative_spread": 0.9387755102040817,
+        "discriminates": true
+      },
+      "clocks_throttle_reasons.active": {
+        "uncontended": 0,
+        "queued_routed": 4,
+        "unqueued": 4,
+        "relative_spread": 1.0,
+        "discriminates": true
+      },
+      "memory.used": {
+        "uncontended": 425.0,
+        "queued_routed": 1101.0,
+        "unqueued": 1101.0,
+        "relative_spread": 0.6139872842870118,
+        "discriminates": true
+      }
+    },
+    "signals_that_move": [
+      "clocks.sm",
+      "temperature.gpu",
+      "power.draw",
+      "utilization.gpu",
+      "clocks_throttle_reasons.active",
+      "memory.used"
+    ],
+    "throttle_reasons_went_nonzero_while_contended": true,
+    "detectable_from_telemetry_alone": true,
+    "answer": "YES, from clocks.sm, temperature.gpu, power.draw, utilization.gpu, clocks_throttle_reasons.active, memory.used"
+  },
+  "headline": {
+    "rows": [
+      {
+        "cell": "launch_bound",
+        "condition": "queued_routed",
+        "median_uncontended_us": 2.352,
+        "median_us": 2.8,
+        "ratio": 1.1904761904761905,
+        "pct_slower": 19.047619047619047
+      },
+      {
+        "cell": "launch_bound",
+        "condition": "unqueued",
+        "median_uncontended_us": 2.352,
+        "median_us": 2.48,
+        "ratio": 1.054421768707483,
+        "pct_slower": 5.442176870748305
+      },
+      {
+        "cell": "memory_bound",
+        "condition": "queued_routed",
+        "median_uncontended_us": 10.544,
+        "median_us": 24.544,
+        "ratio": 2.3277693474962065,
+        "pct_slower": 132.77693474962064
+      },
+      {
+        "cell": "memory_bound",
+        "condition": "unqueued",
+        "median_uncontended_us": 10.544,
+        "median_us": 24.64,
+        "ratio": 2.3368740515933233,
+        "pct_slower": 133.68740515933234
+      },
+      {
+        "cell": "compute_bound",
+        "condition": "queued_routed",
+        "median_uncontended_us": 258.86400000000003,
+        "median_us": 274.352,
+        "ratio": 1.0598306446628343,
+        "pct_slower": 5.983064466283428
+      },
+      {
+        "cell": "compute_bound",
+        "condition": "unqueued",
+        "median_uncontended_us": 258.86400000000003,
+        "median_us": 274.144,
+        "ratio": 1.0590271339390567,
+        "pct_slower": 5.9027133939056675
+      }
+    ],
+    "worst_ratio_overall": {
+      "cell": "memory_bound",
+      "condition": "unqueued",
+      "median_uncontended_us": 10.544,
+      "median_us": 24.64,
+      "ratio": 2.3368740515933233,
+      "pct_slower": 133.68740515933234
+    },
+    "worst_ratio_sub10us": {
+      "cell": "launch_bound",
+      "condition": "queued_routed",
+      "median_uncontended_us": 2.352,
+      "median_us": 2.8,
+      "ratio": 1.1904761904761905,
+      "pct_slower": 19.047619047619047
+    },
+    "baseline_ai_cv_sub10us_6_6_1": 0.074,
+    "statement": "worst sub-10 us ratio 1.19x (+19%, cell launch_bound, queued_routed) against the 7.4% across-invocation CV 6.6.1 measured for the same regime"
+  },
+  "queue_policy_note": "No GPU work runs outside the queue. The 'unqueued' condition is a burner started INSIDE this ts job with its own session and no JOB_ID, so it models a tenant invisible to the queue channel. That is the detection question; it is not a decision to bypass the queue.",
+  "discard_rule": {
+    "proposed": [
+      "DROP the sample if power.draw at either boundary exceeds 150 W, or utilization.gpu exceeds 50 %, or temperature.gpu exceeds 50 C. Rationale from this run: uncontended reads 25.9/77 W, 6 %, 38-40 C; BOTH contended conditions read 574 W, 97-98 %, 57-60 C. The gap is an order of magnitude on power, so the threshold is not delicate.",
+      "DROP the sample if clocks.sm at a boundary is below 0.75x the max SM clock seen in the same run (the idle floor here read 195-300 MHz against 2490-2760 MHz under load).",
+      "RETAIN the queue-state record as the PRIMARY channel for contention routed through the queue, and telemetry as the primary channel for contention that is not. Neither alone is sufficient: in this run queue_state reported n_other_active=0 and n_other_running=0 in ALL THREE conditions, including the two with a burner resident on the device, because the burner is a child of this job and has no JOB_ID of its own."
+    ],
+    "do_not_rely_on": "clocks_throttle_reasons.active as the PRIMARY signal. It did go non-zero here (0x4 = SW power cap) because the burner I chose sits at the 575 W limit, but the reviewer's own unqueued sweeps ran with it at 0x0 throughout. A detector built on it would have caught this run and missed theirs.",
+    "residual_risk": "Light contention that does not move power, utilisation, temperature or clocks is undetectable by ANY channel available here, and neither is queue_state. For it the only defences are the estimator itself -- the three-invocation median plus the max_cv gate -- and process discipline. This is the uncomfortable claim the bead exists to surface, so it is stated rather than smoothed over."
+  },
+  "process_discipline": {
+    "queue_slot": "the whole experiment ran inside ONE ts job",
+    "burner_placement": "started INSIDE that job; no GPU work ran outside the queue. Condition C models a tenant invisible to the queue channel, which is the detection question, not a decision to bypass the queue",
+    "no_clock_locking": "no -lgc, no sudo, no persistence-mode change; gpu-sim-u2o.6.4 stays held",
+    "untrusted_kernels": "none: the cells are 6.6.2's hand-written anchor kernels"
+  }
+}
