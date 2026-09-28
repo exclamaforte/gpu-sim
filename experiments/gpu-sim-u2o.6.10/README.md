@@ -57,6 +57,36 @@ reporting after a correct measurement — after `bytes_moved`/`achieved_GBps` on
 consistent enough to be worth naming: the *experiment* is right and the
 *summary of the experiment* is where the error lives.
 
+## The one item: queue state attached to nothing
+
+The reviewer's finding, which I agree with and which is now fixed in code: the
+queue record was **correct but attached to nothing**. It was sampled once at
+the start of the run and then implicitly applied to all three steps, so no
+individual measurement carried its own. A record that is not attached to the
+measurement it governs cannot be checked against it.
+
+Fixed: `step_state()` now samples queue + telemetry **per step**, and each of
+`step1` / `step2` / `step2b` carries its own. It also reports
+`own_job_entry_present` explicitly rather than assuming it.
+`tests/test_step_queue_state.py` asserts the attachment — 12 checks, CPU-only,
+no dose — and it fails on the pre-fix script (5 failures) and passes on this
+one.
+
+**This artifact is not re-run, and should not be.** It predates
+gpu-sim-u2o.6.6.6's `queue_state` reaching master, so `own_job_entry` does not
+exist in it. `report.json` now carries `queue_artifact_limitation` saying so,
+recording what remains valid (own_job_id `20260928t072424-9816875f` non-null,
+queue observed empty, and the verdict does not depend on per-step attachment)
+and what is not verifiable (the `n_other_active=0` reading cannot be
+cross-checked in-record, so it is an ordering artefact rather than a verified
+fact). Re-hanging a shared GPU to attach a field the next run carries anyway
+spends shared-box time to produce a record that is superseded by construction.
+
+Merge-comment line the PI asked to be carried, verbatim in substance: *this
+artifact's queue_state predates `own_job_entry`, so its emptiness reading is an
+ordering artefact and not independently checkable; the verdict stands, and the
+check becomes possible for runs after gpu-sim-u2o.6.6 lands.*
+
 ## Process
 
 * One ts job for the whole dose; the queue was verified empty immediately
