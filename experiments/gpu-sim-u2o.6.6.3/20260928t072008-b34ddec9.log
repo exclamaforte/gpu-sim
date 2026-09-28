@@ -1,0 +1,59 @@
+OK  names resolve: measure_contention.py
+OK  module body executes: measure_contention.py
+OK  dry compile launch_bound   k_empty          n=1024
+OK  dry compile memory_bound   k_saxpy          n=4194304
+OK  dry compile compute_bound  k_tiled_gemm     n=1048576
+OK  measure() runs (no trials from /bin/true, as expected: [])
+OK  anchor_kernels.self_check()
+
+safe to submit
+=== ts job 2026-09-28T00:20:12-07:00 ===
+==========================================================================
+gpu-sim-u2o.6.6.3 -- contention: delta, and detectability
+==========================================================================
+The device is visible on purpose: everything here is a real GPU run,
+queued. Blanking CUDA_VISIBLE_DEVICES would not sandbox run_kernel,
+which sets it to str(self.gpu_id).
+  compiled launch_bound   k_empty          n=1024      grid=[4, 1, 1]
+  compiled memory_bound   k_saxpy          n=4194304   grid=[16384, 1, 1]
+  compiled compute_bound  k_tiled_gemm     n=1048576   grid=[32, 32, 1]
+
+--- condition: uncontended ---
+  telemetry before: {"clocks.sm": "300 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "38", "power.draw": "25.89 W", "clocks_throttle_reasons.active": "0x0000000000000000", "utilization.gpu": "0 %", "memory.used": "425 MiB"}
+  queue: {"own_job_id": "20260928t072008-b34ddec9", "n_other_active": 0, "n_other_running_at_sample_time": 0}
+  launch_bound   median=    2.352 us  ai_cv=0.147363201432201
+  memory_bound   median=   10.544 us  ai_cv=0.04161198051213698
+  compute_bound  median=  258.864 us  ai_cv=0.003853926829233384
+  telemetry after:  {"clocks.sm": "2490 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "40", "power.draw": "76.94 W", "clocks_throttle_reasons.active": "0x0000000000000000", "utilization.gpu": "6 %", "memory.used": "425 MiB"}
+
+--- condition: queued_routed ---
+  telemetry before: {"clocks.sm": "2737 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "57", "power.draw": "574.93 W", "clocks_throttle_reasons.active": "0x0000000000000004", "utilization.gpu": "98 %", "memory.used": "1101 MiB"}
+  queue: {"own_job_id": "20260928t072008-b34ddec9", "n_other_active": 0, "n_other_running_at_sample_time": 0}
+  launch_bound   median=    2.800 us  ai_cv=0.13827518612987288
+  memory_bound   median=   24.544 us  ai_cv=0.2756088000594061
+  compute_bound  median=  274.352 us  ai_cv=0.0003563087332068195
+  telemetry after:  {"clocks.sm": "2745 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "59", "power.draw": "574.30 W", "clocks_throttle_reasons.active": "0x0000000000000004", "utilization.gpu": "97 %", "memory.used": "1101 MiB"}
+
+--- condition: unqueued ---
+  telemetry before: {"clocks.sm": "2722 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "59", "power.draw": "574.70 W", "clocks_throttle_reasons.active": "0x0000000000000004", "utilization.gpu": "98 %", "memory.used": "1101 MiB"}
+  queue: {"own_job_id": "20260928t072008-b34ddec9", "n_other_active": 0, "n_other_running_at_sample_time": 0}
+  launch_bound   median=    2.480 us  ai_cv=0.19253652250936704
+  memory_bound   median=   24.640 us  ai_cv=0.34470551705930713
+  compute_bound  median=  274.144 us  ai_cv=0.0007343196875203149
+  telemetry after:  {"clocks.sm": "2760 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "60", "power.draw": "573.73 W", "clocks_throttle_reasons.active": "0x0000000000000004", "utilization.gpu": "98 %", "memory.used": "1101 MiB"}
+
+=== detection: does each read-only signal move? ===
+  clocks.sm                        uncontended=2490.0  queued=2745.0  unqueued=2760.0  discriminates=True
+  temperature.gpu                  uncontended=40.0  queued=59.0  unqueued=60.0  discriminates=True
+  power.draw                       uncontended=76.94  queued=574.3  unqueued=573.73  discriminates=True
+  utilization.gpu                  uncontended=6.0  queued=97.0  unqueued=98.0  discriminates=True
+  clocks_throttle_reasons.active   uncontended=None  queued=None  unqueued=None  discriminates=False
+  memory.used                      uncontended=425.0  queued=1101.0  unqueued=1101.0  discriminates=True
+  ANSWER: contention detectable from read-only telemetry alone? True
+  HEADLINE: worst sub-10 us ratio 1.19x (+19%, cell launch_bound, queued_routed) against the 7.4% across-invocation CV 6.6.1 measured for the same regime
+
+=== ratios vs uncontended ===
+  launch_bound   queued-routed=1.1904761904761905  unqueued=1.054421768707483
+  memory_bound   queued-routed=2.3277693474962065  unqueued=2.3368740515933233
+  compute_bound  queued-routed=1.0598306446628343  unqueued=1.0590271339390567
+=== exit=0 ===
