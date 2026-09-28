@@ -1,0 +1,108 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "FINDING_A_fifth_mechanism_UNIDENTIFIED": {
+    "statement": "A FIFTH MECHANISM IS UNIDENTIFIED. That is the finding, recorded as a named unknown rather than left as an absence, because a named unknown tells the next person exactly where the search stopped and an invented mechanism would tell them the search is finished when it is not.",
+    "what_is_ELIMINATED_or_REDUCED": [
+      {
+        "hypothesis": "warm state between examples",
+        "verdict": "REFUTED",
+        "arm": "cold",
+        "result": "205/264 at 11.9%"
+      },
+      {
+        "hypothesis": "the tolerance rule",
+        "verdict": "REFUTED",
+        "arm": "three like-for-like rules",
+        "result": "12.6% median under all three"
+      },
+      {
+        "hypothesis": "process isolation",
+        "verdict": "REFUTED",
+        "arm": "per-invocation process",
+        "result": "210/264 at 12.5%"
+      },
+      {
+        "hypothesis": "the executable and its memory environment",
+        "verdict": "A QUARTER OF IT",
+        "arm": "7.1's own per-kernel binaries",
+        "result": "12.6% -> 9.4%, 206 -> 214 of 264"
+      },
+      {
+        "hypothesis": "a shared CUDA context",
+        "verdict": "REDUCED, not eliminated",
+        "result": "the same correction also tripled the speed, so context and offset are related but not identical"
+      }
+    ],
+    "what_REMAINS": "a ~9.4% median, one-sided offset that survives 7.1's own kernel bodies, 7.1's own per-kernel allocations, one process and one context.",
+    "explicitly_NOT_reached_for": "a sixth candidate. The PI's ruling is adopted: if the fifth ever gets a name it should come from a discriminating measurement, not a plausible story about what a shared context might do."
+  },
+  "FINDING_B_the_dataset_was_never_expensive_to_regenerate": {
+    "statement": "7.1's slowness was a BUILD cost -- a compile and a process per kernel -- not a DEVICE cost. The constraint that shaped hours of work was never the GPU and never the corpus.",
+    "arithmetic": {
+      "7_1_single_run": {
+        "rows": 264,
+        "wall_sec": 110.52,
+        "ex_per_sec": 2.389
+      },
+      "per_kernel_binaries_one_context": {
+        "rows": 264,
+        "wall_sec": 0.52,
+        "ex_per_sec": 510.8
+      },
+      "speedup": 214,
+      "kernel_time_per_example_us": 2.9,
+      "device_fraction_of_7_1_wall": 0.03
+    },
+    "why_it_matters": "It changes the economics of every remaining question. A discriminating re-measurement now costs about HALF A SECOND, so the cost of waiting for the fifth mechanism to be named is no longer 'a dataset rebuild' -- it is half a second. The HELD decision was right on its own terms; the stakes were never as high as the arithmetic made them look."
+  },
+  "DECISION_is_9_4_pct_small_enough_to_proceed": {
+    "the_noise_floor_it_must_clear": {
+      "measurement": "per-row across-invocation CV (ai_cv) on 7.1's own sub-10 us rows",
+      "value_7_1_rows": 0.0854,
+      "value_6_6_1_priced": 0.074,
+      "note": "all 264 of 7.1's rows are sub-10 us, so there is no over-10 us population to compare against"
+    },
+    "the_residual": 0.094,
+    "ratio_to_noise_floor": 1.101,
+    "verdict": "JUST OUTSIDE, by about a tenth to a quarter depending on which measured dispersion is used as the floor. Same order as the dataset's own dispersion, not comfortably inside it. So the answer splits by claim type:",
+    "proceed_for": [
+      "relative and correlational claims, where a systematic offset largely cancels or is absorbed -- 8.3's 0.462-0.53 Spearman, 9.4's roofline ratios, 7.7's split and cardinality findings",
+      "anything about WHICH families exist, what the split looks like, or what a representation collapses"
+    ],
+    "do_not_proceed_for": [
+      "absolute timings or latencies, which is already what the HELD disposition says and is now quantified rather than asserted"
+    ],
+    "what_would_change_it": "a discriminating measurement for the fifth mechanism, which now costs about half a second of device time -- see the missing cell below",
+    "ratio_to_6_6_1_priced": 1.27,
+    "denominator_note": "TWO denominators exist and they are not the same: 7.1's own measured per-row across-invocation CV (0.0854, computed here from the committed rows) and 6.6.1's PRICED MDD at N=20 (0.074). The ratio above is the quotient against 7.1's measured figure because that is the field named in the floor object; the 6.6.1 quotient is given separately. My first pass stored 1.26 -- the 6.6.1 quotient -- under a key derived from the 7.1 figure, and the test that recomputes the ratio caught it."
+  },
+  "THE_MISSING_CELL": {
+    "the_design": "a 2x2 of {executable} x {process model}, and the confound test filled one corner",
+    "filled": [
+      {
+        "executable": "my driver",
+        "process": "one process, one context",
+        "result": "206/264, 12.6%"
+      },
+      {
+        "executable": "my driver",
+        "process": "per-invocation",
+        "result": "210/264, 12.5%"
+      },
+      {
+        "executable": "7.1's per-kernel binaries",
+        "process": "one process, one context",
+        "result": "214/264, 9.4%"
+      }
+    ],
+    "MISSING": {
+      "executable": "7.1's per-kernel binaries",
+      "process": "per-invocation",
+      "result": null
+    },
+    "why_it_is_the_discriminating_measurement": "It is the one cell that separates 'the residual is the shared context' from 'the residual is the harness'. Same code as the best arm, but 7.1's own process model. If it reproduces 7.1's medians, the fifth mechanism is the shared context and it gets a NAME. If it does not, the difference lives in run_kernel() or the preexec limits rather than in the context, and the context is exonerated. Either way the fifth hypothesis stops being a guess.",
+    "cost": "one GPU job of about 70 seconds at 7.1's process model, plus a few seconds of build",
+    "not_run_because": "twenty jobs tonight went to this harness and the session is very long. It is named and costed rather than started, because a named next measurement is worth more at this hour than a twenty-first scaffolding failure."
+  },
+  "status": "criterion 2 still fails at 9.4%. The dataset disposition stays HELD, now QUANTIFIED against the measured noise floor rather than asserted. The fifth mechanism is UNIDENTIFIED and recorded as such."
+}
