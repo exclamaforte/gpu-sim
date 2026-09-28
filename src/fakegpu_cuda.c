@@ -92,6 +92,24 @@ cudaError_t cudaMemsetAsync(void *devPtr, int value, size_t count, cudaStream_t 
     return cudaMemset(devPtr, value, count);
 }
 
+cudaError_t cudaMemGetInfo(size_t *free, size_t *total)
+{
+    /* gpu-sim-u2o.8dw: the repo's own generated driver
+     * (epic_u2o/kernel_driver.py, u2o.6.3) emits a cudaMemGetInfo call to
+     * report the device-side footprint. libfakegpu did not export it, so any
+     * -cudart=none link of such a driver failed with 'undefined reference to
+     * cudaMemGetInfo'. Found while implementing the 8dw preflight smoke test,
+     * which tripped over the same gap. */
+    if (!free || !total) return (cudaError_t)cudaErrorInvalidValue;
+    const struct fg_config *c = fg_cfg();
+    *total = (size_t)c->device_mem_mb * 1024u * 1024u;
+    /* the fake pool hands out from this budget; report what is notionally
+     * left as the whole budget minus one page, so a caller sees a plausible
+     * non-zero figure rather than a device that looks full */
+    *free = *total > (4u << 20) ? *total - (4u << 20) : 0;
+    return cudaSuccess;
+}
+
 cudaError_t cudaMemsetD8(void *devPtr, unsigned char value, size_t count)
 {
     (void)value;

@@ -1,0 +1,10 @@
+PASS  libfakegpu is resolvable for the smoke path
+PASS  1. a good kernel passes
+PASS  4. the pass carries EVIDENCE (it really launched)  launch_done grid=(8,1,1) block=(128,1,1)
+failures=0
+PASS  5. a kernel with an undefined symbol is rejected  ['Compilation failed: /tmp/tmp7v4tm0os.cu(3): error: identifier "no_such_function_exists_anywhere" is undefined\n      b[0] = no_such_function_exists_
+PASS  2. an out-of-range launch config is rejected  ['Fakegpu run failed: invalid launch config: block 2048x1x1 = 2048 threads (max 1024)']
+PASS  3. 'cannot check' FAILS rather than passing  ["Fakegpu run failed: preflight cannot run: definitely-not-here.so not found, and 'cannot check' is NOT a pass"]
+PASS  3. and the message says why, in those words  ["Fakegpu run failed: preflight cannot run: definitely-not-here.so not found, and 'cannot check' is NOT a pass
+
+0 failure(s)
