@@ -11,7 +11,36 @@
 # placeholder gpu-sim-u2o.6.4   (clock locking) -- PARKED, needs root and a human.
 # placeholder gpu-sim-u2o.6.6   (repeated-trial statistics) -- written on
 #   lab/gpu-sim-u2o.6.6.1.
-# placeholder gpu-sim-u2o.6.7   (throughput instrumentation) -- not started.
+## Data-generation throughput (gpu-sim-u2o.6.7)
+
+Measured, not asserted, from gpu-sim-u2o.7.1's batch of 264
+rows (ts `20260928t074004-b429f469`, 0 failures):
+
+* **8,599 examples/hour** (2.389 ex/s)
+  over a 110.5 s wall clock, i.e. 419 ms per row.
+* Cross-checked against the per-row `measured_at` span, an independent
+  derivation: 0.43% disagreement. One derivation is an
+  assertion; two that agree is evidence.
+
+**Where the time goes: 100.00% of the wall
+clock is NOT the kernel running.** 10.47 ms of wall
+per launch against 0.2 us of kernel, over
+10,560 launches. The bottleneck is per-example process
+overhead -- spawn, driver init, per-row setup -- not GPU throughput and not
+training throughput. The remedy is batching or a persistent worker, not a
+faster GPU and not training-speed work.
+
+**A throughput number now requires evidence.** `epic_u2o/throughput_evidence.py`
+refuses to produce a rate from no rows, from rows carrying no measurements,
+from every row carrying an identical trial set, from rows with no timestamp, or
+from a non-positive wall clock. The rule: a throughput number with no
+underlying rows is not a throughput number. This exists because this bead's
+original backing artifact (`runs/logs/throughput_demo_run.jsonl`) was
+hand-authored -- identical fabricated trials across its rows, five rows with no
+trials at all yet marked completed, and only 10 distinct `kernel_hash` across
+15 rows. It claimed 357,013 ex/hour against a real 8,599, a 41.5x
+overstatement. The file was never committed and nothing read it, but the guard
+is the durable part.
 
 ## Per-run task containment (gpu-sim-u2o.6.1.2)
 

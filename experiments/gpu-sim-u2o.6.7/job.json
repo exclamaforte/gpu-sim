@@ -1,0 +1,7 @@
+{
+  "bead": "gpu-sim-u2o.6.7",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "input": "lab/gpu-sim-u2o.7.1:{measured.jsonl, measure_summary.json}, ts 20260928t074004-b429f469, read read-only via git show",
+  "note": "Pure CPU over a committed artifact. Throughput is a property of a recorded run, so measuring it again would produce a second number rather than a better one. The real log is emitted as throughput_real_run.jsonl in the same schema throughput_tracker.ExperimentLogger already writes, so it is consumable rather than a parallel format."
+}

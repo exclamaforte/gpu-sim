@@ -1,0 +1,11 @@
+REAL throughput from 264 measured rows (ts 20260928t074004-b429f469):
+  harness wall clock : 2.3886 ex/s = 8,599 ex/hour
+  timestamp span     : 2.3784 ex/s = 8,562 ex/hour
+  cross-check        : 0.43% disagreement (AGREE)
+
+bottleneck: 100.00% of the measurement wall clock is NOT the kernel running. The GPU is asked to do 0.002% of the work and the rest is process spawn, driver init and per-row setup. So the bottleneck is per-EXAMPLE OVERHEAD, not GPU throughput and not training throughput -- and the fix is batching or a persistent worker, not a faster GPU.
+  100.00% overhead, 0.002% kernel
+  10.47 ms wall per launch vs 0.2 us of kernel
+
+fabricated artifact: REFUSED -- 5 of 15 rows carry no measured trials. A row with no measurements must not contribute to a rate, and marking i
+  claimed 357,013 ex/hour, 41.5x the real rate
