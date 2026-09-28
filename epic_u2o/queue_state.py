@@ -104,8 +104,23 @@ def _load_all() -> list[dict]:
     # sees the bound instead of inferring freshness. The ACTIVE set is read fresh
     # on every call and is NEVER cached, so a neighbour cannot be hidden by any
     # of this.
-    reverify = (time.time() - _TERMINAL_CACHE["__last__"][0]
-                if "__last__" in _TERMINAL_CACHE else True)
+    # THIS MUST BE A BOOLEAN COMPARISON, and it was not, which is worth
+    # recording. Written as a conditional expression it evaluated to the
+    # ELAPSED SECONDS since the last reverify -- a tiny positive float, which is
+    # TRUTHY. So `not reverify` was always False and the stat-skip never fired,
+    # while `or reverify` in the listing condition below was always True and the
+    # glob ran on every call. One missing `>` made the cache roughly 6x weaker
+    # than it should be AND defeated the second cache entirely, and the symptom
+    # in both cases looked like "my cache is not engaging".
+    #
+    # Found by a DIFFERENTIAL TEST asserting that a terminal change stays stale
+    # for the documented window -- a test that could only fail if the cache was
+    # not doing what the prose said it did. Profiling would not have found it,
+    # because the cost model was self-consistent: it was measuring a cache that
+    # was genuinely doing less work than intended.
+    reverify = ("__last__" not in _TERMINAL_CACHE
+                or (time.time() - _TERMINAL_CACHE["__last__"][0])
+                > TERMINAL_REVERIFY_SEC)
     if reverify:
         _TERMINAL_CACHE["__last__"] = (time.time(),)
 

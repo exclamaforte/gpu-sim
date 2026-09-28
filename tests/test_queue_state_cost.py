@@ -47,18 +47,21 @@ def timed(fn, n=30):
 
 
 class TestInstrumentIsCheapEnough(unittest.TestCase):
-    @unittest.expectedFailure
     def test_reports_its_own_cost(self):
-        """THE BEAD'S TARGET, and it is not met yet.
+        """THE BEAD'S TARGET, and it is now MET.
 
-        Marked expectedFailure with the current number attached, rather than
-        deleted or quietly loosened. A red assertion that is skipped with a
-        reason is a visible debt; a deleted one is invisible, and by now this
-        lab has enough examples of things quietly not being checked.
+        It was NOT met when this test was written: 0.92 ms against 0.139 ms,
+        6.6x too expensive, so it sat in the suite as an expectedFailure
+        carrying the number. It went green because a differential test found a
+        missing `>` in the reverify condition -- one character that made the
+        flag a truthy float instead of a boolean, which disabled the stat-skip
+        AND forced a glob on every call.
 
-        The ENFORCED guard is test_does_not_regress_to_a_full_scan below. This
-        one is the goal, and it goes green the moment the remaining cost in
-        _load_all is found.
+        Worth recording as a process point: a deliberately-red assertion is
+        worth almost nothing if nobody is looking at it, because the failure it
+        was protecting against is exactly the kind that still LOOKS like the
+        thing you are working on. This one was carried for an hour before
+        something else asked a question of it.
         """
         ms = timed(qs.queue_state)
         self.assertLess(ms, DEVICE_TIME_MS,

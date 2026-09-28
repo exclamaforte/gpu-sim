@@ -59,22 +59,52 @@ of inferring freshness.
   version of that test failed on the module's own *documentation*, which says
   "must not discard".
 
-## What I did not finish, and why I stopped
+## The bug that made the cache weak {#the-bug-that-made-the-cache-weak}
 
-The remaining ~0.9 ms is **inside `_load_all` itself**, and I could not isolate
-it. Once parsing is cached, a 557-entry dict sweep measures **0.016 ms** and
-`queue_state`'s own post-processing over the records measures **0.062 ms** — so
-neither explains it. A listing cache I added to avoid re-globbing **does not
-appear to engage**: instrumenting `glob.glob` shows it being called on every
-invocation.
+`reverify` was written as a conditional expression, so it evaluated to the
+**elapsed seconds** since the last reverify — a tiny positive float, which is
+**truthy** in Python. So:
 
-That is two wrong cost models in a row on this function, so I stopped rather
-than guess a third. The next step is narrow and mechanical: find the `glob`
-call that is still running per invocation. **Five minutes' work for whoever
-picks it up, and I would rather hand over a named next step than a third wrong
-model.**
+- `not reverify` was always `False`, and the **stat-skip never fired**;
+- `or reverify` in the listing condition was always `True`, so the **glob ran on
+  every call**.
 
-Going below the target probably also needs `by_state` made incremental and the
-own-job scan narrowed — but both change what the record *computes*, which is
-criterion 3 and 5 territory, and that should be a reviewer's decision rather
-than a unilateral optimisation at the end of a long night.
+One missing `>` disabled half the cache *and* defeated the second cache
+entirely: **6.09 ms → 0.92 ms** where it should have been **0.112 ms**.
+
+**Why it misled me for an hour.** The cost model stayed *self-consistent* — I was
+measuring a cache that genuinely was doing less work than intended, so every
+profile said "the cache is not engaging" without saying why. I blamed the
+557-path loop, then the glob, and gave up twice.
+
+**What actually found it** was `tests/test_cache_differential.py` — a *differential*
+test asserting that a terminal change stays stale for the documented window. That
+test can only fail if the cache is not doing what the prose says, which is a
+different question from how fast it is. Profiling could not have found it.
+
+**The process lesson, which is the part I would keep:** a deliberately-red
+assertion is worth almost nothing if nobody is looking at it.
+`test_reports_its_own_cost` sat as an `expectedFailure` carrying the number for
+an hour, and the failure it protected against *looked exactly like the work in
+progress*. What found it was a different test asking a different question. A
+visible debt is still only visible to someone who looks.
+
+## Criterion 3, measured rather than argued
+
+`tests/test_cache_differential.py`, 8 checks against a **temporary** queue
+directory (never the shared one):
+
+1. **Identity** — cached output == uncached output, over a directory containing
+   every state the module distinguishes, cold and warm and repeatedly.
+2. **An active job is never hidden** — a job rewritten in place from `queued` to
+   `running` is visible on the very next call. This is the property the whole
+   design rests on, and the cheapest way to be wrong is a cache one line too
+   broad.
+3. **The stated bound is real** — a terminal change stays stale for the
+   documented window and is then revealed. I had asserted that bound in prose;
+   here it is a measurement.
+
+The end-to-end batched re-run across the 6.7.1 worker is still not done and is
+still named as missing rather than implied.
+
+**17 tests, 0 failures.**
