@@ -85,5 +85,13 @@
     "gpu_recovered": true,
     "overall_pass": true
   },
-  "unit_bug_correction": "overall_pass first read False solely because wall_over_trials_ratio divided SECONDS by MILLISECONDS. Corrected here from the SAME run's stored data -- no second dose was spent. The hang, the kill and the recovery were never in doubt; only the arithmetic that summarised step 1 was."
+  "unit_bug_correction": "overall_pass first read False solely because wall_over_trials_ratio divided SECONDS by MILLISECONDS. Corrected here from the SAME run's stored data -- no second dose was spent. The hang, the kill and the recovery were never in doubt; only the arithmetic that summarised step 1 was.",
+  "queue_artifact_limitation": {
+    "issue": "queue state was sampled ONCE at the start of the run and is not attached to any individual step, so it cannot be checked against the measurement it governs (reviewer, gpu-sim-u2o.6.10)",
+    "own_job_entry_absent": true,
+    "why": "this run was measured and written before gpu-sim-u2o.6.6.6's queue_state reached master, so the field the third condition exists to produce did not exist yet",
+    "what_is_still_valid": "own_job_id 20260928t072424-9816875f is non-null, the queue was observed empty, and the verdict (hang detected, killed at 4.13 s, zero survivors, GPU recovered at 1.03x) does not depend on the per-step attachment",
+    "what_is_not_verifiable": "n_other_active=0 cannot be cross-checked in-record, so the emptiness reading is an ordering artefact rather than a verified fact -- the same unreadable-as-evidence condition the reviewer measured independently on 6.1.1",
+    "fixed_for": "every step now carries its own step_state (queue + telemetry), asserted by tests/test_step_queue_state.py; this artifact is not re-run, per the PI's ruling that re-hanging a shared GPU to attach a field the next run carries anyway spends shared-box time to produce a record that is superseded by construction"
+  }
 }

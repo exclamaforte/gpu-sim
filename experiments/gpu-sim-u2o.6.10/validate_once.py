@@ -63,6 +63,30 @@ int main() {
 '''
 
 
+def step_state(label: str) -> dict:
+    """Queue state + telemetry for ONE step.
+
+    The reviewer's item on 6.10: the queue record was correct but attached to
+    nothing -- it was sampled once at the start of the run and then applied,
+    implicitly, to all three steps. A record that is not attached to the
+    measurement it governs cannot be checked against it. So every step samples
+    its own, and the artifact carries one per step from the next run on.
+    """
+    q = qs.queue_state(own_description_substr="u2o.6.10",
+                       own_command_substr="validate_once.py")
+    return {
+        "label": label,
+        "recorded_at_iso": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "own_job_id": q.get("own_job_id"),
+        "own_job_in_active_set": q.get("own_job_in_active_set"),
+        "own_job_entry_present": q.get("own_job_entry") is not None,
+        "n_other_active": q.get("n_other_active"),
+        "n_other_running_at_sample_time": q.get("n_other_running_at_sample_time"),
+        "queue_was_empty": q.get("queue_was_empty"),
+        "telemetry": telemetry(),
+    }
+
+
 def telemetry():
     try:
         r = subprocess.run(
@@ -128,6 +152,7 @@ def main() -> int:
     wall = time.time() - t0
     t1 = trials_from(r1.stdout)
     step1 = {
+        "step_state": step_state("step1_normal_kernel"),
         "kernel": spec["kernel_name"],
         "n_problem_size": spec["problem_size"],
         "grid": spec["grid"], "block": spec["block"],
@@ -170,11 +195,13 @@ def main() -> int:
         (HERE / "report.json").write_text(json.dumps(report, indent=2))
         return 1
 
+    step2_state = step_state("step2_hang_kernel")
     hb = SafeHarness(timeout_sec=HANG_TIMEOUT_SEC)
     t0 = time.time()
     r2 = hb.run_kernel(str(hang_exe))
     hang_wall = time.time() - t0
     step2 = {
+        "step_state": step2_state,
         "timeout_reported": r2.timeout,
         "returncode": r2.returncode,
         "wall_sec": hang_wall,
@@ -201,10 +228,12 @@ def main() -> int:
     print("\n--- STEP 2b: RECOVERY PROBE -- normal kernel after the kill ---",
           flush=True)
     time.sleep(2.0)
+    step2b_state = step_state("step2b_recovery_probe")
     t0 = time.time()
     r3 = h.run_kernel(str(exe))
     t2 = trials_from(r3.stdout)
     step2b = {
+        "step_state": step2b_state,
         "success": r3.success,
         "n_trials": len(t2),
         "median_trial_ms": statistics.median(t2) if t2 else None,
