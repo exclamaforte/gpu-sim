@@ -51,14 +51,12 @@
   },
   "why_it_matters_more_than_low_priority": "PyTorch reads maxThreadsPerMultiProcessor when it computes occupancy, so an occupancy-sensitive kernel sized against the fake would be sized against a part with 2048 threads/SM and 128 MB of L2 that does not exist. The epic's 17.x work is PyTorch traces.",
   "still_open": {
-    "fields_that_do_not_arrive": [
-      "maxThreadsPerBlock (overlay writes 1024 at byte 320, reads 0)",
-      "warpSize (overlay writes 32 at byte 308, reads 0)",
-      "cudaDeviceGetAttribute(maxThreadsPerSM) returns 0 while the struct is correct"
-    ],
-    "status": "reported as WARN in the gate, NOT asserted",
-    "why_not_asserted": "a gate that fails on a defect I have not diagnosed trains people to ignore gates. The gap is on the face of every run instead of in a commit message nobody reads.",
-    "untested_hypothesis_offered_as_a_lead_not_a_conclusion": "the shim's attribute enum values may differ from the real CUDA 13.3 ones, so a caller built against real headers can miss the switch case entirely and get the default of 0. The attribute returning 0 while the struct fields are correct is consistent with that and inconsistent with the overlay simply not running. Test the enum values before acting on it."
+    "maxThreadsPerBlock_and_warpSize_read_0_from_the_struct": {
+      "new_evidence": "with the attribute channel now CORRECT, it disagrees with the struct in the opposite direction to before: cudaDeviceGetAttribute says 1024, cudaGetDeviceProperties says 0. So the STRUCT path is the broken one, which is the opposite of what the earlier evidence suggested.",
+      "cause_narrowed_to": "shim-struct fields are written AFTER the overlay at offsets that collide with it. Confirmed one collision: shim totalL2Cache@312 (8 bytes) overwrote the overlay's pitch@312; moving it before the overlay fixed that one and a SECOND collision remains at 320.",
+      "status": "OPEN. Reported as WARN, not asserted, so the gate stays informative about the parts that are fixed.",
+      "next_step": "enumerate every shim-struct field whose offset lands in 288-384 and write them all before the overlay, or drop the shim struct's redundant assignments entirely in favour of the overlay."
+    }
   },
   "reproducibility_finding_out_of_scope_but_material": {
     "what": "a clean checkout of master CANNOT build libfakegpu.so, so `make check` cannot run",
@@ -81,5 +79,36 @@
     "not_gitignored": true,
     "consequence": "every 'make check PASS' in this lab, including the ones I and the reviewer have run and quoted, holds only in a working tree that happens to have these ten files. A fresh clone cannot reproduce any of them. The .gitignore comment on libfakegpu.so already warns that a missing library can make a gate pass VACUOUSLY; this is the stronger version: the gate does not merely pass vacuously, it cannot start.",
     "not_fixed_here": "deciding what src/, include/, shim/nccl.h and tests/*.c should track is gpu-sim-u2o.6.11's call, not this bead's. Reported rather than silently widened."
+  },
+  "single_sourcing_and_channels": {
+    "rule": "a quantity the fake reports through more than one channel must be single-sourced, and the test must pin the CHANNELS to each other rather than pinning one to a literal -- the PI's structural rule, and the same lesson 6.6.2 learned as 'one byte convention in the file'",
+    "device_values_now_defined_once": "FG_MAX_THREADS_PER_SM 1536, FG_SMEM_PER_SM 102400, FG_L2_BYTES 100663296, FG_SMEM_PER_BLOCK 49152, FG_REGS_PER_BLOCK 65536, FG_REGS_PER_SM 65536, FG_SM_COUNT 170, FG_WARP 32",
+    "channels_maxThreadsPerMultiProcessor": [
+      "shim struct",
+      "real-layout overlay @604",
+      "cudaDeviceGetAttribute"
+    ],
+    "channels_l2CacheSize": [
+      "real-layout overlay @596",
+      "shim-only totalL2Cache (does NOT exist in CUDA 13.3, so it can never be the authority -- but it no longer contradicts)"
+    ],
+    "CONFIRMED_FIX_enum": {
+      "what": "shim/cuda_runtime.h numbered cudaDeviceAttr 1,2,3,4,5,6,7,10,11,75,76; real CUDA 13.3 numbers them 1,39,16,8,12,13,38,75,76",
+      "consequence_before": "cudaDeviceGetAttribute returned 0 to every caller built against real CUDA headers for 3 of the 4 probed attributes; only MaxThreadsPerBlock (1) coincided, and it was the one that worked",
+      "consequence_after": "all probed attributes agree with the struct channel",
+      "also_removed": "the cudaDevAttrTotalGlobalMem case -- that enumerator does not exist in CUDA 13.x, and keeping a case for it is the same drift"
+    },
+    "test_now_pins_channels_to_each_other": "struct vs cudaDeviceGetAttribute for maxThreadsPerSM, shmemPerBlock, smCount, maxThreadsPerBlock -- my first test pinned the struct to literals, which would have kept passing while the attribute channel reported something else entirely"
+  },
+  "admission_which_results_were_computed_against_the_wrong_part": {
+    "the_ask": "anything occupancy-sensitive measured under the fake BEFORE this fix was never valid, not merely stale; the artifact should say which results were computed against the wrong part rather than have a re-run quietly supersede them",
+    "triage_method": "search the whole tree for any consumer of the three fields, and check whether each result was produced against the fake or the real device",
+    "consumers_of_these_fields_found": "NONE",
+    "generalization_suites._occupancy_proxy": "uses threads/block / 1024 -- a proxy from BLOCK SIZE, and hardcodes 1024 for maxThreadsPerBlock, which this fix confirms is the real 5090's value. It never reads the fake's fields, so the suites are unaffected.",
+    "fake_s_exported_occupancy_api": "cudaOccupancyMaxActiveBlocksPerMultiprocessor exists in the fake but nothing in the tree calls it",
+    "17_x_pytorch_fixture": "captured on the REAL 5090, not the fake: ts jobs 20260927t163138-19bc8285 and predecessors, torch.cuda.synchronize() in the capture path, and a negative control that BLANKS CUDA_VISIBLE_DEVICES and gets 'No CUDA GPUs are available; no fixture written'. A fixture that cannot be produced without a real device cannot have been produced by the fake.",
+    "what_did_use_the_fake": "only the -cudart=none smoke paths (gpu-sim-u2o.6.1.3's test_cudart_none.sh, gpu-sim-8dw's preflight demo). None of those compute occupancy, sizes, or cache behaviour.",
+    "verdict": "EXPOSURE LATENT, NOT ACTIVE -- the same distinction gpu-sim-u2o.6.1.3's cudaMemGetInfo finding made earlier tonight. No existing result in this lab depended on the wrong values. That is a finding, and it is the reason the admission is cheap NOW: had a 17.x fixture been captured under the fake, the admission would have been expensive and this bead would have needed to invalidate committed measurements rather than only correct a constant.",
+    "the_general_lesson": "a fidelity bug in a SIMULATOR is invisible until something consumes the field, and the consumer is usually code that has not been written yet. The cost of finding it now is low precisely because nothing had depended on it -- which is an argument for auditing simulators EARLY, not a reason to relax about the ones still broken."
   }
 }

@@ -107,18 +107,35 @@ typedef void *CUresult;
 
 #define CU_RESULT_OK ((CUresult)(0))
 
+/* gpu-sim-u2o.19. THESE VALUES WERE WRONG, and the symptom was that
+ * cudaDeviceGetAttribute returned 0 to every caller built against real CUDA
+ * headers while the struct channel returned the right numbers -- so the fake
+ * described two different parts depending on which channel you asked.
+ *
+ * The shim numbered these 1,2,3,4,5,6,7,10,11,75,76. Real CUDA 13.3 numbers
+ * them 1,39,16,8,12,13,38,75,76. Only MaxThreadsPerBlock (1),
+ * ComputeCapabilityMajor (75) and ComputeCapabilityMinor (76) coincided, which
+ * is exactly the pattern observed: three of four probed attributes returned 0
+ * and the one that worked was the one whose number matched.
+ *
+ * This is the FOURTH channel problem in this file, and the same lesson as the
+ * three places maxThreadsPerMultiProcessor was written: a value (or a key)
+ * duplicated across channels drifts, and the drift is undetectable by a caller
+ * who has no way to know the other channel exists. 6.6.2's "one byte
+ * convention in the file" again.
+ *
+ * Values read from CUDA 13.3's cuda_runtime.h. */
 enum cudaDeviceAttr {
     cudaDevAttrMaxThreadsPerBlock           = 1,
-    cudaDevAttrMaxThreadsPerMultiProcessor  = 2,
-    cudaDevAttrMultiProcessorCount          = 3,
-    cudaDevAttrMaxSharedMemoryPerBlock      = 4,
-    cudaDevAttrMaxRegistersPerBlock         = 5,
-    cudaDevAttrClockRate                    = 6,
-    cudaDevAttrTotalAmountOfL2CacheBytes    = 7,
-    cudaDevAttrTotalAmountOfConstantMemory  = 10,
-    cudaDevAttrTotalGlobalMem               = 11,
+    cudaDevAttrMaxRegistersPerBlock         = 12,
+    cudaDevAttrClockRate                    = 13,
+    cudaDevAttrMultiProcessorCount          = 16,
+    cudaDevAttrMaxSharedMemoryPerBlock      = 8,
+    cudaDevAttrL2CacheSize                  = 38,
+    cudaDevAttrMaxThreadsPerMultiProcessor  = 39,
     cudaDevAttrComputeCapabilityMajor       = 75,
     cudaDevAttrComputeCapabilityMinor       = 76,
+    cudaDevAttrTotalAmountOfConstantMemory  = 10,
 };
 
 enum cudaLimit { cudaLimitMallocHeapSize = 0 };
