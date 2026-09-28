@@ -1,0 +1,8 @@
+{
+  "bead": "gpu-sim-u2o.8.3",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "input": "experiments/gpu-sim-u2o.7.1/measured.jsonl @ lab/gpu-sim-u2o.7.1, ts 20260928t074004-b429f469, read read-only via git show",
+  "source_recovery": "the .cu files are build artifacts and uncommitted, so each row's source was REGENERATED from generator_stage1 and VERIFIED by 7.1's own kernel_hash (sha256(source + json([grid, block, n]))[:16]). 264/264 verified, 0 matched by name or position. A row that failed to verify ABORTS the run rather than being skipped, so a partial population can never be reported as a complete one.",
+  "note": "Pure CPU: reads a committed artifact and re-derives from the deterministic generator. No GPU work, so no queue position was spent."
+}
