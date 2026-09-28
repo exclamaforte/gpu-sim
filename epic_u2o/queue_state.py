@@ -48,6 +48,10 @@ def _resolve_queue_dir() -> Path:
 
 
 QUEUE_DIR = _resolve_queue_dir()
+class IdentificationError(RuntimeError):
+    """Our own job could not be identified in the queue we read."""
+
+
 ACTIVE = ("running", "queued", "starting")
 TERMINAL = ("finished", "failed", "cancelled", "canceled")
 
@@ -106,16 +110,41 @@ def queue_state(own_job_id: str | None = None,
         pool = sorted(pool, key=lambda j: j.get("id") or "")
         return pool[-1].get("id"), ("running" if running else "newest-match")
 
+    # PRECEDENCE, and the order matters: the DESCRIPTION is tried FIRST, and
+    # the command is only a fallback for when no description matches. The
+    # first version did the opposite -- command first -- so in the four-family
+    # case, where every job shares a command prefix, the command match found
+    # a different (running) job and overrode a perfectly good description
+    # match. tests/test_queue_state.py caught that; the fix and the test were
+    # written in the same pass, which is the only reason it did not ship.
     how = None
-    if own_job_id is None and own_command_substr:
-        cands = [j for j in jobs
-                 if own_command_substr in " ".join(j.get("command") or [])]
-        own_job_id, how = _pick(cands)
-    if own_job_id is None and own_description_substr:
-        cands = [j for j in jobs
-                 if own_description_substr in (j.get("description") or "")]
-        own_job_id, how2 = _pick(cands)
-        how = how or how2
+    for kind, needle in (("description", own_description_substr),
+                         ("command", own_command_substr)):
+        if own_job_id is not None or not needle:
+            continue
+        if kind == "description":
+            cands = [j for j in jobs if needle in (j.get("description") or "")]
+        else:
+            cands = [j for j in jobs
+                     if needle in " ".join(j.get("command") or [])]
+        if not cands:
+            continue
+        own_job_id, rule = _pick(cands)
+        how = f"{kind}:{rule}"
+
+    if own_job_id is None:
+        # Requirement 1: raise rather than write a null own_job_id. A null is
+        # visible only to a reader who tests key PRESENCE rather than value,
+        # and a file that documents an invariant in a comment while returning
+        # null in code is enforcing nothing. The record cannot be audited
+        # without knowing which run it describes, so refuse to produce one.
+        raise IdentificationError(
+            "queue_state could not identify our own job: no job matched "
+            f"description={own_description_substr!r} or "
+            f"command~{own_command_substr!r} among {len(jobs)} jobs read "
+            f"from {QUEUE_DIR}. Refusing to write a record with a null "
+            "own_job_id: an unauditable record is worse than none, because "
+            "nothing in it looks missing.")
 
     active = []
     for j in jobs:
@@ -133,6 +162,18 @@ def queue_state(own_job_id: str | None = None,
     # job at a time, so a queued sibling will not have touched the device yet
     # -- but it may start the moment we finish, and a job that was running
     # before we started is the one that could have moved our clocks.
+    # Capture OUR OWN entry from the active set BEFORE the "others" filter.
+    # A field added after the filter is a re-derivation -- the self-certifying
+    # assertion this whole record exists to eliminate. As it stood, our own
+    # job's state was unrecoverable from the artifact, so every field a false
+    # positive would produce was internally consistent with a true one.
+    own_job_entry = None
+    if own_job_id is not None:
+        for a in active:
+            if a["id"] == own_job_id:
+                own_job_entry = dict(a)
+                break
+
     others = [a for a in active if a["id"] != own_job_id]
     running_others = [a for a in others if a["state"] == "running"]
 
@@ -143,12 +184,27 @@ def queue_state(own_job_id: str | None = None,
         "own_job_id_resolution": how,
         "queue_dir": str(QUEUE_DIR),
         "counts_by_state": by_state,
+        "own_job_entry": own_job_entry,
+        "own_job_in_active_set": own_job_entry is not None,
         "n_active_including_self": len(active),
+        "n_jobs_read": len(jobs),
+        "empty_claim_derived_from_n": len(active),
+        "empty_claim_verified": (
+            own_job_entry is not None
+            and len(others) == max(0, len(active) - (1 if own_job_entry else 0))),
         "n_other_active": len(others),
         "n_other_running_at_sample_time": len(running_others),
         "other_active_jobs": others,
         "other_running_jobs": running_others,
-        "queue_was_empty": len(others) == 0,
+        # OMITTED, not set to False, when our own job could not be identified:
+        # a failed identification means we do not know whether the set we read
+        # contained us, so we cannot claim emptiness in either direction.
+        **({"queue_was_empty": len(others) == 0}
+           if own_job_entry is not None else {
+               "queue_was_empty": None,
+               "queue_was_empty_omitted_because": (
+                   "our own job could not be identified in the set we read, "
+                   "so an emptiness claim is not derivable from this record")}),
         "scope_note": (
             "Records what else was queued/running at sample time. This is "
             "NOT contention detection and NOT a filter: no sample is "
