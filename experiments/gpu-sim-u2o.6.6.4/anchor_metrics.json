@@ -1,0 +1,5110 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "anchor_version": 1,
+  "anchor_frozen": "anchor_v1, 2026-09-28. FROZEN. Kernels: the hand-written families from 98fe697 plus the one-time lift of strided_read, scatter_write and random_access from epic_u2o/generator_stage3.py as of master a688a84. A later change to any kernel here is anchor_v2 with a stated reason, never an in-place edit: 6.1.1's closing diff is taken against this version.",
+  "tree_state": {
+    "branch": "lab/gpu-sim-u2o.6.6.2-r2",
+    "base": "master a688a84 plus the untracked epic_u2o/ modules copied in. epic_u2o/ was untracked in master when this was measured; a fresh checkout of master at that time did not contain the code that produced these numbers. Tracked as of gpu-sim-u2o.6.11.",
+    "measured_at_commits": [
+      "4e934ef (anchor + measurement code)",
+      "168b516 (submission gate)",
+      "THIS COMMIT (post-processing fixes + stamps)"
+    ],
+    "note": "the ts jobs below are the authority; this records the tree they ran on"
+  },
+  "supersedes": {
+    "previous_anchor_commit": "98fe697",
+    "what_changed": [
+      "real access-pattern contrast lifted in (strided_read, scatter_write, random_access)",
+      "ceiling = argmax index over a stated HBM candidate set",
+      "per-kernel byte convention, applied to the RATES as well as the counts",
+      "per-cell regime flag on all 124 cells",
+      "queue state recorded per family and in this metrics.json"
+    ]
+  },
+  "final_job": "multiple -- see artifact_produced_by",
+  "final_job_note": "The committed metrics.json is post-processing over FOUR committed family files, each produced by its own ts job. Naming a single job would be a half-truth the reader has to correct, so the set is named instead. This is a scalar deliberately, so a 'is final_job present and non-null' check passes, with the detail one key away rather than inferred.",
+  "artifact_produced_by": {
+    "post_processing": "merge_metrics.py over the four family_*.json below",
+    "families": [
+      {
+        "family": "launch",
+        "job_id": "20260928t032717-6356dbf2"
+      },
+      {
+        "family": "memory",
+        "job_id": "20260928t032717-5c2e74a0"
+      },
+      {
+        "family": "reduce",
+        "job_id": "20260928t032717-ff2f2da2"
+      },
+      {
+        "family": "gemm",
+        "job_id": "20260928t032717-3f5587a6"
+      }
+    ],
+    "verifiable_because": "each committed family_*.json carries its own queue_state_before with that job id, so a reader can check the mapping without trusting this file",
+    "superseded_by": "a v8 re-run is in flight (20260928t053729-*). When it completes the family files and therefore this field will be regenerated; until then the committed artifact IS the v6 measurement."
+  },
+  "failed_jobs": [
+    {
+      "job_id": "20260928t030010-f77bfde3",
+      "family": "launch",
+      "state": "failed",
+      "reason": "NameError: name 'os' is not defined -- a defect the submission gate now prevents"
+    },
+    {
+      "job_id": "20260928t030010-678d1c5d",
+      "family": "memory",
+      "state": "failed",
+      "reason": "same NameError, same fix"
+    },
+    {
+      "job_id": "20260928t030010-26ceeee7",
+      "family": "reduce",
+      "state": "failed",
+      "reason": "same NameError, same fix"
+    },
+    {
+      "job_id": "20260928t030010-cfc01da0",
+      "family": "gemm",
+      "state": "failed",
+      "reason": "same NameError, same fix"
+    }
+  ],
+  "authoritative_jobs": [
+    {
+      "job_id": "20260928t032717-6356dbf2",
+      "family": "launch",
+      "state": "finished",
+      "configs": "18/18"
+    },
+    {
+      "job_id": "20260928t032717-5c2e74a0",
+      "family": "memory",
+      "state": "finished",
+      "configs": "90/90"
+    },
+    {
+      "job_id": "20260928t032717-ff2f2da2",
+      "family": "reduce",
+      "state": "finished",
+      "configs": "8/8"
+    },
+    {
+      "job_id": "20260928t032717-3f5587a6",
+      "family": "gemm",
+      "state": "finished",
+      "configs": "8/8"
+    }
+  ],
+  "superseded_jobs": {
+    "v1_20260927t1559xx/1606xx": "first sweeps; kernels degenerate (copy == strided_copy)",
+    "v4_20260928t030010-*": "failed: NameError os -- a defect a static check now prevents",
+    "v5_20260928t032427-*": "measured, but own_job_id was misattributed in 3 of 4 families"
+  },
+  "queue_state_by_family": {
+    "launch": {
+      "recorded_at": "2026-09-28T03:27:17.988985+00:00",
+      "own_job_id": "20260928t032717-6356dbf2",
+      "own_description_substr": "u2o.6.6.2 anchor: launch",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 290,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "queued": 3,
+        "running": 1
+      },
+      "n_active_including_self": 4,
+      "n_other_active": 3,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032717-3f5587a6",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: gemm",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032717-5c2e74a0",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: memory",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032717-ff2f2da2",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: reduce",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    },
+    "memory": {
+      "recorded_at": "2026-09-28T03:27:33.572955+00:00",
+      "own_job_id": "20260928t032717-5c2e74a0",
+      "own_description_substr": "u2o.6.6.2 anchor: memory",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 291,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "queued": 2,
+        "running": 1
+      },
+      "n_active_including_self": 3,
+      "n_other_active": 2,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032717-3f5587a6",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: gemm",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032717-ff2f2da2",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: reduce",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    },
+    "reduce": {
+      "recorded_at": "2026-09-28T03:29:03.311855+00:00",
+      "own_job_id": "20260928t032717-ff2f2da2",
+      "own_description_substr": "u2o.6.6.2 anchor: reduce",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 292,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "queued": 2,
+        "running": 1
+      },
+      "n_active_including_self": 3,
+      "n_other_active": 2,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032717-3f5587a6",
+          "state": "queued",
+          "description": "u2o.6.6.2 anchor v6: gemm",
+          "created_at": "2026-09-28T03:27:17+00:00"
+        },
+        {
+          "id": "20260928t032742-7f556080",
+          "state": "queued",
+          "description": "",
+          "created_at": "2026-09-28T03:27:42+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    },
+    "gemm": {
+      "recorded_at": "2026-09-28T03:29:10.727705+00:00",
+      "own_job_id": "20260928t032717-3f5587a6",
+      "own_description_substr": "u2o.6.6.2 anchor: gemm",
+      "own_job_id_resolution": "running",
+      "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+      "counts_by_state": {
+        "finished": 293,
+        "failed": 116,
+        "canceled": 32,
+        "timed_out": 6,
+        "running": 1,
+        "queued": 1
+      },
+      "n_active_including_self": 2,
+      "n_other_active": 1,
+      "n_other_running_at_sample_time": 0,
+      "other_active_jobs": [
+        {
+          "id": "20260928t032742-7f556080",
+          "state": "queued",
+          "description": "",
+          "created_at": "2026-09-28T03:27:42+00:00"
+        }
+      ],
+      "other_running_jobs": [],
+      "queue_was_empty": false,
+      "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+    }
+  },
+  "queue_state_caveat": "own_job_entry is ABSENT on these records: the family files were produced at 20260928t032717, which PREDATES the 6.6.6 implementation committed at 20:33:17. It is an ordering artefact and it cannot be retrofitted, so the emptiness claim in these records is a WELL-CORROBORATED ASSERTION, not a verified fact: it is consistent with the per-family files, the ts logs and the queue, but the in-record cross-check against a false positive is impossible on THIS artifact. gpu-sim-u2o.6.6.6 closes that for future runs.",
+  "what": "anchor + scaling set measured on the CURRENT measurement path (synthesize -> compile_kernel -> run_kernel) BEFORE the 6.1.3/6.1.1 rework, so 6.1.1's closing run can be diffed against it",
+  "preflight_bypassed": true,
+  "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); an anchor must not carry an unaccounted extra execution",
+  "kernels": "hand-written in anchor_kernels.py, NOT generator output (gpu-sim-9ti: stage2-5 kernel_name is untrustworthy)",
+  "design": {
+    "trials_per_invocation": 100,
+    "invocations": 3,
+    "invocations_are": "independent PROCESSES",
+    "n_configs": 124
+  },
+  "telemetry": [
+    {
+      "family": "launch",
+      "before": {
+        "label": "before",
+        "at": 1790566037.9629276,
+        "rc": 0,
+        "csv": "195 MHz, 3105 MHz, 40, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "195 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "40",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      },
+      "after": {
+        "label": "after",
+        "at": 1790566053.2772164,
+        "rc": 0,
+        "csv": "2467 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2467 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "42",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      }
+    },
+    {
+      "family": "memory",
+      "before": {
+        "label": "before",
+        "at": 1790566053.5539517,
+        "rc": 0,
+        "csv": "2445 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2445 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "42",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      },
+      "after": {
+        "label": "after",
+        "at": 1790566143.003242,
+        "rc": 0,
+        "csv": "2437 MHz, 3105 MHz, 44, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2437 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "44",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      }
+    },
+    {
+      "family": "reduce",
+      "before": {
+        "label": "before",
+        "at": 1790566143.2899535,
+        "rc": 0,
+        "csv": "2415 MHz, 3105 MHz, 44, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2415 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "44",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      },
+      "after": {
+        "label": "after",
+        "at": 1790566150.4475038,
+        "rc": 0,
+        "csv": "2490 MHz, 3105 MHz, 45, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2490 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "45",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      }
+    },
+    {
+      "family": "gemm",
+      "before": {
+        "label": "before",
+        "at": 1790566150.7090936,
+        "rc": 0,
+        "csv": "2415 MHz, 3105 MHz, 44, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2415 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "44",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      },
+      "after": {
+        "label": "after",
+        "at": 1790566159.692536,
+        "rc": 0,
+        "csv": "2917 MHz, 3105 MHz, 53, 0x0000000000000000, Disabled",
+        "fields": {
+          "clocks.sm": "2917 MHz",
+          "clocks.max.sm": "3105 MHz",
+          "temperature.gpu": "53",
+          "clocks_throttle_reasons.active": "0x0000000000000000",
+          "persistence_mode": "Disabled"
+        }
+      }
+    }
+  ],
+  "throttling_observed": false,
+  "anchor": {
+    "empty_kernel_launch_cost_us": 1.6640000000000001,
+    "empty_kernel_note": "median over every k_empty config and all 3 invocations; single-launch cudaEvent timing, so it includes the measurement overhead that gpu-sim-u2o.6.6.1 decomposed (~0.4-1.4 us)",
+    "best_known_config_per_family": {
+      "launch": {
+        "label": "noop_store n=65536 1block/1024",
+        "kernel": "k_noop_store",
+        "n_problem_size": 65536,
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "median_ms": 0.001408,
+        "across_invocation_cv": 0.2739467580072535
+      },
+      "memory": {
+        "label": "relu n=16384 auto/256",
+        "kernel": "k_relu",
+        "n_problem_size": 16384,
+        "grid": [
+          64,
+          1,
+          1
+        ],
+        "block": [
+          256,
+          1,
+          1
+        ],
+        "median_ms": 0.00256,
+        "across_invocation_cv": 0.19539134519670465
+      },
+      "access": {
+        "label": "strided_read n=67108864 stride=17 1block/1024",
+        "kernel": "k_strided_read",
+        "n_problem_size": 67108864,
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "median_ms": 0.002672,
+        "across_invocation_cv": 0.08883210772201729
+      },
+      "reduce": {
+        "label": "block_sum n=4096 auto/1024",
+        "kernel": "k_block_sum",
+        "n_problem_size": 4096,
+        "grid": [
+          4,
+          1,
+          1
+        ],
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "median_ms": 0.0028640000000000002,
+        "across_invocation_cv": 0.009622504486493735
+      },
+      "gemm": {
+        "label": "tiled_gemm 512^3 16x16",
+        "kernel": "k_tiled_gemm",
+        "n_problem_size": 262144,
+        "grid": [
+          16,
+          16,
+          1
+        ],
+        "block": [
+          16,
+          16,
+          1
+        ],
+        "median_ms": 0.013024,
+        "across_invocation_cv": 0.0012285012285011916
+      }
+    }
+  },
+  "regimes": {
+    "launch_bound_cells": [
+      {
+        "label": "saxpy n=1024 auto/256",
+        "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
+        "median_us": 2.736,
+        "achieved_GBps": 4.491228070175438,
+        "bytes_moved": 12288
+      },
+      {
+        "label": "relu n=1024 auto/256",
+        "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
+        "median_us": 2.64,
+        "achieved_GBps": 3.103030303030303,
+        "bytes_moved": 8192
+      },
+      {
+        "label": "copy n=1024 auto/256",
+        "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
+        "median_us": 2.7680000000000002,
+        "achieved_GBps": 2.9595375722543356,
+        "bytes_moved": 8192
+      },
+      {
+        "label": "strided_read n=1024 stride=17 auto/256",
+        "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
+        "median_us": 2.784,
+        "achieved_GBps": 1.5574712643678161,
+        "bytes_moved": 4336
+      },
+      {
+        "label": "scatter_write n=1024 auto/256",
+        "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
+        "median_us": 2.7520000000000002,
+        "achieved_GBps": 2.9767441860465116,
+        "bytes_moved": 8192
+      },
+      {
+        "label": "random_access n=1024 auto/256",
+        "n_problem_size": 1024,
+        "working_set_MB": 0.0078125,
+        "l2_resident": true,
+        "median_us": 2.7680000000000002,
+        "achieved_GBps": 2.9595375722543356,
+        "bytes_moved": 8192
+      },
+      {
+        "label": "saxpy n=16384 auto/256",
+        "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
+        "median_us": 2.8640000000000003,
+        "achieved_GBps": 68.64804469273743,
+        "bytes_moved": 196608
+      },
+      {
+        "label": "relu n=16384 auto/256",
+        "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
+        "median_us": 2.56,
+        "achieved_GBps": 51.2,
+        "bytes_moved": 131072
+      },
+      {
+        "label": "copy n=16384 auto/256",
+        "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
+        "median_us": 2.72,
+        "achieved_GBps": 48.188235294117646,
+        "bytes_moved": 131072
+      },
+      {
+        "label": "strided_read n=16384 stride=17 auto/256",
+        "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
+        "median_us": 2.816,
+        "achieved_GBps": 24.640625,
+        "bytes_moved": 69388
+      },
+      {
+        "label": "scatter_write n=16384 auto/256",
+        "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
+        "median_us": 2.7520000000000002,
+        "achieved_GBps": 47.627906976744185,
+        "bytes_moved": 131072
+      },
+      {
+        "label": "random_access n=16384 auto/256",
+        "n_problem_size": 16384,
+        "working_set_MB": 0.125,
+        "l2_resident": true,
+        "median_us": 2.7520000000000002,
+        "achieved_GBps": 47.627906976744185,
+        "bytes_moved": 131072
+      }
+    ],
+    "memory_bound_cells": [
+      {
+        "label": "saxpy n=4194304 auto/256",
+        "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
+        "median_us": 10.848,
+        "achieved_GBps": 4639.716814159292,
+        "bytes_moved": 50331648
+      },
+      {
+        "label": "relu n=4194304 auto/256",
+        "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
+        "median_us": 10.735999999999999,
+        "achieved_GBps": 3125.4128166915057,
+        "bytes_moved": 33554432
+      },
+      {
+        "label": "copy n=4194304 auto/256",
+        "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
+        "median_us": 10.512,
+        "achieved_GBps": 3192.0121765601216,
+        "bytes_moved": 33554432
+      },
+      {
+        "label": "strided_read n=4194304 stride=17 auto/256",
+        "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
+        "median_us": 10.768,
+        "achieved_GBps": 1649.712852897474,
+        "bytes_moved": 17764108
+      },
+      {
+        "label": "random_access n=4194304 auto/256",
+        "n_problem_size": 4194304,
+        "working_set_MB": 32.0,
+        "l2_resident": true,
+        "median_us": 10.911999999999999,
+        "achieved_GBps": 3075.0029325513196,
+        "bytes_moved": 33554432
+      },
+      {
+        "label": "saxpy n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 511.03999999999996,
+        "achieved_GBps": 1575.8186599874768,
+        "bytes_moved": 805306368
+      },
+      {
+        "label": "relu n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 349.296,
+        "achieved_GBps": 1537.0084741880812,
+        "bytes_moved": 536870912
+      },
+      {
+        "label": "copy n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 350.30400000000003,
+        "achieved_GBps": 1532.5857312505707,
+        "bytes_moved": 536870912
+      },
+      {
+        "label": "random_access n=67108864 auto/256",
+        "n_problem_size": 67108864,
+        "working_set_MB": 512.0,
+        "l2_resident": false,
+        "median_us": 348.912,
+        "achieved_GBps": 1538.7000504425187,
+        "bytes_moved": 536870912
+      }
+    ],
+    "launch_to_memory_crossover_n": 262144,
+    "launch_to_memory_crossover_from_cell": "saxpy n=262144 auto/256",
+    "launch_to_memory_crossover_note": "RE-DERIVED under this commit's ceiling AND candidate set. The previously published 262144 is not carried forward: it survived a 480x ceiling change because the test was a ratio, and the candidate set changed at the same time, so its survival was not validation. This value stands only on the derivation recorded here.",
+    "regime_thresholds": {
+      "launch_bound_us": 10.0,
+      "launch_bound_source": "the PI's regime decision for 6.6.2, not a measurement made in this file",
+      "memory_bound": "achieved >= 80% of the measured ceiling"
+    },
+    "ceiling_candidate_set": {
+      "rule": "cells at the largest problem size (HBM-bound), n_problem_size = 67108864",
+      "excluded_and_why": "n=2^22 is L2-resident on this part and sustains far more than HBM; including it would publish a cache bandwidth as the memory ceiling",
+      "ranked": [
+        {
+          "label": "saxpy n=67108864 auto/256",
+          "kernel": "k_saxpy",
+          "n_problem_size": 67108864,
+          "median_ms": 0.5110399999999999,
+          "bytes_moved": 805306368,
+          "achieved_GBps": 1575.8186599874768,
+          "l2_resident": false
+        },
+        {
+          "label": "random_access n=67108864 auto/256",
+          "kernel": "k_random_access",
+          "n_problem_size": 67108864,
+          "median_ms": 0.348912,
+          "bytes_moved": 536870912,
+          "achieved_GBps": 1538.7000504425187,
+          "l2_resident": false
+        },
+        {
+          "label": "relu n=67108864 auto/256",
+          "kernel": "k_relu",
+          "n_problem_size": 67108864,
+          "median_ms": 0.349296,
+          "bytes_moved": 536870912,
+          "achieved_GBps": 1537.0084741880812,
+          "l2_resident": false
+        },
+        {
+          "label": "copy n=67108864 auto/256",
+          "kernel": "k_copy",
+          "n_problem_size": 67108864,
+          "median_ms": 0.350304,
+          "bytes_moved": 536870912,
+          "achieved_GBps": 1532.5857312505707,
+          "l2_resident": false
+        },
+        {
+          "label": "strided_read n=67108864 stride=17 auto/256",
+          "kernel": "k_strided_read",
+          "n_problem_size": 67108864,
+          "median_ms": 0.34916800000000003,
+          "bytes_moved": 284225776,
+          "achieved_GBps": 814.0086605874536,
+          "l2_resident": false
+        },
+        {
+          "label": "scatter_write n=67108864 auto/256",
+          "kernel": "k_scatter_write",
+          "n_problem_size": 67108864,
+          "median_ms": 0.8835040000000001,
+          "bytes_moved": 536870912,
+          "achieved_GBps": 607.6609862547313,
+          "l2_resident": false
+        }
+      ]
+    },
+    "ceiling_candidates": [
+      {
+        "label": "saxpy n=4194304 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010848,
+        "bytes_moved": 50331648,
+        "achieved_GBps": 4639.716814159292,
+        "l2_resident": true
+      },
+      {
+        "label": "copy n=4194304 auto/256",
+        "kernel": "k_copy",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010512,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3192.0121765601216,
+        "l2_resident": true
+      },
+      {
+        "label": "relu n=4194304 auto/256",
+        "kernel": "k_relu",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010735999999999999,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3125.4128166915057,
+        "l2_resident": true
+      },
+      {
+        "label": "random_access n=4194304 auto/256",
+        "kernel": "k_random_access",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010912,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3075.0029325513196,
+        "l2_resident": true
+      },
+      {
+        "label": "strided_read n=4194304 stride=17 auto/256",
+        "kernel": "k_strided_read",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010768,
+        "bytes_moved": 17764108,
+        "achieved_GBps": 1649.712852897474,
+        "l2_resident": true
+      },
+      {
+        "label": "saxpy n=67108864 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 67108864,
+        "median_ms": 0.5110399999999999,
+        "bytes_moved": 805306368,
+        "achieved_GBps": 1575.8186599874768,
+        "l2_resident": false
+      }
+    ],
+    "ceiling_candidates_note": "Key name matters: this list can only exist if the item-2/5 code actually RAN, so it is proof of execution rather than a claim about it. ceiling_candidate_set.ranked is the HBM-only set the ceiling is actually taken from; this list ranks all cells so the choice is auditable against alternatives.",
+    "ceiling_candidates_ranked_all_cells": [
+      {
+        "label": "saxpy n=4194304 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010848,
+        "bytes_moved": 50331648,
+        "achieved_GBps": 4639.716814159292,
+        "l2_resident": true
+      },
+      {
+        "label": "copy n=4194304 auto/256",
+        "kernel": "k_copy",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010512,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3192.0121765601216,
+        "l2_resident": true
+      },
+      {
+        "label": "relu n=4194304 auto/256",
+        "kernel": "k_relu",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010735999999999999,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3125.4128166915057,
+        "l2_resident": true
+      },
+      {
+        "label": "random_access n=4194304 auto/256",
+        "kernel": "k_random_access",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010912,
+        "bytes_moved": 33554432,
+        "achieved_GBps": 3075.0029325513196,
+        "l2_resident": true
+      },
+      {
+        "label": "strided_read n=4194304 stride=17 auto/256",
+        "kernel": "k_strided_read",
+        "n_problem_size": 4194304,
+        "median_ms": 0.010768,
+        "bytes_moved": 17764108,
+        "achieved_GBps": 1649.712852897474,
+        "l2_resident": true
+      },
+      {
+        "label": "saxpy n=67108864 auto/256",
+        "kernel": "k_saxpy",
+        "n_problem_size": 67108864,
+        "median_ms": 0.5110399999999999,
+        "bytes_moved": 805306368,
+        "achieved_GBps": 1575.8186599874768,
+        "l2_resident": false
+      }
+    ],
+    "crossover_definition": "smallest measured n (auto/256 elementwise) whose achieved bandwidth reaches 10% of the measured ceiling; below it the measurement is launch overhead, not data movement -- from the data, not theory",
+    "measured_memory_ceiling_GBps": 1575.8186599874768,
+    "memory_ceiling_source_cell": "saxpy n=67108864 auto/256",
+    "memory_ceiling_definition": "best achieved bytes/s among the HBM-bound cells (the largest n, 2^26), 2*n*4 bytes moved (one read + one write, fp32). NOT the best cell overall: the n=2^22 cell is L2-resident on this part and sustains far more, so taking the maximum would publish a cache bandwidth as the memory ceiling and calibrate every later roofline against cache."
+  },
+  "reproducibility": {
+    "across_invocation_cv_median_all": 0.02518337391197764,
+    "across_invocation_cv_median_sub10us": 0.04672545253854546,
+    "across_invocation_cv_median_over10us": 0.0017828172263197515,
+    "note": "the headline number for this bead: within-process cv badly understates the spread of the reported median. Compare with the `cv` field, which is within-process only."
+  },
+  "regime_counts": {
+    "launch-bound": 80,
+    "compute-bound": 35,
+    "memory-bound": 9
+  },
+  "cells": [
+    {
+      "label": "empty n=1024 auto/256",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0016640000000000001,
+      "iqr_ms": 0.0006079999999999998,
+      "mean_ms": 0.0020533333333333332,
+      "std_ms": 0.0014898742827940462,
+      "cv": 0.7255881247373602,
+      "medians_across_invocations_ms": [
+        0.0016640000000000001,
+        0.001504,
+        0.00168
+      ],
+      "across_invocation_cv": 0.060225371587111144,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=1024 auto/256",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002384,
+      "iqr_ms": 0.001312,
+      "mean_ms": 0.0023317333333333335,
+      "std_ms": 0.001590168756279134,
+      "cv": 0.6819685311123916,
+      "medians_across_invocations_ms": [
+        0.002432,
+        0.002384,
+        0.00152
+      ],
+      "across_invocation_cv": 0.24301537776280974,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=1024 auto/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0014880000000000002,
+      "iqr_ms": 0.0012480000000000002,
+      "mean_ms": 0.0022543999999999997,
+      "std_ms": 0.0017811723733902943,
+      "cv": 0.7900871067203222,
+      "medians_across_invocations_ms": [
+        0.0014399999999999999,
+        0.0014880000000000002,
+        0.002208
+      ],
+      "across_invocation_cv": 0.25129588149063087,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=1024 auto/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00168,
+      "iqr_ms": 0.0013760000000000003,
+      "mean_ms": 0.0022389333333333334,
+      "std_ms": 0.0015264103660712336,
+      "cv": 0.6817578457321494,
+      "medians_across_invocations_ms": [
+        0.0016480000000000002,
+        0.0018080000000000001,
+        0.00168
+      ],
+      "across_invocation_cv": 0.049453295533917585,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=1024 1block/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0016640000000000001,
+      "iqr_ms": 0.001216,
+      "mean_ms": 0.0021824,
+      "std_ms": 0.0014938719932455359,
+      "cv": 0.6845087945589882,
+      "medians_across_invocations_ms": [
+        0.001408,
+        0.0020800000000000003,
+        0.0016640000000000001
+      ],
+      "across_invocation_cv": 0.1974920881439087,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=1024 1block/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0021599999999999996,
+      "iqr_ms": 0.0012799999999999999,
+      "mean_ms": 0.0022986666666666667,
+      "std_ms": 0.0015293660885374572,
+      "cv": 0.6653274747117708,
+      "medians_across_invocations_ms": [
+        0.0021920000000000004,
+        0.0021599999999999996,
+        0.00168
+      ],
+      "across_invocation_cv": 0.1426454075304907,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=65536 auto/256",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001584,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.0020549333333333333,
+      "std_ms": 0.0014221427360085628,
+      "cv": 0.6920627121765003,
+      "medians_across_invocations_ms": [
+        0.001472,
+        0.001584,
+        0.002144
+      ],
+      "across_invocation_cv": 0.20770940100600216,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=65536 auto/256",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001776,
+      "iqr_ms": 0.0011840000000000002,
+      "mean_ms": 0.0023002666666666668,
+      "std_ms": 0.0015596494811190118,
+      "cv": 0.6780298578943073,
+      "medians_across_invocations_ms": [
+        0.0015999999999999999,
+        0.001776,
+        0.002448
+      ],
+      "across_invocation_cv": 0.23052380984393608,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=65536 auto/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001888,
+      "iqr_ms": 0.001376,
+      "mean_ms": 0.002338133333333333,
+      "std_ms": 0.0013904841671910685,
+      "cv": 0.5946984063602312,
+      "medians_across_invocations_ms": [
+        0.001888,
+        0.00256,
+        0.00168
+      ],
+      "across_invocation_cv": 0.22516460221775866,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=65536 auto/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002208,
+      "iqr_ms": 0.0014080000000000002,
+      "mean_ms": 0.0023279999999999998,
+      "std_ms": 0.0014044778751176237,
+      "cv": 0.6032980563220034,
+      "medians_across_invocations_ms": [
+        0.00208,
+        0.002208,
+        0.002224
+      ],
+      "across_invocation_cv": 0.03636031593844901,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=65536 1block/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0017599999999999998,
+      "iqr_ms": 0.001472,
+      "mean_ms": 0.0023333333333333335,
+      "std_ms": 0.0017686448193956698,
+      "cv": 0.7579906368838584,
+      "medians_across_invocations_ms": [
+        0.001472,
+        0.00216,
+        0.0017599999999999998
+      ],
+      "across_invocation_cv": 0.19223815236493197,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=65536 1block/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001408,
+      "iqr_ms": 0.001504,
+      "mean_ms": 0.0024362666666666666,
+      "std_ms": 0.0019811414435140767,
+      "cv": 0.8131874357681467,
+      "medians_across_invocations_ms": [
+        0.002176,
+        0.001408,
+        0.001376
+      ],
+      "across_invocation_cv": 0.2739467580072535,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=4194304 auto/256",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.009152,
+      "iqr_ms": 0.0016639999999999988,
+      "mean_ms": 0.009779733333333334,
+      "std_ms": 0.00078739557535612,
+      "cv": 0.08051299033608142,
+      "medians_across_invocations_ms": [
+        0.009904,
+        0.009056000000000002,
+        0.009152
+      ],
+      "across_invocation_cv": 0.049555457145225267,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=4194304 auto/256",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.009696,
+      "iqr_ms": 0.0017280000000000004,
+      "mean_ms": 0.010153066666666665,
+      "std_ms": 0.0017556120750872302,
+      "cv": 0.1729144634547753,
+      "medians_across_invocations_ms": [
+        0.009696,
+        0.010207999999999998,
+        0.009424
+      ],
+      "across_invocation_cv": 0.040719657298280525,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=4194304 auto/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.005056,
+      "iqr_ms": 0.0014399999999999994,
+      "mean_ms": 0.005635733333333334,
+      "std_ms": 0.0014730500798863246,
+      "cv": 0.26137682405477985,
+      "medians_across_invocations_ms": [
+        0.0049759999999999995,
+        0.005072,
+        0.005056
+      ],
+      "across_invocation_cv": 0.010215731738340048,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=4194304 auto/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00536,
+      "iqr_ms": 0.001248,
+      "mean_ms": 0.005747733333333334,
+      "std_ms": 0.0015342373125020283,
+      "cv": 0.2669291046619006,
+      "medians_across_invocations_ms": [
+        0.005424,
+        0.00536,
+        0.005024
+      ],
+      "across_invocation_cv": 0.0407757835596836,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "empty n=4194304 1block/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001616,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.0021637333333333333,
+      "std_ms": 0.0015906339197523315,
+      "cv": 0.7351339905190095,
+      "medians_across_invocations_ms": [
+        0.001616,
+        0.001584,
+        0.002528
+      ],
+      "across_invocation_cv": 0.2807366795363628,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "noop_store n=4194304 1block/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001552,
+      "iqr_ms": 0.0010239999999999997,
+      "mean_ms": 0.0022154666666666665,
+      "std_ms": 0.0016445841622327107,
+      "cv": 0.7423195243587706,
+      "medians_across_invocations_ms": [
+        0.001552,
+        0.00232,
+        0.001536
+      ],
+      "across_invocation_cv": 0.24857353622834283,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=1024 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002736,
+      "iqr_ms": 0.0008640000000000002,
+      "mean_ms": 0.002810666666666667,
+      "std_ms": 0.001377495967777379,
+      "cv": 0.4900958139625399,
+      "medians_across_invocations_ms": [
+        0.002736,
+        0.001984,
+        0.002848
+      ],
+      "across_invocation_cv": 0.1862506087884738,
+      "throttle_active": false,
+      "_working_set_mb": 0.0078125,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=1024 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00264,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.002637333333333333,
+      "std_ms": 0.001160874168959837,
+      "cv": 0.44016967983815863,
+      "medians_across_invocations_ms": [
+        0.0020800000000000003,
+        0.00272,
+        0.00264
+      ],
+      "across_invocation_cv": 0.14060964334002168,
+      "throttle_active": false,
+      "_working_set_mb": 0.0078125,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=1024 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.0008639999999999998,
+      "mean_ms": 0.0032576,
+      "std_ms": 0.0018674833532260123,
+      "cv": 0.5732696934018948,
+      "medians_across_invocations_ms": [
+        0.00264,
+        0.0035840000000000004,
+        0.002768
+      ],
+      "across_invocation_cv": 0.17084630556697722,
+      "throttle_active": false,
+      "_working_set_mb": 0.0078125,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=1024 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.0031146666666666666,
+      "std_ms": 0.0017564578634253372,
+      "cv": 0.5639312489593334,
+      "medians_across_invocations_ms": [
+        0.0028640000000000002,
+        0.002672,
+        0.002784
+      ],
+      "across_invocation_cv": 0.03477527176927914,
+      "throttle_active": false,
+      "_working_set_mb": 0.0078125,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=1024 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0003840000000000002,
+      "mean_ms": 0.0028864,
+      "std_ms": 0.0014195617753019081,
+      "cv": 0.4918104820197853,
+      "medians_across_invocations_ms": [
+        0.00272,
+        0.002752,
+        0.0028
+      ],
+      "across_invocation_cv": 0.014603161383502376,
+      "throttle_active": false,
+      "_working_set_mb": 0.0078125,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=1024 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.0005760000000000001,
+      "mean_ms": 0.0030112,
+      "std_ms": 0.0014338907695438487,
+      "cv": 0.47618582941812193,
+      "medians_across_invocations_ms": [
+        0.002768,
+        0.002608,
+        0.0028
+      ],
+      "across_invocation_cv": 0.037744229984316834,
+      "throttle_active": false,
+      "_working_set_mb": 0.0078125,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=1024 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002848,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.0030570666666666665,
+      "std_ms": 0.001445172980868646,
+      "cv": 0.4727319154097543,
+      "medians_across_invocations_ms": [
+        0.0026880000000000003,
+        0.002848,
+        0.002848
+      ],
+      "across_invocation_cv": 0.03305440472459681,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=1024 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0004479999999999996,
+      "mean_ms": 0.002941333333333333,
+      "std_ms": 0.001272019756091471,
+      "cv": 0.43246365234297524,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.002784,
+        0.00272
+      ],
+      "across_invocation_cv": 0.020221984170542627,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=1024 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0006719999999999999,
+      "mean_ms": 0.0028768,
+      "std_ms": 0.0014646205594114974,
+      "cv": 0.5091144881157874,
+      "medians_across_invocations_ms": [
+        0.002784,
+        0.0022400000000000002,
+        0.0028
+      ],
+      "across_invocation_cv": 0.12223839782313657,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=1024 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.00047999999999999996,
+      "mean_ms": 0.0029818666666666664,
+      "std_ms": 0.0013336224590478507,
+      "cv": 0.44724416217397966,
+      "medians_across_invocations_ms": [
+        0.00288,
+        0.0028640000000000002,
+        0.00272
+      ],
+      "across_invocation_cv": 0.03123385943640511,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=1024 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.0003840000000000002,
+      "mean_ms": 0.0029248,
+      "std_ms": 0.0013183699848483934,
+      "cv": 0.4507556020406159,
+      "medians_across_invocations_ms": [
+        0.002608,
+        0.00272,
+        0.002768
+      ],
+      "across_invocation_cv": 0.030424514463123817,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=1024 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002736,
+      "iqr_ms": 0.0005439999999999998,
+      "mean_ms": 0.0029424,
+      "std_ms": 0.0013944796149855218,
+      "cv": 0.4739259159140572,
+      "medians_across_invocations_ms": [
+        0.002736,
+        0.00264,
+        0.002752
+      ],
+      "across_invocation_cv": 0.022357906873229454,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=1024 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002832,
+      "iqr_ms": 0.0007039999999999998,
+      "mean_ms": 0.002997333333333333,
+      "std_ms": 0.0015863681435926687,
+      "cv": 0.5292598343836751,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.0030559999999999997,
+        0.002576
+      ],
+      "across_invocation_cv": 0.08512915122266686,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=1024 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.00031999999999999997,
+      "mean_ms": 0.0053946666666666665,
+      "std_ms": 0.018328057478572385,
+      "cv": 3.397440214762553,
+      "medians_across_invocations_ms": [
+        0.002816,
+        0.002832,
+        0.002784
+      ],
+      "across_invocation_cv": 0.008695589553995877,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=1024 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.002984,
+      "std_ms": 0.001335691834955242,
+      "cv": 0.44761790715658245,
+      "medians_across_invocations_ms": [
+        0.002752,
+        0.00288,
+        0.002768
+      ],
+      "across_invocation_cv": 0.02490799396308958,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=1024 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.0027530666666666665,
+      "std_ms": 0.0010853002063268519,
+      "cv": 0.39421501101566203,
+      "medians_across_invocations_ms": [
+        0.002768,
+        0.002672,
+        0.00272
+      ],
+      "across_invocation_cv": 0.01764705882352944,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=1024 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.0006400000000000004,
+      "mean_ms": 0.0030981333333333335,
+      "std_ms": 0.0019492060397276463,
+      "cv": 0.6291549878618242,
+      "medians_across_invocations_ms": [
+        0.002608,
+        0.00272,
+        0.0029119999999999997
+      ],
+      "across_invocation_cv": 0.05597489438990117,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=1024 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.0008960000000000001,
+      "mean_ms": 0.0031690666666666666,
+      "std_ms": 0.0016320794042940755,
+      "cv": 0.5150031778948825,
+      "medians_across_invocations_ms": [
+        0.002848,
+        0.002816,
+        0.0028
+      ],
+      "across_invocation_cv": 0.008662713979122546,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=16384 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.000608,
+      "mean_ms": 0.0029216000000000003,
+      "std_ms": 0.00135966719756549,
+      "cv": 0.465384446045143,
+      "medians_across_invocations_ms": [
+        0.0028640000000000002,
+        0.002912,
+        0.002736
+      ],
+      "across_invocation_cv": 0.0320652671226165,
+      "throttle_active": false,
+      "_working_set_mb": 0.125,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=16384 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00256,
+      "iqr_ms": 0.0014080000000000002,
+      "mean_ms": 0.002814933333333333,
+      "std_ms": 0.0016508157394602577,
+      "cv": 0.5864493201000348,
+      "medians_across_invocations_ms": [
+        0.002768,
+        0.00256,
+        0.001872
+      ],
+      "across_invocation_cv": 0.19539134519670465,
+      "throttle_active": false,
+      "_working_set_mb": 0.125,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=16384 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.0028389333333333337,
+      "std_ms": 0.0011608562279287232,
+      "cv": 0.40890577256553745,
+      "medians_across_invocations_ms": [
+        0.002784,
+        0.002432,
+        0.00272
+      ],
+      "across_invocation_cv": 0.07088062835180219,
+      "throttle_active": false,
+      "_working_set_mb": 0.125,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=16384 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.005495466666666667,
+      "std_ms": 0.018883774047764014,
+      "cv": 3.4362457627676166,
+      "medians_across_invocations_ms": [
+        0.002736,
+        0.002992,
+        0.002816
+      ],
+      "across_invocation_cv": 0.04598512793186766,
+      "throttle_active": false,
+      "_working_set_mb": 0.125,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=16384 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0029594666666666668,
+      "std_ms": 0.0013074546038937403,
+      "cv": 0.44178723775468787,
+      "medians_across_invocations_ms": [
+        0.002752,
+        0.002944,
+        0.002704
+      ],
+      "across_invocation_cv": 0.04535573676110728,
+      "throttle_active": false,
+      "_working_set_mb": 0.125,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=16384 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.0029818666666666664,
+      "std_ms": 0.0011572084391981473,
+      "cv": 0.38808188579798364,
+      "medians_across_invocations_ms": [
+        0.002752,
+        0.002752,
+        0.002848
+      ],
+      "across_invocation_cv": 0.019908629972056006,
+      "throttle_active": false,
+      "_working_set_mb": 0.125,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=16384 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.0005439999999999998,
+      "mean_ms": 0.0029530666666666666,
+      "std_ms": 0.0011745896920341027,
+      "cv": 0.3977525144598054,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.002672,
+        0.002672
+      ],
+      "across_invocation_cv": 0.033895319130506404,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=16384 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002912,
+      "iqr_ms": 0.0003520000000000003,
+      "mean_ms": 0.0030970666666666666,
+      "std_ms": 0.0013084577785286349,
+      "cv": 0.42248292315157404,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.002912,
+        0.002912
+      ],
+      "across_invocation_cv": 0.016007863286218872,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=16384 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002848,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.003174933333333333,
+      "std_ms": 0.001506243884484854,
+      "cv": 0.47441748419437285,
+      "medians_across_invocations_ms": [
+        0.002784,
+        0.002848,
+        0.003248
+      ],
+      "across_invocation_cv": 0.08495261430000926,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=16384 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.0029968,
+      "std_ms": 0.0013193125688165364,
+      "cv": 0.4402404460813322,
+      "medians_across_invocations_ms": [
+        0.002816,
+        0.002848,
+        0.00272
+      ],
+      "across_invocation_cv": 0.023835870222894587,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=16384 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002832,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.0030767999999999998,
+      "std_ms": 0.0012878110820500218,
+      "cv": 0.4185553438800123,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.002832,
+        0.002784
+      ],
+      "across_invocation_cv": 0.009841197770277683,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=16384 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.00031999999999999997,
+      "mean_ms": 0.0030570666666666665,
+      "std_ms": 0.0013285891824861473,
+      "cv": 0.4345960776625133,
+      "medians_across_invocations_ms": [
+        0.002736,
+        0.002784,
+        0.002816
+      ],
+      "across_invocation_cv": 0.014491044981325776,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 16384,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=16384 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0049759999999999995,
+      "iqr_ms": 0.0006399999999999999,
+      "mean_ms": 0.005373866666666667,
+      "std_ms": 0.001268789780595916,
+      "cv": 0.23610369577385296,
+      "medians_across_invocations_ms": [
+        0.004864,
+        0.0049759999999999995,
+        0.005391999999999999
+      ],
+      "across_invocation_cv": 0.05479328300733175,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=16384 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.004736,
+      "iqr_ms": 0.0008000000000000004,
+      "mean_ms": 0.005351466666666666,
+      "std_ms": 0.001554357717555484,
+      "cv": 0.2904545266510397,
+      "medians_across_invocations_ms": [
+        0.00544,
+        0.004736,
+        0.004704
+      ],
+      "across_invocation_cv": 0.08387096774193556,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=16384 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.005391999999999999,
+      "iqr_ms": 0.0006399999999999999,
+      "mean_ms": 0.005719466666666667,
+      "std_ms": 0.0017771575807076496,
+      "cv": 0.31072085638072017,
+      "medians_across_invocations_ms": [
+        0.005552,
+        0.005391999999999999,
+        0.005056
+      ],
+      "across_invocation_cv": 0.04746577714522326,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=16384 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0026880000000000003,
+      "iqr_ms": 0.001408,
+      "mean_ms": 0.0029104,
+      "std_ms": 0.0017552891036202941,
+      "cv": 0.6031092302158789,
+      "medians_across_invocations_ms": [
+        0.0017599999999999998,
+        0.002816,
+        0.0026880000000000003
+      ],
+      "across_invocation_cv": 0.2380078001628212,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=16384 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.0029232,
+      "std_ms": 0.0013540713848443284,
+      "cv": 0.46321544363859074,
+      "medians_across_invocations_ms": [
+        0.002784,
+        0.002464,
+        0.002912
+      ],
+      "across_invocation_cv": 0.0848365005991527,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=16384 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.0029872,
+      "std_ms": 0.0012783694699479158,
+      "cv": 0.4279490726927945,
+      "medians_across_invocations_ms": [
+        0.00272,
+        0.002688,
+        0.0028640000000000002
+      ],
+      "across_invocation_cv": 0.03400076563103863,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=262144 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028799999999999997,
+      "iqr_ms": 0.0005759999999999997,
+      "mean_ms": 0.0032944000000000003,
+      "std_ms": 0.0014931703865901675,
+      "cv": 0.4532450177847764,
+      "medians_across_invocations_ms": [
+        0.002768,
+        0.0028799999999999997,
+        0.003456
+      ],
+      "across_invocation_cv": 0.1216468364194883,
+      "throttle_active": false,
+      "_working_set_mb": 2.0,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=262144 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002928,
+      "iqr_ms": 0.0007999999999999999,
+      "mean_ms": 0.0031978666666666665,
+      "std_ms": 0.0012364365345438487,
+      "cv": 0.38664417983150706,
+      "medians_across_invocations_ms": [
+        0.002848,
+        0.003168,
+        0.002928
+      ],
+      "across_invocation_cv": 0.05585865830410014,
+      "throttle_active": false,
+      "_working_set_mb": 2.0,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=262144 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002944,
+      "iqr_ms": 0.0005759999999999997,
+      "mean_ms": 0.003299733333333333,
+      "std_ms": 0.0015807612612193378,
+      "cv": 0.4790572757049068,
+      "medians_across_invocations_ms": [
+        0.002944,
+        0.0028,
+        0.0032319999999999996
+      ],
+      "across_invocation_cv": 0.07351725713832892,
+      "throttle_active": false,
+      "_working_set_mb": 2.0,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=262144 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0031696000000000003,
+      "std_ms": 0.0015846906900246645,
+      "cv": 0.4999655130062671,
+      "medians_across_invocations_ms": [
+        0.0028,
+        0.002832,
+        0.002736
+      ],
+      "across_invocation_cv": 0.017524190038071995,
+      "throttle_active": false,
+      "_working_set_mb": 2.0,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=262144 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.004576,
+      "iqr_ms": 0.0011200000000000003,
+      "mean_ms": 0.004304533333333333,
+      "std_ms": 0.000704578909383486,
+      "cv": 0.16368299530343655,
+      "medians_across_invocations_ms": [
+        0.004064,
+        0.004672,
+        0.004576
+      ],
+      "across_invocation_cv": 0.07366131464444502,
+      "throttle_active": false,
+      "_working_set_mb": 2.0,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=262144 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002912,
+      "iqr_ms": 0.0006399999999999999,
+      "mean_ms": 0.0033456,
+      "std_ms": 0.0014458568651758968,
+      "cv": 0.43216668614774534,
+      "medians_across_invocations_ms": [
+        0.002912,
+        0.003392,
+        0.002896
+      ],
+      "across_invocation_cv": 0.0919110279076439,
+      "throttle_active": false,
+      "_working_set_mb": 2.0,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=262144 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.0032367999999999997,
+      "std_ms": 0.001496855153030026,
+      "cv": 0.46244907100532195,
+      "medians_across_invocations_ms": [
+        0.0028,
+        0.002928,
+        0.002736
+      ],
+      "across_invocation_cv": 0.034650855916490274,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=262144 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002848,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0032464000000000004,
+      "std_ms": 0.001757542074140156,
+      "cv": 0.5413818611816645,
+      "medians_across_invocations_ms": [
+        0.00296,
+        0.002784,
+        0.002848
+      ],
+      "across_invocation_cv": 0.031104828842625817,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=262144 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.003246933333333333,
+      "std_ms": 0.001522625006603551,
+      "cv": 0.46894249135703975,
+      "medians_across_invocations_ms": [
+        0.002784,
+        0.0028640000000000002,
+        0.002784
+      ],
+      "across_invocation_cv": 0.016433119616403053,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=262144 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0005439999999999998,
+      "mean_ms": 0.0031434666666666665,
+      "std_ms": 0.001336078241221923,
+      "cv": 0.42503337331033353,
+      "medians_across_invocations_ms": [
+        0.002816,
+        0.002784,
+        0.002784
+      ],
+      "across_invocation_cv": 0.006610880944919362,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=262144 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0034720000000000003,
+      "iqr_ms": 0.0008960000000000001,
+      "mean_ms": 0.0037456,
+      "std_ms": 0.0012963086470723615,
+      "cv": 0.3460883829219248,
+      "medians_across_invocations_ms": [
+        0.0034720000000000003,
+        0.003936,
+        0.00344
+      ],
+      "across_invocation_cv": 0.07676704235795345,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=262144 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.0008640000000000002,
+      "mean_ms": 0.003356266666666667,
+      "std_ms": 0.0014540165045418933,
+      "cv": 0.43322436771270456,
+      "medians_across_invocations_ms": [
+        0.002944,
+        0.0028000000000000004,
+        0.002896
+      ],
+      "across_invocation_cv": 0.025458753860865702,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=262144 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.039872,
+      "iqr_ms": 0.0017280000000000004,
+      "mean_ms": 0.04056213333333333,
+      "std_ms": 0.0015682752208593944,
+      "cv": 0.038663529059764966,
+      "medians_across_invocations_ms": [
+        0.039872,
+        0.039744,
+        0.040912000000000004
+      ],
+      "across_invocation_cv": 0.01594483569826179,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=262144 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.037744,
+      "iqr_ms": 0.0009919999999999998,
+      "mean_ms": 0.03802986666666666,
+      "std_ms": 0.000707378436982175,
+      "cv": 0.018600602604852023,
+      "medians_across_invocations_ms": [
+        0.037744,
+        0.037808,
+        0.037568
+      ],
+      "across_invocation_cv": 0.0032959491365576344,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=262144 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.037776000000000004,
+      "iqr_ms": 0.0011840000000000045,
+      "mean_ms": 0.038340266666666664,
+      "std_ms": 0.001454844366615703,
+      "cv": 0.03794559853389221,
+      "medians_across_invocations_ms": [
+        0.037568,
+        0.038256,
+        0.037776000000000004
+      ],
+      "across_invocation_cv": 0.0093181548771961,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=262144 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0006399999999999999,
+      "mean_ms": 0.0029722666666666666,
+      "std_ms": 0.001357837935796097,
+      "cv": 0.45683583879735906,
+      "medians_across_invocations_ms": [
+        0.002928,
+        0.002448,
+        0.002784
+      ],
+      "across_invocation_cv": 0.09055767246082735,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=262144 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0004159999999999997,
+      "mean_ms": 0.0029461333333333337,
+      "std_ms": 0.0011827880803161035,
+      "cv": 0.40147133428542614,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.002672,
+        0.002784
+      ],
+      "across_invocation_cv": 0.029719699456256087,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=262144 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0009600000000000003,
+      "mean_ms": 0.003027733333333333,
+      "std_ms": 0.0016706421973039078,
+      "cv": 0.5517798344098692,
+      "medians_across_invocations_ms": [
+        0.0028,
+        0.0027679999999999996,
+        0.002784
+      ],
+      "across_invocation_cv": 0.005747126436781671,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=4194304 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010848,
+      "iqr_ms": 0.000671999999999999,
+      "mean_ms": 0.010839466666666665,
+      "std_ms": 0.0015090157019396998,
+      "cv": 0.139214940028387,
+      "medians_across_invocations_ms": [
+        0.010848,
+        0.010896,
+        0.010848
+      ],
+      "across_invocation_cv": 0.002550884841780349,
+      "throttle_active": false,
+      "_working_set_mb": 32.0,
+      "regime": "memory-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=4194304 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010735999999999999,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.010613333333333334,
+      "std_ms": 0.001076012391502378,
+      "cv": 0.10138307708879188,
+      "medians_across_invocations_ms": [
+        0.010735999999999999,
+        0.010528,
+        0.010864
+      ],
+      "across_invocation_cv": 0.01583477399958635,
+      "throttle_active": false,
+      "_working_set_mb": 32.0,
+      "regime": "memory-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=4194304 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010512,
+      "iqr_ms": 0.0014400000000000003,
+      "mean_ms": 0.010562133333333333,
+      "std_ms": 0.001696515346498214,
+      "cv": 0.16062241338538433,
+      "medians_across_invocations_ms": [
+        0.010239999999999999,
+        0.010512,
+        0.01072
+      ],
+      "across_invocation_cv": 0.022945163388707245,
+      "throttle_active": false,
+      "_working_set_mb": 32.0,
+      "regime": "memory-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=4194304 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010768,
+      "iqr_ms": 0.0015040000000000001,
+      "mean_ms": 0.010541866666666667,
+      "std_ms": 0.0015233418155508136,
+      "cv": 0.1445039919132741,
+      "medians_across_invocations_ms": [
+        0.010768,
+        0.010768,
+        0.009568
+      ],
+      "across_invocation_cv": 0.06682294782287333,
+      "throttle_active": false,
+      "_working_set_mb": 32.0,
+      "regime": "memory-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=4194304 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.031120000000000002,
+      "iqr_ms": 0.001472000000000001,
+      "mean_ms": 0.0307392,
+      "std_ms": 0.0008561035261331585,
+      "cv": 0.027850546732938998,
+      "medians_across_invocations_ms": [
+        0.031168,
+        0.031072,
+        0.031120000000000002
+      ],
+      "across_invocation_cv": 0.001542416452442197,
+      "throttle_active": false,
+      "_working_set_mb": 32.0,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=4194304 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010912,
+      "iqr_ms": 0.00038400000000000066,
+      "mean_ms": 0.010890666666666667,
+      "std_ms": 0.0009518782621683829,
+      "cv": 0.08740312152623496,
+      "medians_across_invocations_ms": [
+        0.010832,
+        0.010944,
+        0.010912
+      ],
+      "across_invocation_cv": 0.005294495264998556,
+      "throttle_active": false,
+      "_working_set_mb": 32.0,
+      "regime": "memory-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=4194304 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013056,
+      "iqr_ms": 0.00028800000000000006,
+      "mean_ms": 0.013218133333333333,
+      "std_ms": 0.0011181445809709952,
+      "cv": 0.08459171599905649,
+      "medians_across_invocations_ms": [
+        0.013056,
+        0.013088,
+        0.012944
+      ],
+      "across_invocation_cv": 0.005803293851313059,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=4194304 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.01112,
+      "iqr_ms": 0.0008639999999999984,
+      "mean_ms": 0.011434133333333334,
+      "std_ms": 0.0009628611225108937,
+      "cv": 0.08420936632809019,
+      "medians_across_invocations_ms": [
+        0.011008,
+        0.011376,
+        0.01112
+      ],
+      "across_invocation_cv": 0.016890868370417783,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=4194304 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.011264,
+      "iqr_ms": 0.0008319999999999994,
+      "mean_ms": 0.011566400000000001,
+      "std_ms": 0.0012341823506177164,
+      "cv": 0.10670410418260792,
+      "medians_across_invocations_ms": [
+        0.011456,
+        0.011264,
+        0.011008
+      ],
+      "across_invocation_cv": 0.01999175285171292,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=4194304 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010992,
+      "iqr_ms": 0.0006079999999999992,
+      "mean_ms": 0.011317333333333334,
+      "std_ms": 0.0010919595613463984,
+      "cv": 0.09648558800775198,
+      "medians_across_invocations_ms": [
+        0.010992,
+        0.011519999999999999,
+        0.010928
+      ],
+      "across_invocation_cv": 0.02914735772347943,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=4194304 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013136,
+      "iqr_ms": 0.0015359999999999992,
+      "mean_ms": 0.013947733333333334,
+      "std_ms": 0.0020726521932355885,
+      "cv": 0.14860136365542706,
+      "medians_across_invocations_ms": [
+        0.013136,
+        0.013184,
+        0.01312
+      ],
+      "across_invocation_cv": 0.002533467747828952,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=4194304 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013024,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.013160533333333333,
+      "std_ms": 0.0011833162172709783,
+      "cv": 0.08991400175810846,
+      "medians_across_invocations_ms": [
+        0.013024,
+        0.01304,
+        0.012976
+      ],
+      "across_invocation_cv": 0.0025594254091796803,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=4194304 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.6092,
+      "iqr_ms": 0.0008000000000000229,
+      "mean_ms": 0.6096448,
+      "std_ms": 0.002186234754092067,
+      "cv": 0.0035860795566403044,
+      "medians_across_invocations_ms": [
+        0.6092,
+        0.609328,
+        0.608912
+      ],
+      "across_invocation_cv": 0.0003497786517609164,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=4194304 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.572624,
+      "iqr_ms": 0.0008319999999999439,
+      "mean_ms": 0.5728645333333334,
+      "std_ms": 0.0018269092865391408,
+      "cv": 0.00318907731276168,
+      "medians_across_invocations_ms": [
+        0.572624,
+        0.572656,
+        0.572064
+      ],
+      "across_invocation_cv": 0.0005816046745677683,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=4194304 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.574368,
+      "iqr_ms": 0.0009280000000000399,
+      "mean_ms": 0.5750981333333333,
+      "std_ms": 0.0030953266439534837,
+      "cv": 0.005382258200026878,
+      "medians_across_invocations_ms": [
+        0.574784,
+        0.57408,
+        0.574368
+      ],
+      "across_invocation_cv": 0.0006161690599259207,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=4194304 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.0029343999999999998,
+      "std_ms": 0.00131863456856846,
+      "cv": 0.44937110433767047,
+      "medians_across_invocations_ms": [
+        0.002928,
+        0.002704,
+        0.002752
+      ],
+      "across_invocation_cv": 0.042201038907435116,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=4194304 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002736,
+      "iqr_ms": 0.0008960000000000001,
+      "mean_ms": 0.002864,
+      "std_ms": 0.0012985169115154124,
+      "cv": 0.4533927763671133,
+      "medians_across_invocations_ms": [
+        0.002368,
+        0.002736,
+        0.002768
+      ],
+      "across_invocation_cv": 0.0847100243259135,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=4194304 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002944,
+      "iqr_ms": 0.0008320000000000003,
+      "mean_ms": 0.0032336,
+      "std_ms": 0.001483514873420896,
+      "cv": 0.4587811953924097,
+      "medians_across_invocations_ms": [
+        0.002944,
+        0.00328,
+        0.002848
+      ],
+      "across_invocation_cv": 0.0750129464484541,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=67108864 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.5110399999999999,
+      "iqr_ms": 0.0022400000000000198,
+      "mean_ms": 0.5109333333333334,
+      "std_ms": 0.005429115065595882,
+      "cv": 0.010625877607507597,
+      "medians_across_invocations_ms": [
+        0.5104,
+        0.5110399999999999,
+        0.511072
+      ],
+      "across_invocation_cv": 0.0007420749470220552,
+      "throttle_active": false,
+      "_working_set_mb": 512.0,
+      "regime": "memory-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=67108864 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.349296,
+      "iqr_ms": 0.0021120000000000028,
+      "mean_ms": 0.350136,
+      "std_ms": 0.0031261089259571823,
+      "cv": 0.008928270517619389,
+      "medians_across_invocations_ms": [
+        0.34860800000000003,
+        0.35038400000000003,
+        0.349296
+      ],
+      "across_invocation_cv": 0.0025626813545746308,
+      "throttle_active": false,
+      "_working_set_mb": 512.0,
+      "regime": "memory-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=67108864 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.350304,
+      "iqr_ms": 0.002815999999999985,
+      "mean_ms": 0.3500725333333333,
+      "std_ms": 0.002542246007289995,
+      "cv": 0.007262055046373233,
+      "medians_across_invocations_ms": [
+        0.3488,
+        0.350304,
+        0.350416
+      ],
+      "across_invocation_cv": 0.0025794811163418483,
+      "throttle_active": false,
+      "_working_set_mb": 512.0,
+      "regime": "memory-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=67108864 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.34916800000000003,
+      "iqr_ms": 0.0016639999999999988,
+      "mean_ms": 0.34945013333333336,
+      "std_ms": 0.0022000070837071414,
+      "cv": 0.006295625251940023,
+      "medians_across_invocations_ms": [
+        0.34896,
+        0.349472,
+        0.34916800000000003
+      ],
+      "across_invocation_cv": 0.0007373872595386635,
+      "throttle_active": false,
+      "_working_set_mb": 512.0,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=67108864 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.8835040000000001,
+      "iqr_ms": 0.0026239999999999597,
+      "mean_ms": 0.8845770666666667,
+      "std_ms": 0.0032666096137067813,
+      "cv": 0.0036928490877751086,
+      "medians_across_invocations_ms": [
+        0.8835040000000001,
+        0.88296,
+        0.883584
+      ],
+      "across_invocation_cv": 0.00038437447876927064,
+      "throttle_active": false,
+      "_working_set_mb": 512.0,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=67108864 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.348912,
+      "iqr_ms": 0.0018239999999999923,
+      "mean_ms": 0.3501472,
+      "std_ms": 0.004171402157467198,
+      "cv": 0.011913281492661368,
+      "medians_across_invocations_ms": [
+        0.348912,
+        0.348704,
+        0.349376
+      ],
+      "across_invocation_cv": 0.0009857697280052796,
+      "throttle_active": false,
+      "_working_set_mb": 512.0,
+      "regime": "memory-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=67108864 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.508096,
+      "iqr_ms": 0.0024640000000000217,
+      "mean_ms": 0.5082954666666667,
+      "std_ms": 0.002841464932912552,
+      "cv": 0.005590183503989318,
+      "medians_across_invocations_ms": [
+        0.506896,
+        0.508096,
+        0.508912
+      ],
+      "across_invocation_cv": 0.001996340163473722,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=67108864 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.360432,
+      "iqr_ms": 0.0011519999999999864,
+      "mean_ms": 0.3606373333333333,
+      "std_ms": 0.0018747415339744964,
+      "cv": 0.005198412257118407,
+      "medians_across_invocations_ms": [
+        0.360432,
+        0.36016,
+        0.360544
+      ],
+      "across_invocation_cv": 0.0005479720170361063,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=67108864 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.35992,
+      "iqr_ms": 0.0013119999999999798,
+      "mean_ms": 0.3604832,
+      "std_ms": 0.0019718354247687296,
+      "cv": 0.005469978697394857,
+      "medians_across_invocations_ms": [
+        0.360416,
+        0.359744,
+        0.35992
+      ],
+      "across_invocation_cv": 0.0009678925249341363,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=67108864 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.35942399999999997,
+      "iqr_ms": 0.0013119999999999798,
+      "mean_ms": 0.3599626666666667,
+      "std_ms": 0.002136057469761589,
+      "cv": 0.005934108360575139,
+      "medians_across_invocations_ms": [
+        0.359472,
+        0.359296,
+        0.35942399999999997
+      ],
+      "across_invocation_cv": 0.0002531455935006997,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=67108864 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.57992,
+      "iqr_ms": 0.0042560000000000375,
+      "mean_ms": 0.5797450666666666,
+      "std_ms": 0.003001877456970332,
+      "cv": 0.005177926694969718,
+      "medians_across_invocations_ms": [
+        0.576464,
+        0.5817920000000001,
+        0.57992
+      ],
+      "across_invocation_cv": 0.004665163445918928,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=67108864 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.363744,
+      "iqr_ms": 0.0017279999999999518,
+      "mean_ms": 0.36462826666666664,
+      "std_ms": 0.003636258077892645,
+      "cv": 0.009972507373425369,
+      "medians_across_invocations_ms": [
+        0.363136,
+        0.363744,
+        0.364368
+      ],
+      "across_invocation_cv": 0.0016935214976997385,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 67108864,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "saxpy n=67108864 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 22.956977,
+      "iqr_ms": 0.03862399999999866,
+      "mean_ms": 23.045536016666667,
+      "std_ms": 0.21941195850770343,
+      "cv": 0.009520800833142844,
+      "medians_across_invocations_ms": [
+        22.9713605,
+        22.956977,
+        22.9264805
+      ],
+      "across_invocation_cv": 0.0009984926387303363,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "relu n=67108864 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 21.9524155,
+      "iqr_ms": 0.039616000000002316,
+      "mean_ms": 22.052069300000003,
+      "std_ms": 0.22873784165315927,
+      "cv": 0.010372624833586898,
+      "medians_across_invocations_ms": [
+        21.95024,
+        21.9524155,
+        21.9661445
+      ],
+      "across_invocation_cv": 0.0003927504789721331,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "copy n=67108864 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 21.948752499999998,
+      "iqr_ms": 0.02508800000000022,
+      "mean_ms": 22.000479433333332,
+      "std_ms": 0.17937977823509962,
+      "cv": 0.008153448600002689,
+      "medians_across_invocations_ms": [
+        21.933856,
+        21.959023000000002,
+        21.948752499999998
+      ],
+      "across_invocation_cv": 0.0005765726438530963,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "strided_read n=67108864 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.000608,
+      "mean_ms": 0.002792,
+      "std_ms": 0.0014374078363970308,
+      "cv": 0.5148308869616872,
+      "medians_across_invocations_ms": [
+        0.002688,
+        0.002288,
+        0.002672
+      ],
+      "across_invocation_cv": 0.08883210772201729,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "scatter_write n=67108864 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.0006399999999999999,
+      "mean_ms": 0.0028656000000000003,
+      "std_ms": 0.0014857126943556387,
+      "cv": 0.5184647872542011,
+      "medians_across_invocations_ms": [
+        0.002672,
+        0.002576,
+        0.0028000000000000004
+      ],
+      "across_invocation_cv": 0.04189126740696919,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "random_access n=67108864 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.0028976,
+      "std_ms": 0.0015393796152996181,
+      "cv": 0.5312602206307351,
+      "medians_across_invocations_ms": [
+        0.0025919999999999997,
+        0.002672,
+        0.002672
+      ],
+      "across_invocation_cv": 0.01746018959242825,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1024,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=4096 auto/256",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 4096,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00328,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.0034410666666666668,
+      "std_ms": 0.0015825649837158712,
+      "cv": 0.45990535407118077,
+      "medians_across_invocations_ms": [
+        0.00336,
+        0.0030080000000000003,
+        0.00328
+      ],
+      "across_invocation_cv": 0.05737593330681985,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 4096,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=4096 auto/1024",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 4096,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.0005439999999999998,
+      "mean_ms": 0.0034378666666666667,
+      "std_ms": 0.0016520390632992512,
+      "cv": 0.4805419242454384,
+      "medians_across_invocations_ms": [
+        0.002912,
+        0.0028640000000000002,
+        0.0028640000000000002
+      ],
+      "across_invocation_cv": 0.009622504486493735,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 4096,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=65536 auto/256",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 65536,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0033439999999999998,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.0035050666666666666,
+      "std_ms": 0.0015844720862452563,
+      "cv": 0.4520519113983347,
+      "medians_across_invocations_ms": [
+        0.00344,
+        0.0033439999999999998,
+        0.002928
+      ],
+      "across_invocation_cv": 0.08406820970130524,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=65536 auto/1024",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 65536,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002944,
+      "iqr_ms": 0.001248,
+      "mean_ms": 0.003553066666666667,
+      "std_ms": 0.0015021347731931907,
+      "cv": 0.4227713449020163,
+      "medians_across_invocations_ms": [
+        0.0030879999999999996,
+        0.002896,
+        0.002944
+      ],
+      "across_invocation_cv": 0.03357525805590528,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=1048576 auto/256",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 1048576,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.006912,
+      "iqr_ms": 0.0004480000000000005,
+      "mean_ms": 0.007096000000000001,
+      "std_ms": 0.0013476705325882806,
+      "cv": 0.1899197481099606,
+      "medians_across_invocations_ms": [
+        0.0068000000000000005,
+        0.006912,
+        0.00696
+      ],
+      "across_invocation_cv": 0.011915483218529876,
+      "throttle_active": false,
+      "regime": "launch-bound",
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=1048576 auto/1024",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 1048576,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.01088,
+      "iqr_ms": 0.0003839999999999989,
+      "mean_ms": 0.010893866666666667,
+      "std_ms": 0.000465717142155166,
+      "cv": 0.04275039858714071,
+      "medians_across_invocations_ms": [
+        0.010992,
+        0.01088,
+        0.0108
+      ],
+      "across_invocation_cv": 0.008855602997073981,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=16777216 auto/256",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 16777216,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.064864,
+      "iqr_ms": 0.0014080000000000065,
+      "mean_ms": 0.06524213333333333,
+      "std_ms": 0.0016159905129217514,
+      "cv": 0.024769124342782858,
+      "medians_across_invocations_ms": [
+        0.06459200000000001,
+        0.064992,
+        0.064864
+      ],
+      "across_invocation_cv": 0.0031516033904722845,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 16777216,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "block_sum n=16777216 auto/1024",
+      "kernel": "k_block_sum",
+      "op_type": "reduce",
+      "n_problem_size": 16777216,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.11664,
+      "iqr_ms": 0.0017280000000000073,
+      "mean_ms": 0.11644426666666667,
+      "std_ms": 0.0008222023724381596,
+      "cv": 0.007060909016601014,
+      "medians_across_invocations_ms": [
+        0.11601600000000001,
+        0.116912,
+        0.11664
+      ],
+      "across_invocation_cv": 0.003942402834611617,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 16777216,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 512^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.039648,
+      "iqr_ms": 0.00032000000000000084,
+      "mean_ms": 0.039750933333333335,
+      "std_ms": 0.000440817648092787,
+      "cv": 0.011089491771080939,
+      "medians_across_invocations_ms": [
+        0.039648,
+        0.039712,
+        0.039616
+      ],
+      "across_invocation_cv": 0.0012325378415695908,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 512^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013024,
+      "iqr_ms": 0.00028800000000000006,
+      "mean_ms": 0.013187200000000001,
+      "std_ms": 0.0011839882729607054,
+      "cv": 0.08978314372730416,
+      "medians_across_invocations_ms": [
+        0.01304,
+        0.013024,
+        0.013008
+      ],
+      "across_invocation_cv": 0.0012285012285011916,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 65536,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 1024^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.257168,
+      "iqr_ms": 0.0008640000000000314,
+      "mean_ms": 0.25756640000000003,
+      "std_ms": 0.0020537497677357345,
+      "cv": 0.007973671129991079,
+      "medians_across_invocations_ms": [
+        0.257168,
+        0.25684799999999997,
+        0.257168
+      ],
+      "across_invocation_cv": 0.0007187081921073496,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 1024^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.062112,
+      "iqr_ms": 0.0002879999999999966,
+      "mean_ms": 0.06233706666666667,
+      "std_ms": 0.0012199751854473704,
+      "cv": 0.01957062227471997,
+      "medians_across_invocations_ms": [
+        0.062112,
+        0.062176,
+        0.06208
+      ],
+      "across_invocation_cv": 0.0007868433542163134,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 262144,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 2048^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 1.8154080000000001,
+      "iqr_ms": 0.0011520000000000419,
+      "mean_ms": 1.8165616,
+      "std_ms": 0.0032908773092302857,
+      "cv": 0.0018115968702797007,
+      "medians_across_invocations_ms": [
+        1.8154080000000001,
+        1.815328,
+        1.8155839999999999
+      ],
+      "across_invocation_cv": 7.213989134856896e-05,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 2048^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.40615999999999997,
+      "iqr_ms": 0.0012159999999999949,
+      "mean_ms": 0.40679893333333333,
+      "std_ms": 0.0026116382926721316,
+      "cv": 0.0064199733054170535,
+      "medians_across_invocations_ms": [
+        0.406208,
+        0.40604799999999996,
+        0.40615999999999997
+      ],
+      "across_invocation_cv": 0.00020216155163221174,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 1048576,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 4096^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 15.00016,
+      "iqr_ms": 0.05487999999999893,
+      "mean_ms": 15.064189866666668,
+      "std_ms": 0.2219387297553216,
+      "cv": 0.014732868592317547,
+      "medians_across_invocations_ms": [
+        14.967504,
+        15.00016,
+        15.023392000000001
+      ],
+      "across_invocation_cv": 0.0018721129549397642,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 16777216,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    },
+    {
+      "label": "tiled_gemm 4096^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 3.078672,
+      "iqr_ms": 0.0019839999999997637,
+      "mean_ms": 3.0788165333333333,
+      "std_ms": 0.001978573150210622,
+      "cv": 0.0006426408098011888,
+      "medians_across_invocations_ms": [
+        3.078672,
+        3.078608,
+        3.078704
+      ],
+      "across_invocation_cv": 1.5877292797251875e-05,
+      "throttle_active": false,
+      "regime": "compute-bound",
+      "covers": 4194304,
+      "covers_note": "elements actually processed = min(n_problem_size, grid*block); the deliberately-poor 1block/1024 configs cover 1024 elements whatever the label says"
+    }
+  ],
+  "failed_cells": []
+}
