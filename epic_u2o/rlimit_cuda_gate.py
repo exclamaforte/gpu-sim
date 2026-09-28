@@ -260,13 +260,24 @@ int main(void) {
         printf("{\"stage\": \"malloc\", \"error\": \"%s\"}\n", cudaGetErrorString(e));
         return 4;
     }
+    // Seed the buffer BEFORE launching. Without this the kernel doubles
+    // uninitialised device memory and the read-back is meaningless -- which is
+    // exactly what happened on the first run: rc 0, cudaMalloc ok, launch ok,
+    // result wrong. The probe asserted its own read-back instead of trusting
+    // rc, and that is the only reason the bug surfaced here rather than as a
+    // green check on an unfalsifiable probe.
+    float host[4] = {1, 2, 3, 4}, back[4] = {0};
+    e = cudaMemcpy(devptr, host, sizeof host, cudaMemcpyHostToDevice);
+    if (e != cudaSuccess) {
+        printf("{\"stage\": \"memcpy_h2d\", \"error\": \"%s\"}\n", cudaGetErrorString(e));
+        return 7;
+    }
     probe_kernel<<<(n + 255) / 256, 256>>>((float *)devptr, (int)n);
     e = cudaDeviceSynchronize();
     if (e != cudaSuccess) {
         printf("{\"stage\": \"launch\", \"error\": \"%s\"}\n", cudaGetErrorString(e));
         return 5;
     }
-    float host[4] = {1, 2, 3, 4}, back[4] = {0};
     e = cudaMemcpy(back, devptr, sizeof host, cudaMemcpyDeviceToHost);
     if (e != cudaSuccess) {
         printf("{\"stage\": \"memcpy\", \"error\": \"%s\"}\n", cudaGetErrorString(e));

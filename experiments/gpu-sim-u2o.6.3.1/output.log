@@ -1,0 +1,6 @@
+applying limits: {'RLIMIT_AS': 274877906944, 'RLIMIT_CPU': 60, 'RLIMIT_DATA': 8589934592, 'RLIMIT_NOFILE': 256, 'RLIMIT_CORE': 0}
+CUDA_VISIBLE_DEVICES='0'
+probe rc=0 in 0.70s
+stdout: {"cuda_malloc": "ok", "launch": "ok", "rc": 0, "result_correct": true, "device": "NVIDIA GeForce RTX 5090", "uid_tasks": 2006, "uid_task_note": "RLIMIT_NPROC is checked against this count, not our subtree; the live total drifts with other tenants"}
+PASS: cudaMalloc + launch + readback correct under the harness's exact limit set
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3.1/experiments/gpu-sim-u2o.6.3.1/metrics.json
