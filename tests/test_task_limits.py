@@ -125,7 +125,62 @@ def main() -> int:
           f"(TasksMax={tl.DEFAULT_TASKS_MAX})",
           p_default is not None and not p_default.get("blocked"), p_default)
 
-    # --- 4. the fallback must be relative, never a constant -------------
+    # --- 4. THE TEST THE BEAD'S OWN CRITERIA NEVER ASKED FOR -------------
+    # Criterion 1 only asked that the cap fire on fork, so a P0 regression
+    # passed this bead's gate: wrapping every run in `systemd-run --wait`
+    # detaches the child from our process group, so run_kernel's timeout path
+    # (proc.kill + killpg) reaches only systemd-run and NOT the runaway. The
+    # harness reported timeout=True, reported the health check, and reported a
+    # containment -- and the child kept running. A cap that bounds forks while
+    # leaving the runaway alive is partial containment sold as containment.
+    #
+    # So: a long-lived child goes through the REAL run_kernel path with
+    # tasks_max at its DEFAULT, the timeout trips, and we assert the child is
+    # GONE -- not merely that run_kernel reported a timeout.
+    import time as _time
+    from epic_u2o.safe_harness import SafeHarness
+
+    heartbeat = HERE / "heartbeat.txt"
+    heartbeat.write_text("")
+    child_src = tmp / "spin.c"
+    child_src.write_text(
+        "#include <stdio.h>\n"
+        "#include <time.h>\n"
+        "#include <unistd.h>\n"
+        "int main(int argc, char **argv) {\n"
+        "    FILE *f = fopen(argv[1], \"a\");\n"
+        "    time_t end = time(NULL) + 120;\n"
+        "    while (time(NULL) < end) {\n"
+        "        fputs(\"xxxxxxxxxxxxxxxx\", f);\n"
+        "        fflush(f);\n"
+        "        usleep(20000);\n"
+        "    }\n"
+        "    return 0;\n"
+        "}\n")
+    c = subprocess.run(["gcc", "-O0", str(child_src), "-o", str(tmp / "spin.out")],
+                       capture_output=True, text=True, timeout=120)
+    check("timeout-kill: the long-lived child compiles", c.returncode == 0,
+          c.stderr[-200:])
+
+    if c.returncode == 0:
+        h = SafeHarness(timeout_sec=3, tasks_max=tl.DEFAULT_TASKS_MAX)
+        runres = h.run_kernel(str(tmp / "spin.out"), args=[str(heartbeat)])
+        grew_at_kill = heartbeat.stat().st_size
+        _time.sleep(1.5)
+        grew_after = heartbeat.stat().st_size
+        survivors = subprocess.run(["pgrep", "-f", str(tmp / "spin.out")],
+                                   capture_output=True, text=True)
+        check("timeout-kill: run_kernel reported a timeout", runres.timeout,
+              f"timeout={runres.timeout} wall={runres.wall_time_sec:.2f}s")
+        check("timeout-kill: the child is GONE, not merely unreported",
+              survivors.returncode != 0 and grew_after == grew_at_kill,
+              f"heartbeat {grew_at_kill} -> {grew_after} bytes in 1.5s after the "
+              f"kill; pgrep found {len(survivors.stdout.split())} survivor(s)")
+        check("timeout-kill: the cap was in force for that run",
+              (runres.metadata.get("task_limits") or {}).get("mechanism") != "systemd-run",
+              runres.metadata.get("task_limits"))
+
+    # --- 5. the fallback must be relative, never a constant -------------
     pre = tl.rlimit_nproc_preexec()
     live = tl.live_task_count()
     check("RLIMIT_NPROC fallback is computed relative to the live count",
@@ -134,6 +189,35 @@ def main() -> int:
     check("the fallback is mechanism 3, not the default",
           tl.probe()[0].available and tl.choose_mechanism().name != "rlimit_nproc",
           tl.choose_mechanism().name)
+
+    # HYGIENE: when this file is run against a REGRESSED harness -- which is
+    # exactly what it is for -- the timeout-kill check deliberately leaves a
+    # live runaway, because that is the defect under test. Leaving one behind
+    # on the shared box is not acceptable, so any survivor is killed here and
+    # the box is verified clean before this test reports.
+    # NB: `pkill -f spin.out` is NOT safe here -- the pattern matches the pkill
+    # command's OWN argv, so it kills the shell running this test. Collect PIDs
+    # and filter our own process tree instead.
+    import os as _os
+    import signal as _signal
+    import subprocess as _sp
+
+    def _survivors():
+        r = _sp.run(["pgrep", "-f", "spin.out"], capture_output=True, text=True)
+        me = {_os.getpid(), _os.getppid()}
+        return [int(x) for x in r.stdout.split() if x.isdigit() and int(x) not in me]
+
+    surv = _survivors()
+    if surv:
+        for pid in surv:
+            try:
+                _os.kill(pid, _signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        import time as _t
+        _t.sleep(0.5)
+    left = _survivors()
+    check("cleanup: no runaway left behind after this test", not left, left)
 
     print()
     print(f"{len(FAILS)} failure(s)" + (": " + ", ".join(FAILS) if FAILS else ""))

@@ -27,8 +27,21 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from epic_u2o.task_limits import (  # noqa: E402
-    DEFAULT_TASKS_MAX, choose_mechanism, rlimit_nproc_preexec, wrap_command,
+    DEFAULT_TASKS_MAX, cgroup_preexec, choose_mechanism_preserving_kill,
+    cleanup_cgroup, make_run_cgroup, rlimit_nproc_preexec, wrap_command,
 )
+
+
+def _chain_preexec(fns):
+    """Apply several preexec hooks in order, as one callable."""
+    fns = [f for f in fns if f]
+    if len(fns) == 1:
+        return fns[0]
+
+    def _apply():
+        for f in fns:
+            f()
+    return _apply
 
 
 # Default configuration
@@ -356,20 +369,46 @@ class SafeHarness:
         # here rather than inside the child because systemd-run must be the
         # process we supervise: --wait keeps our communicate(timeout=)
         # authoritative and --pipe keeps stdout/stderr on our pipes.
+        # Per-run task containment. The MECHANISM is chosen under a hard
+        # constraint discovered by review: the timeout backstop must keep
+        # working. `systemd-run --user --wait` starts a transient SERVICE, so
+        # the wrapped binary's parent is systemd and it is NOT in the child's
+        # process group -- proc.kill() + killpg() then reach only systemd-run
+        # and NOT the runaway. Measured on this host: run_kernel reported
+        # timeout=True, reported the health check, reported a containment, and
+        # the child kept running (heartbeat still growing a second after the
+        # kill). --collect does not help; it collects after the unit FINISHES.
+        #
+        # So we do not wrap the command at all. The child stays a direct child
+        # -- which is what keeps the existing process-group SIGKILL correct --
+        # and is moved into a per-run cgroup by a preexec hook, which runs
+        # after fork and before exec. The cap is therefore in force before the
+        # child executes a single instruction, and there is no window in which
+        # it could fork first.
         task_info = {"tasks_max": self.tasks_max, "mechanism": "none"}
+        cgroup_dir = None
+        preexec_parts = []
         if self.tasks_max and self.tasks_max > 0:
-            mech = choose_mechanism()
+            mech = choose_mechanism_preserving_kill()
             task_info["mechanism"] = mech.name
             task_info["mechanism_detail"] = mech.detail
-            if mech.name == "systemd-run":
-                cmd = wrap_command(cmd, mech, self.tasks_max)
-            elif mech.name == "rlimit_nproc":
-                task_info["nproc_relative"] = (
-                    rlimit_nproc_preexec().target_nproc)
-            else:
-                task_info["note"] = (
-                    "cgroup route selected but not wrapped in the harness; "
-                    "it is exercised by tests/test_task_limits.py")
+            task_info["systemd_run_not_used_because"] = (
+                "systemd-run --wait detaches the child from our process group, "
+                "which silently disables the timeout kill; see task_limits.py")
+            if mech.name == "cgroup":
+                try:
+                    cgroup_dir = make_run_cgroup(tasks_max=self.tasks_max)
+                    preexec_parts.append(cgroup_preexec(cgroup_dir))
+                    task_info["cgroup"] = str(cgroup_dir)
+                except Exception as e:
+                    # Fall back rather than lose the cap silently.
+                    task_info["cgroup_error"] = str(e)
+                    mech = choose_mechanism_preserving_kill("rlimit_nproc")
+                    task_info["mechanism"] = mech.name
+            if mech.name == "rlimit_nproc":
+                fn = rlimit_nproc_preexec()
+                preexec_parts.append(fn)
+                task_info["nproc_relative"] = fn.target_nproc
         
         start_time = time.time()
         peak_rss = 0
