@@ -1,0 +1,122 @@
+{
+  "bead": "gpu-sim-u2o.12.2",
+  "gpu_used": false,
+  "sources": {
+    "generation_rows": "lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measured.jsonl",
+    "generation_log": "lab/gpu-sim-u2o.6.7:experiments/gpu-sim-u2o.6.7/metrics.json",
+    "training": "lab/gpu-sim-u2o.12.1:experiments/gpu-sim-u2o.12.1/metrics.json"
+  },
+  "generation": {
+    "n_rows": 264,
+    "ts_job": "20260928t074004-b429f469",
+    "measured_ex_per_sec": 2.3886363068290137,
+    "measured_ex_per_hour": 8599.090704584449,
+    "wall_ms_per_row": 418.6489157604449,
+    "launches_per_row": 40,
+    "kernel_us_per_launch": 3.16,
+    "gpu_ms_per_row": 0.1264,
+    "gpu_fraction_of_wall": 0.0003019236291831874,
+    "overhead_fraction_of_wall": 0.9996980763708168,
+    "overhead_free_ceiling_ex_per_sec": 7911.39240506329,
+    "ceiling_is": "UPPER BOUND -- assumes the launches pipeline perfectly with zero per-example process overhead, which they will not. It answers 'could generation ever feed this model', not 'what will it actually reach'."
+  },
+  "cross_check_vs_6_7": {
+    "independently_derived_ex_per_sec": 2.3886363068290137,
+    "6_7_logged_ex_per_sec": 2.3886363068290137,
+    "disagreement_pct": 0.0
+  },
+  "training": {
+    "device": "NVIDIA GeForce RTX 5090",
+    "ts_job": "20260928t094902-9a8684a2"
+  },
+  "comparison": {
+    "per_rung": [
+      {
+        "label": "smoke-as-written",
+        "params": 94817,
+        "batch": 2,
+        "seq": 16,
+        "median_step_ms": 1.5164869837462902,
+        "training_consumes_ex_per_sec": 1318.8375643417999,
+        "generation_now_ex_per_sec": 2.3886363068290137,
+        "keeps_up_today": false,
+        "generation_ceiling_ex_per_sec": 7911.39240506329,
+        "keeps_up_even_after_overhead_is_removed": true,
+        "shortfall_factor_today": 552.1299163758405
+      },
+      {
+        "label": "small",
+        "params": 581761,
+        "batch": 32,
+        "seq": 128,
+        "median_step_ms": 2.194375963881612,
+        "training_consumes_ex_per_sec": 14582.733554643703,
+        "generation_now_ex_per_sec": 2.3886363068290137,
+        "keeps_up_today": false,
+        "generation_ceiling_ex_per_sec": 7911.39240506329,
+        "keeps_up_even_after_overhead_is_removed": false,
+        "shortfall_factor_today": 6105.045591475045
+      },
+      {
+        "label": "medium",
+        "params": 13926785,
+        "batch": 32,
+        "seq": 256,
+        "median_step_ms": 19.259195076301694,
+        "training_consumes_ex_per_sec": 1661.5439987611828,
+        "generation_now_ex_per_sec": 2.3886363068290137,
+        "keeps_up_today": false,
+        "generation_ceiling_ex_per_sec": 7911.39240506329,
+        "keeps_up_even_after_overhead_is_removed": true,
+        "shortfall_factor_today": 695.6035935696432
+      },
+      {
+        "label": "large",
+        "params": 47220609,
+        "batch": 16,
+        "seq": 512,
+        "median_step_ms": 68.77371505834162,
+        "training_consumes_ex_per_sec": 232.64702199709578,
+        "generation_now_ex_per_sec": 2.3886363068290137,
+        "keeps_up_today": false,
+        "generation_ceiling_ex_per_sec": 7911.39240506329,
+        "keeps_up_even_after_overhead_is_removed": true,
+        "shortfall_factor_today": 97.39742351398053
+      }
+    ],
+    "rungs_starved_today": [
+      "smoke-as-written",
+      "small",
+      "medium",
+      "large"
+    ],
+    "rungs_starved_even_after_overhead_is_removed": [
+      "small"
+    ]
+  },
+  "correction_to_6_7": {
+    "against": "gpu-sim-u2o.6.7",
+    "field": "bottleneck.kernel_us_per_launch_median",
+    "6_7_reported_us": 0.17,
+    "correct_us": 3.16,
+    "why": "6.7 divided sum(invocation_medians_ms) -- TWO medians per row -- by total_launches -- FORTY per row (20 trials x 2 invocations). That understates the per-launch kernel by exactly n_invocations = 2, i.e. 20x.",
+    "consequence": "overhead fraction is 99.970%, not 99.998%. The CONCLUSION is unchanged -- overhead still dominates by three orders of magnitude -- but the ceiling derived from the corrected figure (7,911 ex/s) is the number that decides which model sizes can ever be fed, and the wrong one would have understated it."
+  },
+  "decision": {
+    "open_training_optimization_work": false,
+    "bottleneck": "DATA GENERATION, at every model size measured",
+    "why": "Generation produces 2.39 ex/s today. Training consumes 233-14,583 ex/s. So training is never the constraint, and no training-side optimisation can change that: the constraint is how fast examples are produced.",
+    "and_the_non_obvious_part": "Removing the per-example process overhead -- the obvious fix, and the one 6.7 identified -- raises generation to at most 7,911 ex/s. That unblocks medium and large, but STILL DOES NOT feed small. The residual constraint is the MEASUREMENT PROTOCOL: 40 launches per example at 3.16 us each is 126 us of GPU work per example, so halving the trial count would double the ceiling. That is a protocol decision about statistical rigour, not a GPU or a training problem.",
+    "what_would_actually_help": [
+      "batch or persist the measurement worker: worth ~3,312x",
+      "reduce launches per example (currently 40), which raises the ceiling proportionally -- but it trades against the trial count 6.6.1 justified, so it is a statistical decision, not a free win",
+      "NOT training optimisation, and NOT a faster GPU"
+    ]
+  },
+  "caveats": [
+    "Throughput, not end-to-end wall clock for a whole run. The two sides were measured in separate jobs on a shared GPU.",
+    "The training side consumed SYNTHETIC batches (torch.randint), not real dataset rows, because the model cannot accept the real feature width yet (gpu-sim-u2o.12.1 finding 3). Its rate is a property of the model and batch shape, not of the data.",
+    "The overhead-free ceiling is an UPPER bound assuming perfect pipelining; real batching will land below it.",
+    "'The v1 model size' is undefined, so a ladder was profiled (gpu-sim-u2o.12.1). A decision about 'the v1 model' is therefore a decision about a ladder, and should be restated once a size is chosen."
+  ]
+}
