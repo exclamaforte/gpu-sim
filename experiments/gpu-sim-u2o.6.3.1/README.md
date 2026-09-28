@@ -89,4 +89,60 @@ launches and computes the wrong answer still fails. On failure
 in the set explains the failure it says exactly that, because "cannot diagnose"
 must not become "add a limit to fix it".
 
-See `metrics.json` for the real 5090 run and `job.json` for the ts job id.
+### Real 5090 result (authoritative: ts `20260928t091903-9d586536`)
+
+```
+applied_limits: {RLIMIT_AS: 274877906944, RLIMIT_CPU: 60, RLIMIT_DATA: 8589934592,
+                 RLIMIT_NOFILE: 256, RLIMIT_CORE: 0}
+cuda_malloc: ok   launch: ok   result_correct: true   rc: 0
+device: NVIDIA GeForce RTX 5090      uid_tasks: 2006      0.70s
+```
+
+`cudaFree(0) → cudaMalloc → launch → cudaDeviceSynchronize → read-back`, all
+under the harness's exact limit set applied in the child's `preexec_fn`. 0.70 s
+against the design's <10 s budget, so it can gate every batch job.
+
+## The probe caught its own author — which is the part worth keeping
+
+The **first** probe run (ts `20260928t091846-a635d8f7`) reported `rc=0`,
+`cuda_malloc: ok`, `launch: ok`, `device: NVIDIA GeForce RTX 5090` — and
+`result_correct: false`.
+
+That was my bug: the kernel doubled **uninitialised** device memory because I
+never copied the host buffer in. Every signal a naive probe checks said pass.
+
+The only reason it surfaced is that the probe asserts its **read-back** instead
+of trusting `rc`. A probe that had trusted the exit code would have gone green
+forever while verifying nothing — the same shape as the preflight stub this lab
+closed out in `gpu-sim-8dw`, one layer down: a check that cannot fail. The failed
+job is kept in `job.json` deliberately rather than deleted.
+
+## The live task count, and why it is the strongest evidence here
+
+The probe records the uid's task count because `RLIMIT_NPROC` is per-uid. Across
+my two runs, two minutes apart: **1979 → 2006**, a drift of **27 tasks**.
+
+gpu-sim-u2o.6.1.1 bracketed this uid's live total between **2048** (aborts the
+process at its first thread creation) and **3072** (works). The count is now
+**2006** — *42 tasks below the abort threshold* — and it moves by tens in
+minutes as the other tenants come and go.
+
+So the gate's central claim is not a style preference: **every fixed
+`RLIMIT_NPROC` value is a race on this host**, and 2048, which reads as a
+generous limit, is currently within a rounding error of killing CUDA. A limit
+that is fatal today may work tomorrow and fail again next week, which is exactly
+the failure mode that costs a whole measurement run and gets misdiagnosed as a
+driver problem.
+
+## Queue hygiene incident, recorded rather than cleaned up quietly
+
+I ran `ts queue`, `ts status`, `ts logs ID` and `ts cancel ID` believing they
+were queries and commands. This front end accepts only bare `ts` for status,
+`ts -c` for logs and `ts -k` for cancel — **any other leading word is taken as
+the COMMAND to run**. I therefore submitted **six junk jobs** into a queue shared
+with cclm, opguard and chessvar, three of them ahead of my real probe, and the
+first real attempt failed with `no such executable: submit` for the same reason.
+
+All six were cancelled and the queue verified clean, but the cost was other
+people's queue time and the lesson belongs in the record: on a shared queue, an
+unrecognised flag is not an error message, it is a job.
