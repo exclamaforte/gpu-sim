@@ -37,7 +37,20 @@ tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $< -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 
-check: $(LIB)
+# gpu-sim-u2o.20: the build inputs must be TRACKED, or `make check` below is
+# evidence about one working tree rather than about the repository. A clean
+# clone could not build libfakegpu.so at all until the five untracked SRCS
+# files, the header and the three test programs were committed, so every
+# "make check passes" claim made before that -- including the reviewer's own
+# validation of gpu-sim-8dw -- was true here and unreproducible elsewhere.
+check: guard-build-inputs
+	@bash tests/assert_build_inputs_tracked.sh
+
+.PHONY: guard-build-inputs
+guard-build-inputs:
+	@:
+
+check-only: $(LIB)
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	$(TEST_BIN)
