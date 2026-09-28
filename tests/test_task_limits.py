@@ -190,6 +190,38 @@ def main() -> int:
           tl.probe()[0].available and tl.choose_mechanism().name != "rlimit_nproc",
           tl.choose_mechanism().name)
 
+    # --- 6. per-run cgroups must not accumulate -------------------------
+    # The reviewer's measurement: 12 cgroups before, 14 after three clean
+    # run_kernel calls -- cleanup fired on some paths and not others. Each
+    # leaked cgroup is inert, but at batch scale (the 6.6.2 anchor alone is
+    # 94 configs x 3 invocations = 282 calls) they pile up in the user's own
+    # slice for the life of the session.
+    if tl.writable_pids_parent() is not None:
+        from epic_u2o.safe_harness import SafeHarness as _SH
+        cgroup_base = tl.writable_pids_parent()
+        base_count = len(list(cgroup_base.glob("fgpu-*")))
+        sh = _SH(timeout_sec=5, tasks_max=tl.DEFAULT_TASKS_MAX)
+        for _ in range(3):
+            sh.run_kernel("/bin/true")
+        after_count = len(list(cgroup_base.glob("fgpu-*")))
+        check("6. per-run cgroups do not accumulate across clean runs",
+              after_count <= base_count,
+              f"{base_count} before, {after_count} after 3 run_kernel calls")
+
+        # and on the FAILURE path, which is where the original leak lived
+        base_count2 = len(list(cgroup_base.glob("fgpu-*")))
+        try:
+            sh.run_kernel("/nonexistent/definitely-not-here")
+        except Exception:
+            pass
+        after2 = len(list(cgroup_base.glob("fgpu-*")))
+        check("6. a failed exec does not leave a cgroup behind either",
+              after2 <= base_count2,
+              f"{base_count2} before, {after2} after a failed run_kernel")
+    else:
+        check("6. per-run cgroups do not accumulate (skipped: no writable "
+              "pids parent on this host)", True)
+
     # HYGIENE: when this file is run against a REGRESSED harness -- which is
     # exactly what it is for -- the timeout-kill check deliberately leaves a
     # live runaway, because that is the defect under test. Leaving one behind

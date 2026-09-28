@@ -413,18 +413,25 @@ class SafeHarness:
         start_time = time.time()
         peak_rss = 0
         
-        # Start process
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            start_new_session=True,  # Isolate in new session
-            env=run_env,
-            preexec_fn=ResourceLimits(vram_limit_mb=self.vram_limit_mb).apply,
-            text=True,  # Get strings instead of bytes
-        )
-        
+        # Start process. INSIDE the try, deliberately: Popen is where a bad path
+        # or an exec error raises, and with it outside, the finally that removes
+        # the per-run cgroup never runs. That is precisely how the cgroup leak
+        # survived: cleanup fired on the success and timeout paths and not on
+        # the launch-failure path, which for a compile-then-run harness is
+        # routine.
+        proc = None
         try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                start_new_session=True,  # Isolate in new session
+                env=run_env,
+                preexec_fn=_chain_preexec([
+                    ResourceLimits(vram_limit_mb=self.vram_limit_mb).apply]
+                    + preexec_parts),
+                text=True,  # Get strings instead of bytes
+            )
             # Wait with timeout
             stdout, stderr = proc.communicate(timeout=self.timeout_sec)
             wall_time = time.time() - start_time
@@ -492,7 +499,22 @@ class SafeHarness:
                 peak_rss_mb=peak_rss,
                 metadata={'cmd': ' '.join(cmd), 'task_limits': task_info},
             )
-        
+        finally:
+            # Remove the per-run cgroup on EVERY path -- success, timeout, and
+            # exception. The reviewer's measurement: 12 cgroups before, 14 after
+            # three clean run_kernel calls, so cleanup fired on some paths and
+            # not others. Every leaked cgroup is inert (procs empty, pids 0), so
+            # nothing is running in them and no containment is affected -- but
+            # they accumulate in the user's own slice for the life of the
+            # session, and this harness is about to be driven in batch: the 6.6.2
+            # anchor alone is 94 configs x 3 invocations = 282 run_kernel calls,
+            # which is a few hundred empty directories that never go away. That
+            # is exactly the "cgroup lifetime management of our own" the design
+            # flagged when it ranked this route second.
+            if cgroup_dir is not None:
+                cleanup_cgroup(cgroup_dir)
+                task_info["cgroup_cleaned"] = not cgroup_dir.exists()
+
         return result
     
     def execute(
