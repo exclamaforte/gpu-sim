@@ -14,28 +14,30 @@
   },
   "throughput": {
     "examples": 264,
-    "wall_sec": 10.540253639221191,
-    "examples_per_sec": 25.04683559204242,
-    "examples_per_hour": 90168.60813135271,
-    "ms_per_example": 39.92520317886815
+    "wall_sec": 1.563894271850586,
+    "examples_per_sec": 168.80936566613534,
+    "examples_per_hour": 607713.7163980872,
+    "ms_per_example": 5.923841938827977
   },
   "device_time_per_example": {
     "asserted_us": 126.0,
-    "measured_us": 145.83939393939394,
+    "measured_us": 138.90151515151516,
     "unchanged": true,
     "note": "derived from the committed cells' medians x launches per example; this is the quantity the throughput fix must NOT move"
   },
   "per_example_sampling": {
     "rows": 264,
     "distinct_sample_times": 264,
-    "sample_time_span_sec": 10.3468496799469,
+    "sample_time_span_sec": 1.4640307426452637,
     "sampled_per_row_not_per_batch": true,
-    "sampling_wall_sec": 10.351316452026367,
-    "sampling_ms_per_example": 39.20953201525139,
-    "sampling_is_a_real_cost": "per-example telemetry costs 39.2 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
+    "sampling_wall_sec": 1.46185302734375,
+    "sampling_ms_per_example": 5.53732207327178,
+    "sampling_is_a_real_cost": "per-example telemetry costs 5.5 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
     "note": "every row carries its own queue_state and its own telemetry, taken at that row's time. A per-batch sample stamped onto many rows would satisfy the letter of the row carrying a field while observing nothing."
   },
-  "started_at": "2026-09-28T11:13:25.333503+00:00",
+  "started_at": "2026-09-28T11:23:55.794190+00:00",
   "n_begin_markers": 264,
-  "n_end_markers": 264
+  "n_end_markers": 264,
+  "ts_job": "20260928t112353-9a17d97c",
+  "telemetry_path": "nvml-ctypes (in-process); nvidia-smi fallback retained and recorded per row"
 }

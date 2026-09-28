@@ -1,8 +1,22 @@
 {
   "bead": "gpu-sim-u2o.6.7.1",
-  "ts_jobs": ["20260928t110229-599e5e71", "20260928t110250-ee0024b1", "20260928t110412-90bf81cc", "20260928t110506-af61ee56", "20260928t110621-4fdb49c6", "20260928t110739-b79cbc34", "20260928t110919-55c55ae4", "20260928t111020-562bf0c3", "20260928t111129-c64cef28", "20260928t111224-46c287f9", "20260928t111322-e0720458"],
-  "authoritative_job": "20260928t111322-e0720458",
+  "ts_jobs": [
+    "20260928t110229-599e5e71",
+    "20260928t110250-ee0024b1",
+    "20260928t110412-90bf81cc",
+    "20260928t110506-af61ee56",
+    "20260928t110621-4fdb49c6",
+    "20260928t110739-b79cbc34",
+    "20260928t110919-55c55ae4",
+    "20260928t111020-562bf0c3",
+    "20260928t111129-c64cef28",
+    "20260928t111224-46c287f9",
+    "20260928t111322-e0720458",
+    "20260928t112353-9a17d97c"
+  ],
+  "authoritative_job": "20260928t112353-9a17d97c",
   "gpu_used": true,
   "failed_jobs_kept": "eleven submissions are recorded, not one. Seven failed BEFORE any GPU work (a KeyError on a missing field, a template signature that had drifted from its call site, a missing brace) and one succeeded while VIOLATING the protocol -- it ran 25 launches per example instead of 40, which is what the device-time assertion caught. All are cheap because the preflight and the assertions are CPU-side, but the record matters: the protocol violation is the interesting one and it would have been invisible without criterion 2b.",
-  "note": "The queue was empty before submission and no tenant was jumped. The job carried a 10m max-runtime."
+  "note": "The queue was empty before submission and no tenant was jumped. The job carried a 10m max-runtime. Superseded job 20260928t111322-e0720458 (25.05 ex/s, nvidia-smi sampling) by 20260928t112353-9a17d97c (168.81 ex/s, in-process NVML sampling). Both are kept: the first is the evidence for the 39 ms per-example sample cost that motivated the increment, and the second is the result of acting on it.",
+  "next_increment": "queue_state() is now 94% of the remaining per-example cost (6.09 ms/call, it re-reads all ~500 job files per example). Fixing it touches a 6.6.6-owned module, so it belongs on its own bead."
 }

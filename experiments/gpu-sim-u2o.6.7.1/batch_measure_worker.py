@@ -448,24 +448,126 @@ def main() -> int:
     return 0
 
 
+class _Nvml:
+    """In-process NVML reader, via ctypes.
+
+    gpu-sim-u2o.6.7.1's own attribution said the dominant remaining cost was
+    the per-example sample: spawning `nvidia-smi` once per row cost ~39 ms,
+    the same order as the process spawn the batching had just eliminated. So
+    the next increment had to be the SAMPLE, not the worker.
+
+    NVML through ctypes is the same library nvidia-smi calls, loaded once, so a
+    query is a function call rather than a fork/exec plus a driver handshake.
+    Measured on the real 5090: ~0.2 ms against nvidia-smi's ~39 ms, so
+    per-example telemetry stops being the bottleneck while still being a real
+    observation at that row's own time.
+
+    Every field is read the same way 6.5's harness reads it, and the row
+    records WHICH path produced it, so a reader never has to guess whether a
+    sample came from the cheap path or the expensive fallback.
+    """
+
+    CLOCK_SM = 2
+    SM_CLOCK = 1
+    MEM_CLOCK = 2
+    TEMP_GPU = 0
+    POWER_MW = 0
+    UTIL_GPU = 0
+
+    # nvmlMemory_t is a STRUCT of five unsigned long long (40 bytes), not an
+    # int. My first version passed a c_uint for it, which let NVML write 40
+    # bytes into a 4-byte slot and segfaulted the process. The size is declared
+    # here rather than guessed per call, because getting it wrong does not
+    # return an error -- it corrupts the stack.
+    NVML_MEMORY_STRUCT_FIELDS = 5
+
+    def __init__(self):
+        import ctypes
+        self._c = ctypes
+        self.lib = ctypes.CDLL("libnvidia-ml.so.1")
+        self.ok = self.lib.nvmlInit_v2() == 0
+        self.handle = ctypes.c_void_p()
+        if self.ok:
+            self.ok = self.lib.nvmlDeviceGetHandleByIndex_v2(
+                0, ctypes.byref(self.handle)) == 0
+        self._path = "nvml-ctypes" if self.ok else None
+
+    def _out_u32(self, fn, *args):
+        """fn(handle, *args, out) -> value, or None.
+
+        The extra *args matters. My first helper was _u32(fn, arg) which called
+        fn(arg, byref(v)) -- so for the THREE-argument NVML calls it passed the
+        sensor/type as the HANDLE and a pointer as the type. That did not return
+        an error; it segfaulted, twice, and the reason was invisible in the code.
+        """
+        v = self._c.c_uint()
+        return v.value if fn(self.handle, *args, self._c.byref(v)) == 0 else None
+
+    def _mem_used_mib(self):
+        buf = (self._c.c_ulonglong * self.NVML_MEMORY_STRUCT_FIELDS)()
+        if self.lib.nvmlDeviceGetMemoryInfo(self.handle,
+                                             self._c.byref(buf)) != 0:
+            return None
+        return buf[2] // (1024 * 1024)      # field 2 is `used`
+
+    def read(self) -> dict:
+        if not self.ok:
+            return {"rc": -1, "path": None, "error": "NVML unavailable"}
+        c = self._c
+
+        class _Util(c.Structure):
+            _fields_ = [("gpu", c.c_uint), ("memory", c.c_uint)]
+
+        u = _Util()
+        self.lib.nvmlDeviceGetUtilizationRates(self.handle, c.byref(u))
+        pw = c.c_ulonglong()
+        ok_pw = self.lib.nvmlDeviceGetPowerUsage(self.handle,
+                                                 c.byref(pw)) == 0
+        return {
+            "rc": 0, "path": self._path,
+            "clocks.sm": self._out_u32(self.lib.nvmlDeviceGetClockInfo,
+                                       self.CLOCK_SM),
+            "clocks.mem": self._out_u32(self.lib.nvmlDeviceGetClockInfo,
+                                        self.MEM_CLOCK),
+            "power.draw_mW": pw.value if ok_pw else None,
+            "temperature.gpu": self._out_u32(
+                self.lib.nvmlDeviceGetTemperature, self.TEMP_GPU),
+            "utilization.gpu": u.gpu,
+            "memory.used_MiB": self._mem_used_mib(),
+        }
+
+
+_NVML = None
+
+
 def _telemetry() -> dict:
-    """Read-only device telemetry for THIS row.
+    """Read-only device telemetry for THIS row, cheap.
 
     Aimed at a query, never at a reset or a clock change: read-only DIAGNOSIS is
-    permitted outside GPU work, and 6.5 established this exact query as part of
-    the harness. Its COST is measured by the caller as part of the budget
-    rather than hidden.
+    permitted outside GPU work, and 6.5 established this exact data as part of
+    the harness. The sampling COST is measured by the caller as part of the
+    budget rather than hidden -- which is what surfaced it as the dominant term
+    in the first place.
     """
+    global _NVML
+    if _NVML is None:
+        _NVML = _Nvml()
+    if _NVML.ok:
+        return _NVML.read()
+    # Fallback: correct but ~200x slower. Recorded per row so a reader can see
+    # which path produced the sample rather than assuming.
+    import subprocess
     try:
         r = subprocess.run(
             ["nvidia-smi", "--query-gpu=clocks.sm,power.draw,temperature.gpu,"
              "utilization.gpu,memory.used", "--format=csv,noheader"],
             capture_output=True, text=True, timeout=10)
         if r.returncode == 0 and r.stdout.strip():
-            return {"rc": 0, "csv": r.stdout.strip()}
+            return {"rc": 0, "path": "nvidia-smi-subprocess",
+                    "csv": r.stdout.strip()}
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as exc:
-        return {"rc": -1, "error": str(exc)}
-    return {"rc": r.returncode if "r" in dir() else -1, "csv": None}
+        return {"rc": -1, "path": "nvidia-smi-subprocess", "error": str(exc)}
+    return {"rc": -1, "path": "nvidia-smi-subprocess", "csv": None}
 
 
 if __name__ == "__main__":
