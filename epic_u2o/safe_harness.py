@@ -21,6 +21,13 @@ import signal
 import os
 import json
 import resource
+
+from epic_u2o.rlimit_cuda_gate import (
+    RlimitReintroductionError,
+    assert_address_space_independent_of_vram,
+    assert_nproc_never_set,
+    limits_harness_applies,
+)
 from dataclasses import dataclass, asdict
 from typing import Optional
 from pathlib import Path
@@ -107,9 +114,16 @@ class ResourceLimits:
     address_space_limit_mb: int = 262144  # 256 GiB
     
     def apply(self):
-        """Apply resource limits to current process."""
+        """Apply resource limits to current process.
+
+        Gated by gpu-sim-u2o.6.3.1: refuses rather than silently applying a
+        limit CUDA cannot tolerate on this host.
+        """
         # Virtual memory limit (address space) - leak backstop, NOT a VRAM
-        # cap (see comment above re: 32 GiB BAR1 on the 5090).
+        # cap (see comment above re: 32 GiB BAR1 on the 5090). The gate also
+        # asserts the numbers are INDEPENDENT rather than trusting the comment,
+        # because coupling them is how the 24 GiB failure returns.
+        assert_address_space_independent_of_vram(self)
         as_bytes = self.address_space_limit_mb * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_AS, (as_bytes, as_bytes))
         
@@ -123,10 +137,14 @@ class ResourceLimits:
         # Open files
         resource.setrlimit(resource.RLIMIT_NOFILE, (self.open_files_limit, self.open_files_limit))
         
-        # Processes (skipped when processes_limit == 0; see the class comment --
-        # any low RLIMIT_NPROC breaks the CUDA driver on a busy multi-tenant box)
-        if self.processes_limit:
-            resource.setrlimit(resource.RLIMIT_NPROC, (self.processes_limit, self.processes_limit))
+        # Processes: REFUSED, not skipped. gpu-sim-u2o.6.3.1 gate. This used to
+        # be `if self.processes_limit: setrlimit(RLIMIT_NPROC, ...)` -- a guard
+        # around a live call, which is a footgun with a comment on it: the field
+        # exists, the name looks like the containment knob it is not, and
+        # setting it kills CUDA at the first cudaMalloc on this shared host.
+        # "Cannot contain" must never mean "apply it anyway", so a non-zero
+        # value now raises with the cgroup route named as the fix.
+        assert_nproc_never_set(self)
         
         # Core dump size (disable)
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
@@ -206,6 +224,33 @@ class SafeHarness:
                 **result.to_dict()
             }) + '\n')
     
+    def check_rlimit_cuda_compatibility(
+            self, limits: Optional[ResourceLimits] = None) -> tuple[bool, str]:
+        """Fail fast, naming the offending limit. Criterion 3 of 6.3.1.
+
+        This is the CPU half: it asserts the limit set is one CUDA tolerates
+        BEFORE anything reaches the device, so a bad limit cannot present as
+        four identical kernel failures. The GPU half is the probe in
+        rlimit_cuda_gate.PROBE_SOURCE, run through ts; its failures come back
+        through diagnose_probe_failure() with the same wording.
+        """
+        # Build the SAME object run_kernel will apply (safe_harness.py:378), so
+        # the gate checks the limits that would really be set rather than a
+        # separately-constructed lookalike that could drift. The parameter
+        # exists for the injected-failure test (criterion 3): there is no way to
+        # reach a failing limit set through the public constructor, because AS
+        # is deliberately independent of vram_limit_mb -- which is the invariant
+        # working, not the gate being unreachable.
+        if limits is None:
+            limits = ResourceLimits(vram_limit_mb=self.vram_limit_mb)
+        try:
+            assert_nproc_never_set(limits)
+            assert_address_space_independent_of_vram(limits)
+        except RlimitReintroductionError as exc:
+            return False, f"rlimit incompatible with CUDA: {exc}"
+        return True, ("limit set passes the CUDA-compatibility gate: "
+                      f"{limits_harness_applies(limits)}")
+
     def preflight_check(self, kernel_source: str, grid: list[int], block: list[int],
                        shared_mem: int = 0, spec: Optional[dict] = None) -> tuple[bool, str]:
         """Real structural validation, GPU-free (gpu-sim-u2o.6.1.1).
