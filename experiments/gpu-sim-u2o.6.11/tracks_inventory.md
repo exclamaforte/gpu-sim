@@ -52,7 +52,7 @@ would have gone looking for a CUDA bug.
 | `epic_u2o/generator_stage5.py` | tracked in master | source | **TRACK** | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/gpu_control.py` | UNTRACKED | source | **TRACK** | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/gpu_recovery.py` | UNTRACKED | source | **TRACK** | code the harness/generators import; without it master is not self-consistent |
-| `epic_u2o/harness.md` | UNTRACKED | spec (placeholder) | **DO NOT TRACK** | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
+| `epic_u2o/harness.md` | **VOLATILE -> TRACKED** | spec | **TRACK** | was a 4-line stub in main and untracked in master, but gpu-sim-u2o.6.1.2 rewrote it with the real containment ladder; leaving it untracked both kept that row's justification false-on-arrival AND kept 6.1.2's merge blocked on 'untracked working tree files would be overwritten'. Now tracked carrying 6.1.2's content, so master never holds the stub. |
 | `epic_u2o/kernel_driver.py` | tracked in master | source | **TRACK** | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/kernel_names.py` | tracked in master | source | **TRACK** | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/measurement_spec.md` | UNTRACKED | spec | **TRACK** | written specification with real content |
@@ -85,7 +85,25 @@ would have gone looking for a CUDA bug.
 | `epic_u2o/tree_baseline.py` | UNTRACKED | source | **TRACK** | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/v1_scope.md` | UNTRACKED | spec | **TRACK** | written specification with real content |
 
-**Tracked: 41 paths. Not tracked: 14 paths.**
+**Tracked: 42 paths. Not tracked: 13 paths.** (Post-merge the tracked set is 42: 8 already in master, 33 added here, plus harness.md added after the review.)
+
+## This table is a SNAPSHOT, not a rule
+
+A classification that was true when written and is false on arrival is worse
+than no table, because a reader trusts it without re-reading. The reviewer's
+finding on `harness.md` is the worked example: its row said "literal
+placeholder, do not track" and 6.1.2 rewrote the file while the row stood.
+
+**Checked mechanically for this revision:** of the paths still untracked, only
+`harness.md` was touched by any in-flight branch
+(`git diff --name-only master..<branch> -- 'epic_u2o/*.md'` over every lab
+branch). It is now tracked. The other 13 are untouched by pending work, so
+their rows still describe their files.
+
+**Re-check before merging any branch that adds or rewrites a file in this
+directory:**
+`git diff --name-only master..<branch> -- epic_u2o/` and compare against the
+untracked rows. If a branch touches one, that row is stale by definition.
 
 ## What is deliberately NOT tracked, and why
 
