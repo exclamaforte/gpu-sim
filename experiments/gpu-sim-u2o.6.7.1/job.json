@@ -20,7 +20,12 @@
     "20260928t124811-f6457da5",
     "20260928t125019-cf25145a",
     "20260928t125232-12502001",
-    "20260928t125506-50c9a9b3"
+    "20260928t125506-50c9a9b3",
+    "20260928t135509-270446c4",
+    "20260928t135646-96e8abc2",
+    "20260928t135824-2b06467b",
+    "20260928t135959-a3c63641",
+    "20260928t140221-892ab931"
   ],
   "authoritative_job": "20260928t121926-ab46f839",
   "gpu_used": true,
@@ -48,5 +53,12 @@
     "20260928t125232-12502001": "v3: 264 examples at 3.82 ex/s but NO rows artifact -- the rows write sat in main() AFTER the return _finish(), so the per-invocation arm never reached it",
     "20260928t125506-50c9a9b3": "AUTHORITATIVE: 264 examples, 528 processes, 3.78 ex/s, 264/264 distinct sample times"
   },
-  "crashes_kept_because_each_one_looked_like_a_result": "Three of the four jobs above failed SILENTLY in a way that printed well-formed output: a NameError after the summary was built, a run that measured nothing and printed '0.00 ex/s', and a run that measured everything and wrote no artifact. A crash that looks like a measurement is more dangerous than one that looks like a crash, so all three are recorded rather than cleaned up."
+  "crashes_kept_because_each_one_looked_like_a_result": "Three of the four jobs above failed SILENTLY in a way that printed well-formed output: a NameError after the summary was built, a run that measured nothing and printed '0.00 ex/s', and a run that measured everything and wrote no artifact. A crash that looks like a measurement is more dangerous than one that looks like a crash, so all three are recorded rather than cleaned up.",
+  "confound_test": {
+    "20260928t135509-270446c4": "bare C % specifier introduced with the DISPATCH_FAIL guard; substitution failed naming the wrong line",
+    "20260928t135646-96e8abc2": "the new guard fired and reported 11 bare specifiers -- FALSE ALARM: the guard's negative lookahead did not consume the first % of a %% pair, so every correctly-escaped literal read as bare. A false alarm in the check meant to catch false alarms, and I nearly 'fixed' correct code because of it. Corrected to mask %% first, then scan.",
+    "20260928t135824-2b06467b": "264 objects linked (per-spec, before the dedup fix); driver read the template as a Python string again",
+    "20260928t135959-a3c63641": "dedup by source working: 8 translation units from 264 specs; dispatch was keyed by SPEC index while the switch is keyed by KERNEL index, so spec 8 onward returned rc=2",
+    "20260928t140221-892ab931": "AUTHORITATIVE: 264 specs, 8 TUs, 510.80 ex/s, 214/264 reproduce at 9.4% median. The first working build of this arm returned 87.3% with 100% of rows 'faster' because the hoisting RESET N to 0 inside the kernel's main; the fix was to DELETE the declaration."
+  }
 }

@@ -122,13 +122,21 @@ def build_per_kernel_executables(specs: list, td: Path) -> tuple:
             continue
         k = len(objs)
         src = synthesize(s)
-        # hoist the per-spec launch geometry to globals, keep everything else
-        for pat, rep in (
-            (r"(\s*)const int N = \d+;", r"\1N = 0;"),
-            (r"(\s*)dim3 grid\(([^)]*)\);", r"\1grid = dim3(0, 0, 0);"),
-            (r"(\s*)dim3 block\(([^)]*)\);", r"\1block = dim3(0, 0, 0);"),
-        ):
-            src = re.sub(pat, rep, src)
+
+        # DELETE the declaration, do not REWRITE it as an assignment.
+        #
+        # My first version rewrote `const int N = 4096;` to `N = 0;`, which
+        # sits inside the kernel's own main and therefore runs AFTER the driver
+        # has set N. Every spec reset N to 0, allocated zero bytes, launched a
+        # kernel that computed nothing, and came back at 87.3% under 7.1's
+        # medians with 100% of rows "faster". A result that uniform is not a
+        # finding, it is a measurement of nothing -- and the tell was that it
+        # was too consistent.
+        for pat in (r"[ \t]*const int N = \d+;\n",
+                    r"[ \t]*dim3 grid\([^)]*\);\n",
+                    r"[ \t]*dim3 block\([^)]*\);\n"):
+            src = re.sub(pat, "", src)
+
         renamed, n = re.subn(r"int\s+main\s*\(\s*void\s*\)",
                              f'extern "C" int u2o_run_{k}(void)', src)
         if n != 1:
@@ -136,14 +144,11 @@ def build_per_kernel_executables(specs: list, td: Path) -> tuple:
                 f"FATAL: synthesize() emitted {n} main() for spec {i}; "
                 f"refusing to guess, because guessing is the confound.")
         cu = td / f"k{k}.cu"
-        # extern, NOT a definition: the driver owns these. Defining them in
-        # every translation unit is the same one-definition-one-place violation
-        # as before, reached from the other direction.
-        # INDIVIDUAL externs, not `extern "C" { int N; ... }`. In C++ that
-        # block is a DEFINITION, not a declaration, so eight translation units
-        # each defined N/grid/block and the linker rejected it -- twice, because
-        # the first "fix" made them extern in the wrong direction. A block of
-        # externs is not a block of declarations.
+        # INDIVIDUAL externs, not `extern "C" { int N; ... }`. In C++ that block
+        # is a DEFINITION, not a declaration, so eight translation units each
+        # defined N/grid/block and the linker rejected it -- twice, because the
+        # first "fix" made them extern in the wrong direction. A block of externs
+        # is not a block of declarations.
         cu.write_text('extern "C" int N;\nextern "C" dim3 grid;\n'
                       'extern "C" dim3 block;\n' + renamed)
         obj = td / f"k{k}.o"
@@ -172,13 +177,27 @@ def main() -> int:
     specs, provenance = load_specs()
     if args.limit:
         specs = specs[:args.limit]
-    print(f"per-kernel experiment: {len(specs)} specs over {0} distinct "
-          f"kernels, each its own nvcc -c translation unit", flush=True)
+    # REPORTED, NOT HARDCODED. The previous line printed a literal 0 for the
+    # distinct-kernel count -- a hardcoded number in a status line, which is the
+    # cheapest possible version of the defect this project has catalogued all
+    # night: a value that looks like a measurement and is not one. It also hid
+    # the question that matters, which is how many translation units the build
+    # ACTUALLY produced.
+    n_distinct = len({s["source"] for s in specs})
+    print(f"per-kernel experiment: {len(specs)} specs over {n_distinct} distinct "
+          f"kernel source(s); each distinct source gets its own nvcc -c "
+          f"translation unit", flush=True)
 
     t_build = time.time()
     objs, idxs, spec_to_kernel = build_per_kernel_executables(specs, td)
     build_sec = time.time() - t_build
-    print(f"built {len(specs)} per-kernel objects in {build_sec:.1f}s", flush=True)
+    # The previous line printed len(specs) -- 264 -- under the words "built N
+    # per-kernel objects". It was not lying about the build, it was mislabelled,
+    # and it hid the number that would have shown the dedup working: 8, not 264.
+    # A status line that reports the wrong quantity is the cheapest version of
+    # the defect this project has catalogued all night.
+    print(f"built {len(idxs)} per-kernel translation units from {len(specs)} "
+          f"specs in {build_sec:.1f}s", flush=True)
     if not provenance.get("proven_identical", True):
         raise SystemExit(
             f"FATAL: the regenerated sweep is not verifiably 7.1's: "
@@ -199,9 +218,29 @@ def main() -> int:
         f"        {{ int n={s['problem_size']}; int g={s['grid'][0]}; "
         f"int b={s['block'][0]}; N=n; grid=dim3(g,1,1); block=dim3(b,1,1); }}"
         for s in specs)
+    tpl = (HERE / "perkernel_loop.cu.in").read_text()
+    # A bare %s or %d in the template is a POSITIONAL specifier, so the whole
+    # substitution fails with "not enough arguments" and the error points at the
+    # wrong line. It cost me a job to add DISPATCH_FAIL with three unescaped %d.
+    # So the check is made here, before the write, where it is legible.
+    import re as _re
+    # Mask the escaped pairs FIRST, then look for what is left. My first guard
+    # used a negative lookahead instead, which does not consume the first '%' of
+    # a '%%' pair, so every correctly-escaped literal was reported as bare -- a
+    # FALSE ALARM in the very check meant to catch false alarms, and I nearly
+    # "fixed" correct code because of it. Mask, then scan.
+    masked = _re.sub(r"%%", "\x00", tpl)
+    bare = [m.group(0) for m in _re.finditer(r"%[a-z]", masked)]
+    if bare:
+        raise SystemExit(
+            f"FATAL: perkernel_loop.cu.in has bare format specifiers {bare}. "
+            f"Every literal C % must be written %% or the substitution fails "
+            f"with 'not enough arguments for format string', which names the "
+            f"wrong line entirely.")
     driver = td / "loop.cu"
-    driver.write_text((HERE / "perkernel_loop.cu.in").read_text() % {
+    driver.write_text(tpl % {
         "decls": decls, "switch": switch, "geom": geom,
+        "kmapping": ", ".join(str(k) for k in spec_to_kernel),
                                       "geom": geom})
     loop_exe = td / "loop"
     b = subprocess.run(
@@ -215,7 +254,12 @@ def main() -> int:
                        capture_output=True, text=True, timeout=1800)
     wall = time.time() - t0
     if r.returncode != 0:
-        raise SystemExit(f"FATAL: loop exited {r.returncode}\n{r.stderr[-1500:]}")
+        raise SystemExit(
+            f"FATAL: loop exited {r.returncode}\n"
+            f"  stderr: {r.stderr.strip()[-600:]}\n"
+            f"  the driver now names the failing spec (DISPATCH_FAIL spec=N); if "
+            f"that line is absent the failure is before the first dispatch, i.e. "
+            f"in the build or the link, not in a kernel.")
 
     # parse: 7.1's synthesized drivers print {"trial":..,"time_ms":..}
     per_spec, cur = {}, None
@@ -267,6 +311,9 @@ def main() -> int:
         "bead": "gpu-sim-u2o.6.7.1",
         "mode": "perkernel",
         "spec_provenance": provenance,
+        "n_specs": len(specs),
+        "n_distinct_kernel_sources": n_distinct,
+        "n_translation_units_built": len(idxs),
         "what_this_is": (
             "7.1's OWN per-kernel synthesized binaries, each compiled as its own "
             "translation unit with its own per-kernel cudaMalloc calls, all "

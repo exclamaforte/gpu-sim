@@ -31,9 +31,17 @@ dim3 block;
 
 %(decls)s
 
-static int u2o_dispatch(int i)
+/* SPEC index -> KERNEL index. The switch below is keyed by kernel, because
+ * 264 specs share 8 sources. Dispatching by SPEC index hit no case from spec 8
+ * onward and returned 2 -- which is how "loop exited 3" finally became
+ * "spec=8 rc=2" and stopped being a bisect over 264. */
+static const int SPEC_TO_KERNEL[] = {
+%(kmapping)s
+};
+
+static int u2o_dispatch(int kidx)
 {
-    switch (i) {
+    switch (kidx) {
 %(switch)s
     }
     return 2;
@@ -51,8 +59,18 @@ int main(int argc, char **argv)
 %(geom)s
             printf("BEGIN %%d %%d\n", i, inv);
             fflush(stdout);
-            if (u2o_dispatch(i) != 0)
-                return 3;
+            {
+                int rc = u2o_dispatch(SPEC_TO_KERNEL[i]);
+                if (rc != 0) {
+                    /* NAME THE VICTIM. The previous form returned 3 bare, so a
+                     * failure at spec 200 was indistinguishable from one at spec
+                     * 0 and the next person has to bisect 264 specs by hand. */
+                    fprintf(stderr, "DISPATCH_FAIL spec=%%d inv=%%d rc=%%d\n", i, inv, rc);
+                    printf("FAILED %%d %%d\n", i, inv);
+                    fflush(stdout);
+                    return 3;
+                }
+            }
             printf("END %%d %%d\n", i, inv);
             fflush(stdout);
         }
