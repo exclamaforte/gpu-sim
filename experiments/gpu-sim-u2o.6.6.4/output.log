@@ -1,0 +1,13 @@
+launch fit: t_us = 1.891 + 4.622e-04 * blocks (6 empty cells)
+  band <=4K       cells= 21  min=  100.0%  max=  99.8%  +launch=  31.3%
+  band 4K-256K    cells= 25  min=  100.0%  max=  97.0%  +launch=  28.5%
+  band 256K-16M   cells= 47  min=   99.9%  max=  91.0%  +launch=  63.2%
+  band >16M       cells= 22  min=   99.8%  max=  45.5%  +launch=  46.2%
+=== residual (median % of measured) by form and ceiling ===
+  anchor_argmax    roofline[min, as specified]=  100.0%  roofline[max, correct]=   96.2%  +launch=   32.7%
+  spec_1790        roofline[min, as specified]=  100.0%  roofline[max, correct]=   96.2%  +launch=   31.5%
+  disputed_1541    roofline[min, as specified]=  100.0%  roofline[max, correct]=   96.2%  +launch=   32.7%
+  low_1200         roofline[min, as specified]=  100.0%  roofline[max, correct]=   95.4%  +launch=   33.8%
+
+plain roofline within 10% from n = None
+launch-corrected within 10% from n = None
