@@ -2,3 +2,5 @@ populated 264/264 rows (all source-verified by hash)
 vector_dim: 28
 distinct vectors as written : 5
 distinct vectors with fix   : 165
+cardinality gate            : PASSED
+residual collision          : 66 colliding groups covering 165 rows; 66 of them span MORE THAN ONE op_type, 0 are within a single family. The residual collision is therefore the FAMILY axis: a purely static feature vector has no op-identity field, so add, mul and div at the same size and launch are the same vector. That is a property of the channel, not a bug, and it is why the numeric vector cannot substitute for the token channel's family signal -- 7.7 needs family holdout precisely because of it.

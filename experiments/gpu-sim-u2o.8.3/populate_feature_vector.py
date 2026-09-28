@@ -31,6 +31,9 @@ from epic_u2o.features import (  # noqa: E402
     LaunchConfig, extract_features,
 )
 from epic_u2o.generator_stage1 import generate_kernels  # noqa: E402
+from epic_u2o.representation_cardinality import (  # noqa: E402
+    CardinalityError, assert_cardinality, check_cardinality,
+)
 
 DATASET_REF = "lab/gpu-sim-u2o.7.1"
 DATASET = "experiments/gpu-sim-u2o.7.1/measured.jsonl"
@@ -79,6 +82,35 @@ def load_rows() -> list:
             f"This experiment populates the vector from the REAL measured "
             f"dataset. A synthetic stand-in would make every number fiction.")
     return [json.loads(l) for l in r.stdout.splitlines() if l.strip()]
+
+
+def _residual_collision(feats: list, rows: list) -> str:
+    """Why distinct < n even after the fix. Names the axis, not just the number.
+
+    Answered here rather than left as '165 of 264' because a ratio without a
+    cause is the same failure one level up.
+    """
+    from collections import defaultdict
+    groups = defaultdict(list)
+    for f in feats:
+        groups[tuple(f["vector"])].append(f)
+    colliding = [v for v in groups.values() if len(v) > 1]
+    if not colliding:
+        return ""
+    cross_family = sum(1 for v in colliding
+                       if len({x["op_type"] for x in v}) > 1)
+    same_config = sum(
+        1 for v in colliding
+        if len({(x["op_type"], x["problem_size"]) for x in v}) == 1)
+    return (f"{len(colliding)} colliding groups covering "
+            f"{sum(len(v) for v in colliding)} rows; {cross_family} of them "
+            f"span MORE THAN ONE op_type, {same_config} are within a single "
+            f"family. The residual collision is therefore the FAMILY axis: a "
+            f"purely static feature vector has no op-identity field, so add, "
+            f"mul and div at the same size and launch are the same vector. "
+            f"That is a property of the channel, not a bug, and it is why the "
+            f"numeric vector cannot substitute for the token channel's family "
+            f"signal -- 7.7 needs family holdout precisely because of it.")
 
 
 def _spearman(xs: list, ys: list) -> float:
@@ -186,6 +218,27 @@ def main() -> int:
             "total_threads": d["grid_x"] * d["block_x"],
         })
 
+    # The legitimate ceiling: how many DISTINCT launch configurations the rows
+    # actually contain. Measured, not assumed -- if rows genuinely duplicate,
+    # the ceiling is below n_rows and the ratio means something different.
+    ceiling = len({(r["op_type"], r["problem_size"],
+                    tuple(r["launch_config"]["grid"]),
+                    tuple(r["launch_config"]["block"])) for r in rows})
+    residual = _residual_collision(feats, rows)
+
+    # THE GATE. The PI's point about 264-to-5: the number was correctly named,
+    # correctly computed and correctly reported, and nothing asked what it
+    # IMPLIES. So the implication is now asserted against the ceiling, and a
+    # collapse is a non-zero exit rather than a line in metrics.json.
+    naive_report = check_cardinality(
+        len(rows), len(vectors_as_written), context="feature vector AS WRITTEN",
+        ceiling=ceiling, ceiling_basis="distinct (op_type, n, grid, block)")
+    fixed_report = check_cardinality(
+        len(rows), len(vectors_fixed),
+        context="feature vector with measured launch + problem size",
+        ceiling=ceiling, ceiling_basis="distinct (op_type, n, grid, block)",
+        residual_note=residual)
+
     out = {
         "bead": "gpu-sim-u2o.8.3",
         "dataset": f"{DATASET_REF}:{DATASET}",
@@ -204,6 +257,16 @@ def main() -> int:
             "n_rows": len(feats),
         },
         "vector_dim": feats[0]["vector_dim"] if feats else 0,
+        "cardinality_gate": {
+            "n_distinct_configs_in_the_rows": ceiling,
+            "as_written": naive_report.to_dict(),
+            "corrected": fixed_report.to_dict(),
+            "note": ("The AS-WRITTEN row is expected to be COLLAPSED and is "
+                     "reported as such deliberately: it is the measurement of "
+                     "the defect, and asserting against it would fail the run "
+                     "that documents the bug. The CORRECTED row is the gate: "
+                     "if a future change collapses it, the run stops."),
+        },
         "finding": (
             "Populated for the first time from real measured rows. Before the "
             "fix the vector collapsed all 264 rows to "
@@ -221,6 +284,19 @@ def main() -> int:
     # the label it is supposed to explain does not move.
     out["does_the_vector_track_the_label"] = _label_dynamics(feats)
 
+    # FAIL CLOSED on the corrected representation. The as-written figure is
+    # reported without asserting, because refusing to emit the artifact that
+    # documents the defect would hide the defect.
+    try:
+        assert_cardinality(
+            len(rows), len(vectors_fixed),
+            context="feature vector with measured launch + problem size",
+            ceiling=ceiling, ceiling_basis="distinct (op_type, n, grid, block)",
+            residual_note=residual)
+        gate = "PASSED"
+    except CardinalityError as exc:
+        gate = f"FAILED: {exc}"
+
     (HERE / "metrics.json").write_text(json.dumps(out, indent=2))
     with (HERE / "features.jsonl").open("w") as fh:
         for f in feats:
@@ -231,7 +307,10 @@ def main() -> int:
     print(f"vector_dim: {out['vector_dim']}")
     print(f"distinct vectors as written : {len(vectors_as_written)}")
     print(f"distinct vectors with fix   : {len(vectors_fixed)}")
-    return 0
+    print(f"cardinality gate            : {gate}")
+    if residual:
+        print(f"residual collision          : {residual}")
+    return 0 if gate == "PASSED" else 1
 
 
 if __name__ == "__main__":

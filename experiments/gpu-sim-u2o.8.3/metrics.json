@@ -15,6 +15,34 @@
     "n_rows": 264
   },
   "vector_dim": 28,
+  "cardinality_gate": {
+    "n_distinct_configs_in_the_rows": 264,
+    "as_written": {
+      "n_rows": 264,
+      "n_distinct": 5,
+      "ratio": 0.0189,
+      "floor_ratio": 0.25,
+      "verdict": "COLLAPSED",
+      "context": "feature vector AS WRITTEN",
+      "ceiling": 264,
+      "ceiling_basis": "distinct (op_type, n, grid, block)",
+      "residual_note": "",
+      "passed": false
+    },
+    "corrected": {
+      "n_rows": 264,
+      "n_distinct": 165,
+      "ratio": 0.625,
+      "floor_ratio": 0.25,
+      "verdict": "PARTIAL",
+      "context": "feature vector with measured launch + problem size",
+      "ceiling": 264,
+      "ceiling_basis": "distinct (op_type, n, grid, block)",
+      "residual_note": "66 colliding groups covering 165 rows; 66 of them span MORE THAN ONE op_type, 0 are within a single family. The residual collision is therefore the FAMILY axis: a purely static feature vector has no op-identity field, so add, mul and div at the same size and launch are the same vector. That is a property of the channel, not a bug, and it is why the numeric vector cannot substitute for the token channel's family signal -- 7.7 needs family holdout precisely because of it.",
+      "passed": true
+    },
+    "note": "The AS-WRITTEN row is expected to be COLLAPSED and is reported as such deliberately: it is the measurement of the defect, and asserting against it would fail the run that documents the bug. The CORRECTED row is the gate: if a future change collapses it, the run stops."
+  },
   "finding": "Populated for the first time from real measured rows. Before the fix the vector collapsed all 264 rows to 5 distinct value(s), because extract_launch_config() returns a 1-block default for a kernel DEFINITION (which contains no <<< >>> launch site) and because KernelFeatures had no problem_size field at all. With the measured launch and problem size it separates 165 of 264 rows. This is the numeric-feature counterpart of gpu-sim-u2o.7.7's tokenizer finding: the representation could not see the two things that determine runtime.",
   "does_the_vector_track_the_label": {
     "spearman_vs_measured_median_ms": {

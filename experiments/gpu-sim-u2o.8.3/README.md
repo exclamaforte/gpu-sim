@@ -66,7 +66,49 @@ things, and **it cannot be judged on this data**. Judging it needs 7.1's dataset
 extended past 2^18 into memory-bound territory — which is also what unblocks
 9.4, 9.5, 9.2 and 8.4, all of which consume this vector.
 
-13 tests, 0 failures, CPU only.
+13 tests, 0 failures, CPU only, plus 13 more for the cardinality gate below.
+
+## The cardinality gate: asserting what the number IMPLIES
+
+I reported `distinct_vectors: 5` for 264 rows — correctly named, correctly
+computed, correctly reported — and **nothing asked what 5-over-264 means.**
+That is the same shape as 6.6.3's `discriminates` boolean, 6.6.4's band table
+disagreeing with its own headline, and 7.7's 264-to-8 tokenizer collapse: a
+derived value that is true, named, reported, and meaningless at the magnitude it
+is reported.
+
+`epic_u2o/representation_cardinality.py` closes it:
+
+| representation | distinct / rows | ratio | verdict |
+|---|---|---|---|
+| feature vector, as written | 5 / 264 | 1.9% | **COLLAPSED** |
+| token digest (7.7) | 8 / 264 | 3.0% | COLLAPSED |
+| feature vector, corrected | 165 / 264 | 62.5% | **PARTIAL** (passes) |
+
+The **ceiling is measured, not assumed**: the 264
+rows are all distinct `(op_type, n, grid, block)` configurations, so a
+representation that separated every one of them would reach 264. The floor
+(25%) is a *decision*, recorded with its reasoning, sitting in a wide empty gap
+between the 1.9% collapse and the 62.5% working value — not a constant fitted to
+make the code pass. It is a floor, not a target: separating more is never
+penalised, and lowering it is allowed but must be deliberate.
+
+The as-written figure is **reported** rather than asserted, deliberately:
+refusing to emit the artifact that documents the defect would hide the defect.
+The corrected one is **asserted**, and a future collapse is a non-zero exit.
+
+### The residual collision, and why it is the family axis
+
+Even corrected, 165 of 264 — and the cause is not noise:
+
+> 66 colliding groups covering 165 rows; 66 of them span MORE THAN ONE op_type, 0 are within a single family. The residual collision is therefore the FAMILY axis: a purely static feature vector has no op-identity field, so add, mul and div at the same size and launch are the same vector. That is a property of the channel, not a bug, and it is why the numeric vector cannot substitute for the token channel's family signal -- 7.7 needs family holdout precisely because of it.
+
+A purely static feature vector has no op-identity field, so `add`, `mul` and
+`div` at the same size and launch are the *same vector*. That is a property of
+the channel rather than a bug, and it is the reason 7.7 needs family holdout:
+**the numeric vector cannot substitute for the token channel's family signal.**
+The two channels are complementary, and a ratio without a cause would have been
+the same omission one level up.
 
 ## Relationship to 7.7
 
