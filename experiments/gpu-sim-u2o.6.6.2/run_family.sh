@@ -12,6 +12,20 @@ cd "$HERE"
 # generic substring made every one of them claim the same JOB_ID.
 export U2O_JOB_DESC="u2o.6.6.2 anchor: $FAM"
 
+# GATE, not a report. Four GPU jobs died on 'name os is not defined', which
+# 'python3 -c "import measure_family"' catches on the CPU in a second. Nothing
+# reaches the queue without this passing.
+GATE="$HERE/preflight_static.py"
+if [ ! -f "$GATE" ]; then
+    echo "FATAL: submission gate $GATE is missing; refusing to submit."
+    exit 3
+fi
+if ! python3 "$GATE"; then
+    echo "FATAL: submission gate FAILED; refusing to submit to the queue."
+    exit 3
+fi
+echo "submission gate: PASS"
+
 echo "=== ts job $(date -Is) family=$FAM ==="
 python3 measure_family.py "$FAM" 2>&1 | tee "output_${FAM}.log"
 rc=${PIPESTATUS[0]}
