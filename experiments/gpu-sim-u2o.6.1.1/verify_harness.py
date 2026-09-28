@@ -42,26 +42,89 @@ CASES = [
 ]
 
 
+# Fields that decide whether a timing is comparable to another timing: the
+# clocks and temperature the part ran at, and whether it was throttled. An
+# identity string (name, driver) does not -- it is the same all day while the
+# clock moves by 15x. Read-only queries; never inside a queued job's GPU work.
+# Only fields this driver actually accepts: `clocks.mem.max` is NOT a valid
+# field on this part, and one bad name makes nvidia-smi reject the WHOLE
+# query -- which is how the first version of this reader silently captured
+# nothing at all. Validated per call, below, and the accepted list is
+# recorded in the artifact.
+TELEMETRY_FIELDS = [
+    "clocks.sm", "clocks.max.sm",
+    "temperature.gpu", "power.draw", "power.limit",
+    "clocks_throttle_reasons.active", "persistence_mode",
+    "utilization.gpu", "memory.used",
+]
+
+
 def gpu_identity() -> dict:
-    """Device identity read via nvidia-smi (inside the queued job only)."""
+    """Device identity AND live state (gpu-sim-u2o.6.6.5).
+
+    Read-only nvidia-smi queries. This records the machine state either side
+    of the measurement, because a difference between two runs is only
+    interpretable once you can rule out a different clock state, a different
+    temperature, or throttling.
+    """
     info = {}
+    names = ["name", "driver_version", "memory.total"] + TELEMETRY_FIELDS
     try:
         r = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name,driver_version,memory.total",
+            ["nvidia-smi", "--query-gpu=" + ",".join(names),
              "--format=csv,noheader"],
             capture_output=True, text=True, timeout=30)
         info["nvidia_smi_rc"] = r.returncode
         info["nvidia_smi"] = r.stdout.strip()
+        head = r.stdout.strip().splitlines()[0].split(",") if r.stdout.strip() else []
+        if r.returncode == 0 and len(head) == len(names):
+            info["fields"] = dict(zip(names, [v.strip() for v in head]))
+        else:
+            # Record the failure rather than emitting a snapshot with no
+            # fields: an empty dict reads like "the device told us nothing",
+            # which is exactly the ambiguity this bead exists to remove.
+            info["fields"] = {}
+            info["query_rejected"] = r.stderr.strip()[:300] or (
+                f"expected {len(names)} columns, got {len(head)}")
+            # Per-field retry: one unsupported field should cost that field,
+            # not the whole snapshot.
+            recovered = {}
+            for n in names:
+                rr = subprocess.run(["nvidia-smi", f"--query-gpu={n}",
+                                     "--format=csv,noheader"],
+                                    capture_output=True, text=True, timeout=30)
+                if rr.returncode == 0 and rr.stdout.strip():
+                    recovered[n] = rr.stdout.strip().splitlines()[0].strip()
+            if recovered:
+                info["fields"] = recovered
+                info["partial"] = sorted(set(names) - set(recovered))
     except Exception as e:  # pragma: no cover
         info["nvidia_smi_error"] = str(e)
     return info
 
 
+def telemetry(label: str) -> dict:
+    """Timestamped device state, either side of the measurement."""
+    snap = gpu_identity()
+    snap["label"] = label
+    snap["at"] = time.time()
+    snap["at_iso"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+    return snap
+
+
+def throttled(snap: dict) -> bool:
+    f = (snap or {}).get("fields", {})
+    v = f.get("clocks_throttle_reasons.active", "")
+    return v not in ("", "0x0000000000000000", "Not Supported")
+
+
 def main() -> int:
     print(f"host={platform.node()} python={platform.python_version()}")
     print(f"CUDA_VISIBLE_DEVICES={os.environ.get('CUDA_VISIBLE_DEVICES', '')}")
-    ident = gpu_identity()
-    print(f"gpu: {ident.get('nvidia_smi')!r}")
+    tel_before = telemetry("before")
+    print(f"gpu: {tel_before.get('nvidia_smi')!r}", flush=True)
+    print("telemetry before: " + json.dumps(tel_before.get("fields", {})),
+          flush=True)
 
     harness = SafeHarness(timeout_sec=60, gpu_id=0, log_dir=str(HERE / "harness_logs"))
     results = []
@@ -121,10 +184,25 @@ def main() -> int:
         [{"id": j["id"], "state": j["state"], "description": j["description"]}
          for j in q_before["other_active_jobs"]]), flush=True)
 
+    tel_after = telemetry("after")
+    print("telemetry after: " + json.dumps(tel_after.get("fields", {})), flush=True)
+
+    ident = tel_before
+    throttling_observed = throttled(tel_before) or throttled(tel_after)
+    if throttling_observed:
+        # Recorded, never filtered: deciding what to do about a throttled
+        # sample is a design question (6.6.3), not a hygiene one.
+        print("WARNING: throttle reasons were non-zero during this run. The "
+              "measurements are recorded as they are; nothing is discarded.",
+              flush=True)
+
     summary = {
         "bead": "gpu-sim-u2o.6.1.1",
         "what": "end-to-end SafeHarness.measure_spec() on the real RTX 5090",
         "device": ident,
+        "telemetry_before": tel_before,
+        "telemetry_after": tel_after,
+        "throttling_observed": throttling_observed,
         "measurement_version": 2,
         "supersedes": {
             "measurement_version": 1,
