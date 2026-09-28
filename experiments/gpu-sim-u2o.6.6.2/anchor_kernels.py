@@ -21,6 +21,80 @@ Launch configs deliberately include poor ones (1 block, and max block 1024)
 so the sweep has dynamic range instead of only measuring the best case.
 """
 
+# ---------------------------------------------------------------------------
+# LIFTED FROM epic_u2o/generator_stage3.py on 2026-09-28 -- ONE TIME.
+#
+# Why lift rather than invent (PI ruling, gpu-sim-u2o.6.6.2): the review found
+# my hand-written k_strided_copy was byte-equivalent in behaviour to k_copy
+# (both fully coalesced, both stepping by gridDim.x*blockDim.x), so the memory
+# family had three distinct patterns, not four, and the published ceiling came
+# from a duplicate. Lifting stage3's kernels makes the anchor and the generator
+# KNOWN to mean the same thing rather than merely similar, so a later
+# divergence becomes detectable instead of silent.
+#
+# The exact source text of each lifted kernel is kept below beside the copy,
+# which is what makes that comparison possible at all.
+#
+# THIS LIFT IS ONE-TIME. The anchor does NOT track the generator after this
+# point: if stage3's strided kernel changes later, the anchor stays frozen at
+# this text and the divergence becomes visible.
+LIFTED_SOURCE = {
+    "k_strided_read": """
+__global__ void strided_read(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i * stride < n) out[i] = in[i * stride];
+}
+""",
+    "k_scatter_write": """
+__global__ void scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) out[indices[i]] = in[i];
+}
+""",
+    "k_random_access": """
+__global__ void random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        unsigned int seed = seeds[i];
+        // Simple LCG for pseudo-random access
+        seed = seed * 1664525u + 1013904223u;
+        int idx = seed % n;
+        out[i] = in[idx];
+    }
+}
+""",
+}
+
+# the anchor's own copies, renamed with the k_ prefix used by the rest of this
+# file so kernel_name and source cannot drift apart
+SRC_STRIDED_READ = """\
+__global__ void k_strided_read(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i * stride < n) out[i] = in[i * stride];
+}
+"""
+
+SRC_SCATTER_WRITE = """\
+__global__ void k_scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) out[indices[i]] = in[i];
+}
+"""
+
+SRC_RANDOM_ACCESS = """\
+__global__ void k_random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        unsigned int seed = seeds[i];
+        // Simple LCG for pseudo-random access
+        seed = seed * 1664525u + 1013904223u;
+        int idx = seed % n;
+        out[i] = in[idx];
+    }
+}
+"""
+
+
 import re
 
 # ---------------------------------------------------------------------------
@@ -66,15 +140,6 @@ __global__ void k_copy(const float *src, float *dst, int n) {
 }
 """
 
-# Strided copy: same bytes moved, very different access pattern. This is the
-# "different access width" variant the bead asks for.
-SRC_STRIDED_COPY = """
-__global__ void k_strided_copy(const float *src, float *dst, int n) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = gridDim.x * blockDim.x;
-    for (int j = i; j < n; j += stride) dst[j] = src[j];
-}
-"""
 
 SRC_BLOCK_SUM = """
 /* REDUCE_TILE must be >= the largest blockDim in the sweep (1024). The first
@@ -150,6 +215,19 @@ GEMM_A = {"name": "A", "type": "const float*", "ptr": True}
 GEMM_B = {"name": "B", "type": "const float*", "ptr": True}
 GEMM_C = {"name": "C", "type": "float*", "ptr": True}
 F_ALPHA = {"name": "alpha", "type": "float", "ptr": False}
+# Extra argument types for the lifted access-pattern kernels. The driver
+# synthesiser sizes EVERY pointer argument at problem_size elements, so the
+# index/seed buffers are over-allocated exactly like the data buffers -- see
+# gpu-sim-9ti's corrected note; kernel TIMING is unaffected because the
+# allocation and the H2D fill sit outside the cudaEvent region.
+INT_STRIDE = {"name": "stride", "type": "int", "ptr": False}
+INT_IDX = {"name": "indices", "type": "const int*", "ptr": True}
+INT_SEED = {"name": "seeds", "type": "const unsigned int*", "ptr": True}
+
+# Runtime stride for the lifted strided kernel: a genuine cache-line-crossing
+# step, independent of the launch geometry (that is the whole point -- the
+# previous k_strided_copy stepped by gridDim.x*blockDim.x, i.e. it was k_copy).
+STRIDE = 17
 
 
 def configs(family: str) -> list[dict]:
@@ -189,10 +267,21 @@ def configs(family: str) -> list[dict]:
                 out.append((_spec("k_copy", SRC_COPY, g, (block, 1, 1),
                                   [F32_IN, F32_OUT, INT_N], n,
                                   op_type="memory"), f"copy n={n} {tag}"))
-                out.append((_spec("k_strided_copy", SRC_STRIDED_COPY, g,
-                                  (block, 1, 1), [F32_IN, F32_OUT, INT_N], n,
-                                  op_type="memory"),
-                            f"strided_copy n={n} {tag}"))
+                out.append((_spec("k_strided_read", SRC_STRIDED_READ, g,
+                                  (block, 1, 1),
+                                  [F32_IN, F32_OUT, INT_N, INT_STRIDE], n,
+                                  op_type="access"),
+                            f"strided_read n={n} stride={STRIDE} {tag}"))
+                out.append((_spec("k_scatter_write", SRC_SCATTER_WRITE, g,
+                                  (block, 1, 1),
+                                  [F32_IN, F32_OUT, INT_IDX, INT_N], n,
+                                  op_type="access"),
+                            f"scatter_write n={n} {tag}"))
+                out.append((_spec("k_random_access", SRC_RANDOM_ACCESS, g,
+                                  (block, 1, 1),
+                                  [F32_IN, F32_OUT, INT_SEED, INT_N], n,
+                                  op_type="access"),
+                            f"random_access n={n} {tag}"))
         return out
 
     if family == "reduce":

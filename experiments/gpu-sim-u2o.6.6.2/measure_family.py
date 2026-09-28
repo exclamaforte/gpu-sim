@@ -25,7 +25,10 @@ sys.path.insert(0, str(HERE))
 
 from epic_u2o.kernel_driver import synthesize  # noqa: E402
 from epic_u2o.safe_harness import SafeHarness  # noqa: E402
+from epic_u2o import queue_state as qs  # noqa: E402
 import anchor_kernels  # noqa: E402
+
+OWN_JOB_DESCRIPTION = os.environ.get("U2O_JOB_DESC", "u2o.6.6.2 anchor")
 
 TRIALS = 100
 INVOCATIONS = 3          # independent PROCESSES, not trials
@@ -86,6 +89,22 @@ def measure_family(family: str) -> dict:
     tel_before = telemetry("before")
     print("telemetry before: " + json.dumps(tel_before.get("fields", tel_before)),
           flush=True)
+
+    # Item 8 / the PI's standing rule: record the queue state and any
+    # overlapping JOB_IDs at measurement time, or the artifact is unauditable
+    # and must be treated as unverified. This is the matched half of 6.1.1's
+    # item 6: the three-axis diff needs BOTH sides to carry it. Record only --
+    # no contention detection and no sample discarded on the basis of this
+    # (that is 6.6.3's question).
+    q_before = qs.queue_state(own_description_substr=OWN_JOB_DESCRIPTION,
+                              own_command_substr="run_family.sh")
+    print("queue before: " + json.dumps(
+        {k: q_before[k] for k in ("own_job_id", "n_other_active",
+                                   "n_other_running_at_sample_time")}),
+        flush=True)
+    print("overlapping jobs: " + json.dumps(
+        [{"id": j["id"], "state": j["state"], "description": j["description"]}
+         for j in q_before["other_active_jobs"]]), flush=True)
 
     harness = SafeHarness(timeout_sec=180, vram_limit_mb=24576)
     configs = anchor_kernels.configs(family)
@@ -165,9 +184,13 @@ def measure_family(family: str) -> dict:
     tel_after = telemetry("after")
     print("telemetry after:  " + json.dumps(tel_after.get("fields", tel_after)),
           flush=True)
+    q_after = qs.queue_state(own_description_substr=OWN_JOB_DESCRIPTION,
+                             own_command_substr="run_family.sh")
     return {
         "bead": "gpu-sim-u2o.6.6.2",
         "family": family,
+        "queue_state_before": q_before,
+        "queue_state_after": q_after,
         "preflight_bypassed": True,
         "preflight_bypass_reason": ("preflight_check executes on the real GPU "
                                     "(PI ruling 6.1.1); the anchor exists to be "

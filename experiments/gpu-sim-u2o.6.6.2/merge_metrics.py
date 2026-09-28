@@ -55,7 +55,41 @@ def main() -> int:
     # n=2^26 cell sustains ~1.5 TB/s, which is the number a roofline wants.
     # L2 residency is recorded per cell so a consumer can see which is which.
     # measured elementwise case achieves (the memory-bound ceiling here).
-    mem = [c for c in ok if c["op_type"] == "memory" and "auto/256" in c["label"]]
+    # BYTE CONVENTION, stated once and applied to every bandwidth number:
+    #   bytes moved = n * sizeof(float) per READ buffer + n * sizeof(float) per
+    #   WRITE buffer, where a pointer argument is read, written, or both
+    #   depending on the kernel. That count is derived per cell from the
+    #   kernel's argument roles, NOT from a single global assumption -- the
+    #   previous revision assumed 2*n*4 for everything, which is right for
+    #   copy/relu (one read + one write) and wrong for saxpy (two reads + one
+    #   write) and for the lifted access kernels (index/seed buffers count
+    #   too). Mixing conventions in one max() is what made the old ceiling
+    #   unattributable.
+    import anchor_kernels as ak
+    ak_stride = lambda: ak.STRIDE
+    READS = {"k_saxpy": 2, "k_relu": 1, "k_copy": 1, "k_strided_read": 1,
+             "k_scatter_write": 1, "k_random_access": 1}
+    WRITES = {"k_saxpy": 1, "k_relu": 1, "k_copy": 1, "k_strided_read": 1,
+              "k_scatter_write": 1, "k_random_access": 1}
+    INT_BYTES = 4          # the index/seed buffers are 4-byte integers
+
+    def bytes_moved(c) -> int:
+        k = c["kernel"]
+        if k not in READS:
+            return 0
+        # strided_read touches only 1/stride of the input, so it moves less;
+        # scatter/random move one element per thread, not a full buffer.
+        n = c["n_problem_size"]
+        per = READS[k] + WRITES[k]
+        if k == "k_strided_read":
+            eff = max(1, n // ak_stride())
+            return eff * 4 + n * 4          # reads n/stride, writes n
+        if k in ("k_scatter_write", "k_random_access"):
+            return n * 4 + n * 4            # data + index/seed, both streamed
+        return n * per * 4
+
+    mem = [c for c in ok
+           if c["op_type"] in ("memory", "access") and "auto/256" in c["label"]]
     ceiling_bytes_per_s = 0.0
     for c in mem:
         n = c["n_problem_size"]
@@ -69,9 +103,25 @@ def main() -> int:
         # largest (HBM-bound) n, not from the maximum
         c["_bps"] = bps
         c["_working_set_mb"] = 2 * n * 4 / 1048576.0
-    hbm_cells = [c for c in mem if c["n_problem_size"] == max(x["n_problem_size"] for x in mem)]
-    ceiling_bytes_per_s = max(c["_bps"] for c in hbm_cells) if hbm_cells else 0.0
-    ceiling_source_label = hbm_cells[0]["label"] if hbm_cells else None
+    # CEILING = the ARGMAX INDEX, never `max(...)[0]`. The previous revision
+    # took max() over a candidate set and then labelled the result with
+    # hbm_cells[0], which is the FIRST element of the set, not the argmax: the
+    # published "1541.3 GB/s from saxpy" was actually strided_copy's figure
+    # under a 2-buffer convention. Nothing about a ceiling is defensible if the
+    # number and the label come from different cells. The full ranked list is
+    # emitted so the choice is checkable.
+    ranked = sorted(mem, key=lambda c: -c["_bps"])
+    ceiling_cell = ranked[0] if ranked else None
+    ceiling_bytes_per_s = ceiling_cell["_bps"] if ceiling_cell else 0.0
+    ceiling_source_label = ceiling_cell["label"] if ceiling_cell else None
+    ceiling_candidates = [
+        {"label": c["label"], "kernel": c["kernel"],
+         "n_problem_size": c["n_problem_size"],
+         "median_ms": c["median_ms"],
+         "bytes_moved": bytes_moved(c),
+         "achieved_GBps": c["_bps"] / 1e9,
+         "l2_resident": 2 * c["n_problem_size"] * 4 / 1048576.0 <= 96}
+        for c in ranked[:6]]
     launch_bound, memory_bound = [], []
     for c in mem:
         us = c["median_ms"] * 1000.0
@@ -89,15 +139,47 @@ def main() -> int:
         elif bps >= 0.80 * ceiling_bytes_per_s:
             memory_bound.append(entry)
 
+    # RE-DERIVED under the new ceiling AND the new candidate set (item 13).
+    # The previously published 262144 is NOT carried forward: it survived a
+    # 480x ceiling change because the old test was a ratio, and the old
+    # candidate set also changed at the same time. This value is computed from
+    # scratch below and is only shipped if the re-derivation stands on its own.
     crossover_n = None
+    crossover_from = None
     for c in sorted(mem, key=lambda c: c["n_problem_size"]):
-        if c["_bps"] >= 0.10 * ceiling_bytes_per_s:
+        if c.get("_bps") and c["_bps"] >= 0.10 * ceiling_bytes_per_s:
             crossover_n = c["n_problem_size"]
+            crossover_from = c["label"]
             break
 
     # Reviewer MINOR: a "1block/1024" row is labelled n=2^26 but grid*block is
     # fixed at 1024, so it processes 1024 elements. Record `covers` on every
     # cell so a consumer never has to infer it from the label.
+    # PER-CELL REGIME FLAG on all cells (item 2). The regimes block used to be
+    # a separate shortlist, so 6.1.1's cell-by-cell diff had nothing to key
+    # on. Threshold, stated once and applied to every cell:
+    #   launch-bound  : median <= 10 us
+    #   memory-bound  : not launch-bound AND achieved bandwidth >= 80% of the
+    #                   measured ceiling
+    #   compute-bound : not launch-bound AND not memory-bound
+    # The 10 us figure is the PI's regime decision (6.6.2: 20 single-launch
+    # trials resolve ~42% below 10 us and ~0.13% above), NOT a measurement
+    # derived here.
+    LAUNCH_BOUND_US = 10.0
+    for c in ok:
+        us = c["median_ms"] * 1000.0
+        bps = c.get("_bps")
+        if us <= LAUNCH_BOUND_US:
+            c["regime"] = "launch-bound"
+        elif bps and bps >= 0.80 * ceiling_bytes_per_s:
+            c["regime"] = "memory-bound"
+        else:
+            c["regime"] = "compute-bound"
+        c.pop("_bps", None)
+    regime_counts = {}
+    for c in ok:
+        regime_counts[c["regime"]] = regime_counts.get(c["regime"], 0) + 1
+
     for c in ok:
         g = c.get("grid") or [1, 1, 1]
         b = c.get("block") or [1, 1, 1]
@@ -153,6 +235,21 @@ def main() -> int:
             "launch_bound_cells": launch_bound,
             "memory_bound_cells": memory_bound,
             "launch_to_memory_crossover_n": crossover_n,
+            "launch_to_memory_crossover_from_cell": crossover_from,
+            "launch_to_memory_crossover_note": (
+                "RE-DERIVED under this commit's ceiling AND candidate set. The "
+                "previously published 262144 is not carried forward: it "
+                "survived a 480x ceiling change because the test was a ratio, "
+                "and the candidate set changed at the same time, so its "
+                "survival was not validation. This value stands only on the "
+                "derivation recorded here."),
+            "regime_thresholds": {
+                "launch_bound_us": LAUNCH_BOUND_US,
+                "launch_bound_source": ("the PI's regime decision for 6.6.2, "
+                                        "not a measurement made in this file"),
+                "memory_bound": "achieved >= 80% of the measured ceiling",
+            },
+            "ceiling_candidates_ranked": ceiling_candidates,
             "crossover_definition": ("smallest measured n (auto/256 elementwise) whose "
                                      "achieved bandwidth reaches 10% of the measured "
                                      "ceiling; below it the measurement is launch "
@@ -179,6 +276,7 @@ def main() -> int:
                      "understates the spread of the reported median. Compare with "
                      "the `cv` field, which is within-process only."),
         },
+        "regime_counts": regime_counts,
         "cells": ok,
         "failed_cells": [c for c in cells if "error" in c],
     }
