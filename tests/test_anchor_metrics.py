@@ -27,7 +27,10 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-METRICS = HERE / "metrics.json"   # this test lives in experiments/<id>/
+# The COMMITTED artifact, by path from the repo root. Explicitly not a tempdir
+# and not an in-memory result: passing against a fresh computation says nothing
+# about what is in the repository, and this is the merge gate.
+METRICS = HERE.parent / "experiments" / "gpu-sim-u2o.6.6.2" / "metrics.json"
 
 FAILS = []
 

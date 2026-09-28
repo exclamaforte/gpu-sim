@@ -112,6 +112,22 @@ for mod in ("epic_u2o.kernel_driver", "epic_u2o.safe_harness",
 # the queue_state regression tests, run as part of the gate: the module whose
 # silence produced two false records must be green before we spend GPU time.
 import subprocess  # noqa: E402
+# The anchor's own reconciliation gate: cell tie, internal consistency
+# against the COMMITTED metrics.json, and the per-kernel convention anchors.
+# Run as part of the submission gate, because a check that only runs when a
+# reviewer asks for it certifies one commit and nothing more -- which is how the
+# flat convention survived in a committed artifact twice.
+for gate in ("test_anchor_metrics.py", "test_queue_state.py"):
+    gt = REPO / "tests" / gate
+    if not gt.exists():
+        continue
+    r = subprocess.run([sys.executable, str(gt)], capture_output=True,
+                       text=True, timeout=600, cwd=str(REPO))
+    if r.returncode == 0:
+        print(f"OK  tests/{gate}")
+    else:
+        fails.append(f"tests/{gate} fails:\n" + r.stdout[-800:])
+
 qt = REPO / "tests" / "test_queue_state.py"
 if qt.exists():
     r = subprocess.run([sys.executable, str(qt)], capture_output=True,
