@@ -1,0 +1,142 @@
+{
+  "bead": "gpu-sim-u2o.10.3",
+  "gpu_used": false,
+  "corpus": "the 264 reference rows, single-run protocol, FROZEN (gpu-sim-u2o.7.1 items 8-10)",
+  "note_protocol": "these rows carry NO 'protocol' field: the corpus_protocol condition was written after they were measured, so they cannot be protocol-stamped retroactively without inventing a label. They are known single-run (7.1's own harness, one process per invocation) and are treated as the reference throughout. Stated rather than papered over.",
+  "feasibility": {
+    "n_rows": 264,
+    "n_families": 8,
+    "n_sizes": 4,
+    "n_regimes": 8,
+    "suites": [
+      {
+        "suite": "S1_unseen_problem_size",
+        "unit": "problem_size",
+        "supported": true,
+        "reason": "",
+        "n_train": 136,
+        "n_eval": 128,
+        "held_out": [
+          "262144",
+          "65536"
+        ],
+        "train_families": [
+          "add",
+          "copy",
+          "div",
+          "mul",
+          "relu",
+          "saxpy",
+          "scale",
+          "triad"
+        ],
+        "eval_families": [
+          "add",
+          "copy",
+          "div",
+          "mul",
+          "relu",
+          "saxpy",
+          "scale",
+          "triad"
+        ],
+        "train_sizes": [
+          4096,
+          16384
+        ],
+        "eval_sizes": [
+          65536,
+          262144
+        ],
+        "validated": true
+      },
+      {
+        "suite": "S2_unseen_family",
+        "unit": "structural_family",
+        "supported": true,
+        "reason": "",
+        "n_train": 198,
+        "n_eval": 66,
+        "held_out": [
+          "add",
+          "copy"
+        ],
+        "train_families": [
+          "div",
+          "mul",
+          "relu",
+          "saxpy",
+          "scale",
+          "triad"
+        ],
+        "eval_families": [
+          "add",
+          "copy"
+        ],
+        "train_sizes": [
+          4096,
+          16384,
+          65536,
+          262144
+        ],
+        "eval_sizes": [
+          4096,
+          16384,
+          65536,
+          262144
+        ],
+        "validated": true
+      },
+      {
+        "suite": "S3_unseen_occupancy",
+        "unit": "launch_config_regime",
+        "supported": true,
+        "reason": "",
+        "n_train": 232,
+        "n_eval": 32,
+        "held_out": [
+          "block=64,coverage=full"
+        ],
+        "train_families": [
+          "add",
+          "copy",
+          "div",
+          "mul",
+          "relu",
+          "saxpy",
+          "scale",
+          "triad"
+        ],
+        "eval_families": [
+          "add",
+          "copy",
+          "div",
+          "mul",
+          "relu",
+          "saxpy",
+          "scale",
+          "triad"
+        ],
+        "train_sizes": [
+          4096,
+          16384,
+          65536,
+          262144
+        ],
+        "eval_sizes": [
+          4096,
+          16384,
+          65536,
+          262144
+        ],
+        "validated": true
+      }
+    ],
+    "n_supported": 3,
+    "n_total": 3
+  },
+  "RESULT_DERIVED_NOT_ASSERTED": "3 of 3 suites are non-degenerate on the 264 reference rows. S1 holds out the two largest sizes (train 136 / eval 128), S2 holds out 2 of 8 families (train 198 / eval 66), S3 holds out one of 8 launch-config regimes (train 232 / eval 32).",
+  "I_PRE_WROTE_THE_OPPOSITE_VERDICT": "The first version of this artifact asserted in prose that the family holdout was NOT supportable at 8 families. Running it says otherwise: S2 clears the mechanical floors comfortably. That is the 'conclusion written before the data' failure I have catalogued all night, made in my own artifact one turn after cataloguing it, and the only reason it is visible is that the verdict is now DERIVED from feasibility() rather than typed.",
+  "AND_THE_CHECK_IS_NECESSARY_BUT_NOT_SUFFICIENT": "The mechanical floor asks whether a suite is NON-DEGENERATE: does it have an eval side, a train side, and enough rows to mean anything. gpu-sim-u2o.7.7's split failed that question and was reported clean. This check answers it. What it does NOT answer is whether S2 is INFORMATIVE: holding out 2 of 8 elementwise families leaves 6 near-identical templates to train on, which is a different and stronger claim. The corpus decision on gpu-sim-u2o.7.1 argued >= 24 families are needed for S2 to be a real test; this check is silent on that, by design, because deciding informativeness is a judgement and a mechanical gate that encoded one would be a gate that could not be argued with. Both statements stand: S2 is runnable, and S2 is not yet a meaningful generalisation test.",
+  "what_10_3_delivers_and_does_not": "DELIVERS: the three suite definitions, and a support check that fails loud on a degenerate split rather than reporting zero leakage over an empty set. DOES NOT DELIVER: a generalisation RESULT, because there is no model yet. That is gpu-sim-u2o.10.4's job, and it is blocked on 9.x."
+}
