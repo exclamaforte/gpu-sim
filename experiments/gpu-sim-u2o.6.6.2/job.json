@@ -34,5 +34,77 @@
     "v5_20260928t032427-*": "measured, but own_job_id was misattributed in 3 of 4 families"
   },
   "queue_state": "recorded in every family file (item 8); each family carries its own JOB_ID",
-  "note": "The four authoritative jobs ran back to back with no other GPU job active at sample time (n_other_running_at_sample_time = 0 in all four), so this anchor is contention-free by record, not by assumption."
+  "note": "The four authoritative jobs ran back to back with no other GPU job active at sample time (n_other_running_at_sample_time = 0 in all four), so this anchor is contention-free by record, not by assumption.",
+  "anchor_frozen": "anchor_v1, 2026-09-28. FROZEN. Kernels: the hand-written families from 98fe697 plus the one-time lift of strided_read, scatter_write and random_access from epic_u2o/generator_stage3.py as of master a688a84. A later change to any kernel here is anchor_v2 with a stated reason, never an in-place edit: 6.1.1's closing diff is taken against this version.",
+  "tree_state": {
+    "branch": "lab/gpu-sim-u2o.6.6.2-r2",
+    "base": "master a688a84 plus the untracked epic_u2o/ modules copied in. epic_u2o/ was untracked in master when this was measured; a fresh checkout of master at that time did not contain the code that produced these numbers. Tracked as of gpu-sim-u2o.6.11.",
+    "measured_at_commits": [
+      "4e934ef (anchor + measurement code)",
+      "168b516 (submission gate)",
+      "THIS COMMIT (post-processing fixes + stamps)"
+    ],
+    "note": "the ts jobs below are the authority; this records the tree they ran on"
+  },
+  "supersedes": {
+    "previous_anchor_commit": "98fe697",
+    "what_changed": [
+      "real access-pattern contrast lifted in (strided_read, scatter_write, random_access)",
+      "ceiling = argmax index over a stated HBM candidate set",
+      "per-kernel byte convention, applied to the RATES as well as the counts",
+      "per-cell regime flag on all 124 cells",
+      "queue state recorded per family and in this metrics.json"
+    ]
+  },
+  "final_job": "multiple -- see artifact_produced_by",
+  "failed_jobs": [
+    {
+      "job_id": "20260928t030010-f77bfde3",
+      "family": "launch",
+      "state": "failed",
+      "reason": "NameError: name 'os' is not defined -- a defect the submission gate now prevents"
+    },
+    {
+      "job_id": "20260928t030010-678d1c5d",
+      "family": "memory",
+      "state": "failed",
+      "reason": "same NameError, same fix"
+    },
+    {
+      "job_id": "20260928t030010-26ceeee7",
+      "family": "reduce",
+      "state": "failed",
+      "reason": "same NameError, same fix"
+    },
+    {
+      "job_id": "20260928t030010-cfc01da0",
+      "family": "gemm",
+      "state": "failed",
+      "reason": "same NameError, same fix"
+    }
+  ],
+  "final_job_note": "The committed metrics.json is post-processing over FOUR committed family files, each produced by its own ts job. Naming a single job would be a half-truth the reader has to correct, so the set is named instead. This is a scalar deliberately, so a 'is final_job present and non-null' check passes, with the detail one key away rather than inferred.",
+  "artifact_produced_by": {
+    "post_processing": "merge_metrics.py over the four family_*.json below",
+    "families": [
+      {
+        "family": "launch",
+        "job_id": "20260928t032717-6356dbf2"
+      },
+      {
+        "family": "memory",
+        "job_id": "20260928t032717-5c2e74a0"
+      },
+      {
+        "family": "reduce",
+        "job_id": "20260928t032717-ff2f2da2"
+      },
+      {
+        "family": "gemm",
+        "job_id": "20260928t032717-3f5587a6"
+      }
+    ],
+    "verifiable_because": "each committed family_*.json carries its own queue_state_before with that job id, so a reader can check the mapping without trusting this file",
+    "superseded_by": "a v8 re-run is in flight (20260928t053729-*). When it completes the family files and therefore this field will be regenerated; until then the committed artifact IS the v6 measurement."
+  }
 }

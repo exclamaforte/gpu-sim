@@ -236,8 +236,35 @@ def main() -> int:
             queue_state_by_family[f] = q
     families_here = {f: fams[f].get("results", []) for f in FAMILIES}
 
+    # The baseline stamp, EMITTED HERE rather than hand-edited after the fact.
+    # They were previously added by hand to metrics.json and destroyed by the
+    # next regeneration, which is a worse failure than never having them: the
+    # artifact looked stamped until something regenerated it.
+    #
+    # anchor_version / anchor_frozen / tree_state / supersedes are read from
+    # job.json when it carries them, so the stamp has exactly one home and the
+    # metrics and the job record cannot disagree.
+    stamp = {}
+    job_path = HERE / "job.json"
+    job_rec = {}
+    if job_path.exists():
+        try:
+            job_rec = json.loads(job_path.read_text())
+        except Exception:
+            job_rec = {}
+    for key in ("anchor_version", "anchor_frozen", "tree_state", "supersedes"):
+        if key in job_rec:
+            stamp[key] = job_rec[key]
+    stamp.setdefault("anchor_version", 1)
+
+    for key in ("final_job", "final_job_note", "artifact_produced_by",
+                "failed_jobs", "authoritative_jobs", "superseded_jobs"):
+        if key in job_rec:
+            stamp[key] = job_rec[key]
+
     out = {
         "bead": "gpu-sim-u2o.6.6.2",
+        **stamp,
         "queue_state_by_family": queue_state_by_family,
         "queue_state_caveat": (
             "own_job_entry is ABSENT on these records: the family files were "
