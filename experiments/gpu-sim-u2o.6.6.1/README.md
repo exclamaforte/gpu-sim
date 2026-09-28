@@ -66,12 +66,33 @@ the 67 108 864 elements — a compute-bound datapoint, not a full-size one.
 
 ## Minimum detectable difference (2σ, two-sample)
 
-**The top-level MDD block is the curve for exactly one cell**, and it is named
-in the artifact: `kernel=empty, mode=single, n_problem_size=1024, grid=4,
-block=(1,1,256)`, from ts job `20260927t162535-cb00ea78`. That is the empty
-kernel at the smallest problem size — the most overhead-dominated signal on
-this box, and the worst case. Every other cell carries its own
-`mdd_pct_by_n`; this block is not a property of the noise floor in general.
+**The top-level MDD block is the curve for exactly one cell** and is **not a
+bound on anything**: `empty/single/n=1024`, from ts job
+`20260927t162535-cb00ea78`. The **worst case is `empty/single/n=16384` at
+76.3% (N=10)** — not the smallest n. MDD is **non-monotone** in problem size
+across those cells: 51.4 → 76.3 → 27.8 → 11.2 → 2.3 % at N=10 for
+n = 1024, 16384, 262144, 4194304, 67108864.
+
+MDD tracks within-process noise, as it must (it is built from within-process
+std and the median): Pearson **r(MDD@N=10, within-process cv) = +0.929 over
+all 20 cells**; +0.950 over the 5 empty single-mode cells *(subset — not a
+headline)*. The across-invocation column tracks about equally well and may
+also be used: **r(MDD@N=10, across-invocation CV) = +0.929 over all 20
+cells** (from `cells[].across_invocations_spread_pct`).
+
+**A cell's median is the median of its three per-invocation medians**, and
+those span 27.6–37.7% in this regime (n=16384: 1.472 / 2.208 / 2.304 µs;
+n=1024: 2.144 / 2.144 / 1.552 µs). Every one of those is a real measurement
+of that cell. **No single-run figure from the sub-10 µs regime may be quoted
+as a cell's runtime**; the three-invocation median is the *minimum* defensible
+estimator, not a refinement.
+
+r(median, within-process cv) = **−0.414 over all 20 cells**: low medians and
+high cv co-occur. The sign survives; the magnitude is not established and no
+median here is called systematically biased on this evidence.
+
+*Rule applied throughout this file: every figure names the cell it came
+from, and every correlation names the population it was computed over.*
 
 | trials | 10 | 20 | 50 | 100 | 200 |
 |---|---|---|---|---|---|

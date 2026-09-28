@@ -135,7 +135,7 @@
       "100": 16.257227597208242,
       "200": 11.495595877279031
     },
-    "mdd_pct_by_n_note": "These MDD values are the per-trial-count curve of EXACTLY ONE cell: kernel=empty (k_empty), mode=single, n_problem_size=1024, grid=4, block=(1,1,256), from ts job 20260927t162535-cb00ea78. It is the empty kernel at the smallest problem size: the most overhead-dominated signal on this box, and therefore the worst case. Every other cell carries its own mdd_pct_by_n; do not read this block as a property of the noise floor in general.",
+    "mdd_pct_by_n_note": "READ THIS BEFORE USING THE BLOCK ABOVE.\n(1) The top-level mdd_pct_by_n is the curve for exactly ONE cell -- empty/single/n=1024, ts job 20260927t162535-cb00ea78 -- and is NOT a bound on this measurement. The worst case among the empty-kernel single-mode cells is n=16384 at 76.3 % for N=10; the top-level 51.4 % is neither that worst case nor a limit on anything.\n(2) MDD is NOT monotone in problem size across those cells: n=1024 -> 51.4 %, n=16384 -> 76.3 %, n=262144 -> 27.8 %, n=4194304 -> 11.2 %, n=67108864 -> 2.3 % (all at N=10). It peaks at an intermediate size, so 'smaller is noisier' does not hold.\n(3) MDD tracks within-process noise, as it must (it is computed from within-process std and the median): Pearson r(MDD@N=10, within-process cv) = +0.929 over all 20 cells; +0.950 over the 5 empty single-mode cells [SUBSET -- do not quote as a headline]. The across-invocation column tracks about equally well and may also be used: r(MDD@N=10, across-invocation CV) = +0.929 over all 20 cells, measured from cells[].across_invocations_spread_pct. (An earlier correction put this at +0.926; the figure here is the one recomputed from this artifact.)\n(4) A cell's median_ms is the MEDIAN OF ITS THREE per-invocation medians, not any single run. Those invocation medians span 27.6-37.7 % in the sub-10 us regime (n=16384: 1.472 / 2.208 / 2.304 us; n=1024: 2.144 / 2.144 / 1.552 us). Every one of those is a real measurement of that cell. So no single-run figure from this regime may be quoted as a cell's runtime, and the three-invocation median is the MINIMUM defensible estimator, not a refinement.\n(5) r(median, within-process cv) = -0.414 over all 20 cells: low medians and high cv co-occur, most strongly in the single-mode cells. The sign survives; the MAGNITUDE is not established, and no median here is called systematically biased on this evidence.\nRule applied throughout: every figure names the cell it came from, and every correlation names the population it was computed over.",
     "trials_needed_for_10pct_difference": {
       "1024": 59,
       "16384": 110,
@@ -154,8 +154,16 @@
       "kernel": "empty",
       "mode": "single",
       "n_problem_size": 1024,
-      "grid": 4,
-      "block": 256,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1,
+        1,
+        256
+      ],
       "ts_job": "20260927t162535-cb00ea78"
     },
     "within_process_cv_range": {
@@ -168,6 +176,35 @@
         "max": 0.546938120357119
       },
       "note": "Two different fields, two different ranges. An earlier README quoted 0.002-0.547 under the name of the 0.002-0.441 field."
+    },
+    "mdd_worst_case_cell": {
+      "kernel": "empty",
+      "mode": "single",
+      "n_problem_size": 16384,
+      "mdd_pct_at_N10": 76.32826530612243,
+      "within_process_cv": 0.4415,
+      "note": "not the smallest n; MDD is non-monotone in problem size"
+    },
+    "correlations_with_populations": {
+      "r(MDD@N=10, within-process cv)": {
+        "value": 0.929,
+        "population": "all 20 cells"
+      },
+      "r(MDD@N=10, across-invocation CV)": {
+        "value": 0.929,
+        "population": "all 20 cells",
+        "field": "cells[].across_invocations_spread_pct"
+      },
+      "r(MDD@N=10, within-process cv) [SUBSET]": {
+        "value": 0.95,
+        "population": "the 5 empty single-mode cells",
+        "caution": "do not quote as a headline; drawn from the partition where the relationship is strongest"
+      },
+      "r(median, within-process cv)": {
+        "value": -0.414,
+        "population": "all 20 cells",
+        "note": "-0.807 was a hand-picked subset and is retracted"
+      }
     }
   },
   "cells": [

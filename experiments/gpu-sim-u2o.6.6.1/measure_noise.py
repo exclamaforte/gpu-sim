@@ -419,6 +419,34 @@ def main() -> int:
         "cells": cells,
         "total_wall_sec": time.time() - t0,
     }
+    # FAIL-CLOSED stamp guard (PI ruling, shared with 6.1.1). A guard that
+    # fails OPEN is worse than none, because it looks like protection: a
+    # check wrapped in `if baseline.exists()` is skipped exactly when the
+    # stamped artifact it protects is missing. So refuse to write, loudly,
+    # if the baseline this run would supersede is absent or mis-stamped, and
+    # write the successor to its OWN file so the baseline is never at risk.
+    baseline = HERE / "metrics_v1.json"
+    if not baseline.exists():
+        print("FATAL: refusing to write. metrics_v1.json (noise_floor_v1, ts "
+              "20260927t162535-cb00ea78) is absent, so this run has no "
+              "declared predecessor to supersede. Restore it, or re-stamp it "
+              "deliberately as v2 with a stated reason. This guard is "
+              "fail-CLOSED on purpose.", flush=True)
+        return 2
+    try:
+        bv1 = json.loads(baseline.read_text())
+    except Exception as e:
+        print(f"FATAL: refusing to write. metrics_v1.json is unreadable: {e}",
+              flush=True)
+        return 2
+    if bv1.get("measurement_version") != 1:
+        print(f"FATAL: refusing to write. metrics_v1.json declares "
+              f"measurement_version {bv1.get('measurement_version')!r}, not 1.",
+              flush=True)
+        return 2
+    (HERE / "metrics_v2.json").write_text(json.dumps(metrics, indent=2))
+    print(f"wrote metrics_v2.json; the noise_floor_v1 baseline at "
+          f"{baseline.name} is untouched", flush=True)
     (HERE / "metrics.json").write_text(json.dumps(metrics, indent=2))
     print("\n=== NOISE FLOOR ===")
     print(json.dumps(noise_floor, indent=2))
