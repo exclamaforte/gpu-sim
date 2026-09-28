@@ -1,34 +1,5 @@
-========================================================================
-gpu-sim-u2o.6.6.2 anchor -- family 'launch'
-========================================================================
-PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
-real GPU (PI ruling on 6.1.1); calling it would add a second,
-unaccounted GPU execution to an anchor that exists precisely to be
-diffed against a later run. synthesize -> compile_kernel -> run_kernel
-only. Kernels are hand-written (anchor_kernels.py), not generated:
-gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
-No sudo, no clock locking, no persistence-mode change.
-telemetry before: {"clocks.sm": "195 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "39", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
-launch: 18 configs x 3 process invocations x 100 trials
-  empty n=1024 auto/256        grid=     [4, 1, 1] med=    1.680us iqr=   1.344us cv=0.729 ai_cv=0.1975
-  noop_store n=1024 auto/256   grid=     [4, 1, 1] med=    2.240us iqr=   1.312us cv=0.671 ai_cv=0.0848
-  empty n=1024 auto/1024       grid=     [1, 1, 1] med=    1.808us iqr=   0.736us cv=0.750 ai_cv=0.1455
-  noop_store n=1024 auto/1024  grid=     [1, 1, 1] med=    1.728us iqr=   0.864us cv=0.540 ai_cv=0.1875
-  empty n=1024 1block/1024     grid=     [1, 1, 1] med=    1.536us iqr=   0.448us cv=0.714 ai_cv=0.0675
-  noop_store n=1024 1block/1024 grid=     [1, 1, 1] med=    1.648us iqr=   1.152us cv=0.734 ai_cv=0.236
-  empty n=65536 auto/256       grid=   [256, 1, 1] med=    1.584us iqr=   1.312us cv=0.691 ai_cv=0.1876
-  noop_store n=65536 auto/256  grid=   [256, 1, 1] med=    2.304us iqr=   1.344us cv=0.646 ai_cv=0.0985
-  empty n=65536 auto/1024      grid=    [64, 1, 1] med=    1.632us iqr=   1.216us cv=0.684 ai_cv=0.1783
-  noop_store n=65536 auto/1024 grid=    [64, 1, 1] med=    2.320us iqr=   1.312us cv=0.606 ai_cv=0.2124
-  empty n=65536 1block/1024    grid=     [1, 1, 1] med=    1.568us iqr=   1.056us cv=0.834 ai_cv=0.0431
-  noop_store n=65536 1block/1024 grid=     [1, 1, 1] med=    1.872us iqr=   1.280us cv=0.660 ai_cv=0.1996
-  empty n=4194304 auto/256     grid= [16384, 1, 1] med=    9.520us iqr=   0.960us cv=0.177 ai_cv=0.0067
-  noop_store n=4194304 auto/256 grid= [16384, 1, 1] med=    9.856us iqr=   1.696us cv=0.114 ai_cv=0.0422
-  empty n=4194304 auto/1024    grid=  [4096, 1, 1] med=    5.248us iqr=   1.344us cv=0.325 ai_cv=0.0385
-  noop_store n=4194304 auto/1024 grid=  [4096, 1, 1] med=    5.088us iqr=   1.504us cv=0.207 ai_cv=0.0676
-  empty n=4194304 1block/1024  grid=     [1, 1, 1] med=    1.680us iqr=   1.120us cv=0.668 ai_cv=0.1957
-  noop_store n=4194304 1block/1024 grid=     [1, 1, 1] med=    1.536us iqr=   1.152us cv=0.766 ai_cv=0.2639
-telemetry after:  {"clocks.sm": "2475 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "42", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
-
-wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2/experiments/gpu-sim-u2o.6.6.2/family_launch.json
-launch: 18/18 configs measured, 15.7s
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/measure_family.py", line 31, in <module>
+    OWN_JOB_DESCRIPTION = os.environ.get("U2O_JOB_DESC", "u2o.6.6.2 anchor")
+                          ^^
+NameError: name 'os' is not defined. Did you mean: 'qs'? Or did you forget to import 'os'?

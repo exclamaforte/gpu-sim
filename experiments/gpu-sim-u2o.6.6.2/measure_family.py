@@ -12,6 +12,7 @@ not inherit. Read-only nvidia-smi telemetry before and after; if throttling
 appears it is recorded per config rather than averaged away.
 """
 import json
+import os
 import statistics
 import subprocess
 import sys
