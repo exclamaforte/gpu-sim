@@ -25,22 +25,22 @@
   "verdict_summary": {
     "well_covered_by_size_band": {
       "<=4K": {
-        "n_cells": 21,
-        "roofline_MIN_pct": 99.99964700172087,
-        "roofline_MAX_pct": 99.80765987052354,
-        "launch_corrected_pct": 31.339396065506463
+        "n_cells": 18,
+        "roofline_MIN_pct": 99.99964597556308,
+        "roofline_MAX_pct": 99.75896415660613,
+        "launch_corrected_pct": 31.460612533527815
       },
       "4K-256K": {
-        "n_cells": 18,
-        "roofline_MIN_pct": 99.99441639346878,
-        "roofline_MAX_pct": 96.7703829435849,
-        "launch_corrected_pct": 27.848674223387526
+        "n_cells": 16,
+        "roofline_MIN_pct": 99.99435183881519,
+        "roofline_MAX_pct": 96.10554218844682,
+        "launch_corrected_pct": 28.477677380644977
       },
       "256K-16M": {
-        "n_cells": 28,
-        "roofline_MIN_pct": 99.86331960406804,
-        "roofline_MAX_pct": 54.51392781154494,
-        "launch_corrected_pct": 39.70966021295098
+        "n_cells": 26,
+        "roofline_MIN_pct": 99.84076901328808,
+        "roofline_MAX_pct": 53.57807684261302,
+        "launch_corrected_pct": 42.36549785943238
       },
       ">16M": {
         "n_cells": 14,
@@ -60,6 +60,12 @@
   },
   "per_cell": [
     {
+      "median_us": 2.384,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 1.8925395547309185,
+      "residual_roofline_us": 2.384,
+      "residual_launch_us": 0.4914604452690814,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=1024 auto/256",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -78,7 +84,6 @@
       "measured_median_us": 2.384,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -101,9 +106,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 1.8925395547309185
+      "t_launch_corrected_us_low_1200": 1.8925395547309185,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 1.6800000000000002,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 1.891152985845165,
+      "residual_roofline_us": 1.6800000000000002,
+      "residual_launch_us": -0.21115298584516484,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=1024 auto/1024",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -122,7 +134,6 @@
       "measured_median_us": 1.6800000000000002,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -145,9 +156,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 1.891152985845165
+      "t_launch_corrected_us_low_1200": 1.891152985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.1599999999999997,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 1.891152985845165,
+      "residual_roofline_us": 2.1599999999999997,
+      "residual_launch_us": 0.2688470141548347,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=1024 1block/1024",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -166,7 +184,6 @@
       "measured_median_us": 2.1599999999999997,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -189,9 +206,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 1.891152985845165
+      "t_launch_corrected_us_low_1200": 1.891152985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 1.776,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 2.0090113411342125,
+      "residual_roofline_us": 1.776,
+      "residual_launch_us": -0.2330113411342125,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=65536 auto/256",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -210,7 +234,6 @@
       "measured_median_us": 1.776,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "exact empty cell (grid=256, block=256, 1.584 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -233,9 +256,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 2.0090113411342125
+      "t_launch_corrected_us_low_1200": 2.0090113411342125,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.2079999999999997,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 1.9202709324459883,
+      "residual_roofline_us": 2.2079999999999997,
+      "residual_launch_us": 0.2877290675540114,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=65536 auto/1024",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -254,7 +284,6 @@
       "measured_median_us": 2.2079999999999997,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "exact empty cell (grid=64, block=1024, 1.888 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -277,9 +306,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 1.9202709324459883
+      "t_launch_corrected_us_low_1200": 1.9202709324459883,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 1.408,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 1.891152985845165,
+      "residual_roofline_us": 1.408,
+      "residual_launch_us": -0.4831529858451651,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=65536 1block/1024",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -298,7 +334,6 @@
       "measured_median_us": 1.408,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -321,9 +356,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 1.891152985845165
+      "t_launch_corrected_us_low_1200": 1.891152985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 9.696,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 9.463205670945026,
+      "residual_roofline_us": 9.696,
+      "residual_launch_us": 0.23279432905497366,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=4194304 auto/256",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -342,7 +384,6 @@
       "measured_median_us": 9.696,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -365,9 +406,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 9.463205670945026
+      "t_launch_corrected_us_low_1200": 9.463205670945026,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 5.36,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 3.783819514898692,
+      "residual_roofline_us": 5.36,
+      "residual_launch_us": 1.5761804851013084,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=4194304 auto/1024",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -386,7 +434,6 @@
       "measured_median_us": 5.36,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -409,9 +456,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 3.783819514898692
+      "t_launch_corrected_us_low_1200": 3.783819514898692,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 1.552,
+      "t_roofline_us": 0.0,
+      "t_launch_corrected_us": 1.891152985845165,
+      "residual_roofline_us": 1.552,
+      "residual_launch_us": -0.33915298584516496,
+      "convention": "no data touched (O(1)); launch cost only",
       "label": "noop_store n=4194304 1block/1024",
       "kernel": "k_noop_store",
       "op_type": "launch",
@@ -430,7 +484,6 @@
       "measured_median_us": 1.552,
       "flops": 0,
       "bytes": 0,
-      "convention": "no data touched (O(1)); launch cost only",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0,
@@ -453,9 +506,16 @@
       "t_byte_bound_us_low_1200": 0.0,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0,
       "t_roofline_MAX_correct_us_low_1200": 0.0,
-      "t_launch_corrected_us_low_1200": 1.891152985845165
+      "t_launch_corrected_us_low_1200": 1.891152985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.736,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.9005255169067812,
+      "residual_roofline_us": 2.7280140378241375,
+      "residual_launch_us": 0.835474483093219,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=1024 auto/256",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -474,7 +534,6 @@
       "measured_median_us": 2.736,
       "flops": 2048,
       "bytes": 12288,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 1.9541984732824425e-05,
@@ -497,9 +556,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 1.9541984732824425e-05,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.9027795547309185
+      "t_launch_corrected_us_low_1200": 1.9027795547309185,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.64,
+      "t_roofline_us": 0.005323974783908495,
+      "t_launch_corrected_us": 1.897863529514827,
+      "residual_roofline_us": 2.6346760252160917,
+      "residual_launch_us": 0.7421364704851732,
+      "convention": "reads 1, writes 1",
       "label": "relu n=1024 auto/256",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -518,7 +584,6 @@
       "measured_median_us": 2.64,
       "flops": 1024,
       "bytes": 8192,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -541,9 +606,16 @@
       "t_byte_bound_us_low_1200": 0.006826666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.006826666666666667,
-      "t_launch_corrected_us_low_1200": 1.8993662213975853
+      "t_launch_corrected_us_low_1200": 1.8993662213975853,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7680000000000002,
+      "t_roofline_us": 0.005323974783908495,
+      "t_launch_corrected_us": 1.897863529514827,
+      "residual_roofline_us": 2.762676025216092,
+      "residual_launch_us": 0.8701364704851733,
+      "convention": "reads 1, writes 1",
       "label": "copy n=1024 auto/256",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -562,7 +634,6 @@
       "measured_median_us": 2.7680000000000002,
       "flops": 1024,
       "bytes": 8192,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -585,9 +656,16 @@
       "t_byte_bound_us_low_1200": 0.006826666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.006826666666666667,
-      "t_launch_corrected_us_low_1200": 1.8993662213975853
+      "t_launch_corrected_us_low_1200": 1.8993662213975853,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.002817963215701566,
+      "t_launch_corrected_us": 1.89535751794662,
+      "residual_roofline_us": 2.781182036784298,
+      "residual_launch_us": 0.8886424820533798,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=1024 stride=17 auto/256",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -606,7 +684,6 @@
       "measured_median_us": 2.784,
       "flops": 1024,
       "bytes": 4336,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -629,9 +706,16 @@
       "t_byte_bound_us_low_1200": 0.0036133333333333334,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.0036133333333333334,
-      "t_launch_corrected_us_low_1200": 1.8961528880642518
+      "t_launch_corrected_us_low_1200": 1.8961528880642518,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7520000000000002,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.9005255169067812,
+      "residual_roofline_us": 2.7440140378241376,
+      "residual_launch_us": 0.851474483093219,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=1024 auto/256",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -650,7 +734,6 @@
       "measured_median_us": 2.7520000000000002,
       "flops": 1024,
       "bytes": 12288,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -673,9 +756,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.9027795547309185
+      "t_launch_corrected_us_low_1200": 1.9027795547309185,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7680000000000002,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.9005255169067812,
+      "residual_roofline_us": 2.7600140378241376,
+      "residual_launch_us": 0.8674744830932191,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=1024 auto/256",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -694,7 +784,6 @@
       "measured_median_us": 2.7680000000000002,
       "flops": 1024,
       "bytes": 12288,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "exact empty cell (grid=4, block=256, 1.664 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -717,9 +806,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.9027795547309185
+      "t_launch_corrected_us_low_1200": 1.9027795547309185,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.848,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.8991389480210277,
+      "residual_roofline_us": 2.840014037824137,
+      "residual_launch_us": 0.9488610519789722,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=1024 auto/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -738,7 +834,6 @@
       "measured_median_us": 2.848,
       "flops": 2048,
       "bytes": 12288,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 1.9541984732824425e-05,
@@ -761,9 +856,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 1.9541984732824425e-05,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.901392985845165
+      "t_launch_corrected_us_low_1200": 1.901392985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.005323974783908495,
+      "t_launch_corrected_us": 1.8964769606290734,
+      "residual_roofline_us": 2.7786760252160914,
+      "residual_launch_us": 0.8875230393709264,
+      "convention": "reads 1, writes 1",
       "label": "relu n=1024 auto/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -782,7 +884,6 @@
       "measured_median_us": 2.784,
       "flops": 1024,
       "bytes": 8192,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -805,9 +906,16 @@
       "t_byte_bound_us_low_1200": 0.006826666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.006826666666666667,
-      "t_launch_corrected_us_low_1200": 1.8979796525118318
+      "t_launch_corrected_us_low_1200": 1.8979796525118318,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.005323974783908495,
+      "t_launch_corrected_us": 1.8964769606290734,
+      "residual_roofline_us": 2.7786760252160914,
+      "residual_launch_us": 0.8875230393709264,
+      "convention": "reads 1, writes 1",
       "label": "copy n=1024 auto/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -826,7 +934,6 @@
       "measured_median_us": 2.784,
       "flops": 1024,
       "bytes": 8192,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -849,9 +956,16 @@
       "t_byte_bound_us_low_1200": 0.006826666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.006826666666666667,
-      "t_launch_corrected_us_low_1200": 1.8979796525118318
+      "t_launch_corrected_us_low_1200": 1.8979796525118318,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.8640000000000003,
+      "t_roofline_us": 0.002817963215701566,
+      "t_launch_corrected_us": 1.8939709490608665,
+      "residual_roofline_us": 2.8611820367842986,
+      "residual_launch_us": 0.9700290509391338,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=1024 stride=17 auto/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -870,7 +984,6 @@
       "measured_median_us": 2.8640000000000003,
       "flops": 1024,
       "bytes": 4336,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -893,9 +1006,16 @@
       "t_byte_bound_us_low_1200": 0.0036133333333333334,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.0036133333333333334,
-      "t_launch_corrected_us_low_1200": 1.8947663191784982
+      "t_launch_corrected_us_low_1200": 1.8947663191784982,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.72,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.8991389480210277,
+      "residual_roofline_us": 2.7120140378241375,
+      "residual_launch_us": 0.8208610519789725,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=1024 auto/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -914,7 +1034,6 @@
       "measured_median_us": 2.72,
       "flops": 1024,
       "bytes": 12288,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -937,9 +1056,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.901392985845165
+      "t_launch_corrected_us_low_1200": 1.901392985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.736,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.8991389480210277,
+      "residual_roofline_us": 2.7280140378241375,
+      "residual_launch_us": 0.8368610519789725,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=1024 auto/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -958,7 +1084,6 @@
       "measured_median_us": 2.736,
       "flops": 1024,
       "bytes": 12288,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -981,9 +1106,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.901392985845165
+      "t_launch_corrected_us_low_1200": 1.901392985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.832,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.8991389480210277,
+      "residual_roofline_us": 2.824014037824137,
+      "residual_launch_us": 0.9328610519789722,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=1024 1block/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -1002,7 +1134,6 @@
       "measured_median_us": 2.832,
       "flops": 2048,
       "bytes": 12288,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 1.9541984732824425e-05,
@@ -1025,9 +1156,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 1.9541984732824425e-05,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.901392985845165
+      "t_launch_corrected_us_low_1200": 1.901392985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.816,
+      "t_roofline_us": 0.005323974783908495,
+      "t_launch_corrected_us": 1.8964769606290734,
+      "residual_roofline_us": 2.8106760252160914,
+      "residual_launch_us": 0.9195230393709264,
+      "convention": "reads 1, writes 1",
       "label": "relu n=1024 1block/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -1046,7 +1184,6 @@
       "measured_median_us": 2.816,
       "flops": 1024,
       "bytes": 8192,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -1069,9 +1206,16 @@
       "t_byte_bound_us_low_1200": 0.006826666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.006826666666666667,
-      "t_launch_corrected_us_low_1200": 1.8979796525118318
+      "t_launch_corrected_us_low_1200": 1.8979796525118318,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7680000000000002,
+      "t_roofline_us": 0.005323974783908495,
+      "t_launch_corrected_us": 1.8964769606290734,
+      "residual_roofline_us": 2.762676025216092,
+      "residual_launch_us": 0.8715230393709268,
+      "convention": "reads 1, writes 1",
       "label": "copy n=1024 1block/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -1090,7 +1234,6 @@
       "measured_median_us": 2.7680000000000002,
       "flops": 1024,
       "bytes": 8192,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -1113,9 +1256,16 @@
       "t_byte_bound_us_low_1200": 0.006826666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.006826666666666667,
-      "t_launch_corrected_us_low_1200": 1.8979796525118318
+      "t_launch_corrected_us_low_1200": 1.8979796525118318,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.72,
+      "t_roofline_us": 0.002817963215701566,
+      "t_launch_corrected_us": 1.8939709490608665,
+      "residual_roofline_us": 2.7171820367842985,
+      "residual_launch_us": 0.8260290509391337,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=1024 stride=17 1block/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -1134,7 +1284,6 @@
       "measured_median_us": 2.72,
       "flops": 1024,
       "bytes": 4336,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -1157,9 +1306,16 @@
       "t_byte_bound_us_low_1200": 0.0036133333333333334,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.0036133333333333334,
-      "t_launch_corrected_us_low_1200": 1.8947663191784982
+      "t_launch_corrected_us_low_1200": 1.8947663191784982,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.72,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.8991389480210277,
+      "residual_roofline_us": 2.7120140378241375,
+      "residual_launch_us": 0.8208610519789725,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=1024 1block/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -1178,7 +1334,6 @@
       "measured_median_us": 2.72,
       "flops": 1024,
       "bytes": 12288,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -1201,9 +1356,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.901392985845165
+      "t_launch_corrected_us_low_1200": 1.901392985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.816,
+      "t_roofline_us": 0.007985962175862742,
+      "t_launch_corrected_us": 1.8991389480210277,
+      "residual_roofline_us": 2.808014037824137,
+      "residual_launch_us": 0.9168610519789722,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=1024 1block/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -1222,7 +1384,6 @@
       "measured_median_us": 2.816,
       "flops": 1024,
       "bytes": 12288,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 9.770992366412213e-06,
@@ -1245,9 +1406,16 @@
       "t_byte_bound_us_low_1200": 0.010239999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 9.770992366412213e-06,
       "t_roofline_MAX_correct_us_low_1200": 0.010239999999999999,
-      "t_launch_corrected_us_low_1200": 1.901392985845165
+      "t_launch_corrected_us_low_1200": 1.901392985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.8640000000000003,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.0480463272597924,
+      "residual_roofline_us": 2.7362246051861963,
+      "residual_launch_us": 0.8159536727402079,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=16384 auto/256",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -1266,7 +1434,6 @@
       "measured_median_us": 2.8640000000000003,
       "flops": 32768,
       "bytes": 196608,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*64",
       "t_flop_bound_us_anchor_argmax": 0.0003126717557251908,
@@ -1289,9 +1456,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0003126717557251908,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.0841109324459883
+      "t_launch_corrected_us_low_1200": 2.0841109324459883,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.56,
+      "t_roofline_us": 0.08518359654253592,
+      "t_launch_corrected_us": 2.0054545289885244,
+      "residual_roofline_us": 2.474816403457464,
+      "residual_launch_us": 0.5545454710114757,
+      "convention": "reads 1, writes 1",
       "label": "relu n=16384 auto/256",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -1310,7 +1484,6 @@
       "measured_median_us": 2.56,
       "flops": 16384,
       "bytes": 131072,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*64",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1333,9 +1506,16 @@
       "t_byte_bound_us_low_1200": 0.10922666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.10922666666666667,
-      "t_launch_corrected_us_low_1200": 2.029497599112655
+      "t_launch_corrected_us_low_1200": 2.029497599112655,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.72,
+      "t_roofline_us": 0.08518359654253592,
+      "t_launch_corrected_us": 2.0054545289885244,
+      "residual_roofline_us": 2.634816403457464,
+      "residual_launch_us": 0.7145454710114758,
+      "convention": "reads 1, writes 1",
       "label": "copy n=16384 auto/256",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -1354,7 +1534,6 @@
       "measured_median_us": 2.72,
       "flops": 16384,
       "bytes": 131072,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*64",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1377,9 +1556,16 @@
       "t_byte_bound_us_low_1200": 0.10922666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.10922666666666667,
-      "t_launch_corrected_us_low_1200": 2.029497599112655
+      "t_launch_corrected_us_low_1200": 2.029497599112655,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.816,
+      "t_roofline_us": 0.04509521024241243,
+      "t_launch_corrected_us": 1.9653661426884008,
+      "residual_roofline_us": 2.7709047897575876,
+      "residual_launch_us": 0.850633857311599,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=16384 stride=17 auto/256",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -1398,7 +1584,6 @@
       "measured_median_us": 2.816,
       "flops": 16384,
       "bytes": 69388,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*64",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1421,9 +1606,16 @@
       "t_byte_bound_us_low_1200": 0.05782333333333333,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.05782333333333333,
-      "t_launch_corrected_us_low_1200": 1.9780942657793217
+      "t_launch_corrected_us_low_1200": 1.9780942657793217,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7520000000000002,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.0480463272597924,
+      "residual_roofline_us": 2.624224605186196,
+      "residual_launch_us": 0.7039536727402078,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=16384 auto/256",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -1442,7 +1634,6 @@
       "measured_median_us": 2.7520000000000002,
       "flops": 16384,
       "bytes": 196608,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*64",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1465,9 +1656,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.0841109324459883
+      "t_launch_corrected_us_low_1200": 2.0841109324459883,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7520000000000002,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.0480463272597924,
+      "residual_roofline_us": 2.624224605186196,
+      "residual_launch_us": 0.7039536727402078,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=16384 auto/256",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -1486,7 +1684,6 @@
       "measured_median_us": 2.7520000000000002,
       "flops": 16384,
       "bytes": 196608,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*64",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1509,9 +1706,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.0841109324459883
+      "t_launch_corrected_us_low_1200": 2.0841109324459883,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.6719999999999997,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.0258612250877364,
+      "residual_roofline_us": 2.5442246051861956,
+      "residual_launch_us": 0.6461387749122633,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=16384 auto/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -1530,7 +1734,6 @@
       "measured_median_us": 2.6719999999999997,
       "flops": 32768,
       "bytes": 196608,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 0.0003126717557251908,
@@ -1553,9 +1756,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0003126717557251908,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.0619258302739327
+      "t_launch_corrected_us_low_1200": 2.0619258302739327,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.912,
+      "t_roofline_us": 0.08518359654253592,
+      "t_launch_corrected_us": 1.9832694268164683,
+      "residual_roofline_us": 2.826816403457464,
+      "residual_launch_us": 0.9287305731835316,
+      "convention": "reads 1, writes 1",
       "label": "relu n=16384 auto/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -1574,7 +1784,6 @@
       "measured_median_us": 2.912,
       "flops": 16384,
       "bytes": 131072,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1597,9 +1806,16 @@
       "t_byte_bound_us_low_1200": 0.10922666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.10922666666666667,
-      "t_launch_corrected_us_low_1200": 2.007312496940599
+      "t_launch_corrected_us_low_1200": 2.007312496940599,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.848,
+      "t_roofline_us": 0.08518359654253592,
+      "t_launch_corrected_us": 1.9832694268164683,
+      "residual_roofline_us": 2.762816403457464,
+      "residual_launch_us": 0.8647305731835315,
+      "convention": "reads 1, writes 1",
       "label": "copy n=16384 auto/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -1618,7 +1834,6 @@
       "measured_median_us": 2.848,
       "flops": 16384,
       "bytes": 131072,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1641,9 +1856,16 @@
       "t_byte_bound_us_low_1200": 0.10922666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.10922666666666667,
-      "t_launch_corrected_us_low_1200": 2.007312496940599
+      "t_launch_corrected_us_low_1200": 2.007312496940599,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.816,
+      "t_roofline_us": 0.04509521024241243,
+      "t_launch_corrected_us": 1.943181040516345,
+      "residual_roofline_us": 2.7709047897575876,
+      "residual_launch_us": 0.8728189594836548,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=16384 stride=17 auto/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -1662,7 +1884,6 @@
       "measured_median_us": 2.816,
       "flops": 16384,
       "bytes": 69388,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1685,9 +1906,16 @@
       "t_byte_bound_us_low_1200": 0.05782333333333333,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.05782333333333333,
-      "t_launch_corrected_us_low_1200": 1.9559091636072659
+      "t_launch_corrected_us_low_1200": 1.9559091636072659,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.832,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.0258612250877364,
+      "residual_roofline_us": 2.704224605186196,
+      "residual_launch_us": 0.8061387749122635,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=16384 auto/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -1706,7 +1934,6 @@
       "measured_median_us": 2.832,
       "flops": 16384,
       "bytes": 196608,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1729,9 +1956,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.0619258302739327
+      "t_launch_corrected_us_low_1200": 2.0619258302739327,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.0258612250877364,
+      "residual_roofline_us": 2.6562246051861957,
+      "residual_launch_us": 0.7581387749122634,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=16384 auto/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -1750,7 +1984,6 @@
       "measured_median_us": 2.784,
       "flops": 16384,
       "bytes": 196608,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1773,9 +2006,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.0619258302739327
+      "t_launch_corrected_us_low_1200": 2.0619258302739327,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 4.975999999999999,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.018928380658969,
+      "residual_roofline_us": 4.8482246051861955,
+      "residual_launch_us": 2.95707161934103,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=16384 1block/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -1794,7 +2034,6 @@
       "measured_median_us": 4.975999999999999,
       "flops": 32768,
       "bytes": 196608,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0003126717557251908,
@@ -1817,9 +2056,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0003126717557251908,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.054992985845165
+      "t_launch_corrected_us_low_1200": 2.054992985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 4.736,
+      "t_roofline_us": 0.08518359654253592,
+      "t_launch_corrected_us": 1.9763365823877008,
+      "residual_roofline_us": 4.650816403457464,
+      "residual_launch_us": 2.759663417612299,
+      "convention": "reads 1, writes 1",
       "label": "relu n=16384 1block/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -1838,7 +2084,6 @@
       "measured_median_us": 4.736,
       "flops": 16384,
       "bytes": 131072,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1861,9 +2106,16 @@
       "t_byte_bound_us_low_1200": 0.10922666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.10922666666666667,
-      "t_launch_corrected_us_low_1200": 2.000379652511832
+      "t_launch_corrected_us_low_1200": 2.000379652511832,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 5.3919999999999995,
+      "t_roofline_us": 0.08518359654253592,
+      "t_launch_corrected_us": 1.9763365823877008,
+      "residual_roofline_us": 5.306816403457463,
+      "residual_launch_us": 3.415663417612299,
+      "convention": "reads 1, writes 1",
       "label": "copy n=16384 1block/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -1882,7 +2134,6 @@
       "measured_median_us": 5.3919999999999995,
       "flops": 16384,
       "bytes": 131072,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1905,9 +2156,16 @@
       "t_byte_bound_us_low_1200": 0.10922666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.10922666666666667,
-      "t_launch_corrected_us_low_1200": 2.000379652511832
+      "t_launch_corrected_us_low_1200": 2.000379652511832,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.688,
+      "t_roofline_us": 0.04509521024241243,
+      "t_launch_corrected_us": 1.9362481960875775,
+      "residual_roofline_us": 2.642904789757588,
+      "residual_launch_us": 0.7517518039124227,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=16384 stride=17 1block/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -1926,7 +2184,6 @@
       "measured_median_us": 2.688,
       "flops": 16384,
       "bytes": 69388,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1949,9 +2206,16 @@
       "t_byte_bound_us_low_1200": 0.05782333333333333,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.05782333333333333,
-      "t_launch_corrected_us_low_1200": 1.9489763191784983
+      "t_launch_corrected_us_low_1200": 1.9489763191784983,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.018928380658969,
+      "residual_roofline_us": 2.6562246051861957,
+      "residual_launch_us": 0.7650716193410307,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=16384 1block/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -1970,7 +2234,6 @@
       "measured_median_us": 2.784,
       "flops": 16384,
       "bytes": 196608,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -1993,9 +2256,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.054992985845165
+      "t_launch_corrected_us_low_1200": 2.054992985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.72,
+      "t_roofline_us": 0.12777539481380387,
+      "t_launch_corrected_us": 2.018928380658969,
+      "residual_roofline_us": 2.592224605186196,
+      "residual_launch_us": 0.7010716193410311,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=16384 1block/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -2014,7 +2284,6 @@
       "measured_median_us": 2.72,
       "flops": 16384,
       "bytes": 196608,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0001563358778625954,
@@ -2037,9 +2306,16 @@
       "t_byte_bound_us_low_1200": 0.16383999999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0001563358778625954,
       "t_roofline_MAX_correct_us_low_1200": 0.16383999999999999,
-      "t_launch_corrected_us_low_1200": 2.054992985845165
+      "t_launch_corrected_us_low_1200": 2.054992985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.88,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 4.40837929290797,
+      "residual_roofline_us": 0.8355936829791379,
+      "residual_launch_us": -1.52837929290797,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=262144 auto/256",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -2058,7 +2334,6 @@
       "measured_median_us": 2.88,
       "flops": 524288,
       "bytes": 3145728,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.005002748091603053,
@@ -2081,9 +2356,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.005002748091603053,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.985412975887108
+      "t_launch_corrected_us_low_1200": 4.985412975887108,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.928,
+      "t_roofline_us": 1.3629375446805747,
+      "t_launch_corrected_us": 3.7269105205676833,
+      "residual_roofline_us": 1.5650624553194252,
+      "residual_launch_us": -0.7989105205676834,
+      "convention": "reads 1, writes 1",
       "label": "relu n=262144 auto/256",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -2102,7 +2384,6 @@
       "measured_median_us": 2.928,
       "flops": 262144,
       "bytes": 2097152,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2125,9 +2406,16 @@
       "t_byte_bound_us_low_1200": 1.7476266666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 1.7476266666666667,
-      "t_launch_corrected_us_low_1200": 4.1115996425537755
+      "t_launch_corrected_us_low_1200": 4.1115996425537755,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.944,
+      "t_roofline_us": 1.3629375446805747,
+      "t_launch_corrected_us": 3.7269105205676833,
+      "residual_roofline_us": 1.5810624553194252,
+      "residual_launch_us": -0.7829105205676834,
+      "convention": "reads 1, writes 1",
       "label": "copy n=262144 auto/256",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -2146,7 +2434,6 @@
       "measured_median_us": 2.944,
       "flops": 262144,
       "bytes": 2097152,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2169,9 +2456,16 @@
       "t_byte_bound_us_low_1200": 1.7476266666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 1.7476266666666667,
-      "t_launch_corrected_us_low_1200": 4.1115996425537755
+      "t_launch_corrected_us_low_1200": 4.1115996425537755,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.8,
+      "t_roofline_us": 0.7215545590433483,
+      "t_launch_corrected_us": 3.0855275349304567,
+      "residual_roofline_us": 2.0784454409566515,
+      "residual_launch_us": -0.2855275349304569,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=262144 stride=17 auto/256",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -2190,7 +2484,6 @@
       "measured_median_us": 2.8,
       "flops": 262144,
       "bytes": 1110256,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2213,9 +2506,16 @@
       "t_byte_bound_us_low_1200": 0.9252133333333333,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 0.9252133333333333,
-      "t_launch_corrected_us_low_1200": 3.2891863092204416
+      "t_launch_corrected_us_low_1200": 3.2891863092204416,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 4.5760000000000005,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 4.40837929290797,
+      "residual_roofline_us": 2.5315936829791386,
+      "residual_launch_us": 0.16762070709203059,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=262144 auto/256",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -2234,7 +2534,6 @@
       "measured_median_us": 4.5760000000000005,
       "flops": 262144,
       "bytes": 3145728,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2257,9 +2556,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.985412975887108
+      "t_launch_corrected_us_low_1200": 4.985412975887108,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.912,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 4.40837929290797,
+      "residual_roofline_us": 0.867593682979138,
+      "residual_launch_us": -1.49637929290797,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=262144 auto/256",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -2278,7 +2584,6 @@
       "measured_median_us": 2.912,
       "flops": 262144,
       "bytes": 3145728,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2301,9 +2606,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.985412975887108
+      "t_launch_corrected_us_low_1200": 4.985412975887108,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.8,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 4.053417658155075,
+      "residual_roofline_us": 0.7555936829791379,
+      "residual_launch_us": -1.253417658155075,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=262144 auto/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -2322,7 +2634,6 @@
       "measured_median_us": 2.8,
       "flops": 524288,
       "bytes": 3145728,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 0.005002748091603053,
@@ -2345,9 +2656,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.005002748091603053,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.630451341134212
+      "t_launch_corrected_us_low_1200": 4.630451341134212,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.848,
+      "t_roofline_us": 1.3629375446805747,
+      "t_launch_corrected_us": 3.3719488858147875,
+      "residual_roofline_us": 1.4850624553194252,
+      "residual_launch_us": -0.5239488858147876,
+      "convention": "reads 1, writes 1",
       "label": "relu n=262144 auto/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -2366,7 +2684,6 @@
       "measured_median_us": 2.848,
       "flops": 262144,
       "bytes": 2097152,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2389,9 +2706,16 @@
       "t_byte_bound_us_low_1200": 1.7476266666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 1.7476266666666667,
-      "t_launch_corrected_us_low_1200": 3.756638007800879
+      "t_launch_corrected_us_low_1200": 3.756638007800879,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 1.3629375446805747,
+      "t_launch_corrected_us": 3.3719488858147875,
+      "residual_roofline_us": 1.421062455319425,
+      "residual_launch_us": -0.5879488858147877,
+      "convention": "reads 1, writes 1",
       "label": "copy n=262144 auto/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -2410,7 +2734,6 @@
       "measured_median_us": 2.784,
       "flops": 262144,
       "bytes": 2097152,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2433,9 +2756,16 @@
       "t_byte_bound_us_low_1200": 1.7476266666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 1.7476266666666667,
-      "t_launch_corrected_us_low_1200": 3.756638007800879
+      "t_launch_corrected_us_low_1200": 3.756638007800879,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.7215545590433483,
+      "t_launch_corrected_us": 2.730565900177561,
+      "residual_roofline_us": 2.0624454409566515,
+      "residual_launch_us": 0.05343409982243896,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=262144 stride=17 auto/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -2454,7 +2784,6 @@
       "measured_median_us": 2.784,
       "flops": 262144,
       "bytes": 1110256,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2477,9 +2806,16 @@
       "t_byte_bound_us_low_1200": 0.9252133333333333,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 0.9252133333333333,
-      "t_launch_corrected_us_low_1200": 2.9342246744675458
+      "t_launch_corrected_us_low_1200": 2.9342246744675458,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 3.4720000000000004,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 4.053417658155075,
+      "residual_roofline_us": 1.4275936829791385,
+      "residual_launch_us": -0.5814176581550745,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=262144 auto/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -2498,7 +2834,6 @@
       "measured_median_us": 3.4720000000000004,
       "flops": 262144,
       "bytes": 3145728,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2521,9 +2856,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.630451341134212
+      "t_launch_corrected_us_low_1200": 4.630451341134212,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.8960000000000004,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 4.053417658155075,
+      "residual_roofline_us": 0.8515936829791384,
+      "residual_launch_us": -1.1574176581550746,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=262144 auto/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -2542,7 +2884,6 @@
       "measured_median_us": 2.8960000000000004,
       "flops": 262144,
       "bytes": 3145728,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2565,9 +2906,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.630451341134212
+      "t_launch_corrected_us_low_1200": 4.630451341134212,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 39.872,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 3.935559302866027,
+      "residual_roofline_us": 37.827593682979135,
+      "residual_launch_us": 35.936440697133975,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=262144 1block/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -2586,7 +2934,6 @@
       "measured_median_us": 39.872,
       "flops": 524288,
       "bytes": 3145728,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.005002748091603053,
@@ -2609,9 +2956,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.005002748091603053,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.512592985845165
+      "t_launch_corrected_us_low_1200": 4.512592985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 37.744,
+      "t_roofline_us": 1.3629375446805747,
+      "t_launch_corrected_us": 3.2540905305257395,
+      "residual_roofline_us": 36.38106245531942,
+      "residual_launch_us": 34.48990946947426,
+      "convention": "reads 1, writes 1",
       "label": "relu n=262144 1block/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -2630,7 +2984,6 @@
       "measured_median_us": 37.744,
       "flops": 262144,
       "bytes": 2097152,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2653,9 +3006,16 @@
       "t_byte_bound_us_low_1200": 1.7476266666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 1.7476266666666667,
-      "t_launch_corrected_us_low_1200": 3.6387796525118317
+      "t_launch_corrected_us_low_1200": 3.6387796525118317,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 37.776,
+      "t_roofline_us": 1.3629375446805747,
+      "t_launch_corrected_us": 3.2540905305257395,
+      "residual_roofline_us": 36.41306245531943,
+      "residual_launch_us": 34.52190946947427,
+      "convention": "reads 1, writes 1",
       "label": "copy n=262144 1block/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -2674,7 +3034,6 @@
       "measured_median_us": 37.776,
       "flops": 262144,
       "bytes": 2097152,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2697,9 +3056,16 @@
       "t_byte_bound_us_low_1200": 1.7476266666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 1.7476266666666667,
-      "t_launch_corrected_us_low_1200": 3.6387796525118317
+      "t_launch_corrected_us_low_1200": 3.6387796525118317,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 0.7215545590433483,
+      "t_launch_corrected_us": 2.6127075448885133,
+      "residual_roofline_us": 2.0624454409566515,
+      "residual_launch_us": 0.1712924551114865,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=262144 stride=17 1block/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -2718,7 +3084,6 @@
       "measured_median_us": 2.784,
       "flops": 262144,
       "bytes": 1110256,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2741,9 +3106,16 @@
       "t_byte_bound_us_low_1200": 0.9252133333333333,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 0.9252133333333333,
-      "t_launch_corrected_us_low_1200": 2.8163663191784982
+      "t_launch_corrected_us_low_1200": 2.8163663191784982,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 3.935559302866027,
+      "residual_roofline_us": 0.7395936829791379,
+      "residual_launch_us": -1.1515593028660271,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=262144 1block/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -2762,7 +3134,6 @@
       "measured_median_us": 2.784,
       "flops": 262144,
       "bytes": 3145728,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2785,9 +3156,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.512592985845165
+      "t_launch_corrected_us_low_1200": 4.512592985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.784,
+      "t_roofline_us": 2.044406317020862,
+      "t_launch_corrected_us": 3.935559302866027,
+      "residual_roofline_us": 0.7395936829791379,
+      "residual_launch_us": -1.1515593028660271,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=262144 1block/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -2806,7 +3184,6 @@
       "measured_median_us": 2.784,
       "flops": 262144,
       "bytes": 3145728,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.0025013740458015264,
@@ -2829,9 +3206,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0025013740458015264,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.512592985845165
+      "t_launch_corrected_us_low_1200": 4.512592985845165,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.848,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 42.173706743278814,
+      "residual_roofline_us": -21.862501072333792,
+      "residual_launch_us": -31.325706743278815,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=4194304 auto/256",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -2850,7 +3234,6 @@
       "measured_median_us": 10.848,
       "flops": 8388608,
       "bytes": 50331648,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.08004396946564885,
@@ -2873,9 +3256,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.08004396946564885,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 51.406245670945026
+      "t_launch_corrected_us_low_1200": 51.406245670945026,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.735999999999999,
+      "t_roofline_us": 21.807000714889195,
+      "t_launch_corrected_us": 31.27020638583422,
+      "residual_roofline_us": -11.071000714889196,
+      "residual_launch_us": -20.534206385834224,
+      "convention": "reads 1, writes 1",
       "label": "relu n=4194304 auto/256",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -2894,7 +3284,6 @@
       "measured_median_us": 10.735999999999999,
       "flops": 4194304,
       "bytes": 33554432,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -2917,9 +3306,16 @@
       "t_byte_bound_us_low_1200": 27.962026666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 27.962026666666667,
-      "t_launch_corrected_us_low_1200": 37.42523233761169
+      "t_launch_corrected_us_low_1200": 37.42523233761169,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.512,
+      "t_roofline_us": 21.807000714889195,
+      "t_launch_corrected_us": 31.27020638583422,
+      "residual_roofline_us": -11.295000714889195,
+      "residual_launch_us": -20.75820638583422,
+      "convention": "reads 1, writes 1",
       "label": "copy n=4194304 auto/256",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -2938,7 +3334,6 @@
       "measured_median_us": 10.512,
       "flops": 4194304,
       "bytes": 33554432,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -2961,9 +3356,16 @@
       "t_byte_bound_us_low_1200": 27.962026666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 27.962026666666667,
-      "t_launch_corrected_us_low_1200": 37.42523233761169
+      "t_launch_corrected_us_low_1200": 37.42523233761169,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.768,
+      "t_roofline_us": 11.544880743484761,
+      "t_launch_corrected_us": 21.008086414429787,
+      "residual_roofline_us": -0.7768807434847602,
+      "residual_launch_us": -10.240086414429786,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=4194304 stride=17 auto/256",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -2982,7 +3384,6 @@
       "measured_median_us": 10.768,
       "flops": 4194304,
       "bytes": 17764108,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3005,9 +3406,16 @@
       "t_byte_bound_us_low_1200": 14.803423333333335,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 14.803423333333335,
-      "t_launch_corrected_us_low_1200": 24.26662900427836
+      "t_launch_corrected_us_low_1200": 24.26662900427836,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 31.12,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 42.173706743278814,
+      "residual_roofline_us": -1.5905010723337902,
+      "residual_launch_us": -11.053706743278813,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=4194304 auto/256",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -3026,7 +3434,6 @@
       "measured_median_us": 31.12,
       "flops": 4194304,
       "bytes": 50331648,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3049,9 +3456,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 51.406245670945026
+      "t_launch_corrected_us_low_1200": 51.406245670945026,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.911999999999999,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 42.173706743278814,
+      "residual_roofline_us": -21.798501072333792,
+      "residual_launch_us": -31.261706743278815,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=4194304 auto/256",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -3070,7 +3484,6 @@
       "measured_median_us": 10.911999999999999,
       "flops": 4194304,
       "bytes": 50331648,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "exact empty cell (grid=16384, block=256, 9.152 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3093,9 +3506,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 51.406245670945026
+      "t_launch_corrected_us_low_1200": 51.406245670945026,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 13.056,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 36.49432058723248,
+      "residual_roofline_us": -19.654501072333794,
+      "residual_launch_us": -23.438320587232482,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=4194304 auto/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -3114,7 +3534,6 @@
       "measured_median_us": 13.056,
       "flops": 8388608,
       "bytes": 50331648,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.08004396946564885,
@@ -3137,9 +3556,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.08004396946564885,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 45.72685951489869
+      "t_launch_corrected_us_low_1200": 45.72685951489869,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 11.12,
+      "t_roofline_us": 21.807000714889195,
+      "t_launch_corrected_us": 25.590820229787887,
+      "residual_roofline_us": -10.687000714889196,
+      "residual_launch_us": -14.470820229787888,
+      "convention": "reads 1, writes 1",
       "label": "relu n=4194304 auto/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -3158,7 +3584,6 @@
       "measured_median_us": 11.12,
       "flops": 4194304,
       "bytes": 33554432,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3181,9 +3606,16 @@
       "t_byte_bound_us_low_1200": 27.962026666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 27.962026666666667,
-      "t_launch_corrected_us_low_1200": 31.74584618156536
+      "t_launch_corrected_us_low_1200": 31.74584618156536,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 11.264,
+      "t_roofline_us": 21.807000714889195,
+      "t_launch_corrected_us": 25.590820229787887,
+      "residual_roofline_us": -10.543000714889196,
+      "residual_launch_us": -14.326820229787888,
+      "convention": "reads 1, writes 1",
       "label": "copy n=4194304 auto/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -3202,7 +3634,6 @@
       "measured_median_us": 11.264,
       "flops": 4194304,
       "bytes": 33554432,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3225,9 +3656,16 @@
       "t_byte_bound_us_low_1200": 27.962026666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 27.962026666666667,
-      "t_launch_corrected_us_low_1200": 31.74584618156536
+      "t_launch_corrected_us_low_1200": 31.74584618156536,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.992,
+      "t_roofline_us": 11.544880743484761,
+      "t_launch_corrected_us": 15.328700258383453,
+      "residual_roofline_us": -0.55288074348476,
+      "residual_launch_us": -4.336700258383452,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=4194304 stride=17 auto/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -3246,7 +3684,6 @@
       "measured_median_us": 10.992,
       "flops": 4194304,
       "bytes": 17764108,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3269,9 +3706,16 @@
       "t_byte_bound_us_low_1200": 14.803423333333335,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 14.803423333333335,
-      "t_launch_corrected_us_low_1200": 18.587242848232027
+      "t_launch_corrected_us_low_1200": 18.587242848232027,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 13.136,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 36.49432058723248,
+      "residual_roofline_us": -19.574501072333792,
+      "residual_launch_us": -23.35832058723248,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=4194304 auto/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -3290,7 +3734,6 @@
       "measured_median_us": 13.136,
       "flops": 4194304,
       "bytes": 50331648,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3313,9 +3756,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 45.72685951489869
+      "t_launch_corrected_us_low_1200": 45.72685951489869,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 13.024000000000001,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 36.49432058723248,
+      "residual_roofline_us": -19.68650107233379,
+      "residual_launch_us": -23.47032058723248,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=4194304 auto/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -3334,7 +3784,6 @@
       "measured_median_us": 13.024000000000001,
       "flops": 4194304,
       "bytes": 50331648,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "exact empty cell (grid=4096, block=1024, 5.056 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3357,9 +3806,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 45.72685951489869
+      "t_launch_corrected_us_low_1200": 45.72685951489869,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 609.1999999999999,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 34.60165405817896,
+      "residual_roofline_us": 576.4894989276661,
+      "residual_launch_us": 574.598345941821,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=4194304 1block/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -3378,7 +3834,6 @@
       "measured_median_us": 609.1999999999999,
       "flops": 8388608,
       "bytes": 50331648,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.08004396946564885,
@@ -3401,9 +3856,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.08004396946564885,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 43.83419298584516
+      "t_launch_corrected_us_low_1200": 43.83419298584516,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 572.624,
+      "t_roofline_us": 21.807000714889195,
+      "t_launch_corrected_us": 23.69815370073436,
+      "residual_roofline_us": 550.8169992851108,
+      "residual_launch_us": 548.9258462992657,
+      "convention": "reads 1, writes 1",
       "label": "relu n=4194304 1block/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -3422,7 +3884,6 @@
       "measured_median_us": 572.624,
       "flops": 4194304,
       "bytes": 33554432,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3445,9 +3906,16 @@
       "t_byte_bound_us_low_1200": 27.962026666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 27.962026666666667,
-      "t_launch_corrected_us_low_1200": 29.85317965251183
+      "t_launch_corrected_us_low_1200": 29.85317965251183,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 574.3679999999999,
+      "t_roofline_us": 21.807000714889195,
+      "t_launch_corrected_us": 23.69815370073436,
+      "residual_roofline_us": 552.5609992851107,
+      "residual_launch_us": 550.6698462992656,
+      "convention": "reads 1, writes 1",
       "label": "copy n=4194304 1block/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -3466,7 +3934,6 @@
       "measured_median_us": 574.3679999999999,
       "flops": 4194304,
       "bytes": 33554432,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3489,9 +3956,16 @@
       "t_byte_bound_us_low_1200": 27.962026666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 27.962026666666667,
-      "t_launch_corrected_us_low_1200": 29.85317965251183
+      "t_launch_corrected_us_low_1200": 29.85317965251183,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.7520000000000002,
+      "t_roofline_us": 11.544880743484761,
+      "t_launch_corrected_us": 13.436033729329926,
+      "residual_roofline_us": -8.79288074348476,
+      "residual_launch_us": -10.684033729329926,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=4194304 stride=17 1block/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -3510,7 +3984,6 @@
       "measured_median_us": 2.7520000000000002,
       "flops": 4194304,
       "bytes": 17764108,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3533,9 +4006,16 @@
       "t_byte_bound_us_low_1200": 14.803423333333335,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 14.803423333333335,
-      "t_launch_corrected_us_low_1200": 16.6945763191785
+      "t_launch_corrected_us_low_1200": 16.6945763191785,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.736,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 34.60165405817896,
+      "residual_roofline_us": -29.97450107233379,
+      "residual_launch_us": -31.865654058178958,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=4194304 1block/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -3554,7 +4034,6 @@
       "measured_median_us": 2.736,
       "flops": 4194304,
       "bytes": 50331648,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3577,9 +4056,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 43.83419298584516
+      "t_launch_corrected_us_low_1200": 43.83419298584516,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.944,
+      "t_roofline_us": 32.71050107233379,
+      "t_launch_corrected_us": 34.60165405817896,
+      "residual_roofline_us": -29.766501072333792,
+      "residual_launch_us": -31.65765405817896,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=4194304 1block/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -3598,7 +4084,6 @@
       "measured_median_us": 2.944,
       "flops": 4194304,
       "bytes": 50331648,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.04002198473282442,
@@ -3621,9 +4106,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 0.04002198473282442,
       "t_roofline_MAX_correct_us_low_1200": 41.943039999999996,
-      "t_launch_corrected_us_low_1200": 43.83419298584516
+      "t_launch_corrected_us_low_1200": 43.83419298584516,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 511.03999999999996,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 646.4189459492123,
+      "residual_roofline_us": -12.328017157340696,
+      "residual_launch_us": -135.37894594921238,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=67108864 auto/256",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -3642,7 +4134,6 @@
       "measured_median_us": 511.03999999999996,
       "flops": 134217728,
       "bytes": 805306368,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 123.0509287918717,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*262144",
       "t_flop_bound_us_anchor_argmax": 1.2807035114503815,
@@ -3665,9 +4156,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 1.2807035114503815,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 794.1395687918716
+      "t_launch_corrected_us_low_1200": 794.1395687918716,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 349.296,
+      "t_roofline_us": 348.9120114382271,
+      "t_launch_corrected_us": 471.9629402300988,
+      "residual_roofline_us": 0.3839885617728669,
+      "residual_launch_us": -122.66694023009882,
+      "convention": "reads 1, writes 1",
       "label": "relu n=67108864 auto/256",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -3686,7 +4184,6 @@
       "measured_median_us": 349.296,
       "flops": 67108864,
       "bytes": 536870912,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 123.0509287918717,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*262144",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -3709,9 +4206,16 @@
       "t_byte_bound_us_low_1200": 447.39242666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 447.39242666666667,
-      "t_launch_corrected_us_low_1200": 570.4433554585383
+      "t_launch_corrected_us_low_1200": 570.4433554585383,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 350.30400000000003,
+      "t_roofline_us": 348.9120114382271,
+      "t_launch_corrected_us": 471.9629402300988,
+      "residual_roofline_us": 1.391988561772905,
+      "residual_launch_us": -121.65894023009878,
+      "convention": "reads 1, writes 1",
       "label": "copy n=67108864 auto/256",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -3730,7 +4234,6 @@
       "measured_median_us": 350.30400000000003,
       "flops": 67108864,
       "bytes": 536870912,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 123.0509287918717,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*262144",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -3753,9 +4256,16 @@
       "t_byte_bound_us_low_1200": 447.39242666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 447.39242666666667,
-      "t_launch_corrected_us_low_1200": 570.4433554585383
+      "t_launch_corrected_us_low_1200": 570.4433554585383,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 349.168,
+      "t_roofline_us": 184.7181230909209,
+      "t_launch_corrected_us": 307.7690518827926,
+      "residual_roofline_us": 164.4498769090791,
+      "residual_launch_us": 41.3989481172074,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=67108864 stride=17 auto/256",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -3774,7 +4284,6 @@
       "measured_median_us": 349.168,
       "flops": 67108864,
       "bytes": 284225776,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 123.0509287918717,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*262144",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -3797,9 +4306,16 @@
       "t_byte_bound_us_low_1200": 236.85481333333334,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 236.85481333333334,
-      "t_launch_corrected_us_low_1200": 359.90574212520505
+      "t_launch_corrected_us_low_1200": 359.90574212520505,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 883.504,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 646.4189459492123,
+      "residual_roofline_us": 360.13598284265936,
+      "residual_launch_us": 237.08505405078768,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=67108864 auto/256",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -3818,7 +4334,6 @@
       "measured_median_us": 883.504,
       "flops": 67108864,
       "bytes": 805306368,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 123.0509287918717,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*262144",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -3841,9 +4356,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 794.1395687918716
+      "t_launch_corrected_us_low_1200": 794.1395687918716,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 348.912,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 646.4189459492123,
+      "residual_roofline_us": -174.45601715734068,
+      "residual_launch_us": -297.50694594921237,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=67108864 auto/256",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -3862,7 +4384,6 @@
       "measured_median_us": 348.912,
       "flops": 67108864,
       "bytes": 805306368,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 123.0509287918717,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*262144",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -3885,9 +4406,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 794.1395687918716
+      "t_launch_corrected_us_low_1200": 794.1395687918716,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 508.096,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 555.548767452471,
+      "residual_roofline_us": -15.272017157340656,
+      "residual_launch_us": -47.452767452470994,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=67108864 auto/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -3906,7 +4434,6 @@
       "measured_median_us": 508.096,
       "flops": 134217728,
       "bytes": 805306368,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 1.2807035114503815,
@@ -3929,9 +4456,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 1.2807035114503815,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 703.2693902951303
+      "t_launch_corrected_us_low_1200": 703.2693902951303,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 360.43199999999996,
+      "t_roofline_us": 348.9120114382271,
+      "t_launch_corrected_us": 381.09276173335746,
+      "residual_roofline_us": 11.519988561772834,
+      "residual_launch_us": -20.660761733357504,
+      "convention": "reads 1, writes 1",
       "label": "relu n=67108864 auto/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -3950,7 +4484,6 @@
       "measured_median_us": 360.43199999999996,
       "flops": 67108864,
       "bytes": 536870912,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -3973,9 +4506,16 @@
       "t_byte_bound_us_low_1200": 447.39242666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 447.39242666666667,
-      "t_launch_corrected_us_low_1200": 479.573176961797
+      "t_launch_corrected_us_low_1200": 479.573176961797,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 359.92,
+      "t_roofline_us": 348.9120114382271,
+      "t_launch_corrected_us": 381.09276173335746,
+      "residual_roofline_us": 11.00798856177289,
+      "residual_launch_us": -21.172761733357447,
+      "convention": "reads 1, writes 1",
       "label": "copy n=67108864 auto/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -3994,7 +4534,6 @@
       "measured_median_us": 359.92,
       "flops": 67108864,
       "bytes": 536870912,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4017,9 +4556,16 @@
       "t_byte_bound_us_low_1200": 447.39242666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 447.39242666666667,
-      "t_launch_corrected_us_low_1200": 479.573176961797
+      "t_launch_corrected_us_low_1200": 479.573176961797,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 359.424,
+      "t_roofline_us": 184.7181230909209,
+      "t_launch_corrected_us": 216.89887338605126,
+      "residual_roofline_us": 174.70587690907908,
+      "residual_launch_us": 142.52512661394871,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=67108864 stride=17 auto/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -4038,7 +4584,6 @@
       "measured_median_us": 359.424,
       "flops": 67108864,
       "bytes": 284225776,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4061,9 +4606,16 @@
       "t_byte_bound_us_low_1200": 236.85481333333334,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 236.85481333333334,
-      "t_launch_corrected_us_low_1200": 269.0355636284637
+      "t_launch_corrected_us_low_1200": 269.0355636284637,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 579.92,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 555.548767452471,
+      "residual_roofline_us": 56.5519828426593,
+      "residual_launch_us": 24.37123254752896,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=67108864 auto/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -4082,7 +4634,6 @@
       "measured_median_us": 579.92,
       "flops": 67108864,
       "bytes": 805306368,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4105,9 +4656,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 703.2693902951303
+      "t_launch_corrected_us_low_1200": 703.2693902951303,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 363.744,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 555.548767452471,
+      "residual_roofline_us": -159.62401715734063,
+      "residual_launch_us": -191.80476745247097,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=67108864 auto/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -4126,7 +4684,6 @@
       "measured_median_us": 363.744,
       "flops": 67108864,
       "bytes": 805306368,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4149,9 +4706,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 703.2693902951303
+      "t_launch_corrected_us_low_1200": 703.2693902951303,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 22956.977,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 525.2591701431858,
+      "residual_roofline_us": 22433.60898284266,
+      "residual_launch_us": 22431.717829856814,
+      "convention": "reads 2 arrays, writes 1",
       "label": "saxpy n=67108864 1block/1024",
       "kernel": "k_saxpy",
       "op_type": "memory",
@@ -4170,7 +4734,6 @@
       "measured_median_us": 22956.977,
       "flops": 134217728,
       "bytes": 805306368,
-      "convention": "reads 2 arrays, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 1.2807035114503815,
@@ -4193,9 +4756,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 1.2807035114503815,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 672.979792985845
+      "t_launch_corrected_us_low_1200": 672.979792985845,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 21952.4155,
+      "t_roofline_us": 348.9120114382271,
+      "t_launch_corrected_us": 350.8031644240723,
+      "residual_roofline_us": 21603.50348856177,
+      "residual_launch_us": 21601.612335575926,
+      "convention": "reads 1, writes 1",
       "label": "relu n=67108864 1block/1024",
       "kernel": "k_relu",
       "op_type": "memory",
@@ -4214,7 +4784,6 @@
       "measured_median_us": 21952.4155,
       "flops": 67108864,
       "bytes": 536870912,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4237,9 +4806,16 @@
       "t_byte_bound_us_low_1200": 447.39242666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 447.39242666666667,
-      "t_launch_corrected_us_low_1200": 449.28357965251183
+      "t_launch_corrected_us_low_1200": 449.28357965251183,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 21948.7525,
+      "t_roofline_us": 348.9120114382271,
+      "t_launch_corrected_us": 350.8031644240723,
+      "residual_roofline_us": 21599.84048856177,
+      "residual_launch_us": 21597.949335575926,
+      "convention": "reads 1, writes 1",
       "label": "copy n=67108864 1block/1024",
       "kernel": "k_copy",
       "op_type": "memory",
@@ -4258,7 +4834,6 @@
       "measured_median_us": 21948.7525,
       "flops": 67108864,
       "bytes": 536870912,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4281,9 +4856,16 @@
       "t_byte_bound_us_low_1200": 447.39242666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 447.39242666666667,
-      "t_launch_corrected_us_low_1200": 449.28357965251183
+      "t_launch_corrected_us_low_1200": 449.28357965251183,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.6719999999999997,
+      "t_roofline_us": 184.7181230909209,
+      "t_launch_corrected_us": 186.60927607676606,
+      "residual_roofline_us": -182.0461230909209,
+      "residual_launch_us": -183.93727607676607,
+      "convention": "reads n/stride, writes n",
       "label": "strided_read n=67108864 stride=17 1block/1024",
       "kernel": "k_strided_read",
       "op_type": "access",
@@ -4302,7 +4884,6 @@
       "measured_median_us": 2.6719999999999997,
       "flops": 67108864,
       "bytes": 284225776,
-      "convention": "reads n/stride, writes n",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4325,9 +4906,16 @@
       "t_byte_bound_us_low_1200": 236.85481333333334,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 236.85481333333334,
-      "t_launch_corrected_us_low_1200": 238.7459663191785
+      "t_launch_corrected_us_low_1200": 238.7459663191785,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.6719999999999997,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 525.2591701431858,
+      "residual_roofline_us": -520.6960171573406,
+      "residual_launch_us": -522.5871701431857,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "scatter_write n=67108864 1block/1024",
       "kernel": "k_scatter_write",
       "op_type": "access",
@@ -4346,7 +4934,6 @@
       "measured_median_us": 2.6719999999999997,
       "flops": 67108864,
       "bytes": 805306368,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4369,9 +4956,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 672.979792985845
+      "t_launch_corrected_us_low_1200": 672.979792985845,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.6719999999999997,
+      "t_roofline_us": 523.3680171573407,
+      "t_launch_corrected_us": 525.2591701431858,
+      "residual_roofline_us": -520.6960171573406,
+      "residual_launch_us": -522.5871701431857,
+      "convention": "reads 1 + 1 index/seed, writes 1",
       "label": "random_access n=67108864 1block/1024",
       "kernel": "k_random_access",
       "op_type": "access",
@@ -4390,7 +4984,6 @@
       "measured_median_us": 2.6719999999999997,
       "flops": 67108864,
       "bytes": 805306368,
-      "convention": "reads 1 + 1 index/seed, writes 1",
       "t_launch_us": 1.891152985845165,
       "t_launch_source": "exact empty cell (grid=1, block=1024, 1.616 us)",
       "t_flop_bound_us_anchor_argmax": 0.6403517557251908,
@@ -4413,9 +5006,16 @@
       "t_byte_bound_us_low_1200": 671.0886399999999,
       "t_roofline_MIN_as_specified_us_low_1200": 0.6403517557251908,
       "t_roofline_MAX_correct_us_low_1200": 671.0886399999999,
-      "t_launch_corrected_us_low_1200": 672.979792985845
+      "t_launch_corrected_us_low_1200": 672.979792985845,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 3.28,
+      "t_roofline_us": 0.02129589913563398,
+      "t_launch_corrected_us": 1.9193817294095665,
+      "residual_roofline_us": 3.258704100864366,
+      "residual_launch_us": 1.3606182705904333,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=4096 auto/256",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4434,7 +5034,6 @@
       "measured_median_us": 3.28,
       "flops": 4096,
       "bytes": 32768,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.8980858302739325,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16",
       "t_flop_bound_us_anchor_argmax": 3.908396946564885e-05,
@@ -4457,9 +5056,16 @@
       "t_byte_bound_us_low_1200": 0.027306666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 3.908396946564885e-05,
       "t_roofline_MAX_correct_us_low_1200": 0.027306666666666667,
-      "t_launch_corrected_us_low_1200": 1.925392496940599
+      "t_launch_corrected_us_low_1200": 1.925392496940599,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.8640000000000003,
+      "t_roofline_us": 0.02129589913563398,
+      "t_launch_corrected_us": 1.9138354538665525,
+      "residual_roofline_us": 2.8427041008643665,
+      "residual_launch_us": 0.9501645461334478,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=4096 auto/1024",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4478,7 +5084,6 @@
       "measured_median_us": 2.8640000000000003,
       "flops": 4096,
       "bytes": 32768,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.8925395547309185,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*4",
       "t_flop_bound_us_anchor_argmax": 3.908396946564885e-05,
@@ -4501,9 +5106,16 @@
       "t_byte_bound_us_low_1200": 0.027306666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 3.908396946564885e-05,
       "t_roofline_MAX_correct_us_low_1200": 0.027306666666666667,
-      "t_launch_corrected_us_low_1200": 1.919846221397585
+      "t_launch_corrected_us_low_1200": 1.919846221397585,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 3.344,
+      "t_roofline_us": 0.3407343861701437,
+      "t_launch_corrected_us": 2.3497457273043563,
+      "residual_roofline_us": 3.003265613829856,
+      "residual_launch_us": 0.9942542726956436,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=65536 auto/256",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4522,7 +5134,6 @@
       "measured_median_us": 3.344,
       "flops": 65536,
       "bytes": 524288,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "exact empty cell (grid=256, block=256, 1.584 us)",
       "t_flop_bound_us_anchor_argmax": 0.0006253435114503816,
@@ -4545,9 +5156,16 @@
       "t_byte_bound_us_low_1200": 0.43690666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0006253435114503816,
       "t_roofline_MAX_correct_us_low_1200": 0.43690666666666667,
-      "t_launch_corrected_us_low_1200": 2.4459180078008793
+      "t_launch_corrected_us_low_1200": 2.4459180078008793,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 2.944,
+      "t_roofline_us": 0.3407343861701437,
+      "t_launch_corrected_us": 2.261005318616132,
+      "residual_roofline_us": 2.603265613829856,
+      "residual_launch_us": 0.6829946813838679,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=65536 auto/1024",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4566,7 +5184,6 @@
       "measured_median_us": 2.944,
       "flops": 65536,
       "bytes": 524288,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 1.9202709324459883,
       "t_launch_source": "exact empty cell (grid=64, block=1024, 1.888 us)",
       "t_flop_bound_us_anchor_argmax": 0.0006253435114503816,
@@ -4589,9 +5206,16 @@
       "t_byte_bound_us_low_1200": 0.43690666666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.0006253435114503816,
       "t_roofline_MAX_correct_us_low_1200": 0.43690666666666667,
-      "t_launch_corrected_us_low_1200": 2.357177599112655
+      "t_launch_corrected_us_low_1200": 2.357177599112655,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 6.912,
+      "t_roofline_us": 5.451750178722299,
+      "t_launch_corrected_us": 9.235569693620992,
+      "residual_roofline_us": 1.460249821277701,
+      "residual_launch_us": -2.3235696936209917,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=1048576 auto/256",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4610,7 +5234,6 @@
       "measured_median_us": 6.912,
       "flops": 1048576,
       "bytes": 8388608,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*4096",
       "t_flop_bound_us_anchor_argmax": 0.010005496183206106,
@@ -4633,9 +5256,16 @@
       "t_byte_bound_us_low_1200": 6.990506666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.010005496183206106,
       "t_roofline_MAX_correct_us_low_1200": 6.990506666666667,
-      "t_launch_corrected_us_low_1200": 10.774326181565359
+      "t_launch_corrected_us_low_1200": 10.774326181565359,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 10.88,
+      "t_roofline_us": 5.451750178722299,
+      "t_launch_corrected_us": 7.815723154609407,
+      "residual_roofline_us": 5.428249821277702,
+      "residual_launch_us": 3.0642768453905935,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=1048576 auto/1024",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4654,7 +5284,6 @@
       "measured_median_us": 10.88,
       "flops": 1048576,
       "bytes": 8388608,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 0.010005496183206106,
@@ -4677,9 +5306,16 @@
       "t_byte_bound_us_low_1200": 6.990506666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.010005496183206106,
       "t_roofline_MAX_correct_us_low_1200": 6.990506666666667,
-      "t_launch_corrected_us_low_1200": 9.354479642553775
+      "t_launch_corrected_us_low_1200": 9.354479642553775,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 64.864,
+      "t_roofline_us": 87.22800285955678,
+      "t_launch_corrected_us": 119.40875315468713,
+      "residual_roofline_us": -22.364002859556777,
+      "residual_launch_us": -54.54475315468713,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=16777216 auto/256",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4698,7 +5334,6 @@
       "measured_median_us": 64.864,
       "flops": 16777216,
       "bytes": 134217728,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 32.18075029513036,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*65536",
       "t_flop_bound_us_anchor_argmax": 0.1600879389312977,
@@ -4721,9 +5356,16 @@
       "t_byte_bound_us_low_1200": 111.84810666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.1600879389312977,
       "t_roofline_MAX_correct_us_low_1200": 111.84810666666667,
-      "t_launch_corrected_us_low_1200": 144.02885696179703
+      "t_launch_corrected_us_low_1200": 144.02885696179703,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 116.64,
+      "t_roofline_us": 87.22800285955678,
+      "t_launch_corrected_us": 96.69120853050181,
+      "residual_roofline_us": 29.41199714044322,
+      "residual_launch_us": 19.94879146949819,
+      "convention": "reads 1, writes 1",
       "label": "block_sum n=16777216 auto/1024",
       "kernel": "k_block_sum",
       "op_type": "reduce",
@@ -4742,7 +5384,6 @@
       "measured_median_us": 116.64,
       "flops": 16777216,
       "bytes": 134217728,
-      "convention": "reads 1, writes 1",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16384",
       "t_flop_bound_us_anchor_argmax": 0.1600879389312977,
@@ -4765,9 +5406,16 @@
       "t_byte_bound_us_low_1200": 111.84810666666667,
       "t_roofline_MIN_as_specified_us_low_1200": 0.1600879389312977,
       "t_roofline_MAX_correct_us_low_1200": 111.84810666666667,
-      "t_launch_corrected_us_low_1200": 121.3113123376117
+      "t_launch_corrected_us_low_1200": 121.3113123376117,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 39.648,
+      "t_roofline_us": 2.561407022900763,
+      "t_launch_corrected_us": 4.570418364034976,
+      "residual_roofline_us": 37.086592977099244,
+      "residual_launch_us": 35.077581635965025,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=512",
       "label": "tiled_gemm 512^3 32x32",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -4786,7 +5434,6 @@
       "measured_median_us": 39.648,
       "flops": 268435456,
       "bytes": 3145728,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=512",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 2.561407022900763,
@@ -4809,9 +5456,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 2.561407022900763,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.630451341134212
+      "t_launch_corrected_us_low_1200": 4.630451341134212,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 13.024000000000001,
+      "t_roofline_us": 2.561407022900763,
+      "t_launch_corrected_us": 4.570418364034976,
+      "residual_roofline_us": 10.462592977099238,
+      "residual_launch_us": 8.453581635965026,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=512",
       "label": "tiled_gemm 512^3 16x16",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -4830,7 +5484,6 @@
       "measured_median_us": 13.024000000000001,
       "flops": 268435456,
       "bytes": 3145728,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=512",
       "t_launch_us": 2.0090113411342125,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*256",
       "t_flop_bound_us_anchor_argmax": 2.561407022900763,
@@ -4853,9 +5506,16 @@
       "t_byte_bound_us_low_1200": 2.6214399999999998,
       "t_roofline_MIN_as_specified_us_low_1200": 2.561407022900763,
       "t_roofline_MAX_correct_us_low_1200": 2.6214399999999998,
-      "t_launch_corrected_us_low_1200": 4.630451341134212
+      "t_launch_corrected_us_low_1200": 4.630451341134212,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 257.168,
+      "t_roofline_us": 20.491256183206104,
+      "t_launch_corrected_us": 22.855229159093213,
+      "residual_roofline_us": 236.6767438167939,
+      "residual_launch_us": 234.3127708409068,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=1024",
       "label": "tiled_gemm 1024^3 32x32",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -4874,7 +5534,6 @@
       "measured_median_us": 257.168,
       "flops": 2147483648,
       "bytes": 12582912,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=1024",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 20.491256183206104,
@@ -4897,9 +5556,16 @@
       "t_byte_bound_us_low_1200": 10.485759999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 10.485759999999999,
       "t_roofline_MAX_correct_us_low_1200": 20.491256183206104,
-      "t_launch_corrected_us_low_1200": 22.855229159093213
+      "t_launch_corrected_us_low_1200": 22.855229159093213,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 62.112,
+      "t_roofline_us": 20.491256183206104,
+      "t_launch_corrected_us": 22.855229159093213,
+      "residual_roofline_us": 41.6207438167939,
+      "residual_launch_us": 39.25677084090679,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=1024",
       "label": "tiled_gemm 1024^3 16x16",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -4918,7 +5584,6 @@
       "measured_median_us": 62.112,
       "flops": 2147483648,
       "bytes": 12582912,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=1024",
       "t_launch_us": 2.3639729758871084,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*1024",
       "t_flop_bound_us_anchor_argmax": 20.491256183206104,
@@ -4941,9 +5606,16 @@
       "t_byte_bound_us_low_1200": 10.485759999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 10.485759999999999,
       "t_roofline_MAX_correct_us_low_1200": 20.491256183206104,
-      "t_launch_corrected_us_low_1200": 22.855229159093213
+      "t_launch_corrected_us_low_1200": 22.855229159093213,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 1815.4080000000001,
+      "t_roofline_us": 163.93004946564884,
+      "t_launch_corrected_us": 167.71386898054752,
+      "residual_roofline_us": 1651.4779505343513,
+      "residual_launch_us": 1647.6941310194527,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=2048",
       "label": "tiled_gemm 2048^3 32x32",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -4962,7 +5634,6 @@
       "measured_median_us": 1815.4080000000001,
       "flops": 17179869184,
       "bytes": 50331648,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=2048",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*4096",
       "t_flop_bound_us_anchor_argmax": 163.93004946564884,
@@ -4985,9 +5656,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 41.943039999999996,
       "t_roofline_MAX_correct_us_low_1200": 163.93004946564884,
-      "t_launch_corrected_us_low_1200": 167.71386898054752
+      "t_launch_corrected_us_low_1200": 167.71386898054752,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 406.15999999999997,
+      "t_roofline_us": 163.93004946564884,
+      "t_launch_corrected_us": 167.71386898054752,
+      "residual_roofline_us": 242.22995053435113,
+      "residual_launch_us": 238.44613101945245,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=2048",
       "label": "tiled_gemm 2048^3 16x16",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -5006,7 +5684,6 @@
       "measured_median_us": 406.15999999999997,
       "flops": 17179869184,
       "bytes": 50331648,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=2048",
       "t_launch_us": 3.783819514898692,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*4096",
       "t_flop_bound_us_anchor_argmax": 163.93004946564884,
@@ -5029,9 +5706,16 @@
       "t_byte_bound_us_low_1200": 41.943039999999996,
       "t_roofline_MIN_as_specified_us_low_1200": 41.943039999999996,
       "t_roofline_MAX_correct_us_low_1200": 163.93004946564884,
-      "t_launch_corrected_us_low_1200": 167.71386898054752
+      "t_launch_corrected_us_low_1200": 167.71386898054752,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 15000.16,
+      "t_roofline_us": 1311.4403957251907,
+      "t_launch_corrected_us": 1320.9036013961356,
+      "residual_roofline_us": 13688.71960427481,
+      "residual_launch_us": 13679.256398603864,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=4096",
       "label": "tiled_gemm 4096^3 32x32",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -5050,7 +5734,6 @@
       "measured_median_us": 15000.16,
       "flops": 137438953472,
       "bytes": 201326592,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=4096",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16384",
       "t_flop_bound_us_anchor_argmax": 1311.4403957251907,
@@ -5073,9 +5756,16 @@
       "t_byte_bound_us_low_1200": 167.77215999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 167.77215999999999,
       "t_roofline_MAX_correct_us_low_1200": 1311.4403957251907,
-      "t_launch_corrected_us_low_1200": 1320.9036013961356
+      "t_launch_corrected_us_low_1200": 1320.9036013961356,
+      "flat_alias_ceiling": "anchor_argmax"
     },
     {
+      "median_us": 3078.672,
+      "t_roofline_us": 1311.4403957251907,
+      "t_launch_corrected_us": 1320.9036013961356,
+      "residual_roofline_us": 1767.2316042748093,
+      "residual_launch_us": 1757.7683986038644,
+      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=4096",
       "label": "tiled_gemm 4096^3 16x16",
       "kernel": "k_tiled_gemm",
       "op_type": "gemm",
@@ -5094,7 +5784,6 @@
       "measured_median_us": 3078.672,
       "flops": 137438953472,
       "bytes": 201326592,
-      "convention": "2*D^3 flops and 3*D^2*4 bytes with D=sqrt(problem_size)=4096",
       "t_launch_us": 9.463205670945026,
       "t_launch_source": "fit a + b*blocks = 1.891 + 4.622e-04*16384",
       "t_flop_bound_us_anchor_argmax": 1311.4403957251907,
@@ -5117,10 +5806,28 @@
       "t_byte_bound_us_low_1200": 167.77215999999999,
       "t_roofline_MIN_as_specified_us_low_1200": 167.77215999999999,
       "t_roofline_MAX_correct_us_low_1200": 1311.4403957251907,
-      "t_launch_corrected_us_low_1200": 1320.9036013961356
+      "t_launch_corrected_us_low_1200": 1320.9036013961356,
+      "flat_alias_ceiling": "anchor_argmax"
     }
   ],
+  "population": {
+    "canonical": "cells whose launch config covers the problem (threads >= n/4) and which move bytes or do flops",
+    "n_anchor_cells": 124,
+    "n_canonical": 74,
+    "n_excluded_zero_work_launch": 9,
+    "n_excluded_under_covered": 32,
+    "n_excluded_degenerate_zero_roofline": 9,
+    "accounting": "74 canonical + 9 k_empty + 9 k_noop_store (t_roofline==0) + 32 under-covered = 124",
+    "all_reported_populations_sum_to_anchor": true,
+    "note_on_excluded_launch_cells": "the 9 k_empty cells are the launch MEASUREMENT; they constrain the launch fit rather than being tested against a roofline, so excluding them from per_cell costs the launch term nothing. Reporting them as a separate population is the point: they were silently dropped in the first version of this script, which is the 7% population reduction the review caught."
+  },
   "verdict": {
+    "headline": {
+      "canonical_population": "81 of 124 anchor cells; the other 43 are the 9 k_empty launch-measurement cells and 34 under-covered cells, both disclosed and both summed",
+      "ge_10us_rule": "HOLDS as a conservative heuristic, is NOT validated as an analytic predictor, and is not tight. The max-form roofline reaches 17.5% median residual only in the >16M band and 54.5-99.8% below it, so the binding boundary is ~16M rather than 10 us. What makes the rule safe is the SIGN of the error below 16M (over-predicts), not any accuracy claim.",
+      "launch_term": "helps below 16M (100% -> 28-40% residual) and HURTS above it (17.5% -> 26.7%), because unconditional addition double-counts dispatch on a work-bound cell. The correct form is a regime switch, not addition.",
+      "ceiling_sensitivity": "the conclusion DEPENDS on the ceiling exactly where the model works: on covered >16M cells the residual is 6.5% at 1538.7 GB/s, 6.6% at the disputed 1541, 19.6% at the 1790 spec and 29.7% at 1200. This RAISES the priority of 6.6.2's ceiling fix."
+    },
     "residual_by_form_and_ceiling": {
       "anchor_argmax": {
         "roofline_MIN_as_specified": {
@@ -5213,33 +5920,68 @@
     },
     "residual_by_size_band": {
       "<=4K": {
-        "n_cells": 21,
-        "roofline_min_pct": 99.99964700172087,
-        "roofline_max_pct": 99.80765987052354,
-        "launch_corrected_pct": 31.339396065506463
+        "n_cells": 18,
+        "roofline_min_pct": 99.99964597556308,
+        "roofline_max_pct": 99.75896415660613,
+        "launch_corrected_pct": 31.460612533527815
       },
       "4K-256K": {
-        "n_cells": 25,
-        "roofline_min_pct": 99.99438448714575,
-        "roofline_max_pct": 97.00900293038848,
-        "launch_corrected_pct": 28.46535222147823
+        "n_cells": 16,
+        "roofline_min_pct": 99.99435183881519,
+        "roofline_max_pct": 96.10554218844682,
+        "launch_corrected_pct": 28.477677380644977
       },
       "256K-16M": {
-        "n_cells": 47,
-        "roofline_min_pct": 99.87139465060146,
-        "roofline_max_pct": 90.97007122004261,
-        "launch_corrected_pct": 63.20319880362376
+        "n_cells": 26,
+        "roofline_min_pct": 99.84076901328808,
+        "roofline_max_pct": 53.57807684261302,
+        "launch_corrected_pct": 42.36549785943238
       },
       ">16M": {
-        "n_cells": 22,
-        "roofline_min_pct": 99.81693736847336,
-        "roofline_max_pct": 45.490626048135276,
-        "launch_corrected_pct": 46.192230862035736
+        "n_cells": 14,
+        "roofline_min_pct": 99.81952029240526,
+        "roofline_max_pct": 17.483866930398595,
+        "launch_corrected_pct": 26.662751774759453
       }
     },
-    "smallest_band_plain_roofline_MAX_within_10pct": null,
-    "smallest_band_launch_corrected_within_10pct": null,
-    "informative_regime_decision_survives": false,
+    "canonical_population_only": {
+      "residual_by_size_band": {
+        "<=4K": {
+          "n_cells": 18,
+          "roofline_MIN_pct": 99.99964597556308,
+          "roofline_MAX_pct": 99.75896415660613,
+          "launch_corrected_pct": 31.460612533527815
+        },
+        "4K-256K": {
+          "n_cells": 16,
+          "roofline_MIN_pct": 99.99435183881519,
+          "roofline_MAX_pct": 96.10554218844682,
+          "launch_corrected_pct": 28.477677380644977
+        },
+        "256K-16M": {
+          "n_cells": 26,
+          "roofline_MIN_pct": 99.84076901328808,
+          "roofline_MAX_pct": 53.57807684261302,
+          "launch_corrected_pct": 42.36549785943238
+        },
+        ">16M": {
+          "n_cells": 14,
+          "roofline_MIN_pct": 99.81952029240526,
+          "roofline_MAX_pct": 17.483866930398595,
+          "launch_corrected_pct": 26.662751774759453
+        }
+      },
+      "no_band_reaches_10pct": true,
+      "best_band": ">16M",
+      "best_residual_pct": 17.483866930398595,
+      "direction_of_error_below_16M": "over-predicts (conservative)"
+    },
+    "does_the_ge_10us_rule_hold": {
+      "answer": true,
+      "as_a_conservative_heuristic": true,
+      "as_a_validated_analytic_predictor": false,
+      "why": "The >=10 us rule is CONSERVATIVE but not validated: on the canonical population the max-form roofline never reaches 10% in ANY band (best band >16M at 17.5%), so no analytic accuracy claim backs the threshold. What backs it is the SIGN: below 16M the model OVER-predicts time, so treating 'roofline says >10 us' as 'this will be slow' errs on the safe side. Above 16M the model is accurate to within that band and the rule is not the binding constraint."
+    },
     "design_correction": "the bead's DESIGN specifies t_roofline = min(flops/peak, bytes/ceiling). For a fixed amount of work the kernel is bounded BELOW by both resources, so the time floor is max(...). min() always selects the FLOP branch, which for a memory-bound kernel is orders of magnitude smaller, and yields a prediction ~100% low at EVERY size including the largest. Both forms are computed per cell so the difference is auditable rather than argued."
   }
 }
