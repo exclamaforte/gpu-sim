@@ -1,4 +1,52 @@
-# gpu-sim-u2o.6.6.2 — anchor + scaling set, measured BEFORE the rework
+# gpu-sim-u2o.6.6.2 — anchor + scaling set (`anchor_v1`, FROZEN)
+
+**`anchor_version: 1`, frozen 2026-09-28.** Measured by ts jobs
+`20260928t032717-6356dbf2` (launch), `5c2e74a0` (memory), `ff2f2da2`
+(reduce), `3f5587a6` (gemm) — 124 configs, all four with
+`n_other_running_at_sample_time = 0`, so this anchor is contention-free *by
+record* rather than by assumption. Any later change is `anchor_v2` with a
+stated reason, never an in-place edit: 6.1.1's closing diff is taken against
+this version, and an unstamped successor makes that diff wrong invisibly.
+
+## What changed in v1 (the review was right about all of it)
+
+* **Access-pattern contrast, lifted not invented.** `k_strided_copy` was
+  `k_copy` wearing a different name — both coalesced, both stepping by
+  `gridDim.x*blockDim.x`. Replaced with a one-time lift of `strided_read`
+  (runtime stride 17), `scatter_write` and `random_access` (LCG) from
+  `generator_stage3.py`, with the source text kept beside each copy. The
+  family now has **six** distinct patterns, and they finally differ in the
+  data: at n=2²⁶, `copy` 1533 GB/s vs `scatter_write` 608 GB/s.
+* **Ceiling = argmax *index*** over a stated HBM candidate set (largest n).
+  An argmax over all cells publishes the L2-resident n=2²² case (3.2 TB/s) as
+  a *memory* ceiling. Ceiling = **1538.7 GB/s** from `random_access
+  n=67108864 auto/256`, with the ranked candidate list emitted beside it.
+* **Per-cell byte convention** from each kernel's argument roles, not one
+  global `2·n·4`: saxpy moves two reads and one write, the strided kernel
+  reads n/17, the scatter/random kernels stream their index/seed buffers too.
+* **Regime flag on all 124 cells** (80 launch-bound, 9 memory-bound, 35
+  compute-bound), threshold stated in the artifact.
+* **Queue state recorded** in every family file (item 8).
+
+## Crossover: re-derived, and it happens to reproduce
+
+`launch_to_memory_crossover_n = 262144` — **recomputed from scratch** under
+this commit's ceiling *and* candidate set, not carried forward. The old value
+survived a 480× ceiling change because the test was a ratio and the
+candidate set changed at the same time, so its survival was not validation.
+It reproduces here under three simultaneous changes (ceiling 1541.3→1538.7,
+new candidate set, per-cell byte convention), which is a different claim from
+the one that was suspended.
+
+## Honest note on the process
+
+Four queued jobs were lost to defects a two-second CPU check would have
+caught (a missing import; then a misattributed `own_job_id` that made three
+of four family files claim the same run). `preflight_static.py` now runs
+before every submit and the own-job resolution is deterministic — both tested
+in the failure direction, not just the success direction.
+
+## Original anchor notes (v1, first measurement)
 
 94 configs across four hand-written kernel families, on the current
 measurement path (`kernel_driver.synthesize` → `compile_kernel` →
