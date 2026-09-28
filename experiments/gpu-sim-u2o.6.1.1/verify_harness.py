@@ -146,12 +146,29 @@ def main() -> int:
     # The v1 numbers (ts 20260927t145454-9c2420b3) are kept verbatim next to
     # this file as metrics_v1.json. The closing run is the v2 successor, and
     # overwriting metrics.json must not erase the baseline the diff is against.
+    # FAIL-CLOSED, per the PI's ruling. The previous form was
+    #     if v1.exists(): <check>
+    # which skips the check exactly when the guarded file is gone -- a guard
+    # that cannot fail, whose only effect is to make the artifact look
+    # stamped. An absent guarded file is now a reason to STOP, loudly, before
+    # anything is written: without metrics_v1.json there is no declared
+    # predecessor, and overwriting metrics.json would leave this successor
+    # with no baseline to be diffed against.
     v1 = HERE / "metrics_v1.json"
-    if v1.exists():
-        v1d = json.loads(v1.read_text())
-        assert v1d.get("measurement_version") == 1, (
-            "metrics_v1.json must stay measurement_version 1; a later run "
-            "writes metrics.json, never this file")
+    if not v1.exists():
+        print("FATAL: refusing to write. metrics_v1.json is absent, so there "
+              "is no declared predecessor for this run to supersede. Restore "
+              "it (measurement_version 1, ts 20260927t145454-9c2420b3) first. "
+              "This guard is fail-CLOSED on purpose.", flush=True)
+        return 2
+    v1d = json.loads(v1.read_text())
+    if v1d.get("measurement_version") != 1:
+        print(f"FATAL: refusing to write. metrics_v1.json declares "
+              f"measurement_version {v1d.get('measurement_version')!r}, not 1. "
+              "A later run writes metrics.json and never this file; if that "
+              "was intended it is a NEW baseline and needs its own stamp.",
+              flush=True)
+        return 2
     (HERE / "metrics.json").write_text(json.dumps(summary, indent=2))
     print(f"wrote metrics.json (measurement_version="
           f"{summary['measurement_version']}); v1 baseline preserved at {v1.name}",
