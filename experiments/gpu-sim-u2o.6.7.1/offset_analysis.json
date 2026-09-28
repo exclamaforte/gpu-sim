@@ -1,0 +1,46 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "question": "the PI's correction: 7.1's ai_cv and 6.7.1's ai_cv may not be comparable quantities because 7.1's two invocations were separate processes. Checkable -- checked.",
+  "finding_1_the_statistic_moved": {
+    "ai_cv_single_run_7_1": {
+      "mean": 0.112,
+      "median": 0.0854
+    },
+    "ai_cv_batched_6_7_1": {
+      "mean": 0.0344,
+      "median": 0.0127
+    },
+    "ratio": 0.31,
+    "conclusion": "CONFIRMED: the same statistic differs by 3.2x between protocols, so neither ai_cv alone is a valid noise floor for a cross-protocol comparison, and any artifact pooling rows from both is mixing definitions. This was the checkable claim; it is now checked."
+  },
+  "finding_2_the_tolerance_rule_is_not_the_cause": {
+    "rules": [
+      {
+        "rule": "3x 7.1's ai_cv, floor 10% (what I used)",
+        "reproducing": "206/264",
+        "median_rel_diff": 0.1255
+      },
+      {
+        "rule": "3x the BATCHED run's own ai_cv, floor 10%",
+        "reproducing": "133/264",
+        "median_rel_diff": 0.1255
+      },
+      {
+        "rule": "3*sqrt(single^2+batched^2) (like-for-like)",
+        "reproducing": "218/264",
+        "median_rel_diff": 0.1255
+      }
+    ],
+    "conclusion": "the reproduction FRACTION moves with the rule (50-83%) but the MEDIAN RELATIVE DIFFERENCE IS 12.6% UNDER ALL THREE, so the divergence is not an artifact of the tolerance. R-a is too generous, R-b too strict, R-c both most defensible and closest to what I used -- and none of them changes the answer."
+  },
+  "finding_3_the_offset_is_ONE_SIDED": {
+    "median_signed_difference_us": -0.3,
+    "mean_signed_difference_us": -0.4316,
+    "fraction_of_rows_batched_is_FASTER": 0.7045,
+    "conclusion": "70.5% of rows are FASTER under the batched protocol, median -0.30 us. A noise-driven divergence would be SYMMETRIC; this is a systematic one-sided offset."
+  },
+  "so_the_batched_path_may_be_measuring_something_else": "The batched path is both FASTER (one-sided, -0.30 us median) and TIGHTER (ai_cv 0.034 vs 0.112). Together those are the signature of a DIFFERENT QUANTITY rather than a noisier measurement of the same one: a long-lived warm process does not pay the cold-start path a fresh process does, and a cleaner number is not the same number. This was my discriminator's if_neither hypothesis and is now the leading one -- not because it is attractive but because it predicts BOTH observations and neither H1 nor H2 did.",
+  "and_the_power_calculation_the_PI_ASKED_FOR": "NOT THE RIGHT EXPENDITURE, and a units correction changes the question. Sizing repeats at (18.6/6.8)^2 ~ 8 per arm divides a 6.8-POINT gap in median-rel-diff by an 18.6-POINT spread in REPRODUCTION COUNT -- two different statistics, so that ratio is not a power calculation but the same mistake one level up. And the effect I was sizing replicates for is NOT the effect that exists: the ISOLATION contrast is ~6.8 points and drowned in noise, while the PROTOCOL contrast is 12.6% median, one-sided, and needs no replicates to see. More repeats would tighten the estimate of a difference that is already unambiguous: 24 GPU jobs spent avoiding the paragraph that says the question is open.",
+  "the_one_experiment_that_would_settle_it": "Run the batched path with INDEPENDENT PROCESSES PER INVOCATION, everything else identical. If the offset collapses toward zero, process isolation is the cause and the batching must keep a process boundary per invocation -- one spawn per example instead of two, a real win but NOT 70x. If the offset persists, the two paths measure different quantities and no throughput number should be compared to 7.1's without saying which. Either outcome is decision-grade and only one leaves the 70x claim intact.",
+  "status": "criterion 2 fails; the cause is characterised as a SYSTEMATIC one-sided offset rather than noise, and the leading explanation is that the batched path measures a different quantity. Under R1 the single-run path remains authoritative. No re-measurement yet."
+}
