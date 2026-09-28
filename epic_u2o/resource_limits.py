@@ -30,6 +30,7 @@ Runaway processes are killed by the process group on timeout, followed by a
 single GPU health check. No driver reload, no reboot, ever automatically.
 """
 
+import itertools
 import os
 import resource
 import shutil
@@ -122,16 +123,37 @@ class ScratchDir:
     * refuses to hand out a directory when the base tree is already over
       quota (so one runaway example cannot starve the next ones),
     * accounts total bytes written under the run directory,
-    * exposes `preexec()` which adds an RLIMIT_FSIZE backstop for the child,
+    * enforces the quota MID-RUN (start_monitor), which is the only layer that
+      bounds a child writing many small files,
+    * exposes `preexec()` which adds an RLIMIT_FSIZE backstop, capping any
+      SINGLE file at the quota,
     * removes everything on exit (pass keep=True to preserve for forensics).
+
+    What this does NOT do, stated rather than implied: it cannot stop a child
+    that writes by absolute path outside the run directory, and the mid-run
+    kill is a sampling bound -- peak overshoot is (write rate x interval), not
+    zero. run_kernel sets the child's cwd to the run directory so that the
+    relative-path case, which is the common one, is contained.
     """
+
+    # A process-wide counter, because the previous name was
+    # f"{name}-{int(time.time())}-{os.getpid()}" -- one-second granularity, so
+    # two runs in the same second in the same process got the SAME directory.
+    # The reviewer's reproduction, visible in this bead's own output.log: checks
+    # D1 and D2b both report scratch "kern-1790523258-3599407" -- two runs
+    # reported as one. With keep=True, run B's files then landed in run A's kept
+    # directory and A.size_mb() double-counted them; concurrent runs shared one
+    # quota. In a batch harness, whose entire point is per-example budgets, the
+    # per-example accounting was wrong exactly when it mattered.
+    _counter = itertools.count()
 
     def __init__(self, base: str | Path, quota_mb: int = 1024,
                  name: str = 'run', keep: bool = False):
         self.base = Path(base)
         self.quota_mb = quota_mb
         self.keep = keep
-        self.path = self.base / f"{name}-{int(time.time())}-{os.getpid()}"
+        uniq = f"{next(ScratchDir._counter):04d}-{os.getpid()}-{time.time_ns()}"
+        self.path = self.base / f"{name}-{uniq}"
         self.violations: list[str] = []
 
     # -- accounting -----------------------------------------------------
@@ -158,6 +180,56 @@ class ScratchDir:
             return False, (f"disk quota already exceeded in {self.base}: "
                            f"{used:.1f} MB > {self.quota_mb} MB")
         return True, f"disk budget ok: {used:.1f} MB used of {self.quota_mb} MB in {self.base}"
+
+    def start_monitor(self, proc, kill_cb, interval_sec: float = 0.05):
+        """Enforce the quota WHILE the child runs, not only after it exits.
+
+        The bead's acceptance is that one pathological example cannot fill the
+        disk mid-run, and neither layer did that: RLIMIT_FSIZE is per-FILE
+        (blind to many small files) and the Python accounting only ran at the
+        end. The reviewer's reproduction, at the harness defaults: an 8 MB quota
+        and a child writing 200 files of 1 MB ran to completion and wrote
+        200.0 MB -- 25x its quota -- and the harness only noticed afterwards.
+
+        A cgroup cannot help (there is no disk controller), so this samples the
+        run directory and kills the child's process group on breach. Sampling
+        is approximate by construction, and the bound is worth stating
+        precisely rather than implying tightness: the worst overshoot is
+        (write rate x interval), and RLIMIT_FSIZE independently caps any single
+        file at the quota, so a fast writer of many small files is stopped on
+        the first sample that sees the breach, not at the quota. Measured at
+        the 0.05 s default: a writer sustaining ~4.7 GB/s was killed after
+        0.3 s having written ~1.4 GB against a 2 MB quota -- stopped, but
+        nowhere near the quota. The overshoot is RECORDED as peak_mb so a
+        reader can see the limit instead of taking 'killed' for 'bounded'.
+        """
+        import threading
+        self._stop_monitor = threading.Event()
+        self.peak_mb = 0.0
+        self.breach_mb = None
+
+        def _loop():
+            while not self._stop_monitor.is_set():
+                used = self.size_mb()
+                self.peak_mb = max(self.peak_mb, used)
+                if used > self.quota_mb:
+                    self.breach_mb = used
+                    try:
+                        kill_cb()
+                    except Exception:
+                        pass
+                    return
+                self._stop_monitor.wait(interval_sec)
+
+        self._monitor = threading.Thread(target=_loop, daemon=True)
+        self._monitor.start()
+        return self._monitor
+
+    def stop_monitor(self) -> None:
+        self._stop_monitor.set()
+        mon = getattr(self, "_monitor", None)
+        if mon is not None:
+            mon.join(timeout=2)
 
     def check_quota(self) -> tuple[bool, str]:
         used = self.size_mb()
