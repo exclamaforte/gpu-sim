@@ -45,6 +45,88 @@ def rows():
     return [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
 
 
+def single_run_medians() -> dict:
+    """7.1's committed medians, by kernel_hash.
+
+    The speed guard is only sound if the numbers it is speeding up still match
+    the ones being replaced, so the reproduction check needs the ORIGINAL run,
+    not a re-derivation of it.
+    """
+    import json as _json
+    import subprocess as _sp
+    r = _sp.run(["git", "show",
+                 "lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measured.jsonl"],
+                cwd=REPO, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise unittest.SkipTest("7.1 dataset not on this ref")
+    return {_json.loads(l)["kernel_hash"]: _json.loads(l)
+            for l in r.stdout.splitlines() if l.strip()}
+
+
+class TestMediansReproduce(unittest.TestCase):
+    """Criterion 2, made NON-SEPARABLE from the speed guard.
+
+    The PI's catch, and it is correct: criterion 7 asserted only that overhead
+    falls and device time holds, so it PASSED on a run whose medians moved
+    15-25%. A throughput acceptance that certifies a run whose numbers changed
+    is not a throughput acceptance, it is a speedometer.
+
+    So the reproduction check lives here, in the same suite as the speed check,
+    and it is an ordinary assertion rather than a note. It currently FAILS, and
+    that failure is the bead's real status rather than a broken test -- which is
+    the whole point of making it inseparable.
+    """
+
+    TOL_FLOOR, TOL_CAP, TOL_SIGMA = 0.10, 0.75, 3.0
+
+    def test_medians_match_7_1_within_the_measured_noise_floor(self):
+        single = single_run_medians()
+        rels, worst = [], None
+        for r in rows():
+            s = single.get(r["kernel_hash"])
+            if not s:
+                continue
+            b = s["median_runtime_ms"]
+            rel = abs(r["median_runtime_ms"] - b) / b
+            tol = max(self.TOL_FLOOR,
+                      min(self.TOL_SIGMA * (s.get("ai_cv") or 0.0), self.TOL_CAP))
+            rels.append(rel)
+            if rel > tol and (worst is None or rel > worst[0]):
+                worst = (rel, r["kernel_hash"], tol)
+        self.assertTrue(rels, "no comparable rows")
+        reproducing = sum(
+            1 for r in rows()
+            if r["kernel_hash"] in single
+            and abs(r["median_runtime_ms"]
+                    - single[r["kernel_hash"]]["median_runtime_ms"])
+            / single[r["kernel_hash"]]["median_runtime_ms"]
+            <= max(self.TOL_FLOOR,
+                   min(self.TOL_SIGMA * (single[r["kernel_hash"]].get("ai_cv")
+                                         or 0.0), self.TOL_CAP)))
+        self.assertGreaterEqual(
+            reproducing / len(rels), 0.90,
+            f"only {reproducing}/{len(rels)} medians reproduce 7.1's; the "
+            f"worst is {worst[0]*100:.0f}% over a {worst[2]*100:.0f}% tolerance "
+            f"({worst[1]}). A throughput fix that changes the numbers is worse "
+            f"than no fix, so this suite fails until the cause is found.")
+
+    def test_the_speed_guards_alone_are_not_enough(self):
+        """Documents WHY the assertion above exists, in a way that cannot rot.
+
+        If someone deletes the reproduction check as 'flaky', this fails and
+        says what was lost. The metric's run-to-run spread is 161-218 of 264, so
+        'flaky' is not a safe description of it.
+        """
+        import inspect
+        src = inspect.getsource(TestMediansReproduce)
+        self.assertIn("self.assert", src)
+        suite = inspect.getsource(TestOverheadFalls)
+        self.assertNotIn("median", suite.lower(),
+                         "the speed guard must not acquire a median check; "
+                         "it belongs in TestMediansReproduce where it is "
+                         "unmissable")
+
+
 class TestOverheadFalls(unittest.TestCase):
     def test_per_example_overhead_falls_by_the_expected_order(self):
         """The order, not a constant: 10x or more, asserted as a bound.

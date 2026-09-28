@@ -1,23 +1,8 @@
---- mode=warm repeat 1/2 (protocol identical, isolation differs) ---
-    210/264 reproduce, median rel diff 10.7%
---- mode=warm repeat 2/2 (protocol identical, isolation differs) ---
-    161/264 reproduce, median rel diff 21.6%
---- mode=cold repeat 1/2 (protocol identical, isolation differs) ---
-    202/264 reproduce, median rel diff 12.3%
---- mode=cold repeat 2/2 (protocol identical, isolation differs) ---
-    205/264 reproduce, median rel diff 12.0%
---- mode=reset repeat 1/2 (protocol identical, isolation differs) ---
-    218/264 reproduce, median rel diff 10.9%
---- mode=reset repeat 2/2 (protocol identical, isolation differs) ---
-    186/264 reproduce, median rel diff 16.6%
-
-within-mode spread of the metric: 0.186
-best mode 'cold' beats warm by +0.068
-ATTRIBUTION SUPPORTED: False
-
-====================================================================
-  warm   rows reproducing [210, 161]  mean  70.3%  median-diff  16.1%  baseline: state carries between examples
-  cold   rows reproducing [202, 205]  mean  77.1%  median-diff  12.2%  removing carryover between EXAMPLES (tests H2)
-  reset  rows reproducing [218, 186]  mean  76.5%  median-diff  13.8%  removing the shared context between INVOCATIONS (tests H1)
-
-VERDICT: UNDERPOWERED -- NO ATTRIBUTION. The best mode beats warm by +0.068 while the SAME configuration varies by 0.186 across repeats, so the modes are indistinguishable at this sample size. Reporting H1 or H2 here would be reporting noise with a mechanism attached, which is worse than reporting nothing. Three runs of one configuration gave 207, 189 and 173 rows reproducing.
+criterion 1: 167.30 ex/s vs 7.1's 2.39 = 70.0x; ceiling 7,911 is an UPPER BOUND
+           per example: 5.98 ms = 0.144 device + 5.59 sampling + 0.24 residual
+criterion 2: 206/264 medians reproduce (median rel diff 12.6%) -> DOES NOT REPRODUCE -- the throughput fix moved the numbers, which makes it worse than no fix
+criterion 2b: device 144.3 us vs 126 asserted (+14.5%)
+criterion 3: True (40 timed launches, unchanged); processes 528 -> 1
+criterion 4: 264/264 distinct sample times
+criterion 5: device utilisation 2.4%
+criterion 6: after batching, 167.3 ex/s against the 7,911 ex/s bound. smoke-as-written: NOT fed; small: NOT fed; medium: NOT fed; large: NOT fed. Stated here rather than left to be discovered, and the trial count was NOT revisited to improve it.

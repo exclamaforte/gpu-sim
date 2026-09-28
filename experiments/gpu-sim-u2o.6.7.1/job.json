@@ -15,9 +15,10 @@
     "20260928t112353-9a17d97c",
     "20260928t121126-77415fac",
     "20260928t121233-9fc66049",
-    "20260928t121521-a515d937"
+    "20260928t121521-a515d937",
+    "20260928t121926-ab46f839"
   ],
-  "authoritative_job": "20260928t112353-9a17d97c",
+  "authoritative_job": "20260928t121926-ab46f839",
   "gpu_used": true,
   "failed_jobs_kept": "eleven submissions are recorded, not one. Seven failed BEFORE any GPU work (a KeyError on a missing field, a template signature that had drifted from its call site, a missing brace) and one succeeded while VIOLATING the protocol -- it ran 25 launches per example instead of 40, which is what the device-time assertion caught. All are cheap because the preflight and the assertions are CPU-side, but the record matters: the protocol violation is the interesting one and it would have been invisible without criterion 2b.",
   "note": "The queue was empty before submission and no tenant was jumped. The job carried a 10m max-runtime. Superseded job 20260928t111322-e0720458 (25.05 ex/s, nvidia-smi sampling) by 20260928t112353-9a17d97c (168.81 ex/s, in-process NVML sampling). Both are kept: the first is the evidence for the 39 ms per-example sample cost that motivated the increment, and the second is the result of acting on it. The discriminator's own first two versions reported a confident H1 from a single run per mode, which the repeats showed was noise. Both are kept in job.json because a verdict retracted after three runs is part of the record, not something to quietly overwrite.",
@@ -26,5 +27,15 @@
     "20260928t121126-77415fac": "first attempt, 1 run per mode; reset mode CRASHED (illegal memory access) and the argmax verdict picked H1 from 1 sample",
     "20260928t121233-9fc66049": "reset fixed; verdict STILL came from an argmax over single runs and again said H1",
     "20260928t121521-a515d937": "AUTHORITATIVE: 2 repeats per mode (6 GPU runs); the within-mode spread (0.186) exceeds the best-minus-warm gap (0.068), so the script REFUSES to attribute. Verdict: UNDERPOWERED, no attribution."
+  },
+  "restored_artifact": {
+    "what": "the discriminator's three diagnostic modes all wrote batch_summary.json, so the COMMITTED artifact of record ended up describing the slow reset diagnostic (7.54 ex/s) instead of the authoritative warm run -- and I committed that. A diagnostic that clobbers the thing it is diagnosing is the same class of defect as a stale artifact, wearing a FRESH timestamp, which is the most expensive version of it.",
+    "fix": "--summary-out added to the worker; the discriminator now writes summary_<mode>.json and can never touch the artifact of record again",
+    "restored_by": "20260928t121926-ab46f839, warm mode, 167.30 ex/s, 264/264 distinct sample times"
+  },
+  "criterion_2_wired_into_criterion_7": {
+    "what": "the PI caught that criterion 7 asserted only that overhead falls and device time holds, so it PASSED on a run whose medians moved 15-25%. A throughput acceptance that certifies a run whose numbers changed is a speedometer, not an acceptance.",
+    "fix": "TestMediansReproduce is now inside the same suite as the speed guards, as an ordinary assertion rather than a note, so if the medians move the suite fails",
+    "status": "IT FAILS, and that failure is the bead's real status rather than a broken test. 14 tests: 13 pass, 1 fails, and the one that fails is criterion 2."
   }
 }

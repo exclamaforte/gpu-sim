@@ -264,6 +264,16 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0,
                     help="measure only the first N examples (0 = all)")
     ap.add_argument("--out", default="batch_rows.jsonl")
+    ap.add_argument("--summary-out", default="batch_summary.json",
+                    help="DIAGNOSTIC RUNS MUST NOT OVERWRITE THE ARTIFACT OF "
+                         "RECORD. The discriminator's three modes all wrote "
+                         "batch_summary.json, so the committed artifact ended "
+                         "up describing the slow reset diagnostic (7.54 ex/s) "
+                         "instead of the authoritative warm run (168.81 ex/s) "
+                         "-- and I committed that. A diagnostic that clobbers "
+                         "the thing it is diagnosing is the same class of "
+                         "defect as a stale artifact, wearing a fresh "
+                         "timestamp.")
     ap.add_argument("--mode", choices=("warm", "cold", "reset"), default="warm",
                     help="warm: persistent process, state carries (current). "
                          "cold: buffers freed and reallocated between EXAMPLES "
@@ -512,7 +522,7 @@ def main() -> int:
         "started_at": started_at,
         "n_begin_markers": n_begin, "n_end_markers": n_end,
     }
-    (HERE / "batch_summary.json").write_text(json.dumps(out, indent=2))
+    (HERE / args.summary_out).write_text(json.dumps(out, indent=2))
     print(f"\n{n} examples in {wall:.2f}s = {out['throughput']['examples_per_sec']:.2f} ex/s "
           f"({out['throughput']['examples_per_hour']:,.0f}/hour)")
     print(f"processes started: 1   device time/example: "

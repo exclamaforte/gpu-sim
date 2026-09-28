@@ -49,14 +49,14 @@ def single_run() -> dict:
 def run_mode(mode: str) -> dict:
     out = f"rows_{mode}.jsonl"
     cmd = [sys.executable, str(HERE / "batch_measure_worker.py"),
-           "--mode", mode, "--out", out]
+           "--mode", mode, "--out", out,
+           "--summary-out", f"summary_{mode}.json"]   # never clobber the record
     r = subprocess.run(cmd, cwd=HERE, capture_output=True, text=True, timeout=1200)
     if r.returncode != 0:
         raise SystemExit(f"FATAL: mode {mode} failed\n{r.stdout[-2000:]}\n{r.stderr[-2000:]}")
     rows = [json.loads(l) for l in (HERE / out).read_text().splitlines() if l.strip()]
-    # the worker writes a FIXED summary filename, so read it immediately after
-    # each run rather than assuming a per-mode file exists
-    sp = HERE / "batch_summary.json"
+    # per-mode summary, so a diagnostic cannot overwrite the artifact of record
+    sp = HERE / f"summary_{mode}.json"
     summ = json.loads(sp.read_text()) if sp.exists() else {}
     return {"rows": rows, "stdout": r.stdout, "summary": summ}
 

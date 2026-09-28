@@ -1,60 +1,38 @@
 {
   "bead": "gpu-sim-u2o.6.7.1",
   "gpu_used": false,
-  "authoritative_job": "20260928t112353-9a17d97c",
+  "authoritative_job": "20260928t111322-e0720458",
   "criterion_1_throughput_vs_ceiling": {
-    "measured_ex_per_sec": 168.80936566613534,
+    "measured_ex_per_sec": 167.30474602848193,
     "single_run_ex_per_sec_7_1": 2.3886363068290137,
-    "speedup_over_single_run": 70.67185790633603,
+    "speedup_over_single_run": 70.04195052640056,
     "overhead_free_ceiling_ex_per_sec": 7911.0,
     "ceiling_is_an_UPPER_BOUND": "7,911 ex/s assumes the 50 launches per example pipeline perfectly with zero per-launch and zero sampling cost. It is a bound on what is POSSIBLE, not a target, and the measured rate is NOT presented as the ceiling.",
     "gap_attributed_ms_per_example": {
-      "total": 5.923841938827977,
-      "device_work": 0.13890151515151516,
-      "per_example_telemetry_sampling": 5.53732207327178,
-      "residual_unattributed": 0.2476183504046814,
-      "residual_share": 0.04180029665910909,
+      "total": 5.9771167509483565,
+      "device_work": 0.14431969696969696,
+      "per_example_telemetry_sampling": 5.593786636988322,
+      "residual_unattributed": 0.23901041699033687,
+      "residual_share": 0.03998757711272988,
       "note": "the residual is per-launch driver cost and Python bookkeeping across 50 launches. It is reported as a residual rather than attributed to a cause I have not measured, because an unattributed residual stated as such is honest and a guessed one is not."
     }
   },
   "criterion_2_numbers_reproduce": {
     "rows_compared": 264,
-    "rows_reproducing": 189,
-    "fraction_reproducing": 0.7159090909090909,
+    "rows_reproducing": 206,
+    "fraction_reproducing": 0.7803030303030303,
     "rows_missing_from_single_run": 0,
     "tolerance_rule": "each row's own measured across-invocation CV (7.1's ai_cv) x 3, floored at 10% and capped at 75%. A per-row tolerance, not a global bar.",
-    "median_rel_diff": 0.1561751488200278,
+    "median_rel_diff": 0.1255242581869336,
     "worst_5": [
       {
         "kernel_hash": "6e9710634639b2e7",
         "problem_size": 16384,
         "op_type": "copy",
-        "batched_ms": 0.001776,
+        "batched_ms": 0.001568,
         "single_ms": 0.00436,
-        "rel_diff": 0.5926605504587157,
+        "rel_diff": 0.6403669724770642,
         "row_noise_floor_ai_cv": 0.4437257232399987,
-        "tolerance": 0.75,
-        "reproduces": true
-      },
-      {
-        "kernel_hash": "64219f0495dc8b5d",
-        "problem_size": 4096,
-        "op_type": "relu",
-        "batched_ms": 0.0017439999999999999,
-        "single_ms": 0.004056000000000001,
-        "rel_diff": 0.5700197238658778,
-        "row_noise_floor_ai_cv": 0.1087856586440843,
-        "tolerance": 0.3263569759322529,
-        "reproduces": false
-      },
-      {
-        "kernel_hash": "0e51a66ce7f699f7",
-        "problem_size": 262144,
-        "op_type": "saxpy",
-        "batched_ms": 0.002816,
-        "single_ms": 0.006104,
-        "rel_diff": 0.5386631716906947,
-        "row_noise_floor_ai_cv": 0.48746810865547047,
         "tolerance": 0.75,
         "reproduces": true
       },
@@ -62,31 +40,53 @@
         "kernel_hash": "b561fe988174d822",
         "problem_size": 16384,
         "op_type": "saxpy",
-        "batched_ms": 0.001736,
+        "batched_ms": 0.001576,
         "single_ms": 0.003648,
-        "rel_diff": 0.5241228070175439,
+        "rel_diff": 0.5679824561403508,
         "row_noise_floor_ai_cv": 0.049621528504319064,
         "tolerance": 0.1488645855129572,
         "reproduces": false
       },
       {
-        "kernel_hash": "5e7bac4cf239b1f6",
-        "problem_size": 65536,
-        "op_type": "div",
-        "batched_ms": 0.0031599999999999996,
-        "single_ms": 0.006512,
-        "rel_diff": 0.5147420147420149,
-        "row_noise_floor_ai_cv": 0.39959351270984256,
+        "kernel_hash": "11c2d504d648b19a",
+        "problem_size": 4096,
+        "op_type": "relu",
+        "batched_ms": 0.001808,
+        "single_ms": 0.0041600000000000005,
+        "rel_diff": 0.5653846153846155,
+        "row_noise_floor_ai_cv": 0.28828199540682325,
         "tolerance": 0.75,
         "reproduces": true
+      },
+      {
+        "kernel_hash": "4a7153f7b9a62efd",
+        "problem_size": 16384,
+        "op_type": "triad",
+        "batched_ms": 0.001608,
+        "single_ms": 0.0036799999999999997,
+        "rel_diff": 0.5630434782608695,
+        "row_noise_floor_ai_cv": 0.11067758314224209,
+        "tolerance": 0.3320327494267263,
+        "reproduces": false
+      },
+      {
+        "kernel_hash": "092be35c5a0469b6",
+        "problem_size": 16384,
+        "op_type": "add",
+        "batched_ms": 0.00164,
+        "single_ms": 0.00368,
+        "rel_diff": 0.5543478260869565,
+        "row_noise_floor_ai_cv": 0.10452882852322873,
+        "tolerance": 0.31358648556968616,
+        "reproduces": false
       }
     ],
     "verdict": "DOES NOT REPRODUCE -- the throughput fix moved the numbers, which makes it worse than no fix"
   },
   "criterion_2b_device_time_unchanged": {
     "asserted_us": 126.0,
-    "measured_us": 138.90151515151516,
-    "delta_pct": 10.239297739297742,
+    "measured_us": 144.31969696969696,
+    "delta_pct": 14.539442039442035,
     "unchanged_within_10pct": false,
     "unchanged_within_20pct": true,
     "note": "device time per example is median kernel time x 50 launches. It is the quantity a throughput fix must NOT move, and it is asserted rather than assumed."
@@ -112,22 +112,22 @@
   "criterion_4_per_example_sampling": {
     "rows": 264,
     "distinct_sample_times": 264,
-    "sample_time_span_sec": 1.4640307426452637,
+    "sample_time_span_sec": 1.4784798622131348,
     "sampled_per_row_not_per_batch": true,
-    "sampling_wall_sec": 1.46185302734375,
-    "sampling_ms_per_example": 5.53732207327178,
-    "sampling_is_a_real_cost": "per-example telemetry costs 5.5 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
+    "sampling_wall_sec": 1.476759672164917,
+    "sampling_ms_per_example": 5.593786636988322,
+    "sampling_is_a_real_cost": "per-example telemetry costs 5.6 ms per example and is reported SEPARATELY rather than folded into an unattributed residual. It is the price of the per-row observation this bead's constraint 2 requires, and hiding it inside 'overhead' would be the same mistake as not splitting it out at all.",
     "note": "every row carries its own queue_state and its own telemetry, taken at that row's time. A per-batch sample stamped onto many rows would satisfy the letter of the row carrying a field while observing nothing."
   },
   "criterion_5_device_utilisation": {
-    "wall_sec": 1.563894271850586,
-    "device_sec": 0.03667,
-    "device_utilisation": 0.02344787666279236,
+    "wall_sec": 1.5779588222503662,
+    "device_sec": 0.03810039999999999,
+    "device_utilisation": 0.024145370248422622,
     "max_runtime": "10m (the ts submission carried one)",
     "why_it_matters": "queueing this job on a shared box now costs a real slot for a real fraction of the time, rather than the 0.1% 7.1's job ran at."
   },
   "criterion_6_small_rung_outcome": {
-    "measured_ex_per_sec": 168.80936566613534,
+    "measured_ex_per_sec": 167.30474602848193,
     "ceiling_ex_per_sec": 7911.0,
     "fed": {
       "smoke-as-written": false,
@@ -135,6 +135,6 @@
       "medium": false,
       "large": false
     },
-    "statement": "after batching, 168.8 ex/s against the 7,911 ex/s bound. smoke-as-written: NOT fed; small: NOT fed; medium: NOT fed; large: NOT fed. Stated here rather than left to be discovered, and the trial count was NOT revisited to improve it."
+    "statement": "after batching, 167.3 ex/s against the 7,911 ex/s bound. smoke-as-written: NOT fed; small: NOT fed; medium: NOT fed; large: NOT fed. Stated here rather than left to be discovered, and the trial count was NOT revisited to improve it."
   }
 }
