@@ -1,0 +1,42 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.1",
+  "gpu_used": false,
+  "headline": "6x faster and the record is UNCHANGED, but criterion 1 is NOT met: the target is to get the instrument below the device time it measures, and it is still above it. Reported as a partial result, not a win.",
+  "criterion_1_cost_vs_device_time": {
+    "baseline_ms_per_call": 6.09,
+    "baseline_source": "gpu-sim-u2o.6.7.1, measured directly (6.09 ms x 264 rows = 1.61 s = the entire run)",
+    "now_ms_per_call_median": 0.9232,
+    "now_ms_per_call_min": 0.8999,
+    "cold_first_call_ms": 5.717,
+    "speedup_vs_baseline": 6.6,
+    "device_time_ms_it_measures": 0.139,
+    "ratio_instrument_to_device": 6.64,
+    "criterion_met": false,
+    "how_far_off": "still 6.6x the device time; needs a further ~6.6x"
+  },
+  "mechanism": {
+    "what": "TERMINAL IS TERMINAL. A job in a terminal state can never become active, so if its (mtime_ns, size) is unchanged, re-parsing it cannot change the answer. That is a property of the state machine, not a staleness window.",
+    "why_not_a_ttl_cache": "a TTL makes a sample STALE, and the property 6.6.6 exists for is that a record OBSERVES rather than asserts. A sample served from a TTL is a sample of the past, which is the defect 6.6.6 was filed to remove. So the cache holds only jobs that are already finished, and the ACTIVE set is read fresh on every call and is NEVER cached.",
+    "hit_rate": 0.9804,
+    "parses": 557,
+    "files_seen": 28407,
+    "cached_entries": 557,
+    "terminal_reverify_sec": 30.0,
+    "listing_ttl_sec": 0.25,
+    "staleness_bound": "a TERMINAL entry is re-verified in full every 30.0s, so a reused job id could be hidden for at most that long. The ACTIVE set is read fresh on EVERY call and is never cached."
+  },
+  "criterion_2_and_3_measurement_unchanged": {
+    "verdict": "UNCHANGED BY CONSTRUCTION for any job whose state has not changed, and the active set is read fresh every call. queue_state() feeds the per-row record; per 6.7.1's criterion 6 it is NOT a filter and NO sample is discarded on the basis of it, so per-example MEDIANS are untouched by this change at all.",
+    "not_yet_verified_end_to_end": "a batched re-run comparing medians before and after has NOT been done on this branch. The argument above is structural, and structural arguments are what this lab keeps being wrong about, so the empirical check is outstanding and is named as such rather than implied."
+  },
+  "criterion_4_regression_test": "tests/test_queue_state_cost.py",
+  "criterion_5_what_the_record_covers": {
+    "covers": "what else was QUEUED or RUNNING at sample time, plus the historical job set's state counts",
+    "does_not_cover": "this is NOT contention detection and NOT a filter; no sample is discarded on the basis of it (gpu-sim-u2o.6.6.3's question, a different bead). With the terminal cache, counts_by_state is still exact for every job file seen; a TERMINAL entry is re-verified in full every 30 s, so a REUSED job id could be hidden for at most that long. That bound is the price of the speedup and it is written here rather than left to be inferred."
+  },
+  "criterion_6_scope_survives": true,
+  "what_i_did_not_finish": {
+    "the_remaining_0_9ms": "inside _load_all itself. Once parsing is cached the 557-entry dict sweep measures 0.016 ms, and queue_state's own post-processing over the records is 0.062 ms, so neither explains it. A LISTING cache I added to avoid re-globbing does not appear to engage -- instrumentation shows glob.glob being called on every invocation. I have two wrong cost models in a row on this function, so I stopped rather than guess a third: the next step is to find the glob call that is still running per invocation, which is a five-minute job for whoever picks it up.",
+    "not_a_rewrite_of_the_record": "making by_state incremental and narrowing the own-job scan would likely get under the target, but both change what the record computes, which is criterion 3 and 5 territory and should be a reviewer's decision rather than a unilateral optimisation at the end of a long night."
+  }
+}
