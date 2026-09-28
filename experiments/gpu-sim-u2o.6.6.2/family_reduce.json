@@ -1,30 +1,124 @@
 {
   "bead": "gpu-sim-u2o.6.6.2",
   "family": "reduce",
+  "queue_state_before": {
+    "recorded_at": "2026-09-28T03:26:13.097720+00:00",
+    "own_job_id": "20260928t032427-a8e9b1eb",
+    "own_description_substr": "u2o.6.6.2 anchor",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 287,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "running": 1,
+      "queued": 2
+    },
+    "n_active_including_self": 3,
+    "n_other_active": 3,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-3aa8f2b0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: gemm",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032519-9e898d5f",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-09-28T03:25:19+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-09-28T03:26:20.165465+00:00",
+    "own_job_id": "20260928t032427-a8e9b1eb",
+    "own_description_substr": "u2o.6.6.2 anchor",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 287,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "running": 1,
+      "queued": 2
+    },
+    "n_active_including_self": 3,
+    "n_other_active": 3,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-3aa8f2b0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: gemm",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032519-9e898d5f",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-09-28T03:25:19+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
   "preflight_bypassed": true,
   "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
   "telemetry_before": {
     "label": "before",
-    "at": 1790525250.3725474,
+    "at": 1790565973.0795877,
     "rc": 0,
-    "csv": "2917 MHz, 3105 MHz, 45, 0x0000000000000000, Disabled",
+    "csv": "2415 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "2917 MHz",
+      "clocks.sm": "2415 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "45",
+      "temperature.gpu": "42",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
   },
   "telemetry_after": {
     "label": "after",
-    "at": 1790525257.458671,
+    "at": 1790565980.1445646,
     "rc": 0,
-    "csv": "2482 MHz, 3105 MHz, 44, 0x0000000000000000, Disabled",
+    "csv": "2452 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "2482 MHz",
+      "clocks.sm": "2452 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "44",
+      "temperature.gpu": "42",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
@@ -54,17 +148,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002848,
-      "iqr_ms": 0.0008319999999999998,
-      "mean_ms": 0.0033797333333333334,
-      "std_ms": 0.0017249347997176114,
-      "cv": 0.5103760059129748,
+      "median_ms": 0.0028799999999999997,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.00312,
+      "std_ms": 0.0013413953777026495,
+      "cv": 0.4299344159303364,
       "medians_across_invocations_ms": [
-        0.002848,
-        0.0026880000000000003,
-        0.003408
+        0.0028799999999999997,
+        0.002928,
+        0.002816
       ],
-      "across_invocation_cv": 0.1268107949799447,
+      "across_invocation_cv": 0.01954666744499582,
       "throttle_active": false
     },
     {
@@ -85,17 +179,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0033759999999999997,
-      "iqr_ms": 0.0007360000000000001,
-      "mean_ms": 0.0036288,
-      "std_ms": 0.001822264532695142,
-      "cv": 0.502167254380275,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.0010240000000000002,
+      "mean_ms": 0.0034853333333333333,
+      "std_ms": 0.001677000496919028,
+      "cv": 0.4811592856500654,
       "medians_across_invocations_ms": [
-        0.002912,
-        0.003376,
-        0.0033759999999999997
+        0.002896,
+        0.0028640000000000002,
+        0.0028640000000000002
       ],
-      "across_invocation_cv": 0.08316137983360501,
+      "across_invocation_cv": 0.006426904666303795,
       "throttle_active": false
     },
     {
@@ -116,17 +210,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002704,
-      "iqr_ms": 0.0003519999999999999,
-      "mean_ms": 0.0030458666666666667,
-      "std_ms": 0.0014332102577562906,
-      "cv": 0.4705426778660558,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.0008320000000000003,
+      "mean_ms": 0.0034416000000000004,
+      "std_ms": 0.0016463146228130683,
+      "cv": 0.4783573404268562,
       "medians_across_invocations_ms": [
-        0.002704,
-        0.002688,
+        0.002816,
+        0.003504,
         0.002752
       ],
-      "across_invocation_cv": 0.01226915127386724,
+      "across_invocation_cv": 0.13787104995550672,
       "throttle_active": false
     },
     {
@@ -147,17 +241,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00304,
-      "iqr_ms": 0.001408,
-      "mean_ms": 0.0038314666666666667,
-      "std_ms": 0.0018454956200478557,
-      "cv": 0.4816681914796394,
+      "median_ms": 0.00296,
+      "iqr_ms": 0.0008959999999999997,
+      "mean_ms": 0.0034832,
+      "std_ms": 0.001506678610022159,
+      "cv": 0.43255587104448756,
       "medians_across_invocations_ms": [
-        0.00304,
-        0.00336,
-        0.002928
+        0.002896,
+        0.00296,
+        0.003456
       ],
-      "across_invocation_cv": 0.07210239985243123,
+      "across_invocation_cv": 0.09874868072509282,
       "throttle_active": false
     },
     {
@@ -180,13 +274,13 @@
       "n_invocations": 3,
       "median_ms": 0.006912,
       "iqr_ms": 0.00028800000000000006,
-      "mean_ms": 0.007232,
-      "std_ms": 0.001554219625428722,
-      "cv": 0.21490868714445824,
+      "mean_ms": 0.007189866666666667,
+      "std_ms": 0.0014655539528453277,
+      "cv": 0.20383604047066162,
       "medians_across_invocations_ms": [
-        0.006944,
         0.0068000000000000005,
-        0.006912
+        0.006912,
+        0.006944
       ],
       "across_invocation_cv": 0.010981755909184925,
       "throttle_active": false
@@ -209,17 +303,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.010832,
-      "iqr_ms": 0.0005760000000000001,
-      "mean_ms": 0.010742933333333335,
-      "std_ms": 0.000929095165194987,
-      "cv": 0.08648430892819345,
+      "median_ms": 0.010848,
+      "iqr_ms": 0.0003199999999999991,
+      "mean_ms": 0.0109664,
+      "std_ms": 0.0012581221842525767,
+      "cv": 0.11472517729178006,
       "medians_across_invocations_ms": [
-        0.009856,
-        0.010992,
-        0.010832
+        0.010848,
+        0.010768,
+        0.010944
       ],
-      "across_invocation_cv": 0.05822993591083524,
+      "across_invocation_cv": 0.00811926862007783,
       "throttle_active": false
     },
     {
@@ -240,17 +334,17 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.064592,
-      "iqr_ms": 0.001568,
-      "mean_ms": 0.06510773333333333,
-      "std_ms": 0.0019407161867501703,
-      "cv": 0.02980776763974024,
+      "median_ms": 0.06416,
+      "iqr_ms": 0.0010559999999999875,
+      "mean_ms": 0.06457866666666666,
+      "std_ms": 0.0007512129551297701,
+      "cv": 0.011632525010268152,
       "medians_across_invocations_ms": [
-        0.06432,
-        0.06472,
-        0.064592
+        0.06416,
+        0.064096,
+        0.064816
       ],
-      "across_invocation_cv": 0.0031648848127921662,
+      "across_invocation_cv": 0.0061920506648620735,
       "throttle_active": false
     },
     {
@@ -271,19 +365,19 @@
       "shared_mem_bytes": 4096,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.116624,
-      "iqr_ms": 0.0012800000000000034,
-      "mean_ms": 0.1169872,
-      "std_ms": 0.002145807080591972,
-      "cv": 0.018342238130256747,
+      "median_ms": 0.116,
+      "iqr_ms": 0.001343999999999998,
+      "mean_ms": 0.11634613333333334,
+      "std_ms": 0.0016738637680899515,
+      "cv": 0.014386930791196196,
       "medians_across_invocations_ms": [
-        0.116624,
-        0.117008,
-        0.116272
+        0.11566399999999999,
+        0.116032,
+        0.116
       ],
-      "across_invocation_cv": 0.00315614503209793,
+      "across_invocation_cv": 0.0017589172015661505,
       "throttle_active": false
     }
   ],
-  "wall_sec": 7.086597681045532
+  "wall_sec": 7.067687511444092
 }

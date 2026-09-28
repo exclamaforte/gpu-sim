@@ -1,30 +1,118 @@
 {
   "bead": "gpu-sim-u2o.6.6.2",
   "family": "launch",
+  "queue_state_before": {
+    "recorded_at": "2026-09-28T03:24:27.340961+00:00",
+    "own_job_id": "20260928t032427-a8e9b1eb",
+    "own_description_substr": "u2o.6.6.2 anchor",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 285,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "running": 1,
+      "queued": 2
+    },
+    "n_active_including_self": 3,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032427-07ffc5d6",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: launch",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20260928t032427-07ffc5d6",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: launch",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-09-28T03:24:42.738839+00:00",
+    "own_job_id": "20260928t032427-a8e9b1eb",
+    "own_description_substr": "u2o.6.6.2 anchor",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 285,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "running": 1,
+      "queued": 3
+    },
+    "n_active_including_self": 4,
+    "n_other_active": 3,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032427-07ffc5d6",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: launch",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-3aa8f2b0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: gemm",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20260928t032427-07ffc5d6",
+        "state": "running",
+        "description": "u2o.6.6.2 anchor v5: launch",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
   "preflight_bypassed": true,
   "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
   "telemetry_before": {
     "label": "before",
-    "at": 1790525170.8566422,
+    "at": 1790565867.3149788,
     "rc": 0,
-    "csv": "195 MHz, 3105 MHz, 39, 0x0000000000000000, Disabled",
+    "csv": "225 MHz, 3105 MHz, 37, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "195 MHz",
+      "clocks.sm": "225 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "39",
+      "temperature.gpu": "37",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
   },
   "telemetry_after": {
     "label": "after",
-    "at": 1790525186.5934036,
+    "at": 1790565882.7184954,
     "rc": 0,
-    "csv": "2475 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
+    "csv": "2460 MHz, 3105 MHz, 39, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "2475 MHz",
+      "clocks.sm": "2460 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "42",
+      "temperature.gpu": "39",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
@@ -54,17 +142,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00168,
-      "iqr_ms": 0.0013440000000000001,
-      "mean_ms": 0.0023498666666666667,
-      "std_ms": 0.0017123141588304038,
-      "cv": 0.7286856667741732,
+      "median_ms": 0.0017920000000000002,
+      "iqr_ms": 0.00128,
+      "mean_ms": 0.0021957333333333332,
+      "std_ms": 0.0012342760983692627,
+      "cv": 0.5621247715429604,
       "medians_across_invocations_ms": [
-        0.001584,
-        0.002256,
-        0.00168
+        0.002304,
+        0.001792,
+        0.0017920000000000002
       ],
-      "across_invocation_cv": 0.19752724681044434,
+      "across_invocation_cv": 0.1506131137016415,
       "throttle_active": false
     },
     {
@@ -85,17 +173,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00224,
-      "iqr_ms": 0.001312,
-      "mean_ms": 0.002424,
-      "std_ms": 0.0016258001211398357,
-      "cv": 0.6707096209322755,
+      "median_ms": 0.0020800000000000003,
+      "iqr_ms": 0.0013119999999999998,
+      "mean_ms": 0.0023103999999999998,
+      "std_ms": 0.0014676167605789337,
+      "cv": 0.6352219358461452,
       "medians_across_invocations_ms": [
-        0.00224,
-        0.002,
-        0.0023680000000000003
+        0.00232,
+        0.0020800000000000003,
+        0.001728
       ],
-      "across_invocation_cv": 0.08481491471252788,
+      "across_invocation_cv": 0.14577049454002988,
       "throttle_active": false
     },
     {
@@ -116,17 +204,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0018080000000000001,
-      "iqr_ms": 0.0007359999999999999,
-      "mean_ms": 0.0021914666666666667,
-      "std_ms": 0.001643624843444726,
-      "cv": 0.7500113364465468,
+      "median_ms": 0.001664,
+      "iqr_ms": 0.0014079999999999997,
+      "mean_ms": 0.0021829333333333333,
+      "std_ms": 0.0016167056466848252,
+      "cv": 0.7406115532699847,
       "medians_across_invocations_ms": [
-        0.001408,
-        0.0018080000000000001,
-        0.001856
+        0.001664,
+        0.002192,
+        0.001408
       ],
-      "across_invocation_cv": 0.14548709851861463,
+      "across_invocation_cv": 0.2278419128499716,
       "throttle_active": false
     },
     {
@@ -147,17 +235,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001728,
-      "iqr_ms": 0.000864,
-      "mean_ms": 0.002001066666666667,
-      "std_ms": 0.0010814312842704662,
-      "cv": 0.5404274141810032,
+      "median_ms": 0.0023039999999999996,
+      "iqr_ms": 0.001216,
+      "mean_ms": 0.0022890666666666665,
+      "std_ms": 0.001569636964036607,
+      "cv": 0.6857104630868216,
       "medians_across_invocations_ms": [
-        0.0022719999999999997,
-        0.001728,
-        0.001616
+        0.0015999999999999999,
+        0.0023039999999999996,
+        0.00248
       ],
-      "across_invocation_cv": 0.18745053161932737,
+      "across_invocation_cv": 0.2188215370053421,
       "throttle_active": false
     },
     {
@@ -178,17 +266,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001536,
-      "iqr_ms": 0.00044800000000000005,
-      "mean_ms": 0.0019717333333333334,
-      "std_ms": 0.0014087898144304345,
-      "cv": 0.714493076023009,
+      "median_ms": 0.0014399999999999999,
+      "iqr_ms": 0.0013759999999999998,
+      "mean_ms": 0.0021344000000000003,
+      "std_ms": 0.001417340971858386,
+      "cv": 0.6640465572799784,
       "medians_across_invocations_ms": [
-        0.001648,
-        0.00144,
-        0.001536
+        0.001424,
+        0.0014399999999999999,
+        0.001872
       ],
-      "across_invocation_cv": 0.06754055811745026,
+      "across_invocation_cv": 0.16099665618167375,
       "throttle_active": false
     },
     {
@@ -209,17 +297,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001648,
-      "iqr_ms": 0.0011520000000000002,
-      "mean_ms": 0.002317333333333333,
-      "std_ms": 0.0017003925635148188,
-      "cv": 0.7337712443245766,
+      "median_ms": 0.0019039999999999999,
+      "iqr_ms": 0.001504,
+      "mean_ms": 0.0024613333333333336,
+      "std_ms": 0.0014197267183519017,
+      "cv": 0.5768120470010434,
       "medians_across_invocations_ms": [
-        0.001648,
-        0.001632,
-        0.0024159999999999997
+        0.001504,
+        0.002848,
+        0.0019039999999999999
       ],
-      "across_invocation_cv": 0.2360052113628648,
+      "across_invocation_cv": 0.3309328513301961,
       "throttle_active": false
     },
     {
@@ -240,17 +328,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001584,
-      "iqr_ms": 0.001312,
-      "mean_ms": 0.0022704,
-      "std_ms": 0.0015690724799886163,
-      "cv": 0.691099577162005,
+      "median_ms": 0.0017599999999999998,
+      "iqr_ms": 0.001184,
+      "mean_ms": 0.0021637333333333333,
+      "std_ms": 0.0013871252783556024,
+      "cv": 0.6410795900706814,
       "medians_across_invocations_ms": [
-        0.001584,
-        0.001424,
-        0.002032
+        0.001632,
+        0.0017599999999999998,
+        0.001776
       ],
-      "across_invocation_cv": 0.18759729146278295,
+      "across_invocation_cv": 0.04581624949519734,
       "throttle_active": false
     },
     {
@@ -271,17 +359,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0023039999999999996,
-      "iqr_ms": 0.0013440000000000001,
-      "mean_ms": 0.0023813333333333334,
-      "std_ms": 0.0015388932261797507,
-      "cv": 0.6462317579142289,
+      "median_ms": 0.0022240000000000003,
+      "iqr_ms": 0.001408,
+      "mean_ms": 0.0024192000000000003,
+      "std_ms": 0.0016029716133545032,
+      "cv": 0.6626040068429658,
       "medians_across_invocations_ms": [
-        0.002496,
-        0.002048,
-        0.0023039999999999996
+        0.002384,
+        0.0022240000000000003,
+        0.002192
       ],
-      "across_invocation_cv": 0.09846405376497887,
+      "across_invocation_cv": 0.04538188593408443,
       "throttle_active": false
     },
     {
@@ -302,17 +390,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001632,
-      "iqr_ms": 0.001216,
-      "mean_ms": 0.0021925333333333336,
-      "std_ms": 0.0015007190080901015,
-      "cv": 0.6844680467450596,
+      "median_ms": 0.0017439999999999999,
+      "iqr_ms": 0.0009280000000000002,
+      "mean_ms": 0.0020448000000000003,
+      "std_ms": 0.0012756359504051702,
+      "cv": 0.6238438724594924,
       "medians_across_invocations_ms": [
-        0.001584,
-        0.00216,
-        0.001632
+        0.0017920000000000002,
+        0.00168,
+        0.0017439999999999999
       ],
-      "across_invocation_cv": 0.17834807460212665,
+      "across_invocation_cv": 0.032317956297094316,
       "throttle_active": false
     },
     {
@@ -333,17 +421,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00232,
-      "iqr_ms": 0.0013120000000000002,
-      "mean_ms": 0.0022949333333333335,
-      "std_ms": 0.0013906117891139132,
-      "cv": 0.6059486647893533,
+      "median_ms": 0.001888,
+      "iqr_ms": 0.0013440000000000001,
+      "mean_ms": 0.0025168,
+      "std_ms": 0.0018140227868432197,
+      "cv": 0.7207655701061744,
       "medians_across_invocations_ms": [
-        0.00232,
-        0.0016480000000000002,
-        0.002528
+        0.001888,
+        0.0023680000000000003,
+        0.001536
       ],
-      "across_invocation_cv": 0.21240897204286088,
+      "across_invocation_cv": 0.2163179221044409,
       "throttle_active": false
     },
     {
@@ -364,17 +452,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001568,
-      "iqr_ms": 0.0010559999999999999,
-      "mean_ms": 0.0021354666666666667,
-      "std_ms": 0.0017808745848615084,
-      "cv": 0.8339510106431889,
+      "median_ms": 0.0019039999999999999,
+      "iqr_ms": 0.001152,
+      "mean_ms": 0.002140266666666667,
+      "std_ms": 0.0014703848667941245,
+      "cv": 0.6870101234086676,
       "medians_across_invocations_ms": [
-        0.001568,
-        0.001472,
-        0.0015999999999999999
+        0.002288,
+        0.001536,
+        0.0019039999999999999
       ],
-      "across_invocation_cv": 0.04306895171309236,
+      "across_invocation_cv": 0.1969422316991321,
       "throttle_active": false
     },
     {
@@ -395,17 +483,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001872,
-      "iqr_ms": 0.0012799999999999999,
-      "mean_ms": 0.0022901333333333333,
-      "std_ms": 0.0015112625708962987,
-      "cv": 0.659901565074653,
+      "median_ms": 0.002,
+      "iqr_ms": 0.00112,
+      "mean_ms": 0.0024666666666666665,
+      "std_ms": 0.001992983851607524,
+      "cv": 0.8079664263273746,
       "medians_across_invocations_ms": [
-        0.001632,
-        0.001872,
-        0.0024000000000000002
+        0.002064,
+        0.002,
+        0.001664
       ],
-      "across_invocation_cv": 0.19964275053347447,
+      "across_invocation_cv": 0.11253205071778596,
       "throttle_active": false
     },
     {
@@ -426,17 +514,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00952,
-      "iqr_ms": 0.0009600000000000008,
-      "mean_ms": 0.009973866666666666,
-      "std_ms": 0.0017642351919257757,
-      "cv": 0.1768857806994722,
+      "median_ms": 0.010239999999999999,
+      "iqr_ms": 0.0016959999999999996,
+      "mean_ms": 0.009975466666666665,
+      "std_ms": 0.0009835020006643273,
+      "cv": 0.0985920793009845,
       "medians_across_invocations_ms": [
-        0.009455999999999999,
-        0.009583999999999999,
-        0.00952
+        0.010239999999999999,
+        0.0104,
+        0.009088
       ],
-      "across_invocation_cv": 0.006722689075630234,
+      "across_invocation_cv": 0.0722329346385688,
       "throttle_active": false
     },
     {
@@ -457,17 +545,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.009856,
-      "iqr_ms": 0.0016959999999999996,
-      "mean_ms": 0.010093333333333334,
-      "std_ms": 0.0011541417629734867,
-      "cv": 0.1143469382074128,
+      "median_ms": 0.0092,
+      "iqr_ms": 0.0017280000000000004,
+      "mean_ms": 0.009901866666666667,
+      "std_ms": 0.001397301315025414,
+      "cv": 0.14111493944159492,
       "medians_across_invocations_ms": [
-        0.010528,
-        0.009744,
-        0.009856
+        0.009503999999999999,
+        0.0092,
+        0.009152
       ],
-      "across_invocation_cv": 0.04222236688327339,
+      "across_invocation_cv": 0.020557760101290286,
       "throttle_active": false
     },
     {
@@ -488,17 +576,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.005248,
-      "iqr_ms": 0.0013440000000000006,
-      "mean_ms": 0.005754133333333333,
-      "std_ms": 0.001870285099871744,
-      "cv": 0.3250333267457151,
+      "median_ms": 0.0052,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.00576,
+      "std_ms": 0.001484772881108278,
+      "cv": 0.2577730696368538,
       "medians_across_invocations_ms": [
-        0.005344,
-        0.00496,
-        0.005248
+        0.0056,
+        0.0052,
+        0.005072
       ],
-      "across_invocation_cv": 0.03854937036048393,
+      "across_invocation_cv": 0.05205948118417482,
       "throttle_active": false
     },
     {
@@ -519,17 +607,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0050880000000000005,
-      "iqr_ms": 0.0015040000000000001,
-      "mean_ms": 0.005613333333333333,
-      "std_ms": 0.0011612030387383341,
-      "cv": 0.20686514941894316,
+      "median_ms": 0.005039999999999999,
+      "iqr_ms": 0.0016319999999999998,
+      "mean_ms": 0.005678933333333333,
+      "std_ms": 0.001109881133758677,
+      "cv": 0.19543831008616824,
       "medians_across_invocations_ms": [
-        0.004992,
-        0.005648,
-        0.0050880000000000005
+        0.005039999999999999,
+        0.005408,
+        0.005024
       ],
-      "across_invocation_cv": 0.06757926217799544,
+      "across_invocation_cv": 0.04212081045380828,
       "throttle_active": false
     },
     {
@@ -550,17 +638,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00168,
-      "iqr_ms": 0.0011200000000000001,
-      "mean_ms": 0.0021706666666666667,
-      "std_ms": 0.001448971425560351,
-      "cv": 0.6675236911365253,
+      "median_ms": 0.0014880000000000002,
+      "iqr_ms": 0.0010559999999999999,
+      "mean_ms": 0.002096,
+      "std_ms": 0.0015656294775638806,
+      "cv": 0.7469606286087216,
       "medians_across_invocations_ms": [
-        0.00168,
-        0.002208,
+        0.001456,
+        0.0014880000000000002,
         0.001536
       ],
-      "across_invocation_cv": 0.19569331316368122,
+      "across_invocation_cv": 0.02696369441168124,
       "throttle_active": false
     },
     {
@@ -581,19 +669,19 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.001536,
-      "iqr_ms": 0.0011519999999999998,
-      "mean_ms": 0.0022416000000000003,
-      "std_ms": 0.001716647454009102,
-      "cv": 0.7658134609248313,
+      "median_ms": 0.0017759999999999998,
+      "iqr_ms": 0.001312,
+      "mean_ms": 0.0023664,
+      "std_ms": 0.0017125174570432754,
+      "cv": 0.7236804669723105,
       "medians_across_invocations_ms": [
-        0.00152,
-        0.002352,
-        0.001536
+        0.0017759999999999998,
+        0.002208,
+        0.001744
       ],
-      "across_invocation_cv": 0.26394446070640165,
+      "across_invocation_cv": 0.13572659903079712,
       "throttle_active": false
     }
   ],
-  "wall_sec": 15.731408834457397
+  "wall_sec": 15.39770245552063
 }

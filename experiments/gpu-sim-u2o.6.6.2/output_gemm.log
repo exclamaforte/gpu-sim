@@ -1,5 +1,26 @@
-Traceback (most recent call last):
-  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/measure_family.py", line 31, in <module>
-    OWN_JOB_DESCRIPTION = os.environ.get("U2O_JOB_DESC", "u2o.6.6.2 anchor")
-                          ^^
-NameError: name 'os' is not defined. Did you mean: 'qs'? Or did you forget to import 'os'?
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'gemm'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2422 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "42", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t032427-a8e9b1eb", "n_other_active": 2, "n_other_running_at_sample_time": 1}
+overlapping jobs: [{"id": "20260928t032427-3aa8f2b0", "state": "running", "description": "u2o.6.6.2 anchor v5: gemm"}, {"id": "20260928t032519-9e898d5f", "state": "queued", "description": ""}]
+gemm: 8 configs x 3 process invocations x 100 trials
+  tiled_gemm 512^3 32x32       grid=   [16, 16, 1] med=   39.760us iqr=   0.864us cv=0.033 ai_cv=0.0081
+  tiled_gemm 512^3 16x16       grid=   [16, 16, 1] med=   13.104us iqr=   0.832us cv=0.081 ai_cv=0.0247
+  tiled_gemm 1024^3 32x32      grid=   [32, 32, 1] med=  256.592us iqr=   0.384us cv=0.007 ai_cv=0.0001
+  tiled_gemm 1024^3 16x16      grid=   [32, 32, 1] med=   62.032us iqr=   0.256us cv=0.020 ai_cv=0.0003
+  tiled_gemm 2048^3 32x32      grid=   [64, 64, 1] med= 1811.888us iqr=   6.528us cv=0.002 ai_cv=0.0014
+  tiled_gemm 2048^3 16x16      grid=   [64, 64, 1] med=  404.560us iqr=   1.088us cv=0.010 ai_cv=0.0007
+  tiled_gemm 4096^3 32x32      grid= [128, 128, 1] med=14938.208us iqr=  16.096us cv=0.001 ai_cv=0.0007
+  tiled_gemm 4096^3 16x16      grid= [128, 128, 1] med= 3079.312us iqr=   1.632us cv=0.001 ai_cv=0.0
+telemetry after:  {"clocks.sm": "2917 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "46", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/family_gemm.json
+gemm: 8/8 configs measured, 8.9s

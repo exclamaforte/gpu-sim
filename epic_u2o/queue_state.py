@@ -93,16 +93,29 @@ def queue_state(own_job_id: str | None = None,
     # Fallback: match on our own command line, which is always present even if
     # the description was truncated. An unidentified "own job" would make the
     # whole record unauditable, which is the one outcome this must not have.
+    def _pick(cands):
+        # Several jobs can match (four anchor jobs share a command prefix and
+        # a generic description). Picking "the newest match" made every family
+        # claim the same JOB_ID, which is exactly the field whose whole purpose
+        # is to say which run this is. Prefer the one that is actually running,
+        # then the newest, and say how it was chosen.
+        if not cands:
+            return None, None
+        running = [j for j in cands if j.get("state") in ("running", "starting")]
+        pool = running or cands
+        pool = sorted(pool, key=lambda j: j.get("id") or "")
+        return pool[-1].get("id"), ("running" if running else "newest-match")
+
+    how = None
     if own_job_id is None and own_command_substr:
-        for j in reversed(jobs):
-            if own_command_substr in " ".join(j.get("command") or []):
-                own_job_id = j.get("id")
-                break
+        cands = [j for j in jobs
+                 if own_command_substr in " ".join(j.get("command") or [])]
+        own_job_id, how = _pick(cands)
     if own_job_id is None and own_description_substr:
-        for j in reversed(jobs):
-            if own_description_substr in (j.get("description") or ""):
-                own_job_id = j.get("id")
-                break
+        cands = [j for j in jobs
+                 if own_description_substr in (j.get("description") or "")]
+        own_job_id, how2 = _pick(cands)
+        how = how or how2
 
     active = []
     for j in jobs:
@@ -127,6 +140,7 @@ def queue_state(own_job_id: str | None = None,
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         "own_job_id": own_job_id,
         "own_description_substr": own_description_substr,
+        "own_job_id_resolution": how,
         "queue_dir": str(QUEUE_DIR),
         "counts_by_state": by_state,
         "n_active_including_self": len(active),

@@ -1,30 +1,104 @@
 {
   "bead": "gpu-sim-u2o.6.6.2",
   "family": "memory",
+  "queue_state_before": {
+    "recorded_at": "2026-09-28T03:24:43.138347+00:00",
+    "own_job_id": "20260928t032427-a8e9b1eb",
+    "own_description_substr": "u2o.6.6.2 anchor",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 286,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "queued": 2,
+      "running": 1
+    },
+    "n_active_including_self": 3,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-3aa8f2b0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: gemm",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-09-28T03:26:12.753692+00:00",
+    "own_job_id": "20260928t032427-a8e9b1eb",
+    "own_description_substr": "u2o.6.6.2 anchor",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 286,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "queued": 3,
+      "running": 1
+    },
+    "n_active_including_self": 4,
+    "n_other_active": 3,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032427-34442b74",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: reduce",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032427-3aa8f2b0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v5: gemm",
+        "created_at": "2026-09-28T03:24:27+00:00"
+      },
+      {
+        "id": "20260928t032519-9e898d5f",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-09-28T03:25:19+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
   "preflight_bypassed": true,
   "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
   "telemetry_before": {
     "label": "before",
-    "at": 1790525186.7956693,
+    "at": 1790565883.1199036,
     "rc": 0,
-    "csv": "2445 MHz, 3105 MHz, 41, 0x0000000000000000, Disabled",
+    "csv": "2430 MHz, 3105 MHz, 39, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "2445 MHz",
+      "clocks.sm": "2430 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "41",
+      "temperature.gpu": "39",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
   },
   "telemetry_after": {
     "label": "after",
-    "at": 1790525250.1543689,
+    "at": 1790565972.733374,
     "rc": 0,
-    "csv": "2917 MHz, 3105 MHz, 45, 0x0000000000000000, Disabled",
+    "csv": "2430 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
     "fields": {
-      "clocks.sm": "2917 MHz",
+      "clocks.sm": "2430 MHz",
       "clocks.max.sm": "3105 MHz",
-      "temperature.gpu": "45",
+      "temperature.gpu": "42",
       "clocks_throttle_reasons.active": "0x0000000000000000",
       "persistence_mode": "Disabled"
     }
@@ -54,17 +128,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002768,
-      "iqr_ms": 0.00028800000000000006,
-      "mean_ms": 0.0031466666666666665,
-      "std_ms": 0.001614219301954434,
-      "cv": 0.512993422231282,
+      "median_ms": 0.00264,
+      "iqr_ms": 0.0007360000000000001,
+      "mean_ms": 0.0027610666666666667,
+      "std_ms": 0.001374884424932112,
+      "cv": 0.4979540847494127,
       "medians_across_invocations_ms": [
         0.002816,
-        0.002688,
-        0.002768
+        0.002256,
+        0.00264
       ],
-      "across_invocation_cv": 0.023451364899385204,
+      "across_invocation_cv": 0.11139745857808127,
       "throttle_active": false
     },
     {
@@ -85,17 +159,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0028,
-      "iqr_ms": 0.0003839999999999998,
-      "mean_ms": 0.0029653333333333333,
-      "std_ms": 0.0013036149304935295,
-      "cv": 0.43961834436607333,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.00296,
+      "std_ms": 0.001343696495190205,
+      "cv": 0.4539515186453395,
       "medians_across_invocations_ms": [
-        0.002848,
-        0.002704,
-        0.0028
+        0.002752,
+        0.0027359999999999997,
+        0.0028640000000000002
       ],
-      "across_invocation_cv": 0.026336641925033575,
+      "across_invocation_cv": 0.025051143353682106,
       "throttle_active": false
     },
     {
@@ -116,23 +190,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00256,
-      "iqr_ms": 0.001152,
-      "mean_ms": 0.0025370666666666665,
-      "std_ms": 0.0013974966221925362,
-      "cv": 0.5508316515894484,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.00028799999999999963,
+      "mean_ms": 0.0027818666666666668,
+      "std_ms": 0.0011747045711065105,
+      "cv": 0.4222720611243687,
       "medians_across_invocations_ms": [
-        0.001616,
-        0.002656,
-        0.00256
+        0.0028,
+        0.00272,
+        0.002672
       ],
-      "across_invocation_cv": 0.252373841284273,
+      "across_invocation_cv": 0.02368038213473075,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=1024 auto/256",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=1024 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 1024,
       "grid": [
         4,
@@ -147,17 +221,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002624,
-      "iqr_ms": 0.001184,
-      "mean_ms": 0.002660266666666667,
-      "std_ms": 0.001352810080582006,
-      "cv": 0.5085242383903892,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.0030005333333333333,
+      "std_ms": 0.0013494046831362548,
+      "cv": 0.44972161053687837,
       "medians_across_invocations_ms": [
-        0.002624,
         0.002656,
-        0.0016640000000000001
+        0.002848,
+        0.002768
       ],
-      "across_invocation_cv": 0.2435430462990564,
+      "across_invocation_cv": 0.03497706251455535,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=1024 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002656,
+      "iqr_ms": 0.0005760000000000001,
+      "mean_ms": 0.002816,
+      "std_ms": 0.0013660436005648092,
+      "cv": 0.4851007104278442,
+      "medians_across_invocations_ms": [
+        0.0025440000000000003,
+        0.002736,
+        0.002656
+      ],
+      "across_invocation_cv": 0.036457946209728045,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=1024 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0004159999999999997,
+      "mean_ms": 0.0031717333333333335,
+      "std_ms": 0.001565114929084423,
+      "cv": 0.4934572880499904,
+      "medians_across_invocations_ms": [
+        0.002752,
+        0.002784,
+        0.003008
+      ],
+      "across_invocation_cv": 0.04897639262405246,
       "throttle_active": false
     },
     {
@@ -178,17 +314,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002752,
-      "iqr_ms": 0.00028800000000000006,
-      "mean_ms": 0.0030085333333333335,
-      "std_ms": 0.0014428415404106104,
-      "cv": 0.4795830328434488,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.0029333333333333334,
+      "std_ms": 0.001398968465821007,
+      "cv": 0.4769210678935251,
       "medians_across_invocations_ms": [
-        0.002752,
+        0.002672,
         0.002704,
-        0.002752
+        0.002608
       ],
-      "across_invocation_cv": 0.010128952091046129,
+      "across_invocation_cv": 0.018367036853530368,
       "throttle_active": false
     },
     {
@@ -209,17 +345,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002672,
-      "iqr_ms": 0.0005760000000000001,
-      "mean_ms": 0.0028704,
-      "std_ms": 0.0014263251251772384,
-      "cv": 0.49690814004223743,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.003010133333333333,
+      "std_ms": 0.001306782404651725,
+      "cv": 0.43412774782458974,
       "medians_across_invocations_ms": [
-        0.0028,
-        0.0024159999999999997,
-        0.002672
+        0.002768,
+        0.0028640000000000002,
+        0.002768
       ],
-      "across_invocation_cv": 0.07436228308244777,
+      "across_invocation_cv": 0.019794866372215773,
       "throttle_active": false
     },
     {
@@ -240,23 +376,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002736,
+      "median_ms": 0.002768,
       "iqr_ms": 0.0003519999999999999,
-      "mean_ms": 0.0029050666666666667,
-      "std_ms": 0.0015053217896501335,
-      "cv": 0.5181711686421884,
+      "mean_ms": 0.0030048,
+      "std_ms": 0.001337770226780749,
+      "cv": 0.44521107121297554,
       "medians_across_invocations_ms": [
-        0.002736,
-        0.002736,
-        0.002736
+        0.00272,
+        0.0028640000000000002,
+        0.002768
       ],
-      "across_invocation_cv": 0.0,
+      "across_invocation_cv": 0.026336641925033575,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=1024 auto/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=1024 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 1024,
       "grid": [
         1,
@@ -271,17 +407,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002656,
-      "iqr_ms": 0.0003840000000000002,
-      "mean_ms": 0.003015466666666667,
-      "std_ms": 0.001487381585848401,
-      "cv": 0.4932508796366734,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.0029776,
+      "std_ms": 0.001273453428240823,
+      "cv": 0.42767780368109315,
       "medians_across_invocations_ms": [
-        0.002656,
-        0.002624,
-        0.002736
+        0.002768,
+        0.002752,
+        0.0028640000000000002
       ],
-      "across_invocation_cv": 0.021590127397987987,
+      "across_invocation_cv": 0.0216752226938942,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=1024 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.0027903999999999997,
+      "std_ms": 0.001209844186634049,
+      "cv": 0.43357374807699584,
+      "medians_across_invocations_ms": [
+        0.002624,
+        0.002768,
+        0.002672
+      ],
+      "across_invocation_cv": 0.027277236279499063,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=1024 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0031829333333333334,
+      "std_ms": 0.0017771243755932457,
+      "cv": 0.5583291226939235,
+      "medians_across_invocations_ms": [
+        0.002688,
+        0.002784,
+        0.002816
+      ],
+      "across_invocation_cv": 0.02411196138377762,
       "throttle_active": false
     },
     {
@@ -302,17 +500,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0026880000000000003,
+      "median_ms": 0.0028320000000000003,
       "iqr_ms": 0.0005119999999999999,
-      "mean_ms": 0.002911466666666667,
-      "std_ms": 0.0012991849265775555,
-      "cv": 0.4462303970201349,
+      "mean_ms": 0.0030762666666666666,
+      "std_ms": 0.001551553643076717,
+      "cv": 0.5043625313399522,
       "medians_across_invocations_ms": [
-        0.002608,
-        0.0030239999999999998,
-        0.0026880000000000003
+        0.002848,
+        0.0025919999999999997,
+        0.0028320000000000003
       ],
-      "across_invocation_cv": 0.07959308494836483,
+      "across_invocation_cv": 0.05200901222339951,
       "throttle_active": false
     },
     {
@@ -333,17 +531,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00288,
-      "iqr_ms": 0.0009600000000000003,
-      "mean_ms": 0.0028592,
-      "std_ms": 0.0013584223750927186,
-      "cv": 0.4751057551387516,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.001088,
+      "mean_ms": 0.0030346666666666664,
+      "std_ms": 0.0017796003614091798,
+      "cv": 0.5864236691814082,
       "medians_across_invocations_ms": [
-        0.00288,
-        0.002048,
-        0.002912
+        0.003696,
+        0.002672,
+        0.0019199999999999998
       ],
-      "across_invocation_cv": 0.18744428576661284,
+      "across_invocation_cv": 0.32268269027464597,
       "throttle_active": false
     },
     {
@@ -364,23 +562,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002736,
-      "iqr_ms": 0.0013119999999999998,
-      "mean_ms": 0.005396799999999999,
-      "std_ms": 0.017840664892983353,
-      "cv": 3.305785816221345,
+      "median_ms": 0.002704,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0029568000000000003,
+      "std_ms": 0.0012940275427346716,
+      "cv": 0.4376445964335334,
       "medians_across_invocations_ms": [
-        0.002368,
-        0.002736,
-        0.0037920000000000002
+        0.002704,
+        0.0028640000000000002,
+        0.002592
       ],
-      "across_invocation_cv": 0.2492743466785398,
+      "across_invocation_cv": 0.050258845560691386,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=1024 1block/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=1024 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 1024,
       "grid": [
         1,
@@ -395,17 +593,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00272,
-      "iqr_ms": 0.00044800000000000005,
-      "mean_ms": 0.0029029333333333335,
-      "std_ms": 0.0013437816341303332,
-      "cv": 0.46290475179025803,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0029888,
+      "std_ms": 0.001386313105729959,
+      "cv": 0.46383602306275395,
       "medians_across_invocations_ms": [
-        0.00264,
-        0.00272,
-        0.002752
+        0.002784,
+        0.002768,
+        0.002784
       ],
-      "across_invocation_cv": 0.02133462293173961,
+      "across_invocation_cv": 0.0033244737189421737,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=1024 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0025440000000000003,
+      "iqr_ms": 0.001152,
+      "mean_ms": 0.0027232000000000003,
+      "std_ms": 0.0013167826841541225,
+      "cv": 0.4835424075184057,
+      "medians_across_invocations_ms": [
+        0.002112,
+        0.0025440000000000003,
+        0.002736
+      ],
+      "across_invocation_cv": 0.12970769061972842,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=1024 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00248,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.0030992000000000003,
+      "std_ms": 0.0022682715647658735,
+      "cv": 0.7318893794417506,
+      "medians_across_invocations_ms": [
+        0.0028,
+        0.00248,
+        0.002064
+      ],
+      "across_invocation_cv": 0.15075245221791891,
       "throttle_active": false
     },
     {
@@ -426,17 +686,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002784,
-      "iqr_ms": 0.0005760000000000001,
-      "mean_ms": 0.0030752,
-      "std_ms": 0.001559467062378705,
-      "cv": 0.5071107773083718,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0028874666666666667,
+      "std_ms": 0.0013799532228213902,
+      "cv": 0.4779113950480433,
       "medians_across_invocations_ms": [
-        0.0030080000000000003,
-        0.002624,
-        0.002784
+        0.00272,
+        0.002608,
+        0.002736
       ],
-      "across_invocation_cv": 0.06875719133089404,
+      "across_invocation_cv": 0.025945827044884986,
       "throttle_active": false
     },
     {
@@ -457,17 +717,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002656,
-      "iqr_ms": 0.0005440000000000002,
-      "mean_ms": 0.0027024,
-      "std_ms": 0.0013066835649777843,
-      "cv": 0.48352707407407647,
+      "median_ms": 0.002832,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.0029349333333333334,
+      "std_ms": 0.0012028129441151991,
+      "cv": 0.4098263256798107,
       "medians_across_invocations_ms": [
-        0.002656,
-        0.0019839999999999997,
-        0.002704
+        0.0028640000000000002,
+        0.002832,
+        0.002656
       ],
-      "across_invocation_cv": 0.16444111928639382,
+      "across_invocation_cv": 0.0402298850574713,
       "throttle_active": false
     },
     {
@@ -488,23 +748,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0022719999999999997,
-      "iqr_ms": 0.0013760000000000003,
-      "mean_ms": 0.002818133333333333,
-      "std_ms": 0.0018115051468806655,
-      "cv": 0.6428032078730598,
+      "median_ms": 0.002624,
+      "iqr_ms": 0.0007999999999999999,
+      "mean_ms": 0.002634133333333333,
+      "std_ms": 0.0009245146315525799,
+      "cv": 0.3509748803727652,
       "medians_across_invocations_ms": [
-        0.0022719999999999997,
-        0.0021279999999999997,
+        0.0017759999999999998,
+        0.002816,
         0.002624
       ],
-      "across_invocation_cv": 0.10898290399914075,
+      "across_invocation_cv": 0.23007573317251911,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=16384 auto/256",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=16384 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 16384,
       "grid": [
         64,
@@ -519,17 +779,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0026560000000000004,
-      "iqr_ms": 0.0007359999999999997,
-      "mean_ms": 0.0028213333333333337,
-      "std_ms": 0.0013548445988399002,
-      "cv": 0.48021429543002125,
+      "median_ms": 0.002704,
+      "iqr_ms": 0.0003520000000000003,
+      "mean_ms": 0.0029210666666666667,
+      "std_ms": 0.0014023812903828329,
+      "cv": 0.48009218905747886,
       "medians_across_invocations_ms": [
-        0.0021279999999999997,
-        0.0026560000000000004,
-        0.0026880000000000003
+        0.00272,
+        0.002672,
+        0.002704
       ],
-      "across_invocation_cv": 0.12626572152296003,
+      "across_invocation_cv": 0.009056473705446369,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=16384 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002656,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.0027829333333333336,
+      "std_ms": 0.0013555336164443633,
+      "cv": 0.48708806646860503,
+      "medians_across_invocations_ms": [
+        0.00272,
+        0.002656,
+        0.0024000000000000002
+      ],
+      "across_invocation_cv": 0.06532719286579233,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=16384 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.0006399999999999999,
+      "mean_ms": 0.002967466666666667,
+      "std_ms": 0.00134389496495677,
+      "cv": 0.4528761788810107,
+      "medians_across_invocations_ms": [
+        0.002896,
+        0.002512,
+        0.0030080000000000003
+      ],
+      "across_invocation_cv": 0.09272812470157571,
       "throttle_active": false
     },
     {
@@ -550,17 +872,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002768,
-      "iqr_ms": 0.00041600000000000014,
-      "mean_ms": 0.0030048,
-      "std_ms": 0.0013428850904309327,
-      "cv": 0.44691330219346803,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.003068266666666667,
+      "std_ms": 0.0012941467952607292,
+      "cv": 0.4217843283702185,
       "medians_across_invocations_ms": [
-        0.002848,
-        0.002768,
-        0.002672
+        0.0027679999999999996,
+        0.0028640000000000002,
+        0.002976
       ],
-      "across_invocation_cv": 0.03189712672173417,
+      "across_invocation_cv": 0.03628108047573078,
       "throttle_active": false
     },
     {
@@ -581,17 +903,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002704,
-      "iqr_ms": 0.00047999999999999996,
-      "mean_ms": 0.0030805333333333335,
-      "std_ms": 0.0017110619110005448,
-      "cv": 0.555443400818217,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.0006079999999999996,
+      "mean_ms": 0.0031386666666666668,
+      "std_ms": 0.0013478465268297447,
+      "cv": 0.4294328356509382,
       "medians_across_invocations_ms": [
-        0.002752,
-        0.002704,
-        0.002688
+        0.002896,
+        0.00312,
+        0.0028640000000000002
       ],
-      "across_invocation_cv": 0.01226915127386724,
+      "across_invocation_cv": 0.047123231822061275,
       "throttle_active": false
     },
     {
@@ -612,23 +934,54 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00264,
-      "iqr_ms": 0.0006399999999999999,
-      "mean_ms": 0.0030928,
-      "std_ms": 0.0016688411974699335,
-      "cv": 0.5395891093733618,
+      "median_ms": 0.0028,
+      "iqr_ms": 0.00047999999999999996,
+      "mean_ms": 0.0029418666666666668,
+      "std_ms": 0.0013082956109571405,
+      "cv": 0.44471614766944134,
       "medians_across_invocations_ms": [
-        0.00264,
-        0.0030559999999999997,
-        0.002608
+        0.0028,
+        0.002736,
+        0.0028
       ],
-      "across_invocation_cv": 0.09029190376770693,
+      "across_invocation_cv": 0.013297894875768695,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=16384 auto/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=16384 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.0006719999999999999,
+      "mean_ms": 0.0030943999999999998,
+      "std_ms": 0.0012969227098228473,
+      "cv": 0.41911928316405356,
+      "medians_across_invocations_ms": [
+        0.002832,
+        0.0028640000000000002,
+        0.003248
+      ],
+      "across_invocation_cv": 0.07764770810093274,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=16384 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
       "n_problem_size": 16384,
       "grid": [
         16,
@@ -644,16 +997,47 @@
       "n_trials": 100,
       "n_invocations": 3,
       "median_ms": 0.002784,
-      "iqr_ms": 0.0005760000000000001,
-      "mean_ms": 0.0030074666666666666,
-      "std_ms": 0.0013259480710064212,
-      "cv": 0.4408853756228125,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.0027712,
+      "std_ms": 0.0010255615212644755,
+      "cv": 0.3700784935278852,
       "medians_across_invocations_ms": [
-        0.002848,
-        0.002784,
-        0.002592
+        0.002384,
+        0.002816,
+        0.002784
       ],
-      "across_invocation_cv": 0.048599206213217054,
+      "across_invocation_cv": 0.09044716710538486,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=16384 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.00028800000000000006,
+      "mean_ms": 0.0030432000000000002,
+      "std_ms": 0.001293135314796128,
+      "cv": 0.42492616811124073,
+      "medians_across_invocations_ms": [
+        0.0028640000000000002,
+        0.002704,
+        0.002752
+      ],
+      "across_invocation_cv": 0.029605392919885936,
       "throttle_active": false
     },
     {
@@ -674,17 +1058,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.004864,
-      "iqr_ms": 0.0008000000000000004,
-      "mean_ms": 0.005440533333333333,
-      "std_ms": 0.0018066662947442652,
-      "cv": 0.33207521837520804,
+      "median_ms": 0.004816,
+      "iqr_ms": 0.0008320000000000003,
+      "mean_ms": 0.005354133333333333,
+      "std_ms": 0.001522169275722908,
+      "cv": 0.2842979770874044,
       "medians_across_invocations_ms": [
-        0.005327999999999999,
-        0.004864,
-        0.004832
+        0.004816,
+        0.004751999999999999,
+        0.005520000000000001
       ],
-      "across_invocation_cv": 0.0554292382520685,
+      "across_invocation_cv": 0.0847295200654855,
       "throttle_active": false
     },
     {
@@ -705,17 +1089,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0048000000000000004,
-      "iqr_ms": 0.0003519999999999999,
-      "mean_ms": 0.005091733333333333,
-      "std_ms": 0.0014384997583601674,
-      "cv": 0.28251671173408544,
+      "median_ms": 0.004848,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.005120533333333333,
+      "std_ms": 0.0014670098663685253,
+      "cv": 0.28649552124163996,
       "medians_across_invocations_ms": [
-        0.004832,
-        0.0048000000000000004,
-        0.004736
+        0.004864,
+        0.004784,
+        0.004848
       ],
-      "across_invocation_cv": 0.010206181948676772,
+      "across_invocation_cv": 0.00876076593067746,
       "throttle_active": false
     },
     {
@@ -736,23 +1120,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.004751999999999999,
-      "iqr_ms": 0.0003839999999999998,
-      "mean_ms": 0.004984,
-      "std_ms": 0.001294757303349269,
-      "cv": 0.2597827655195163,
+      "median_ms": 0.004864,
+      "iqr_ms": 0.0007680000000000005,
+      "mean_ms": 0.0053872,
+      "std_ms": 0.0013167711511142624,
+      "cv": 0.2444258893514743,
       "medians_across_invocations_ms": [
-        0.004751999999999999,
-        0.004751999999999999,
-        0.004751999999999999
+        0.0048319999999999995,
+        0.005664,
+        0.004864
       ],
-      "across_invocation_cv": 0.0,
+      "across_invocation_cv": 0.09206824914160146,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=16384 1block/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=16384 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 16384,
       "grid": [
         1,
@@ -767,17 +1151,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.004768,
-      "iqr_ms": 0.0003519999999999999,
-      "mean_ms": 0.005071999999999999,
-      "std_ms": 0.0015493375730466995,
-      "cv": 0.30546876440195186,
+      "median_ms": 0.0028,
+      "iqr_ms": 0.000608,
+      "mean_ms": 0.0028949333333333333,
+      "std_ms": 0.0013821537340805358,
+      "cv": 0.477438881982499,
       "medians_across_invocations_ms": [
-        0.004768,
-        0.004816,
-        0.004736
+        0.002736,
+        0.0028,
+        0.002816
       ],
-      "across_invocation_cv": 0.008435569201419857,
+      "across_invocation_cv": 0.015205467304968868,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=16384 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002784,
+      "iqr_ms": 0.0003519999999999999,
+      "mean_ms": 0.002970666666666667,
+      "std_ms": 0.0012739677066213745,
+      "cv": 0.4288490933420246,
+      "medians_across_invocations_ms": [
+        0.002848,
+        0.002784,
+        0.002768
+      ],
+      "across_invocation_cv": 0.015118578920369047,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=16384 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.003157866666666667,
+      "std_ms": 0.0015689294143920666,
+      "cv": 0.496832064175836,
+      "medians_across_invocations_ms": [
+        0.003184,
+        0.002832,
+        0.002896
+      ],
+      "across_invocation_cv": 0.0631181178859855,
       "throttle_active": false
     },
     {
@@ -798,17 +1244,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002816,
-      "iqr_ms": 0.0006719999999999999,
-      "mean_ms": 0.0032949333333333335,
-      "std_ms": 0.0011988654222075852,
-      "cv": 0.36385119239870867,
+      "median_ms": 0.00288,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.0030874666666666664,
+      "std_ms": 0.0011275059542353461,
+      "cv": 0.3651880573831878,
       "medians_across_invocations_ms": [
-        0.003312,
-        0.002816,
-        0.002752
+        0.00288,
+        0.002736,
+        0.00288
       ],
-      "across_invocation_cv": 0.10355267059820548,
+      "across_invocation_cv": 0.029356793348625045,
       "throttle_active": false
     },
     {
@@ -829,17 +1275,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002816,
-      "iqr_ms": 0.0005760000000000001,
-      "mean_ms": 0.003192,
-      "std_ms": 0.0014118237754342274,
-      "cv": 0.44230068152701363,
+      "median_ms": 0.00288,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.003384,
+      "std_ms": 0.0016534069602705762,
+      "cv": 0.4885954374322034,
       "medians_across_invocations_ms": [
-        0.002816,
-        0.003312,
-        0.002752
+        0.00336,
+        0.002848,
+        0.00288
       ],
-      "across_invocation_cv": 0.10355267059820548,
+      "across_invocation_cv": 0.09467837788555461,
       "throttle_active": false
     },
     {
@@ -860,23 +1306,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00272,
-      "iqr_ms": 0.0003519999999999999,
-      "mean_ms": 0.003118933333333333,
-      "std_ms": 0.0015519786590646439,
-      "cv": 0.4975991767691873,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0003839999999999998,
+      "mean_ms": 0.0031258666666666665,
+      "std_ms": 0.0015237305632488085,
+      "cv": 0.48745859172351413,
       "medians_across_invocations_ms": [
-        0.002928,
-        0.00272,
-        0.002688
+        0.002752,
+        0.002736,
+        0.002944
       ],
-      "across_invocation_cv": 0.04689747302445535,
+      "across_invocation_cv": 0.04118127972335994,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=262144 auto/256",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=262144 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 262144,
       "grid": [
         1024,
@@ -891,17 +1337,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.00336,
-      "iqr_ms": 0.0008640000000000002,
-      "mean_ms": 0.003408,
-      "std_ms": 0.001297340173363844,
-      "cv": 0.3806749334987805,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.00041600000000000014,
+      "mean_ms": 0.003157333333333333,
+      "std_ms": 0.0013423287968564396,
+      "cv": 0.42514636724760546,
       "medians_across_invocations_ms": [
-        0.00336,
-        0.002736,
-        0.003456
+        0.002896,
+        0.002912,
+        0.002704
       ],
-      "across_invocation_cv": 0.12278182636050868,
+      "across_invocation_cv": 0.04079423762069687,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=262144 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0035840000000000004,
+      "iqr_ms": 0.0014400000000000003,
+      "mean_ms": 0.004286933333333334,
+      "std_ms": 0.0013530474062706816,
+      "cv": 0.31562128474216566,
+      "medians_across_invocations_ms": [
+        0.0035840000000000004,
+        0.003536,
+        0.004864
+      ],
+      "across_invocation_cv": 0.1885632157998671,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=262144 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.00031999999999999997,
+      "mean_ms": 0.0031301333333333334,
+      "std_ms": 0.0013967686615131765,
+      "cv": 0.4462329596757891,
+      "medians_across_invocations_ms": [
+        0.00272,
+        0.002912,
+        0.002816
+      ],
+      "across_invocation_cv": 0.03409090909090907,
       "throttle_active": false
     },
     {
@@ -922,17 +1430,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002832,
-      "iqr_ms": 0.0008640000000000002,
-      "mean_ms": 0.003403733333333333,
-      "std_ms": 0.001782765228482709,
-      "cv": 0.5237675968983202,
+      "median_ms": 0.002912,
+      "iqr_ms": 0.0004159999999999997,
+      "mean_ms": 0.003336,
+      "std_ms": 0.0016097290644754318,
+      "cv": 0.48253269318807906,
       "medians_across_invocations_ms": [
-        0.002832,
-        0.002752,
-        0.003504
+        0.002848,
+        0.003088,
+        0.002912
       ],
-      "across_invocation_cv": 0.13633855560950242,
+      "across_invocation_cv": 0.04213808389776148,
       "throttle_active": false
     },
     {
@@ -953,17 +1461,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.0028640000000000002,
-      "iqr_ms": 0.0003839999999999998,
-      "mean_ms": 0.003089066666666667,
-      "std_ms": 0.0013781925508957857,
-      "cv": 0.4461517667350825,
+      "median_ms": 0.002944,
+      "iqr_ms": 0.0007999999999999999,
+      "mean_ms": 0.003301866666666667,
+      "std_ms": 0.0012174762374274764,
+      "cv": 0.36872362222201877,
       "medians_across_invocations_ms": [
-        0.0028640000000000002,
-        0.002656,
-        0.00288
+        0.0034720000000000003,
+        0.002944,
+        0.0028
       ],
-      "across_invocation_cv": 0.04462999814803807,
+      "across_invocation_cv": 0.11517366868487496,
       "throttle_active": false
     },
     {
@@ -984,23 +1492,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002752,
-      "iqr_ms": 0.0003840000000000002,
-      "mean_ms": 0.0031957333333333332,
-      "std_ms": 0.0015109650958589197,
-      "cv": 0.4728070017916346,
+      "median_ms": 0.002816,
+      "iqr_ms": 0.00031999999999999997,
+      "mean_ms": 0.003231466666666667,
+      "std_ms": 0.0013222254412595925,
+      "cv": 0.4091719264501957,
       "medians_across_invocations_ms": [
-        0.002752,
         0.002816,
-        0.00272
+        0.002784,
+        0.002896
       ],
-      "across_invocation_cv": 0.0176933424515669,
+      "across_invocation_cv": 0.020370346189062114,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=262144 auto/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=262144 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 262144,
       "grid": [
         256,
@@ -1015,17 +1523,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.002816,
-      "iqr_ms": 0.0007039999999999998,
-      "mean_ms": 0.0032730666666666666,
-      "std_ms": 0.0015058405374719413,
-      "cv": 0.460070231018395,
+      "median_ms": 0.0031999999999999997,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.0034064,
+      "std_ms": 0.0015802048697901405,
+      "cv": 0.4638929279562413,
       "medians_across_invocations_ms": [
-        0.0028640000000000002,
-        0.0028,
-        0.002816
+        0.00328,
+        0.002848,
+        0.0031999999999999997
       ],
-      "across_invocation_cv": 0.011783015091317786,
+      "across_invocation_cv": 0.07391581964464922,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=262144 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.000608,
+      "mean_ms": 0.0033157333333333336,
+      "std_ms": 0.0011651988390241712,
+      "cv": 0.35141512355964627,
+      "medians_across_invocations_ms": [
+        0.002896,
+        0.002896,
+        0.002944
+      ],
+      "across_invocation_cv": 0.00951676267894985,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=262144 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002992,
+      "iqr_ms": 0.0005759999999999997,
+      "mean_ms": 0.003370133333333333,
+      "std_ms": 0.0015129283253062994,
+      "cv": 0.4489223943581756,
+      "medians_across_invocations_ms": [
+        0.002992,
+        0.00304,
+        0.002832
+      ],
+      "across_invocation_cv": 0.03686024883874035,
       "throttle_active": false
     },
     {
@@ -1046,17 +1616,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.040319999999999995,
-      "iqr_ms": 0.001343999999999998,
-      "mean_ms": 0.04099253333333333,
-      "std_ms": 0.002203444018177666,
-      "cv": 0.053752326070219285,
+      "median_ms": 0.040096,
+      "iqr_ms": 0.0014399999999999968,
+      "mean_ms": 0.040583466666666665,
+      "std_ms": 0.0012668938053855554,
+      "cv": 0.031216993259625153,
       "medians_across_invocations_ms": [
-        0.040319999999999995,
         0.040256,
-        0.040464
+        0.040096,
+        0.039984
       ],
-      "across_invocation_cv": 0.002640447370183515,
+      "across_invocation_cv": 0.003408058933114309,
       "throttle_active": false
     },
     {
@@ -1077,17 +1647,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.037648,
-      "iqr_ms": 0.00048000000000000126,
-      "mean_ms": 0.038067199999999995,
-      "std_ms": 0.001415783723787773,
-      "cv": 0.03719169583756549,
+      "median_ms": 0.03776,
+      "iqr_ms": 0.0005760000000000001,
+      "mean_ms": 0.037949866666666665,
+      "std_ms": 0.0007215048179048336,
+      "cv": 0.01901205145836701,
       "medians_across_invocations_ms": [
-        0.03776,
         0.037648,
-        0.037648
+        0.03776,
+        0.037792
       ],
-      "across_invocation_cv": 0.0017158725803824296,
+      "across_invocation_cv": 0.002003879417492259,
       "throttle_active": false
     },
     {
@@ -1108,23 +1678,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.038288,
-      "iqr_ms": 0.0014079999999999995,
-      "mean_ms": 0.03845546666666667,
-      "std_ms": 0.0015051923630279005,
-      "cv": 0.03914118052642452,
+      "median_ms": 0.037696,
+      "iqr_ms": 0.0006400000000000017,
+      "mean_ms": 0.03799573333333333,
+      "std_ms": 0.00067613171584769,
+      "cv": 0.01779493791884589,
       "medians_across_invocations_ms": [
-        0.038288,
-        0.03856,
-        0.03776
+        0.037680000000000005,
+        0.037696,
+        0.037824
       ],
-      "across_invocation_cv": 0.010647669951510957,
+      "across_invocation_cv": 0.002091681779074031,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=262144 1block/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=262144 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 262144,
       "grid": [
         1,
@@ -1139,17 +1709,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.037295999999999996,
-      "iqr_ms": 0.0013120000000000007,
-      "mean_ms": 0.037365866666666664,
-      "std_ms": 0.001888009116132354,
-      "cv": 0.05052764152307509,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.00047999999999999996,
+      "mean_ms": 0.0028170666666666668,
+      "std_ms": 0.00105017341371321,
+      "cv": 0.37278969153961916,
       "medians_across_invocations_ms": [
-        0.037360000000000004,
-        0.037295999999999996,
-        0.036784
+        0.002736,
+        0.002752,
+        0.002784
       ],
-      "across_invocation_cv": 0.008498864945842835,
+      "across_invocation_cv": 0.008863782775543186,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=262144 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.002810666666666667,
+      "std_ms": 0.0013180667232752861,
+      "cv": 0.4689516330438636,
+      "medians_across_invocations_ms": [
+        0.002752,
+        0.002512,
+        0.002768
+      ],
+      "across_invocation_cv": 0.05356306637350103,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=262144 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002832,
+      "iqr_ms": 0.0006719999999999999,
+      "mean_ms": 0.003027733333333333,
+      "std_ms": 0.0014007962610500327,
+      "cv": 0.46265509766933444,
+      "medians_across_invocations_ms": [
+        0.002944,
+        0.002608,
+        0.002832
+      ],
+      "across_invocation_cv": 0.06121761424559327,
       "throttle_active": false
     },
     {
@@ -1170,17 +1802,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.010768,
-      "iqr_ms": 0.0006080000000000009,
-      "mean_ms": 0.010678400000000001,
-      "std_ms": 0.0010960468133018556,
-      "cv": 0.10264148311562177,
+      "median_ms": 0.010735999999999999,
+      "iqr_ms": 0.0006720000000000007,
+      "mean_ms": 0.010728533333333333,
+      "std_ms": 0.0012627841108972125,
+      "cv": 0.11770333107637072,
       "medians_across_invocations_ms": [
-        0.010768,
-        0.010608,
-        0.0108
+        0.010752000000000001,
+        0.010704,
+        0.010735999999999999
       ],
-      "across_invocation_cv": 0.009590900806556942,
+      "across_invocation_cv": 0.002277622114789223,
       "throttle_active": false
     },
     {
@@ -1201,17 +1833,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.010544000000000001,
-      "iqr_ms": 0.0011199999999999995,
-      "mean_ms": 0.010425066666666668,
-      "std_ms": 0.0010103340925313139,
-      "cv": 0.09691392149671117,
+      "median_ms": 0.010735999999999999,
+      "iqr_ms": 0.0016000000000000007,
+      "mean_ms": 0.010336533333333333,
+      "std_ms": 0.0013230127850397105,
+      "cv": 0.12799385851862427,
       "medians_across_invocations_ms": [
-        0.009871999999999999,
-        0.01088,
-        0.010544000000000001
+        0.00944,
+        0.010735999999999999,
+        0.010832
       ],
-      "across_invocation_cv": 0.04919943230780819,
+      "across_invocation_cv": 0.07521690782202063,
       "throttle_active": false
     },
     {
@@ -1232,23 +1864,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.010447999999999999,
-      "iqr_ms": 0.0013120000000000007,
-      "mean_ms": 0.010623466666666666,
-      "std_ms": 0.0015732708826062018,
-      "cv": 0.14809392564318632,
+      "median_ms": 0.01064,
+      "iqr_ms": 0.001216,
+      "mean_ms": 0.010738133333333334,
+      "std_ms": 0.0017296199981074187,
+      "cv": 0.16107268781421527,
       "medians_across_invocations_ms": [
-        0.010447999999999999,
-        0.009856,
-        0.010784
+        0.010735999999999999,
+        0.010528,
+        0.01064
       ],
-      "across_invocation_cv": 0.04534047244310247,
+      "across_invocation_cv": 0.009788977580713704,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=4194304 auto/256",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=4194304 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 4194304,
       "grid": [
         16384,
@@ -1263,17 +1895,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.010816,
-      "iqr_ms": 0.001311999999999999,
-      "mean_ms": 0.010657066666666666,
-      "std_ms": 0.0009746046893817882,
-      "cv": 0.09145149597592098,
+      "median_ms": 0.010735999999999999,
+      "iqr_ms": 0.001184000000000001,
+      "mean_ms": 0.0106592,
+      "std_ms": 0.001457981293037554,
+      "cv": 0.13678149326755798,
       "medians_across_invocations_ms": [
-        0.010256,
-        0.010864,
-        0.010816
+        0.010735999999999999,
+        0.010735999999999999,
+        0.0108
       ],
-      "across_invocation_cv": 0.03175341057613394,
+      "across_invocation_cv": 0.003434904923289875,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=4194304 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.029728,
+      "iqr_ms": 0.0016000000000000007,
+      "mean_ms": 0.030186133333333334,
+      "std_ms": 0.0008332609306400206,
+      "cv": 0.02760409627290303,
+      "medians_across_invocations_ms": [
+        0.029648,
+        0.029728,
+        0.029872000000000003
+      ],
+      "across_invocation_cv": 0.003815668098564532,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=4194304 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010832,
+      "iqr_ms": 0.0008319999999999994,
+      "mean_ms": 0.010937066666666667,
+      "std_ms": 0.0019840270455601466,
+      "cv": 0.18140394550276856,
+      "medians_across_invocations_ms": [
+        0.010832000000000001,
+        0.010832,
+        0.010735999999999999
+      ],
+      "across_invocation_cv": 0.005132002392796753,
       "throttle_active": false
     },
     {
@@ -1294,17 +1988,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.012992,
-      "iqr_ms": 0.0005760000000000001,
-      "mean_ms": 0.0133664,
-      "std_ms": 0.0013882660224728337,
-      "cv": 0.10386237300042148,
+      "median_ms": 0.013024,
+      "iqr_ms": 0.00019199999999999946,
+      "mean_ms": 0.013213866666666666,
+      "std_ms": 0.0011521938317786207,
+      "cv": 0.08719581185764103,
       "medians_across_invocations_ms": [
-        0.012896,
-        0.013424,
-        0.012992
+        0.012992,
+        0.013056,
+        0.013024
       ],
-      "across_invocation_cv": 0.021463242773195317,
+      "across_invocation_cv": 0.00245700245700245,
       "throttle_active": false
     },
     {
@@ -1325,17 +2019,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.011488,
-      "iqr_ms": 0.0007359999999999988,
-      "mean_ms": 0.011808,
-      "std_ms": 0.001881807713658981,
-      "cv": 0.15936718442233916,
+      "median_ms": 0.011072,
+      "iqr_ms": 0.0004159999999999997,
+      "mean_ms": 0.0112576,
+      "std_ms": 0.000662330431129357,
+      "cv": 0.058834070417260964,
       "medians_across_invocations_ms": [
-        0.010960000000000001,
-        0.01152,
-        0.011488
+        0.011088,
+        0.011008,
+        0.011072
       ],
-      "across_invocation_cv": 0.027774890226670845,
+      "across_invocation_cv": 0.0038288730985015815,
       "throttle_active": false
     },
     {
@@ -1356,23 +2050,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.01152,
-      "iqr_ms": 0.0008000000000000004,
-      "mean_ms": 0.011605333333333334,
-      "std_ms": 0.0014620108124836866,
-      "cv": 0.12597749418230295,
+      "median_ms": 0.011184,
+      "iqr_ms": 0.0007039999999999998,
+      "mean_ms": 0.011488,
+      "std_ms": 0.0011212777215362658,
+      "cv": 0.09760425849027383,
       "medians_across_invocations_ms": [
         0.011023999999999999,
-        0.011568,
-        0.01152
+        0.011344,
+        0.011184
       ],
-      "across_invocation_cv": 0.026487444471849034,
+      "across_invocation_cv": 0.014306151645207477,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=4194304 auto/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=4194304 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 4194304,
       "grid": [
         4096,
@@ -1387,17 +2081,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.014064,
-      "iqr_ms": 0.0017280000000000004,
-      "mean_ms": 0.0145072,
-      "std_ms": 0.0023719240048420106,
-      "cv": 0.1634997797536403,
+      "median_ms": 0.011088,
+      "iqr_ms": 0.0008000000000000004,
+      "mean_ms": 0.011541333333333332,
+      "std_ms": 0.0012732113764177368,
+      "cv": 0.11031752914894902,
       "medians_across_invocations_ms": [
-        0.014064,
-        0.013712,
-        0.01432
+        0.011088,
+        0.011071999999999999,
+        0.011536000000000001
       ],
-      "across_invocation_cv": 0.021754599804263267,
+      "across_invocation_cv": 0.02345025303868146,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=4194304 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013136,
+      "iqr_ms": 0.000959999999999999,
+      "mean_ms": 0.013601066666666667,
+      "std_ms": 0.0006802264295660864,
+      "cv": 0.050012726666003135,
+      "medians_across_invocations_ms": [
+        0.013136,
+        0.013663999999999999,
+        0.01312
+      ],
+      "across_invocation_cv": 0.02326376250249528,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=4194304 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.012944,
+      "iqr_ms": 0.0003839999999999989,
+      "mean_ms": 0.013044266666666667,
+      "std_ms": 0.0012475335648711925,
+      "cv": 0.09563845915992664,
+      "medians_across_invocations_ms": [
+        0.013024,
+        0.012944,
+        0.012816000000000001
+      ],
+      "across_invocation_cv": 0.008115641737997519,
       "throttle_active": false
     },
     {
@@ -1418,17 +2174,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.60528,
-      "iqr_ms": 0.0013119999999999798,
-      "mean_ms": 0.6057488000000001,
-      "std_ms": 0.0021674473997097335,
-      "cv": 0.0035781290853729025,
+      "median_ms": 0.606896,
+      "iqr_ms": 0.0016639999999999988,
+      "mean_ms": 0.6084208,
+      "std_ms": 0.003852696862181668,
+      "cv": 0.006332289859553895,
       "medians_across_invocations_ms": [
-        0.605072,
-        0.60528,
-        0.605456
+        0.606848,
+        0.6072960000000001,
+        0.606896
       ],
-      "across_invocation_cv": 0.00031758108858975976,
+      "across_invocation_cv": 0.00040521381391208603,
       "throttle_active": false
     },
     {
@@ -1449,17 +2205,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.5702240000000001,
-      "iqr_ms": 0.0008960000000000079,
-      "mean_ms": 0.5706298666666666,
-      "std_ms": 0.0013940198606015,
-      "cv": 0.002442949347787673,
+      "median_ms": 0.57088,
+      "iqr_ms": 0.0013439999999999008,
+      "mean_ms": 0.5721749333333334,
+      "std_ms": 0.004137683941803662,
+      "cv": 0.007231501592875899,
       "medians_across_invocations_ms": [
-        0.570496,
-        0.569984,
-        0.5702240000000001
+        0.57088,
+        0.5711360000000001,
+        0.5706880000000001
       ],
-      "across_invocation_cv": 0.0004492301633394169,
+      "across_invocation_cv": 0.00039369432206766945,
       "throttle_active": false
     },
     {
@@ -1481,22 +2237,22 @@
       "n_trials": 100,
       "n_invocations": 3,
       "median_ms": 0.5724,
-      "iqr_ms": 0.0009919999999999929,
-      "mean_ms": 0.5734586666666667,
-      "std_ms": 0.0030430003629706606,
-      "cv": 0.00530639876917138,
+      "iqr_ms": 0.0008000000000000229,
+      "mean_ms": 0.572896,
+      "std_ms": 0.0020792697544725646,
+      "cv": 0.003629401766590384,
       "medians_across_invocations_ms": [
-        0.572848,
+        0.5724,
         0.571984,
-        0.5724
+        0.572688
       ],
-      "across_invocation_cv": 0.0007548754404959995,
+      "across_invocation_cv": 0.0006183795679355695,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=4194304 1block/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=4194304 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 4194304,
       "grid": [
         1,
@@ -1511,17 +2267,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.549936,
-      "iqr_ms": 0.0011199999999998989,
-      "mean_ms": 0.5502458666666666,
-      "std_ms": 0.0018518667399677704,
-      "cv": 0.003365525944222335,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.0006720000000000003,
+      "mean_ms": 0.0028442666666666666,
+      "std_ms": 0.0012375761694300852,
+      "cv": 0.4351125666006769,
       "medians_across_invocations_ms": [
-        0.549568,
-        0.549936,
-        0.549952
+        0.00272,
+        0.0028640000000000002,
+        0.002672
       ],
-      "across_invocation_cv": 0.0003950958251334967,
+      "across_invocation_cv": 0.03630812789766516,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=4194304 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00272,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.0028933333333333333,
+      "std_ms": 0.0012730017730248036,
+      "cv": 0.43997757132193677,
+      "medians_across_invocations_ms": [
+        0.002656,
+        0.002816,
+        0.00272
+      ],
+      "across_invocation_cv": 0.029491540762776363,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=4194304 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002704,
+      "iqr_ms": 0.00044800000000000005,
+      "mean_ms": 0.0030778666666666666,
+      "std_ms": 0.0012945007998854056,
+      "cv": 0.4205837809366029,
+      "medians_across_invocations_ms": [
+        0.002704,
+        0.00264,
+        0.00288
+      ],
+      "across_invocation_cv": 0.04533533150868115,
       "throttle_active": false
     },
     {
@@ -1542,17 +2360,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.510256,
-      "iqr_ms": 0.0023679999999999257,
-      "mean_ms": 0.5112693333333334,
-      "std_ms": 0.0030147499694885287,
-      "cv": 0.005896598471559404,
+      "median_ms": 0.510656,
+      "iqr_ms": 0.0022079999999999878,
+      "mean_ms": 0.5112325333333333,
+      "std_ms": 0.0022826011290026744,
+      "cv": 0.004464898026187185,
       "medians_across_invocations_ms": [
-        0.510128,
-        0.511008,
-        0.510256
+        0.5109600000000001,
+        0.510656,
+        0.510224
       ],
-      "across_invocation_cv": 0.0009313978158289471,
+      "across_invocation_cv": 0.0007243258177391815,
       "throttle_active": false
     },
     {
@@ -1573,17 +2391,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.348736,
-      "iqr_ms": 0.0022079999999999878,
-      "mean_ms": 0.3495589333333333,
-      "std_ms": 0.002419766495715094,
-      "cv": 0.0069223420286834625,
+      "median_ms": 0.34950400000000004,
+      "iqr_ms": 0.0019839999999999858,
+      "mean_ms": 0.34933333333333333,
+      "std_ms": 0.0015262250169158832,
+      "cv": 0.0043689647430798185,
       "medians_across_invocations_ms": [
-        0.348704,
-        0.34896,
-        0.348736
+        0.348256,
+        0.349936,
+        0.34950400000000004
       ],
-      "across_invocation_cv": 0.0003998989856459134,
+      "across_invocation_cv": 0.002498063110865578,
       "throttle_active": false
     },
     {
@@ -1604,23 +2422,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.34910399999999997,
-      "iqr_ms": 0.0023680000000000367,
-      "mean_ms": 0.3498213333333334,
-      "std_ms": 0.00278482149059204,
-      "cv": 0.00796069657632479,
+      "median_ms": 0.34899199999999997,
+      "iqr_ms": 0.0019200000000000328,
+      "mean_ms": 0.3490816,
+      "std_ms": 0.0015352744048882838,
+      "cv": 0.004398038753369653,
       "medians_across_invocations_ms": [
-        0.34910399999999997,
-        0.348464,
-        0.350304
+        0.348352,
+        0.34899199999999997,
+        0.349008
       ],
-      "across_invocation_cv": 0.0026742624882637772,
+      "across_invocation_cv": 0.001072894679895975,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=67108864 auto/256",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=67108864 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 67108864,
       "grid": [
         262144,
@@ -1635,17 +2453,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.34832,
-      "iqr_ms": 0.0019199999999999773,
-      "mean_ms": 0.34872586666666666,
-      "std_ms": 0.0018930125167839127,
-      "cv": 0.005428368520174527,
+      "median_ms": 0.34899199999999997,
+      "iqr_ms": 0.0023360000000000047,
+      "mean_ms": 0.34956586666666667,
+      "std_ms": 0.004190742693235168,
+      "cv": 0.01198842076086138,
       "medians_across_invocations_ms": [
-        0.34832,
-        0.348448,
-        0.34828800000000004
+        0.34899199999999997,
+        0.348752,
+        0.350064
       ],
-      "across_invocation_cv": 0.00024304164165567065,
+      "across_invocation_cv": 0.002000133336407882,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=67108864 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.883248,
+      "iqr_ms": 0.0011520000000000419,
+      "mean_ms": 0.8847674666666666,
+      "std_ms": 0.00409739167742017,
+      "cv": 0.004631037907459418,
+      "medians_across_invocations_ms": [
+        0.883136,
+        0.883664,
+        0.883248
+      ],
+      "across_invocation_cv": 0.00031494195077509234,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=67108864 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.348592,
+      "iqr_ms": 0.0013119999999999798,
+      "mean_ms": 0.3489568,
+      "std_ms": 0.0017783567810419748,
+      "cv": 0.005096208989313218,
+      "medians_across_invocations_ms": [
+        0.348384,
+        0.34873600000000005,
+        0.348592
+      ],
+      "across_invocation_cv": 0.0005076934382862681,
       "throttle_active": false
     },
     {
@@ -1666,17 +2546,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.508656,
-      "iqr_ms": 0.0028799999999999937,
-      "mean_ms": 0.5087525333333333,
-      "std_ms": 0.004819995384577114,
-      "cv": 0.009474145225374368,
+      "median_ms": 0.5081439999999999,
+      "iqr_ms": 0.0018239999999999368,
+      "mean_ms": 0.5091850666666666,
+      "std_ms": 0.0037649293232462646,
+      "cv": 0.007394029341616456,
       "medians_across_invocations_ms": [
-        0.5096,
-        0.508656,
-        0.508
+        0.5079039999999999,
+        0.50848,
+        0.5081439999999999
       ],
-      "across_invocation_cv": 0.0015809439541538122,
+      "across_invocation_cv": 0.0005693505028188469,
       "throttle_active": false
     },
     {
@@ -1697,17 +2577,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.360464,
-      "iqr_ms": 0.0008000000000000229,
-      "mean_ms": 0.3605104,
-      "std_ms": 0.0014782526010605772,
-      "cv": 0.004100443707201171,
+      "median_ms": 0.360624,
+      "iqr_ms": 0.0009279999999999844,
+      "mean_ms": 0.3611546666666667,
+      "std_ms": 0.002443770209360565,
+      "cv": 0.006766547506960725,
       "medians_across_invocations_ms": [
-        0.360224,
-        0.360464,
-        0.360592
+        0.36086399999999996,
+        0.360624,
+        0.360176
       ],
-      "across_invocation_cv": 0.0005183273124634097,
+      "across_invocation_cv": 0.0009685105339843898,
       "throttle_active": false
     },
     {
@@ -1728,23 +2608,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.360336,
-      "iqr_ms": 0.0012160000000000504,
-      "mean_ms": 0.36061866666666664,
-      "std_ms": 0.002054731873857595,
-      "cv": 0.005697796769230642,
+      "median_ms": 0.3604,
+      "iqr_ms": 0.0007360000000000144,
+      "mean_ms": 0.3605824,
+      "std_ms": 0.0015829633999002418,
+      "cv": 0.004390018480935957,
       "medians_across_invocations_ms": [
-        0.360336,
-        0.36027200000000004,
-        0.360384
+        0.360352,
+        0.3604,
+        0.360592
       ],
-      "across_invocation_cv": 0.00015594052504140597,
+      "across_invocation_cv": 0.00035232838836978415,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=67108864 auto/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=67108864 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 67108864,
       "grid": [
         65536,
@@ -1759,17 +2639,79 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 0.37396799999999997,
-      "iqr_ms": 0.0018559999999999688,
-      "mean_ms": 0.37467466666666666,
-      "std_ms": 0.002334519459620037,
-      "cv": 0.006230790782812566,
+      "median_ms": 0.359136,
+      "iqr_ms": 0.0013440000000000119,
+      "mean_ms": 0.35970986666666666,
+      "std_ms": 0.0033300482180387858,
+      "cv": 0.00925759487471788,
       "medians_across_invocations_ms": [
-        0.37488,
-        0.37396799999999997,
-        0.373616
+        0.359136,
+        0.35929599999999995,
+        0.358912
       ],
-      "across_invocation_cv": 0.0017435237717048034,
+      "across_invocation_cv": 0.0005371176915086728,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=67108864 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.573328,
+      "iqr_ms": 0.00787199999999999,
+      "mean_ms": 0.5748736,
+      "std_ms": 0.0044233779683458515,
+      "cv": 0.007694522706114616,
+      "medians_across_invocations_ms": [
+        0.579712,
+        0.573328,
+        0.570208
+      ],
+      "across_invocation_cv": 0.008433806854049024,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=67108864 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.362912,
+      "iqr_ms": 0.0013439999999999563,
+      "mean_ms": 0.36373333333333335,
+      "std_ms": 0.0019475774666750866,
+      "cv": 0.005354410190638984,
+      "medians_across_invocations_ms": [
+        0.362912,
+        0.36288,
+        0.363648
+      ],
+      "across_invocation_cv": 0.0011963819564938848,
       "throttle_active": false
     },
     {
@@ -1790,17 +2732,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 22.9207205,
-      "iqr_ms": 0.04217799999999983,
-      "mean_ms": 22.94487415,
-      "std_ms": 0.08432594233632577,
-      "cv": 0.0036751538398098285,
+      "median_ms": 22.909807,
+      "iqr_ms": 0.0427199999999992,
+      "mean_ms": 22.961879566666667,
+      "std_ms": 0.18162825003849584,
+      "cv": 0.007909990535015355,
       "medians_across_invocations_ms": [
-        22.909104499999998,
-        22.958128000000002,
-        22.9207205
+        22.928352500000003,
+        22.882384000000002,
+        22.909807
       ],
-      "across_invocation_cv": 0.0011172403673104054,
+      "across_invocation_cv": 0.001009596713398267,
       "throttle_active": false
     },
     {
@@ -1821,17 +2763,17 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 21.9379995,
-      "iqr_ms": 0.026686999999999017,
-      "mean_ms": 21.966803666666667,
-      "std_ms": 0.12017063229871687,
-      "cv": 0.0054705561228768455,
+      "median_ms": 21.903696,
+      "iqr_ms": 0.04489700000000241,
+      "mean_ms": 21.9719819,
+      "std_ms": 0.19308131247510313,
+      "cv": 0.008787614761101872,
       "medians_across_invocations_ms": [
-        21.9379845,
-        21.9379995,
-        21.938415499999998
+        21.931296500000002,
+        21.903696,
+        21.890735499999998
       ],
-      "across_invocation_cv": 1.1150576810035579e-05,
+      "across_invocation_cv": 0.0009455733092370684,
       "throttle_active": false
     },
     {
@@ -1852,23 +2794,23 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 21.950369,
-      "iqr_ms": 0.0294080000000001,
-      "mean_ms": 22.014108833333335,
-      "std_ms": 0.1977027901097809,
-      "cv": 0.008980731021481241,
+      "median_ms": 21.9193765,
+      "iqr_ms": 0.039039999999999964,
+      "mean_ms": 21.93561285,
+      "std_ms": 0.13251685075079833,
+      "cv": 0.006041173850804827,
       "medians_across_invocations_ms": [
-        21.950369,
-        21.979536,
-        21.949087
+        21.9193765,
+        21.928688,
+        21.888112
       ],
-      "across_invocation_cv": 0.0007842374181824749,
+      "across_invocation_cv": 0.000970002126335878,
       "throttle_active": false
     },
     {
-      "label": "strided_copy n=67108864 1block/1024",
-      "kernel": "k_strided_copy",
-      "op_type": "memory",
+      "label": "strided_read n=67108864 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
       "n_problem_size": 67108864,
       "grid": [
         1,
@@ -1883,19 +2825,81 @@
       "shared_mem_bytes": 0,
       "n_trials": 100,
       "n_invocations": 3,
-      "median_ms": 21.6527995,
-      "iqr_ms": 0.04022499999999951,
-      "mean_ms": 21.701853983333333,
-      "std_ms": 0.1919545887053332,
-      "cv": 0.008845077883795143,
+      "median_ms": 0.002752,
+      "iqr_ms": 0.0005119999999999999,
+      "mean_ms": 0.0028874666666666667,
+      "std_ms": 0.001372955138534897,
+      "cv": 0.4754877880962194,
       "medians_across_invocations_ms": [
-        21.6527995,
-        21.606417,
-        21.656912
+        0.002656,
+        0.002752,
+        0.0028640000000000002
       ],
-      "across_invocation_cv": 0.001295900656319103,
+      "across_invocation_cv": 0.037754780069522556,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=67108864 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002576,
+      "iqr_ms": 0.0005440000000000002,
+      "mean_ms": 0.0028112,
+      "std_ms": 0.0013140135024975058,
+      "cv": 0.4674208531934782,
+      "medians_across_invocations_ms": [
+        0.002576,
+        0.002576,
+        0.002768
+      ],
+      "across_invocation_cv": 0.04198911048651821,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=67108864 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002736,
+      "iqr_ms": 0.0004479999999999996,
+      "mean_ms": 0.0029765333333333335,
+      "std_ms": 0.001351706610763564,
+      "cv": 0.4541211064650927,
+      "medians_across_invocations_ms": [
+        0.0028640000000000002,
+        0.002736,
+        0.002688
+      ],
+      "across_invocation_cv": 0.03293189596376836,
       "throttle_active": false
     }
   ],
-  "wall_sec": 63.359206199645996
+  "wall_sec": 89.61533951759338
 }
