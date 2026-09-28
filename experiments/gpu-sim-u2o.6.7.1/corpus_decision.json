@@ -1,0 +1,70 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "owns": "gpu-sim-u2o.11.2 acceptance (first consumer of a training corpus)",
+  "ruling_applied": "the PI's: keep the 264 rows and the anchor FROZEN as the reference; the fast path is for SCALE, not replacement; every new row is labelled with its protocol and nothing pools without a recorded decision.",
+  "THE_BINDING_CONSTRAINT_IS_NOT_ROW_COUNT": {
+    "claim": "The corpus size is set by the LABEL DYNAMIC RANGE 9.x must learn over and by the FAMILY COUNT needed for a holdout to be a real test. Rows are a CONSEQUENCE of those two, not a target.",
+    "why_not_row_count": "Row count is what became cheap, not what is needed. Sizing to 'three orders of magnitude more rows because we now can' is exactly the reasoning the PI warned against.",
+    "evidence_the_264_rows_cannot_train_anything": {
+      "label_range": "2.41 us .. 6.51 us",
+      "label_range_x": 2.7,
+      "label_log10_spread": 0.431,
+      "why_fatal_for_9_3": "gpu-sim-u2o.9.3 is a noise-aware loss on LOG-runtime: it predicts a mean and a log-variance of log-runtime. Over a log10 spread of 0.43 the target is nearly constant, so a model can learn the launch-bound regime and essentially nothing about scale, which is the entire thing being predicted.",
+      "why_fatal_for_9_4": "gpu-sim-u2o.6.6.4 measured that the analytic roofline only tracks above ~2^24, and 7.1's largest size, 2^18, is still launch-bound. A corpus that never leaves the launch-bound regime cannot separate a learned model from a constant.",
+      "family_count": 8,
+      "why_8_is_too_few": "gpu-sim-u2o.7.7 requires holding out whole structural families. With 8, holding out even two leaves six, and every family is one elementwise template, so a holdout measures whether the model can generalise across eight near-identical kernels."
+    }
+  },
+  "THE_CORPUS_SPECIFICATION": {
+    "label_dynamic_range_target_log10": ">= 3 orders of magnitude",
+    "sizes": {
+      "from": "2^12",
+      "to": "2^28 and above",
+      "why": "The launch-bound to memory-bound crossover is where the physics changes. 6.6.2 re-derived it at n=262144 for this part and 6.6.4 measured that the roofline only tracks above ~2^24. A corpus that stops at 2^18 measures exactly one regime.",
+      "sizes_n": [12, 14, 16, 18, 20, 22, 24, 26, 28]
+    },
+    "families": {
+      "minimum": 24,
+      "why": "Enough that holding out a quarter still leaves a usable training set, and enough that a holdout tests generalisation rather than memorising eight templates. Stages 2-5 in epic_u2o/ already generate structural variety -- reductions, tiled GEMM, strided reads, scatter writes, random access -- and those are the families that actually differ.",
+      "coverage": "all stage-1 elementwise families plus the stage-2..5 structural families, each kept as its own family so a family holdout is meaningful"
+    },
+    "launch_configs_per_cell": {
+      "minimum": 4,
+      "why": "The launch-config axis is a third thing 7.1 under-sampled. 6.6.2's anchor needed the deliberately-poor 1-block configs to be an anchor at all; without them a model cannot learn the launch-bound regime from data."
+    }
+  },
+  "row_count": {
+    "formula": "families x sizes x launch_configs",
+    "worked_example": {"families": 24, "sizes": 9, "configs": 4, "rows": 864},
+    "note": "864 is what the SPEC requires. It is roughly 3x the reference, not three orders of magnitude more, and that is the point: the requirement is satisfied by COVERAGE, not by volume. If someone later argues for 1e5 rows, the justification must be about what 9.x still cannot learn at 864, not about what is quick to produce at 510 ex/s."
+  },
+  "cost": {
+    "at_510_80_ex_per_sec": {"864_rows_sec": 1.7, "rows_per_hour": 1838772},
+    "note": "The full sweep is under two seconds of device time. Generation cost is no longer a constraint on ANY of these decisions, which is why the size argument is made on learning grounds alone."
+  },
+  "split": {
+    "unit": "STRUCTURAL FAMILY, never the row",
+    "train_val_test_family_dedicated": true,
+    "held_out_families": "at least 6, never sampled from",
+    "within_family": "configs and sizes may be split, since the model must generalise over those",
+    "why": "gpu-sim-u2o.7.7 measured the failure mode: the existing splitter was fail-OPEN on the real data, reporting zero leakage for a split with no test set. The unit of the split is the thing being generalised over; splitting rows within a family measures nothing."
+  },
+  "TRAINING_SET_VERDICT": "264 rows is a SMOKE TEST, not a training set. Not because it is too few rows, but because its labels span 2.70x and cover 8 near-identical families in a single regime. The corpus above is what 9.x needs to LEARN, and it is roughly 864 rows.",
+  "PROTOCOL_CONDITION_IMPLEMENTED": {
+    "module": "epic_u2o/corpus_protocol.py",
+    "what": "Every row carries a 'protocol' id; write_rows() refuses to serialise a row without one; assert_single_protocol() refuses to operate on a mixed corpus; poolable() returns nothing unless a target protocol is named explicitly, so pooling is a decision made at the call site rather than a default that happens.",
+    "protocols_registered": [
+      "single_run_7_1 (REFERENCE, frozen)",
+      "perproc_7_1_driver (diagnostic elimination arm)",
+      "perkernel_shared_ctx (scale only)"
+    ],
+    "why_code_not_convention": "ai_cv moves 3.2x between two protocols that both measured 264 rows of the same kernels. A pooled corpus does not merely have noisier labels: its ai_cv column means two different things in two halves of one file, and 9.3's noise-aware loss would be fitting a mixture of two definitions of its own target. Nothing downstream can detect that, because every number in it is individually plausible."
+  },
+  "the_acceptance_written_on_11_2": [
+    "The corpus is justified against what 9.x must LEARN, and the justification names the binding constraint -- currently the label dynamic range (>= 3 orders of magnitude) and the family count (>= 24) -- not the throughput that made it cheap. The artifact records the numbers the decision was made from.",
+    "Every row records its protocol, and a row without one is not written. Pooling across protocols is refused by code, not by convention, and any pooling decision is recorded explicitly.",
+    "The 264 reference rows and the anchor's 124 cells are read FROZEN. The fast-path corpus is additive and is never substituted for them.",
+    "The split unit is the structural family, at least 6 families are held out entirely, and the splitter FAILS LOUD rather than reporting a degenerate split as clean -- the gpu-sim-u2o.7.7 defect, carried forward as a requirement."
+  ],
+  "not_decided_here": "The exact family mix, and whether 17.x wants a separate trace corpus, are the reviewer's and mine jointly. This artifact fixes the two binding constraints and the protocol condition, and leaves the mix to be argued from coverage rather than from cost."
+}
