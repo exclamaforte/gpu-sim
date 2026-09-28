@@ -60,7 +60,7 @@ def load_module(env_state_dir):
     return importlib.import_module("epic_u2o.queue_state")
 
 
-def job(jid, state, desc="", cmd=("bash", "run.sh")):
+def job(jid, state, desc="", cmd=("bash", "run_family.sh memory")):
     return {"id": jid, "state": state, "description": desc,
             "command": list(cmd), "created_at": "2026-09-28T00:00:00+00:00"}
 
@@ -68,8 +68,10 @@ def job(jid, state, desc="", cmd=("bash", "run.sh")):
 def main() -> int:
     # ---- (a) the directory-resolution regression ------------------------
     root = fake_queue([
-        job("20260928t030010-AAAA", "running", "u2o.6.6.2 anchor: launch"),
-        job("20260928t030010-BBBB", "queued", "cclm: something else"),
+        job("20260928t030010-AAAA", "running", "u2o.6.6.2 anchor: launch",
+            cmd=("bash", "run_family.sh launch")),
+        job("20260928t030010-BBBB", "queued", "cclm: something else",
+            cmd=("bash", "other.sh")),
     ])
     # env var points at the ROOT, as gpqueue exports it inside a job
     qs = load_module(root)
@@ -86,23 +88,28 @@ def main() -> int:
     # ---- (b) the shared-command-prefix regression -----------------------
     # Four families, one command prefix, four distinct descriptions.
     root = fake_queue([
-        job("20260928t032717-AAAA", "finished", "u2o.6.6.2 anchor: launch"),
-        job("20260928t032717-BBBB", "finished", "u2o.6.6.2 anchor: memory"),
-        job("20260928t032717-CCCC", "running", "u2o.6.6.2 anchor: reduce"),
+        job("20260928t032717-AAAA", "finished", "u2o.6.6.2 anchor: launch",
+            cmd=("bash", "run_family.sh launch")),
+        job("20260928t032717-BBBB", "finished", "u2o.6.6.2 anchor: memory",
+            cmd=("bash", "run_family.sh memory")),
+        job("20260928t032717-CCCC", "running", "u2o.6.6.2 anchor: reduce",
+            cmd=("bash", "run_family.sh reduce")),
     ])
     qs = load_module(root)
     for fam, want in (("launch", "20260928t032717-AAAA"),
                       ("memory", "20260928t032717-BBBB"),
                       ("reduce", "20260928t032717-CCCC")):
         q = qs.queue_state(own_description_substr=f"u2o.6.6.2 anchor: {fam}",
-                           own_command_substr="run.sh")
+                           own_command_substr=f"run_family.sh {fam}")
         check(f"(b) '{fam}' identifies ITS OWN job, not a shared-prefix sibling",
               q["own_job_id"] == want, f"got {q['own_job_id']}, want {want}")
     # ...and the command-only fallback must not silently pick a wrong sibling
-    q = qs.queue_state(own_command_substr="run.sh")
-    check("(b) command-only fallback prefers a RUNNING job over a finished one",
+    q = qs.queue_state(own_command_substr="run_family.sh")
+    check("(b) a SHARED command prefix still prefers a RUNNING job over "
+          "finished siblings",
           q["own_job_id"] == "20260928t032717-CCCC",
           f"got {q['own_job_id']}, resolution={q['own_job_id_resolution']}")
+    _ = None
 
     # ---- (c) identification failure must RAISE, not write null ----------
     root = fake_queue([job("20260928t999999-XXXX", "running", "someone else")])
@@ -125,8 +132,10 @@ def main() -> int:
     # is 'finished' (we just ran) is NOT in `active`, so the emptiness claim
     # cannot be derived from the active set -- and must be omitted, not set.
     root = fake_queue([
-        job("20260928t040000-ZZZZ", "finished", "u2o.6.6.2 anchor: gemm"),
-        job("20260928t040101-YYYY", "queued", "other tenant job"),
+        job("20260928t040000-ZZZZ", "finished", "u2o.6.6.2 anchor: gemm",
+            cmd=("bash", "run_family.sh gemm")),
+        job("20260928t040101-YYYY", "queued", "other tenant job",
+            cmd=("bash", "other.sh")),
     ])
     qs = load_module(root)
     q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: gemm")
@@ -138,10 +147,39 @@ def main() -> int:
           and "queue_was_empty_omitted_because" in q,
           q.get("queue_was_empty_omitted_because", "")[:80])
 
+    # ---- (e) description that does not match what was submitted ---------
+    # The v7 run set U2O_JOB_DESC="anchor: memory" while the job actually
+    # submitted read "anchor v7: memory". The description match then found
+    # only an OLDER job with the same command, and the record named that one.
+    # A command match carrying the family ARGUMENT must beat it.
+    root = fake_queue([
+        job("20260927t155903-OLD", "finished", "u2o.6.6.2 anchor: memory",
+            cmd=("bash", "run_family.sh memory")),
+        job("20260928t033506-NEW", "running", "u2o.6.6.2 anchor v7: memory",
+            cmd=("bash", "run_family.sh memory")),
+    ])
+    qs = load_module(root)
+    q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: memory",
+                       own_command_substr="run_family.sh memory")
+    check("(e) a stale description does not win over a precise command match",
+          q["own_job_id"] == "20260928t033506-NEW",
+          f"got {q['own_job_id']} (resolution {q.get('own_job_id_resolution')})")
+    check("(e) the resulting record is identified and in the active set",
+          q.get("own_job_in_active_set") is True
+          and q.get("empty_claim_verified") is True,
+          {"in_set": q.get("own_job_in_active_set"),
+           "verified": q.get("empty_claim_verified")})
+    check("(e) emptiness is asserted only because the claim is derivable",
+          q.get("queue_was_empty") is True,
+          {"queue_was_empty": q.get("queue_was_empty"),
+           "n_other_active": q.get("n_other_active")})
+
     # ---- the normal path still carries the evidence --------------------
     root = fake_queue([
-        job("20260928t050000-QQQQ", "running", "u2o.6.6.2 anchor: memory"),
-        job("20260928t050101-RRRR", "queued", "conway: next"),
+        job("20260928t050000-QQQQ", "running", "u2o.6.6.2 anchor: memory",
+            cmd=("bash", "run_family.sh memory")),
+        job("20260928t050101-RRRR", "queued", "conway: next",
+            cmd=("bash", "other.sh")),
     ])
     qs = load_module(root)
     q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: memory")
