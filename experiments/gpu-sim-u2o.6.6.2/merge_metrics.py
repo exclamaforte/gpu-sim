@@ -88,20 +88,29 @@ def main() -> int:
             return n * 4 + n * 4            # data + index/seed, both streamed
         return n * per * 4
 
+    def rate_GBps(c) -> float:
+        """The ONLY place a bandwidth is computed, and it derives from the
+        entry's own bytes_moved. The previous revision computed bytes_moved per
+        kernel but the rate from a flat 2*n*4, so for exactly the two kernels
+        whose convention differs (saxpy: two reads one write; strided_read: a
+        stride-17 access) the two fields of the SAME entry disagreed -- and the
+        published ceiling escaped only because its argmax cell happens to be
+        one where the conventions agree. Deriving the rate from the reported
+        count removes the possibility rather than fixing today's instance.
+        """
+        return bytes_moved(c) / (c["median_ms"] / 1000.0) / 1e9
+
     mem = [c for c in ok
            if c["op_type"] in ("memory", "access") and "auto/256" in c["label"]]
     ceiling_bytes_per_s = 0.0
     for c in mem:
         n = c["n_problem_size"]
-        moved = 2 * n * 4          # one read + one write, fp32
-        # median_ms is MILLIseconds, so bytes/ms is 1000x short of bytes/s.
-        # The previous revision divided by 1e9 on top of that and reported
-        # bandwidths 1000x too small (3.2 "GB/s" for a case that actually
-        # sustains ~3.2 TB/s). The reviewer's unit finding was correct.
-        bps = moved / (c["median_ms"] / 1000.0)
-        # remember the per-cell figure; the ceiling is picked below from the
-        # largest (HBM-bound) n, not from the maximum
-        c["_bps"] = bps
+        # ONE convention in this file. This used to be a flat 2*n*4, which is
+        # the origin of the whole defect: the published rate used one rule and
+        # the ranking used another, so the argmax cell and the published
+        # ceiling could disagree. bytes_moved() is the single source.
+        # (median_ms is milliseconds, hence the /1000.)
+        c["_bps"] = bytes_moved(c) / (c["median_ms"] / 1000.0)
         c["_working_set_mb"] = 2 * n * 4 / 1048576.0
     # CEILING = the ARGMAX INDEX, never `max(...)[0]`. The previous revision
     # took max() over a candidate set and then labelled the result with
@@ -127,7 +136,7 @@ def main() -> int:
          "n_problem_size": c["n_problem_size"],
          "median_ms": c["median_ms"],
          "bytes_moved": bytes_moved(c),
-         "achieved_GBps": c["_bps"] / 1e9,
+         "achieved_GBps": rate_GBps(c),
          "l2_resident": 2 * c["n_problem_size"] * 4 / 1048576.0 <= 96}
         for c in sorted(mem, key=lambda c: -c["_bps"])[:6]]
     ceiling_candidates = [
@@ -135,7 +144,7 @@ def main() -> int:
          "n_problem_size": c["n_problem_size"],
          "median_ms": c["median_ms"],
          "bytes_moved": bytes_moved(c),
-         "achieved_GBps": c["_bps"] / 1e9,
+         "achieved_GBps": rate_GBps(c),
          "l2_resident": 2 * c["n_problem_size"] * 4 / 1048576.0 <= 96}
         for c in ranked[:6]]
     launch_bound, memory_bound = [], []
@@ -149,7 +158,8 @@ def main() -> int:
                  # one (n=2^26: 512 MiB) without recomputing anything
                  "working_set_MB": c["_working_set_mb"],
                  "l2_resident": c["_working_set_mb"] <= 96,
-                 "median_us": us, "achieved_GBps": bps / 1e9}
+                 "median_us": us, "achieved_GBps": rate_GBps(c),
+                 "bytes_moved": bytes_moved(c)}
         if bps < 0.10 * ceiling_bytes_per_s:
             launch_bound.append(entry)
         elif bps >= 0.80 * ceiling_bytes_per_s:
@@ -215,8 +225,30 @@ def main() -> int:
              if c.get("across_invocation_cv") is not None
              and c["median_ms"] >= 0.01]
 
+    # The queue state belongs in the machine-readable artifact, not only in
+    # output_*.log. A record a checker cannot read is a record that does not
+    # exist for the purpose it was made; the reviewer found the per-family
+    # files carried it correctly and metrics.json carried none of it.
+    queue_state_by_family = {}
+    for f in FAMILIES:
+        q = fams[f].get("queue_state_before")
+        if q:
+            queue_state_by_family[f] = q
+    families_here = {f: fams[f].get("results", []) for f in FAMILIES}
+
     out = {
         "bead": "gpu-sim-u2o.6.6.2",
+        "queue_state_by_family": queue_state_by_family,
+        "queue_state_caveat": (
+            "own_job_entry is ABSENT on these records: the family files were "
+            "produced at 20260928t032717, which PREDATES the 6.6.6 "
+            "implementation committed at 20:33:17. It is an ordering "
+            "artefact and it cannot be retrofitted, so the emptiness claim in "
+            "these records is a WELL-CORROBORATED ASSERTION, not a verified "
+            "fact: it is consistent with the per-family files, the ts logs and "
+            "the queue, but the in-record cross-check against a false "
+            "positive is impossible on THIS artifact. gpu-sim-u2o.6.6.6 closes "
+            "that for future runs."),
         "what": ("anchor + scaling set measured on the CURRENT measurement path "
                  "(synthesize -> compile_kernel -> run_kernel) BEFORE the "
                  "6.1.3/6.1.1 rework, so 6.1.1's closing run can be diffed "
