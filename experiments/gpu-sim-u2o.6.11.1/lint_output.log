@@ -1,0 +1,42 @@
+prose/artifact number agreement lint
+beads under test: gpu-sim-u2o.6.6.1, gpu-sim-u2o.6.6.3, gpu-sim-u2o.6.10, gpu-sim-8dw, gpu-sim-u2o.6.11
+checks run: 5   findings: 5
+
+  [gpu-sim-u2o.6.6.1] declared-worst-case disagrees with prose
+      prose    : "worst case = the empty cell: 10 trials 59.3%"
+      artifact : lab/bd-field-guard:experiments/gpu-sim-u2o.6.6.1/metrics.json = 76.3
+      comment  : 59.3
+      disagree : artifact=76.3  comment=59.3
+      note     : artifact names the worst cell as empty/single/n=16384
+
+  [gpu-sim-u2o.6.6.3] constant boolean cited as a discriminator
+      prose    : "Every one of the six signals carries "discriminates": true"
+      artifact : lab/gpu-sim-u2o.6.6.3:experiments/gpu-sim-u2o.6.6.3/metrics.json = "1 constant-valued field(s) {'discriminates': True}; relative_spread ranges 0.098 (clocks.sm) .. 1.000 (clocks_throttle_reasons.active)"
+      comment  : 'six signals all true'
+      disagree : artifact="1 constant-valued field(s) {'discriminates': True}; relative_spread ranges 0.098 (clocks.sm) .. 1.000 (clocks_throttle_reasons.active)"  comment='six signals all true'
+      note     : the field does not vary, so the ordering lives in relative_spread, not in this boolean
+
+  [gpu-sim-u2o.6.10] ratio printed in prose is not what the operands give
+      prose    : "it printed 3x where the real ratio is 2713x"
+      artifact : lab/gpu-sim-u2o.6.10:experiments/gpu-sim-u2o.6.10/report.json = '(process_wall_sec*1000)/sum_of_trials_ms = 2713; stored wall_over_trials_ratio=2713'
+      comment  : 3.0
+      disagree : artifact='(process_wall_sec*1000)/sum_of_trials_ms = 2713; stored wall_over_trials_ratio=2713'  comment=3.0
+      note     : the same sentence claims the real ratio is 2713.0x, which the operands DO support (2713); the disagreement is with the value the harness actually printed. artifact's own unit_bug_correction records the cause.
+
+  [gpu-sim-8dw] claim contradicts the committed demonstration log
+      prose    : "answered False to BOTH probes"
+      artifact : lab/gpu-sim-8dw:experiments/gpu-sim-8dw/demo_output.log = ['passed=False', 'passed=True']
+      comment  : 'False to both'
+      disagree : artifact=['passed=False', 'passed=True']  comment='False to both'
+      note     : the log shows a probe passing; the prose says the repaired module answered False to both
+
+  [gpu-sim-u2o.6.11] typed removal count disagrees with the tree
+      prose    : "rm -f <the 33 paths this branch tracks>"
+      artifact : lab/gpu-sim-u2o.6.11:experiments/gpu-sim-u2o.6.11/tracks_inventory.md = '43 paths tracked in lab/gpu-sim-u2o.6.11'
+      comment  : 33
+      disagree : artifact='43 paths tracked in lab/gpu-sim-u2o.6.11'  comment=33
+      note     : 43 paths on disk under epic_u2o/; the count in the command is TYPED while the counts beside it are derived, which is how the two drifted apart
+
+
+This lint does not say which value is correct. It reports two values
+that were supposed to be the same and are not. Adjudicate by hand.
