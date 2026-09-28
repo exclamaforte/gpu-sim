@@ -72,7 +72,53 @@ def main() -> int:
     check("half 2: each entry's median_ms matches the cell of the same label",
           not bad_cell, bad_cell)
 
-    # ---- and the convention is genuinely per-kernel ---------------------
+    # ---- CELL TIE: every candidate label resolves to exactly ONE cell ----
+    # Counted against a FRESH output (this run's cells) rather than only
+    # self-consistency. Half of the reconciliation test the PI specified is
+    # this: an entry that names a cell which does not exist, or names two,
+    # or names one with different numbers, is a candidate list that cannot be
+    # audited against the measurements it claims to summarise.
+    dupes = [lbl for lbl in cells
+             if sum(1 for c in d["cells"] if c["label"] == lbl) > 1]
+    check("every candidate label resolves to exactly ONE cell", not dupes, dupes[:3])
+
+    missing = [e["label"] for e in entries if e["label"] not in cells]
+    check("no candidate names a cell that does not exist", not missing, missing)
+
+    # the tie must hold on the fields that matter, not just on the key
+    tie_bad = []
+    for e in entries:
+        c = cells.get(e["label"])
+        if not c:
+            continue
+        if (c["median_ms"] != e["median_ms"]
+                or c["n_problem_size"] != e["n_problem_size"]
+                or c.get("covers") is not None and c["covers"] < 0):
+            tie_bad.append(e["label"])
+    check("each candidate's median_ms and n match its cell", not tie_bad, tie_bad)
+
+    # ---- CONVENTION ANCHORS: the per-kernel rule, with its two cases ----
+    by_label = {e["label"]: e for e in entries}
+    sax = next((e for lbl, e in by_label.items()
+                if "saxpy" in lbl and e["n_problem_size"] == 4194304), None)
+    if sax:
+        flat = 2 * sax["n_problem_size"] * 4
+        ratio = sax["bytes_moved"] / flat
+        check("convention anchor: k_saxpy moves 1.5x the flat count "
+              "(two reads, one write)",
+              abs(ratio - 1.5) < 1e-6, f"ratio={ratio:.4f} "
+              f"({sax['bytes_moved']} vs flat {flat})")
+    strided = next((e for lbl, e in by_label.items()
+                    if "strided_read" in lbl), None)
+    if strided:
+        flat = 2 * strided["n_problem_size"] * 4
+        ratio = strided["bytes_moved"] / flat
+        check("convention anchor: k_strided_read moves materially BELOW the flat "
+              "count (stride 17 misses cache lines)",
+              ratio < 0.75, f"ratio={ratio:.4f} "
+              f"({strided['bytes_moved']} vs flat {flat})")
+
+    # and the convention is genuinely per-kernel ---------------------
     # A flat 2*n*4 recomputation must NOT reproduce every entry, otherwise the
     # per-kernel rule is not actually in force. This is the check whose
     # PASSING was the bug's signature, inverted: here it must FAIL for at

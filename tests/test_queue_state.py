@@ -60,6 +60,31 @@ def load_module(env_state_dir):
     return importlib.import_module("epic_u2o.queue_state")
 
 
+_MISSING = object()
+
+
+def g(rec, key, default="<absent>"):
+    """Read a key WITHOUT exploding.
+
+    The suite must report cleanly against an OLDER queue_state -- that is
+    precisely when a reader needs it most, and when the reviewer lifted this
+    file onto master it CRASHED instead of reporting, because the report path
+    subscripted straight into a key the older version does not emit. A test
+    that asserts a field's existence should SAY so in a result line, not die
+    with a traceback.
+    """
+    # Distinguish "the key is absent" from "the key is present and its value is
+    # None". They mean opposite things here: an absent own_job_entry means the
+    # record predates the field, while a present-and-None means identification
+    # failed and the emptiness claim was deliberately omitted. Collapsing them
+    # would hide exactly the case these tests exist to catch.
+    try:
+        v = rec.get(key, _MISSING)
+    except AttributeError:
+        return f"<no record: {type(rec).__name__}>"
+    return default if v is _MISSING else v
+
+
 def job(jid, state, desc="", cmd=("bash", "run_family.sh memory")):
     return {"id": jid, "state": state, "description": desc,
             "command": list(cmd), "created_at": "2026-09-28T00:00:00+00:00"}
@@ -77,13 +102,13 @@ def main() -> int:
     qs = load_module(root)
     q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: launch")
     check("(a) resolves a queue ROOT to its jobs/ subdirectory",
-          q.get("n_jobs_read") == 2, f"n_jobs_read={q.get('n_jobs_read')}")
+          g(q, "n_jobs_read") == 2, f"n_jobs_read={q.get('n_jobs_read')}")
     check("(a) does not report an empty queue when a job is active",
-          q["queue_was_empty"] is False,
+          g(q, "queue_was_empty") is False,
           f"queue_was_empty={q.get('queue_was_empty')}")
     check("(a) names the co-tenant it saw",
-          [j["id"] for j in q["other_active_jobs"]] == ["20260928t030010-BBBB"],
-          q["other_active_jobs"])
+          [j["id"] for j in g(q, "other_active_jobs", [])] == ["20260928t030010-BBBB"],
+          g(q, "other_active_jobs", []))
 
     # ---- (b) the shared-command-prefix regression -----------------------
     # Four families, one command prefix, four distinct descriptions.
@@ -102,13 +127,14 @@ def main() -> int:
         q = qs.queue_state(own_description_substr=f"u2o.6.6.2 anchor: {fam}",
                            own_command_substr=f"run_family.sh {fam}")
         check(f"(b) '{fam}' identifies ITS OWN job, not a shared-prefix sibling",
-              q["own_job_id"] == want, f"got {q['own_job_id']}, want {want}")
+              q.get("own_job_id") == want,
+              f"got {g(q, 'own_job_id')}, want {want}")
     # ...and the command-only fallback must not silently pick a wrong sibling
     q = qs.queue_state(own_command_substr="run_family.sh")
     check("(b) a SHARED command prefix still prefers a RUNNING job over "
           "finished siblings",
-          q["own_job_id"] == "20260928t032717-CCCC",
-          f"got {q['own_job_id']}, resolution={q['own_job_id_resolution']}")
+          q.get("own_job_id") == "20260928t032717-CCCC",
+          f"got {g(q, 'own_job_id')}, resolution={g(q, 'own_job_id_resolution')}")
     _ = None
 
     # ---- (c) identification failure must RAISE, not write null ----------
@@ -140,11 +166,11 @@ def main() -> int:
     qs = load_module(root)
     q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: gemm")
     check("(d) own job absent from the active set is reported as such",
-          q["own_job_entry"] is None and q["own_job_in_active_set"] is False,
-          f"own_job_entry={q['own_job_entry']}")
+          g(q, "own_job_entry") is None and g(q, "own_job_in_active_set") is False,
+          f"own_job_entry={g(q, 'own_job_entry')}")
     check("(d) queue_was_empty is OMITTED (not asserted) when we cannot verify",
-          q.get("queue_was_empty") is None
-          and "queue_was_empty_omitted_because" in q,
+          g(q, "queue_was_empty") is None
+          and g(q, "queue_was_empty_omitted_because") != "<absent>",
           q.get("queue_was_empty_omitted_because", "")[:80])
 
     # ---- (e) description that does not match what was submitted ---------
@@ -162,17 +188,17 @@ def main() -> int:
     q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: memory",
                        own_command_substr="run_family.sh memory")
     check("(e) a stale description does not win over a precise command match",
-          q["own_job_id"] == "20260928t033506-NEW",
-          f"got {q['own_job_id']} (resolution {q.get('own_job_id_resolution')})")
+          q.get("own_job_id") == "20260928t033506-NEW",
+          f"got {g(q, 'own_job_id')} (resolution {g(q, 'own_job_id_resolution')})")
     check("(e) the resulting record is identified and in the active set",
-          q.get("own_job_in_active_set") is True
-          and q.get("empty_claim_verified") is True,
-          {"in_set": q.get("own_job_in_active_set"),
-           "verified": q.get("empty_claim_verified")})
+          g(q, "own_job_in_active_set") is True
+          and g(q, "empty_claim_verified") is True,
+          {"in_set": g(q, "own_job_in_active_set"),
+           "verified": g(q, "empty_claim_verified")})
     check("(e) emptiness is asserted only because the claim is derivable",
-          q.get("queue_was_empty") is True,
-          {"queue_was_empty": q.get("queue_was_empty"),
-           "n_other_active": q.get("n_other_active")})
+          g(q, "queue_was_empty") is True,
+          {"queue_was_empty": g(q, "queue_was_empty"),
+           "n_other_active": g(q, "n_other_active")})
 
     # ---- the normal path still carries the evidence --------------------
     root = fake_queue([
@@ -183,19 +209,21 @@ def main() -> int:
     ])
     qs = load_module(root)
     q = qs.queue_state(own_description_substr="u2o.6.6.2 anchor: memory")
-    check("normal path: own_job_entry carries our id AND state",
-          q["own_job_entry"] and q["own_job_entry"]["id"] == "20260928t050000-QQQQ"
-          and q["own_job_entry"]["state"] == "running", q["own_job_entry"])
+    entry = g(q, "own_job_entry")
+    entry_ok = (isinstance(entry, dict)
+                and entry.get("id") == "20260928t050000-QQQQ"
+                and entry.get("state") == "running")
+    check("normal path: own_job_entry carries our id AND state", entry_ok, entry)
     check("normal path: emptiness claim is verified and derived from a count",
-          q.get("empty_claim_verified") is True
-          and q.get("empty_claim_derived_from_n") == q.get("n_active_including_self"),
+          g(q, "empty_claim_verified") is True
+          and g(q, "empty_claim_derived_from_n") == g(q, "n_active_including_self"),
           {k: q.get(k) for k in ("empty_claim_verified",
                              "empty_claim_derived_from_n",
                              "n_active_including_self", "n_other_active")})
     check("normal path: counts agree with the lists they summarise",
-          q["n_other_active"] == len(q["other_active_jobs"])
-          and q["n_other_running_at_sample_time"] == len(q["other_running_jobs"]),
-          f"{q['n_other_active']} vs {len(q['other_active_jobs'])}")
+          g(q, "n_other_active") == len(g(q, "other_active_jobs", []))
+          and g(q, "n_other_running_at_sample_time") == len(g(q, "other_running_jobs", [])),
+          f"{g(q, 'n_other_active')} vs {len(g(q, 'other_active_jobs', []))}")
 
     print()
     print(f"{len(FAILS)} failure(s)" + (": " + ", ".join(FAILS) if FAILS else ""))
