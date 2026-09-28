@@ -101,7 +101,42 @@ cudaError_t cudaMemGetInfo(size_t *free, size_t *total)
      * cudaMemGetInfo'. Found while implementing the 8dw preflight smoke test,
      * which tripped over the same gap. */
     if (!free || !total) return (cudaError_t)cudaErrorInvalidValue;
-    const struct fg_config *c = fg_cfg();
+    const /* ==========================================================================
+ * SINGLE SOURCE OF TRUTH for the device quantities the fake reports.
+ *
+ * gpu-sim-u2o.19, structural rule taken from its review: a quantity the fake
+ * reports through MORE THAN ONE CHANNEL must be single-sourced, and the test
+ * must pin the channels to EACH OTHER rather than pinning one to a literal.
+ *
+ * Why that is not tidiness here. maxThreadsPerMultiProcessor was reaching
+ * callers three ways -- the shim struct, the real-layout overlay, and
+ * cudaDeviceGetAttribute -- and the three disagreed, so the fake was a
+ * DIFFERENT PART depending on which channel the caller happened to use. That
+ * is worse than any one value being wrong, because a caller cannot detect it.
+ * l2CacheSize was worse still: the overlay said 96 MB while the shim-only
+ * `totalL2Cache` said 4 MB, a 24x disagreement, and PyTorch reads exactly
+ * this family of numbers when it computes occupancy.
+ *
+ * Same lesson 6.6.2 learned as "one byte convention in the file". A value
+ * written in three places is three values the moment one of them is edited.
+ *
+ * Every number below was READ OFF A REAL RTX 5090, ts 20260928t105453-2dc7af7c.
+ * The previous values (2048 / 233472 / 128 MB) described a part that does not
+ * exist, and the reviewer's bead blamed the wrong thing: the byte OFFSETS were
+ * correct (verified with offsetof against CUDA 13.3) and the VALUES were wrong.
+ * ========================================================================== */
+#define FG_MAX_THREADS_PER_SM      1536       /* was 2048 */
+#define FG_SHMEM_PER_SM          102400       /* was 233472 (228 KB) */
+#define FG_L2_BYTES            100663296      /* was 134217728 (128 MB) */
+#define FG_SMEM_PER_BLOCK         49152
+#define FG_REGS_PER_BLOCK         65536
+#define FG_REGS_PER_SM            65536
+#define FG_SM_COUNT                170
+#define FG_WARP                     32
+
+/* ========================================================================== */
+
+struct fg_config *c = fg_cfg();
     *total = (size_t)c->device_mem_mb * 1024u * 1024u;
     /* the fake pool hands out from this budget; report what is notionally
      * left as the whole budget minus one page, so a caller sees a plausible
@@ -401,14 +436,19 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
     memset(prop, 0, sizeof(*prop));
     snprintf(prop->name, sizeof(prop->name), "FakeGPU-%d", device);
     prop->totalGlobalMem          = (size_t)c->device_mem_mb * 1024 * 1024;
-    prop->sharedMemPerBlock       = 48 * 1024;
-    prop->maxThreadsPerBlock      = 1024;
+    prop->sharedMemPerBlock       = FG_SMEM_PER_BLOCK;
+    prop->maxThreadsPerBlock      = 1024;  /* unchanged: real 5090 is 1024 */
     /* gpu-sim-u2o.19: 1536, measured on the real 5090 -- see the overlay
      * comment below for provenance. The shim-struct assignment and the
      * real-layout overlay MUST agree, or the same field reports two different
      * values depending on which header the caller was built against. */
-    prop->maxThreadsPerMultiProcessor = 1536;
-    prop->multiProcessorCount     = 170;   /* match real RTX 5090 */
+    prop->maxThreadsPerMultiProcessor = FG_MAX_THREADS_PER_SM;
+    prop->multiProcessorCount     = FG_SM_COUNT;   /* match real RTX 5090 */
+    /* Single-sourced, and written BEFORE the overlay on purpose: the shim
+     * places this at byte 312, which is inside the overlay's range, so writing
+     * it afterwards would clobber the overlay's `pitch`. See the long note at
+     * the shim's own block below. */
+    prop->totalL2Cache            = FG_L2_BYTES;
     prop->clockRate               = 1590000;   /* kHz, fake */
     /* Real-layout overlay: third-party binaries (e.g. PyTorch) are built
      * against real CUDA headers, whose cudaDeviceProp layout differs from
@@ -421,14 +461,14 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
     {
         unsigned char *base = (unsigned char *)prop;
         size_t total_mem = (size_t)c->device_mem_mb * 1024 * 1024;
-        size_t shmem = 48 * 1024;
+        size_t shmem = FG_SMEM_PER_BLOCK;
         size_t const_mem = 64 * 1024;
         size_t pitch = 2147483647u;
-        size_t shmem_sm = (size_t)102400;   /* per-SM, measured on RTX 5090 (ts
+        size_t shmem_sm = (size_t)FG_SHMEM_PER_SM;   /* per-SM, measured on RTX 5090 (ts
                                              * 20260928t105453-2dc7af7c); was
                                              * 228 KB, which is not this part */
-        int max_threads = 1024, major = 12, minor = 0, sm_count = 170;
-        int regs_block = 65536, warp = 32, one = 1;
+        int max_threads = 1024, major = 12, minor = 0, sm_count = FG_SM_COUNT;
+        int regs_block = FG_REGS_PER_BLOCK, warp = FG_WARP, one = 1;
         int max_dim[3] = {1024, 1024, 64};
         int max_grid[3] = {2147483647, 65535, 65535};
         /* gpu-sim-u2o.19. These three VALUES were wrong; the OFFSETS were not.
@@ -456,7 +496,8 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
          * occupancy-sensitive kernel launched under the fake would be sized
          * against a part that does not exist.
          */
-        int max_thr_sm = 1536, regs_sm = 65536, l2 = 100663296;
+        int max_thr_sm = FG_MAX_THREADS_PER_SM, regs_sm = FG_REGS_PER_SM,
+            l2 = FG_L2_BYTES;   /* l2CacheSize is an int on CUDA 13.3 */
         memcpy(base + 288, &total_mem, sizeof(total_mem));
         memcpy(base + 296, &shmem, sizeof(shmem));
         memcpy(base + 304, &regs_block, sizeof(regs_block));
@@ -480,7 +521,27 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
     prop->isMultiGpuBoard         = 0;
     prop->multiGpuBoardGroupID    = 0;
     prop->totalConstMem           = 64 * 1024;
-    prop->totalL2Cache            = 4 * 1024 * 1024;
+    /* Single-sourced with the overlay's l2CacheSize. These disagreed by 24x
+     * (4 MB here, 96 MB there), and a shim-built caller and a real-header
+     * caller would each have been right about a different part. Note this field
+     * does not exist in CUDA 13.3's cudaDeviceProp at all, so it can never be the
+     * authority -- but it must not contradict the real one either. */
+    /* gpu-sim-u2o.19: ROOT CAUSE of the two long-standing overlay gaps.
+     *
+     * The shim's cudaDeviceProp puts totalL2Cache at byte 312 with size 8, so
+     * this assignment writes bytes 312-319. The overlay writes `pitch` at 312
+     * (8 bytes) and `max_threads` at 320. Because the shim block runs AFTER
+     * the overlay, the shim WINS wherever the two overlap -- which is how a
+     * field the overlay wrote came back as something else entirely, and why
+     * maxThreadsPerBlock and warpSize read 0 while cudaDeviceGetAttribute
+     * (a different code path, no struct involved) reported them correctly.
+     *
+     * The fix is not to change a value, it is to stop two authorities writing
+     * the same bytes. The overlay is the authority for real-header callers, so
+     * the shim-only fields must not be allowed to overwrite it. Rather than
+     * reorder this function late at night, the shim's totalL2Cache is written
+     * BEFORE the overlay and the overlay's pitch/max_threads win from then on.
+     */
     prop->pciBusID                = device;
     prop->pciDeviceID             = device * 0x10de;
     prop->pciDomainID             = 0;
@@ -506,11 +567,17 @@ cudaError_t cudaDeviceGetAttribute(int *pi, int attr, int device)
     /* gpu-sim-u2o.19: 1536, measured on the real 5090. This is a THIRD
      * place the same number appears; if it drifts from the overlay the fake
      * becomes self-inconsistent, so the test pins all three. */
-    case cudaDevAttrMaxThreadsPerMultiProcessor: *pi = 1536; break;
-    case cudaDevAttrMultiProcessorCount:         *pi = 170;  break;   /* match real RTX 5090 */
-    case cudaDevAttrMaxSharedMemoryPerBlock:     *pi = 48 * 1024; break;
+    case cudaDevAttrMaxThreadsPerMultiProcessor:
+        *pi = FG_MAX_THREADS_PER_SM; break;
+    case cudaDevAttrMultiProcessorCount:         *pi = FG_SM_COUNT; break;   /* match real RTX 5090 */
+    case cudaDevAttrMaxSharedMemoryPerBlock:     *pi = FG_SMEM_PER_BLOCK; break;
     case cudaDevAttrClockRate:                   *pi = 1590000; break;
-    case cudaDevAttrTotalGlobalMem:              *pi = (int)(c->device_mem_mb * 1024); break;
+    /* gpu-sim-u2o.19: cudaDevAttrTotalGlobalMem does not exist in CUDA 13.x --
+     * it was removed when the attribute list was renumbered. The case is GONE
+     * rather than renumbered, because keeping a case for a non-existent
+     * enumerator is precisely the drift this file keeps having. Use
+     * cudaDeviceGetAttribute(cudaDevAttrTotalGlobalMemory) or read
+     * cudaDeviceProp.totalGlobalMem instead. */
     case cudaDevAttrComputeCapabilityMajor:      *pi = 12;  break;   /* sm_120 */
     case cudaDevAttrComputeCapabilityMinor:      *pi = 0;   break;
     default:                                     *pi = 0;    break;

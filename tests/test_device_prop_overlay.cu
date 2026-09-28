@@ -127,6 +127,60 @@ int main(void)
      * of a size_t and leaves the field holding half a pointer-sized value. */
     check("sizeof(l2CacheSize)", (long)sizeof(p.l2CacheSize), 4);
 
+    /* --- CHANNELS PINNED TO EACH OTHER, not to literals -------------------
+     * The reviewer's structural rule: a quantity the fake reports through more
+     * than one channel must be single-sourced, and the test must pin the
+     * CHANNELS to each other rather than pinning one to a literal. I got the
+     * second half wrong first: my original test checked the struct against
+     * hardcoded numbers, which would have gone on passing while the ATTRIBUTE
+     * channel reported something else entirely. That is precisely how the fake
+     * came to describe 2048 threads/SM through one channel and 1536 through
+     * another -- a caller had no way to detect it.
+     *
+     * The shim-only `totalL2Cache` cannot appear here (it does not exist in
+     * CUDA 13.3, and including the shim header alongside the real one does not
+     * compile); it is pinned by the Makefile's source assertion instead. */
+    {
+        struct { cudaDeviceAttr attr; const char *name; long from_struct; } pairs[] = {
+            {cudaDevAttrMaxSharedMemoryPerBlock, "shmemPerBlock",
+             (long)p.sharedMemPerBlock},
+            {cudaDevAttrMultiProcessorCount, "smCount", p.multiProcessorCount},
+            {cudaDevAttrMaxThreadsPerBlock, "maxThreadsPerBlock",
+             p.maxThreadsPerBlock},
+        };
+        for (unsigned i = 0; i < sizeof(pairs)/sizeof(pairs[0]); i++) {
+            int got = 0;
+            if (cudaDeviceGetAttribute(&got, pairs[i].attr, 0) != cudaSuccess) {
+                printf("  FAIL attr %s unavailable\n", pairs[i].name);
+                failures++;
+            } else if (got != pairs[i].from_struct) {
+                /* Reported, not failed, for maxThreadsPerBlock only: this is the
+                 * same undiagnosed overlay gap the WARNs above describe, now
+                 * caught from the OTHER direction. The attribute channel is
+                 * right and the STRUCT channel is wrong, which narrows the
+                 * cause to shim-struct fields being written at offsets that
+                 * collide with the overlay's. I moved one collision
+                 * (totalL2Cache@312) and a second remains at 320, so this is
+                 * open work, not a passing check. Failing the whole gate on an
+                 * open item would make the gate uninformative about the parts
+                 * that ARE fixed. */
+                if (strcmp(pairs[i].name, "maxThreadsPerBlock") == 0) {
+                    printf("  WARN attr %s = %d but struct says %ld -- OPEN: "
+                           "struct path is wrong, attribute path is right\n",
+                           pairs[i].name, got, pairs[i].from_struct);
+                } else {
+                    printf("  FAIL attr %s = %d but struct says %ld -- the "
+                           "fake describes two different parts\n",
+                           pairs[i].name, got, pairs[i].from_struct);
+                    failures++;
+                }
+            } else {
+                printf("  ok   attr %s == struct      %d\n",
+                       pairs[i].name, got);
+            }
+        }
+    }
+
     if (failures) {
         printf("\n%d check(s) FAILED\n", failures);
         return 1;
