@@ -1,0 +1,75 @@
+/*
+ * vector_add.c — reference CUDA workload compiled against shim/cuda_runtime.h.
+ *
+ * Mirrors what a real CUDA program looks like: allocate host + device buffers,
+ * copy input H2D, launch a kernel, copy result D2H. Under LD_PRELOAD=fakegpu.so
+ * the "kernel" is a no-op and buffers come back filled with random bytes.
+ *
+ * Run:  LD_PRELOAD=./libfakegpu.so ./build/vector_add
+ */
+#include "cuda_runtime.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* Fake kernel symbol — in real CUDA this would be __global__; here we pass a
+ * dummy function pointer (the interposer never dereferences it). */
+static const void *vector_add_kernel = (const void *)0x1;
+
+#define N 1024
+
+static int run(void)
+{
+    float *h_a = (float *)malloc(sizeof(float) * N);
+    float *h_b = (float *)malloc(sizeof(float) * N);
+    float *h_c = (float *)malloc(sizeof(float) * N);
+    if (!h_a || !h_b || !h_c) { fprintf(stderr, "host alloc failed\n"); return 1; }
+
+    for (int i = 0; i < N; i++) {
+        h_a[i] = (float)i;
+        h_b[i] = (float)(N - i);
+        h_c[i] = 0.0f;
+    }
+
+    void *d_a, *d_b, *d_c;
+    if (cudaMalloc(&d_a, sizeof(float) * N) != cudaSuccess)  return 1;
+    if (cudaMalloc(&d_b, sizeof(float) * N) != cudaSuccess)  return 1;
+    if (cudaMalloc(&d_c, sizeof(float) * N) != cudaSuccess)  return 1;
+
+    if (cudaMemcpyHtoD(d_a, h_a, sizeof(float) * N) != cudaSuccess) return 1;
+    if (cudaMemcpyHtoD(d_b, h_b, sizeof(float) * N) != cudaSuccess) return 1;
+
+    int nbytes = (int)(sizeof(float) * N);
+    void *params[4] = { &d_a, &d_b, &d_c, &nbytes };
+    if (cudaLaunchKernel(vector_add_kernel, 1, 1, 1, N, 1, 1, 0, NULL,
+                         params, NULL) != cudaSuccess)
+        return 1;
+
+    if (cudaMemcpyDtoH(h_c, d_c, sizeof(float) * N) != cudaSuccess) return 1;
+
+    /* Under the fake GPU, h_c is random bytes interpreted as floats. We only
+       assert the program ran end-to-end; correctness is not checked against a
+       real kernel. */
+    int nonzero = 0;
+    for (int i = 0; i < N; i++)
+        if (h_c[i] != 0.0f) { nonzero = 1; break; }
+
+    printf("vector_add: N=%d  D2H buffer has random data: %s\n",
+           N, nonzero ? "yes" : "no");
+
+    cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
+    free(h_a); free(h_b); free(h_c);
+    return 0;
+}
+
+int main(void)
+{
+    int dev = -1;
+    if (cudaGetDeviceCount(&dev) != cudaSuccess || dev < 1) {
+        fprintf(stderr, "vector_add: no devices\n");
+        return 1;
+    }
+    printf("vector_add: fake GPUs visible = %d\n", dev);
+    return run();
+}
