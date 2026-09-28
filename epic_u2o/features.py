@@ -9,7 +9,7 @@ import re
 import math
 from dataclasses import dataclass, asdict
 from typing import Optional
-from tokenizer import tokenize, TokenType
+from epic_u2o.tokenizer import tokenize, TokenType
 
 
 @dataclass
@@ -23,6 +23,12 @@ class LaunchConfig:
     block_z: int = 1
     shared_mem_bytes: int = 0
     stream: int = 0  # 0 = default stream
+    # True when these values are the class default because no <<< >>> launch
+    # site was found in the source -- i.e. NOT read from a real launch.
+    # gpu-sim-u2o.8.3: a kernel DEFINITION never contains a launch site, so
+    # this is True for every real kernel and the flag is how a caller tells a
+    # measured launch from a guessed one.
+    is_default_heuristic: bool = False
     
     @property
     def total_threads(self) -> int:
@@ -40,7 +46,18 @@ class LaunchConfig:
 
 @dataclass
 class KernelFeatures:
-    """Static features extracted from kernel source."""
+    """Static + problem features extracted from kernel source AND launch.
+
+    gpu-sim-u2o.8.3: `problem_size` was MISSING here, and its absence is the
+    whole finding. Every other field here is a property of the source text or
+    the launch shape; none of them is the size of the problem. So the vector
+    was structurally incapable of distinguishing two launches of the SAME
+    kernel at different n -- measured on 7.1's real rows, 33 same-family rows
+    spanning 4 problem sizes and 13 distinct grids produced exactly ONE
+    distinct feature vector.
+    """
+    # Problem size. The launch shape alone does not determine runtime; n does.
+    problem_size: int
     # Launch config
     grid_x: int
     grid_y: int
@@ -87,6 +104,7 @@ class KernelFeatures:
     def to_vector(self) -> list[float]:
         """Convert to flat feature vector for model input."""
         return [
+            float(self.problem_size),
             float(self.grid_x), float(self.grid_y), float(self.grid_z),
             float(self.block_x), float(self.block_y), float(self.block_z),
             float(self.shared_mem_bytes),
@@ -104,7 +122,10 @@ class KernelFeatures:
     
     @property
     def vector_dim(self) -> int:
-        return 26
+        # Was 26 while to_vector() returned 27 floats: the declared dimension
+        # disagreed with the vector it describes, so anything sized from
+        # vector_dim silently dropped the last feature. Derived, not typed.
+        return len(self.to_vector())
     
     def to_dict(self) -> dict:
         return asdict(self)
@@ -149,6 +170,19 @@ def extract_launch_config(source: str) -> LaunchConfig:
     # Find <<< ... >>>
     launch_match = re.search(r'<<<\s*([^>]+)\s*>>>', source)
     if not launch_match:
+        # SILENT DEFAULT, and that is the trap. A __device__/__global__ kernel
+        # DEFINITION contains no <<< >>> launch site at all -- the launch is a
+        # runtime decision made by the host -- so every real kernel source
+        # lands here and silently receives grid=block=1. On 7.1's measured rows
+        # that produced a feature vector describing a 1-block launch for all
+        # 264 measurements, 13 of which used distinct grids.
+        #
+        # Warned rather than raised: this function is also used on sources
+        # that legitimately have no launch site, and a caller that really wants
+        # the default can say so by passing an explicit LaunchConfig. Silently
+        # returning a plausible-looking wrong answer is the failure; a warning
+        # is the floor.
+        config.is_default_heuristic = True
         return config
     
     launch_args = launch_match.group(1).strip()
@@ -374,8 +408,16 @@ def extract_kernel_args(source: str) -> dict:
     }
 
 
-def extract_features(source: str, launch_config: Optional[LaunchConfig] = None) -> KernelFeatures:
-    """Extract complete feature vector from kernel source and launch config."""
+def extract_features(source: str, launch_config: Optional[LaunchConfig] = None,
+                     problem_size: Optional[int] = None) -> KernelFeatures:
+    """Extract complete feature vector from kernel source, launch and SIZE.
+
+    `problem_size` is required in spirit: a launch config alone does not say
+    how much work the kernel does. It defaults to 0 only so the omission is
+    visible in the emitted vector rather than fatal here -- see
+    populate_feature_vector.py, which passes the MEASURED n for every row and
+    asserts it is present.
+    """
     if launch_config is None:
         launch_config = extract_launch_config(source)
     
@@ -401,6 +443,7 @@ def extract_features(source: str, launch_config: Optional[LaunchConfig] = None) 
     ) * total_threads
     
     return KernelFeatures(
+        problem_size=int(problem_size or 0),
         grid_x=launch_config.grid_x,
         grid_y=launch_config.grid_y,
         grid_z=launch_config.grid_z,

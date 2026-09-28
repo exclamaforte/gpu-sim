@@ -1,0 +1,36 @@
+{
+  "bead": "gpu-sim-u2o.8.3",
+  "dataset": "lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measured.jsonl",
+  "dataset_ts_job": "20260928t074004-b429f469",
+  "n_rows_populated": 264,
+  "n_rows_with_unrecoverable_source": 0,
+  "source_recovery": {
+    "method": "regenerate 7.1's sweep, then VERIFY by kernel_hash (sha256(source + json([grid, block, n]))[:16])",
+    "rows_verified": 264,
+    "matched_by_name_or_position": 0
+  },
+  "distinct_vectors": {
+    "as_written_no_launch_no_problem_size": 5,
+    "with_measured_launch_and_problem_size": 165,
+    "n_rows": 264
+  },
+  "vector_dim": 28,
+  "finding": "Populated for the first time from real measured rows. Before the fix the vector collapsed all 264 rows to 5 distinct value(s), because extract_launch_config() returns a 1-block default for a kernel DEFINITION (which contains no <<< >>> launch site) and because KernelFeatures had no problem_size field at all. With the measured launch and problem size it separates 165 of 264 rows. This is the numeric-feature counterpart of gpu-sim-u2o.7.7's tokenizer finding: the representation could not see the two things that determine runtime.",
+  "does_the_vector_track_the_label": {
+    "spearman_vs_measured_median_ms": {
+      "problem_size": 0.462,
+      "estimated_bytes_moved": 0.462,
+      "estimated_flops": 0.53,
+      "total_threads": 0.52
+    },
+    "median_us_by_problem_size": {
+      "4096": 2.976,
+      "16384": 3.032,
+      "65536": 3.232,
+      "262144": 3.784
+    },
+    "label_dynamic_range_us": 0.808,
+    "size_range_covered": "16384 .. 65536",
+    "verdict": "The vector now SEES problem_size and the measured launch config (distinct vectors 5 -> 165), but on THIS dataset it cannot be shown to be predictive: every row is launch_bound and the median runtime moves only 2.98 us to 3.78 us across the whole size range. That is 7.1's own finding, and it means the weak correlations (0.53 at best) are a property of the LABEL, not evidence that the vector is wrong. Judging it requires 7.1's dataset extended past 2^18 into memory-bound territory."
+  }
+}
