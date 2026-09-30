@@ -87,41 +87,57 @@
   },
   "synthetic_families": {
     "capabilities": [
-      "shared memory + sync"
+      "atomics",
+      "shared memory + sync",
+      "warp intrinsics"
     ],
     "files_per_capability": {
-      "shared memory + sync": 2
+      "shared memory + sync": 2,
+      "warp intrinsics": 1,
+      "atomics": 2
     },
-    "n_families": 24,
+    "n_families": 27,
     "measured": true
   },
   "gap": {
     "real_code_uses_synthetic_lacks": [
-      "atomics",
       "streams / multi-device",
-      "tensor cores",
-      "warp intrinsics"
+      "tensor cores"
     ],
     "synthetic_covers_real_lacks": [],
     "both": [
-      "shared memory + sync"
+      "atomics",
+      "shared memory + sync",
+      "warp intrinsics"
     ],
-    "n_gaps": 4
+    "n_gaps": 2
   },
-  "MEASUREMENT_CAVEAT_streams": "The 'streams / multi-device' gap is NOT a finding about the synthetic kernels. The idiom it looks for is '<<<' and 'cudaStream', which live in the LAUNCH HARNESS, not in a kernel body -- and both sides of this comparison are measured over kernel sources. So the real-code count of 165 files reflects real code containing its own launch sites, while the synthetic count of 0 reflects sources that contain none. The gap is an artefact of measuring kernels, and reporting it as a family-mix gap would be the same category error as the vocabulary mismatch earlier in this same file. It is excluded from the actionable findings and kept here so a reader is not misled by it.",
-  "FINDING_measured": {
-    "what": "the 24 synthetic families are almost entirely plain elementwise kernels. Exactly ONE of 24 (k_block_sum) uses any shared-memory idiom, and NONE uses tensor cores, warp intrinsics or atomics -- which real code uses in 188, 57 and 26 files respectively.",
-    "actionable_gaps": [
-      "tensor cores",
+  "FOLLOW_UP_the_gap_is_being_closed": {
+    "what": "gpu-sim-u2o.7.6 measured three capability classes absent from the 24 synthetic families. Three families were added -- k_warp_reduce, k_atomic_hist, k_atomic_sum -- and all 27 families synthesize AND compile, which is the condition that matters.",
+    "gap_now": {
+      "real_code_uses_synthetic_lacks": [
+        "streams / multi-device",
+        "tensor cores"
+      ],
+      "synthetic_covers_real_lacks": [],
+      "both": [
+        "atomics",
+        "shared memory + sync",
+        "warp intrinsics"
+      ],
+      "n_gaps": 2
+    },
+    "closed": [
       "warp intrinsics",
       "atomics"
     ],
-    "excluded_artefact": "streams / multi-device (see MEASUREMENT_CAVEAT_streams)",
-    "why_it_matters": "the family mix is the one corpus decision the PI left to me and the reviewer jointly, and this is the first EVIDENCE about it rather than an opinion. Three capability classes that dominate real kernels have no synthetic family at all."
-  },
-  "corpus_completeness": {
-    "first_attempt": "git sparse-checkout of CUTLASS examples/ ONLY -- 167 .cu files, containing no tensor-core, atomic or cooperative idioms at all. Coverage measured on it was a measurement of an empty sample.",
-    "second_attempt": "examples + include/cutlass + include/cute -- 10,189 .cu/.cuh/.h files, plus torch's 62 bundled kernels.",
-    "lesson": "the first result looked like a finding ('real CUDA uses no tensor cores') and was entirely an artefact of an incomplete checkout. The completeness of the corpus is now recorded BEFORE any coverage number."
+    "STILL_OPEN": [
+      "tensor cores"
+    ],
+    "why_tensor_cores_stay_open": "k_wmma_gemm was written and then DROPPED. WMMA fragment instantiation fails on this toolchain with 'incomplete type ... is not allowed' for every arrangement tried: the fragment as a __global__ local, the fragment in a __device__ helper, and after correcting the non-existent wmma::float to float. Shipping a family that mentions wmma and does not BUILD would close the coverage gap on paper and widen it in fact -- which is the exact failure this coverage harness was written to catch, so the family is absent and the gap is reported as still open. The corpus decision that asked for >= 24 families across capability classes is therefore only TWO THIRDS delivered, and the tensor-core class needs a working WMMA or an mma.sync implementation before the family mix is right.",
+    "artefact_still_excluded": "streams / multi-device -- lives in the launch harness, not a kernel body (see MEASUREMENT_CAVEAT_streams).",
+    "families": 27,
+    "cells": 1863,
+    "all_families_compile": true
   }
 }

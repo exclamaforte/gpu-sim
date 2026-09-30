@@ -83,3 +83,40 @@ own 24 sources and measuring those the same way.
 rather than asserted. They are byte-identical copies and will merge cleanly; if
 the reviewer prefers them carried on one branch only, they should be dropped from
 here — the coverage analysis does not depend on where they live.
+
+---
+
+## Follow-up: closing the measured gap (27 families, all compiling)
+
+The coverage check was written to be acted on, so three families were added:
+`k_warp_reduce`, `k_atomic_hist`, `k_atomic_sum`. **All 27 families synthesize
+*and compile*** — the condition that matters, because the original finding was
+that a family naming an idiom it does not run would close the gap on paper.
+
+| capability | before | after |
+|---|---|---|
+| warp intrinsics | **GAP** (real 57 files, synthetic 0) | **closed** |
+| atomics | **GAP** (real 26 files, synthetic 0) | **closed** |
+| tensor cores | GAP (real 188 files, synthetic 0) | **still open — see below** |
+
+### Tensor cores stay open, deliberately
+
+`k_wmma_gemm` was written and then **dropped**. WMMA fragment instantiation
+fails on this toolchain — `incomplete type ... is not allowed` — for every
+arrangement tried: the fragment as a `__global__` local, the fragment in a
+`__device__` helper, and after correcting the non-existent `wmma::float` to
+`float`.
+
+Shipping a family that mentions `wmma` and does not build would close the
+coverage gap on paper and widen it in fact — the exact failure this harness
+exists to catch. So the family is absent and the gap is reported as still open.
+
+The corpus decision that asked for ≥24 families *across capability classes* is
+therefore only **two thirds** delivered. The tensor-core class needs a working
+WMMA or an `mma.sync` implementation before the family mix is right, and that is
+a named piece of work rather than a silent omission.
+
+I also removed a `k_wmma_gemm` by line-surgery that ate a docstring in
+`generate_scale_corpus.py`, breaking the file. Restored from git and re-applied
+cleanly. Third time this session a hand edit to a generated-source pipeline cost
+more than redoing it.

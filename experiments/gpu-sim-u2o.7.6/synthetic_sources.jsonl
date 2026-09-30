@@ -21,4 +21,7 @@
 {"kernel_name": "k_exp", "source": "__global__ void k_exp(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=expf(a[i]);}"}
 {"kernel_name": "k_sin", "source": "__global__ void k_sin(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=sinf(a[i]);}"}
 {"kernel_name": "k_cos", "source": "__global__ void k_cos(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=cosf(a[i]);}"}
+{"kernel_name": "k_warp_reduce", "source": "__global__ void k_warp_reduce(const float* a, float* y, int n){for(int b=blockIdx.x*blockDim.x; b<n; b+=blockDim.x*gridDim.x){float v=(b+threadIdx.x<n)?a[b+threadIdx.x]:0.0f;for(int o=16;o>0;o>>=1)v+=__shfl_down_sync(0xffffffffu,v,o);if(threadIdx.x==0&&b<n)y[b]=v;}}"}
+{"kernel_name": "k_atomic_hist", "source": "__global__ void k_atomic_hist(const float* a, unsigned* h, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n){int b=(int)fabsf(a[i]*16.0f);if(b<256)atomicAdd(&h[b],1u);}}"}
+{"kernel_name": "k_atomic_sum", "source": "__global__ void k_atomic_sum(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)atomicAdd(&y[0],a[i]);}"}
 {"kernel_name": "k_clamp", "source": "__global__ void k_clamp(const float* a, float lo, float hi, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]<lo?lo:(a[i]>hi?hi:a[i]);}"}

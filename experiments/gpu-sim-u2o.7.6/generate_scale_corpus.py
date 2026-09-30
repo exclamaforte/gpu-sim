@@ -77,6 +77,24 @@ FAMILY_SOURCES = {
     "k_exp":    "void(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=expf(a[i]);}",
     "k_sin":    "void(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=sinf(a[i]);}",
     "k_cos":    "void(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=cosf(a[i]);}",
+    # --- THE CAPABILITY CLASSES gpu-sim-u2o.7.6 MEASURED AS MISSING ------
+    #
+    # 7.6's whole-file coverage found tensor cores (188 real files), warp
+    # intrinsics (57) and atomics (26) against ZERO synthetic families. Added
+    # here as REAL families, not keyword stubs: the point of the check is that
+    # they synthesize AND COMPILE, because a family that mentions an idiom and
+    # does not run would close the coverage gap on paper and widen it in fact.
+    #
+    # TENSOR CORES ARE NOT HERE, DELIBERATELY. k_wmma_gemm was written and
+    # dropped: WMMA fragment instantiation fails on this toolchain ("incomplete
+    # type ... is not allowed") for every arrangement tried -- fragment as a
+    # __global__ local, fragment in a __device__ helper, wmma::float corrected
+    # to float. Rather than ship a family that mentions wmma and does not build,
+    # the tensor-core gap is reported as STILL OPEN. That is the same standard
+    # that produced the finding.
+    "k_warp_reduce": "void(const float* a, float* y, int n){for(int b=blockIdx.x*blockDim.x; b<n; b+=blockDim.x*gridDim.x){float v=(b+threadIdx.x<n)?a[b+threadIdx.x]:0.0f;for(int o=16;o>0;o>>=1)v+=__shfl_down_sync(0xffffffffu,v,o);if(threadIdx.x==0&&b<n)y[b]=v;}}",
+    "k_atomic_hist": "void(const float* a, unsigned* h, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n){int b=(int)fabsf(a[i]*16.0f);if(b<256)atomicAdd(&h[b],1u);}}",
+    "k_atomic_sum": "void(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)atomicAdd(&y[0],a[i]);}",
     "k_clamp":  "void(const float* a, float lo, float hi, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]<lo?lo:(a[i]>hi?hi:a[i]);}",
 }
 
@@ -105,6 +123,9 @@ ARGS = {
     "k_sin": [("a", "const float*"), ("y", "float*"), ("n", "int")],
     "k_cos": [("a", "const float*"), ("y", "float*"), ("n", "int")],
     "k_clamp": [("a", "const float*"), ("lo", "float"), ("hi", "float"), ("y", "float*"), ("n", "int")],
+    "k_warp_reduce": [("a", "const float*"), ("y", "float*"), ("n", "int")],
+    "k_atomic_hist": [("a", "const float*"), ("h", "unsigned int*"), ("n", "int")],
+    "k_atomic_sum": [("a", "const float*"), ("y", "float*"), ("n", "int")],
 }
 
 BLOCKS = [64, 256]
