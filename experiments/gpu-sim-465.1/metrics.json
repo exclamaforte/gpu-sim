@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-465.1",
   "title": "PHASE 0 go/no-go: recover the ncclNet_vN ABI and get a plugin accepted",
-  "VERDICT": "NO-GO -- FINAL, not partial. My proposed DWARF route was tested and is closed.",
+  "VERDICT": "PARTIAL. The PLUGIN NO-GO stands -- NCCL resolved ncclNetPlugin_v11 and then SIGSEGVed (exit 139) before reporting a plugin, so the bead's gate was not met. But the ABI route is OPEN, not closed: my previous commit declared it closed on a search that stopped one hop short of the answer, and the ncclNet_v11_t layout IS recoverable.",
   "gate_as_stated": "SUCCESS is NCCL loading an intentionally minimal plugin AND REPORTING it, with NCCL_DEBUG=INFO output naming the plugin and the accepted ABI version. Anything less is NO-GO.",
   "what_the_gate_asked_for": "NCCL_DEBUG=INFO naming the plugin and an accepted version",
   "what_happened": "NCCL read NCCL_NET_PLUGIN, resolved ncclNetPlugin_v11 WITHOUT a dlsym failure, invoked it, and then died with SIGSEGV (exit 139) reading past the end of a deliberately two-member struct. It never got as far as reporting a plugin.",
@@ -47,11 +47,10 @@
     }
   },
   "PREMISE_VERIFIED_BEFORE_TRUSTING_IT": {
-    "lib": "/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib/libnccl.so.2 (252,204,648 bytes)",
-    "ncclNet_strings": 148,
+    "lib": "/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib/libnccl.so.2",
     "ncclNet_DYNAMIC_EXPORTS": 0,
     "ncclNet_in_public_header": 0,
-    "conclusion": "the bead's premise holds exactly as stated; the ABI is not in the header and not exported"
+    "note": "the export and header counts are 0 and are the load-bearing part. The STRING count is reported below with its tool and unit, because my first figure of 148 was `strings -a | grep -c '^ncclNet'` -- ANCHORED AT LINE START -- which silently dropped every match carrying the string-table offset prefix."
   },
   "RECOVERED_FROM_THE_BINARY": {
     "type_names_present": [
@@ -103,36 +102,137 @@
     "the first plugin crash produced an EMPTY log and I nearly read that as 'nothing happened'. It was stdout buffering: the crash discarded the buffer. stdbuf -o0 -e0 is what made the fault legible, and it is the difference between 'it did not run' and 'it ran and died'.",
     "ncclCommInitRank(comm, nranks, commId, rank) was called with the rank in the commId slot; the compiler caught it, which is a better outcome than a probe that never brought up a communicator."
   ],
-  "DWARF_ROUTE_TESTED_AND_CLOSED": {
-    "claim_i_made_last_turn": "'.debug_info is present, so the struct layout is recoverable from this binary without guessing'",
-    "verdict": "WRONG. Tested this turn and it fails.",
-    "what_dwarf_actually_contains": {
-      "debug_sections_present": [
-        ".debug_info",
-        ".debug_abbrev",
-        ".debug_line",
-        ".debug_loc",
-        ".debug_ranges"
-      ],
-      "CUs_scanned": 136,
-      "NCCL_internal_socket_structures_WITH_full_definitions": [
-        "ncclNetSocketHandle byte_size=72",
-        "ncclNetSocketDev byte_size=56",
-        "ncclNetSocketComm byte_size=27392",
-        "ncclNetSocketListenComm byte_size=136",
-        "ncclNetSocketRequest byte_size=592",
-        "ncclNetSocketThreadResources byte_size=128"
-      ],
-      "plugin_interface_structures": "NONE. Not one structure_type named ncclNet_vN_t, ncclNetProperties_vN_t or ncclNetCommConfig_vN_t has children or a DW_AT_byte_size anywhere in the 136 CUs.",
-      "typedefs": "PRESENT but EMPTY: every one of ncclNet_v6_t..v12_t, ncclNetProperties_v6_t..v12_t and ncclNetCommConfig_v10_t..v12_t exists as a DW_TAG_typedef with DW_AT_byte_size = None."
-    },
-    "why_the_route_looked_plausible": "debug info IS present and IS useful -- it fully describes NCCL's own socket transport. The plugin interface types are opaque forward declarations in every CU that touches them, because they are the types a PLUGIN is expected to define for itself. So the binary is richly debugged and the one thing needed is absent from it.",
-    "consequence": "the NO-GO is final rather than partial. There is no third route in this binary: not the public header (0 occurrences), not the dynamic symbol table (0 ncclNet* exports), not DWARF (typedefs only).",
-    "what_would_still_work": [
-      "behavioural probing: grow the struct member by member and use the fault address to bound each field -- slow, and it cannot recover field MEANINGS, only offsets",
-      "a non-stripped or unoptimised NCCL build where the interface is instantiated rather than forward-declared",
-      "the public NCCL net-plugin example, if it is published anywhere this environment can reach -- which would be reading a definition, not recovering one, and would need marking as such"
-    ]
+  "CORRECTION_TO_MY_OWN_NEXT_STEP": "I told the PI the NO-GO was 'partial' and that the next step was a DWARF read, on the evidence that .debug_info existed. The evidence was real and the inference was wrong: I checked that debug info EXISTS without checking that it covers the TYPE I need. That is the same error as trusting corpus_miner's window, and the same as the corpus_miner's own framing -- a signal true of the instrument and silent about its scope.",
+  "DWARF_ROUTE_IS_OPEN": {
+    "my_wrong_claim": "'the plugin interface types are opaque in every CU; the DWARF route is closed'",
+    "why_it_was_wrong": "I followed DW_AT_specification / DW_AT_abstract_origin off the typedef. Those edges are for FUNCTIONS. For a type alias the edge is DW_AT_type. I checked the wrong edge, concluded the definition was absent, and wrote a commit closing a route I had not actually walked.",
+    "the_right_edge": "typedef ncclNet_v11_t --DW_AT_type--> <0xf4b994>",
+    "reproduce": "readelf --debug-dump=info <libnccl.so.2> | sed -n '/<1><f4b994>/,/<1><f4bc/p'",
+    "byte_size": 176,
+    "members": [
+      {
+        "offset": 0,
+        "name": "name"
+      },
+      {
+        "offset": 8,
+        "name": "init"
+      },
+      {
+        "offset": 16,
+        "name": "devices"
+      },
+      {
+        "offset": 24,
+        "name": "getProperties"
+      },
+      {
+        "offset": 32,
+        "name": "listen"
+      },
+      {
+        "offset": 40,
+        "name": "connect"
+      },
+      {
+        "offset": 48,
+        "name": "accept"
+      },
+      {
+        "offset": 56,
+        "name": "regMr"
+      },
+      {
+        "offset": 64,
+        "name": "regMrDmaBuf"
+      },
+      {
+        "offset": 72,
+        "name": "deregMr"
+      },
+      {
+        "offset": 80,
+        "name": "isend"
+      },
+      {
+        "offset": 88,
+        "name": "irecv"
+      },
+      {
+        "offset": 96,
+        "name": "iflush"
+      },
+      {
+        "offset": 104,
+        "name": "test"
+      },
+      {
+        "offset": 112,
+        "name": "closeSend"
+      },
+      {
+        "offset": 120,
+        "name": "closeRecv"
+      },
+      {
+        "offset": 128,
+        "name": "closeListen"
+      },
+      {
+        "offset": 136,
+        "name": "getDeviceMr"
+      },
+      {
+        "offset": 144,
+        "name": "irecvConsumed"
+      },
+      {
+        "offset": 152,
+        "name": "makeVDevice"
+      },
+      {
+        "offset": 160,
+        "name": "finalize"
+      },
+      {
+        "offset": 168,
+        "name": "setNetAttr"
+      }
+    ],
+    "member_count": 22,
+    "offsets_account_for_all_176_bytes": "yes: 22 members x 8 bytes, last at +168, 176 total",
+    "what_is_still_unknown": "the SIGNATURE of each function pointer, and the types behind name / init / devices / setNetAttr. The STRUCTURE is recovered; the ABI is not yet fully reconstructible without those.",
+    "next_step": "rebuild the plugin with this exact 176-byte layout and re-run the gate. The earlier segfault is now EXPLAINED rather than mysterious: the two-member struct I returned was 16 bytes and the loader read 176."
   },
-  "CORRECTION_TO_MY_OWN_NEXT_STEP": "I told the PI the NO-GO was 'partial' and that the next step was a DWARF read, on the evidence that .debug_info existed. The evidence was real and the inference was wrong: I checked that debug info EXISTS without checking that it covers the TYPE I need. That is the same error as trusting corpus_miner's window, and the same as the corpus_miner's own framing -- a signal true of the instrument and silent about its scope."
+  "ncclNet_strings_reconciled": {
+    "527": {
+      "tool": "strings -a <lib> | grep -c ncclNet",
+      "unit": "OCCURRENCES of the substring",
+      "matches_the_bead_premise": true
+    },
+    "429": {
+      "tool": "strings -a <lib> | grep ncclNet | sort -u",
+      "unit": "DISTINCT LINES"
+    },
+    "111": {
+      "tool": "strings -a <lib> | grep -oE '\\bncclNet[A-Za-z0-9_]*' | sort -u",
+      "unit": "DISTINCT NAMES matched by this pattern"
+    },
+    "185": {
+      "tool": "reviewer's count; distinct ncclNet* NAMES",
+      "unit": "DISTINCT NAMES",
+      "discrepancy": "my pattern gave 111 where the reviewer measured 185, so the NAME count is pattern-dependent and should not be quoted as a property of the corpus. The OCCURRENCE count (527) and the DISTINCT-LINE count (429) are not pattern-dependent."
+    },
+    "148": {
+      "status": "RETRACTED",
+      "why": "anchored `^ncclNet`, which excluded every match with a string-table offset prefix -- a field named PREMISE_VERIFIED must not contain a number that contradicts the premise it verifies."
+    }
+  },
+  "PLUGIN_NO_GO_LOG": {
+    "path": "experiments/gpu-sim-465.1/probe_evidence.log",
+    "job": "20261002t192115-ba748058",
+    "exit": 139,
+    "content": "NCCL 2.30.7+cuda13.3, NCCL_NET_PLUGIN read, then SIGSEGV with no dlsym failure line -- i.e. the symbol resolved and the loader faulted inside.",
+    "note": "committed deliberately, OFF the .gitignore *.out pattern that excluded my earlier probe2.out. A bead whose whole value is a recorded NO-GO that ships no log walks into exactly the trap I documented in MISTAKES."
+  }
 }
