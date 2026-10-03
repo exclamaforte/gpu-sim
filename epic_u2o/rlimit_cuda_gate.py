@@ -104,6 +104,10 @@ LIMIT_TABLE: tuple[dict, ...] = (
         "limit": "RLIMIT_NPROC",
         "attribute": "processes_limit",
         "default": 0,
+        # NEVER APPLIED, and the table has to say so. Absent this key the
+        # renderer defaults it to True and the row claims the harness sets a
+        # limit that costs two lost runs to avoid setting.
+        "applied": False,
         "why_cuda_safe": (
             "NEVER SET. The kernel checks RLIMIT_NPROC against the real uid's "
             "TOTAL process+thread count, not our subtree, on every clone. This "
