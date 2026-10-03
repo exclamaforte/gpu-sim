@@ -45,6 +45,24 @@ no checkable artifact behind them, which is the shape of the original failure.
 I have not edited them — this script reports and never modifies a bead, because
 a check that can edit the thing it checks is not a check.
 
+## Coverage must be PROVEN, or the audit certifies nothing
+
+The reviewer's item, and it was a real hole. This audit used to fall back to a
+plain `bd list` when `bd list --all` failed — and **a plain `bd list` returns
+OPEN BEADS ONLY**. So a query that had lost sight of every closed bead would
+compute `closed_in_scope: 0`, find no violations, and report
+`satisfies_the_acceptance: true`. **The audit passing because it was blind** is
+the exact shape of the failure it exists to detect.
+
+Now the closed set is fetched **independently** and compared. Coverage is proven
+only when the primary query accounts for every closed bead the independent
+query reports, and an unproven query produces
+`satisfies_the_acceptance: null` with a `blocked_reason`, plus a nonzero exit —
+it can certify neither satisfaction nor violation.
+
+On the live board right now: primary 154 rows / 76 closed, independent 76,
+**0 missed, coverage proven**.
+
 ## Artifacts
 
 CPU only, no GPU, no `ts` job.

@@ -2,7 +2,7 @@ VIOLATIONS: ['gpu-sim-u2o.6.8', 'gpu-sim-u2o.17.1', 'gpu-sim-u2o.17.2']
 {
   "bead": "gpu-sim-u2o.15",
   "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-  "produced_at_utc": "2026-10-03T20:50:53.760469+00:00",
+  "produced_at_utc": "2026-10-03T21:00:33.050643+00:00",
   "scope_label": "fab-audit-reopened",
   "beads_in_scope": 72,
   "closed_in_scope": 12,
@@ -44,7 +44,29 @@ VIOLATIONS: ['gpu-sim-u2o.6.8', 'gpu-sim-u2o.17.1', 'gpu-sim-u2o.17.2']
     "gpu-sim-u2o.16"
   ],
   "satisfies_the_acceptance": false,
-  "acceptance": "every bead reopened by this audit, when closed again, must carry a concrete artifact path / resolvable commit / comparison figure -- never a bare 'Closed'"
+  "acceptance": "every bead reopened by this audit, when closed again, must carry a concrete artifact path / resolvable commit / comparison figure -- never a bare 'Closed'",
+  "query_coverage": {
+    "primary_argv": [
+      "bd",
+      "list",
+      "--all",
+      "--json"
+    ],
+    "primary_rc": 0,
+    "primary_rows": 154,
+    "primary_closed_rows": 76,
+    "independent_closed_query": [
+      "bd",
+      "list",
+      "--status",
+      "closed",
+      "--json"
+    ],
+    "independent_closed_rows": 76,
+    "closed_beads_the_primary_query_MISSED": [],
+    "coverage_proven": true,
+    "note": "coverage is proven only when the primary query accounts for every closed bead an independent query reports. A query that cannot see closed beads cannot certify anything about closures."
+  }
 }
 
 wrote experiments/gpu-sim-u2o.15/close_audit.json
@@ -60,6 +82,13 @@ test_a_comparison_figure_is_concrete (__main__.TestConcretePointersAreAccepted.t
 test_a_path_plus_a_row_count_is_concrete (__main__.TestConcretePointersAreAccepted.test_a_path_plus_a_row_count_is_concrete) ... ok
 test_a_resolvable_commit_is_concrete (__main__.TestConcretePointersAreAccepted.test_a_resolvable_commit_is_concrete) ... ok
 test_an_existing_repo_path_is_concrete (__main__.TestConcretePointersAreAccepted.test_an_existing_repo_path_is_concrete) ... ok
+test_a_fully_covering_query_is_proven (__main__.TestCoverageMustBeProven.test_a_fully_covering_query_is_proven)
+Can-pass: real coverage must be accepted, or the check never passes. ... ok
+test_a_query_that_missed_closed_beads_is_not_coverage (__main__.TestCoverageMustBeProven.test_a_query_that_missed_closed_beads_is_not_coverage) ... ok
+test_an_unproven_query_cannot_certify (__main__.TestCoverageMustBeProven.test_an_unproven_query_cannot_certify)
+The end-to-end property, on the record itself. ... ok
+test_zero_closed_beads_is_not_proof_of_coverage (__main__.TestCoverageMustBeProven.test_zero_closed_beads_is_not_proof_of_coverage)
+An empty closed set proves nothing about whether we could see one. ... ok
 test_a_wont_fix_close_is_not_a_false_completion (__main__.TestScopeIsExactlyTheAuditLabel.test_a_wont_fix_close_is_not_a_false_completion)
 A declined close is a DIFFERENT kind of close. ... ok
 test_only_audit_beads_are_in_scope (__main__.TestScopeIsExactlyTheAuditLabel.test_only_audit_beads_are_in_scope) ... ok
@@ -68,6 +97,6 @@ test_the_audit_can_pass (__main__.TestScopeIsExactlyTheAuditLabel.test_the_audit
 Empty in-scope-and-closed is a PASS, not a vacuous one. ... ok
 
 ----------------------------------------------------------------------
-Ran 15 tests in 0.003s
+Ran 19 tests in 0.715s
 
 OK

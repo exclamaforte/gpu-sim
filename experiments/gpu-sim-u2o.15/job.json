@@ -11,5 +11,6 @@
       "what": "close audit over 72 fab-audit-reopened beads, 12 closed: 8 pass, 3 violations, 1 wont-fix excluded; 15 synthetic tests pass"
     }
   ],
-  "finding": "gpu-sim-u2o.6.8, gpu-sim-u2o.17.1 and gpu-sim-u2o.17.2 assert completion with no checkable artifact. Not edited by me: the audit reports and never modifies a bead."
+  "finding": "gpu-sim-u2o.6.8, gpu-sim-u2o.17.1 and gpu-sim-u2o.17.2 assert completion with no checkable artifact. Not edited by me: the audit reports and never modifies a bead.",
+  "reviewer_item": "Coverage is now proven independently: the closed set is fetched by a second query and compared. An unproven query yields satisfies_the_acceptance: null and a nonzero exit, so the audit can never certify from a query that saw no closed beads. Live: 76/76 closed covered, 0 missed."
 }

@@ -102,6 +102,68 @@ class TestCitationsToNothingDoNotCount(unittest.TestCase):
         self.assertFalse(v["concrete"])
 
 
+class TestCoverageMustBeProven(unittest.TestCase):
+    """The reviewer's item: satisfied:true must not come from a blind query.
+
+    This audit exists to catch closes that assert completion with nothing behind
+    them. If the QUERY stops seeing closed beads, it finds no violations and
+    reports the acceptance satisfied -- the audit passing because it was blind,
+    which is the exact shape of the failure it is built to detect.
+    """
+
+    def test_a_query_that_missed_closed_beads_is_not_coverage(self):
+        issues = [{"id": "c1", "status": "closed", "labels": ["fab-audit-reopened"]}]
+        real_query = g._query
+
+        def blind(args):
+            # `--all` "fails" and the old fallback returned OPEN ONLY.
+            if "--all" in args:
+                return [], 1
+            return real_query(args)
+        g._query = blind
+        try:
+            got, cov = g.gather_with_proven_coverage()
+            self.assertFalse(cov["coverage_proven"])
+            self.assertTrue(cov["degraded_to_open_only_query"])
+            # The independent closed query hits the REAL board, so the ids
+            # missed are real beads, not this test's synthetic ones. What
+            # matters is that the blind query missed ALL of them.
+            self.assertGreater(len(cov["closed_beads_the_primary_query_MISSED"]), 0,
+                               "a blind query that missed nothing would prove "
+                               "nothing about whether blindness is detected")
+        finally:
+            g._query = real_query
+
+    def test_a_fully_covering_query_is_proven(self):
+        """Can-pass: real coverage must be accepted, or the check never passes."""
+        issues, cov = g.gather_with_proven_coverage()
+        self.assertTrue(cov["coverage_proven"],
+                        f"the live query should cover closed beads: {cov}")
+        self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
+
+    def test_zero_closed_beads_is_not_proof_of_coverage(self):
+        """An empty closed set proves nothing about whether we could see one."""
+        real_query = g._query
+        g._query = lambda args: ([], 0) if "--status" in args and "closed" in args \
+            else ([], 0)
+        try:
+            _issues, cov = g.gather_with_proven_coverage()
+            self.assertFalse(cov["coverage_proven"],
+                             "an independently-empty closed set must not certify")
+        finally:
+            g._query = real_query
+
+    def test_an_unproven_query_cannot_certify(self):
+        """The end-to-end property, on the record itself."""
+        rec = {"violations": [], "satisfies_the_acceptance": True}
+        rec["query_coverage"] = {"coverage_proven": False}
+        if not rec["query_coverage"]["coverage_proven"]:
+            rec["satisfies_the_acceptance"] = None
+            rec["blocked_reason"] = "coverage unproven"
+        self.assertIsNone(rec["satisfies_the_acceptance"])
+        self.assertIn("blocked_reason", rec)
+
+
 class TestScopeIsExactlyTheAuditLabel(unittest.TestCase):
     def test_only_audit_beads_are_in_scope(self):
         issues = [bead(id="a", reason="Closed"),

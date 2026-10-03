@@ -186,20 +186,75 @@ def audit(issues: list[dict]) -> dict:
     }
 
 
+def _query(args: list[str]) -> tuple[list, int]:
+    proc = subprocess.run(["bd", *args, "--json"], capture_output=True,
+                          text=True, cwd=str(REPO))
+    if proc.returncode != 0:
+        return [], proc.returncode
+    data = json.loads(proc.stdout)
+    return (data if isinstance(data, list) else data.get("issues", [])), 0
+
+
+def gather_with_proven_coverage() -> tuple[list, dict]:
+    """Fetch every bead, and PROVE the query actually saw the closed ones.
+
+    The reviewer's item, and it is a real hole. This used to fall back to a
+    plain `bd list` when `--all` failed -- and a plain `bd list` returns OPEN
+    BEADS ONLY. So a query that had lost sight of every closed bead would
+    compute closed_in_scope = 0, find no violations, and report
+    `satisfies_the_acceptance: true`. The check would have passed by seeing
+    nothing, which is the one thing a fabrication audit must never do.
+
+    So the closed set is fetched INDEPENDENTLY and compared. Coverage is only
+    "proven" when the primary query's closed beads cover the independently
+    observed ones. An unproven query cannot produce a satisfied verdict.
+    """
+    issues, rc = _query(["list", "--all"])
+    independent_closed, rc2 = _query(["list", "--status", "closed"])
+
+    seen_closed = {i.get("id") for i in issues if i.get("status") == "closed"}
+    want_closed = {i.get("id") for i in independent_closed}
+    missing = sorted(want_closed - seen_closed)
+
+    coverage = {
+        "primary_argv": ["bd", "list", "--all", "--json"],
+        "primary_rc": rc,
+        "primary_rows": len(issues),
+        "primary_closed_rows": len(seen_closed),
+        "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
+        "independent_closed_rows": len(want_closed),
+        "closed_beads_the_primary_query_MISSED": missing,
+        "coverage_proven": bool(want_closed) and not missing,
+        "note": ("coverage is proven only when the primary query accounts for "
+                 "every closed bead an independent query reports. A query that "
+                 "cannot see closed beads cannot certify anything about "
+                 "closures."),
+    }
+    if rc != 0:
+        # Do not silently degrade to an open-only query: that is the failure.
+        coverage["degraded_to_open_only_query"] = True
+    return issues, coverage
+
+
 def main() -> int:
-    raw = subprocess.run(["bd", "list", "--json", "--all"],
-                         capture_output=True, text=True, cwd=str(REPO))
-    if raw.returncode != 0:
-        raw = subprocess.run(["bd", "list", "--json"], capture_output=True,
-                             text=True, cwd=str(REPO))
-    data = json.loads(raw.stdout)
-    issues = data if isinstance(data, list) else data.get("issues", [])
+    issues, coverage = gather_with_proven_coverage()
     rec = audit(issues)
+    rec["query_coverage"] = coverage
+    if not coverage["coverage_proven"]:
+        # Never certify on a blind query.
+        rec["satisfies_the_acceptance"] = None
+        rec["blocked_reason"] = (
+            "the board query's coverage is unproven, so no verdict -- satisfied "
+            "or violated -- can be produced from it")
     out = REPO / "experiments" / "gpu-sim-u2o.15" / "close_audit.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rec, indent=2) + "\n")
-    print(json.dumps({k: v for k, v in rec.items() if k != "verdicts"}, indent=2))
+    print(json.dumps({k: v for k, v in rec.items()
+                      if k not in ("verdicts",)}, indent=2))
     print(f"\nwrote {out.relative_to(REPO)}")
+    if not coverage["coverage_proven"]:
+        print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
+        return 1
     if rec["violations"]:
         print(f"VIOLATIONS: {[v['id'] for v in rec['violations']]}", file=sys.stderr)
         return 1

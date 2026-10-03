@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-u2o.15",
   "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-  "produced_at_utc": "2026-10-03T20:50:53.760469+00:00",
+  "produced_at_utc": "2026-10-03T21:00:33.050643+00:00",
   "scope_label": "fab-audit-reopened",
   "beads_in_scope": 72,
   "closed_in_scope": 12,
@@ -180,5 +180,27 @@
       "wont_fix": false,
       "close_reason": "validated, merged a1d0192: noise floor frozen as measurement_version 1, MDD note with per-correlation populations, fail-"
     }
-  ]
+  ],
+  "query_coverage": {
+    "primary_argv": [
+      "bd",
+      "list",
+      "--all",
+      "--json"
+    ],
+    "primary_rc": 0,
+    "primary_rows": 154,
+    "primary_closed_rows": 76,
+    "independent_closed_query": [
+      "bd",
+      "list",
+      "--status",
+      "closed",
+      "--json"
+    ],
+    "independent_closed_rows": 76,
+    "closed_beads_the_primary_query_MISSED": [],
+    "coverage_proven": true,
+    "note": "coverage is proven only when the primary query accounts for every closed bead an independent query reports. A query that cannot see closed beads cannot certify anything about closures."
+  }
 }
