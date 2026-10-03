@@ -46,6 +46,38 @@ cp -rf source dest          # NOT: cp -r source dest
 - `ssh` - use `-o BatchMode=yes` to fail instead of prompting
 - `apt-get` - use `-y` flag
 - `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
+## Destructive git: name the target (gpu-sim-edu.1.1)
+
+`git checkout -- .`, `git restore .`, `git reset --hard` and `git clean -fd` take
+their target from the **current working directory**. This repo runs ~30 worktrees
+under `.lab/wt/` plus the main tree, all one repository, all with a plausible
+`AGENTS.md` and `CLAUDE.md` at the root. There is no visual difference between
+them and **no error when the wrong one is chosen**.
+
+On 2026-10-03 a `git checkout -- .` intended for a worktree reverted
+long-standing uncommitted edits to `AGENTS.md` and `CLAUDE.md` in the MAIN tree.
+Recovery came from `git fsck --unreachable`, which surfaced stash-shaped commit
+`f73d442` holding exactly those two files. **Unreachable stash commits are a real
+recovery route, not a myth** -- but recovery is not the fix; the fix is naming the
+target.
+
+RULES
+
+1. Worktree-targeted git is written as `git -C .lab/wt/<bead> ...`, so the target
+   is named in the command itself.
+2. Never run a CWD-scoped destructive git in the main tree. If you intend to
+   discard something, name the files: `git checkout -- <path>`, never
+   `git checkout -- .`.
+3. Use the guard: `python3 scripts/guard_destructive_git.py -- <git args>`. It
+   refuses CWD-scoped destructive git when the main tree has modified tracked
+   files, and takes a recovery point with `git stash create` (which does NOT
+   touch the working tree, unlike `git stash push`) before anything destructive.
+
+Before ANY destructive git operation, confirm where you are:
+
+    git -C "$(git rev-parse --show-toplevel)" rev-parse --abbrev-ref HEAD
+
+If that says master, you are in the main tree: stop and name your paths.
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
 ## Beads Issue Tracker

@@ -1,0 +1,33 @@
+main tree state: M AGENTS.md
+  ['checkout', '--', '.']                      exit=2  REFUSED. The main tree has 1 modified tracked file(s
+  ['restore', '.']                             exit=2  REFUSED. The main tree has 1 modified tracked file(s
+  ['reset', '--hard']                          exit=2  REFUSED. The main tree has 1 modified tracked file(s
+  ['checkout', '--', 'AGENTS.md']              exit=0  target named explicitly (git -C, --git-dir=, or a re
+  ['-C', '/tmp/tmpytq5s51h/repo', 'checkout', '--', '.'] exit=0  target named explicitly (git -C, --git-dir=, or a re
+
+recovery point: c0ce898ff190bec4f3b50548e41712b29a7e80cd
+  working tree still holds the edit: True
+  fsck surfaces it: True
+  recovery commit carries the edit: True
+test_checkout_dot_is_refused (__main__.TestItRefusesTheIncidentCommand.test_checkout_dot_is_refused)
+`git checkout -- .` in a dirty main tree. This IS the incident. ... ok
+test_dot_looks_named_but_is_cwd_scoped (__main__.TestItRefusesTheIncidentCommand.test_dot_looks_named_but_is_cwd_scoped)
+The subtle one: `-- .` HAS a pathspec, so a naive guard accepts it. ... ok
+test_refusing_leaves_the_edits_intact (__main__.TestItRefusesTheIncidentCommand.test_refusing_leaves_the_edits_intact) ... ok
+test_restore_dot_reset_hard_and_clean_are_refused (__main__.TestItRefusesTheIncidentCommand.test_restore_dot_reset_hard_and_clean_are_refused) ... ok
+test_modified_tracked_files_are_found (__main__.TestItSeesTheDirtyTree.test_modified_tracked_files_are_found) ... ok
+test_stash_create_leaves_a_reachable_wip_commit_with_the_edits (__main__.TestRecoveryIsReal.test_stash_create_leaves_a_reachable_wip_commit_with_the_edits) ... ok
+test_the_real_incident_commit_still_exists (__main__.TestRecoveryIsReal.test_the_real_incident_commit_still_exists)
+f73d442 is the actual recovery. Asserted against THIS repository so ... ok
+test_a_clean_tree_permits_a_cwd_scoped_discard (__main__.TestScopedCommandsAreAllowed.test_a_clean_tree_permits_a_cwd_scoped_discard) ... ok
+test_a_real_pathspec_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_a_real_pathspec_is_not_refused) ... ok
+test_equals_form_target_option_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_equals_form_target_option_is_not_refused) ... ok
+test_git_dash_C_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_git_dash_C_is_not_refused) ... ok
+test_git_dash_C_parses_the_worktree_not_the_path_as_subcommand (__main__.TestScopedCommandsAreAllowed.test_git_dash_C_parses_the_worktree_not_the_path_as_subcommand)
+The form the rules REQUIRE must be recognised as destructive. ... ok
+test_the_guard_refuses_what_it_cannot_read (__main__.TestUnparseableIsRefused.test_the_guard_refuses_what_it_cannot_read) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.077s
+
+OK

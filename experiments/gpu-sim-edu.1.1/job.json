@@ -1,0 +1,23 @@
+{
+  "bead": "gpu-sim-edu.1.1",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-edu.1.1/run.sh",
+      "exit": 0,
+      "log": "experiments/gpu-sim-edu.1.1/output.log",
+      "what": "guard refuses checkout -- . / restore . / reset --hard / clean -fd on a dirty main tree, allows explicit pathspec and git -C; stash-create recovery point proven reachable via fsck; 13 tests, 0 failures"
+    }
+  ],
+  "cpu_runs_note": "No device work; run directly per the CPU-work rule. Every fixture is a THROWAWAY repo; the real main tree is never dirtied by the tests.",
+  "incident": {
+    "date": "2026-10-03",
+    "command": "git checkout -- . run in the main tree, intending a worktree",
+    "damaged": "uncommitted AGENTS.md and CLAUDE.md edits in the main tree",
+    "recovery_commit": "f73d442f1059af5e0209876063f1baebebef4e10",
+    "recovery_route": "git fsck --unreachable surfaced a stash-shaped 'WIP on master: 2b40b19' commit holding exactly those two files",
+    "asserted_in_tests": "test_the_real_incident_commit_still_exists checks f73d442 against this repository so the claim does not decay into folklore; it skips if pruned"
+  },
+  "self_reproduction": "While building this guard I made the same class of mistake: the worktree path .lab/wt/gpu-sim-edu.1.1 was created by the file-writing tool rather than `git worktree add`, so every git command there walked up to the MAIN repository. No commit was made and no damage done, but it is recorded in the guard's docstring because the bead exists precisely because the failure is real."
+}
