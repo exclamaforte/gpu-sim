@@ -163,7 +163,11 @@
     "hang_killed_within_timeout": true,
     "hang_child_dead": true,
     "gpu_recovered": true,
-    "overall_pass": true
+    "overall_pass": true,
+    "overall_pass_SCOPE": "overall_pass covers the HANG/RECOVERY VALIDATION ONLY: step1 device-side timing, hang detection, kill within timeout, child dead, GPU recovered. It does NOT cover acceptance criterion 6. A reader who sees overall_pass true without this line will conclude the whole bead passed, which is false.",
+    "criterion_6_met": false,
+    "criterion_6_status": "PARTIAL -- unmet in intent. The queue state is now attached to each of step1/step2/step2b_recovery, but it is the SAME run-start sample in all three, labelled as such. Criterion 6 asks for a per-step sample so a reader can reason about contention DURING a step; that needs another supervised dose, which this bead's own rule about dosing does not allow me to take unilaterally.",
+    "whole_bead_validated": false
   },
   "unit_bug_correction": "overall_pass first read False solely because wall_over_trials_ratio divided SECONDS by MILLISECONDS. Corrected here from the SAME run's stored data -- no second dose was spent. The hang, the kill and the recovery were never in doubt; only the arithmetic that summarised step 1 was.",
   "queue_artifact_limitation": {
