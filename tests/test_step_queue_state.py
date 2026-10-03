@@ -112,6 +112,7 @@ def main() -> int:
         # assertions read step1/step2/step2b_recovery out of report.json and ask
         # whether each carries a queue state of its own -- which is acceptance
         # criterion 6, and which nothing was actually checking.
+        verdict = r.get("verdict") or {}
         for step in ("step1", "step2", "step2b_recovery", "step2b"):
             if step not in r:
                 continue
@@ -120,25 +121,38 @@ def main() -> int:
                   isinstance(qs_, dict) and bool(qs_),
                   f"queue_state={qs_!r}")
 
+        # 4b. overall_pass must not read as though the WHOLE bead passed.
+        #
+        # The reviewer's point, and it is the one a hurried reader would miss:
+        # overall_pass is true, and without a scope line beside it a reader concludes
+        # every criterion was met -- including criterion 6, which is not.
+        check("overall_pass is scoped to the hang/recovery validation",
+          "hang" in verdict.get("overall_pass_SCOPE", "").lower()
+          and "criterion 6" in verdict.get("overall_pass_SCOPE", ""),
+          verdict.get("overall_pass_SCOPE"))
+        check("the verdict records that criterion 6 is NOT met",
+          verdict.get("criterion_6_met") is False, verdict.get("criterion_6_met"))
+        check("the verdict does not claim the whole bead is validated",
+          verdict.get("whole_bead_validated") is False,
+          verdict.get("whole_bead_validated"))
+
         # 5. ITEM 2: a field NAMED queue_state must hold a queue state.
         #
-        # step1.queue_state is currently null. A null reads as coverage -- a
-        # reader scanning keys sees the field and concludes the queue state is
-        # recorded there. Per this lab's absent-vs-null rule it should be either
-        # a real sample or ABSENT. This test does not fix it: the run happened,
-        # and inventing a queue state for a dose that never took one would be
-        # fabricating the very evidence this bead exists to verify. It reports it.
+        # step1.queue_state was null. A null reads as coverage -- a reader
+        # scanning keys sees the field and concludes the queue state is recorded
+        # there. It is not fixed by inventing one: the run happened, and making
+        # up a sample for a dose that never took one would fabricate the very
+        # evidence this bead exists to verify.
         for step, blob in r.items():
             if isinstance(blob, dict) and "queue_state" in blob:
                 check(f"field named queue_state in {step} is not null",
                       blob["queue_state"] is not None,
-                      f"step1-style null: {step}.queue_state is None, which "
-                      f"reads as coverage but records nothing")
+                      f"{step}.queue_state is None, which reads as coverage "
+                      f"but records nothing")
 
         # The provenance must survive too. A queue state attached per step with
         # no statement of WHEN it was taken is the original defect wearing a
-        # value instead of a null: the reader sees a field and assumes it
-        # describes the step it sits in.
+        # value instead of a null.
         for step in ("step1", "step2", "step2b_recovery"):
             if step not in r:
                 continue
@@ -148,7 +162,7 @@ def main() -> int:
                   and "BEFORE this step" in prov.get("relation_to_this_step", ""),
                   prov)
             check(f"{step} does not claim to be a per-step sample",
-                  prov.get("is_a_per_step_sample") is False,
+                  (prov or {}).get("is_a_per_step_sample") is False,
                   "if this flips to True the artifact must carry a real "
                   "per-step sample, not the run-start one")
 
