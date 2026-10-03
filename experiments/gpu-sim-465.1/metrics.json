@@ -234,5 +234,13 @@
     "exit": 139,
     "content": "NCCL 2.30.7+cuda13.3, NCCL_NET_PLUGIN read, then SIGSEGV with no dlsym failure line -- i.e. the symbol resolved and the loader faulted inside.",
     "note": "committed deliberately, OFF the .gitignore *.out pattern that excluded my earlier probe2.out. A bead whose whole value is a recorded NO-GO that ships no log walks into exactly the trap I documented in MISTAKES."
+  },
+  "V11_PROBE_LOG": {
+    "path": "experiments/gpu-sim-465.1/probe_v11.log",
+    "committed_in": "gpu-sim-465.1 rework; previously untracked, which is why the review could not follow it from the artifact",
+    "relates_to": "the v11 probe that recovered the ncclNet_v11_t ABI route",
+    "content": "NCCL 2.30.7+cuda13.3 reads NCCL_NET_PLUGIN, logs no dlsym failure, then the probe exits 139 (SIGSEGV) -- so the symbol resolved and the loader faulted inside.",
+    "relationship_to_probe_evidence_log": "probe_evidence.log and probe_v11.log are two runs of the same probe (PIDs 1693342 and 1699372) with byte-identical content apart from the PID. probe_evidence.log is the one PLUGIN_NO_GO_LOG already cites; this one is the v11-specific run and was untracked.",
+    "note": "Added as a citation so the evidence is followable from the tree. No verdict or conclusion in this artifact was changed."
   }
 }
