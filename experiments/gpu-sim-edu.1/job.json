@@ -5,11 +5,9 @@
   "cpu_runs": [
     {
       "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-edu.1/run.sh",
-      "started_utc": "2026-10-03T19:20:00Z",
-      "ended_utc": "2026-10-03T19:20:05Z",
       "exit": 0,
       "log": "experiments/gpu-sim-edu.1/output.log",
-      "what": "measure_dispatch.py recomputes metrics.json from the live board (criterion 1 fixed: 6 validated beads present in bd ready, 0 offered; criterion 2 verified-correct; criterion 4 own labels clean) + filtered dispatch listing + 12 tests, all green"
+      "what": "rework: bd ready 33 -> 27 offered, 6 excluded. Status map built by MERGING both bd listings (151 issues: 74 closed + 77 non-closed); total failure and a missing closed set now RAISE. Criterion 4 gates on bd offering --no-inherit-labels and RECORDS this bead's labels. 16 tests, 0 failures."
     }
   ],
   "cpu_runs_note": "ts_jobs is empty by design and gpu_used is false: this bead never touches the device. A CPU job in the shared GPU queue would block real GPU work for its whole runtime, so it runs directly per the CPU-work rule.",

@@ -108,6 +108,74 @@ class TestFixtureExclusions(unittest.TestCase):
         self.assertEqual(len(offer) + len(dropped), len(self.fixture))
 
 
+class TestStatusLookupFailsLoudly(unittest.TestCase):
+    """Reviewer item 2: a broken lookup must not answer from nothing.
+
+    An empty status map is the most dangerous failure in this file. open_blockers()
+    treats "not in the map" as "not closed", so an empty map makes EVERY
+    dependency look open, blocked work is silently filtered out, the dispatch
+    looks clean, and the criterion-2 check reports ALREADY CORRECT from nothing.
+    """
+
+    def test_total_failure_raises_instead_of_returning_empty(self):
+        import scripts.bd_ready_filtered as m
+        real = m.bd_json
+        m.bd_json = lambda args: (_ for _ in ()).throw(RuntimeError("bd is down"))
+        try:
+            with self.assertRaises(RuntimeError) as cm:
+                m.statuses_by_id()
+            self.assertIn("Refusing", str(cm.exception))
+        finally:
+            m.bd_json = real
+
+    def test_a_map_with_no_closed_issues_raises(self):
+        """The closed set disappearing is the original phantom-leak bug.
+
+        If `bd list` ever stops returning closed issues, every closed blocker
+        looks open. That must be a loud failure, not a quietly over-filtering
+        dispatch.
+        """
+        import scripts.bd_ready_filtered as m
+        real = m.bd_json
+        m.bd_json = lambda args: [{"id": "a", "status": "open"},
+                                  {"id": "b", "status": "in_progress"}]
+        try:
+            with self.assertRaises(RuntimeError) as cm:
+                m.statuses_by_id()
+            self.assertIn("NONE is closed", str(cm.exception))
+        finally:
+            m.bd_json = real
+
+    def test_a_real_map_carries_both_open_and_closed(self):
+        import scripts.bd_ready_filtered as m
+        real = m.bd_json
+        def fake(args):
+            if "closed" in args:
+                return [{"id": "c1", "status": "closed"}]
+            return [{"id": "o1", "status": "open"}]
+        m.bd_json = fake
+        try:
+            got = m.statuses_by_id()
+            self.assertEqual(got["c1"], "closed")
+            self.assertEqual(got["o1"], "open")
+            self.assertEqual(got.closed_count, 1)
+            self.assertEqual(got.total_count, 2)
+            self.assertNotIn("__closed_count__", got,
+                             "sentinel keys would be indistinguishable from "
+                             "issue ids to every caller")
+        finally:
+            m.bd_json = real
+
+    def test_the_live_map_is_not_all_closed(self):
+        """Guards the merge itself: an all-closed map means a listing failed."""
+        got = brf.statuses_by_id()
+        self.assertGreater(got.closed_count, 0)
+        self.assertGreater(got.total_count, got.closed_count,
+                           "every listed issue is closed -- one of the two "
+                           "bd listings did not contribute, so absence is "
+                           "silently meaning 'open' again")
+
+
 class TestOrdering(unittest.TestCase):
     def test_priority_beats_recency(self):
         items = [issue(id="old-p0", priority=0, created_at="2020-01-01"),
@@ -162,18 +230,33 @@ class TestAgainstTheRealDatabase(unittest.TestCase):
                 f"{len(self.ready)} ready beads; that is not a label filter, "
                 f"that is a shredder")
 
-    def test_blocked_children_of_this_beads_issue_stay_hidden(self):
-        """The two concrete cases that motivated the bead, when present.
+    def test_a_bead_blocked_by_an_OPEN_issue_stays_hidden(self):
+        """The property, stated so it does not expire when state moves.
 
-        They are dep-blocked via `blocks` edges, so bd itself already excludes
-        them. Asserting it anyway is the point: the property should hold even
-        if bd's semantics change, and a silent regression here is exactly the
-        failure that cost two sessions.
+        This test previously named two specific beads (.6.6.6.2 and .6.6.6.3) and
+        asserted they never appear in bd ready. It fired -- correctly -- when
+        gpu-sim-u2o.6.6.6.1 was CLOSED and its blocks edge legitimately stopped
+        blocking. The bead became genuinely startable; the TEST's premise
+        expired, not the code.
+
+        So the assertion is now the property rather than the instance: any bead
+        whose blocks-edge blocker is still OPEN must not appear. Naming
+        instances made the test a tripwire for board state it does not own.
         """
+        dep_blocked_ids = [i["id"] for i in self.ready
+                           if brf.open_blockers(i, self.status)]
+        self.assertEqual(dep_blocked_ids, [],
+                         "bd ready listed beads that are still blocked by an "
+                         "open issue")
+        # And the converse must hold too, or this passes vacuously: the named
+        # beads are EXPECTED to appear now that their blocker is closed.
         for bid in ("gpu-sim-u2o.6.6.6.2", "gpu-sim-u2o.6.6.6.3"):
-            if not any(i["id"] == bid for i in self.ready):
+            entry = next((i for i in self.ready if i["id"] == bid), None)
+            if entry is None:
                 continue
-            self.fail(f"{bid} appeared in bd ready despite a blocks edge")
+            self.assertEqual(
+                brf.open_blockers(entry, self.status), [],
+                f"{bid} appeared in bd ready but still has an OPEN blocker")
 
 
 if __name__ == "__main__":

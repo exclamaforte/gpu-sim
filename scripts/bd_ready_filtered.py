@@ -94,21 +94,79 @@ def bd_json(args: list[str]) -> list[dict]:
     raise RuntimeError(f"unrecognised bd JSON shape: {type(data)}")
 
 
-def statuses_by_id() -> dict[str, str]:
-    """Status of EVERY issue, closed included.
+class StatusMap(dict):
+    """A dict of id -> status that also carries how it was built.
+
+    A dict subclass rather than sentinel keys: `__closed_count__` stored as a
+    key would be indistinguishable from an issue id to every caller, and
+    open_blockers() looks ids up in this map. The counts are recorded because a
+    reader needs to see that the CLOSED set was actually present -- a lookup
+    that silently lost the closed set is the whole failure mode here.
+    """
+
+    closed_count = 0
+    total_count = 0
+
+
+def statuses_by_id(require_closed: bool = True) -> StatusMap:
+    """Status of EVERY issue, closed INCLUDED, or raise.
 
     `bd list` omits closed issues by default, so a blocker that is closed
-    resolves to nothing and looks open. That is the bug that made my first
-    probe report eight phantom leaks, so the lookup asks for closed explicitly.
+    resolves to nothing and looks open. That was the bug behind my first probe
+    reporting eight phantom leaks, so the lookup asks for closed explicitly.
+
+    IT FAILS LOUDLY, and that is the point of the rework. The previous version
+    looped over three flag spellings and `continue`d past every exception, then
+    returned whatever it had -- including `{}` if all three failed. An empty map
+    is the most dangerous possible return here, because open_blockers() treats
+    "not in the map" as "not closed", so a broken lookup makes every
+    dependency look OPEN: blocked work is then silently filtered out, the
+    dispatch looks clean, and the criterion-2 check reports ALREADY CORRECT
+    from nothing at all. A check that cannot answer must not answer.
+
+    require_closed verifies the property the caller depends on: that the
+    CLOSED set is actually present in the returned map. Without that check a
+    future bd that quietly changes what `list` returns would reintroduce the
+    original phantom-leak bug silently.
     """
+    # Two listings, MERGED, and that merge is the fix.
+    #
+    # There is no `--include-closed` flag on `bd list` (I assumed one; the call
+    # errors), and the two real listings are each PARTIAL: the default returns
+    # only non-closed, `--status closed` returns only closed. Taking either alone
+    # leaves "absence" silently meaning "open", so open_blockers() would be right
+    # by accident and wrong the moment a caller asks a different question about
+    # the map. Merged, every issue carries its REAL status and absence means
+    # "this id is not a bead at all".
+    errors = []
     out = {}
-    for flag in (["--include-closed"], ["--status", "closed"], []):
+    for flag in ([], ["--status", "closed"]):
+        label = " ".join(flag) or "(default)"
         try:
-            for b in bd_json(["list", *flag]):
-                out[b["id"]] = b.get("status")
-            break
-        except Exception:
+            rows = bd_json(["list", *flag])
+        except Exception as exc:
+            errors.append(f"{label}: {exc}")
             continue
+        if not rows:
+            errors.append(f"{label}: returned no rows")
+            continue
+        for b in rows:
+            out[b["id"]] = b.get("status")
+    if not out:
+        raise RuntimeError(
+            "statuses_by_id could not read ANY issue list, so no dependency "
+            "state can be trusted. Refusing to produce a dispatch list from "
+            "nothing. Attempts: " + " | ".join(errors))
+    closed = sum(1 for v in out.values() if v == "closed")
+    if require_closed and closed == 0:
+        raise RuntimeError(
+            f"statuses_by_id returned {len(out)} issues and NONE is closed. "
+            "The closed set is missing again, which makes every closed blocker "
+            "look open and silently filters blocked work out of the dispatch. "
+            "Refusing rather than answering from a bad map.")
+    out = StatusMap(out)
+    out.closed_count = closed
+    out.total_count = len(out)
     return out
 
 

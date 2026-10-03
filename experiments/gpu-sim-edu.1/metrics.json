@@ -1,17 +1,17 @@
 {
   "bead": "gpu-sim-edu.1",
-  "produced_at_utc": "2026-10-03T19:09:46.044125+00:00",
+  "produced_at_utc": "2026-10-03T19:51:07.865727+00:00",
   "produced_by": "experiments/gpu-sim-edu.1/measure_dispatch.py",
   "gpu_used": false,
-  "commit": "033c149",
+  "commit": "ddc0143",
   "bd_version": "bd version 1.3.0 (v1.3.0-fork1(071b61a): lab/gpu-sim-edu.1@071b61aa1f5c)",
   "board_counts": {
-    "bd_ready_returned": 32,
-    "offered_after_filter": 26,
+    "bd_ready_returned": 33,
+    "offered_after_filter": 27,
     "excluded": 6,
     "ready_by_priority": {
-      "P0": 13,
-      "P1": 16,
+      "P0": 12,
+      "P1": 18,
       "P2": 2,
       "P3": 1
     }
@@ -73,17 +73,29 @@
     ]
   },
   "filter_can_pass": {
-    "offered": 26,
-    "removed_fraction": 0.1875,
+    "offered": 27,
+    "removed_fraction": 0.1818,
     "note": "a filter that emptied the list would satisfy every exclusion assertion and be useless; tests assert ordinary ready work SURVIVES"
   },
-  "criterion_4_own_labels": [
-    "fab-audit-reopened"
-  ],
+  "criterion_4_own_labels_RECORDED_not_gated": {
+    "labels": [
+      "fab-audit-reopened",
+      "needs-rework"
+    ],
+    "note": "recorded, never gated: these labels change when the reviewer acts, and a gate that flips on someone else's action is not a gate. See criterion_4_bd_offers_no_inherit_labels for what IS gated."
+  },
+  "criterion_4_bd_offers_no_inherit_labels": true,
+  "status_map_provenance": {
+    "total_issues": 151,
+    "closed_issues": 74,
+    "non_closed": 77,
+    "note": "bd list is partial in BOTH directions: the default returns only non-closed and --status closed only closed, so the map is their merge. Taking either alone makes absence silently mean 'open'."
+  },
   "properties": {
     "criterion_1_no_merge_pending_offered": true,
     "criterion_2_no_dep_blocked_offered": true,
-    "criterion_4_own_labels_free_of_inherited_verdict_labels": true
+    "criterion_4_bd_offers_no_inherit_labels": true,
+    "the_status_map_was_built_from_both_listings": true
   },
   "all_properties_pass": true
 }

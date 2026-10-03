@@ -56,12 +56,28 @@ def main() -> int:
     except Exception:
         own_labels = None
 
+    # Criterion 4 is RECORDED, NOT GATED. The reviewer's item, and it is the
+    # same defect this bead is about: the previous version gated on this bead's
+    # OWN labels, which the dispatch system controls and legitimately changes --
+    # needs-review becomes validated when the reviewer passes it. So the committed
+    # green would flip to red on the next reviewer run with no code change, and a
+    # gate whose verdict moves on someone else's action is not a gate.
+    #
+    # What IS gated is a property of bd itself, which no reviewer run can change:
+    # that `bd create` offers a way to decline inheriting labels at all. That is
+    # the durable capability criterion 4 is really about; the label list is
+    # recorded beside it so a human can see the current state without the run
+    # turning red when the state moves.
+    create_help = subprocess.run(["bd", "create", "--help"],
+                                 capture_output=True, text=True).stdout
+    no_inherit_supported = "--no-inherit-labels" in create_help
+
     props = {
         "criterion_1_no_merge_pending_offered": not offered_merge_pending,
         "criterion_2_no_dep_blocked_offered": not offered_dep_blocked,
-        "criterion_4_own_labels_free_of_inherited_verdict_labels": (
-            own_labels is not None
-            and not (set(own_labels) & brf.OUTSTANDING_VERDICT_LABELS)),
+        "criterion_4_bd_offers_no_inherit_labels": no_inherit_supported,
+        "the_status_map_was_built_from_both_listings": (
+            status.closed_count > 0 and status.total_count > status.closed_count),
     }
 
     metrics = {
@@ -110,7 +126,23 @@ def main() -> int:
                     "exclusion assertion and be useless; tests assert ordinary "
                     "ready work SURVIVES",
         },
-        "criterion_4_own_labels": own_labels,
+        "criterion_4_own_labels_RECORDED_not_gated": {
+            "labels": own_labels,
+            "note": ("recorded, never gated: these labels change when the "
+                     "reviewer acts, and a gate that flips on someone else's "
+                     "action is not a gate. See criterion_4_bd_offers_"
+                     "no_inherit_labels for what IS gated."),
+        },
+        "criterion_4_bd_offers_no_inherit_labels": no_inherit_supported,
+        "status_map_provenance": {
+            "total_issues": status.total_count,
+            "closed_issues": status.closed_count,
+            "non_closed": status.total_count - status.closed_count,
+            "note": ("bd list is partial in BOTH directions: the default returns "
+                     "only non-closed and --status closed only closed, so the "
+                     "map is their merge. Taking either alone makes absence "
+                     "silently mean 'open'."),
+        },
         "properties": props,
         "all_properties_pass": all(props.values()),
     }
@@ -120,8 +152,10 @@ def main() -> int:
         failed = [k for k, v in props.items() if not v]
         print(f"FAILED: {failed}", file=sys.stderr)
         return 1
-    print("OK: criterion 1 fixed, criterion 2 verified-correct, "
-          "criterion 4 labels clean.")
+    print("OK: criterion 1 fixed; criterion 2 verified-correct from a status "
+          "map built from BOTH bd listings; criterion 4 gated on bd offering "
+          "--no-inherit-labels, with this bead's labels RECORDED rather than "
+          "gated.")
     return 0
 
 
