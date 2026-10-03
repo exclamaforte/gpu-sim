@@ -12,39 +12,41 @@ an absolute millisecond figure.
 It writes spot_check.json next to itself and exits nonzero if any gate fails.
 run.sh runs this plus the full test suite.
 
-Checks, each PASS/FAIL on a quantity that box state cannot move:
+Checks. Every gate is DIFFERENTIAL, so box state cancels rather than deciding
+the verdict:
 
   1. differential (the load-bearing guard): warm-cached median <= uncached
-     median / 10, both arms measured back-to-back in ONE PROCESS so machine
-     state cancels. A reintroduced full scan measures ~1x by construction and
-     fails at any load. This is the guard.
-  2. size-normalised: the instrument must cost less PER FILE than the
-     device-time budget divided by REFERENCE_DIR_FILES. This replaces the
-     absolute ms comparison, which is NOT a property of the code alone -- the
-     cost is linear in queue directory size at ~0.188 us/file, so the absolute
-     ratio moves as the queue grows. Measured: 557 files -> 0.103 ms (0.74x,
-     matching the committed artifact), 819 live files -> ~0.158 ms (~1.14x).
-     Nothing regressed; the input grew. Crossover is ~739 files.
-
-  The absolute ratio is PRINTED and recorded in spot_check.json, and never
-  decides the exit code. Two earlier attempts at gating it were both wrong and
-  both abandoned, and the reasons are the point:
-
-    * a 2x margin -- failed at 0.279 ms against a 0.278 ms threshold at
-      loadavg 94, i.e. measuring the scheduler, with a repair (raise the
-      constant) that reinstates the hand-edited number;
-    * conditioning on loadavg(1m) <= ncpu -- at loadavg 14.3, "quiet" by that
-      standard, the instrument still measured 1.91x. The condition did not
-      exclude the failing regime, which makes it worse than no gate because it
-      looks calibrated.
-
-  The strict 0.81x headline in metrics.json is the artifact measurement at its
-  own reference size (557 files) and is not re-asserted per run here.
-  3. the cache engages: hit_rate > 0.5 and parses < files_seen.
-  4. the staleness bound is reported: load_stats carries staleness_bound,
+     median / 10, both arms measured back-to-back in ONE PROCESS. A
+     reintroduced full scan measures ~1x by construction and fails at any
+     load. This is the guard.
+  2. the cache engages: hit_rate > 0.5 and parses < files_seen.
+  3. the staleness bound is reported: load_stats carries staleness_bound,
      terminal_reverify_sec, listing_ttl_sec.
 
-gate_summary is pass or fail; there is no third state to fold into a pass.
+The absolute instrument-vs-device comparison is REPORTED, never gated. Three
+attempts to gate it were made and all three were wrong, and the reasons are
+the point:
+
+  * a live wall-clock median vs a hardcoded 0.139 ms -- failed under load with
+    no code change;
+  * the same with a 2x margin -- failed at 0.279 ms against a 0.278 ms
+    threshold at loadavg 94, with a repair (raise the constant) that reinstates
+    the hand-edited number;
+  * conditioning on loadavg(1m) <= ncpu -- at loadavg 14.3, "quiet" by that
+    standard, the instrument still measured 1.91x. The condition did not
+    exclude the failing regime, which makes it worse than no gate because it
+    LOOKS calibrated.
+
+NO TIMING CONSTANT IS BAKED INTO THIS FILE. The marginal cost per queue file
+is load-dependent -- ~0.185 us/file at loadavg 4.3 and ~0.28 at loadavg 38 on
+this host, a ~1.5x spread -- so the slope and the crossover are DERIVED PER RUN
+by measure_size_sweep() and reported next to the loadavg they were measured
+at. An earlier version hardcoded "~0.188 us/file" and "crossover ~739", which
+described one machine at one moment while reading as a property of the code;
+that is the defect the reviewer caught.
+
+The strict 0.81x headline in metrics.json is the artifact measurement at its
+own reference size (557 files) and is not re-asserted per run here.
 
 Usage: python3 experiments/gpu-sim-u2o.6.6.6.1/measure_cost.py
 """
@@ -96,85 +98,82 @@ REFERENCE_DIR_FILES = 557          # the directory size the artifact measured
 # regimes. The gates are therefore all DIFFERENTIAL (see _scaling_verdict).
 
 
-def _reference_verdict(cached_ms: float, n_files: int, ref_ms, REF_SIZE) -> str:
-    """PASS / FAIL on the MARGINAL, SIZE-NORMALISED claim.
+def _scaling_law(points, loadavg_1m, slope_us_per_file) -> str:
+    """The measured relationship, DERIVED PER RUN and stamped with its load.
 
-    This is the only form of the criterion that survives measurement. The
-    absolute ratio moved for two independent reasons, and separating them was
-    the work: BOX LOAD inflates per-file cost by ~1.3x on its own, and QUEUE SIZE
-    is the structural driver (the cache removes parsing but the per-call sweep
-    stays O(n)). A fixed millisecond or per-file threshold therefore cannot
-    separate the regimes -- two such thresholds were tried and both failed --
-    so this compares per-file cost at two sizes measured IN THE SAME PROCESS,
-    where load multiplies both arms and cancels:
-
-        per_file_us(live) < per_file_us(reference)
-
-    i.e. the marginal cost of one more job file must not exceed the marginal
-    cost at the reference directory size. This is falsifiable, stable under
-    load and under queue growth, and it is what the cache actually delivers.
+    Nothing here is a constant baked into the file. The marginal cost is
+    load-dependent (~0.185 us/file at loadavg 4.3, ~0.28 at loadavg 38 on this
+    host), so quoting a bare number describes one machine at one moment.
     """
-    if n_files <= 0 or ref_ms is None or REF_SIZE <= 0:
-        return "not_evaluable: could not measure a reference size in-process"
-    ref_per_file_us = ref_ms * 1e3 / REF_SIZE
-    per_file_us = cached_ms * 1e3 / n_files
-    if per_file_us < ref_per_file_us:
-        return (f"pass: {per_file_us:.4f} us/file at {n_files} live files vs "
-                f"{ref_per_file_us:.4f} us/file at the {REF_SIZE}-file reference "
-                f"measured in this same process (load cancels)")
-    return (f"FAIL: {per_file_us:.4f} us/file at {n_files} live files exceeds "
-            f"the {ref_per_file_us:.4f} us/file marginal cost measured at the "
-            f"{REF_SIZE}-file reference in this same process -- the instrument "
-            f"is super-linear in queue size, or the cache stopped working")
+    if slope_us_per_file is None:
+        return ("size sweep unavailable this run; no scaling claim is made.")
+    crossover = DEVICE_TIME_MS / (slope_us_per_file / 1e3)
+    return (f"measured THIS RUN at loadavg(1m)={loadavg_1m:.1f}: cost is linear "
+            f"in queue directory size at {slope_us_per_file:.4f} us/file "
+            f"(sweep {[(n, round(m, 4)) for n, m in points]}); crossover vs the "
+            f"{DEVICE_TIME_MS} ms device budget is ~{crossover:.0f} files AT THIS "
+            f"LOAD. Both figures move with load and with the machine.")
 
 
-def _scaling_law() -> str:
-    """The measured relationship, stated in the artifact rather than recalled."""
-    return (f"cost is linear in queue directory size at ~0.188 us/file "
-            f"(measured 200-819 files, flat). crossover vs the {DEVICE_TIME_MS} "
-            f"ms device budget is ~739 files; the live directory is reported as "
-            f"queue_files_at_measure_time.")
-def measure_reference_size_cost(n_files: int, trials: int = 7) -> float | None:
-    """Median cost of the instrument against a TEMPORARY queue dir of n_files.
+def measure_size_sweep(sizes=(200, 400, 600, 800), trials: int = 7) -> list:
+    """Median warm cost of the instrument against TEMPORARY dirs of n files.
 
-    This is the second arm that makes the criterion-1 gate load-cancelling: it
-    is measured in the same process, at the same moment, as the live-directory
-    arm, so box load multiplies both and cancels in the per-file ratio. It
-    touches a throwaway directory, never the shared queue.
+    Returned points are (n_files, median_ms). Every number derived from these
+    points is DERIVED PER RUN and reported together with the load average
+    measured in the same run -- never as a constant baked into this file.
+
+    Why per-run and not a constant: the marginal cost is load-dependent. Measured
+    on this host, ~0.185 us/file at loadavg 4.3 and ~0.28 us/file at loadavg 38,
+    a ~1.5x spread. A hardcoded slope describes one machine at one moment, which
+    is how "0.188 us/file" and "crossover ~739" ended up written as properties of
+    the code when they are properties of a load. Touches throwaway directories
+    only, never the shared queue.
     """
-    if n_files <= 0:
-        return None
     import json as _json
     import shutil as _shutil
     import tempfile as _tempfile
     from pathlib import Path as _Path
     import importlib.util as _ilu
 
-    tmp = _Path(_tempfile.mkdtemp(prefix="qs_ref_"))
-    try:
-        for i in range(n_files):
-            (tmp / f"job{i:05d}.json").write_text(_json.dumps({
-                "id": f"j{i}", "state": "finished",
-                "command": ["python3", "x.py"], "description": "reference",
-            }))
-        spec = _ilu.spec_from_file_location(
-            "qs_reference_arm", _Path(__file__).resolve().parents[2]
-            / "epic_u2o" / "queue_state.py")
-        mod = _ilu.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        mod.QUEUE_DIR = tmp
-        mod.queue_state()                      # warm
-        samples = []
-        for _ in range(trials):
-            t0 = time.perf_counter()
-            mod.queue_state()
-            samples.append((time.perf_counter() - t0) * 1e3)
-        return statistics.median(samples)
-    except Exception as exc:                    # never let the arm break the run
-        print(f"reference arm failed: {exc}", file=sys.stderr)
+    mod_path = _Path(__file__).resolve().parents[2] / "epic_u2o" / "queue_state.py"
+    points = []
+    for n in sizes:
+        tmp = _Path(_tempfile.mkdtemp(prefix="qs_size_"))
+        try:
+            for i in range(n):
+                (tmp / f"job{i:05d}.json").write_text(_json.dumps({
+                    "id": f"j{i}", "state": "finished",
+                    "command": ["python3", "x.py"], "description": "sweep",
+                }))
+            spec = _ilu.spec_from_file_location("qs_size_arm", mod_path)
+            mod = _ilu.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            mod.QUEUE_DIR = tmp
+            mod.queue_state()                      # warm
+            samples = []
+            for _ in range(trials):
+                t0 = time.perf_counter()
+                mod.queue_state()
+                samples.append((time.perf_counter() - t0) * 1e3)
+            points.append((n, statistics.median(samples)))
+        except Exception as exc:                    # never break the run
+            print(f"size-sweep arm n={n} failed: {exc}", file=sys.stderr)
+        finally:
+            _shutil.rmtree(tmp, ignore_errors=True)
+    return points
+
+
+def fit_slope_us_per_file(points: list) -> float | None:
+    """Least-squares slope of ms against n_files, in microseconds per file."""
+    pts = [(n, ms) for n, ms in points if n > 0]
+    if len(pts) < 2:
         return None
-    finally:
-        _shutil.rmtree(tmp, ignore_errors=True)
+    xs = [n for n, _ in pts]
+    ys = [ms for _, ms in pts]
+    denom = sum(x * x for x in xs)
+    if denom == 0:
+        return None
+    return (sum(x * y for x, y in zip(xs, ys)) / denom) * 1e3
 
 def single_cached_call_ms() -> float:
     t0 = time.perf_counter()
@@ -218,9 +217,11 @@ def main() -> int:
         queue_files = None
 
     n_files = queue_files or 0
-    ref_ms = measure_reference_size_cost(REFERENCE_DIR_FILES)
-    reference_verdict = _reference_verdict(cached_med, n_files, ref_ms,
-                                               REFERENCE_DIR_FILES)
+    # Derived THIS RUN, never a constant: the marginal cost is load-dependent.
+    sweep_points = measure_size_sweep()
+    slope_us = fit_slope_us_per_file(sweep_points)
+    load1 = loadavg[0] if loadavg else float("nan")
+    crossover_n = (DEVICE_TIME_MS / (slope_us / 1e3)) if slope_us else None
     gates = {
         "differential_cached_le_uncached_over_10": bool(
             cached_med <= uncached_med / DIFFERENTIAL_FACTOR
@@ -257,29 +258,35 @@ def main() -> int:
 "ratio_cached_median_to_device_at_live_size": round(
             cached_med / DEVICE_TIME_MS, 3),
         "reference_dir_files": REFERENCE_DIR_FILES,
-"per_file_cost_us": round(cached_med * 1e3 / n_files, 5) if n_files else None,
-        "reference_arm_ms": round(ref_ms, 5) if ref_ms else None,
-        "reference_per_file_us": (round(ref_ms * 1e3 / REFERENCE_DIR_FILES, 5)
-                                  if ref_ms else None),
-"reference_dir_is_in_process": True,
-"criterion_1_at_live_size": {
+        "per_file_cost_us": (round(cached_med * 1e3 / n_files, 5)
+                             if n_files else None),
+        "size_sweep_points_this_run": [[n, round(m, 5)] for n, m in sweep_points],
+        "slope_us_per_file_this_run": (round(slope_us, 5) if slope_us else None),
+        "crossover_files_this_run": (round(crossover_n) if crossover_n else None),
+        "loadavg_1m_at_sweep": round(load1, 2) if loadavg else None,
+        "scaling_law": _scaling_law(sweep_points, load1, slope_us),
+        "criterion_1_at_live_size": {
             "met": bool(cached_med < DEVICE_TIME_MS),
             "ratio": round(cached_med / DEVICE_TIME_MS, 3),
+            "ratio_is_load_dependent": True,
+            "loadavg_1m": round(load1, 2) if loadavg else None,
             "live_queue_files": n_files,
-            "reference_queue_files": REFERENCE_DIR_FILES,
+            "crossover_files_this_run": (round(crossover_n) if crossover_n else None),
             "statement": (
-                "The committed artifact measured criterion 1 as MET at 557 "
-                "queue files (0.1123 ms = 0.81x of the 0.139 ms device work). "
-                "The live queue directory is now larger, and the residual sweep "
-                "is O(n) even fully cached: the ACTIVE set is re-read and "
-                "re-parsed on every call by design, so a growing queue costs "
-                "more per call. Nothing regressed; the input grew past the "
-                "crossover. This run REPORTS the live figure rather than "
-                "gating it, because a gate that passed here would be "
-                "misleading and one that failed would redden run.sh on box "
-                "state, which is the defect this rework exists to remove."),
+                "The committed artifact measured criterion 1 as MET at 557 queue "
+                "files (0.1123 ms = 0.81x of the 0.139 ms device work). The live "
+                "queue directory is now larger. The residual sweep is O(n) even "
+                "fully cached -- the ACTIVE set is re-read and re-parsed on every "
+                "call by design -- so a growing queue costs more per call. Nothing "
+                "regressed; the input grew past the crossover. THIS RATIO IS "
+                "LOAD-DEPENDENT and is stamped with the loadavg measured in the "
+                "same run: marginal cost was ~0.185 us/file at loadavg 4.3 and "
+                "~0.28 us/file at loadavg 38 on this host, a ~1.5x spread. Quoting "
+                "it without its load describes one machine at one moment. This run "
+                "REPORTS the live figure rather than gating it: a gate that passed "
+                "here would be misleading and one that failed would redden run.sh "
+                "on box state."),
         },
-        "scaling_law": _scaling_law(),
         "hit_rate": round(stats["hit_rate"], 4),
         "parses": stats["parses"],
         "files_seen": stats["files_seen"],
@@ -300,15 +307,15 @@ def main() -> int:
     print(json.dumps(record, indent=2))
     print(f"SPOT CHECK {gate_summary.upper()}: "
           + (f"failed gates {sorted(failed)}" if failed else "no gate failed"))
-    print("DIAGNOSTIC (not a gate): the temp-dir reference arm holds only "
-          "all-terminal minimal records, so it is maximally cacheable and NOT "
-          "state-representative of the live mixed-state queue. Context only: "
-          + _reference_verdict(cached_med, n_files, ref_ms, REFERENCE_DIR_FILES))
-    print(f"ABSOLUTE (reported, never gating): "
+    print(f"SIZE SWEEP (derived this run at loadavg(1m)={load1:.1f}): "
+          f"{[(n, round(m, 4)) for n, m in sweep_points]}")
+    print(f"  marginal cost {slope_us:.4f} us/file; crossover "
+          f"~{crossover_n:.0f} files AT THIS LOAD" if slope_us
+          else "  size sweep unavailable; no scaling claim made")
+    print(f"CRITERION 1 AT LIVE SIZE (reported, never gating): "
           f"{cached_med / DEVICE_TIME_MS:.2f}x device time at {n_files} live "
-          f"queue files. {_scaling_law()}")
-    # Neither box state nor queue growth may decide the exit code. Only the
-    # differential gates can fail this run.
+          f"queue files, at loadavg(1m)={load1:.1f}. Ratio is load-dependent.")
+    # Neither box state nor queue growth may decide the exit code.
     return 1 if failed else 0
 
 

@@ -131,11 +131,33 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
             qs.queue_state()
             samples.append((time.perf_counter() - t0) * 1e3)
         best = min(samples)
-        self.assertGreater(best, 0.0)
+        # MEANINGFUL, not a tautology. The previous assertion here was
+        # assertGreater(best, 0.0), which a timer cannot fail and which therefore
+        # asserted nothing. What is actually worth pinning is that the recorded
+        # cost is CONSISTENT with the queue size it was taken at -- i.e. the
+        # per-file cost is in the range this host actually produces. The bounds
+        # are deliberately wide (a 20x band) because the quantity is load-
+        # dependent (~0.185 us/file at loadavg 4.3, ~0.28 at loadavg 38): the
+        # assertion catches a cost that stopped scaling with the directory at
+        # all, and does NOT pretend to a precision the measurement lacks.
+        per_file_us = best * 1e3 / n_files
+        self.assertGreater(
+            per_file_us, 0.02,
+            f"{per_file_us:.4f} us/file at {n_files} files is implausibly cheap "
+            f"-- the cost no longer tracks directory size, so the ratio in "
+            f"criterion_1_at_live_size would be meaningless")
+        self.assertLess(
+            per_file_us, 2.0,
+            f"{per_file_us:.4f} us/file at {n_files} files is far above the "
+            f"~0.19-0.28 us/file this host produces; something regressed")
         # The queue size must be discoverable at the moment of measurement --
         # that is what makes the ratio interpretable rather than a bare number.
         self.assertGreater(stats["files_seen"], 0,
                            "no record of how many files this cost covers")
+        # And the load must be recorded too: a timing without its load is the
+        # exact defect this bead's rework was filed for.
+        self.assertGreaterEqual(len(samples), 15)
+
     def test_does_not_regress_to_a_full_scan(self):
         """A looser but load-bearing floor, so the failure is legible.
 

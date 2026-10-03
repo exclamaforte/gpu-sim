@@ -1,42 +1,62 @@
 {
   "bead": "gpu-sim-u2o.6.6.6.1",
-  "produced_at_utc": "2026-10-03T18:40:10.432102+00:00",
+  "produced_at_utc": "2026-10-03T18:52:14.421456+00:00",
   "produced_by": "experiments/gpu-sim-u2o.6.6.6.1/measure_cost.py (committed code, this tree)",
   "loadavg_1_5_15": [
-    40.734375,
-    31.51806640625,
-    45.59228515625
+    3.95751953125,
+    7.39404296875,
+    24.10205078125
   ],
-  "queue_files_at_measure_time": 822,
+  "queue_files_at_measure_time": 839,
   "n_rounds": 15,
   "cached_ms": {
-    "median": 0.457,
-    "min": 0.2826
+    "median": 0.2586,
+    "min": 0.253
   },
   "uncached_ms": {
-    "median": 17.5292,
-    "min": 14.783
+    "median": 10.9985,
+    "min": 8.6569
   },
-  "speedup_same_process_uncached_over_cached": 38.4,
+  "speedup_same_process_uncached_over_cached": 42.5,
   "device_time_ms_cited_from_6_7_1": 0.139,
-  "ratio_cached_min_to_device": 2.033,
-  "ratio_cached_median_to_device_at_live_size": 3.288,
+  "ratio_cached_min_to_device": 1.82,
+  "ratio_cached_median_to_device_at_live_size": 1.86,
   "reference_dir_files": 557,
-  "per_file_cost_us": 0.55601,
-  "reference_arm_ms": 0.15395,
-  "reference_per_file_us": 0.27639,
-  "reference_dir_is_in_process": true,
+  "per_file_cost_us": 0.30818,
+  "size_sweep_points_this_run": [
+    [
+      200,
+      0.03791
+    ],
+    [
+      400,
+      0.0753
+    ],
+    [
+      600,
+      0.11572
+    ],
+    [
+      800,
+      0.15239
+    ]
+  ],
+  "slope_us_per_file_this_run": 0.19087,
+  "crossover_files_this_run": 728,
+  "loadavg_1m_at_sweep": 3.96,
+  "scaling_law": "measured THIS RUN at loadavg(1m)=4.0: cost is linear in queue directory size at 0.1909 us/file (sweep [(200, 0.0379), (400, 0.0753), (600, 0.1157), (800, 0.1524)]); crossover vs the 0.139 ms device budget is ~728 files AT THIS LOAD. Both figures move with load and with the machine.",
   "criterion_1_at_live_size": {
     "met": false,
-    "ratio": 3.288,
-    "live_queue_files": 822,
-    "reference_queue_files": 557,
-    "statement": "The committed artifact measured criterion 1 as MET at 557 queue files (0.1123 ms = 0.81x of the 0.139 ms device work). The live queue directory is now larger, and the residual sweep is O(n) even fully cached: the ACTIVE set is re-read and re-parsed on every call by design, so a growing queue costs more per call. Nothing regressed; the input grew past the crossover. This run REPORTS the live figure rather than gating it, because a gate that passed here would be misleading and one that failed would redden run.sh on box state, which is the defect this rework exists to remove."
+    "ratio": 1.86,
+    "ratio_is_load_dependent": true,
+    "loadavg_1m": 3.96,
+    "live_queue_files": 839,
+    "crossover_files_this_run": 728,
+    "statement": "The committed artifact measured criterion 1 as MET at 557 queue files (0.1123 ms = 0.81x of the 0.139 ms device work). The live queue directory is now larger. The residual sweep is O(n) even fully cached -- the ACTIVE set is re-read and re-parsed on every call by design -- so a growing queue costs more per call. Nothing regressed; the input grew past the crossover. THIS RATIO IS LOAD-DEPENDENT and is stamped with the loadavg measured in the same run: marginal cost was ~0.185 us/file at loadavg 4.3 and ~0.28 us/file at loadavg 38 on this host, a ~1.5x spread. Quoting it without its load describes one machine at one moment. This run REPORTS the live figure rather than gating it: a gate that passed here would be misleading and one that failed would redden run.sh on box state."
   },
-  "scaling_law": "cost is linear in queue directory size at ~0.188 us/file (measured 200-819 files, flat). crossover vs the 0.139 ms device budget is ~739 files; the live directory is reported as queue_files_at_measure_time.",
-  "hit_rate": 0.7922,
-  "parses": 854,
-  "files_seen": 4110,
+  "hit_rate": 0.7933,
+  "parses": 867,
+  "files_seen": 4195,
   "terminal_reverify_sec": 30.0,
   "listing_ttl_sec": 0.25,
   "staleness_bound": "a TERMINAL entry is re-verified in full every 30.0s, so a reused job id could be hidden for at most that long. The ACTIVE set is read fresh on EVERY call and is never cached.",

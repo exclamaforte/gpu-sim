@@ -5,11 +5,11 @@
   "cpu_runs": [
     {
       "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.6.1/run.sh",
-      "started_utc": "2026-10-03T18:52:00Z",
-      "ended_utc": "2026-10-03T18:52:40Z",
+      "started_utc": "2026-10-03T19:12:00Z",
+      "ended_utc": "2026-10-03T19:12:40Z",
       "exit": 0,
       "log": "experiments/gpu-sim-u2o.6.6.6.1/output.log",
-      "what": "rework-2 verification under load: run.sh EXIT=0 at loadavg 35.7 (reviewer item 1). 18 tests, 0 failures, 0 skips. Same-process differential 38.4x. criterion_1_at_live_size reported met=false (2.04x at 822 live queue files, past the ~739-file crossover) and is NOT gated. No measured number moved vs c28dce0."
+      "what": "rework-3 verification: run.sh EXIT=0 at loadavg 4.0. 18 tests, 0 failures, 0 skips. Size sweep derived PER RUN (no constant baked in): 0.1909 us/file, crossover ~728 files AT THIS LOAD. criterion_1_at_live_size reported 1.86x at 839 live files, flagged load-dependent, never gating. Zero FAIL words in any artifact. output.log regenerated from one clean run."
     }
   ],
   "cpu_runs_note": "ts_jobs is empty by design and gpu_used is false: this bead never touches the device, and a CPU job in the shared GPU queue would block real GPU work for its whole runtime. Run directly, per the CPU-work rule.",

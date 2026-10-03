@@ -137,7 +137,9 @@ still named as missing rather than implied.
 
 ## Criterion 1 at live queue size: NOT met, and reported rather than gated
 
-The artifact's `0.81x` was measured at **557 queue files**. The live directory is now **~822**, and the residual sweep is linear in directory size (~0.188 us/file, measured flat across 200/400/557/700/819/900). Crossover against the 0.139 ms device budget is **~739 files**, so the instrument now measures ~2.0x device work.
+The artifact's `0.81x` was measured at **557 queue files**. The live directory is now **~838**, past the crossover, so the instrument measures ~2.0x device work *at low load on this host*.
+
+**Every timing-derived number here is load-dependent and is derived per run.** The marginal cost is ~0.185 us/file at loadavg 4.3 and ~0.28 us/file at loadavg 38 -- a ~1.5x spread -- and the crossover moves with it (~737 files at loadavg 5.4, materially fewer under load). The 1.14x / 2.0x / 3.29x figures quoted in earlier commits were the SAME quantity at three different loads, not a spread in the code; that is why they are reconciled here rather than averaged. `measure_cost.py` now runs its own size sweep every time and stamps the slope, the crossover and the loadavg together, so no bare constant is baked into the file or asserted anywhere.
 
 Nothing regressed: the cache still removes the parsing (98% hit rate, ~40x same-process differential, byte-identical output). The ACTIVE set is re-read fresh every call *by design* -- that is what stops the cache hiding a neighbour -- so the residual is O(n) and **the queue outgrew the claim**. `spot_check.json` carries `criterion_1_at_live_size.met = false` with the ratio and file count; `metrics.json` carries `criterion_met: true` (at 557 files) beside `criterion_met_AT_LIVE_SIZE: false`.
 
