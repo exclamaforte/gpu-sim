@@ -1,0 +1,17 @@
+{
+  "bead": "gpu-sim-u2o.6.4",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "python3 experiments/gpu-sim-u2o.6.4/run.sh (gpu_telemetry.py --samples 12 --interval 0.4; tests/test_gpu_telemetry.py)",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.4/output.log",
+      "what": "READ-ONLY diagnostic telemetry only. clocks.sm relative spread 0.893 with throttle masks [0] throughout -- 89% clock movement with no throttle bit set, which is item 4's distinction demonstrated rather than asserted. 8 tests."
+    }
+  ],
+  "hold_in_force": "The MUTATING half (nvidia-smi -lgc/-pl, persistence-mode setup) is HELD PENDING A HUMAN DECISION: it requires root and changes global GPU state shared with cclm, opguard and chessvar. Nothing in this bead invokes it, and a test greps the executable body for those flags.",
+  "not_a_measurement": "Read-only nvidia-smi --query-gpu is diagnostic, permitted outside the queue by the 2026-09-27 rule amendment, and never citable as a measurement. Every record stamps that statement onto the artifact.",
+  "removed_from_my_own_tool": "The first draft had --around <command>, which ran a command beside the sampling. Removed: it invites GPU work outside the queue, which the rules forbid and which would contaminate another tenant's measurement.",
+  "still_owed": "Sampling around an actual QUEUED measurement, and whether throttling is a factor during one. Both need the measurement in the queue; neither is producible by a diagnostic tool beside an idle GPU."
+}
