@@ -1,0 +1,17 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2.1.1",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.2.1.1/run.sh",
+      "started_utc": "2026-10-03T20:05:00Z",
+      "ended_utc": "2026-10-03T20:05:06Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.2.1.1/output.log",
+      "what": "measure_supersession.py inventories all 3 branch-stamped artifacts (2 deleted/superseded refs, 1 live-but-not-current ref) + 10 tests, green"
+    }
+  ],
+  "cpu_runs_note": "No device work; run directly per the CPU-work rule.",
+  "note": "Criterion 4 (disposal of the dirty lab/gpu-sim-u2o.6.6.2-r2 worktree) is NOT done here: disposal is destructive and belongs to gpu-sim-u2o.6.6.2.1 criterion 3. No measurement is at risk -- the three v8 family files were preserved into experiments/gpu-sim-u2o.6.6.2/variance_probe_v8/ before 6.6.2 merged."
+}

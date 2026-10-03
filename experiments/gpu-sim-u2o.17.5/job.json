@@ -43,5 +43,13 @@
     "per_case_throttle_stamp": "every case now carries its own telemetry and a throttle_active flag, so 17.4 can exclude contaminated cases mechanically. 11 of 28 cases were captured while the power cap was active, including the 8192^3 matmul and both chain cases -- cases whose spread alone (5.5-7.2 %) would not have flagged them.",
     "consequence": "the before/after pair could only prove throttling happened SOMEWHERE in the capture; the per-case stamp localises it"
   },
-  "branch": "lab/gpu-sim-u2o.17.5-r2 (split from the shared 6.6.2/17.5 branch at the reviewer's request, so each bead merges independently)"
+  "branch": "lab/gpu-sim-u2o.17.5-r2 (split from the shared 6.6.2/17.5 branch at the reviewer's request, so each bead merges independently)",
+  "superseded_by": {
+    "branch_ref": "lab/gpu-sim-u2o.17.5-r2",
+    "branch_still_exists": false,
+    "commit": "ccb32ad",
+    "commit_subject": "u2o.17.5 rework: populate the four hollow reduce/max cases, per-case throttle stamps",
+    "reachable_from_master": true,
+    "note": "the content landed on master at ccb32ad; the stamped branch ref no longer resolves, so a reader following the stamp alone would find nothing"
+  }
 }

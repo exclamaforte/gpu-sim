@@ -255,6 +255,21 @@ def main() -> int:
     for key in ("anchor_version", "anchor_frozen", "tree_state", "supersedes"):
         if key in job_rec:
             stamp[key] = job_rec[key]
+
+    # gpu-sim-u2o.6.6.2.1.1: an artifact's branch stamp points at history, and
+    # history moves. tree_state.branch records where the measurement RAN, which
+    # stays true; this adds where the content LIVES now, and OMITS the key
+    # rather than writing null when it cannot be established -- a null reads as
+    # coverage, an absent key does not.
+    if isinstance(stamp.get("tree_state"), dict):
+        try:
+            sys.path.insert(0, str(HERE.parents[2]))
+            from scripts.tree_state import stamp_tree_state
+            stamp["tree_state"] = stamp_tree_state(
+                stamp["tree_state"], "gpu-sim-u2o.6.6.2", HERE.parents[2])
+        except Exception as exc:            # never break metrics on a stamp
+            print(f"WARNING: could not stamp superseded_by: {exc}",
+                  file=sys.stderr)
     stamp.setdefault("anchor_version", 1)
 
     for key in ("final_job", "final_job_note", "artifact_produced_by",
