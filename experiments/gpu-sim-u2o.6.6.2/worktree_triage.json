@@ -1,0 +1,119 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2.1",
+  "kind": "STALE WORKTREE TRIAGE -- inspects and reports, never edits",
+  "produced_at_utc": "2026-10-03T21:08:07.069774+00:00",
+  "worktree": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2",
+  "item_2_modified_tracked_files": {
+    "count": 5,
+    "files": [
+      {
+        "path": "xperiments/gpu-sim-u2o.6.6.2/family_gemm.json",
+        "status": "M"
+      },
+      {
+        "path": "experiments/gpu-sim-u2o.6.6.2/family_memory.json",
+        "status": "M"
+      },
+      {
+        "path": "experiments/gpu-sim-u2o.6.6.2/family_reduce.json",
+        "status": "M"
+      },
+      {
+        "path": "experiments/gpu-sim-u2o.6.6.2/output_gemm.log",
+        "status": "M"
+      },
+      {
+        "path": "experiments/gpu-sim-u2o.6.6.2/output_reduce.log",
+        "status": "M"
+      }
+    ],
+    "disposition": "UNRESOLVED BY THIS SCRIPT, ON PURPOSE. The PI ruled on gpu-sim-u2o.6.6.2 that the v8 family files stay exactly as found and are dispositioned under this bead. Committing them requires regenerating metrics.json from a MIXED set (v8 memory/reduce/gemm beside v6 launch), which is the very mixed-provenance artifact this bead exists to prevent. Resetting them discards three finished GPU jobs. Both need the PI's word, so neither is done here."
+  },
+  "item_3_untracked_paths": {
+    "total": 47,
+    "master_owned_copies": 34,
+    "genuinely_new_to_this_branch": 13,
+    "genuinely_new_paths": [
+      "epic_u2o/complete.md",
+      "epic_u2o/deferred.md",
+      "epic_u2o/eval.md",
+      "epic_u2o/experiment.md",
+      "epic_u2o/gate_u2o17_real_vs_naive_trace.json",
+      "epic_u2o/generator.md",
+      "epic_u2o/metrics.md",
+      "epic_u2o/model_arch.md",
+      "epic_u2o/model_specs.md",
+      "epic_u2o/results_writeup.md",
+      "epic_u2o/split.md",
+      "epic_u2o/training_loop.md",
+      "epic_u2o/training_throughput.md"
+    ],
+    "identical_to_master": 14,
+    "differing_from_master": [
+      "epic_u2o/batch_measure.py",
+      "epic_u2o/bottleneck_check.py",
+      "epic_u2o/compare_baselines.py",
+      "epic_u2o/corpus_miner.py",
+      "epic_u2o/experiment_program.py",
+      "epic_u2o/future_extensions.py",
+      "epic_u2o/gate_u2o17_capture_and_compare.py",
+      "epic_u2o/generalization_suites.py",
+      "epic_u2o/generator_multistream.py",
+      "epic_u2o/harness.md",
+      "epic_u2o/measurement_spec.md",
+      "epic_u2o/measurement_stats.py",
+      "epic_u2o/metrics_eval.py",
+      "epic_u2o/preflight.md",
+      "epic_u2o/preflight_validator.py",
+      "epic_u2o/ranking_metrics.py",
+      "epic_u2o/recovery.md",
+      "epic_u2o/repo_scaffold.md",
+      "epic_u2o/toolchain.md",
+      "epic_u2o/training_throughput_profile.py"
+    ],
+    "collisions_with_master_tracked": [
+      "epic_u2o/batch_measure.py",
+      "epic_u2o/bottleneck_check.py",
+      "epic_u2o/compare_baselines.py",
+      "epic_u2o/corpus_miner.py",
+      "epic_u2o/experiment_program.py",
+      "epic_u2o/features.py",
+      "epic_u2o/future_extensions.py",
+      "epic_u2o/gate_u2o17_capture_and_compare.py",
+      "epic_u2o/generalization_suites.py",
+      "epic_u2o/generator_multistream.py",
+      "epic_u2o/generator_stage1.py",
+      "epic_u2o/gpu_control.py",
+      "epic_u2o/gpu_recovery.py",
+      "epic_u2o/harness.md",
+      "epic_u2o/measurement_spec.md",
+      "epic_u2o/measurement_stats.py",
+      "epic_u2o/metrics_eval.py",
+      "epic_u2o/model.py",
+      "epic_u2o/preflight.md",
+      "epic_u2o/preflight_validator.py",
+      "epic_u2o/ptx_tokenizer.py",
+      "epic_u2o/ranking_metrics.py",
+      "epic_u2o/recovery.md",
+      "epic_u2o/repo_scaffold.md",
+      "epic_u2o/representation_ablation.md",
+      "epic_u2o/roofline.py",
+      "epic_u2o/structural_split.py",
+      "epic_u2o/throughput_tracker.py",
+      "epic_u2o/tokenizer.py",
+      "epic_u2o/toolchain.md",
+      "epic_u2o/training_loop.py",
+      "epic_u2o/training_throughput_profile.py",
+      "epic_u2o/tree_baseline.py",
+      "epic_u2o/v1_scope.md"
+    ],
+    "CORRECTION": "The bead's design -- and my own earlier report on gpu-sim-u2o.6.6.2 -- says TWO of the master-owned copies differ (harness.md, preflight_validator.py). MEASURED, it is 20 of 34, all under epic_u2o/. Those two files really are in the set; they are not the only ones. I had confirmed two examples and reported the number of examples as the total, which understates the hazard by an order of magnitude -- twenty stale copies of master-owned code is a different problem from two.",
+    "assertion": "no untracked path in the worktree may also be tracked in master; the collisions list above is the evidence, and it is currently NON-EMPTY",
+    "why_it_matters": "a bulk `git add` in that worktree would add 34 files master already owns, and any branch switch there would overwrite them -- the rebase earlier refused for exactly this reason."
+  },
+  "item_4_mechanism": {
+    "problem": "queue jobs wrote artifacts into a live worktree while git operations were available in the same tree; a tracked-path restore there replaced a finished job's output 20 seconds after it was written",
+    "what_this_bead_adds": "measure_family.py stamps every artifact with its writing job id and a content hash, and verify_artifact_provenance.py compares on-disk provenance against the queue's own record -- so the restore is detectable rather than silent. That is detection, not prevention; prevention is item 4's open question of where jobs should write.",
+    "open": "item 4 also asks that a worktree be QUIESCED before a git operation that can touch tracked paths. That is enforced for destructive git by scripts/guard_destructive_git.py (gpu-sim-edu.1.1 / edu.2), which now also refuses anything that would delete the lab runtime. It is NOT yet enforced for non-destructive tracked-path writes, and this script does not pretend otherwise."
+  }
+}

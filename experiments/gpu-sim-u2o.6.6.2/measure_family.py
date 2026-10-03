@@ -11,11 +11,13 @@ on 6.1.1) and an unaccounted second execution is exactly what this anchor must
 not inherit. Read-only nvidia-smi telemetry before and after; if throttling
 appears it is recorded per config rather than averaged away.
 """
+import hashlib
 import json
 import os
 import statistics
 import subprocess
 import sys
+from datetime import datetime, timezone
 import time
 from pathlib import Path
 
@@ -214,9 +216,35 @@ def measure_family(family: str) -> dict:
     }
 
 
+def _artifact_provenance(data: dict, path: Path) -> dict:
+    """gpu-sim-u2o.6.6.2.1: record WHAT wrote this file, and what it contained.
+
+    On 2026-09-28 a finished queue job wrote family_launch.json and twenty
+    seconds later something shaped like a git restore replaced it with the
+    committed version. The job's log said "wrote ...", the file on disk was a
+    coherent OLDER measurement, and nothing in the artifact said it had been
+    overwritten. The 18/18 measurements existed only in a log.
+
+    So the artifact carries its own identity: which job wrote it, when, and a
+    hash of the content. A later restore leaves a file whose provenance no longer
+    matches the job record, and verify_artifact_provenance.py says so instead of
+    the reader assuming a coherent file is the one that was produced.
+    """
+    return {
+        "written_by_job": (data.get("queue_state_before") or {}).get("own_job_id"),
+        "written_at_utc": datetime.now(timezone.utc).isoformat(),
+        "content_sha256": hashlib.sha256(
+            json.dumps(data, sort_keys=True).encode()).hexdigest(),
+        "note": ("content_sha256 covers this artifact EXCLUDING this provenance "
+                 "block, so it can be recomputed after a restore to detect that "
+                 "the on-disk content is not what this job produced."),
+    }
+
+
 def main() -> int:
     family = sys.argv[1] if len(sys.argv) > 1 else "launch"
     data = measure_family(family)
+    data["artifact_provenance"] = _artifact_provenance(data, HERE)
     out = HERE / f"family_{family}.json"
     out.write_text(json.dumps(data, indent=2))
     print(f"\nwrote {out}")

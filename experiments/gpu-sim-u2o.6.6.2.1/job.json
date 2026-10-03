@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2.1",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "verify_artifact_provenance.py; triage_stale_worktree.py; tests/test_artifact_provenance.py",
+      "exit": 0,
+      "what": "item 1+5: measure_family.py now stamps artifact_provenance (job id, timestamp, content sha256 over the artifact excluding that block); verify_artifact_provenance.py checks provenance presence, content-vs-hash, and job-vs-queue, reporting and never modifying; regression test simulates job-writes-then-restore and asserts the restored file STILL PARSES AND LOOKS FINE while being caught. Items 2+3: triage reports 5 modified, 47 untracked (34 master-owned, 14 identical, 20 differing, 13 new)."
+    }
+  ],
+  "correction_to_the_record": "The design (and my earlier report) says TWO of the 34 master-owned copies differ. Measured: TWENTY, all under epic_u2o/. I confirmed two examples and reported the count of examples as the total.",
+  "item_2_left_undecided": "Committing the 5 modified tracked files means regenerating metrics.json from a MIXED set (v8 memory/reduce/gemm beside v6 launch), which is the artifact this bead exists to prevent; resetting discards three finished GPU jobs. Both need the PI's word.",
+  "item_4_partially_done": "Quiescence before tracked-path git is enforced for destructive git by guard_destructive_git.py; NOT enforced for non-destructive tracked-path writes."
+}
