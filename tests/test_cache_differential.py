@@ -64,6 +64,23 @@ def write_job(qdir: Path, jid: str, state: str, **extra) -> Path:
     return p
 
 
+
+# gpu-sim-u2o.6.6.6.1 rework 4 -- the 6.6.6 contract break.
+#
+# queue_state() with no identifying argument now RAISES IdentificationError
+# rather than returning own_job_id=null. That is 6.6.6's fail-loudly property and
+# it is correct. These tests measure the LOADER's cost and differential
+# behaviour; they are not audit records and there is no own job to identify out
+# here. So they route through loader_call(), which lets the refusal happen and
+# RECORDS it, rather than catching-and-continuing (which would rebuild the null
+# own_job_id 6.6.6 exists to remove) or inventing an argument that resolves.
+def loader_call(**kwargs):
+    try:
+        return qs.queue_state(**kwargs), "resolved"
+    except qs.IdentificationError as exc:
+        return {"own_job_id": None, "identification": "refused",
+                "identification_error": str(exc)[:200]}, "refused"
+
 class CacheDifferential(unittest.TestCase):
     def setUp(self):
         self.td = Path(tempfile.mkdtemp())
@@ -174,7 +191,24 @@ class CacheDifferential(unittest.TestCase):
 
     # --- 4. the module is still a RECORD, not a filter --------------------
     def test_active_set_survives_the_cache(self):
-        st = qs.queue_state()
+        """Exercises the REAL audit path, including 6.6.6's own_job_entry.
+
+        After the rebase queue_state() refuses to write a record with a null
+        own_job_id, so a fixture with no identifiable job cannot produce one at
+        all. Rather than assert the refusal here -- which is 6.6.6's test, in
+        tests/test_queue_state.py -- this identifies one of the fixture's own
+        running jobs and checks the record that comes back. So the cache is
+        proven not to hide an active job on the same path an audit takes.
+        """
+        ours = sorted(p.stem for p in self.qdir.glob("20260101t000000-*.json"))[0]
+        st, how = loader_call(own_job_id=ours)
+        self.assertEqual(how, "resolved",
+                         "with an identifiable job the record must be produced")
+        self.assertEqual(st["own_job_id"], ours)
+        self.assertIn("own_job_entry", st,
+                      "6.6.6's own_job_entry must survive the rebase: it is "
+                      "captured from the ACTIVE set, which the cache never "
+                      "serves stale")
         self.assertIn("n_active_including_self", st)
         self.assertIn("other_running_jobs", st)
         self.assertGreaterEqual(st["n_active_including_self"], 3,

@@ -1,66 +1,67 @@
 {
   "bead": "gpu-sim-u2o.6.6.6.1",
-  "produced_at_utc": "2026-10-03T18:52:14.421456+00:00",
+  "produced_at_utc": "2026-10-03T19:42:12.016719+00:00",
   "produced_by": "experiments/gpu-sim-u2o.6.6.6.1/measure_cost.py (committed code, this tree)",
   "loadavg_1_5_15": [
-    3.95751953125,
-    7.39404296875,
-    24.10205078125
+    34.15673828125,
+    29.97314453125,
+    27.859375
   ],
-  "queue_files_at_measure_time": 839,
+  "queue_files_at_measure_time": 849,
   "n_rounds": 15,
   "cached_ms": {
-    "median": 0.2586,
-    "min": 0.253
+    "median": 0.2583,
+    "min": 0.2553
   },
   "uncached_ms": {
-    "median": 10.9985,
-    "min": 8.6569
+    "median": 10.5851,
+    "min": 9.3974
   },
-  "speedup_same_process_uncached_over_cached": 42.5,
+  "speedup_same_process_uncached_over_cached": 41.0,
   "device_time_ms_cited_from_6_7_1": 0.139,
-  "ratio_cached_min_to_device": 1.82,
-  "ratio_cached_median_to_device_at_live_size": 1.86,
+  "ratio_cached_min_to_device": 1.836,
+  "ratio_cached_median_to_device_at_live_size": 1.859,
   "reference_dir_files": 557,
-  "per_file_cost_us": 0.30818,
+  "per_file_cost_us": 0.30429,
   "size_sweep_points_this_run": [
     [
       200,
-      0.03791
+      0.03882
     ],
     [
       400,
-      0.0753
+      0.07544
     ],
     [
       600,
-      0.11572
+      0.11355
     ],
     [
       800,
-      0.15239
+      0.1517
     ]
   ],
-  "slope_us_per_file_this_run": 0.19087,
-  "crossover_files_this_run": 728,
-  "loadavg_1m_at_sweep": 3.96,
-  "scaling_law": "measured THIS RUN at loadavg(1m)=4.0: cost is linear in queue directory size at 0.1909 us/file (sweep [(200, 0.0379), (400, 0.0753), (600, 0.1157), (800, 0.1524)]); crossover vs the 0.139 ms device budget is ~728 files AT THIS LOAD. Both figures move with load and with the machine.",
+  "slope_us_per_file_this_run": 0.18953,
+  "crossover_files_this_run": 733,
+  "loadavg_1m_at_sweep": 34.16,
+  "scaling_law": "measured THIS RUN at loadavg(1m)=34.2: cost is linear in queue directory size at 0.1895 us/file (sweep [(200, 0.0388), (400, 0.0754), (600, 0.1135), (800, 0.1517)]); crossover vs the 0.139 ms device budget is ~733 files AT THIS LOAD. Both figures move with load and with the machine.",
   "criterion_1_at_live_size": {
     "met": false,
-    "ratio": 1.86,
+    "ratio": 1.859,
     "ratio_is_load_dependent": true,
-    "loadavg_1m": 3.96,
-    "live_queue_files": 839,
-    "crossover_files_this_run": 728,
+    "loadavg_1m": 34.16,
+    "live_queue_files": 849,
+    "crossover_files_this_run": 733,
     "statement": "The committed artifact measured criterion 1 as MET at 557 queue files (0.1123 ms = 0.81x of the 0.139 ms device work). The live queue directory is now larger. The residual sweep is O(n) even fully cached -- the ACTIVE set is re-read and re-parsed on every call by design -- so a growing queue costs more per call. Nothing regressed; the input grew past the crossover. THIS RATIO IS LOAD-DEPENDENT and is stamped with the loadavg measured in the same run: marginal cost was ~0.185 us/file at loadavg 4.3 and ~0.28 us/file at loadavg 38 on this host, a ~1.5x spread. Quoting it without its load describes one machine at one moment. This run REPORTS the live figure rather than gating it: a gate that passed here would be misleading and one that failed would redden run.sh on box state."
   },
-  "hit_rate": 0.7933,
-  "parses": 867,
-  "files_seen": 4195,
+  "hit_rate": 0.7915,
+  "parses": 885,
+  "files_seen": 4245,
   "terminal_reverify_sec": 30.0,
   "listing_ttl_sec": 0.25,
   "staleness_bound": "a TERMINAL entry is re-verified in full every 30.0s, so a reused job id could be hidden for at most that long. The ACTIVE set is read fresh on EVERY call and is never cached.",
   "gates": {
+    "size_sweep_produced_points": true,
     "differential_cached_le_uncached_over_10": true,
     "cache_engages": true,
     "staleness_reported": true
@@ -70,12 +71,9 @@
   "exact_ms_not_claimed_reproducible": "Millisecond figures move with box load (see loadavg) and queue directory size; gate-reproducibility is claimed, exact-ms reproducibility is not. The strict 0.81x headline ratio lives in metrics.json with its own measurement provenance."
 }
 SPOT CHECK PASS: no gate failed
-SIZE SWEEP (derived this run at loadavg(1m)=4.0): [(200, 0.0379), (400, 0.0753), (600, 0.1157), (800, 0.1524)]
-  marginal cost 0.1909 us/file; crossover ~728 files AT THIS LOAD
-CRITERION 1 AT LIVE SIZE (reported, never gating): 1.86x device time at 839 live queue files, at loadavg(1m)=4.0. Ratio is load-dependent.
-es, at loadavg(1m)=4.0. Ratio is load-dependent.
-=== measure_cost exit=0 ===
-=== cost suite ===
+SIZE SWEEP (derived this run at loadavg(1m)=34.2): [(200, 0.0388), (400, 0.0754), (600, 0.1135), (800, 0.1517)]
+  marginal cost 0.1895 us/file; crossover ~733 files AT THIS LOAD
+CRITERION 1 AT LIVE SIZE (reported, never gating): 1.86x device time at 849 live queue files, at loadavg(1m)=34.2. Ratio is load-dependent.
 test_cache_actually_engages (__main__.TestInstrumentIsCheapEnough.test_cache_actually_engages) ... ok
 test_cached_order_of_magnitude_faster_than_uncached (__main__.TestInstrumentIsCheapEnough.test_cached_order_of_magnitude_faster_than_uncached)
 THE BEAD'S GUARD, differential rather than absolute. ... ok
@@ -91,15 +89,18 @@ test_reset_clears_the_cache_and_the_stats (__main__.TestTheCacheCannotHideANeigh
 test_staleness_bound_is_reported_not_just_implemented (__main__.TestTheCacheCannotHideANeighbour.test_staleness_bound_is_reported_not_just_implemented) ... ok
 test_terminal_entries_are_bounded_by_reverification (__main__.TestTheCacheCannotHideANeighbour.test_terminal_entries_are_bounded_by_reverification)
 A reused job id is a real hazard, so it gets a real bound. ... ok
+test_bare_call_still_raises_rather_than_returning_a_null_id (__main__.TestTheContractBreakIsStillLoud.test_bare_call_still_raises_rather_than_returning_a_null_id) ... ok
+test_identification_resolves_and_then_the_record_is_produced (__main__.TestTheContractBreakIsStillLoud.test_identification_resolves_and_then_the_record_is_produced) ... ok
+test_the_helper_records_the_refusal_rather_than_hiding_it (__main__.TestTheContractBreakIsStillLoud.test_the_helper_records_the_refusal_rather_than_hiding_it)
+loader_call() must not rebuild the null own_job_id 6.6.6 removed. ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 0.276s
+Ran 13 tests in 0.328s
 
 OK
-=== test_queue_state_cost exit=0 ===
-=== differential suite ===
 test_a_running_job_is_never_served_stale (__main__.CacheDifferential.test_a_running_job_is_never_served_stale) ... ok
-test_active_set_survives_the_cache (__main__.CacheDifferential.test_active_set_survives_the_cache) ... ok
+test_active_set_survives_the_cache (__main__.CacheDifferential.test_active_set_survives_the_cache)
+Exercises the REAL audit path, including 6.6.6's own_job_entry. ... ok
 test_identity_holds_after_the_cache_is_warm (__main__.CacheDifferential.test_identity_holds_after_the_cache_is_warm) ... ok
 test_output_identical_to_uncached (__main__.CacheDifferential.test_output_identical_to_uncached) ... ok
 test_queued_to_running_is_visible_immediately (__main__.CacheDifferential.test_queued_to_running_is_visible_immediately) ... ok
@@ -109,14 +110,6 @@ The one honest cost of this design, measured rather than asserted. ... ok
 test_the_window_is_reported_in_the_stats (__main__.CacheDifferential.test_the_window_is_reported_in_the_stats) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.254s
-
-OK
-=== test_cache_differential exit=0 ===
-=== run.sh: all green ===
-ted_in_the_stats) ... ok
-
-----------------------------------------------------------------------
-Ran 8 tests in 0.254s
+Ran 8 tests in 0.255s
 
 OK

@@ -68,34 +68,26 @@ DEVICE_TIME_MS = 0.139  # gpu-sim-u2o.6.7.1 measured device work per example
 DIFFERENTIAL_FACTOR = 10.0
 N = 15
 
-# The criterion-1 claim, restated so that it is FALSIFIABLE and SIZE-INDEPENDENT.
+# The criterion-1 claim is DERIVED PER RUN, never asserted from a constant.
 #
-# The bead's headline is "queue_state() < 0.139 ms of device work". That ratio is
-# not a property of the code alone -- it is a property of the code AND THE QUEUE
-# DIRECTORY, which the cache still sweeps once per call (cached terminal entries
-# plus a stat per uncached one). Measured on this host the cost is LINEAR in
-# directory size at ~0.188 us/file, flat across 200-819 files:
-#
-#     files   200    400    557    700    819    900
-#     ms    .0366  .0733  .1030  .1284  .1582  .1741
-#
-# So the absolute ratio moves as the queue grows, and it HAS grown: the artifact
-# was measured at 557 files (0.81x, correct at the time) and the live directory
-# is now 819 files (~1.1x). Nothing regressed -- the input moved. The crossover
-# where the instrument stops being cheaper than the device is ~739 files.
-#
-# What is asserted here is therefore the MARGINAL, size-independent quantity:
-# the instrument must cost less PER FILE than the device-time budget divided by
-# the reference directory size. That is the property the cache delivers, and it
-# is the property that stays true as the queue grows. The absolute ratio is
-# REPORTED and never reddens the run.
+# Every timing figure this file reports comes from measure_size_sweep(), run in
+# this process, and is stamped with the loadavg measured at the same moment. The
+# hardcoded numbers that used to live here -- the ~0.188 us/file slope, the 819
+# live-file count, the ~739-file crossover, a ~1.3x load factor -- were removed
+# because each was one machine at one moment written as a property of the code.
+# See _scaling_law() and the module docstring for what is asserted, and for why
+# two earlier attempts to gate on an absolute or per-file millisecond figure were
+# both wrong.
 REFERENCE_DIR_FILES = 557          # the directory size the artifact measured
-# The budget below is a REFERENCE POINT for reporting, not a tuned pass/fail
-# constant. Two attempts to gate on an absolute or per-file millisecond figure
-# were both wrong: a 2x margin failed at 0.279 vs 0.278 ms at loadavg 94, and a
-# loadavg(1m)<=ncpu condition still passed at 1.91x when loadavg was 14.3. Load
-# moves the per-file cost by ~1.3x on its own, so NO fixed constant separates the
-# regimes. The gates are therefore all DIFFERENTIAL (see _scaling_verdict).
+# REFERENCE_DIR_FILES is the size the committed artifact measured at, kept so the
+# artifact's numbers stay interpretable. It is NOT a threshold and NOTHING is
+# gated against it: two attempts to gate on an absolute or per-file millisecond
+# figure were both wrong -- a 2x margin failed at 0.279 vs 0.278 ms at loadavg
+# 94, and a loadavg(1m)<=ncpu condition still passed at 1.91x when loadavg was
+# 14.3. Load moves the per-file cost by ~1.5x on its own (measured: ~0.185
+# us/file at loadavg 4.3 against ~0.28 at loadavg 38), so no fixed constant
+# separates the regimes. The gates are therefore all DIFFERENTIAL -- see
+# _reference_verdict and the module docstring.
 
 
 def _scaling_law(points, loadavg_1m, slope_us_per_file) -> str:
@@ -114,6 +106,49 @@ def _scaling_law(points, loadavg_1m, slope_us_per_file) -> str:
             f"{DEVICE_TIME_MS} ms device budget is ~{crossover:.0f} files AT THIS "
             f"LOAD. Both figures move with load and with the machine.")
 
+
+
+# ---------------------------------------------------------------------------
+# gpu-sim-u2o.6.6.6.1 rework 4: the 6.6.6 contract break.
+#
+# After gpu-sim-u2o.6.6 merged, queue_state() with no identifying argument
+# RAISES IdentificationError instead of returning a record with own_job_id=null
+# -- 6.6.6's fail-loudly property, and it is correct. It also breaks every bare
+# call site in this file, because this file is an INSTRUMENT SELF-TEST running
+# outside the queue, where there IS no own job to identify.
+#
+# The wrong fix is to catch the exception and carry on, which would rebuild the
+# null own_job_id that 6.6.6 exists to remove. The wrong fix on the other side
+# is to invent an identifying argument that happens to resolve.
+#
+# So the helper below states what the call IS: a cost measurement of the loader,
+# not an audit record. It attempts identification, lets it be REFUSED, and
+# records the refusal as a field rather than swallowing it. An absent or refused
+# field must never read as coverage.
+# ---------------------------------------------------------------------------
+
+
+def benchmark_call(**kwargs):
+    """queue_state() for cost measurement. Returns (record, identification).
+
+    `identification` is one of "resolved", "refused", "error:<Type>". A refused
+    identification is NOT a pass and NOT a null own_job_id -- it is recorded, so
+    a reader of any artifact produced here can see that this record makes no
+    claim about which job was ours, because there was none.
+    """
+    try:
+        return qs.queue_state(**kwargs), "resolved"
+    except qs.IdentificationError as exc:
+        return {"own_job_id": None,
+                "identification": "refused",
+                "identification_error": str(exc)[:200],
+                "scope": ("instrument self-test outside the queue: this record "
+                          "makes NO claim about our own job, which is correct "
+                          "because there is none. It is not an audit record.")}, \
+               "refused"
+    except Exception as exc:                       # never hide an unexpected break
+        return {"own_job_id": None, "identification": f"error:{type(exc).__name__}",
+                "error": str(exc)[:200]}, f"error:{type(exc).__name__}"
 
 def measure_size_sweep(sizes=(200, 400, 600, 800), trials: int = 7) -> list:
     """Median warm cost of the instrument against TEMPORARY dirs of n files.
@@ -149,11 +184,18 @@ def measure_size_sweep(sizes=(200, 400, 600, 800), trials: int = 7) -> list:
             mod = _ilu.module_from_spec(spec)
             spec.loader.exec_module(mod)
             mod.QUEUE_DIR = tmp
-            mod.queue_state()                      # warm
+            # Since 6.6.6 merged, queue_state() refuses to write a record
+            # with a null own_job_id. A synthetic queue has no own job, so the
+            # arm must IDENTIFY one of the jobs it just wrote. Previously it
+            # called bare, every point raised, and the sweep returned [] --
+            # which SPOT CHECK PASS then reported as success. A silent empty
+            # measurement is worse than a loud one.
+            ours = f"job{n - 1:05d}"
+            mod.queue_state(own_job_id=ours)       # warm
             samples = []
             for _ in range(trials):
                 t0 = time.perf_counter()
-                mod.queue_state()
+                mod.queue_state(own_job_id=ours)
                 samples.append((time.perf_counter() - t0) * 1e3)
             points.append((n, statistics.median(samples)))
         except Exception as exc:                    # never break the run
@@ -177,29 +219,29 @@ def fit_slope_us_per_file(points: list) -> float | None:
 
 def single_cached_call_ms() -> float:
     t0 = time.perf_counter()
-    qs.queue_state()
+    benchmark_call()
     return (time.perf_counter() - t0) * 1e3
 
 
 def single_uncached_call_ms() -> float:
     qs.reset_cache()  # cold: nothing cached, full glob + parse on next call
     t0 = time.perf_counter()
-    qs.queue_state()
+    benchmark_call()
     return (time.perf_counter() - t0) * 1e3
 
 
 def main() -> int:
     # Interleave the arms round by round so a load drift mid-run hits both.
     qs.reset_cache()
-    qs.queue_state()  # warm once; the first-call cost is not the steady state
+    benchmark_call()   # warm once; first-call cost is not the steady state
     cached, uncached = [], []
     for _ in range(N):
         cached.append(single_cached_call_ms())
         uncached.append(single_uncached_call_ms())
-        qs.queue_state()  # re-warm after the reset so the next cached sample is warm
+        benchmark_call()   # re-warm after the reset for the next cached sample
     qs.reset_cache()
     for _ in range(5):  # re-warm, then collect steady-state stats for the record
-        qs.queue_state()
+        benchmark_call()
     stats = qs.load_stats()
 
     cached_med = statistics.median(cached)
@@ -223,6 +265,11 @@ def main() -> int:
     load1 = loadavg[0] if loadavg else float("nan")
     crossover_n = (DEVICE_TIME_MS / (slope_us / 1e3)) if slope_us else None
     gates = {
+        # A sweep that produced no points is not a pass with nothing to say --
+        # it is a measurement that did not happen. Before this gate existed the
+        # rebase's contract break made every sweep point raise, the sweep came
+        # back empty, and SPOT CHECK PASS reported success anyway.
+        "size_sweep_produced_points": bool(sweep_points),
         "differential_cached_le_uncached_over_10": bool(
             cached_med <= uncached_med / DIFFERENTIAL_FACTOR
         ),

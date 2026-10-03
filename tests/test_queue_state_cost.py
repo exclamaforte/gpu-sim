@@ -56,12 +56,29 @@ def timed_uncached(n=10):
     for _ in range(n):
         qs.reset_cache()
         t0 = time.perf_counter()
-        qs.queue_state()
+        loader_call()
         ts.append((time.perf_counter() - t0) * 1e3)
     qs.reset_cache()
-    qs.queue_state()  # leave the cache warm for whatever runs next
+    loader_call()  # leave the cache warm for whatever runs next
     return sorted(ts)[n // 2]
 
+
+
+# gpu-sim-u2o.6.6.6.1 rework 4 -- the 6.6.6 contract break.
+#
+# queue_state() with no identifying argument now RAISES IdentificationError
+# rather than returning own_job_id=null. That is 6.6.6's fail-loudly property and
+# it is correct. These tests measure the LOADER's cost and differential
+# behaviour; they are not audit records and there is no own job to identify out
+# here. So they route through loader_call(), which lets the refusal happen and
+# RECORDS it, rather than catching-and-continuing (which would rebuild the null
+# own_job_id 6.6.6 exists to remove) or inventing an argument that resolves.
+def loader_call(**kwargs):
+    try:
+        return qs.queue_state(**kwargs), "resolved"
+    except qs.IdentificationError as exc:
+        return {"own_job_id": None, "identification": "refused",
+                "identification_error": str(exc)[:200]}, "refused"
 
 class TestInstrumentIsCheapEnough(unittest.TestCase):
     def test_cached_order_of_magnitude_faster_than_uncached(self):
@@ -82,7 +99,7 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
         ~1x by construction and fails this no matter how quiet or loaded the
         box is.
         """
-        cached_ms = timed(qs.queue_state)
+        cached_ms = timed(loader_call)
         uncached_ms = timed_uncached()
         try:
             load = os.getloadavg()[0]
@@ -120,7 +137,7 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
         which is the defect the rework exists to remove. The structural fix is
         gpu-sim-u2o.6.6.6.3.
         """
-        st = qs.queue_state()
+        st = live_record()
         self.assertIn("recorded_at", st)
         stats = qs.load_stats()
         n_files = len(list(qs.QUEUE_DIR.glob("*.json")))
@@ -128,7 +145,7 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
         samples = []
         for _ in range(15):
             t0 = time.perf_counter()
-            qs.queue_state()
+            loader_call()
             samples.append((time.perf_counter() - t0) * 1e3)
         best = min(samples)
         # MEANINGFUL, not a tautology. The previous assertion here was
@@ -154,9 +171,33 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
         # that is what makes the ratio interpretable rather than a bare number.
         self.assertGreater(stats["files_seen"], 0,
                            "no record of how many files this cost covers")
-        # And the load must be recorded too: a timing without its load is the
-        # exact defect this bead's rework was filed for.
-        self.assertGreaterEqual(len(samples), 15)
+        # AND THE LOAD MUST BE RECORDED -- the comment above used to claim this
+        # while asserting len(samples) >= 15, which a list literal two lines
+        # above cannot fail. That was the same tautology the reviewer flagged at
+        # the previous line number, moved down. So assert the REAL thing: the
+        # reported figure carries its load, and the statistic it is quoted
+        # against is the signed cross-run spread from gpu-sim-u2o.6.6.7 rather
+        # than a single bare number.
+        try:
+            load = os.getloadavg()[0]
+        except (AttributeError, OSError):
+            load = None
+        self.assertIsNotNone(load, "the box must expose a load average, or "
+                                   "every timing reported here is unlabelled")
+        self.assertGreaterEqual(load, 0.0)
+
+        # The resolution a bare ratio must be read against. Quoting per-file
+        # cost with no spread is the defect this bead was filed for, so the
+        # artifact carries the band and the test asserts the band exists.
+        probe = REPO / "experiments" / "gpu-sim-u2o.6.6.7" / "metrics.json"
+        if probe.exists():
+            import json as _json
+            band = _json.loads(probe.read_text())["overall_spread"]["resolution_band"]
+            self.assertEqual(len(band), 2)
+            self.assertLess(band[0], band[1], "the resolution band must be ordered")
+            self.assertLess(band[0], 1.0,
+                            "the band must straddle 1.0, or a speedup can never "
+                            "be judged against real fast-side noise")
 
     def test_does_not_regress_to_a_full_scan(self):
         """A looser but load-bearing floor, so the failure is legible.
@@ -164,7 +205,7 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
         Even if the target is missed, a change that restores the full directory
         scan must FAIL rather than merely be slower than before.
         """
-        ms = timed(qs.queue_state)
+        ms = timed(loader_call)
         self.assertLess(ms, BASELINE_MS / 2.0,
                         f"{ms:.3f} ms is within 2x of the un-cached "
                         f"{BASELINE_MS} ms baseline -- the terminal cache is "
@@ -172,17 +213,69 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
 
     def test_cache_actually_engages(self):
         qs.reset_cache()
-        qs.queue_state()          # cold: nothing cached yet, so 0% by definition
-        qs.queue_state()          # second call: every file is a MISS the first
+        loader_call()          # cold: nothing cached yet, so 0% by definition
+        loader_call()          # second call: every file is a MISS the first
                                   # time it is seen, so the running hit rate is
                                   # still 0.500 after two calls
-        qs.queue_state()          # third: 0.667, unambiguously engaged
+        loader_call()          # third: 0.667, unambiguously engaged
         s = qs.load_stats()
         self.assertGreater(s["hit_rate"], 0.5,
                            "the terminal cache is not being used; a speedup with "
                            "no hit rate is a claim, not a measurement")
         self.assertLess(s["parses"], s["files_seen"],
                         "every file is being parsed on every call")
+
+
+
+def live_record():
+    """A REAL audit record from the live queue, by identifying a real job.
+
+    Two tests assert the SHAPE of the record queue_state() produces. Since 6.6.6
+    merged, that record requires identification, so these tests cannot fabricate
+    one. They identify an actual active job instead, and skip VISIBLY when the
+    queue happens to be empty -- a skip that says so, never a silent pass.
+    """
+    jobs = qs._load_all()
+    active = [j for j in jobs if j.get("state") in qs.ACTIVE]
+    if not active:
+        raise unittest.SkipTest(
+            "no active job in the live queue to identify; cannot produce a real "
+            "audit record, and fabricating one is exactly what 6.6.6 forbids")
+    return qs.queue_state(own_job_id=active[0].get("id"))
+
+
+class TestTheContractBreakIsStillLoud(unittest.TestCase):
+    """gpu-sim-u2o.6.6.6.1 rework 4: 6.6.6's fail-loudly property must survive.
+
+    The rebase onto master brought in 6.6.6, which makes queue_state() RAISE
+    rather than write a record with own_job_id=null. This is 6.6.6's property,
+    it is correct, and nothing in this branch may quietly undo it -- least of
+    all the loader_call() helpers added here to make the suite runnable again.
+    """
+
+    def test_bare_call_still_raises_rather_than_returning_a_null_id(self):
+        with self.assertRaises(qs.IdentificationError):
+            qs.queue_state()
+
+    def test_the_helper_records_the_refusal_rather_than_hiding_it(self):
+        """loader_call() must not rebuild the null own_job_id 6.6.6 removed."""
+        st, how = loader_call()
+        self.assertEqual(how, "refused")
+        self.assertIsNone(st["own_job_id"])
+        self.assertIn("identification", st)
+        self.assertIn("identification_error", st,
+                      "the refusal must carry WHY, not just that it happened")
+
+    def test_identification_resolves_and_then_the_record_is_produced(self):
+        jobs = qs._load_all()
+        active = [j for j in jobs if j.get("state") in qs.ACTIVE]
+        if not active:
+            self.skipTest("no active job in the live queue")
+        oid = active[0].get("id")
+        st = qs.queue_state(own_job_id=oid)
+        self.assertEqual(st["own_job_id"], oid)
+        self.assertIn("own_job_entry", st,
+                      "6.6.6's own_job_entry must be present after the rebase")
 
 
 class TestTheCacheCannotHideANeighbour(unittest.TestCase):
@@ -204,7 +297,7 @@ class TestTheCacheCannotHideANeighbour(unittest.TestCase):
 
     def test_staleness_bound_is_reported_not_just_implemented(self):
         qs.reset_cache()
-        qs.queue_state()
+        loader_call()
         s = qs.load_stats()
         self.assertIn("staleness_bound", s)
         self.assertIn("re-verified", s["staleness_bound"])
@@ -246,7 +339,7 @@ class TestRecordIsStillARecord(unittest.TestCase):
                              f"supposed to RECORD, not to filter")
 
     def test_active_set_is_still_reported(self):
-        st = qs.queue_state()
+        st = live_record()
         for key in ("n_active_including_self", "other_active_jobs",
                     "other_running_jobs"):
             self.assertIn(key, st)
