@@ -30,6 +30,22 @@ from collections import defaultdict
 # not here cannot be pooled with anything, which is the safe default: an
 # unrecognised protocol is treated as its own singleton group rather than
 # assumed compatible with a known one.
+# gpu-sim-u2o.6.7.1 review: the registry had THREE DIFFERENT FIELD SETS, so
+# `PROTOCOLS[name]["label_range_x"]` raised KeyError for perproc_7_1_driver --
+# which is missing five fields a consumer would reasonably index. A registry that
+# varies its shape is a registry that fails at the CONSUMER, far from here, with
+# a KeyError naming nothing.
+#
+# REGISTRY_FIELDS is the union of what any entry carries. Every entry is
+# normalised to carry all of them, with None meaning "not measured for this
+# protocol" -- an explicit absence rather than a missing key.
+REGISTRY_FIELDS = (
+    "measured", "rows", "wall_sec", "ex_per_sec", "invocations",
+    "label_range_x", "median_ai_cv", "executable", "process_model",
+    "timed_launches_per_example", "median_rel_diff_vs_reference",
+    "not_measured_reason",
+)
+
 PROTOCOLS = {
     "single_run_7_1": {
         "measured": True,
@@ -160,3 +176,50 @@ def write_rows(path, rows) -> None:
     with open(path, "w") as fh:
         for r in out:
             fh.write(json.dumps(r) + "\n")
+
+
+def _normalise_registry() -> dict:
+    """Give every entry the same fields, so no consumer can KeyError.
+
+    Missing measurements become None plus a `not_measured_reason`, because a
+    protocol that was never measured is a fact, and silently omitting the key
+    hides it behind an exception somewhere else.
+    """
+    out = {}
+    for name, entry in PROTOCOLS.items():
+        e = dict(entry)
+        missing = [f for f in REGISTRY_FIELDS if f not in e and f != "not_measured_reason"]
+        for f in missing:
+            e[f] = None
+        if missing and "not_measured_reason" not in e:
+            e["not_measured_reason"] = (
+                "not measured for this protocol: " + ", ".join(sorted(missing)))
+        out[name] = e
+    return out
+
+
+PROTOCOLS = _normalise_registry()
+
+
+def registry_field(name: str, field: str):
+    """Read a registry field WITHOUT raising.
+
+    Returns REGISTRY_MISSING rather than KeyError for an unknown field, so a
+    consumer asking a question the registry cannot answer gets a value it can
+    test, not an exception naming the wrong thing.
+    """
+    e = PROTOCOLS.get(name)
+    if e is None:
+        return REGISTRY_MISSING
+    return e.get(field, REGISTRY_MISSING)
+
+
+class _Missing:
+    def __repr__(self):
+        return "REGISTRY_MISSING"
+
+    def __bool__(self):
+        return False
+
+
+REGISTRY_MISSING = _Missing()

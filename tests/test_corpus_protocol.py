@@ -23,6 +23,7 @@ so these tests make each clause fail loudly:
 Run:  python3 tests/test_corpus_protocol.py
 """
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -120,14 +121,76 @@ class TestTheReferenceIsFrozen(unittest.TestCase):
         self.assertIn("SCALE ONLY", d["authority"])
         self.assertIn("may not be pooled", d["authority"])
 
-    def test_the_measured_3_2x_statistic_shift_is_recorded(self):
-        """This is the number the whole condition exists for. If it is edited
-        out, the condition loses its justification."""
-        a = PROTOCOLS[REF]["median_ai_cv"]
-        b = PROTOCOLS[FAST]["median_ai_cv"]
-        self.assertGreater(a / b, 3.0,
-                           "the recorded shift is smaller than the measured "
-                           "3.2x the condition was written against")
+    def test_the_measured_statistic_shift_is_recorded(self):
+        """Every candidate ratio must be DERIVED, and a stale claim RECORDED.
+
+        This used to assert `REF/FAST > 3.0` -- a number typed into the test
+        rather than read from the data. Re-measured, no pair of 264-row
+        protocols gives 3.2x (the three are 1.18, 2.78, 2.36), so the old
+        assertion was checking a claim nothing supports.
+
+        It is NOT corrected to one of those either. That would make the test
+        agree with whatever the data says today and stop it noticing that a
+        DECISION was written against an uncheckable claim. Instead:
+
+          1. every pair the artifact records must equal the DERIVED ratio, so
+             the numbers are checkable rather than prose; and
+          2. if the prose claims a shift no derived ratio supports, the
+             artifact must record that disagreement.
+
+        Clause 2 is the guard. It fails if someone edits the medians without
+        updating the pairs, or leaves a prose claim contradicting the data with
+        nothing recording it. It does not decide the scientific question, which
+        is not a test's to decide -- and which is now stated as a question
+        rather than buried.
+        """
+        art = (REPO / "experiments" / "gpu-sim-u2o.6.7.1"
+               / "corpus_decision.json")
+        if not art.exists():
+            self.skipTest("corpus_decision.json not present")
+        blk = json.loads(art.read_text())["PROTOCOL_CONDITION_IMPLEMENTED"]
+
+        recorded = blk.get("measured_statistic_shift_ALL_PAIRS")
+        self.assertIsNotNone(
+            recorded,
+            "the decision records no structured statistic shift, so its "
+            "justification cannot be checked by anything")
+
+        for entry in recorded:
+            x, y = entry["pair"]
+            derived = PROTOCOLS[x]["median_ai_cv"] / PROTOCOLS[y]["median_ai_cv"]
+            self.assertAlmostEqual(
+                derived, entry["ratio"], places=3,
+                msg=(f"recorded ratio for {x}/{y} is {entry['ratio']} but the "
+                     f"registry medians give {derived:.4f}. The artifact has "
+                     f"drifted from the data it claims to summarise."))
+
+        m = re.search(r"moves (\d+\.\d+)x", json.dumps(blk))
+        if m:
+            claimed = float(m.group(1))
+            if not any(abs(claimed - e["ratio"]) <= 0.05 for e in recorded):
+                self.assertIn(
+                    "measured_statistic_shift_UNRESOLVED", blk,
+                    f"the prose claims {claimed}x, no derived ratio supports "
+                    f"it, and nothing in the artifact records the disagreement. "
+                    f"Either correct the prose or record why.")
+
+    @staticmethod
+    def _claimed_shift():
+        """The shift the decision document claims, wherever it is recorded."""
+        art = (REPO / "experiments" / "gpu-sim-u2o.6.7.1"
+               / "corpus_decision.json")
+        if not art.exists():
+            return None
+        d = json.loads(art.read_text())
+        for key in ("THE_BINDING_CONSTRAINT_IS_NOT_ROW_COUNT",
+                    "PROTOCOL_CONDITION_IMPLEMENTED"):
+            blk = d.get(key)
+            if isinstance(blk, dict):
+                v = blk.get("measured_statistic_shift_x")
+                if isinstance(v, (int, float)):
+                    return float(v)
+        return None
 
     def test_every_registered_protocol_was_actually_measured(self):
         for name, d in PROTOCOLS.items():
@@ -147,11 +210,20 @@ class TestTheCorpusDecisionIsOnLearningGrounds(unittest.TestCase):
         return json.loads(self.ART.read_text())
 
     def test_the_binding_constraint_is_named(self):
+        """Keyed by NAME, never by position.
+
+        The previous version asserted `"NOT_ROW_COUNT" in list(d)[1]` behind a
+        dead `if False else`, so it was checking the SECOND KEY of the document
+        rather than the binding constraint's claim. It read `owns` and failed for
+        a reason that had nothing to do with the corpus decision. A registry read
+        positionally is a registry that breaks the moment a key is renamed, and
+        breaks SILENTLY when one is inserted at the front.
+        """
         d = self.decision()
-        self.assertIn("NOT_ROW_COUNT", d["THE_BINDING_CONSTRAINT_IS_NOT_ROW_COUNT"]["claim"].replace(" ", "_").upper()
-                      if False else list(d)[1])
-        self.assertIn("LABEL DYNAMIC RANGE",
-                      d["THE_BINDING_CONSTRAINT_IS_NOT_ROW_COUNT"]["claim"])
+        claim = d["THE_BINDING_CONSTRAINT_IS_NOT_ROW_COUNT"]["claim"]
+        self.assertIn("LABEL DYNAMIC RANGE", claim)
+        self.assertIn("FAMILY COUNT", claim)
+        self.assertIn("CONSEQUENCE", claim.upper())
 
     def test_the_label_range_evidence_is_present_and_small(self):
         """The argument only works if the current corpus really is too narrow."""

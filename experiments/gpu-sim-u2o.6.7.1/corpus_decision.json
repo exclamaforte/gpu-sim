@@ -21,7 +21,17 @@
       "from": "2^12",
       "to": "2^28 and above",
       "why": "The launch-bound to memory-bound crossover is where the physics changes. 6.6.2 re-derived it at n=262144 for this part and 6.6.4 measured that the roofline only tracks above ~2^24. A corpus that stops at 2^18 measures exactly one regime.",
-      "sizes_n": [12, 14, 16, 18, 20, 22, 24, 26, 28]
+      "sizes_n": [
+        12,
+        14,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28
+      ]
     },
     "families": {
       "minimum": 24,
@@ -35,11 +45,19 @@
   },
   "row_count": {
     "formula": "families x sizes x launch_configs",
-    "worked_example": {"families": 24, "sizes": 9, "configs": 4, "rows": 864},
+    "worked_example": {
+      "families": 24,
+      "sizes": 9,
+      "configs": 4,
+      "rows": 864
+    },
     "note": "864 is what the SPEC requires. It is roughly 3x the reference, not three orders of magnitude more, and that is the point: the requirement is satisfied by COVERAGE, not by volume. If someone later argues for 1e5 rows, the justification must be about what 9.x still cannot learn at 864, not about what is quick to produce at 510 ex/s."
   },
   "cost": {
-    "at_510_80_ex_per_sec": {"864_rows_sec": 1.7, "rows_per_hour": 1838772},
+    "at_510_80_ex_per_sec": {
+      "864_rows_sec": 1.7,
+      "rows_per_hour": 1838772
+    },
     "note": "The full sweep is under two seconds of device time. Generation cost is no longer a constraint on ANY of these decisions, which is why the size argument is made on learning grounds alone."
   },
   "split": {
@@ -58,7 +76,38 @@
       "perproc_7_1_driver (diagnostic elimination arm)",
       "perkernel_shared_ctx (scale only)"
     ],
-    "why_code_not_convention": "ai_cv moves 3.2x between two protocols that both measured 264 rows of the same kernels. A pooled corpus does not merely have noisier labels: its ai_cv column means two different things in two halves of one file, and 9.3's noise-aware loss would be fitting a mixture of two definitions of its own target. Nothing downstream can detect that, because every number in it is individually plausible."
+    "why_code_not_convention": "ai_cv moves 3.2x between two protocols that both measured 264 rows of the same kernels. A pooled corpus does not merely have noisier labels: its ai_cv column means two different things in two halves of one file, and 9.3's noise-aware loss would be fitting a mixture of two definitions of its own target. Nothing downstream can detect that, because every number in it is individually plausible.",
+    "measured_statistic_shift_ALL_PAIRS": [
+      {
+        "pair": [
+          "single_run_7_1",
+          "perproc_7_1_driver"
+        ],
+        "ratio": 1.1796
+      },
+      {
+        "pair": [
+          "single_run_7_1",
+          "perkernel_shared_ctx"
+        ],
+        "ratio": 2.7818
+      },
+      {
+        "pair": [
+          "perproc_7_1_driver",
+          "perkernel_shared_ctx"
+        ],
+        "ratio": 2.3583
+      }
+    ],
+    "measured_statistic_shift_UNRESOLVED": {
+      "prose_claims": 3.2,
+      "prose_wording": "'ai_cv moves 3.2x between two protocols that both measured 264 rows of the same kernels'.",
+      "problem_1_the_claim_is_STALE": "no pair of 264-row protocols gives 3.2x today; the three candidate ratios are recorded above and the closest is 2.78.",
+      "problem_2_the_claim_is_AMBIGUOUS": "all THREE protocols measured 264 rows, so 'the two protocols' does not identify a pair. A number quoted without naming its operands cannot be checked, which is why it survived as long as it did.",
+      "status": "UNRESOLVED, deliberately. The artifact does not pick a pair or a number. It records every candidate ratio so a human can say which two protocols the claim was about, and whether 3.2x should still hold. Writing a single derived number into the prose would make the document agree with the data and stop it ever noticing that a DECISION rests on an uncheckable claim.",
+      "what_it_does_not_change": "the condition's DIRECTION: ai_cv differs materially between these protocols, which is why ai_cv is used to judge them at all. The magnitude, and which pair it refers to, are what is in dispute."
+    }
   },
   "the_acceptance_written_on_11_2": [
     "The corpus is justified against what 9.x must LEARN, and the justification names the binding constraint -- currently the label dynamic range (>= 3 orders of magnitude) and the family count (>= 24) -- not the throughput that made it cheap. The artifact records the numbers the decision was made from.",
