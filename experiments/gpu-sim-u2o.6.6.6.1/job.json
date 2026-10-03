@@ -2,5 +2,16 @@
   "bead": "gpu-sim-u2o.6.6.6.1",
   "ts_jobs": [],
   "gpu_used": false,
+"cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.6.1/run.sh",
+"started_utc": "2026-10-03T18:19:17Z",
+"ended_utc": "2026-10-03T18:19:19Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.6.1/output.log",
+"what": "rework verification: measure_cost.py recomputes spot_check.json (4/4 gates pass at loadavg 71.1, 46.9x same-process differential, hit rate 0.792, 819 queue job files) then 10 cost tests (1 skipped as not-evaluable under load, visibly) + 8 differential tests, all green. The absolute instrument<0.139ms claim is recorded as not_evaluable_under_load, NOT as a pass."
+    }
+  ],
+  "cpu_runs_note": "ts_jobs is empty by design and gpu_used is false: this bead never touches the device, and a CPU job in the shared GPU queue would block real GPU work for its whole runtime. Run directly, per the CPU-work rule.",
   "note": "Pure CPU. The instrument was measured on this host against this host's real queue directory (557 job files), which is the thing the bead is about: the cost IS the directory size, so a synthetic fixture would have measured nothing."
 }
