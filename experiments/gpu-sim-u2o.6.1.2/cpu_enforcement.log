@@ -1,12 +1,19 @@
 mechanism: systemd-run  (cgroup2=cgroup2fs pids=True systemd-run=/usr/bin/systemd-run)
-live task count for uid 1000: 3080
+live task count for uid 1000: 1894
 PASS  mechanism is a cgroup route, not RLIMIT_NPROC  systemd-run
 PASS  uncapped child forks to completion  {'blocked': False, 'children': 200} in 0.1s
 PASS  capped child FAILS to fork past the cap  {'blocked': True, 'children': 63, 'errno': 'EAGAIN', 'msg': 'Resource temporarily unavailable'} in 0.0s
 PASS  the failure is EAGAIN/EPERM, not something else  EAGAIN
 PASS  the cap fired at roughly the configured task count  blocked after 63 children, TasksMax=64
 PASS  a small child is unaffected by the default cap (TasksMax=256)  {'blocked': False, 'children': 8}
-PASS  RLIMIT_NPROC fallback is computed relative to the live count  live=3058 -> nproc=3146
+PASS  timeout-kill: the long-lived child compiles
+PASS  timeout-kill: run_kernel reported a timeout  timeout=True wall=3.01s
+PASS  timeout-kill: the child is GONE, not merely unreported  heartbeat 2400 -> 2400 bytes in 1.5s after the kill; pgrep found 0 survivor(s)
+PASS  timeout-kill: the cap was in force for that run  {'tasks_max': 256, 'mechanism': 'cgroup', 'mechanism_detail': 'own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20260928
+PASS  RLIMIT_NPROC fallback is computed relative to the live count  live=1869 -> nproc=1933
 PASS  the fallback is mechanism 3, not the default  systemd-run
+PASS  6. per-run cgroups do not accumulate across clean runs  0 before, 0 after 3 run_kernel calls
+PASS  6. a failed exec does not leave a cgroup behind either  0 before, 0 after a failed run_kernel
+PASS  cleanup: no runaway left behind after this test
 
 0 failure(s)

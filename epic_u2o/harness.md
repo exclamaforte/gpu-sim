@@ -82,3 +82,16 @@ this epic has already paid for once.
 So it is TRACKED, carrying 6.1.2's content rather than the stub: a tracked stub
 would have closed the collision only by putting a known-false file in master.
 The 6.1.2 merge is now a small modification instead of a blocked add.
+
+NOTE (2026-10-03, rework; kept through the 2026-10-04 rebase onto master):
+this file on the branch was STALE. It carried only 6.1.2's own containment
+section and predated gpu-sim-u2o.6.11's merge, so merging this branch would
+have silently DELETED 6.11's VOLATILE header, the annotated placeholders,
+and the whole "Why this file is tracked" section -- including the note that
+explains 6.11 took 6.1.2's content deliberately.
+
+Resolved by taking master's copy, which already carries BOTH sections:
+6.1.2's containment ladder AND 6.11's account of why the file is tracked.
+Verified by `git diff master -- epic_u2o/harness.md` showing only this
+NOTE as the branch's addition, so this branch no longer regresses 6.11
+on merge.
