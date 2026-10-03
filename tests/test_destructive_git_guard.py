@@ -189,6 +189,89 @@ class TestLabRuntimeIsProtected(FixtureRepo):
                          "a repo with no .lab runtime must not be blocked")
 
 
+class TestEnumerationFailsClosed(FixtureRepo):
+    """The reviewer's item: an enumeration that could not run is not empty.
+
+    Returning [] from a failed `git clean -dn` means "no lab runtime at risk",
+    which ALLOWS the deletion. That is how a guard becomes confident on the
+    strength of not having looked. Every failure path must be (something, False).
+    """
+
+    def _stub(self, **kw):
+        real_run = guard.subprocess.run
+        real_parse = guard.parse
+
+        def run(args, **kwargs):
+            if "clean" in args:
+                if kw.get("raise_exc") is not None:
+                    raise kw["raise_exc"]
+                return type("P", (), {"returncode": kw.get("rc", 0),
+                                      "stdout": kw.get("out", ""),
+                                      "stderr": ""})()
+            return real_run(args, **kwargs)
+        guard.subprocess.run = run
+        return real_run, real_parse
+
+    def test_a_git_error_is_not_an_empty_result(self):
+        real, _ = self._stub(rc=128)
+        try:
+            hits, ok = guard.lab_runtime_paths_would_be_removed(
+                self.repo, ["git", "clean", "-fd"])
+            self.assertFalse(ok)
+        finally:
+            guard.subprocess.run = real
+
+    def test_a_timeout_is_not_an_empty_result(self):
+        real, _ = self._stub(raise_exc=TimeoutError("boom"))
+        try:
+            hits, ok = guard.lab_runtime_paths_would_be_removed(
+                self.repo, ["git", "clean", "-fd"])
+            self.assertFalse(ok)
+        finally:
+            guard.subprocess.run = real
+
+    def test_an_oserror_is_not_an_empty_result(self):
+        real, _ = self._stub(raise_exc=OSError("no git"))
+        try:
+            hits, ok = guard.lab_runtime_paths_would_be_removed(
+                self.repo, ["git", "clean", "-fd"])
+            self.assertFalse(ok)
+        finally:
+            guard.subprocess.run = real
+
+    def test_unrecognised_output_is_not_an_empty_result(self):
+        """Output we cannot parse must not be read as 'nothing there'."""
+        real, _ = self._stub(out="fatal: something new\nnot a dry-run listing")
+        try:
+            hits, ok = guard.lab_runtime_paths_would_be_removed(
+                self.repo, ["git", "clean", "-fd"])
+            self.assertFalse(ok)
+        finally:
+            guard.subprocess.run = real
+
+    def test_an_unparseable_command_is_not_an_empty_result(self):
+        _hits, ok = guard.lab_runtime_paths_would_be_removed(
+            self.repo, ["git", "--not-a-real-flag"])
+        self.assertFalse(ok)
+
+    def test_the_guard_refuses_when_the_enumeration_fails(self):
+        """End to end: the refusal, not just the flag."""
+        real, _ = self._stub(rc=128)
+        try:
+            res = guard.guard(["git", "clean", "-fd"], self.repo, run=False)
+        finally:
+            guard.subprocess.run = real
+        self.assertTrue(res["refused"])
+        self.assertIn("could not be completed", res["reason"])
+
+    def test_a_genuine_empty_listing_still_succeeds(self):
+        """Can-pass: a repo with no untracked paths enumerates cleanly."""
+        hits, ok = guard.lab_runtime_paths_would_be_removed(
+            self.repo, ["git", "clean", "-fd"])
+        self.assertTrue(ok)
+        self.assertEqual(hits, [])
+
+
 class TestItChecksTheTreeItWillDiscard(FixtureRepo):
     """THE REVIEWER'S BLOCKING ITEM.
 

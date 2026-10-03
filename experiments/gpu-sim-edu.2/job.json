@@ -12,5 +12,6 @@
   ],
   "finding": "git clean -fd would delete 8 .lab/ runtime paths (all role sockets, labd-state.json, inbox, prompts). They are untracked so no cleanliness check sees them.",
   "amends": "gpu-sim-edu.1.1 (unmerged) -- this guard version supersedes it and is the one that should land",
-  "not_caused_by_git": ".lab was never tracked; no tracked file is deleted"
+  "not_caused_by_git": ".lab was never tracked; no tracked file is deleted",
+  "reviewer_item": "Enumeration now fails closed: lab_runtime_paths_would_be_removed returns (paths, ok) and every failure path -- unparseable command, non-zero git exit, timeout, OSError, unrecognised output -- yields ok=False, which the guard treats as a refusal. A failed enumeration can no longer read as an empty one, which would have ALLOWED the deletion. 29 tests."
 }

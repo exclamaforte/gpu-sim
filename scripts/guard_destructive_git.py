@@ -213,34 +213,50 @@ def create_recovery_point(repo: Path) -> str | None:
 LAB_RUNTIME_PREFIXES = (".lab/",)
 
 
-def lab_runtime_paths_would_be_removed(repo: Path, argv: list[str]) -> list[str]:
-    """Untracked .lab/ paths that this command would delete.
+def lab_runtime_paths_would_be_removed(repo: Path, argv: list[str]) -> tuple:
+    """(paths_would_be_removed, enumeration_succeeded).
 
-    Asks git, rather than guessing: `git clean -fdn` is a DRY RUN and lists what
-    it would remove without removing it. Any command that can delete untracked
-    paths is treated as a candidate, because the question is what it would take,
-    not how it was phrased.
+    Asks git rather than guessing: `git clean -fdn` is a DRY RUN and lists what
+    it would remove without removing it.
+
+    The second element is the point. Every failure path -- an unparseable
+    command, a git error, a timeout, output in a format we do not recognise --
+    returns (something, False) rather than an empty list. An empty list means
+    "no lab runtime at risk", which ALLOWS the deletion; so a failed
+    enumeration must never look like an empty one.
     """
     sub = ""
     try:
         sub, _f, _p = parse(argv)
     except ValueError:
-        return []
+        return [], False          # cannot read the command -> cannot certify
     if sub not in ("clean", "checkout", "restore", "reset"):
-        return []
+        return [], True
     if sub != "clean":
-        return []          # checkout/restore/reset do not remove untracked files
+        return [], True           # checkout/restore/reset keep untracked files
     try:
         proc = subprocess.run(["git", "-C", str(repo), "clean", "-fdn"],
                               capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.SubprocessError):
-        return []
+    except (OSError, subprocess.SubprocessError) as exc:
+        # The reviewer's item. Every one of these used to return [] -- which
+        # reads as "no lab runtime at risk" and therefore ALLOWS the deletion.
+        # An enumeration that could not run must not be reported as an empty
+        # result; that is how a guard becomes confident on the strength of not
+        # having looked.
+        return [], False
+    if proc.returncode != 0:
+        return [], False
+    lines = [ln for ln in proc.stdout.splitlines()
+             if ln.strip().startswith("Would remove")]
+    if not lines and proc.stdout.strip():
+        # Output we do not recognise. Guessing "nothing" here is the failure.
+        return [], False
     hits = []
-    for line in proc.stdout.splitlines():
+    for line in lines:
         m = line.strip().replace("Would remove ", "").strip()
         if m.startswith(LAB_RUNTIME_PREFIXES):
             hits.append(m)
-    return hits
+    return hits, True
 
 
 def guard(argv: list[str], repo: Path, run: bool = True) -> dict:
@@ -249,7 +265,7 @@ def guard(argv: list[str], repo: Path, run: bool = True) -> dict:
     target = target_repo(argv, repo)
     explicit_paths = paths_are_explicit(argv)
     dirty = main_tree_dirty(target)
-    lab_runtime = lab_runtime_paths_would_be_removed(target, argv)
+    lab_runtime, enum_ok = lab_runtime_paths_would_be_removed(target, argv)
 
     result = {"command": shlex.join(argv), "subcommand": sub,
               "destructive": sub in DESTRUCTIVE,
@@ -257,9 +273,22 @@ def guard(argv: list[str], repo: Path, run: bool = True) -> dict:
               "paths_are_explicit": explicit_paths,
               "guard_checked_tree": str(target),
               "lab_runtime_would_be_removed": lab_runtime,
+              "lab_runtime_enumeration_succeeded": enum_ok,
               "tree_modified_tracked": dirty, "paths": paths,
               "recovery_commit": None, "ran": False, "refused": False,
               "reason": None}
+
+    # A clean command whose reach could not be ENUMERATED is refused, because
+    # "I could not look" must not be reported as "there is nothing there".
+    if sub == "clean" and not enum_ok:
+        result["refused"] = True
+        result["reason"] = (
+            "REFUSED. This would delete untracked paths, and the enumeration "
+            "that would show WHICH paths could not be completed (git clean -dn "
+            "failed, timed out, or answered in a format this guard does not "
+            "recognise). Refusing to certify on an unrun check: the lab runtime "
+            "under .lab/ is untracked and invisible to every other signal here.")
+        return result
 
     # Checked BEFORE the cleanliness branch, because the whole point is that a
     # CLEAN tree is exactly when `git clean -fd` would do this.

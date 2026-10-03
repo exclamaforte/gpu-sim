@@ -43,6 +43,27 @@ it refuses CWD-scoped destructive git only when tracked files are modified, so i
 condition under which clean does maximum damage. Verified against the real board:
 the guard now exits 2.
 
+## The enumeration fails closed
+
+`lab_runtime_paths_would_be_removed()` asks git what a command would delete. It
+returns `(paths, enumeration_succeeded)` — and the second element is the point.
+
+Every failure path used to return `[]`, which reads as *"no lab runtime at
+risk"* and therefore **allows** the deletion. A guard that becomes confident on
+the strength of not having looked is worse than no guard, because it looks like
+one.
+
+Now every one of these returns "enumeration failed" and the guard refuses:
+
+| failure | before | after |
+|---|---|---|
+| unparseable command | `[]` → allow | refuse |
+| `git clean -dn` non-zero exit | `[]` → allow | refuse |
+| timeout / `OSError` | `[]` → allow | refuse |
+| output in an unrecognised format | `[]` → allow | refuse |
+
+A genuinely empty listing still succeeds, so the check can still pass.
+
 ## The fix
 
 `lab_runtime_paths_would_be_removed()` asks git (`git clean -fdn`, a **dry
