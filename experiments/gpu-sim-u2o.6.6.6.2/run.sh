@@ -23,6 +23,9 @@ else:
     print("total keys in record:", len(st))
 PY
 rc=${PIPESTATUS[0]}; echo "=== provenance exit=$rc ==="; [ "$rc" -eq 0 ] || exit "$rc"
+# NOTE: run.sh writes output.log ITSELF via tee. Do NOT also redirect this
+# script's stdout to output.log -- two writers to one file splice the artifact,
+# which a reviewer has already caught once on this bead.
 echo "=== test suite ==="
 python3 tests/test_sample_provenance.py 2>&1 | tee -a "$ART/output.log" | tail -4
 rc=${PIPESTATUS[0]}; echo "=== tests exit=$rc ==="; [ "$rc" -eq 0 ] || exit "$rc"
