@@ -51,6 +51,23 @@ had checked as the total. Twenty stale copies of master-owned code is a
 different problem from two, and the number that goes in a disposition is the
 one that changes what you do about it.
 
+## A one-character bug in this bead's own triage, and why it got a test
+
+The triage reported `xperiments/gpu-sim-u2o.6.6.2/family_gemm.json` instead of
+`experiments/...`. The helper called `.strip()` on git's stdout; a porcelain
+line for a modified-not-staged path is `" M path"` — leading **space** — and
+`strip()` removed it from the **first line only**, because strip() acts on the
+string boundary. `line[3:]` then ate a real character of the path.
+
+The fix is in the helper, not the call site; fixing the caller could not have
+worked.
+
+It is worth stating why this deserved a regression test rather than a re-read.
+**Every count in the artifact stayed correct** — a truncated path still counts as
+one path — so the numbers looked perfect and the payload was wrong, in the file
+whose entire job is to report paths a human will act on. `tests/test_triage_parsing.py`
+pins the failure mode itself, not just its absence.
+
 ## Items 2 and 4: reported, not decided
 
 - **Item 2** (the 5 modified tracked files) is left **unresolved on purpose**.

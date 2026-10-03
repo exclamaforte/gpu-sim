@@ -44,7 +44,16 @@ OUT = Path(__file__).resolve().parent / "worktree_triage.json"
 def git(*args, cwd=REPO):
     p = subprocess.run(["git", "-C", str(cwd), *args],
                        capture_output=True, text=True)
-    return p.stdout.strip() if p.returncode == 0 else ""
+    # rstrip("\n"), NOT strip(). A `git status --porcelain` line for a
+    # modified-not-staged path STARTS WITH A SPACE (" M path"), and strip()
+    # removed it -- from the first line only, because strip() only touches the
+    # string boundary. line[3:] then ate a character of that path and the
+    # triage reported "xperiments/..." instead of "experiments/...".
+    #
+    # This was in the HELPER, not at the call site, so fixing the caller could
+    # not have worked. One character, on one line, in the file whose entire job
+    # is to report paths a human will act on.
+    return p.stdout.rstrip("\n") if p.returncode == 0 else ""
 
 
 def main() -> int:
@@ -52,6 +61,12 @@ def main() -> int:
         print(f"{STALE} does not exist; nothing to triage", flush=True)
         return 0
 
+    # splitlines(), NOT .strip().splitlines(). A porcelain status line for a
+    # modified-not-staged path begins with a SPACE (" M path"), and .strip()
+    # removes it from the FIRST line only -- so line[3:] then ate a character
+    # of that path and reported "xperiments/..." instead of
+    # "experiments/...". One character, on one line, in a file whose whole job
+    # is to report paths a human will act on.
     porcelain = git("status", "--porcelain", cwd=STALE).splitlines()
     modified, untracked = [], []
     for line in porcelain:

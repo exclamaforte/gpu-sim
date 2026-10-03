@@ -11,5 +11,6 @@
   ],
   "correction_to_the_record": "The design (and my earlier report) says TWO of the 34 master-owned copies differ. Measured: TWENTY, all under epic_u2o/. I confirmed two examples and reported the count of examples as the total.",
   "item_2_left_undecided": "Committing the 5 modified tracked files means regenerating metrics.json from a MIXED set (v8 memory/reduce/gemm beside v6 launch), which is the artifact this bead exists to prevent; resetting discards three finished GPU jobs. Both need the PI's word.",
-  "item_4_partially_done": "Quiescence before tracked-path git is enforced for destructive git by guard_destructive_git.py; NOT enforced for non-destructive tracked-path writes."
+  "item_4_partially_done": "Quiescence before tracked-path git is enforced for destructive git by guard_destructive_git.py; NOT enforced for non-destructive tracked-path writes.",
+  "reviewer_item": "Fixed: the git() helper used .strip(), which removed the leading SPACE of a ' M path' porcelain line -- from the FIRST line only, since strip() acts on the string boundary. line[3:] then ate one character of that path and the triage reported 'xperiments/...' instead of 'experiments/...'. The fix was in the HELPER, not the call site, so fixing the caller could not have worked. worktree_triage.json regenerated; 5 regression tests added."
 }
