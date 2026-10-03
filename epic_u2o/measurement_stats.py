@@ -405,6 +405,10 @@ class SpreadRecord:
     minimum: float
     maximum: float
     statement: str = ""
+    # How many ratios each config contributed. With n_runs == 2 this is 1, and a
+    # quantile over one ratio per config is a quantile over single samples, not
+    # over a distribution -- which is why it is carried rather than implied.
+    ratios_per_config: int = 1
 
     def band(self) -> tuple:
         """The resolution window: ratios inside this are indistinguishable
@@ -417,6 +421,7 @@ class SpreadRecord:
             "baseline_id": self.baseline_id,
             "n_runs": self.n_runs,
             "n_cells": self.n_cells,
+            "ratios_per_config": self.ratios_per_config,
             "run_job_ids": list(self.run_job_ids),
             "ratio_quantiles": {"min": self.minimum, "p10": self.p10,
                                 "median": self.median, "p90": self.p90,
@@ -469,17 +474,22 @@ def spread_from_runs(runs: list, baseline_id: str, spread_version: int = 1) -> S
     ratios = []
     for k in sorted(labels):
         vals = per_label[k]
-        # The ENVELOPE across runs, max/min -- not max/median.
+        # SIGNED, BASELINE-RELATIVE ratios. Not max/min.
         #
-        # max/median is one-sided (it is always >= 1, so it silently discards the
-        # fast side) and it compresses the tail, which made this module report a
-        # p90 of 1.11 where the committed probe reports 1.24 for the SAME data.
-        # A guard caught it: `anchor_band_is_wide` failed. max/min reproduces
-        # the probe's v8/v6 exactly on the slow side, which is the side a
-        # regression comparison cares about.
-        lo, hi = min(vals), max(vals)
-        if lo:
-            ratios.append(hi / lo)
+        # max/min is symmetric and one-sided: it is always >= 1, so a config
+        # that got FASTER is relabelled as a slow envelope. On the real anchor
+        # the minimum cell moved 14.8% FASTER (v8/v6 = 0.8523) and max/min would
+        # have reported that as 1.1745 -- the wrong direction, on the one
+        # artifact whose purpose is to stop exactly that.
+        #
+        # Relative to the FIRST run (the baseline), every later run contributes
+        # v_i / v_0. That is the same statistic the variance probe uses, so
+        # p10 can fall below 1, `min` means what its name says, and effect_faster
+        # is judged against real fast-side noise instead of being unreachable.
+        base = vals[0]
+        if base:
+            ratios.extend(v / base for v in vals[1:])
+
     if not ratios:
         raise ValueError("no comparable non-zero configs across the runs given")
     xs = sorted(ratios)
@@ -488,6 +498,7 @@ def spread_from_runs(runs: list, baseline_id: str, spread_version: int = 1) -> S
         baseline_id=baseline_id,
         n_runs=len(runs),
         n_cells=len(ratios),
+        ratios_per_config=len(runs) - 1,
         run_job_ids=job_ids,
         p10=round(_quantile(xs, 0.10), 4),
         median=round(_quantile(xs, 0.50), 4),

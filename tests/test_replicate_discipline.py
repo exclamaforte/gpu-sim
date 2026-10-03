@@ -172,6 +172,42 @@ class TestAgainstTheRealAnchorSpread(unittest.TestCase):
         v = verdict_for_ratio(1.5, self._spread())
         self.assertEqual(v["verdict"], "effect_slower")
 
+    def test_the_fast_side_is_measurable_at_all(self):
+        """THE REVIEWER'S ITEM 1, on REAL anchor data.
+
+        The anchor contains cells that moved BOTH ways -- the fastest went to
+        0.8523 of v6 -- and the previous max/median statistic could not
+        represent that: it is always >= 1, so it relabelled a 14.8% speedup as a
+        slow envelope and left `min` meaning something other than its name.
+        """
+        s = self._spread()
+        self.assertLess(s.minimum, 1.0,
+                        "a signed baseline-relative spread must be able to go "
+                        "BELOW 1; if it cannot, fast movement is unrepresentable")
+        self.assertLess(s.band()[0], 1.0,
+                        "p10 below 1 means the fast side is inside the band")
+
+    def test_a_faster_ratio_below_the_fast_band_is_a_real_speedup(self):
+        """effect_faster must be reachable, and only against real fast noise.
+
+        Against a synthetic fixture that moved one way, this verdict could never
+        fire, which is exactly how the defect hid. Here the ratio is derived from
+        the measured p10 of the real anchor.
+        """
+        lo, _ = self._spread().band()
+        faster = round(lo * 0.9, 6)
+        v = verdict_for_ratio(faster, self._spread())
+        self.assertEqual(v["verdict"], "effect_faster",
+                         "a ratio below the measured p10 is a real speedup")
+        self.assertLess(faster, 1.0)
+
+    def test_a_fast_ratio_inside_the_band_is_still_inconclusive(self):
+        """Fast does not mean significant. A mild speedup is still noise."""
+        lo, hi = self._spread().band()
+        mild = round(lo + (hi - lo) * 0.25, 6)
+        v = verdict_for_ratio(mild, self._spread())
+        self.assertEqual(v["verdict"], "inconclusive")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -103,9 +103,12 @@ def main() -> int:
             "this_module_median": overall["ratio_quantiles"]["median"],
             "committed_probe_median": probe_o["median"],
             "agree_within_0.05": agree,
-            "note": ("different statistics (max/median across runs here, v8/v6 "
-                     "per cell there), so this asserts agreement in direction "
-                     "and magnitude, not equality"),
+            "note": ("AFTER the 6.6.7 rework the module computes the SAME "
+                     "statistic the probe does -- signed, baseline-relative "
+                     "v_later/v_baseline per config -- so these now agree "
+                     "exactly rather than approximately. An earlier version used "
+                     "a max/median statistic, could not represent the fast side, "
+                     "and disagreed here; that is what the reviewer caught."),
         },
         "what_a_comparison_may_conclude": examples,
         "properties": {
