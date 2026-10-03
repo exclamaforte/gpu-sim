@@ -4,7 +4,7 @@
   "VERDICT": "PARTIAL. The PLUGIN NO-GO stands -- NCCL resolved ncclNetPlugin_v11 and then SIGSEGVed (exit 139) before reporting a plugin, so the bead's gate was not met. But the ABI route is OPEN, not closed: my previous commit declared it closed on a search that stopped one hop short of the answer, and the ncclNet_v11_t layout IS recoverable.",
   "gate_as_stated": "SUCCESS is NCCL loading an intentionally minimal plugin AND REPORTING it, with NCCL_DEBUG=INFO output naming the plugin and the accepted ABI version. Anything less is NO-GO.",
   "what_the_gate_asked_for": "NCCL_DEBUG=INFO naming the plugin and an accepted version",
-  "what_happened": "NCCL read NCCL_NET_PLUGIN, resolved ncclNetPlugin_v11 WITHOUT a dlsym failure, invoked it, and then died with SIGSEGV (exit 139) reading past the end of a deliberately two-member struct. It never got as far as reporting a plugin.",
+  "what_happened": "NCCL read NCCL_NET_PLUGIN, resolved ncclNetPlugin_v11 WITHOUT a dlsym failure, invoked it, and then died with SIGSEGV (exit 139) reading past the end of a deliberately two-member struct. It never got as far as reporting a plugin. The same log's FAILED dlopen of libnccl-env.so is the control for that reading: NCCL does print a failure line when a plugin fails to load, so its absence for ncclNetPlugin is evidence the symbol resolved rather than silence (see DLOPEN_CONTROL).",
   "gpu_used": true,
   "jobs": [
     "20261002t185121-d61c6fa5 first attempt, no cudart on the library path",
@@ -242,5 +242,19 @@
     "content": "NCCL 2.30.7+cuda13.3 reads NCCL_NET_PLUGIN, logs no dlsym failure, then the probe exits 139 (SIGSEGV) -- so the symbol resolved and the loader faulted inside.",
     "relationship_to_probe_evidence_log": "probe_evidence.log and probe_v11.log are two runs of the same probe (PIDs 1693342 and 1699372) with byte-identical content apart from the PID. probe_evidence.log is the one PLUGIN_NO_GO_LOG already cites; this one is the v11-specific run and was untracked.",
     "note": "Added as a citation so the evidence is followable from the tree. No verdict or conclusion in this artifact was changed."
+  },
+  "RECOVERED_LAYOUT_SOURCE": {
+    "path": "experiments/gpu-sim-465.1/plugin_v11.c",
+    "what": "ncclNet_v11_t as recovered from DWARF in the shipped library: byte_size 176, 22 members, every offset from DW_AT_data_member_location, every member a non-NULL stub.",
+    "committed_in": "gpu-sim-465.1 rework; previously untracked, so the layout this artifact DECLARES recoverable did not exist in the tree",
+    "why_every_member_is_stubbed": "the loader may CALL any of them, and a NULL in a 176-byte vtable is indistinguishable from a crash -- so a minimal plugin's requirement is that nothing is null, not that nothing is filled in.",
+    "still_unknown": "the SIGNATURES. DWARF gives offsets and names, not prototypes, so the stubs take (void) and are declared through generic function pointers. If the loader's calling convention differs this will fault again, and that fault would identify which member it reached.",
+    "note": "Citation added so the recovered layout is followable from the tree. No verdict, conclusion or existing field was changed."
+  },
+  "DLOPEN_CONTROL": {
+    "in_log": "experiments/gpu-sim-465.1/probe_v11.log",
+    "line": "NCCL INFO ncclOsDlopen(libnccl-env.so) failed: libnccl-env.so: cannot open shared object file",
+    "why_it_matters": "the claim 'resolved without a dlsym failure' is usually an argument from ABSENCE -- no failure line, therefore no failure. This log contains a POSITIVE CONTROL: NCCL tried to dlopen libnccl-env.so, FAILED, and said so in exactly the form a failure of OUR plugin would have taken. The absence of that line for ncclNetPlugin is therefore evidence, not silence.",
+    "consequence": "the symbol resolved and the loader faulted INSIDE, which is why this is a NO-GO for the plugin gate rather than a load-order or path problem."
   }
 }
