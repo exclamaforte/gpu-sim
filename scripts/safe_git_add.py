@@ -27,28 +27,47 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+# Where this SCRIPT lives, which is not necessarily where the caller is.
+SCRIPT_REPO = Path(__file__).resolve().parents[1]
+
+
+def current_repo() -> Path:
+    """The worktree the CALLER is standing in, not the one holding this script.
+
+    The reviewer's point, and it is the difference between a guard that works
+    and one that appears to. Resolving the repo from __file__ means running the
+    script from inside a stale worktree checks the wrong tree and reports
+    "nothing untracked" -- which is exactly the false all-clear that makes this
+    class of mistake invisible. `git rev-parse --show-toplevel` asks git where
+    the CWD actually is.
+    """
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                       capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip():
+        return Path(r.stdout.strip())
+    return SCRIPT_REPO
 # Files that are SUPPOSED to be shared rather than owned by a worktree.
 SHARED_OK = (".lab/",)
 
 
-def git(*args: str, cwd: Path = REPO) -> str:
+def git(*args: str, cwd: Path = None) -> str:
+    cwd = cwd or current_repo()
     p = subprocess.run(["git", "-C", str(cwd), *args],
                        capture_output=True, text=True)
     return p.stdout if p.returncode == 0 else ""
 
 
-def untracked_paths(repo: Path = REPO) -> list[str]:
+def untracked_paths(repo: Path = None) -> list[str]:
     out = git("ls-files", "--others", "--exclude-standard", cwd=repo)
     return [p for p in out.splitlines() if p.strip()]
 
 
-def master_tracked(repo: Path = REPO) -> set[str]:
+def master_tracked(repo: Path = None) -> set[str]:
     return {p for p in git("ls-tree", "-r", "--name-only", "master", cwd=repo).splitlines()
             if p.strip()}
 
 
-def collisions(repo: Path = REPO) -> list[tuple[str, str]]:
+def collisions(repo: Path = None) -> list[tuple[str, str]]:
     """(path, status) for every untracked path master ALREADY tracks.
 
     Status is 'identical' when the worktree copy matches master byte for byte --
@@ -69,16 +88,8 @@ def collisions(repo: Path = REPO) -> list[tuple[str, str]]:
     return sorted(out)
 
 
-def main_for(repo: Path = REPO) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--explain", action="store_true",
-                    help="list what a bulk add would take, and refuse if any of "
-                         "it is master-owned")
-    a = ap.parse_args()
-    return check(repo)
-
-
-def check(repo: Path = REPO) -> int:
+def check(repo: Path = None) -> int:
+    repo = repo or current_repo()
     untracked = untracked_paths(repo)
     hits = collisions(repo)
 
@@ -110,9 +121,18 @@ def check(repo: Path = REPO) -> int:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--explain", action="store_true")
-    return check(REPO)
+    ap = argparse.ArgumentParser(
+        description=__doc__.split("\n")[0],
+        epilog="With no --repo, the tree checked is the one you are standing "
+               "in (`git rev-parse --show-toplevel`), so running this inside a "
+               "stale worktree checks THAT worktree.")
+    ap.add_argument("--repo", default=None,
+                    help="tree to check (default: the current worktree)")
+    ap.add_argument("--explain", action="store_true",
+                    help="print what a bulk add would take")
+    a = ap.parse_args()
+    repo = Path(a.repo).resolve() if a.repo else current_repo()
+    return check(repo)
 
 
 if __name__ == "__main__":
