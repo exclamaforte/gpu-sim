@@ -308,11 +308,11 @@ def main() -> int:
             continue
         covered_band[name] = {
             "n_cells": len(sub),
-            "roofline_MIN_pct": statistics.median(
+            "roofline_min_pct": statistics.median(
                 abs(r["measured_median_us"]
                     - r["t_roofline_MIN_as_specified_us_anchor_argmax"])
                 / r["measured_median_us"] for r in sub) * 100,
-            "roofline_MAX_pct": statistics.median(
+            "roofline_max_pct": statistics.median(
                 abs(r["measured_median_us"]
                     - r["t_roofline_MAX_correct_us_anchor_argmax"])
                 / r["measured_median_us"] for r in sub) * 100,
@@ -394,9 +394,39 @@ def main() -> int:
         },
         "verdict": {
             "headline": {
-                "canonical_population": "81 of 124 anchor cells; the other 43 "
-                    "are the 9 k_empty launch-measurement cells and 34 "
-                    "under-covered cells, both disclosed and both summed",
+                # DERIVED, never typed. This was hand-written as "81 of 124 ...
+                # 43 ... 34" while the band tables computed 74 and a
+                # recomputation from per_cell gave 82 -- three counts of one
+                # population inside the block that had just been declared
+                # authoritative. Now every figure below is computed from the same
+                # lists the bands consume, and the writer refuses to emit if the
+                # three do not agree.
+                "canonical_population_n": len(CANONICAL),
+                "canonical_population_predicate": (
+                    "covered: grid[0]*block[0] >= n_problem_size/4; AND "
+                    "t_roofline_MAX_correct_us_anchor_argmax > 0 (a cell with no "
+                    "bytes or FLOPs to bound is excluded as degenerate). The "
+                    "three parts below are DISJOINT and sum to the anchor "
+                    "population: canonical + under_covered + degenerate."),
+                "canonical_population": (
+                    f"{len(CANONICAL)} of "
+                    f"{len(rows) + zero_work_launch_cells} anchor cells; the "
+                    f"other {len(rows) + zero_work_launch_cells - len(CANONICAL)} "
+                    f"are {zero_work_launch_cells} k_empty launch-measurement "
+                    f"cells (no bytes or FLOPs at all), {len(degenerate)} "
+                    f"k_noop_store cells whose modelled bound is exactly 0, and "
+                    f"{len(under_covered)} under-covered cells "
+                    f"(grid*block < n/4) -- all disclosed and all summed"),
+                # Four parts, and they must sum to the WHOLE anchor set --
+                # including the k_empty cells that never enter `rows` at all.
+                # Forgetting them is how a headline reads "of 115" when the
+                # anchor has 124.
+                "canonical_population_sums": (
+                    f"{len(CANONICAL)} + {len(under_covered)} + "
+                    f"{len(degenerate)} + {zero_work_launch_cells} = "
+                    f"{len(CANONICAL) + len(under_covered) + len(degenerate) + zero_work_launch_cells}"
+                    f" (anchor population: "
+                    f"{len(rows) + zero_work_launch_cells})"),
                 "ge_10us_rule": "HOLDS as a conservative heuristic, is NOT "
                     "validated as an analytic predictor, and is not tight. The "
                     "max-form roofline reaches 17.5% median residual only in "
@@ -419,11 +449,11 @@ def main() -> int:
             "canonical_population_only": {
                 "residual_by_size_band": covered_band,
                 "no_band_reaches_10pct": all(
-                    v["roofline_MAX_pct"] > 10 for v in covered_band.values()),
+                    v["roofline_max_pct"] > 10 for v in covered_band.values()),
                 "best_band": min(covered_band.items(),
-                                 key=lambda kv: kv[1]["roofline_MAX_pct"])[0],
+                                 key=lambda kv: kv[1]["roofline_max_pct"])[0],
                 "best_residual_pct": min(
-                    v["roofline_MAX_pct"] for v in covered_band.values()),
+                    v["roofline_max_pct"] for v in covered_band.values()),
                 "direction_of_error_below_16M": "over-predicts (conservative)",
             },
             # Single authoritative yes/no, canonical population, generated.
@@ -434,7 +464,7 @@ def main() -> int:
                 "why": ("The >=10 us rule is CONSERVATIVE but not validated: on "
                         "the canonical population the max-form roofline never "
                         "reaches 10% in ANY band (best band >16M at "
-                        f"{min(v['roofline_MAX_pct'] for v in covered_band.values()):.1f}%), "
+                        f"{min(v['roofline_max_pct'] for v in covered_band.values()):.1f}%), "
                         "so no analytic accuracy claim backs the threshold. What "
                         "backs it is the SIGN: below 16M the model "
                         "OVER-predicts time, so treating 'roofline says >10 us' "
@@ -469,6 +499,23 @@ def main() -> int:
     assert f"{_best:.1f}%" in _hl, (
         f"headline quotes a residual the band table does not support: "
         f"best band is {_best:.1f}%")
+
+    # THE TWO CHECKS THIS REWORK WAS FOR. Both were absent while the artifact
+    # counted one population three ways, which is the same defect the previous
+    # rework fixed in the residuals, moved to the cell count.
+    _h = out["verdict"]["headline"]
+    _nested = out["verdict"]["canonical_population_only"]["residual_by_size_band"]
+    _band_sum = sum(v["n_cells"] for v in _bands.values())
+    assert _h["canonical_population_n"] == _band_sum, (
+        f"headline counts {_h['canonical_population_n']} canonical cells and "
+        f"the band table counts {_band_sum}; one population, two answers")
+    assert sorted(_bands.values().__iter__().__next__()) == \
+           sorted(next(iter(_nested.values()))), (
+        "the two band blocks use different key names for the same quantities; a "
+        "checker reading the top-level block -- the one a reader reaches for "
+        "first -- finds different keys from the block that is canonical")
+    assert sum(v["n_cells"] for v in _nested.values()) == _band_sum, (
+        "the nested canonical band table does not sum to the top-level one")
     print(f"  self-check OK: populations sum to 124, verdict agrees with bands, "
           f"headline quotes the computed best residual ({_best:.1f}%)")
 
