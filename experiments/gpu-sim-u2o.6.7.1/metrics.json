@@ -136,5 +136,22 @@
       "large": false
     },
     "statement": "after batching, 167.3 ex/s against the 7,911 ex/s bound. smoke-as-written: NOT fed; small: NOT fed; medium: NOT fed; large: NOT fed. Stated here rather than left to be discovered, and the trial count was NOT revisited to improve it."
+  },
+  "BLOCKER_2_OPEN": {
+    "acceptance_item": 2,
+    "status": "OPEN -- the bead CANNOT be validated while this is unmet",
+    "what": "the batched worker's per-example medians do not reproduce the single-run reference within the measured noise floor",
+    "measured": {
+      "reproducing": 206,
+      "of": 264,
+      "fraction": 0.78,
+      "need": 0.9,
+      "worst_rel": 0.57,
+      "worst_cell": "b561fe988174d822",
+      "tolerance_at_worst": 0.15
+    },
+    "why_the_default_suite_is_green": "the reproduction test is marked expectedFailure, so merging this branch does not put a designed failure into the repository's default signal. That is not a skip: if it ever starts PASSING the suite reports a FAILURE, so the debt cannot be forgotten by going green.",
+    "how_to_ask_the_question": "python3 experiments/gpu-sim-u2o.7.1/verify_reproduction.py -- exits nonzero while this is open and prints the measured numbers. A decorator is not a check anyone runs.",
+    "not_fixed_here": "the cause is not yet known. Making the medians agree by loosening the tolerance, or by re-deriving the reference, would certify a throughput fix that changed the numbers, which is the outcome this acceptance exists to prevent."
   }
 }
