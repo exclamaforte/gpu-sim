@@ -1,0 +1,91 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.3",
+  "kind": "MEASURED SWEEP -- regenerates at run time, nothing typed",
+  "produced_at_utc": "2026-10-03T20:36:55.051083+00:00",
+  "produced_by": "experiments/gpu-sim-u2o.6.6.6.3/measure_sweep.py",
+  "commit": "f8ae9c9",
+  "loadavg_1_5_15": [
+    6.45,
+    5.51,
+    6.11
+  ],
+  "device_budget_ms": 0.139,
+  "warm_cache": true,
+  "state_mix": "every 60th job ACTIVE (running), rest terminal",
+  "points": [
+    {
+      "median_ms": 0.05398,
+      "min_ms": 0.05271,
+      "max_ms": 0.07989,
+      "trials": 25,
+      "files": 200,
+      "us_per_file": 0.2699,
+      "x_device_budget": 0.388
+    },
+    {
+      "median_ms": 0.10306,
+      "min_ms": 0.10143,
+      "max_ms": 0.18701,
+      "trials": 25,
+      "files": 400,
+      "us_per_file": 0.25765,
+      "x_device_budget": 0.741
+    },
+    {
+      "median_ms": 0.18198,
+      "min_ms": 0.17645,
+      "max_ms": 0.28191,
+      "trials": 25,
+      "files": 700,
+      "us_per_file": 0.25997,
+      "x_device_budget": 1.309
+    },
+    {
+      "median_ms": 0.21908,
+      "min_ms": 0.21646,
+      "max_ms": 0.41679,
+      "trials": 25,
+      "files": 862,
+      "us_per_file": 0.25415,
+      "x_device_budget": 1.576
+    },
+    {
+      "median_ms": 0.30216,
+      "min_ms": 0.29475,
+      "max_ms": 0.41611,
+      "trials": 25,
+      "files": 1200,
+      "us_per_file": 0.2518,
+      "x_device_budget": 2.174
+    },
+    {
+      "median_ms": 0.50574,
+      "min_ms": 0.4962,
+      "max_ms": 0.76745,
+      "trials": 25,
+      "files": 2000,
+      "us_per_file": 0.25287,
+      "x_device_budget": 3.638
+    },
+    {
+      "median_ms": 1.04021,
+      "min_ms": 1.01129,
+      "max_ms": 1.68638,
+      "trials": 25,
+      "files": 4000,
+      "us_per_file": 0.26005,
+      "x_device_budget": 7.484
+    }
+  ],
+  "fit": {
+    "us_per_file_slope": 0.25808,
+    "per_file_spread_us": {
+      "min": 0.2518,
+      "max": 0.2699,
+      "ratio": 1.072
+    },
+    "linear": true,
+    "reading": "per-file cost is flat within the measured spread, so the cost is LINEAR in directory size. It is not I/O: the existing reverify branch already skips stat() for cached terminal entries, so the residual is per-file Python work. Linear is still O(n), and the criterion asks for sub-linear."
+  },
+  "caveat": "every timing here is load-dependent and stamped with the loadavg above; a bare millisecond figure from this sweep is not comparable with one taken at a different load."
+}
