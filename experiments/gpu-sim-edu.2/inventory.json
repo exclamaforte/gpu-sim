@@ -1,0 +1,54 @@
+{
+  "bead": "gpu-sim-edu.2",
+  "kind": "LAB RUNTIME INVENTORY -- read-only, git asked via dry run",
+  "produced_at_utc": "2026-10-03T20:55:52.053875+00:00",
+  "lab_dir": "/home/gabe/Documents/gpu-sim/.lab",
+  "named_files_reported_missing": {
+    "inbox": {
+      "present": true,
+      "kind": "dir"
+    },
+    "prompts": {
+      "present": true,
+      "kind": "dir"
+    },
+    "labd.log": {
+      "present": false,
+      "kind": null
+    },
+    "pid": {
+      "present": false,
+      "kind": null
+    },
+    "queue_check.py": {
+      "present": false,
+      "kind": null
+    }
+  },
+  "present_runtime_files": [
+    "inbox/implementer.md",
+    "inbox/pi.md",
+    "inbox/reviewer.md",
+    "labd-state.json",
+    "prompts/implementer.md",
+    "prompts/pi.md",
+    "prompts/reviewer.md"
+  ],
+  "git_clean_fd_would_remove_total": 9,
+  "git_clean_fd_would_remove_lab_runtime": [
+    ".lab/tmux.sock",
+    ".lab/labd.sock",
+    ".lab/pi.sock",
+    ".lab/reviewer.sock",
+    ".lab/implementer.sock",
+    ".lab/labd-state.json",
+    ".lab/prompts",
+    ".lab/inbox"
+  ],
+  "risk": "git clean -fd from the repo root would delete every role socket, labd-state.json, the inboxes and the prompts. They are UNTRACKED, so they do not make the tree dirty and no cleanliness check can see them.",
+  "git_evidence": {
+    "lab_ever_tracked_by_git": false,
+    "deleted_tracked_entries": []
+  },
+  "interpretation": "The loose file-based runtime (labd.log, pid, queue_check.py) is absent while the socket + state-file runtime is present, which is the shape of a MIGRATION rather than a deletion. .lab was never tracked by git and no tracked file is deleted, so no git operation can account for it."
+}
