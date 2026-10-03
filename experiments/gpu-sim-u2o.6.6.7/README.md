@@ -35,31 +35,34 @@ the new section describes **within** one run; this describes **between** runs.
   `inconclusive` and *not* an effect. "I cannot tell" and "it passed" must not
   share a value.
 
-## The guard caught my own modelling error
+## The statistic had to be able to say "faster"
 
-The first implementation used `max/median` across runs. It is one-sided (always
-≥ 1, silently discarding the fast side) and it compressed the tail — it reported
-a p90 of **1.11** where the committed probe reports **1.235** for the same data.
+Two modelling errors, both found by guards rather than by reading.
 
-`anchor_band_is_wide` failed, which is the only reason I found out. Switching to
-the **`max/min` envelope** reproduces the probe exactly: overall p90 **1.235**,
-reduce 1.1012, gemm 1.0133.
+**First: `max/median`.** One-sided — always ≥ 1 — so it compressed the tail and
+reported p90 1.11 where the probe reports 1.235. `anchor_band_is_wide` caught it.
+Switching to `max/min` fixed the magnitude but created a worse defect:
 
-The same change then broke a test that hardcoded `1.05` as "inside the band".
-That was the correct refusal and a bad test — a typed constant that happened to
-be inside one particular band. Both probe ratios in that suite are now **derived
-from the band**, so they state the rule rather than a number.
+**Second: `max/min`.** Also one-sided, and it cannot represent a config that got
+**faster**. The anchor's fastest cell moved to **0.8523 of v6**, and `max/min`
+reported that as **1.1745** — the wrong *direction*, on the one artifact whose
+purpose is to stop exactly that. A field named `ratio_quantiles.min` that cannot
+go below 1 while the data contains 0.8523 is a number that means something else.
 
-## What a comparison may now conclude, against the real anchor
+The statistic is now **signed and baseline-relative**: each later run contributes
+`v_i / v_baseline`. That is what the probe computes, so the two now agree
+**exactly** — `min 0.8523, p10 0.9408, median 1.0181, p90 1.235, max 1.5587`,
+identical on every quantile — and `p10 < 1`, so `effect_faster` is judged against
+real fast-side noise instead of being unreachable.
 
-```
-ratio 1.02 -> inconclusive      ratio 1.25 -> effect_slower
-ratio 1.04 -> inconclusive      ratio 1.50 -> effect_slower
-ratio 1.10 -> inconclusive
-```
+The old synthetic fixtures all moved **one way**, which is precisely how this hid.
+The suite now also runs against **real anchor data with cells that moved both
+ways**: the fast side is measurable, a ratio below the measured `p10` is a real
+`effect_faster`, and a mild speedup *inside* the band is still `inconclusive`.
 
-A **4% single-run difference is inconclusive** against this anchor. That is the
-bead's whole claim, asserted in code against the committed spread.
+`ratios_per_config` is carried too: with `n_runs == 2` each config contributes
+exactly **one** ratio, so these quantiles are quantiles over single samples per
+config, not over a distribution. That limit was implicit before.
 
 ## The caution it must not become
 

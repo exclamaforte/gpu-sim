@@ -5,11 +5,11 @@
   "cpu_runs": [
     {
       "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.7/run.sh",
-      "started_utc": "2026-10-03T19:40:00Z",
-      "ended_utc": "2026-10-03T19:40:05Z",
+      "started_utc": "2026-10-03T19:34:38Z",
+      "ended_utc": "2026-10-03T19:34:38Z",
       "exit": 0,
       "log": "experiments/gpu-sim-u2o.6.6.7/output.log",
-      "what": "measure_spread.py recomputes metrics.json from the committed v6/v8 family files (band [1.0019, 1.235], 1.02/1.04/1.10 inconclusive, 1.25/1.50 effect_slower, one-run spread refused) + 13 tests, green"
+      "what": "measure_spread.py recomputes metrics.json (signed baseline-relative spread: min 0.8523, p10 0.9408, median 1.0181, p90 1.235, max 1.5587, identical to the committed probe) + 16 tests, green. This is the run that produced the committed metrics.json; the stamp names code commit df4b231, which this branch contains."
     }
   ],
   "cpu_runs_note": "ts_jobs empty and gpu_used false by design: no device work. A CPU job in the shared GPU queue would block real GPU work.",
@@ -17,6 +17,5 @@
     "baseline": "gpu-sim-u2o.6.6.2 anchor v6 (merged as 566ba0b)",
     "spread_source": "experiments/gpu-sim-u2o.6.6.2/variance_probe.json",
     "join_key": "the config label measure_family.py emits"
-  },
-  "supersedes": null
+  }
 }
