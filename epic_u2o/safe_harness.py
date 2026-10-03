@@ -233,6 +233,25 @@ class SafeHarness:
         if shared_mem < 0 or shared_mem > 228 * 1024:
             errors.append(f"shared_mem={shared_mem} exceeds 228KB/SM")
 
+        # 1b. Static VRAM budget (gpu-sim-u2o.6.3). A pathological problem_size
+        # must be refused BEFORE it can OOM the shared GPU.
+        #
+        # RESTORED. This hunk was present in 6.3's first commit (2dd3074) and
+        # deleted by its own rebase; the cherry-pick onto master reproduced the
+        # loss rather than preventing it. That is the whole hazard: a rebase can
+        # silently drop a hunk, and everything downstream -- the limit table, the
+        # docs -- still describes a preflight that no longer consults it.
+        if spec is not None:
+            try:
+                from epic_u2o.resource_limits import check_vram_budget
+                vram_ok, vram_msg = check_vram_budget(
+                    spec, ResourceLimits(vram_limit_mb=self.vram_limit_mb).policy())
+                self.last_vram_check = vram_msg
+                if not vram_ok:
+                    errors.append(vram_msg)
+            except Exception as e:
+                errors.append(f"VRAM budget check error: {e}")
+
         # 2. Disallowed-construct scan.
         try:
             sys.path.insert(0, str(REPO_ROOT))
