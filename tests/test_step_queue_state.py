@@ -104,6 +104,54 @@ def main() -> int:
         check("queue state in the artifact is non-null own_job_id",
               (r.get("queue_at_start") or {}).get("own_job_id"),
               (r.get("queue_at_start") or {}).get("own_job_id"))
+
+        # 4. ITEM 1: read the ARTIFACT's steps, not synthetic ones.
+        #
+        # Everything above this point exercises synthetic step states, so the
+        # suite passed while the committed artifact satisfied nothing. These
+        # assertions read step1/step2/step2b_recovery out of report.json and ask
+        # whether each carries a queue state of its own -- which is acceptance
+        # criterion 6, and which nothing was actually checking.
+        for step in ("step1", "step2", "step2b_recovery", "step2b"):
+            if step not in r:
+                continue
+            qs_ = r[step].get("queue_state")
+            check(f"artifact step {step} carries its OWN queue state",
+                  isinstance(qs_, dict) and bool(qs_),
+                  f"queue_state={qs_!r}")
+
+        # 5. ITEM 2: a field NAMED queue_state must hold a queue state.
+        #
+        # step1.queue_state is currently null. A null reads as coverage -- a
+        # reader scanning keys sees the field and concludes the queue state is
+        # recorded there. Per this lab's absent-vs-null rule it should be either
+        # a real sample or ABSENT. This test does not fix it: the run happened,
+        # and inventing a queue state for a dose that never took one would be
+        # fabricating the very evidence this bead exists to verify. It reports it.
+        for step, blob in r.items():
+            if isinstance(blob, dict) and "queue_state" in blob:
+                check(f"field named queue_state in {step} is not null",
+                      blob["queue_state"] is not None,
+                      f"step1-style null: {step}.queue_state is None, which "
+                      f"reads as coverage but records nothing")
+
+        # The provenance must survive too. A queue state attached per step with
+        # no statement of WHEN it was taken is the original defect wearing a
+        # value instead of a null: the reader sees a field and assumes it
+        # describes the step it sits in.
+        for step in ("step1", "step2", "step2b_recovery"):
+            if step not in r:
+                continue
+            prov = r[step].get("queue_state_provenance")
+            check(f"{step} says WHEN its queue_state was sampled",
+                  isinstance(prov, dict) and prov.get("sampled_at_utc")
+                  and "BEFORE this step" in prov.get("relation_to_this_step", ""),
+                  prov)
+            check(f"{step} does not claim to be a per-step sample",
+                  prov.get("is_a_per_step_sample") is False,
+                  "if this flips to True the artifact must carry a real "
+                  "per-step sample, not the run-start one")
+
     else:
         check("report.json exists", False, str(rp))
 
