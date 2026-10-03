@@ -65,6 +65,36 @@ _LOAD_STATS = {"calls": 0, "files_seen": 0, "hits": 0, "parses": 0}
 
 
 def _load_all() -> list[dict]:
+    """Records only, for callers that do not need provenance."""
+    return _load_all_with_provenance()[0]
+
+
+def _load_all_with_provenance() -> tuple:
+    """gpu-sim-u2o.6.6.6.6.2: records AND how this sample was read.
+
+    Criterion 2 of 6.6.6.1 asks that every row record which path produced its
+    sample and the age of the underlying read, so no reader is told a sample is
+    fresher than it is. That information existed only in process-global
+    load_stats(), which answers about the PROCESS rather than the SAMPLE: two
+    samples taken a minute apart get the same answer, and a caller who never
+    called load_stats() has nothing at all.
+
+    So the read path is recorded per sample and returned with it. There are four,
+    and they are not interchangeable:
+
+      listing_ttl_hit          the file LIST came from the 0.25s listing cache,
+                               so a job submitted inside that window is not in
+                               this sample. This is the one staleness a reader
+                               most needs to know about.
+      terminal_hit_no_stat     the record was served from the terminal cache
+                               WITHOUT a stat, so its read can be up to
+                               TERMINAL_REVERIFY_SEC old.
+      terminal_hit_stat_ok     stat'd, signature unchanged, terminal.
+      fresh_parse              read from disk on this call; age 0.
+
+    The ACTIVE set is never cached, so an active job is always fresh_parse and
+    read_age_ms 0 for it -- the property 6.6.6.6.1 exists to protect.
+    """
     """Every job file, with TERMINAL ones served from a stat-keyed cache.
 
     gpu-sim-u2o.6.6.6.1: this function was the instrument being 40x more
@@ -92,6 +122,9 @@ def _load_all() -> list[dict]:
     """
     out = []
     _LOAD_STATS["calls"] += 1
+    by_path = {"listing_ttl_hit": 0, "terminal_hit_no_stat": 0,
+               "terminal_hit_stat_ok": 0, "fresh_parse": 0}
+    oldest_read_age_s = 0.0
     # A terminal job needs NEITHER a re-read NOR a re-stat: it cannot become
     # active again, so its answer cannot change. Skipping the stat is what takes
     # this below the device time it measures -- 557 stat() calls were the whole
@@ -133,15 +166,21 @@ def _load_all() -> list[dict]:
     # A newly submitted job is therefore visible within LISTING_TTL_SEC, which
     # load_stats() reports.
     now = time.time()
+    listing_fresh = False
     if (not _FILE_LIST or now - _FILE_LIST[0] > LISTING_TTL_SEC
             or reverify):
         _FILE_LIST[:] = [now, sorted(glob.glob(str(QUEUE_DIR / "*.json")))]
+        listing_fresh = True
+    else:
+        listing_fresh = False
 
     for p in _FILE_LIST[1]:
         _LOAD_STATS["files_seen"] += 1
         hit = _TERMINAL_CACHE.get(p)
         if hit is not None and not reverify and hit[1] in TERMINAL:
             _LOAD_STATS["hits"] += 1
+            by_path["terminal_hit_no_stat"] += 1
+            oldest_read_age_s = max(oldest_read_age_s, now - hit[3])
             out.append(hit[2])
             continue
         try:
@@ -151,6 +190,8 @@ def _load_all() -> list[dict]:
         sig = (st.st_mtime_ns, st.st_size)
         if hit is not None and hit[0] == sig and hit[1] in TERMINAL:
             _LOAD_STATS["hits"] += 1
+            by_path["terminal_hit_stat_ok"] += 1
+            oldest_read_age_s = max(oldest_read_age_s, now - hit[3])
             out.append(hit[2])
             continue
         # The daemon writes these files while we read them, so a partial file
@@ -169,11 +210,33 @@ def _load_all() -> list[dict]:
         if rec is None:
             continue
         _LOAD_STATS["parses"] += 1
+        if listing_fresh:
+            by_path["fresh_parse"] += 1
+        else:
+            # The record came off disk, but the LIST it was found on may have
+            # been up to LISTING_TTL_SEC old, so the sample cannot say it saw
+            # every file. Recorded separately rather than folded into fresh_parse.
+            by_path["listing_ttl_hit"] += 1
+            oldest_read_age_s = max(oldest_read_age_s, now - _FILE_LIST[0])
         out.append(rec)
         state = rec.get("state")
         if state in TERMINAL:
             _TERMINAL_CACHE[p] = (sig, state, rec, time.time())
-    return out
+
+    served = [k for k, v in by_path.items() if v]   # KEYS, not values
+    provenance = {
+        "source": max(served, key=lambda k: by_path[k]) if served else "none",
+        "counts_by_path": dict(by_path),
+        "read_age_ms": round(oldest_read_age_s * 1e3, 3),
+        "listing_age_ms": round((now - _FILE_LIST[0]) * 1e3, 3)
+                          if _FILE_LIST else None,
+        "n_files_seen": _LOAD_STATS["files_seen"],
+        "note": ("read_age_ms is the age of the OLDEST underlying read among the "
+                 "records served, so it is the worst case for this sample. The "
+                 "ACTIVE set is never cached, so active jobs are always "
+                 "fresh_parse and contribute 0."),
+    }
+    return out, provenance
 
 
 def load_stats() -> dict:
@@ -226,7 +289,7 @@ def queue_state(own_job_id: str | None = None,
     `own_description_substr` lets a job identify itself when it cannot know
     its own JOB_ID (ts prints it, but the script does not get it in $0).
     """
-    jobs = _load_all()
+    jobs, provenance = _load_all_with_provenance()
     by_state: dict[str, int] = {}
     for j in jobs:
         by_state[j.get("state", "?")] = by_state.get(j.get("state", "?"), 0) + 1
@@ -355,6 +418,10 @@ def queue_state(own_job_id: str | None = None,
                "queue_was_empty_omitted_because": (
                    "our own job could not be identified in the set we read, "
                    "so an emptiness claim is not derivable from this record")}),
+        # gpu-sim-u2o.6.6.6.6.2: ADDITIVE ONLY. Every key above is unchanged;
+        # this attaches the sample's own read provenance to the record so a row
+        # carrying it can say which path produced it and how old that read was.
+        "sample_provenance": provenance,
         "scope_note": (
             "Records what else was queued/running at sample time. This is "
             "NOT contention detection and NOT a filter: no sample is "

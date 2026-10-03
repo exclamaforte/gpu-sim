@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.2",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.6.2/run.sh",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.6.2/output.log",
+      "what": "forward per-sample provenance in queue_state()'s return; 9 tests, 0 failures, including byte-identity of every pre-existing key against master's queue_state.py over the same fixture"
+    }
+  ],
+  "cpu_runs_note": "No device work; run directly per the CPU-work rule. All suites use TEMPORARY queue directories and never touch the shared queue.",
+  "scope": "Half (a) only: the forward half. The retro half is gpu-sim-u2o.6.6.6.2.1, now dep-blocked on gpu-sim-u2o.6.7.1 per the PI ruling. This bead touches master's queue_state.py only and references no row schema."
+}
