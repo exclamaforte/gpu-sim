@@ -1,0 +1,145 @@
+{
+  "bead": "gpu-sim-u2o.6.6.7",
+  "produced_at_utc": "2026-10-03T19:26:37.685570+00:00",
+  "produced_by": "experiments/gpu-sim-u2o.6.6.7/measure_spread.py",
+  "gpu_used": false,
+  "commit": "61924ee",
+  "purpose": "A single-run ratio against a baseline resolves nothing below that baseline's own run-to-run spread. This records the spread beside the baseline so a comparison has to say which side of the noise it falls on.",
+  "overall_spread": {
+    "spread_version": 1,
+    "baseline_id": "v6-anchor",
+    "n_runs": 2,
+    "n_cells": 106,
+    "run_job_ids": [
+      "v6",
+      "v8"
+    ],
+    "ratio_quantiles": {
+      "min": 1.0002,
+      "p10": 1.0019,
+      "median": 1.0584,
+      "p90": 1.235,
+      "max": 1.5587
+    },
+    "resolution_band": [
+      1.0019,
+      1.235
+    ],
+    "statement": "measured over 2 runs and 106 configs; a single-run ratio against v6-anchor cannot resolve anything inside [1.0019, 1.235]"
+  },
+  "per_family_spread": {
+    "memory": {
+      "spread_version": 1,
+      "baseline_id": "v6-anchor:memory",
+      "n_runs": 2,
+      "n_cells": 90,
+      "run_job_ids": [
+        "memory:v6",
+        "memory:v8"
+      ],
+      "ratio_quantiles": {
+        "min": 1.0002,
+        "p10": 1.0015,
+        "median": 1.0661,
+        "p90": 1.2253,
+        "max": 1.5444
+      },
+      "resolution_band": [
+        1.0015,
+        1.2253
+      ],
+      "statement": "measured over 2 runs and 90 configs; a single-run ratio against v6-anchor:memory cannot resolve anything inside [1.0015, 1.2253]"
+    },
+    "reduce": {
+      "spread_version": 1,
+      "baseline_id": "v6-anchor:reduce",
+      "n_runs": 2,
+      "n_cells": 8,
+      "run_job_ids": [
+        "reduce:v6",
+        "reduce:v8"
+      ],
+      "ratio_quantiles": {
+        "min": 1.0141,
+        "p10": 1.017,
+        "median": 1.1012,
+        "p90": 1.491,
+        "max": 1.5587
+      },
+      "resolution_band": [
+        1.017,
+        1.491
+      ],
+      "statement": "measured over 2 runs and 8 configs; a single-run ratio against v6-anchor:reduce cannot resolve anything inside [1.017, 1.491]"
+    },
+    "gemm": {
+      "spread_version": 1,
+      "baseline_id": "v6-anchor:gemm",
+      "n_runs": 2,
+      "n_cells": 8,
+      "run_job_ids": [
+        "gemm:v6",
+        "gemm:v8"
+      ],
+      "ratio_quantiles": {
+        "min": 1.0033,
+        "p10": 1.0062,
+        "median": 1.0133,
+        "p90": 1.0443,
+        "max": 1.0921
+      },
+      "resolution_band": [
+        1.0062,
+        1.0443
+      ],
+      "statement": "measured over 2 runs and 8 configs; a single-run ratio against v6-anchor:gemm cannot resolve anything inside [1.0062, 1.0443]"
+    }
+  },
+  "cross_check_against_committed_probe": {
+    "this_module_median": 1.0584,
+    "committed_probe_median": 1.0181,
+    "agree_within_0.05": true,
+    "note": "different statistics (max/median across runs here, v8/v6 per cell there), so this asserts agreement in direction and magnitude, not equality"
+  },
+  "what_a_comparison_may_conclude": {
+    "ratio_1.02": "inconclusive",
+    "ratio_1.04": "inconclusive",
+    "ratio_1.1": "inconclusive",
+    "ratio_1.25": "effect_slower",
+    "ratio_1.5": "effect_slower"
+  },
+  "properties": {
+    "anchor_band_is_wide": true,
+    "four_percent_is_inconclusive": true,
+    "fifty_percent_is_an_effect": true,
+    "cross_check_agrees": true,
+    "no_single_run_spread": true
+  },
+  "all_properties_pass": true
+}
+OK: the anchor's band is wide, a 4% single-run difference is inconclusive against it, a 50% one is not, and a one-run spread is refused rather than defaulted to zero.
+test_a_fifty_percent_regression_is_an_effect (__main__.TestAgainstTheRealAnchorSpread.test_a_fifty_percent_regression_is_an_effect) ... ok
+test_a_four_percent_regression_is_inconclusive_against_this_anchor (__main__.TestAgainstTheRealAnchorSpread.test_a_four_percent_regression_is_inconclusive_against_this_anchor)
+The practical consequence, stated as an assertion. ... ok
+test_the_anchor_band_is_wide (__main__.TestAgainstTheRealAnchorSpread.test_the_anchor_band_is_wide)
+The reason this bead exists: p90 is ~1.235, so small effects are invisible. ... ok
+test_all_zero_config_is_refused (__main__.TestSpreadFromRuns.test_all_zero_config_is_refused) ... ok
+test_band_brackets_the_median (__main__.TestSpreadFromRuns.test_band_brackets_the_median) ... ok
+test_configs_missing_from_any_run_are_excluded_not_zeroed (__main__.TestSpreadFromRuns.test_configs_missing_from_any_run_are_excluded_not_zeroed)
+A config present in only one run has no ratio and must not become 1.0. ... ok
+test_joins_on_the_label_across_runs (__main__.TestSpreadFromRuns.test_joins_on_the_label_across_runs) ... ok
+test_record_is_versioned_and_serialisable (__main__.TestSpreadFromRuns.test_record_is_versioned_and_serialisable) ... ok
+test_single_run_is_refused_not_defaulted_to_zero (__main__.TestSpreadFromRuns.test_single_run_is_refused_not_defaulted_to_zero)
+THE most important refusal in this file. ... ok
+test_missing_spread_claims_no_resolution_and_is_not_a_pass (__main__.TestVerdictReportsBothDirections.test_missing_spread_claims_no_resolution_and_is_not_a_pass) ... ok
+test_ratio_above_the_band_is_a_real_slower_effect (__main__.TestVerdictReportsBothDirections.test_ratio_above_the_band_is_a_real_slower_effect)
+If this ever fails, the module is a 'nothing matters' machine. ... ok
+test_ratio_below_the_band_is_a_real_faster_effect (__main__.TestVerdictReportsBothDirections.test_ratio_below_the_band_is_a_real_faster_effect)
+Below p10, and derived from the band for the same reason. ... ok
+test_ratio_inside_the_band_is_inconclusive (__main__.TestVerdictReportsBothDirections.test_ratio_inside_the_band_is_inconclusive)
+The probe ratio is DERIVED from the band, not typed. ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.011s
+
+OK

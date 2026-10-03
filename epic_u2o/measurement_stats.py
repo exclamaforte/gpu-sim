@@ -365,6 +365,194 @@ def process_measurement_batch(
     return results
 
 
+# ---------------------------------------------------------------------------
+# gpu-sim-u2o.6.6.7 -- CROSS-RUN SPREAD, and what a comparison may conclude.
+#
+# Everything above this line describes WITHIN one run: N trials of one
+# configuration. This section describes the other thing, which is how far the
+# SAME configuration moves BETWEEN runs. Both were needed and only the first
+# existed.
+#
+# Two instances forced it:
+#   * a +3.9% single-replicate reading that a three-replicate repeat showed was
+#     inside the noise (gpu-sim-u2o.6.6.1 rework 3);
+#   * the v6 anchor re-run as v8: 106 comparable cells, median 1.018, p90 1.235,
+#     max 1.559 (gpu-sim-u2o.6.6.2 variance_probe.json).
+#
+# So a single-run ratio against a baseline resolves NOTHING smaller than the
+# baseline's own spread, and nothing in the workflow forced a comparison to say
+# so. This makes it say so.
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class SpreadRecord:
+    """A baseline's measured run-to-run spread, versioned WITH the baseline.
+
+    Versioned here for the same reason anchor_version exists: a spread measured
+    on one box, one queue state and one driver is a property of THAT baseline,
+    not a constant to be reused. Carry spread_version beside the baseline's own
+    version and quote both.
+    """
+    spread_version: int
+    baseline_id: str
+    n_runs: int
+    n_cells: int
+    run_job_ids: list
+    p10: float
+    median: float
+    p90: float
+    minimum: float
+    maximum: float
+    statement: str = ""
+
+    def band(self) -> tuple:
+        """The resolution window: ratios inside this are indistinguishable
+        from run-to-run movement of the identical code."""
+        return (self.p10, self.p90)
+
+    def to_dict(self) -> dict:
+        return {
+            "spread_version": self.spread_version,
+            "baseline_id": self.baseline_id,
+            "n_runs": self.n_runs,
+            "n_cells": self.n_cells,
+            "run_job_ids": list(self.run_job_ids),
+            "ratio_quantiles": {"min": self.minimum, "p10": self.p10,
+                                "median": self.median, "p90": self.p90,
+                                "max": self.maximum},
+            "resolution_band": list(self.band()),
+            "statement": self.statement,
+        }
+
+
+def _quantile(sorted_xs, p: float) -> float:
+    if not sorted_xs:
+        raise ValueError("no values to take a quantile of")
+    if len(sorted_xs) == 1:
+        return sorted_xs[0]
+    k = (len(sorted_xs) - 1) * p
+    lo = int(k)
+    hi = min(lo + 1, len(sorted_xs) - 1)
+    return sorted_xs[lo] + (sorted_xs[hi] - sorted_xs[lo]) * (k - lo)
+
+
+def spread_from_runs(runs: list, baseline_id: str, spread_version: int = 1) -> SpreadRecord:
+    """Measure a baseline's cross-run spread from >=2 runs of the same configs.
+
+    `runs` is a list of (job_id, {config_label: value}) pairs. Configs are
+    joined on the label the measurement itself emits, so the join key is the
+    measurement's, not this function's.
+
+    Fewer than two runs is REFUSED rather than defaulted. A spread from one run
+    is zero by construction -- there is no run-to-run movement to measure -- and
+    returning 0.0 would hand every later comparison a band of zero width and let
+    any difference look significant. That is the failure this whole module
+    exists to prevent.
+    """
+    if len(runs) < 2:
+        raise ValueError(
+            "cross-run spread needs at least 2 runs; a single run has no "
+            "run-to-run movement to measure, and returning 0.0 would make "
+            "every later comparison look significant")
+    labels = None
+    per_label = {}
+    job_ids = []
+    for job_id, cells in runs:
+        job_ids.append(job_id)
+        if labels is None:
+            labels = set(cells)
+        else:
+            labels &= set(cells)
+        for k, v in cells.items():
+            per_label.setdefault(k, []).append(v)
+    ratios = []
+    for k in sorted(labels):
+        vals = per_label[k]
+        # The ENVELOPE across runs, max/min -- not max/median.
+        #
+        # max/median is one-sided (it is always >= 1, so it silently discards the
+        # fast side) and it compresses the tail, which made this module report a
+        # p90 of 1.11 where the committed probe reports 1.24 for the SAME data.
+        # A guard caught it: `anchor_band_is_wide` failed. max/min reproduces
+        # the probe's v8/v6 exactly on the slow side, which is the side a
+        # regression comparison cares about.
+        lo, hi = min(vals), max(vals)
+        if lo:
+            ratios.append(hi / lo)
+    if not ratios:
+        raise ValueError("no comparable non-zero configs across the runs given")
+    xs = sorted(ratios)
+    return SpreadRecord(
+        spread_version=spread_version,
+        baseline_id=baseline_id,
+        n_runs=len(runs),
+        n_cells=len(ratios),
+        run_job_ids=job_ids,
+        p10=round(_quantile(xs, 0.10), 4),
+        median=round(_quantile(xs, 0.50), 4),
+        p90=round(_quantile(xs, 0.90), 4),
+        minimum=round(xs[0], 4),
+        maximum=round(xs[-1], 4),
+        statement=(f"measured over {len(runs)} runs and {len(ratios)} configs; "
+                   f"a single-run ratio against {baseline_id} cannot resolve "
+                   f"anything inside [{round(_quantile(xs, 0.10), 4)}, "
+                   f"{round(_quantile(xs, 0.90), 4)}]"),
+    )
+
+
+def verdict_for_ratio(ratio: float, spread: Optional[SpreadRecord]) -> dict:
+    """What may be concluded about `ratio` against a baseline.
+
+    REPORTS. Never raises, and never returns a bare "effect" it cannot support.
+
+      effect_slower      ratio above the baseline's p90
+      effect_faster      ratio below its p10
+      inconclusive       ratio inside [p10, p90] -- indistinguishable from the
+                         same code moving between runs
+      no_spread_recorded there is no spread for this baseline, so NO resolution
+                         is claimed. This is deliberately NOT inconclusive and
+                         NOT an effect: it is the absence of the information
+                         needed to tell, and it must not read as a pass.
+
+    The inconclusive case is the point of the module. It is also why this must
+    not become a gate that fails everything -- the v6 anchor's own p90 is 1.235,
+    so a hard rule like "any ratio under 1.2x is inconclusive" would retire most
+    of this lab's legitimate A/B results. The band is per-baseline and measured.
+    """
+    if spread is None:
+        return {
+            "ratio": ratio,
+            "verdict": "no_spread_recorded",
+            "resolution_band": None,
+            "explanation": ("no measured cross-run spread for this baseline, so "
+                            "this ratio cannot be called an effect or noise. "
+                            "Record one (>=2 runs) before concluding anything."),
+        }
+    lo, hi = spread.band()
+    if ratio > hi:
+        verdict = "effect_slower"
+    elif ratio < lo:
+        verdict = "effect_faster"
+    else:
+        verdict = "inconclusive"
+    return {
+        "ratio": ratio,
+        "verdict": verdict,
+        "resolution_band": [lo, hi],
+        "spread_version": spread.spread_version,
+        "n_runs": spread.n_runs,
+        "n_cells": spread.n_cells,
+        "explanation": (
+            f"ratio {ratio} vs baseline {spread.baseline_id} "
+            f"(spread v{spread.spread_version}, {spread.n_runs} runs, "
+            f"{spread.n_cells} configs, band [{lo}, {hi}]): " +
+            ("indistinguishable from run-to-run movement of the same code"
+             if verdict == "inconclusive" else
+             f"outside the band, so the shift exceeds measured run-to-run noise")),
+    }
+
+
 if __name__ == '__main__':
     # Demo with synthetic data
     import random
