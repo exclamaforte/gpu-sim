@@ -4,13 +4,13 @@
   "gpu_used": false,
   "cpu_runs": [
     {
-      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.6.2/run.sh",
+      "command": "python3 tests/test_sample_provenance.py (+ regression suites)",
       "exit": 0,
-      "log": "experiments/gpu-sim-u2o.6.6.6.2/output.log",
-      "what": "rework: sample_provenance.n_files_seen is the PER-SAMPLE count. Three new tests fail against the pre-fix code (verified by reverting the line) and pass after. 12 tests, 0 failures; no regressions in 6.6.6 or 6.6.6.1's suites."
+      "what": "post-merge fix: additivity baseline resolved by content instead of the moving master ref. 12 tests, 0 failures ON THE MERGED TREE, plus test_queue_state.py, test_cache_differential.py, test_queue_state_cost.py all passing."
     }
   ],
   "cpu_runs_note": "No device work; run directly per the CPU-work rule. All suites use TEMPORARY queue directories and never touch the shared queue.",
   "scope": "Half (a) only: the forward half. The retro half is gpu-sim-u2o.6.6.6.2.1, now dep-blocked on gpu-sim-u2o.6.7.1 per the PI ruling. This bead touches master's queue_state.py only and references no row schema.",
-  "reviewer_catch": "My first version filled n_files_seen from _LOAD_STATS['files_seen'], the cumulative PROCESS counter, so two samples over an unchanged queue reported growing numbers -- the same defect as putting provenance in load_stats() at all, one layer down."
+  "reviewer_catch": "My first version filled n_files_seen from _LOAD_STATS['files_seen'], the cumulative PROCESS counter, so two samples over an unchanged queue reported growing numbers -- the same defect as putting provenance in load_stats() at all, one layer down.",
+  "post_merge_finding": "The additivity test compared against master:epic_u2o/queue_state.py and asserted master did NOT already carry sample_provenance. That held while the branch was ahead and became FALSE THE MOMENT THE CHANGE MERGED -- after which the test compared master against itself and could never pass again. It is now resolved by CONTENT: walk master for the OLDEST commit whose queue_state.py contains the key and take its parent (0072545). Survives merges, rebases and re-introductions."
 }

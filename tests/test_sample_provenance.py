@@ -194,9 +194,45 @@ class TestByteIdenticalToThePreChangeCode(Base):
     else the addition could have disturbed fails here rather than in a review.
     """
 
+    @staticmethod
+    def _baseline_ref() -> str:
+        """The commit BEFORE sample_provenance was introduced, resolved by
+        CONTENT rather than by the moving `master` ref.
+
+        My first version compared against `master:epic_u2o/queue_state.py` and
+        asserted master did NOT already carry the key. That was true while the
+        branch was ahead, and it became FALSE THE MOMENT THE CHANGE MERGED --
+        at which point the test compared master against itself and could never
+        pass again. A check whose premise expires at the moment it succeeds is a
+        time bomb, and I armed it.
+
+        So the baseline is found by walking master for the first commit whose
+        queue_state.py contains the key, and taking its PARENT. That keeps
+        working across merges, rebases and future re-introductions.
+        """
+        raw = subprocess.run(
+            ["git", "-C", str(REPO), "log", "--format=%H", "master",
+             "--", "epic_u2o/queue_state.py"],
+            capture_output=True, text=True, check=True).stdout.split()
+        # git log lists NEWEST first; the baseline we want is the parent of the
+        # OLDEST commit that introduced the key, so walk oldest-first.
+        for sha in reversed(raw):
+            blob = subprocess.run(
+                ["git", "-C", str(REPO), "show", f"{sha}:epic_u2o/queue_state.py"],
+                capture_output=True, text=True).stdout
+            if "sample_provenance" in blob:
+                parent = subprocess.run(
+                    ["git", "-C", str(REPO), "rev-parse", f"{sha}^"],
+                    capture_output=True, text=True, check=True).stdout.strip()
+                return parent
+        raise AssertionError(
+            "sample_provenance is not on master at all; this additivity test "
+            "has nothing to compare against")
+
     def _master_module(self):
         raw = subprocess.run(
-            ["git", "-C", str(REPO), "show", "master:epic_u2o/queue_state.py"],
+            ["git", "-C", str(REPO), "show",
+             f"{self._baseline_ref()}:epic_u2o/queue_state.py"],
             capture_output=True, text=True, check=True).stdout
         d = self.td / "master_qs.py"
         d.write_text(raw)
@@ -216,8 +252,8 @@ class TestByteIdenticalToThePreChangeCode(Base):
         after = self.record()
 
         self.assertNotIn("sample_provenance", before,
-                         "master must NOT already carry the new key, or this "
-                         "comparison proves nothing")
+                         f"the baseline {self._baseline_ref()[:8]} already "
+                         f"carries the key, so this comparison proves nothing")
         self.assertIn("sample_provenance", after)
         drift = []
         for key in PRIOR_KEYS:
