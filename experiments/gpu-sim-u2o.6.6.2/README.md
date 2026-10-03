@@ -170,3 +170,43 @@ Telemetry: no throttling was observed in any family
 (`clocks_throttle_reasons.active = 0x0` before and after each), so no
 cross-config comparison here is contaminated by clock behaviour. The GPU
 still idles at ~230 MHz and boosts to ~2.9 GHz under load, per 6.6.1.
+
+## Rebase onto master (2026-10-03) and the cross-run variance probe
+
+**Rebased**: the 12 commits are now on `lab/gpu-sim-u2o.6.6.2-rebased`, cherry-picked
+onto master `033c149`, **zero conflicts**. Not `git rebase` — see `job.json`
+`rebase_onto_master.why_not_rebase`; I ran the direction backwards first and it
+tried to re-apply `8dw`, which master had already merged.
+
+The premise behind ruling (c) is verified here rather than assumed:
+`git diff master..HEAD -- epic_u2o/kernel_driver.py epic_u2o/safe_harness.py`
+is **empty**, so the measurement path is byte-identical and v6's device timings
+remain comparable to anything measured from this point.
+
+**Variance probe** (`variance_probe.py` → `variance_probe.json`) — **NOT an
+anchor**. It differences the v8 re-run against the v6 anchor on the three
+families both cover, joined on the config label, to measure how far the *same*
+configuration moves between two runs:
+
+```
+106 comparable cells (memory 90, reduce 8, gemm 8)
+overall v8/v6: median 1.0181  p10 0.9408  p90 1.2350  max 1.5587
+```
+
+This is the number every later single-run comparison against the anchor must
+quote: a few percent median with a tail past 1.5x, so a single-run A/B cannot
+resolve anything below the p90 band without replicates.
+
+**One discrepancy is unresolved and is recorded in the artifact, not smoothed
+over.** The PI independently differenced the same two runs and got 30 comparable
+cells, overall median 1.047, memory median 1.082. The two agree *exactly* on
+reduce (1.1012 vs 1.101) and gemm (1.0133 vs 1.013) and disagree on the memory
+family and the cell count. I could not reproduce 30 from this data — memory is
+90 cells (6 kernel kinds × 15 configs). My figures are hand-verified against the
+raw files and the join key is stated in the script so either number can be
+recomputed. **The spread must be adjudicated before either figure is quoted as
+the anchor's resolution.** It does not change ruling (c): both computations say
+a few percent median with a long tail.
+
+The v8 family files are preserved under `variance_probe_v8/` so the probe is
+reproducible and so the evidence for gpu-sim-u2o.6.6.2.1 is not lost.

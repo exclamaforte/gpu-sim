@@ -1,0 +1,369 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "family": "gemm",
+  "queue_state_before": {
+    "recorded_at": "2026-09-28T07:07:59.397057+00:00",
+    "own_job_id": "20260928t053730-ae3d17fb",
+    "own_description_substr": "u2o.6.6.2 anchor: gemm",
+    "own_job_id_resolution": "command:running",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 318,
+      "failed": 116,
+      "canceled": 39,
+      "timed_out": 6,
+      "killed_underused": 2,
+      "running": 1,
+      "queued": 1
+    },
+    "own_job_entry": {
+      "id": "20260928t053730-ae3d17fb",
+      "state": "running",
+      "description": "u2o.6.6.2 anchor v8: gemm",
+      "created_at": "2026-09-28T05:37:30+00:00"
+    },
+    "own_job_in_active_set": true,
+    "n_active_including_self": 2,
+    "n_jobs_read": 483,
+    "empty_claim_derived_from_n": 2,
+    "empty_claim_verified": true,
+    "n_other_active": 1,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t060157-0c5d7022",
+        "state": "queued",
+        "description": "opguard-ub7.6: recorder stream discipline + bitwi\u2026",
+        "created_at": "2026-09-28T06:01:57+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-09-28T07:08:14.868860+00:00",
+    "own_job_id": "20260928t053730-ae3d17fb",
+    "own_description_substr": "u2o.6.6.2 anchor: gemm",
+    "own_job_id_resolution": "command:running",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 318,
+      "failed": 116,
+      "canceled": 39,
+      "timed_out": 6,
+      "killed_underused": 2,
+      "running": 1,
+      "queued": 1
+    },
+    "own_job_entry": {
+      "id": "20260928t053730-ae3d17fb",
+      "state": "running",
+      "description": "u2o.6.6.2 anchor v8: gemm",
+      "created_at": "2026-09-28T05:37:30+00:00"
+    },
+    "own_job_in_active_set": true,
+    "n_active_including_self": 2,
+    "n_jobs_read": 483,
+    "empty_claim_derived_from_n": 2,
+    "empty_claim_verified": true,
+    "n_other_active": 1,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t060157-0c5d7022",
+        "state": "queued",
+        "description": "opguard-ub7.6: recorder stream discipline + bitwi\u2026",
+        "created_at": "2026-09-28T06:01:57+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "preflight_bypassed": true,
+  "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
+  "telemetry_before": {
+    "label": "before",
+    "at": 1790579279.3653288,
+    "rc": 0,
+    "csv": "2445 MHz, 3105 MHz, 46, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2445 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "46",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "telemetry_after": {
+    "label": "after",
+    "at": 1790579294.8377533,
+    "rc": 0,
+    "csv": "2707 MHz, 3105 MHz, 50, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2707 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "50",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "throttling_observed": false,
+  "design": {
+    "trials": 100,
+    "invocations": 3,
+    "note": "invocations are independent PROCESSES"
+  },
+  "results": [
+    {
+      "label": "tiled_gemm 512^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.040592,
+      "iqr_ms": 0.0015039999999999984,
+      "mean_ms": 0.0412448,
+      "std_ms": 0.0021500966694861868,
+      "cv": 0.0521301271793338,
+      "medians_across_invocations_ms": [
+        0.040592,
+        0.040544,
+        0.0412
+      ],
+      "across_invocation_cv": 0.008967282090725595,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 512^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.014224,
+      "iqr_ms": 0.001599999999999999,
+      "mean_ms": 0.0143328,
+      "std_ms": 0.0019070724107020734,
+      "cv": 0.13305651447742753,
+      "medians_across_invocations_ms": [
+        0.01432,
+        0.014224,
+        0.01336
+      ],
+      "across_invocation_cv": 0.037852718538048793,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 1024^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.26035200000000003,
+      "iqr_ms": 0.005119999999999958,
+      "mean_ms": 0.2637082666666667,
+      "std_ms": 0.009219517392175839,
+      "cv": 0.03496104808814932,
+      "medians_across_invocations_ms": [
+        0.26035200000000003,
+        0.260192,
+        0.26215999999999995
+      ],
+      "across_invocation_cv": 0.0041892045204917055,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 1024^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.06299199999999999,
+      "iqr_ms": 0.002144000000000007,
+      "mean_ms": 0.06419253333333333,
+      "std_ms": 0.002924008714927462,
+      "cv": 0.045550604768064336,
+      "medians_across_invocations_ms": [
+        0.06299199999999999,
+        0.062976,
+        0.064032
+      ],
+      "across_invocation_cv": 0.009554462634428386,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 2048^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 1.844592,
+      "iqr_ms": 0.012224000000000013,
+      "mean_ms": 1.8445871999999999,
+      "std_ms": 0.01842671659211433,
+      "cv": 0.009989615341640846,
+      "medians_across_invocations_ms": [
+        1.8353760000000001,
+        1.845728,
+        1.844592
+      ],
+      "across_invocation_cv": 0.0030822977412911863,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 2048^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.409184,
+      "iqr_ms": 0.004512000000000016,
+      "mean_ms": 0.41156106666666664,
+      "std_ms": 0.0087173120368622,
+      "cv": 0.021181090105208043,
+      "medians_across_invocations_ms": [
+        0.409184,
+        0.410288,
+        0.409008
+      ],
+      "across_invocation_cv": 0.0016943010088703331,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 4096^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 15.050256000000001,
+      "iqr_ms": 0.3545599999999993,
+      "mean_ms": 15.2171376,
+      "std_ms": 0.30155085039003937,
+      "cv": 0.01981652912109038,
+      "medians_across_invocations_ms": [
+        15.063744,
+        15.050256000000001,
+        15.04952
+      ],
+      "across_invocation_cv": 0.0005319486903408605,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 4096^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 3.106096,
+      "iqr_ms": 0.025471999999999717,
+      "mean_ms": 3.1334746666666664,
+      "std_ms": 0.07831530319071173,
+      "cv": 0.02499311834999519,
+      "medians_across_invocations_ms": [
+        3.12528,
+        3.106096,
+        3.100768
+      ],
+      "across_invocation_cv": 0.0041444467632647175,
+      "throttle_active": false
+    }
+  ],
+  "wall_sec": 15.471855878829956
+}

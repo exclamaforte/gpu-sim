@@ -1,0 +1,70 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "kind": "VARIANCE PROBE -- NOT AN ANCHOR",
+  "not_an_anchor_because": "v8 lacks its launch family (gpu-sim-u2o.6.6.2.1), so it is not a coherent single-run set. The anchor remains v6. This file exists only to measure how far the same configuration moves between two runs, so that a later single-run comparison against the anchor can state its resolution.",
+  "question": "how far does the SAME configuration move between two runs?",
+  "anchor_run": "v6, 20260928t032717-* (four families, one run)",
+  "probe_run": "v8, 20260928t053729-*/053730-* (three families)",
+  "join_key": "the config label emitted by measure_family.py",
+  "per_family": {
+    "memory": {
+      "cells_v6": 90,
+      "cells_v8": 90,
+      "comparable_cells": 90,
+      "v8_over_v6": {
+        "min": 0.8523,
+        "p10": 0.9367,
+        "median": 1.0177,
+        "p90": 1.2253,
+        "max": 1.5444
+      },
+      "v6_run_job": "20260928t032717-5c2e74a0",
+      "v8_run_job": "20260928t053729-7b328655"
+    },
+    "reduce": {
+      "cells_v6": 8,
+      "cells_v8": 8,
+      "comparable_cells": 8,
+      "v8_over_v6": {
+        "min": 1.0141,
+        "p10": 1.017,
+        "median": 1.1012,
+        "p90": 1.491,
+        "max": 1.5587
+      },
+      "v6_run_job": "20260928t032717-ff2f2da2",
+      "v8_run_job": "20260928t053729-c1b9c919"
+    },
+    "gemm": {
+      "cells_v6": 8,
+      "cells_v8": 8,
+      "comparable_cells": 8,
+      "v8_over_v6": {
+        "min": 1.0033,
+        "p10": 1.0062,
+        "median": 1.0133,
+        "p90": 1.0443,
+        "max": 1.0921
+      },
+      "v6_run_job": "20260928t032717-3f5587a6",
+      "v8_run_job": "20260928t053730-ae3d17fb"
+    }
+  },
+  "overall_v8_over_v6": {
+    "min": 0.8523,
+    "p10": 0.9408,
+    "median": 1.0181,
+    "p90": 1.235,
+    "max": 1.5587
+  },
+  "median_drift_pct": 1.81,
+  "interpretation": "median 1.0181x with p90 1.235x and max 1.5587x across 106 comparable cells. A single-run comparison against the v6 anchor therefore cannot resolve anything smaller than roughly the p90 band without replicates. This is the number 6.6.6.1's criterion-1 ratios and any future A/B must quote.",
+  "missing_inputs": [],
+  "UNRECONCILED_SECOND_COMPUTATION": {
+    "why_this_is_here": "The PI independently differenced v8 against v6 and reported 30 comparable cells, overall median 1.047 (p10 1.00, p90 1.355), memory median 1.082 (max 1.355). This script's join -- the config label emitted by measure_family.py -- yields 106 cells and memory median 1.0177. The two AGREE EXACTLY on reduce (1.1012 vs 1.101) and gemm (1.0133 vs 1.013), and DISAGREE on the memory family and on the cell count. Both cannot be right and I could not reproduce 30 from this data: memory is 90 cells (6 kernel kinds x 15 configs), reduce 8, gemm 8.",
+    "this_script_figures": "106 cells, memory median 1.0177, overall median 1.0181",
+    "verified_by": "hand-check of four cells against the raw files (e.g. 'copy n=1024 1block/1024' v6=0.002768 v8=0.003104 ratio 1.1214), and a confirmation that all 90 memory labels appear in both files with zero one-sided labels",
+    "status": "UNRESOLVED. The join key is stated above so a reader can reproduce this number exactly; the PI's 30-cell selection is not reproducible from this data and needs naming before either figure is quoted as the anchor's resolution.",
+    "does_it_change_the_ruling": "No. Both computations say the same thing qualitatively: a few percent median drift with a tail past 1.5x. So (c) stands and a single-run comparison against v6 still cannot resolve anything below the p90 band without replicates. Only the number to quote is in question."
+  }
+}

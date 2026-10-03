@@ -106,5 +106,21 @@
     ],
     "verifiable_because": "each committed family_*.json carries its own queue_state_before with that job id, so a reader can check the mapping without trusting this file",
     "superseded_by": "a v8 re-run is in flight (20260928t053729-*). When it completes the family files and therefore this field will be regenerated; until then the committed artifact IS the v6 measurement."
-  }
+  },
+  "rebase_onto_master": {
+    "branch": "lab/gpu-sim-u2o.6.6.2-rebased",
+    "onto": "master",
+    "master_at_rebase": "033c149 (6.11.1 merge)",
+    "commits_applied": 12,
+    "method": "cherry-pick -x of the 12 commits, NOT `git rebase`",
+    "why_not_rebase": "`git rebase lab/gpu-sim-u2o.6.6.2-r2` replays the CURRENT branch onto that branch, which is backwards; it tried to re-apply 8dw and conflicted on preflight_validator.py. The branch is also checked out in the stale worktree, so git refuses to rebase it by name. Cherry-picking reads committed history and leaves that worktree untouched.",
+    "conflicts": 0,
+    "carries_6_6_6_own_job_entry": true,
+    "measurement_path_untouched": "git diff master..HEAD -- epic_u2o/kernel_driver.py epic_u2o/safe_harness.py is EMPTY, which is the premise that makes the v6 anchor's timings comparable (PI ruling (c))"
+  },
+  "suite_status_after_rebase": {
+    "tests/test_anchor_metrics.py": "PASS",
+    "tests/test_preflight_cannot_pass.py": "1 failure: 'libfakegpu is resolvable for the smoke path'. NOT a rebase regression: the 12 commits touch no file under src/ and no build file, and libfakegpu.so is a build artifact absent from every clean worktree. This is the gpu-sim-u2o.20 'check cannot run in a clean clone' class."
+  },
+  "cpu_runs_note": "No GPU job was submitted. The v6 anchor stays authoritative per the PI's (c) ruling; the 5 modified family files in the stale worktree were left exactly as found and are dispositioned under gpu-sim-u2o.6.6.2.1."
 }
