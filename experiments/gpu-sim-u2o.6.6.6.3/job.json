@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.3",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "measurement + suite runs (CPU only)",
+      "exit": 0,
+      "what": "measured 200-4000 files; attempt 1 (whole-sweep memo) 130x but REJECTED by the differential suite; attempt 2 (terminal bulk / active fresh) correct and committed"
+    }
+  ],
+  "status": "PARTIAL -- acceptance (sub-linear per-call growth) NOT met",
+  "not_done": "set-partition + preassembled terminal list; see FINDING.md",
+  "suites": "test_queue_state, test_cache_differential, test_queue_state_cost, test_sample_provenance all PASS"
+}

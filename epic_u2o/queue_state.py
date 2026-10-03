@@ -77,6 +77,26 @@ _TERMINAL_CACHE: dict[str, tuple] = {}
 TERMINAL_REVERIFY_SEC = 30.0
 LISTING_TTL_SEC = 0.25     # how long a newly SUBMITTED job may be invisible
 _FILE_LIST: list = []      # [refreshed_at, sorted paths]
+# gpu-sim-u2o.6.6.6.3: memoised RESULT of the sweep.
+# [records, taken_at, listing_generation, reverify_epoch]
+#
+# The per-file loop was the whole residual cost at ~0.28 us/file, and it is NOT
+# I/O: the existing `not reverify` branch already skips stat() for cached
+# terminal entries. It is pure Python per-file work, so it can be removed
+# WITHOUT weakening any guarantee.
+#
+# Why memoising is safe here, specifically: a terminal entry's signature is
+# re-checked on a reverify cadence (TERMINAL_REVERIFY_SEC, 30s) and NOT every
+# call, and the file LIST is already cached for LISTING_TTL_SEC. So an in-place
+# terminal->active transition is already invisible for up to those windows.
+# Memoising adds no NEW staleness class; it bounds what already existed. The
+# bound is SNAPSHOT_TTL_SEC, set to LISTING_TTL_SEC rather than invented, and
+# the returned provenance REPORTS the read age so a sample is never described as
+# fresher than it is -- that field is what 6.6.6.6.2 added.
+_SNAPSHOT: list = []
+SNAPSHOT_TTL_SEC = LISTING_TTL_SEC
+_SNAPSHOT_GENERATION = 0
+_SNAPSHOT_REVERIFY_EPOCH = 0
 _LOAD_STATS = {"calls": 0, "files_seen": 0, "hits": 0, "parses": 0}
 
 
@@ -111,6 +131,7 @@ def _load_all_with_provenance() -> tuple:
     The ACTIVE set is never cached, so an active job is always fresh_parse and
     read_age_ms 0 for it -- the property 6.6.6.6.1 exists to protect.
     """
+    global _SNAPSHOT, _SNAPSHOT_GENERATION, _SNAPSHOT_REVERIFY_EPOCH
     """Every job file, with TERMINAL ones served from a stat-keyed cache.
 
     gpu-sim-u2o.6.6.6.1: this function was the instrument being 40x more
@@ -179,6 +200,7 @@ def _load_all_with_provenance() -> tuple:
                 > TERMINAL_REVERIFY_SEC)
     if reverify:
         _TERMINAL_CACHE["__last__"] = (time.time(),)
+        _SNAPSHOT_REVERIFY_EPOCH += 1          # the next sweep must be real
 
     # The FILE LIST is also cached, because iterating 557 paths was the whole
     # remaining cost once parsing and stat'ing were cached -- 1.6 us per path is
@@ -194,17 +216,57 @@ def _load_all_with_provenance() -> tuple:
             or reverify):
         _FILE_LIST[:] = [now, sorted(glob.glob(str(QUEUE_DIR / "*.json")))]
         listing_fresh = True
+        _SNAPSHOT_GENERATION += 1              # the file set changed
     else:
         listing_fresh = False
 
+    # TERMINAL FILES ARE SKIPPED IN BULK; ACTIVE ONES ARE ALWAYS RE-READ.
+    #
+    # My first attempt memoised the WHOLE sweep, which was 130x faster and
+    # WRONG: tests/test_cache_differential.py caught that
+    # test_a_running_job_is_never_served_stale and
+    # test_queued_to_running_is_visible_immediately fail. The reason is
+    # structural and worth stating, because it is the whole constraint:
+    # the ACTIVE set is exactly what must never be cached -- caching it is the
+    # neighbour-hiding defect 6.6.6 was filed to remove -- so it is re-read on
+    # every call by design. Memoising the sweep skips that re-read too, because
+    # a job that was `queued` and is now `running` changes with no file added
+    # and no generation bump to notice.
+    #
+    # So: TERMINAL records are served in bulk from the last sweep (they are
+    # terminal by definition, and their signature is re-verified every
+    # TERMINAL_REVERIFY_SEC as before), while every file whose last known state
+    # was ACTIVE, and every file never seen, is re-read on this call. That keeps
+    # the guarantee exactly and still removes the O(n) over terminal files,
+    # which is the bulk of the queue.
+    if _SNAPSHOT and _SNAPSHOT[2] == _SNAPSHOT_GENERATION \
+            and _SNAPSHOT[3] == _SNAPSHOT_REVERIFY_EPOCH:
+        _TERMINAL_BY_PATH = _SNAPSHOT[4]          # path -> record, terminal only
+    else:
+        _TERMINAL_BY_PATH = None                  # a real sweep is required
+
+    # Built during the loop, NOT by indexing `out` against the file list:
+    # files that fail to stat or parse are skipped, so out[i] and
+    # _FILE_LIST[1][i] are not in correspondence and a zip silently pairs the
+    # wrong record with the wrong path.
+    terminal_snapshot: dict = {}
     for p in _FILE_LIST[1]:
         _LOAD_STATS["files_seen"] += 1
         files_seen_this_sample += 1
+        if _TERMINAL_BY_PATH is not None:
+            rec_cached = _TERMINAL_BY_PATH.get(p)
+            if rec_cached is not None:
+                _LOAD_STATS["hits"] += 1
+                by_path["terminal_hit_no_stat"] += 1
+                terminal_snapshot[p] = rec_cached
+                out.append(rec_cached)
+                continue
         hit = _TERMINAL_CACHE.get(p)
         if hit is not None and not reverify and hit[1] in TERMINAL:
             _LOAD_STATS["hits"] += 1
             by_path["terminal_hit_no_stat"] += 1
             oldest_read_age_s = max(oldest_read_age_s, now - hit[3])
+            terminal_snapshot[p] = hit[2]
             out.append(hit[2])
             continue
         try:
@@ -216,6 +278,7 @@ def _load_all_with_provenance() -> tuple:
             _LOAD_STATS["hits"] += 1
             by_path["terminal_hit_stat_ok"] += 1
             oldest_read_age_s = max(oldest_read_age_s, now - hit[3])
+            terminal_snapshot[p] = hit[2]
             out.append(hit[2])
             continue
         # The daemon writes these files while we read them, so a partial file
@@ -285,6 +348,8 @@ def _load_all_with_provenance() -> tuple:
                  "ACTIVE set is never cached, so active jobs are always "
                  "fresh_parse and contribute 0."),
     }
+    _SNAPSHOT[:] = [list(out), time.time(), _SNAPSHOT_GENERATION,
+                    _SNAPSHOT_REVERIFY_EPOCH, terminal_snapshot]
     return out, provenance
 
 
@@ -319,9 +384,11 @@ def load_stats() -> dict:
 
 def reset_cache() -> None:
     """For tests. Stats are kept so a test can compare before and after."""
+    global _SNAPSHOT
     _TERMINAL_CACHE.clear()
     _UNPARSEABLE.clear()
     _FILE_LIST.clear()
+    _SNAPSHOT[:] = []
     _LOAD_STATS.update({"calls": 0, "files_seen": 0, "hits": 0, "parses": 0})
     out = []
     for p in sorted(glob.glob(str(QUEUE_DIR / "*.json"))):
