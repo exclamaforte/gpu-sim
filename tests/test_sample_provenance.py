@@ -116,6 +116,52 @@ class TestProvenanceIsPresentAndHonest(Base):
                       "an active job must be re-read every call, never cached")
 
 
+class TestCountsArePerSampleNotPerProcess(Base):
+    """THE REVIEWER'S CATCH, and the one that made this bead's premise concrete.
+
+    My first version filled sample_provenance.n_files_seen from
+    _LOAD_STATS["files_seen"] -- the cumulative PROCESS counter. So two samples
+    over an unchanged queue reported 5 then 10, and a reader could not tell
+    whether this sample saw 5 files or 10. That is the same defect as putting
+    provenance in load_stats() at all: a process-global answer attached to a
+    sample, one layer down.
+
+    The test takes TWO samples over a non-empty queue and requires the count to
+    describe THIS sample. It fails against the pre-fix code.
+    """
+
+    def test_two_samples_report_the_same_per_sample_count(self):
+        qs._load_all()                        # first sample, primes the cache
+        _, p1 = qs._load_all_with_provenance()
+        _, p2 = qs._load_all_with_provenance()
+        self.assertGreater(p1["n_files_seen"], 0,
+                           "the fixture queue is not empty")
+        self.assertEqual(p1["n_files_seen"], p2["n_files_seen"],
+                         "an unchanged queue must report the SAME per-sample "
+                         "count twice; a growing number means the field is "
+                         "carrying the cumulative process counter")
+
+    def test_the_process_counter_is_still_cumulative_and_separate(self):
+        """The process counter keeps its meaning; the two must not be conflated."""
+        qs._load_all()
+        before = qs.load_stats()["files_seen"]
+        qs._load_all_with_provenance()
+        _, p = qs._load_all_with_provenance()
+        after = qs.load_stats()["files_seen"]
+        self.assertGreater(after, before,
+                           "load_stats() must still accumulate across samples")
+        self.assertLess(p["n_files_seen"], after,
+                        "the per-sample count must NOT be the cumulative one")
+
+    def test_the_count_matches_what_the_sample_actually_served(self):
+        qs._load_all()
+        _, p = qs._load_all_with_provenance()
+        self.assertEqual(p["n_files_seen"],
+                         sum(p["counts_by_path"].values()),
+                         "every file seen this sample must be attributed to "
+                         "exactly one read path")
+
+
 class TestAdditiveOnly(Base):
     def test_no_pre_existing_key_changes_value(self):
         """The acceptance constraint: adding the field changes nothing else."""

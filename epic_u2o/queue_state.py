@@ -65,7 +65,7 @@ _LOAD_STATS = {"calls": 0, "files_seen": 0, "hits": 0, "parses": 0}
 
 
 def _load_all() -> list[dict]:
-    """Records only, for callers that do not need provenance."""
+    """Records only; see _load_all_with_provenance for what this reads."""
     return _load_all_with_provenance()[0]
 
 
@@ -125,6 +125,12 @@ def _load_all_with_provenance() -> tuple:
     by_path = {"listing_ttl_hit": 0, "terminal_hit_no_stat": 0,
                "terminal_hit_stat_ok": 0, "fresh_parse": 0}
     oldest_read_age_s = 0.0
+    # PER-SAMPLE file count, NOT _LOAD_STATS["files_seen"]. The reviewer's
+    # catch on the first version of this field: I filled it from the cumulative
+    # PROCESS counter, so two samples over the same queue reported growing
+    # numbers -- which is exactly the defect this bead exists to remove, one
+    # layer down. The process counter stays in load_stats() where it belongs.
+    files_seen_this_sample = 0
     # A terminal job needs NEITHER a re-read NOR a re-stat: it cannot become
     # active again, so its answer cannot change. Skipping the stat is what takes
     # this below the device time it measures -- 557 stat() calls were the whole
@@ -176,6 +182,7 @@ def _load_all_with_provenance() -> tuple:
 
     for p in _FILE_LIST[1]:
         _LOAD_STATS["files_seen"] += 1
+        files_seen_this_sample += 1
         hit = _TERMINAL_CACHE.get(p)
         if hit is not None and not reverify and hit[1] in TERMINAL:
             _LOAD_STATS["hits"] += 1
@@ -230,7 +237,7 @@ def _load_all_with_provenance() -> tuple:
         "read_age_ms": round(oldest_read_age_s * 1e3, 3),
         "listing_age_ms": round((now - _FILE_LIST[0]) * 1e3, 3)
                           if _FILE_LIST else None,
-        "n_files_seen": _LOAD_STATS["files_seen"],
+        "n_files_seen": files_seen_this_sample,
         "note": ("read_age_ms is the age of the OLDEST underlying read among the "
                  "records served, so it is the worst case for this sample. The "
                  "ACTIVE set is never cached, so active jobs are always "
