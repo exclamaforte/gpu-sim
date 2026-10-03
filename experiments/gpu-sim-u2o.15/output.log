@@ -1,0 +1,73 @@
+VIOLATIONS: ['gpu-sim-u2o.6.8', 'gpu-sim-u2o.17.1', 'gpu-sim-u2o.17.2']
+{
+  "bead": "gpu-sim-u2o.15",
+  "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
+  "produced_at_utc": "2026-10-03T20:50:53.760469+00:00",
+  "scope_label": "fab-audit-reopened",
+  "beads_in_scope": 72,
+  "closed_in_scope": 12,
+  "violations": [
+    {
+      "id": "gpu-sim-u2o.6.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.17.1",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md"
+    },
+    {
+      "id": "gpu-sim-u2o.17.2",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": ""
+    }
+  ],
+  "wont_fix_closures_excluded": [
+    "gpu-sim-u2o.16"
+  ],
+  "satisfies_the_acceptance": false,
+  "acceptance": "every bead reopened by this audit, when closed again, must carry a concrete artifact path / resolvable commit / comparison figure -- never a bare 'Closed'"
+}
+
+wrote experiments/gpu-sim-u2o.15/close_audit.json
+test_bare_closed_is_a_violation (__main__.TestBareClosesAreRejected.test_bare_closed_is_a_violation) ... ok
+test_confident_but_empty_phrases_are_violations (__main__.TestBareClosesAreRejected.test_confident_but_empty_phrases_are_violations) ... ok
+test_no_reason_at_all_is_a_violation (__main__.TestBareClosesAreRejected.test_no_reason_at_all_is_a_violation) ... ok
+test_prose_with_no_artifact_is_a_violation (__main__.TestBareClosesAreRejected.test_prose_with_no_artifact_is_a_violation)
+Confident prose is still not evidence. ... ok
+test_a_bare_phrase_plus_a_dead_path_is_still_rejected (__main__.TestCitationsToNothingDoNotCount.test_a_bare_phrase_plus_a_dead_path_is_still_rejected) ... ok
+test_a_path_that_does_not_exist_is_rejected (__main__.TestCitationsToNothingDoNotCount.test_a_path_that_does_not_exist_is_rejected) ... ok
+test_an_unresolvable_commit_is_rejected (__main__.TestCitationsToNothingDoNotCount.test_an_unresolvable_commit_is_rejected) ... ok
+test_a_comparison_figure_is_concrete (__main__.TestConcretePointersAreAccepted.test_a_comparison_figure_is_concrete) ... ok
+test_a_path_plus_a_row_count_is_concrete (__main__.TestConcretePointersAreAccepted.test_a_path_plus_a_row_count_is_concrete) ... ok
+test_a_resolvable_commit_is_concrete (__main__.TestConcretePointersAreAccepted.test_a_resolvable_commit_is_concrete) ... ok
+test_an_existing_repo_path_is_concrete (__main__.TestConcretePointersAreAccepted.test_an_existing_repo_path_is_concrete) ... ok
+test_a_wont_fix_close_is_not_a_false_completion (__main__.TestScopeIsExactlyTheAuditLabel.test_a_wont_fix_close_is_not_a_false_completion)
+A declined close is a DIFFERENT kind of close. ... ok
+test_only_audit_beads_are_in_scope (__main__.TestScopeIsExactlyTheAuditLabel.test_only_audit_beads_are_in_scope) ... ok
+test_open_beads_are_not_judged (__main__.TestScopeIsExactlyTheAuditLabel.test_open_beads_are_not_judged) ... ok
+test_the_audit_can_pass (__main__.TestScopeIsExactlyTheAuditLabel.test_the_audit_can_pass)
+Empty in-scope-and-closed is a PASS, not a vacuous one. ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.003s
+
+OK

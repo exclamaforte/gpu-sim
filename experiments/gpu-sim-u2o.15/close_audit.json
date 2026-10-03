@@ -1,0 +1,184 @@
+{
+  "bead": "gpu-sim-u2o.15",
+  "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
+  "produced_at_utc": "2026-10-03T20:50:53.760469+00:00",
+  "scope_label": "fab-audit-reopened",
+  "beads_in_scope": 72,
+  "closed_in_scope": 12,
+  "violations": [
+    {
+      "id": "gpu-sim-u2o.6.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.17.1",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md"
+    },
+    {
+      "id": "gpu-sim-u2o.17.2",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": ""
+    }
+  ],
+  "wont_fix_closures_excluded": [
+    "gpu-sim-u2o.16"
+  ],
+  "satisfies_the_acceptance": false,
+  "acceptance": "every bead reopened by this audit, when closed again, must carry a concrete artifact path / resolvable commit / comparison figure -- never a bare 'Closed'",
+  "verdicts": [
+    {
+      "id": "gpu-sim-u2o.6.1.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 819a8d6",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 819a8d6 via merge a688a84: -cudart=none fake path, 9/9 make-check assertions green after clean rebuild"
+    },
+    {
+      "id": "gpu-sim-u2o.6.1.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 029f17b"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 029f17b: closing run v2 + three-axis diff; version guard now fail-closed"
+    },
+    {
+      "id": "gpu-sim-u2o.6.9",
+      "concrete": true,
+      "why": [
+        "comparison figure present"
+      ],
+      "disqualified_by": [
+        "cites commit 9649abbf, which this repository does not have"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": ""
+    },
+    {
+      "id": "gpu-sim-u2o.6.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.17.1",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md"
+    },
+    {
+      "id": "gpu-sim-u2o.17.2",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": ""
+    },
+    {
+      "id": "gpu-sim-u2o.16",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites src/fakegpu_cuda.c, which exists but is not a measurement artifact",
+        "cites commit 100663296, which this repository does not have"
+      ],
+      "bare_close": false,
+      "wont_fix": true,
+      "close_reason": ""
+    },
+    {
+      "id": "gpu-sim-edu.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 2eced29"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 2eced29: a lookup that cannot answer raises; the dispatch gate no longer flips on the reviewer's own l"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.6.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 45c3b27"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 45c3b27: per-sample provenance on every row; additivity baseline resolved by content so the test survi"
+    },
+    {
+      "id": "gpu-sim-u2o.17.5",
+      "concrete": true,
+      "why": [
+        "resolvable commit: cd5e7da"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged cd5e7da: 28 measured cases over 5 op classes, 0 hollow, per-case throttle stamps, overlap corrected to"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 566ba0b"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 566ba0b: anchor + scaling set on the current measurement path; metrics.json regenerates byte-identical"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: a1d0192"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged a1d0192: noise floor frozen as measurement_version 1, MDD note with per-correlation populations, fail-"
+    }
+  ]
+}
