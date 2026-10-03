@@ -120,8 +120,31 @@ class TestLimitTable(unittest.TestCase):
     def test_table_matches_what_apply_actually_sets(self):
         """The table must describe the running code, not a different file."""
         applied = limits_harness_applies(ResourceLimits())
+
+        # THE WHOLE TABLE, NOT THE FILTERED SUBSET.
+        #
+        # The previous form was `if e.get("applied", True) and e["limit"] in
+        # applied:` -- a conjunction that checks the declared flag AND the
+        # reality, and then only examines rows where the two ALREADY agree. A row
+        # whose flag is wrong fails the second conjunct and is silently skipped,
+        # so the test was structurally incapable of detecting the lie it exists
+        # to detect. That is what let the NPROC row claim it was applied while
+        # the code never sets it.
+        #
+        # One rule, applied to every row, with no filtering: what the table
+        # declares must be what the code does.
         for e in LIMIT_TABLE:
-            if e.get("applied", True) and e["limit"] in applied:
+            self.assertEqual(
+                bool(e.get("applied", True)),
+                e["limit"] in applied,
+                f"{e['limit']}: table says applied="
+                f"{e.get('applied', True)} but the harness "
+                f"{'does' if e['limit'] in applied else 'does not'} apply it")
+
+        # And where the table does claim a limit, its declared default must be
+        # the value actually set.
+        for e in LIMIT_TABLE:
+            if e["limit"] in applied:
                 self.assertEqual(
                     applied[e["limit"]] // (1024 * 1024)
                     if e["limit"] in ("RLIMIT_AS", "RLIMIT_DATA")
