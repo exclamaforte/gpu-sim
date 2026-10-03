@@ -106,6 +106,57 @@ def parse(argv: list[str]):
     return sub, flags, paths
 
 
+def target_repo(args: list[str], fallback: Path) -> Path:
+    """The tree this command will actually DISCARD, not the main tree.
+
+    This is the reviewer's blocking item. My first version checked dirtiness and
+    took the recovery point in the MAIN tree only, so the command form this
+    bead's own rules recommend -- `git -C <worktree> checkout -- .` -- was
+    permitted with no snapshot whenever the main tree happened to be clean.
+    That is the incident's shape with the location changed: the hazard lives in
+    whatever tree the pathspec resolves against, and that is not necessarily
+    the tree you happen to be standing in.
+    """
+    try:
+        sub, _f, _p = parse(args)
+    except ValueError:
+        return fallback
+    rest = args[1:]
+    i = 0
+    while i < len(rest):
+        tok = rest[i]
+        if tok == "-C" and i + 1 < len(rest):
+            cand = Path(rest[i + 1])
+            return cand if cand.is_absolute() else (fallback / cand)
+        if tok.startswith("--git-dir="):
+            cand = Path(tok.split("=", 1)[1])
+            return cand if cand.is_absolute() else (fallback / cand)
+        if tok in VALUE_OPTS:
+            i += 2
+            continue
+        i += 1
+    return fallback
+
+
+def paths_are_explicit(args: list[str]) -> bool:
+    """Does the pathspec name FILES, or is it CWD-relative (`.`, `*`, `...`)?
+
+    `git -C <wt> checkout -- .` names a TREE but not any FILE, so it still
+    discards everything in that tree. Naming the tree is not the same as naming
+    what you are discarding.
+    """
+    try:
+        sub, _f, paths = parse(args)
+    except ValueError:
+        return False
+    if sub in ("reset", "clean"):
+        return False                      # these take no pathspec at all
+    if not paths:
+        return False
+    return all(p not in CWD_SCOPED_PATHSPECS and not p.startswith("*")
+               for p in paths)
+
+
 def is_scoped(args: list[str]) -> bool:
     """Does the command name its target explicitly? Ambient CWD is not a target."""
     try:
@@ -148,11 +199,17 @@ def create_recovery_point(repo: Path) -> str | None:
 
 def guard(argv: list[str], repo: Path, run: bool = True) -> dict:
     sub, _flags, paths = parse(argv)
-    scoped = is_scoped(argv)
-    dirty = main_tree_dirty(repo)
+    names_tree = is_scoped(argv)
+    target = target_repo(argv, repo)
+    explicit_paths = paths_are_explicit(argv)
+    dirty = main_tree_dirty(target)
+
     result = {"command": shlex.join(argv), "subcommand": sub,
-              "destructive": sub in DESTRUCTIVE, "explicitly_scoped": scoped,
-              "main_tree_modified_tracked": dirty, "paths": paths,
+              "destructive": sub in DESTRUCTIVE,
+              "names_its_tree_explicitly": names_tree,
+              "paths_are_explicit": explicit_paths,
+              "guard_checked_tree": str(target),
+              "tree_modified_tracked": dirty, "paths": paths,
               "recovery_commit": None, "ran": False, "refused": False,
               "reason": None}
 
@@ -163,22 +220,27 @@ def guard(argv: list[str], repo: Path, run: bool = True) -> dict:
             result["rc"] = subprocess.run(argv, cwd=str(repo)).returncode
         return result
 
-    if scoped:
-        result["reason"] = "target named explicitly (git -C, --git-dir=, or a real pathspec)"
+    # The decision is about the TREE BEING DISCARDED, not about where you stand.
+    if explicit_paths:
+        result["reason"] = ("files named explicitly; only those are at risk, "
+                            "whatever tree they live in")
     elif dirty:
         result["refused"] = True
         result["reason"] = (
-            f"REFUSED. The main tree has {len(dirty)} modified tracked "
-            f"file(s) ({', '.join(dirty[:5])}) and this command takes its target "
-            f"from the CWD. Ambient CWD is not a target: name the files, or use "
-            f"`git -C <worktree>`. If this discard is genuinely intended, "
-            f"re-run with an explicit pathspec.")
+            f"REFUSED. {target} has {len(dirty)} modified tracked file(s) "
+            f"({', '.join(dirty[:5])}) and this command would discard "
+            f"everything in it without naming a file. Naming a TREE is not the "
+            f"same as naming what you are discarding. If the discard is "
+            f"genuinely intended, name the pathspec.")
         return result
     else:
-        result["reason"] = "main tree is clean; a CWD-scoped discard is safe"
+        result["reason"] = (f"{target} is clean; a whole-tree discard loses "
+                            f"nothing there")
 
-    if dirty or not scoped:
-        result["recovery_commit"] = create_recovery_point(repo)
+    # Recovery point taken in the tree that will actually lose data, whenever
+    # anything can be lost at all.
+    if dirty or not explicit_paths:
+        result["recovery_commit"] = create_recovery_point(target)
 
     if run:
         result["ran"] = True

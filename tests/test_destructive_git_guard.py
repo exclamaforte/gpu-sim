@@ -73,7 +73,10 @@ class TestItRefusesTheIncidentCommand(FixtureRepo):
         """`git checkout -- .` in a dirty main tree. This IS the incident."""
         res = guard.guard(["git", "checkout", "--", "."], self.repo, run=False)
         self.assertTrue(res["refused"])
-        self.assertIn("Ambient CWD is not a target", res["reason"])
+        self.assertIn("would discard everything in it without naming a file",
+                      res["reason"])
+        self.assertEqual(Path(res["guard_checked_tree"]).resolve(),
+                         self.repo.resolve())
         self.assertFalse(res["ran"])
 
     def test_refusing_leaves_the_edits_intact(self):
@@ -130,11 +133,85 @@ class TestRecoveryIsReal(FixtureRepo):
         self.assertTrue(git(REPO, "show", "f73d442:AGENTS.md").stdout.strip())
 
 
+class TestItChecksTheTreeItWillDiscard(FixtureRepo):
+    """THE REVIEWER'S BLOCKING ITEM.
+
+    My first version checked dirtiness and took the recovery point in the MAIN
+    tree only. So `git -C <worktree> checkout -- .` -- the command form this
+    bead's own rules RECOMMEND -- was permitted with no snapshot whenever the
+    main tree happened to be clean. That is the incident's shape with the
+    location changed: naming a TREE is not naming what you discard.
+    """
+
+    def _dirty_worktree(self):
+        """A worktree that is dirty while the main tree is clean."""
+        wt = self.td / "wt"
+        shutil.copytree(self.repo, wt)
+        # clean the clone, then dirty it -- the inverse of the fixture
+        subprocess.run(["git", "-C", str(wt), "checkout", "--", "."],
+                       capture_output=True)
+        (wt / "AGENTS.md").write_text("WORKTREE EDIT THAT MUST SURVIVE\n")
+        subprocess.run(["git", "-C", str(self.repo), "checkout", "--", "."],
+                       capture_output=True)     # main clean
+        self.assertEqual(guard.main_tree_dirty(self.repo), [])
+        self.assertTrue(guard.main_tree_dirty(wt))
+        return wt
+
+    def test_a_dirty_worktree_is_refused_even_though_main_is_clean(self):
+        wt = self._dirty_worktree()
+        res = guard.guard(["git", "-C", str(wt), "checkout", "--", "."],
+                          self.repo, run=False)
+        self.assertTrue(res["refused"],
+                        "the incident's shape with the location changed: a "
+                        "dirty WORKTREE discarded because the MAIN tree is "
+                        "clean is exactly what this bead exists to stop")
+        self.assertIn(str(wt), res["reason"],
+                      "the refusal must NAME the tree it refused to discard, "
+                      "or a reader cannot tell which tree was at risk")
+
+    def test_the_guard_reports_which_tree_it_checked(self):
+        wt = self._dirty_worktree()
+        res = guard.guard(["git", "-C", str(wt), "checkout", "--", "."],
+                          self.repo, run=False)
+        self.assertEqual(Path(res["guard_checked_tree"]).resolve(), wt.resolve())
+
+    def test_the_recovery_point_comes_from_the_target_tree(self):
+        wt = self._dirty_worktree()
+        before = subprocess.run(["git", "-C", str(wt), "fsck", "--unreachable",
+                                 "--no-progress"], capture_output=True,
+                                text=True).stdout
+        h = guard.create_recovery_point(wt)
+        self.assertTrue(h)
+        after = subprocess.run(["git", "-C", str(wt), "fsck", "--unreachable",
+                                "--no-progress"], capture_output=True,
+                               text=True).stdout
+        self.assertNotEqual(before, after,
+                            "the snapshot must land in the tree being "
+                            "discarded, not in the one you are standing in")
+
+    def test_naming_a_tree_is_not_naming_a_file(self):
+        wt = self._dirty_worktree()
+        self.assertFalse(guard.paths_are_explicit(
+            ["git", "-C", str(wt), "checkout", "--", "."]))
+        self.assertTrue(guard.paths_are_explicit(
+            ["git", "-C", str(wt), "checkout", "--", "AGENTS.md"]))
+
+    def test_a_clean_worktree_still_passes(self):
+        """Can-pass: the guard must not block where there is nothing to lose."""
+        wt = self.td / "wt2"
+        shutil.copytree(self.repo, wt)
+        subprocess.run(["git", "-C", str(wt), "checkout", "--", "."],
+                       capture_output=True)
+        res = guard.guard(["git", "-C", str(wt), "checkout", "--", "."],
+                          self.repo, run=False)
+        self.assertFalse(res["refused"])
+
+
 class TestScopedCommandsAreAllowed(FixtureRepo):
     """A guard that refuses everything is a guard nobody routes around."""
 
     def test_git_dash_C_is_not_refused(self):
-        res = guard.guard(["git", "-C", ".lab/wt/x", "checkout", "--", "."],
+        res = guard.guard(["git", "-C", ".lab/wt/x", "checkout", "--", "F.md"],
                           self.repo, run=False)
         self.assertFalse(res["refused"],
                          "an explicit worktree target names the tree")
@@ -144,10 +221,20 @@ class TestScopedCommandsAreAllowed(FixtureRepo):
         sub, _f, _p = guard.parse(["git", "-C", ".lab/wt/x", "checkout", "--", "."])
         self.assertEqual(sub, "checkout")
 
-    def test_equals_form_target_option_is_not_refused(self):
+    def test_equals_form_target_option_names_the_same_tree(self):
+        """It is recognised as a target, but naming a TREE is no longer enough.
+
+        This test used to assert that `--git-dir=<p> checkout -- .` was allowed.
+        That encoded the defect the reviewer caught: naming a tree is not naming
+        what you discard. It is now refused on a dirty tree, and allowed only
+        when files are named.
+        """
         res = guard.guard(["git", f"--git-dir={self.repo}", "checkout", "--", "."],
                           self.repo, run=False)
-        self.assertFalse(res["refused"])
+        self.assertTrue(res["refused"])
+        res2 = guard.guard(["git", f"--git-dir={self.repo}", "checkout",
+                            "--", "AGENTS.md"], self.repo, run=False)
+        self.assertFalse(res2["refused"])
 
     def test_a_real_pathspec_is_not_refused(self):
         self.assertFalse(guard.guard(["git", "checkout", "--", "AGENTS.md"],

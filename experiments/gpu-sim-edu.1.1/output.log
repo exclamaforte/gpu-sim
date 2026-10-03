@@ -1,14 +1,20 @@
 main tree state: M AGENTS.md
-  ['checkout', '--', '.']                      exit=2  REFUSED. The main tree has 1 modified tracked file(s
-  ['restore', '.']                             exit=2  REFUSED. The main tree has 1 modified tracked file(s
-  ['reset', '--hard']                          exit=2  REFUSED. The main tree has 1 modified tracked file(s
-  ['checkout', '--', 'AGENTS.md']              exit=0  target named explicitly (git -C, --git-dir=, or a re
-  ['-C', '/tmp/tmpytq5s51h/repo', 'checkout', '--', '.'] exit=0  target named explicitly (git -C, --git-dir=, or a re
+  ['checkout', '--', '.']                      exit=2  REFUSED. /tmp/tmpw4ijvzy2/repo has 1 modified tracke
+  ['restore', '.']                             exit=2  REFUSED. /tmp/tmpw4ijvzy2/repo has 1 modified tracke
+  ['reset', '--hard']                          exit=2  REFUSED. /tmp/tmpw4ijvzy2/repo has 1 modified tracke
+  ['checkout', '--', 'AGENTS.md']              exit=0  files named explicitly; only those are at risk, what
+  ['-C', '/tmp/tmpw4ijvzy2/repo', 'checkout', '--', '.'] exit=2  REFUSED. /tmp/tmpw4ijvzy2/repo has 1 modified tracke
 
-recovery point: c0ce898ff190bec4f3b50548e41712b29a7e80cd
+recovery point: 44bbe520f4b8dbef0687850932b8134c8e901594
   working tree still holds the edit: True
   fsck surfaces it: True
   recovery commit carries the edit: True
+test_a_clean_worktree_still_passes (__main__.TestItChecksTheTreeItWillDiscard.test_a_clean_worktree_still_passes)
+Can-pass: the guard must not block where there is nothing to lose. ... ok
+test_a_dirty_worktree_is_refused_even_though_main_is_clean (__main__.TestItChecksTheTreeItWillDiscard.test_a_dirty_worktree_is_refused_even_though_main_is_clean) ... ok
+test_naming_a_tree_is_not_naming_a_file (__main__.TestItChecksTheTreeItWillDiscard.test_naming_a_tree_is_not_naming_a_file) ... ok
+test_the_guard_reports_which_tree_it_checked (__main__.TestItChecksTheTreeItWillDiscard.test_the_guard_reports_which_tree_it_checked) ... ok
+test_the_recovery_point_comes_from_the_target_tree (__main__.TestItChecksTheTreeItWillDiscard.test_the_recovery_point_comes_from_the_target_tree) ... ok
 test_checkout_dot_is_refused (__main__.TestItRefusesTheIncidentCommand.test_checkout_dot_is_refused)
 `git checkout -- .` in a dirty main tree. This IS the incident. ... ok
 test_dot_looks_named_but_is_cwd_scoped (__main__.TestItRefusesTheIncidentCommand.test_dot_looks_named_but_is_cwd_scoped)
@@ -21,13 +27,14 @@ test_the_real_incident_commit_still_exists (__main__.TestRecoveryIsReal.test_the
 f73d442 is the actual recovery. Asserted against THIS repository so ... ok
 test_a_clean_tree_permits_a_cwd_scoped_discard (__main__.TestScopedCommandsAreAllowed.test_a_clean_tree_permits_a_cwd_scoped_discard) ... ok
 test_a_real_pathspec_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_a_real_pathspec_is_not_refused) ... ok
-test_equals_form_target_option_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_equals_form_target_option_is_not_refused) ... ok
+test_equals_form_target_option_names_the_same_tree (__main__.TestScopedCommandsAreAllowed.test_equals_form_target_option_names_the_same_tree)
+It is recognised as a target, but naming a TREE is no longer enough. ... ok
 test_git_dash_C_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_git_dash_C_is_not_refused) ... ok
 test_git_dash_C_parses_the_worktree_not_the_path_as_subcommand (__main__.TestScopedCommandsAreAllowed.test_git_dash_C_parses_the_worktree_not_the_path_as_subcommand)
 The form the rules REQUIRE must be recognised as destructive. ... ok
 test_the_guard_refuses_what_it_cannot_read (__main__.TestUnparseableIsRefused.test_the_guard_refuses_what_it_cannot_read) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.077s
+Ran 18 tests in 0.135s
 
 OK
