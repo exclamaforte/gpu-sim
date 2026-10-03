@@ -26,26 +26,26 @@
     "well_covered_by_size_band": {
       "<=4K": {
         "n_cells": 18,
-        "roofline_MIN_pct": 99.99964597556308,
-        "roofline_MAX_pct": 99.75896415660613,
+        "roofline_min_pct": 99.99964597556308,
+        "roofline_max_pct": 99.75896415660613,
         "launch_corrected_pct": 31.460612533527815
       },
       "4K-256K": {
         "n_cells": 16,
-        "roofline_MIN_pct": 99.99435183881519,
-        "roofline_MAX_pct": 96.10554218844682,
+        "roofline_min_pct": 99.99435183881519,
+        "roofline_max_pct": 96.10554218844682,
         "launch_corrected_pct": 28.477677380644977
       },
       "256K-16M": {
         "n_cells": 26,
-        "roofline_MIN_pct": 99.84076901328808,
-        "roofline_MAX_pct": 53.57807684261302,
+        "roofline_min_pct": 99.84076901328808,
+        "roofline_max_pct": 53.57807684261302,
         "launch_corrected_pct": 42.36549785943238
       },
       ">16M": {
         "n_cells": 14,
-        "roofline_MIN_pct": 99.81952029240526,
-        "roofline_MAX_pct": 17.483866930398595,
+        "roofline_min_pct": 99.81952029240526,
+        "roofline_max_pct": 17.483866930398595,
         "launch_corrected_pct": 26.662751774759453
       }
     },
@@ -5823,7 +5823,10 @@
   },
   "verdict": {
     "headline": {
-      "canonical_population": "81 of 124 anchor cells; the other 43 are the 9 k_empty launch-measurement cells and 34 under-covered cells, both disclosed and both summed",
+      "canonical_population_n": 74,
+      "canonical_population_predicate": "covered: grid[0]*block[0] >= n_problem_size/4; AND t_roofline_MAX_correct_us_anchor_argmax > 0 (a cell with no bytes or FLOPs to bound is excluded as degenerate). The three parts below are DISJOINT and sum to the anchor population: canonical + under_covered + degenerate.",
+      "canonical_population": "74 of 124 anchor cells; the other 50 are 9 k_empty launch-measurement cells (no bytes or FLOPs at all), 9 k_noop_store cells whose modelled bound is exactly 0, and 32 under-covered cells (grid*block < n/4) -- all disclosed and all summed",
+      "canonical_population_sums": "74 + 32 + 9 + 9 = 124 (anchor population: 124)",
       "ge_10us_rule": "HOLDS as a conservative heuristic, is NOT validated as an analytic predictor, and is not tight. The max-form roofline reaches 17.5% median residual only in the >16M band and 54.5-99.8% below it, so the binding boundary is ~16M rather than 10 us. What makes the rule safe is the SIGN of the error below 16M (over-predicts), not any accuracy claim.",
       "launch_term": "helps below 16M (100% -> 28-40% residual) and HURTS above it (17.5% -> 26.7%), because unconditional addition double-counts dispatch on a work-bound cell. The correct form is a regime switch, not addition.",
       "ceiling_sensitivity": "the conclusion DEPENDS on the ceiling exactly where the model works: on covered >16M cells the residual is 6.5% at 1538.7 GB/s, 6.6% at the disputed 1541, 19.6% at the 1790 spec and 29.7% at 1200. This RAISES the priority of 6.6.2's ceiling fix."
@@ -5948,26 +5951,26 @@
       "residual_by_size_band": {
         "<=4K": {
           "n_cells": 18,
-          "roofline_MIN_pct": 99.99964597556308,
-          "roofline_MAX_pct": 99.75896415660613,
+          "roofline_min_pct": 99.99964597556308,
+          "roofline_max_pct": 99.75896415660613,
           "launch_corrected_pct": 31.460612533527815
         },
         "4K-256K": {
           "n_cells": 16,
-          "roofline_MIN_pct": 99.99435183881519,
-          "roofline_MAX_pct": 96.10554218844682,
+          "roofline_min_pct": 99.99435183881519,
+          "roofline_max_pct": 96.10554218844682,
           "launch_corrected_pct": 28.477677380644977
         },
         "256K-16M": {
           "n_cells": 26,
-          "roofline_MIN_pct": 99.84076901328808,
-          "roofline_MAX_pct": 53.57807684261302,
+          "roofline_min_pct": 99.84076901328808,
+          "roofline_max_pct": 53.57807684261302,
           "launch_corrected_pct": 42.36549785943238
         },
         ">16M": {
           "n_cells": 14,
-          "roofline_MIN_pct": 99.81952029240526,
-          "roofline_MAX_pct": 17.483866930398595,
+          "roofline_min_pct": 99.81952029240526,
+          "roofline_max_pct": 17.483866930398595,
           "launch_corrected_pct": 26.662751774759453
         }
       },
