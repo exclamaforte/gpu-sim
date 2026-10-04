@@ -36,12 +36,45 @@ TRIALS = 25
 DEVICE_BUDGET_MS = 0.139
 
 
-def load_qs():
-    spec = importlib.util.spec_from_file_location(
-        "qs_sweep", REPO / "epic_u2o" / "queue_state.py")
+def load_qs(name="qs_branch", path=None):
+    src = path if path is not None else REPO / "epic_u2o" / "queue_state.py"
+    spec = importlib.util.spec_from_file_location(name, src)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
+
+
+def load_master_qs():
+    """Load master's queue_state.py as the A/B arm (reviewer's recipe).
+
+    Read via `git show master:...` into a temp file, so the comparison is
+    against the committed master tree rather than a hand-typed figure.
+    Fails loudly if master cannot be read: a comparison against an
+    unknown baseline is worse than no comparison.
+    """
+    r = subprocess.run(["git", "-C", str(REPO), "show",
+                        "master:epic_u2o/queue_state.py"],
+                       capture_output=True, text=True)
+    if r.returncode != 0 or not r.stdout:
+        raise RuntimeError("cannot read master:epic_u2o/queue_state.py: "
+                           + r.stderr.strip())
+    fd, tmppath = tempfile.mkstemp(prefix="qs_master_", suffix=".py")
+    os.close(fd)
+    tmp = Path(tmppath)
+    try:
+        tmp.write_text(r.stdout)
+        return load_qs(name="qs_master", path=tmp)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def master_commit() -> str:
+    r = subprocess.run(["git", "-C", str(REPO), "rev-parse",
+                        "--short", "master"],
+                       capture_output=True, text=True)
+    if r.returncode != 0 or not r.stdout.strip():
+        raise RuntimeError("cannot resolve master commit")
+    return r.stdout.strip()
 
 
 def synth(d: Path, n: int) -> None:
@@ -79,6 +112,49 @@ def bench(qs, n: int, trials: int = TRIALS) -> dict:
         shutil.rmtree(d, ignore_errors=True)
 
 
+def bench_ab(qs_branch, qs_master, n: int, trials: int = TRIALS) -> dict:
+    """Interleaved branch-vs-master timing on ONE shared fixture.
+
+    Both arms read the same temp dir in the same process, round by round,
+    with the starting order alternated each trial, so box load cancels
+    rather than biasing one arm. Returns per-arm medians and the gain
+    (master_median / branch_median); gain > 1 means the branch is faster.
+    """
+    d = Path(tempfile.mkdtemp(prefix="qs_ab_"))
+    try:
+        synth(d, n)
+        for qs in (qs_branch, qs_master):
+            qs.QUEUE_DIR = d
+            qs.reset_cache()
+            qs._load_all()                   # warm: first-call cost is not steady
+        sb, sm = [], []
+        for i in range(trials):
+            arms = ((qs_branch, sb), (qs_master, sm)) if i % 2 == 0 \
+                else ((qs_master, sm), (qs_branch, sb))
+            for qs, acc in arms:
+                t0 = time.perf_counter()
+                out = qs._load_all()
+                acc.append(((time.perf_counter() - t0) * 1e3, len(out)))
+        # Both arms must see the same queue: a count mismatch means the
+        # fixture or one arm is broken, and a ratio over it would be fiction.
+        nb = {c for _, c in sb}
+        nm = {c for _, c in sm}
+        if nb != nm or len(nb) != 1:
+            raise RuntimeError(
+                f"A/B arms disagree at n={n}: branch counts {sorted(nb)}, "
+                f"master counts {sorted(nm)}")
+        bmed = statistics.median(t for t, _ in sb)
+        mmed = statistics.median(t for t, _ in sm)
+        return {"files": n,
+                "branch_median_ms": round(bmed, 5),
+                "master_median_ms": round(mmed, 5),
+                "gain": round(mmed / bmed, 3) if bmed else None,
+                "trials": trials,
+                "jobs_seen": next(iter(nb))}
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
 def main() -> int:
     qs = load_qs()
     try:
@@ -106,6 +182,19 @@ def main() -> int:
     slope = sum(x * y for x, y in zip(xs, ys)) / denom if denom else None
     per_file = [p["us_per_file"] for p in points]
 
+    # Attempt-2 gain vs master, measured HERE rather than asserted in prose.
+    # Same process, same fixture per size, order alternated per trial, so
+    # load cancels; the load stamp above covers this arm too.
+    mqs = load_master_qs()
+    mcommit = master_commit()
+    ab = []
+    for n in SIZES:
+        g = bench_ab(qs, mqs, n)
+        ab.append(g)
+        print(f"  A/B {n:5d} files  branch {g['branch_median_ms']:.4f} ms  "
+              f"master {g['master_median_ms']:.4f} ms  gain {g['gain']:.2f}x")
+    gains = [g["gain"] for g in ab if g["gain"]]
+
     record = {
         "bead": "gpu-sim-u2o.6.6.6.3",
         "kind": "MEASURED SWEEP -- regenerates at run time, nothing typed",
@@ -132,15 +221,32 @@ def main() -> int:
                         "work. Linear is still O(n), and the criterion asks for "
                         "sub-linear."),
         },
+        "gain_vs_master": {
+            "master_commit": mcommit,
+            "method": ("interleaved A/B in one process on the same temp dir "
+                       "per size, starting order alternated per trial; both "
+                       "arms warmed; covered by the loadavg stamp above"),
+            "trials_per_arm_per_size": TRIALS,
+            "per_size": ab,
+            "median_gain": (round(statistics.median(gains), 3)
+                              if gains else None),
+            "reading": ("gain > 1 means this branch is faster than master "
+                        "at the same load; the gain is modest because the "
+                        "dominant cost is the per-file loop itself"),
+        },
         "caveat": ("every timing here is load-dependent and stamped with the "
                    "loadavg above; a bare millisecond figure from this sweep is "
-                   "not comparable with one taken at a different load."),
+                   "not comparable with one taken at a different load. The "
+                   "gain_vs_master ratios are comparable only within this "
+                   "run, where both arms shared each fixture and each load."),
     }
     OUT.write_text(json.dumps(record, indent=2) + "\n")
     print(f"\nloadavg(1m)={loadavg[0] if loadavg else 'n/a'}")
     print(f"slope {record['fit']['us_per_file_slope']} us/file, "
           f"linear={record['fit']['linear']}, "
           f"per-file spread {record['fit']['per_file_spread_us']['ratio']}x")
+    print(f"median gain vs master {record['gain_vs_master']['median_gain']}x "
+          f"(master@{mcommit})")
     print(f"wrote {OUT.name}")
     return 0
 

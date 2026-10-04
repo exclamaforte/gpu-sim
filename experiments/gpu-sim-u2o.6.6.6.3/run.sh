@@ -29,6 +29,16 @@ for p in pts:
 f = rec["fit"]
 lines.append(f"\nSlope {f['us_per_file_slope']} us/file. Per-file spread "
              f"{f['per_file_spread_us']['ratio']}x -> linear={f['linear']}.")
+lines.append("")
+g = rec["gain_vs_master"]
+lines.append(f"Attempt-2 gain vs master (interleaved A/B, same fixture and load, "
+             f"master@{g['master_commit']}):")
+lines.append("| files | branch ms | master ms | gain |")
+lines.append("|---|---|---|---|")
+for q in g["per_size"]:
+    lines.append(f"| {q['files']} | {q['branch_median_ms']:.4f} | "
+                 f"{q['master_median_ms']:.4f} | {q['gain']:.2f}x |")
+lines.append(f"\nMedian gain {g['median_gain']}x (gain > 1 means this branch is faster).")
 md = art / "FINDING.md"
 s = md.read_text()
 a, b = "<!-- BEGIN QUOTED FROM sweep.json -->", "<!-- END QUOTED FROM sweep.json -->"

@@ -1,91 +1,156 @@
 {
   "bead": "gpu-sim-u2o.6.6.6.3",
   "kind": "MEASURED SWEEP -- regenerates at run time, nothing typed",
-  "produced_at_utc": "2026-10-03T20:36:55.051083+00:00",
+  "produced_at_utc": "2026-10-04T16:22:31.040449+00:00",
   "produced_by": "experiments/gpu-sim-u2o.6.6.6.3/measure_sweep.py",
-  "commit": "f8ae9c9",
+  "commit": "6bc88ac",
   "loadavg_1_5_15": [
-    6.45,
-    5.51,
-    6.11
+    41.15,
+    29.87,
+    27.44
   ],
   "device_budget_ms": 0.139,
   "warm_cache": true,
   "state_mix": "every 60th job ACTIVE (running), rest terminal",
   "points": [
     {
-      "median_ms": 0.05398,
-      "min_ms": 0.05271,
-      "max_ms": 0.07989,
+      "median_ms": 0.08467,
+      "min_ms": 0.05682,
+      "max_ms": 0.13608,
       "trials": 25,
       "files": 200,
-      "us_per_file": 0.2699,
-      "x_device_budget": 0.388
+      "us_per_file": 0.42335,
+      "x_device_budget": 0.609
     },
     {
-      "median_ms": 0.10306,
-      "min_ms": 0.10143,
-      "max_ms": 0.18701,
+      "median_ms": 0.18625,
+      "min_ms": 0.15736,
+      "max_ms": 0.28899,
       "trials": 25,
       "files": 400,
-      "us_per_file": 0.25765,
-      "x_device_budget": 0.741
+      "us_per_file": 0.46563,
+      "x_device_budget": 1.34
     },
     {
-      "median_ms": 0.18198,
-      "min_ms": 0.17645,
-      "max_ms": 0.28191,
+      "median_ms": 0.27975,
+      "min_ms": 0.22115,
+      "max_ms": 1.2218,
       "trials": 25,
       "files": 700,
-      "us_per_file": 0.25997,
-      "x_device_budget": 1.309
+      "us_per_file": 0.39964,
+      "x_device_budget": 2.013
     },
     {
-      "median_ms": 0.21908,
-      "min_ms": 0.21646,
-      "max_ms": 0.41679,
+      "median_ms": 0.33924,
+      "min_ms": 0.249,
+      "max_ms": 1.21264,
       "trials": 25,
       "files": 862,
-      "us_per_file": 0.25415,
-      "x_device_budget": 1.576
+      "us_per_file": 0.39355,
+      "x_device_budget": 2.441
     },
     {
-      "median_ms": 0.30216,
-      "min_ms": 0.29475,
-      "max_ms": 0.41611,
+      "median_ms": 0.47638,
+      "min_ms": 0.39692,
+      "max_ms": 1.06381,
       "trials": 25,
       "files": 1200,
-      "us_per_file": 0.2518,
-      "x_device_budget": 2.174
+      "us_per_file": 0.39698,
+      "x_device_budget": 3.427
     },
     {
-      "median_ms": 0.50574,
-      "min_ms": 0.4962,
-      "max_ms": 0.76745,
+      "median_ms": 0.79951,
+      "min_ms": 0.67587,
+      "max_ms": 2.03839,
       "trials": 25,
       "files": 2000,
-      "us_per_file": 0.25287,
-      "x_device_budget": 3.638
+      "us_per_file": 0.39976,
+      "x_device_budget": 5.752
     },
     {
-      "median_ms": 1.04021,
-      "min_ms": 1.01129,
-      "max_ms": 1.68638,
+      "median_ms": 1.90864,
+      "min_ms": 1.31826,
+      "max_ms": 4.13511,
       "trials": 25,
       "files": 4000,
-      "us_per_file": 0.26005,
-      "x_device_budget": 7.484
+      "us_per_file": 0.47716,
+      "x_device_budget": 13.731
     }
   ],
   "fit": {
-    "us_per_file_slope": 0.25808,
+    "us_per_file_slope": 0.45402,
     "per_file_spread_us": {
-      "min": 0.2518,
-      "max": 0.2699,
-      "ratio": 1.072
+      "min": 0.39355,
+      "max": 0.47716,
+      "ratio": 1.212
     },
     "linear": true,
     "reading": "per-file cost is flat within the measured spread, so the cost is LINEAR in directory size. It is not I/O: the existing reverify branch already skips stat() for cached terminal entries, so the residual is per-file Python work. Linear is still O(n), and the criterion asks for sub-linear."
   },
-  "caveat": "every timing here is load-dependent and stamped with the loadavg above; a bare millisecond figure from this sweep is not comparable with one taken at a different load."
+  "gain_vs_master": {
+    "master_commit": "16e0c9c",
+    "method": "interleaved A/B in one process on the same temp dir per size, starting order alternated per trial; both arms warmed; covered by the loadavg stamp above",
+    "trials_per_arm_per_size": 25,
+    "per_size": [
+      {
+        "files": 200,
+        "branch_median_ms": 0.09616,
+        "master_median_ms": 0.10449,
+        "gain": 1.087,
+        "trials": 25,
+        "jobs_seen": 200
+      },
+      {
+        "files": 400,
+        "branch_median_ms": 0.16937,
+        "master_median_ms": 0.18487,
+        "gain": 1.092,
+        "trials": 25,
+        "jobs_seen": 400
+      },
+      {
+        "files": 700,
+        "branch_median_ms": 0.2953,
+        "master_median_ms": 0.32395,
+        "gain": 1.097,
+        "trials": 25,
+        "jobs_seen": 700
+      },
+      {
+        "files": 862,
+        "branch_median_ms": 0.34881,
+        "master_median_ms": 0.38678,
+        "gain": 1.109,
+        "trials": 25,
+        "jobs_seen": 862
+      },
+      {
+        "files": 1200,
+        "branch_median_ms": 0.48593,
+        "master_median_ms": 0.59061,
+        "gain": 1.215,
+        "trials": 25,
+        "jobs_seen": 1200
+      },
+      {
+        "files": 2000,
+        "branch_median_ms": 0.89674,
+        "master_median_ms": 1.29201,
+        "gain": 1.441,
+        "trials": 25,
+        "jobs_seen": 2000
+      },
+      {
+        "files": 4000,
+        "branch_median_ms": 2.74893,
+        "master_median_ms": 4.36489,
+        "gain": 1.588,
+        "trials": 25,
+        "jobs_seen": 4000
+      }
+    ],
+    "median_gain": 1.109,
+    "reading": "gain > 1 means this branch is faster than master at the same load; the gain is modest because the dominant cost is the per-file loop itself"
+  },
+  "caveat": "every timing here is load-dependent and stamped with the loadavg above; a bare millisecond figure from this sweep is not comparable with one taken at a different load. The gain_vs_master ratios are comparable only within this run, where both arms shared each fixture and each load."
 }

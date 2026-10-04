@@ -1,11 +1,19 @@
-    200 files  0.0540 ms  0.2699 us/file  0.39x
-    400 files  0.1031 ms  0.2576 us/file  0.74x
-    700 files  0.1820 ms  0.2600 us/file  1.31x
-    862 files  0.2191 ms  0.2541 us/file  1.58x
-   1200 files  0.3022 ms  0.2518 us/file  2.17x
-   2000 files  0.5057 ms  0.2529 us/file  3.64x
-   4000 files  1.0402 ms  0.2601 us/file  7.48x
+    200 files  0.0847 ms  0.4234 us/file  0.61x
+    400 files  0.1862 ms  0.4656 us/file  1.34x
+    700 files  0.2797 ms  0.3996 us/file  2.01x
+    862 files  0.3392 ms  0.3936 us/file  2.44x
+   1200 files  0.4764 ms  0.3970 us/file  3.43x
+   2000 files  0.7995 ms  0.3998 us/file  5.75x
+   4000 files  1.9086 ms  0.4772 us/file  13.73x
+  A/B   200 files  branch 0.0962 ms  master 0.1045 ms  gain 1.09x
+  A/B   400 files  branch 0.1694 ms  master 0.1849 ms  gain 1.09x
+  A/B   700 files  branch 0.2953 ms  master 0.3240 ms  gain 1.10x
+  A/B   862 files  branch 0.3488 ms  master 0.3868 ms  gain 1.11x
+  A/B  1200 files  branch 0.4859 ms  master 0.5906 ms  gain 1.22x
+  A/B  2000 files  branch 0.8967 ms  master 1.2920 ms  gain 1.44x
+  A/B  4000 files  branch 2.7489 ms  master 4.3649 ms  gain 1.59x
 
-loadavg(1m)=6.45
-slope 0.25808 us/file, linear=True, per-file spread 1.072x
+loadavg(1m)=41.15
+slope 0.45402 us/file, linear=True, per-file spread 1.212x
+median gain vs master 1.109x (master@16e0c9c)
 wrote sweep.json

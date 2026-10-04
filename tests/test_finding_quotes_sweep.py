@@ -110,6 +110,21 @@ class TestFindingQuotesTheArtifact(unittest.TestCase):
             self.assertIn("median_ms", p)
             self.assertIn("us_per_file", p)
 
+    def test_the_gain_is_measured_not_asserted(self):
+        """Attempt-2's gain vs master is an interleaved measurement in sweep.json."""
+        g = self.sweep.get("gain_vs_master")
+        self.assertIsNotNone(g, "sweep.json must carry gain_vs_master")
+        self.assertTrue(g["master_commit"], "the baseline commit must be named")
+        self.assertEqual(
+            [q["files"] for q in g["per_size"]],
+            [p["files"] for p in self.sweep["points"]],
+            "the A/B arm must cover exactly the sweep sizes")
+        for q in g["per_size"]:
+            self.assertGreater(q["gain"], 0)
+            self.assertEqual(q["jobs_seen"], q["files"])
+        self.assertIn("Median gain", self.md,
+                      "FINDING.md must quote the measured gain")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
