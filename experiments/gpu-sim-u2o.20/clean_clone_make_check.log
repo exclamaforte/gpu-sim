@@ -1,3 +1,4 @@
+bash tests/assert_build_inputs_tracked.sh
   ok   src/fakegpu_config.c tracked
   ok   src/fakegpu_cuda.c tracked
   ok   src/fakegpu_latency.c tracked
@@ -14,3 +15,51 @@
   ok   tests/test_cudart_none.sh tracked
 
 BUILD INPUTS GUARD PASSED: all 14 build inputs are tracked.
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -c -o src/fakegpu_config.o src/fakegpu_config.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -c -o src/fakegpu_random.o src/fakegpu_random.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -c -o src/fakegpu_pool.o src/fakegpu_pool.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -c -o src/fakegpu_latency.o src/fakegpu_latency.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -c -o src/fakegpu_cuda.o src/fakegpu_cuda.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -c -o src/fakegpu_nccl.o src/fakegpu_nccl.c
+cc -shared -o libfakegpu.so src/fakegpu_config.o src/fakegpu_random.o src/fakegpu_pool.o src/fakegpu_latency.o src/fakegpu_cuda.o src/fakegpu_nccl.o -ldl -lpthread
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -o build/fake_client tests/fake_client.c -L. -lfakegpu -Wl,-rpath,/tmp/clone20
+build/fake_client
+== fakegpu self-test ==
+[device query]
+  cudaGetDeviceCount -> 1
+  cudaGetDevice -> 0
+  cudaGetDeviceProperties[0] name="FakeGPU-0" totalGlobalMem=268435456
+[memory]
+  cudaMalloc -> 0x700000000000
+  memcpy rounds ok; random-data present: yes
+  cudaFree / cudaFreeAsync ok
+[streams/events]
+  streams/events ok
+[kernel launch]
+  cudaLaunchKernel + device sync ok
+[module/driver]
+  cudaModuleLoad/GetFunction -> mod=0x1d fn=0x25
+  driver API (cuDeviceGet/cuCtx/cuModule/cuLaunch) ok
+[nccl]
+  ncclCommInitRank -> comm=0x606a34e6b1c0 worldsize=2
+  nccl allreduce/broadcast ok; rank=0
+== all checks passed ==
+--- reference workloads under LD_PRELOAD ---
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -o build/vector_add  tests/vector_add.c     -L. -lfakegpu -Wl,-rpath,/tmp/clone20
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Iinclude -Ishim -o build/ring_allreduce tests/ring_allreduce.c -L. -lfakegpu -Wl,-rpath,/tmp/clone20
+LD_PRELOAD=/tmp/clone20/libfakegpu.so FAKEGPU_NUM_DEVICES=4 build/vector_add
+vector_add: fake GPUs visible = 4
+vector_add: N=1024  D2H buffer has random data: yes
+LD_PRELOAD=/tmp/clone20/libfakegpu.so FAKEGPU_NUM_DEVICES=4 build/ring_allreduce
+ring_allreduce: fake GPUs visible = 4
+ring_allreduce: ranks=4 count=1024 -> allreduce ok
+--- -cudart=none fake path, no LD_PRELOAD (gpu-sim-u2o.6.1.3) ---
+PASS: links with -cudart=none -lfakegpu
+PASS: ldd matches neither libcudart nor libcuda
+PASS: ldd shows libfakegpu as the provider
+PASS: smoke run exits 0 with CUDA_VISIBLE_DEVICES= (no GPU contact)
+PASS: printed 3 trial JSON lines
+PASS: reported the fake's configured latency (2 ms)
+PASS: invalid launch config is rejected by the fake
+PASS: same compile without -lfakegpu fails to link (no silent fallthrough)
+PASS: all new symbols exported by libfakegpu.so
