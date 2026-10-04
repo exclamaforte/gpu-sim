@@ -87,8 +87,6 @@ class ResourceLimits:
     # supported on this OS") at the first cudaMalloc. Measured on the 5090:
     # NOFILE=256 fine, NPROC=32 fatal, 512 still fatal (user already above it).
     # Runaway processes are contained by the process-group SIGKILL in
-    # run_kernel()'s timeout path, not by this limit.
-    # Runaway processes are contained by the process-group SIGKILL in
     # run_kernel()'s timeout path and, since gpu-sim-u2o.6.1.2, by a per-run
     # cgroup v2 pids.max cap (tasks_max below). RLIMIT_NPROC stays unset.
     processes_limit: int = 0  # 0 = leave RLIMIT_NPROC untouched
