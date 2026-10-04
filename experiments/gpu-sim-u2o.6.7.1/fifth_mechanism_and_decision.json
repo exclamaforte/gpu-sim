@@ -31,6 +31,12 @@
         "hypothesis": "a shared CUDA context",
         "verdict": "REDUCED, not eliminated",
         "result": "the same correction also tripled the speed, so context and offset are related but not identical"
+      },
+      {
+        "hypothesis": "run_kernel path as sole cause",
+        "verdict": "REFUTED",
+        "arm": "ABAB harness-vs-bare, ts 20261004t224248-b8464bdc",
+        "result": "ratios 0.982 vs 1.086, opposite signs -- fails the pre-stated same-sign->5% criterion by construction"
       }
     ],
     "what_REMAINS": "a ~9.4% median, one-sided offset that survives 7.1's own kernel bodies, 7.1's own per-kernel allocations, one process and one context.",
