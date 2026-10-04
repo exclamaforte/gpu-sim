@@ -128,7 +128,11 @@ def main() -> int:
     # The explicit rm list, GENERATED over `added` (not a glob, not a count
     # in prose for a reader to mistype). Every path line carries a trailing
     # backslash EXCEPT the last, so the block is one shell command.
-    rm_paths = sorted(added)
+    # Over the FULL tracked set, not `added`: the recipe runs against a base
+    # that predates this branch, where every tracked path blocks the merge.
+    # tests/test_generated_recipe.py pins exactly this (rm == tracked set),
+    # which is what caught my first resolution narrowing it to `added`.
+    rm_paths = sorted(tracked)
 
     def classify(name: str, tracked_here: bool):
         if name in VOLATILE:

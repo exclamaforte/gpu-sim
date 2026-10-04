@@ -29,6 +29,7 @@ transcript is in this file's git history.
 | `epic_u2o/compare_baselines.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/complete.md` | no | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/corpus_miner.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/corpus_protocol.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/deferred.md` | no | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/eval.md` | no | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/experiment.md` | no | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
@@ -70,6 +71,7 @@ transcript is in this file's git history.
 | `epic_u2o/safe_harness.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/split.md` | no | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/structural_split.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/task_limits.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/throughput_tracker.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/tokenizer.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/toolchain.md` | yes | spec | TRACK | written specification with real content |
@@ -80,7 +82,7 @@ transcript is in this file's git history.
 | `epic_u2o/tree_baseline.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/v1_scope.md` | yes | spec | TRACK | written specification with real content |
 
-**Tracked: 43 paths. Not tracked: 13 paths.** (Of the tracked set, 43 were already in master and 0 are added by this bead.)
+**Tracked: 58 paths. Not tracked: 0 paths.** (Of the tracked set, 45 were already in master and 13 are added by this bead.)
 
 ## Deliberately NOT tracked, and why
 
@@ -93,19 +95,6 @@ and that branch's merge owns it. Neither is hidden behind a
 `.gitignore` rule: a rule that excluded a spec file would make the gap
 invisible rather than recorded.
 
-- `epic_u2o/complete.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/deferred.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/eval.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/experiment.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/gate_u2o17_real_vs_naive_trace.json` (**deliberate exclusion**) -- a result artifact of a bead that is not closed; belongs in experiments/<bd-id>/
-- `epic_u2o/generator.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/metrics.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/model_arch.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/model_specs.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/results_writeup.md` (**deliberate exclusion**) -- a results document whose own first paragraph says its numbers come from synthetic fixtures; results belong to experiments/<bd-id>/, where the owning bead can stamp them
-- `epic_u2o/split.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/training_loop.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
-- `epic_u2o/training_throughput.md` (**deliberate exclusion**) -- literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history
 
 ### Two of them, called out
 
@@ -138,7 +127,7 @@ that row is stale by definition.
 
 ## Merging this bead will refuse, and that is expected
 
-This branch tracks 43 paths that already exist UNTRACKED in the main
+This branch tracks 13 paths that already exist UNTRACKED in the main
 working tree, so `git merge` aborts with 'untracked working tree
 files would be overwritten by merge'. That is inherent -- you cannot
 track a file that already sits untracked in the tree without the tree
@@ -146,12 +135,11 @@ copy going somewhere first -- and the irony is exact: the bead raised
 to remove that failure class is itself blocked by it.
 
 The reviewer verified the content check that makes the procedure
-safe: 43 of 43 tracked on-disk `epic_u2o/` paths are IDENTICAL to this branch's content.
-Nothing on disk diverges from the branch.
-
+safe: 13 of 13 `epic_u2o/` paths are IDENTICAL to this branch's content (compared by blob hash at
+generation time). The divergences are: none.
 So removing the tree copies loses nothing the merge does not
-restore. Every number in this recipe is GENERATED from the tracked
-set, so none of it can be typed wrong or drift when master grows.
+restore -- but CHECK the divergence list rather than assuming it,
+because it is derived and can change between runs.
 
 ```
 mkdir -p /tmp/epic_u2o_backup && cp epic_u2o/*.py epic_u2o/*.md \
@@ -161,12 +149,19 @@ rm -f \
       epic_u2o/batch_measure.py \
       epic_u2o/bottleneck_check.py \
       epic_u2o/compare_baselines.py \
+      epic_u2o/complete.md \
       epic_u2o/corpus_miner.py \
+      epic_u2o/corpus_protocol.py \
+      epic_u2o/deferred.md \
+      epic_u2o/eval.md \
+      epic_u2o/experiment.md \
       epic_u2o/experiment_program.py \
       epic_u2o/features.py \
       epic_u2o/future_extensions.py \
       epic_u2o/gate_u2o17_capture_and_compare.py \
+      epic_u2o/gate_u2o17_real_vs_naive_trace.json \
       epic_u2o/generalization_suites.py \
+      epic_u2o/generator.md \
       epic_u2o/generator_multistream.py \
       epic_u2o/generator_stage1.py \
       epic_u2o/generator_stage2.py \
@@ -180,8 +175,11 @@ rm -f \
       epic_u2o/kernel_names.py \
       epic_u2o/measurement_spec.md \
       epic_u2o/measurement_stats.py \
+      epic_u2o/metrics.md \
       epic_u2o/metrics_eval.py \
       epic_u2o/model.py \
+      epic_u2o/model_arch.md \
+      epic_u2o/model_specs.md \
       epic_u2o/preflight.md \
       epic_u2o/preflight_validator.py \
       epic_u2o/ptx_tokenizer.py \
@@ -190,17 +188,22 @@ rm -f \
       epic_u2o/recovery.md \
       epic_u2o/repo_scaffold.md \
       epic_u2o/representation_ablation.md \
+      epic_u2o/results_writeup.md \
       epic_u2o/roofline.py \
       epic_u2o/safe_harness.py \
+      epic_u2o/split.md \
       epic_u2o/structural_split.py \
+      epic_u2o/task_limits.py \
       epic_u2o/throughput_tracker.py \
       epic_u2o/tokenizer.py \
       epic_u2o/toolchain.md \
+      epic_u2o/training_loop.md \
       epic_u2o/training_loop.py \
+      epic_u2o/training_throughput.md \
       epic_u2o/training_throughput_profile.py \
       epic_u2o/tree_baseline.py \
       epic_u2o/v1_scope.md
-      # 43 paths, generated; explicit list, not a glob
+      # 58 paths, generated; explicit list, not a glob
 git merge --ff-only lab/gpu-sim-u2o.6.11
 # restore anything the content check says should exist
 ```
