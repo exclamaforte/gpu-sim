@@ -48,6 +48,22 @@ def _resolve_queue_dir() -> Path:
 
 
 QUEUE_DIR = _resolve_queue_dir()
+# gpu-sim-u2o.6.6.6.3.1: path -> (mtime_ns, size) of a file that exhausted
+# all 3 parse retries. A PERMANENTLY malformed file (valid JSON followed by
+# appended garbage -- a gpqueue write bug, second record to file) can never
+# be fixed by waiting, so retrying it on every call cost 150ms of sleep per
+# call (3x50ms) against a 0.139ms device budget. Remembering it bounds the
+# permanent case to a single parse per call with no sleeps, while a file the
+# module has never seen -- or one whose mtime/size MOVED -- still gets the
+# full transient-tolerant retry. Invalidation is by (mtime_ns, size), the
+# same signature the terminal cache uses; a rewrite heals the entry on the
+# next call. Residual risk, stated: a rewrite within the same nanosecond
+# tick AND to the identical byte size would keep the entry. ns mtime makes
+# that ~impossible for a daemon append, and the cost of being wrong is one
+# skipped retry on a file that then parses -- the entry is forgotten.
+_UNPARSEABLE: dict[str, tuple[int, int]] = {}
+
+
 class IdentificationError(RuntimeError):
     """Our own job could not be identified in the queue we read."""
 
@@ -131,6 +147,7 @@ def _load_all_with_provenance() -> tuple:
     # numbers -- which is exactly the defect this bead exists to remove, one
     # layer down. The process counter stays in load_stats() where it belongs.
     files_seen_this_sample = 0
+    unparseable_skipped = 0
     # A terminal job needs NEITHER a re-read NOR a re-stat: it cannot become
     # active again, so its answer cannot change. Skipping the stat is what takes
     # this below the device time it measures -- 557 stat() calls were the whole
@@ -206,17 +223,34 @@ def _load_all_with_provenance() -> tuple:
         # parse is a job we cannot report as "ours", which is exactly the
         # auditability this module exists to provide.
         rec = None
-        for _ in range(3):
+        if _UNPARSEABLE.get(p) == sig:
+            # Seen-bad and unchanged: one parse, no sleeps. A rewrite heals
+            # the entry below; an unchanged file stays skipped. The skip is
+            # counted in provenance, never silent.
             try:
                 rec = json.loads(Path(p).read_text())
-                break
-            except FileNotFoundError:
-                break
             except Exception:
-                time.sleep(0.05)
-        if rec is None:
-            continue
-        _LOAD_STATS["parses"] += 1
+                rec = None
+            if rec is None:
+                unparseable_skipped += 1
+                continue
+            del _UNPARSEABLE[p]
+        else:
+            for _ in range(3):
+                try:
+                    rec = json.loads(Path(p).read_text())
+                    break
+                except FileNotFoundError:
+                    break
+                except Exception:
+                    time.sleep(0.05)
+            if rec is None:
+                _UNPARSEABLE[p] = sig
+                continue
+            # Parsed after all: any remembered signature for this path is
+            # stale (the file moved since it failed). Forget it now rather
+            # than leaving it for the lazy prune.
+            _UNPARSEABLE.pop(p, None)
         if listing_fresh:
             by_path["fresh_parse"] += 1
         else:
@@ -230,7 +264,14 @@ def _load_all_with_provenance() -> tuple:
         if state in TERMINAL:
             _TERMINAL_CACHE[p] = (sig, state, rec, time.time())
 
-    served = [k for k, v in by_path.items() if v]   # KEYS, not values
+    # Bound the negative cache: drop entries for paths no longer listed. Lazy
+    # (only past 64) so the common case costs nothing; a prune is O(bad),
+    # not O(queue).
+    if len(_UNPARSEABLE) > 64:
+        live = set(_FILE_LIST[1]) if len(_FILE_LIST) > 1 else set()
+        for dead in [p for p in _UNPARSEABLE if p not in live]:
+            del _UNPARSEABLE[p]
+    served = [k for k, v in by_path.items() if v]  # KEYS, not values
     provenance = {
         "source": max(served, key=lambda k: by_path[k]) if served else "none",
         "counts_by_path": dict(by_path),
@@ -238,6 +279,7 @@ def _load_all_with_provenance() -> tuple:
         "listing_age_ms": round((now - _FILE_LIST[0]) * 1e3, 3)
                           if _FILE_LIST else None,
         "n_files_seen": files_seen_this_sample,
+        "unparseable_skipped_retry": unparseable_skipped,
         "note": ("read_age_ms is the age of the OLDEST underlying read among the "
                  "records served, so it is the worst case for this sample. The "
                  "ACTIVE set is never cached, so active jobs are always "
@@ -254,6 +296,7 @@ def load_stats() -> dict:
     s = dict(_LOAD_STATS)
     s["hit_rate"] = (s["hits"] / s["files_seen"]) if s["files_seen"] else 0.0
     s["cached_entries"] = len([k for k in _TERMINAL_CACHE if k != "__last__"])
+    s["unparseable_remembered"] = len(_UNPARSEABLE)
     s["terminal_reverify_sec"] = TERMINAL_REVERIFY_SEC
     s["listing_ttl_sec"] = LISTING_TTL_SEC
     s["listing_age_sec"] = (round(time.time() - _FILE_LIST[0], 4)
@@ -277,6 +320,7 @@ def load_stats() -> dict:
 def reset_cache() -> None:
     """For tests. Stats are kept so a test can compare before and after."""
     _TERMINAL_CACHE.clear()
+    _UNPARSEABLE.clear()
     _FILE_LIST.clear()
     _LOAD_STATS.update({"calls": 0, "files_seen": 0, "hits": 0, "parses": 0})
     out = []
