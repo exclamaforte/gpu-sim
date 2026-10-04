@@ -1,0 +1,102 @@
+{
+  "bead": "gpu-sim-u2o.6.10",
+  "master_revision_exercised": "c4072f3",
+  "coverage_limit": "run_kernel as restructured by gpu-sim-u2o.6.3 in this master revision (wrapper + _run_kernel_inner). The pre-6.3 single-function form was covered by the 20260928 dose; this dose re-covers the kill path after the restructure.",
+  "hang_timeout_sec": 4,
+  "doses": 1,
+  "staged": true,
+  "ts_job": "20261004t175527-b038b1a4",
+  "step1": {
+    "step_state": {
+      "label": "step1_normal_kernel",
+      "recorded_at_iso": "2026-10-04T10:52:38-0700",
+      "own_job_id": "20261004t175237-eedb9478",
+      "own_job_in_active_set": true,
+      "own_job_entry_present": true,
+      "n_other_active": 0,
+      "n_other_running_at_sample_time": 0,
+      "queue_was_empty": true,
+      "telemetry": {
+        "rc": 0,
+        "csv": "NVIDIA GeForce RTX 5090, 1695 MHz, 42, 2 %, 28.86 W, 389 MiB, 0x0000000000000000"
+      }
+    },
+    "kernel": "saxpy_kernel",
+    "n_problem_size": 8192,
+    "grid": [
+      32,
+      1,
+      1
+    ],
+    "block": [
+      256,
+      1,
+      1
+    ],
+    "success": true,
+    "n_trials": 20,
+    "median_trial_ms": 0.002832,
+    "min_trial_ms": 0.002528,
+    "max_trial_ms": 0.009504,
+    "process_wall_sec": 0.4362375736236572,
+    "queue_state": {
+      "tasks_max": 256,
+      "mechanism": "cgroup",
+      "mechanism_detail": "own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20261004t175237-eedb9478.scope writable=True",
+      "systemd_run_not_used_because": "systemd-run --wait detaches the child from our process group, which silently disables the timeout kill; see task_limits.py",
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/fgpu-1791136358-3280317",
+      "cgroup_cleaned": true
+    },
+    "sum_of_trials_ms": 0.068832,
+    "process_wall_ms": 436.2375736236572,
+    "wall_over_trials_ratio": 6337.714633072658,
+    "timing_is_device_side": true
+  },
+  "step2": {
+    "step_state": {
+      "label": "step2_hang_kernel",
+      "recorded_at_iso": "2026-10-04T10:53:34-0700",
+      "own_job_id": "20261004t175333-0ae284fd",
+      "own_job_in_active_set": true,
+      "own_job_entry_present": true,
+      "n_other_active": 0,
+      "n_other_running_at_sample_time": 0,
+      "queue_was_empty": true,
+      "telemetry": {
+        "rc": 0,
+        "csv": "NVIDIA GeForce RTX 5090, 277 MHz, 41, 0 %, 28.20 W, 389 MiB, 0x0000000000000000"
+      }
+    },
+    "timeout_reported": true,
+    "returncode": -1,
+    "wall_sec": 4.1588146686553955,
+    "configured_timeout_sec": 4,
+    "stderr": "TIMEOUT/HANG DETECTED (gpu health: healthy)",
+    "gpu_health": "healthy",
+    "killed_within_timeout": true,
+    "survivor_pids": [],
+    "child_is_dead": true
+  },
+  "step2b_recovery": {
+    "step_state": {
+      "label": "step2b_recovery_probe",
+      "recorded_at_iso": "2026-10-04T10:55:30-0700",
+      "own_job_id": "20261004t175527-b038b1a4",
+      "own_job_in_active_set": true,
+      "own_job_entry_present": true,
+      "n_other_active": 0,
+      "n_other_running_at_sample_time": 0,
+      "queue_was_empty": true,
+      "telemetry": {
+        "rc": 0,
+        "csv": "NVIDIA GeForce RTX 5090, 270 MHz, 42, 1 %, 27.05 W, 389 MiB, 0x0000000000000000"
+      }
+    },
+    "success": true,
+    "n_trials": 20,
+    "median_trial_ms": 0.002592,
+    "wall_sec": 0.43988919258117676,
+    "recovered": true,
+    "median_vs_pre_hang_ratio": 0.9152542372881357
+  }
+}

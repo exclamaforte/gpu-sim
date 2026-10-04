@@ -10,6 +10,25 @@ timeout handling moved across that boundary) and is still needs-rework, so
 **6.3's restructure is not covered by this result**. If 6.3 lands first, re-run
 this against the restructured path — same job, one more dose.
 
+## Re-run dose, 2026-10-04 (criterion 7: 6.3 has landed)
+
+**Revision exercised: `run_kernel` as restructured by 6.3 in master @
+`c4072f3`** (wrapper + `_run_kernel_inner`). Staged one stage per ts job
+with code gates between them, under a ts-plus-active-poll waiver for the
+watched-foreground requirement (single dose only):
+
+| stage | ts job | outcome |
+|---|---|---|
+| step 1 — normal kernel | `20261004t175237-eedb9478` | 20/20 trials, median **0.002832 ms** = **1.02x** the pre-hang baseline 0.002768 ms, device-side confirmed |
+| step 2 — `--test-hang`, once, 4 s | `20261004t175333-0ae284fd` | `timeout=True`, rc −1, wall **4.16 s**, gpu_health `healthy`, **0 survivors** (in-job check plus independent outside recheck) |
+| step 2b — recovery probe | `20261004t175527-b038b1a4` | 20/20 trials, median **0.002592 ms** = **0.92x** pre-hang, recovered |
+
+Verdict `overall_pass=True` in `report.json` (assembled CPU-side from the
+three stage files). Gate evidence per stage in `gate_evidence_step*.json`
+(empty queue listing + idle device snapshot immediately before each submit:
+1%/15 W and 0%/26 W). Per-step `queue_state` sampled in the stage that ran
+it, each identifying its own job id in-record with `n_other_active=0`.
+
 ## Result: the kill path recovers this GPU
 
 | step | outcome |

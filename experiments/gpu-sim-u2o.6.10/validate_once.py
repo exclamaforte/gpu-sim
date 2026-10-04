@@ -316,7 +316,10 @@ def main() -> int:
 
     if stage == "step1":
         report = fresh_report()
-        report["ts_job"] = os.environ.get("TS_JOB_ID")
+        if os.environ.get("TS_JOB_ID"):
+            report["ts_job"] = os.environ["TS_JOB_ID"]
+        # else ABSENT: gpqueue exports no job id into the job, and a null
+        # ts_job would read as coverage. The submitter backfills the real id.
         report["queue_at_start"] = q
         report["telemetry_start"] = telemetry()
         step1, _ = do_step1(h, report)
@@ -328,7 +331,10 @@ def main() -> int:
     if stage == "step2":
         prev = load_stage("step1")
         report = fresh_report()
-        report["ts_job"] = os.environ.get("TS_JOB_ID")
+        if os.environ.get("TS_JOB_ID"):
+            report["ts_job"] = os.environ["TS_JOB_ID"]
+        # else ABSENT: gpqueue exports no job id into the job, and a null
+        # ts_job would read as coverage. The submitter backfills the real id.
         report["step1"] = prev["step1"]
         report["queue_at_start"] = prev.get("queue_at_start")
         step2 = do_step2(h, report)
@@ -343,7 +349,10 @@ def main() -> int:
         prev1 = load_stage("step1")
         prev2 = load_stage("step2")
         report = fresh_report()
-        report["ts_job"] = os.environ.get("TS_JOB_ID")
+        if os.environ.get("TS_JOB_ID"):
+            report["ts_job"] = os.environ["TS_JOB_ID"]
+        # else ABSENT: gpqueue exports no job id into the job, and a null
+        # ts_job would read as coverage. The submitter backfills the real id.
         report["step1"] = prev1["step1"]
         report["step2"] = prev2["step2"]
         exe = HERE / "normal.out"
