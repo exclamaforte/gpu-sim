@@ -8,4 +8,7 @@
             "--test-hang kernel, once, 4 s timeout, watched",
             "recovery probe: normal kernel immediately after the kill"],
   "note": "The job exited 1 on a unit error in MY summary arithmetic (seconds divided by milliseconds); the hang, the kill and the recovery all succeeded. Corrected from the same stored run in report.json -- no second dose was spent, because re-hanging a GPU three other projects share to fix a division would be the wrong trade."
+  "rerun_preparation_incidents": [
+    "2026-10-04: implementer misread the ts front end (ts submit --help / ts cancel <id> / ts status are NOT subcommands -- unrecognized words fall through to submit) and queued 5 junk jobs (20261004t165951-2654b6aa, -92c06c54, 20261004t165958-a064ed2a, -e1b3c1e9, -4c38a353). All 5 canceled via ts -k within the minute, states canceled, never ran. Correct forms used thereafter: bare ts / ts --serialize tab for status, ts -k <id> to cancel, ts --max-runtime 10m -L desc -- <cmd> to submit. Kill authority for the dose is ts -k (per-job cancel); ts -K/-r are refused by the tool."
+  ]
 }
