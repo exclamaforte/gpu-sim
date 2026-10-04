@@ -35,15 +35,33 @@ work (nvidia-smi `--query-gpu` is a driver read, no CUDA context):
 Negative control: removing `"power.draw"` from `TELEMETRY_FIELDS` fails
 exactly `test_expected_field_set`; restored, 3/3 green.
 
-## Duplication, stated rather than fixed
+## Duplication, stated CORRECTLY this time (review round 2)
 
-`TELEMETRY_FIELDS`/`telemetry()` now exist in THREE near-identical copies:
-`measure_noise.py`, `measure_family.py`, and this branch's `verify_harness.py`
-(same 9 fields, different order; the branch adds per-field recovery and
-`throttled()`). The bead says "same helper ... reuse, do not reinvent", but
-no shared module exists to reuse, and unifying two merged experiment scripts
-plus this branch is a refactor of validated code outside this bead. Left for
-the PI to schedule; unifying is safe now that all three agree on the set.
+The previous version of this section said all three copies carry "same 9
+fields, different order" and concluded unifying is safe. Both halves were
+false, and the reviewer caught it by counting: measured, not asserted --
+
+- `verify_harness.py` (this branch): 9 fields
+- `measure_noise.py` (merged): 9 fields, the SAME SET (pinned by
+  `test_telemetry_set_matches_measure_noise`)
+- `measure_family.py` (merged): 5 fields -- `clocks.sm`, `clocks.max.sm`,
+  `temperature.gpu`, `clocks_throttle_reasons.active`, `persistence_mode`.
+  Missing exactly the detector fields: `power.draw`, `power.limit`,
+  `utilization.gpu`, `memory.used`.
+
+So unifying is NOT yet safe, and the "safe now that all three agree" conclusion
+is withdrawn. The first step is a PI decision this bead cannot make: whether
+`measure_family`'s per-example rows should gain the four fields (a schema
+change to the 264-row dataset's future, not a refactor) or whether the
+requirement is the intersection. Until that is decided, the handoff claim is
+narrowed to what exists: the `verify_harness` sampler shares `measure_noise`'s
+9-field set and hands 6.6.3 a working detector for verify_harness-path runs;
+the per-example rows it would read for dataset-scale detection do NOT carry
+power/utilisation, so that half of the handoff is open, not delivered.
+
+The bead headline's "same helper ... reuse, do not reinvent" is therefore
+PARTIALLY met: two of the three samplers agree field-for-field (tested), the
+third differs, and the merge is scheduled on the PI's word, not assumed.
 
 ## Not done, on purpose
 
