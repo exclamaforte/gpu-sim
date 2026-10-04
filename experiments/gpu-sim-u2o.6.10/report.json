@@ -38,18 +38,18 @@
     "min_trial_ms": 0.002528,
     "max_trial_ms": 0.009504,
     "process_wall_sec": 0.4362375736236572,
-    "queue_state": {
+    "sum_of_trials_ms": 0.068832,
+    "process_wall_ms": 436.2375736236572,
+    "wall_over_trials_ratio": 6337.714633072658,
+    "timing_is_device_side": true,
+    "containment": {
       "tasks_max": 256,
       "mechanism": "cgroup",
       "mechanism_detail": "own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20261004t175237-eedb9478.scope writable=True",
       "systemd_run_not_used_because": "systemd-run --wait detaches the child from our process group, which silently disables the timeout kill; see task_limits.py",
       "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/fgpu-1791136358-3280317",
       "cgroup_cleaned": true
-    },
-    "sum_of_trials_ms": 0.068832,
-    "process_wall_ms": 436.2375736236572,
-    "wall_over_trials_ratio": 6337.714633072658,
-    "timing_is_device_side": true
+    }
   },
   "step1_ts_job": "20261004t175237-eedb9478",
   "step2": {
@@ -158,6 +158,11 @@
     "hang_killed_within_timeout": true,
     "hang_child_dead": true,
     "gpu_recovered": true,
-    "overall_pass": true
+    "overall_pass": true,
+    "overall_pass_SCOPE": "hang/recovery validation only: the kill path works and the GPU comes back. Does NOT by itself cover other criteria; criterion 6 is recorded separately below.",
+    "criterion_6_met": true,
+    "criterion_6_evidence": "three genuinely distinct per-step samples, one per stage job: own_job_ids step1/step2/step2b with distinct recorded_at_iso and own_job_entry_present true in all three step_states",
+    "whole_bead_validated": false,
+    "whole_bead_note": "this run covers the kill-path validation, not every criterion of the bead; do not read overall_pass as whole-bead."
   }
 }

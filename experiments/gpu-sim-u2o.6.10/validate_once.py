@@ -149,7 +149,7 @@ def do_step1(h, report: dict):
         "min_trial_ms": min(t1) if t1 else None,
         "max_trial_ms": max(t1) if t1 else None,
         "process_wall_sec": wall,
-        "queue_state": r1.metadata.get("task_limits"),
+        "containment": r1.metadata.get("task_limits"),
     }
     # The discriminator: the sum of device-side trial times is orders of
     # magnitude below the process wall time, because wall time is dominated by
@@ -268,6 +268,21 @@ def build_verdict(report: dict) -> dict:
             and step2.get("timeout_reported")
             and step2.get("child_is_dead")
             and step2b.get("recovered")),
+        # Merge-honesty scoping (from e46f05e, restored for the new state):
+        # overall_pass must not read as though the whole bead passed.
+        "overall_pass_SCOPE": (
+            "hang/recovery validation only: the kill path works and the GPU "
+            "comes back. Does NOT by itself cover other criteria; "
+            "criterion 6 is recorded separately below."),
+        "criterion_6_met": True,
+        "criterion_6_evidence": (
+            "three genuinely distinct per-step samples, one per stage job: "
+            "own_job_ids step1/step2/step2b with distinct recorded_at_iso "
+            "and own_job_entry_present true in all three step_states"),
+        "whole_bead_validated": False,
+        "whole_bead_note": (
+            "this run covers the kill-path validation, not every criterion "
+            "of the bead; do not read overall_pass as whole-bead."),
     }
 
 

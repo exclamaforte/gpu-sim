@@ -92,79 +92,64 @@ def main() -> int:
         check("step_state SAMPLES the queue and telemetry per call",
               "queue_state" in calls and "telemetry" in calls, calls)
 
-    # 3. the committed artifact states the attachment gap rather than being
-    #    silent about it -- this run predates own_job_entry
+    # 3. the committed artifact carries REAL per-step samples, not a
+    #    limitation note: three distinct own_job_ids, distinct timestamps,
+    #    own_job_entry_present true in all three step_states. The old
+    #    queue_artifact_limitation belonged to the pre-own_job_entry run.
     rp = EXP / "report.json"
     if rp.exists():
         r = json.loads(rp.read_text())
-        has_entry = "own_job_entry" in (r.get("queue_at_start") or {})
-        check("committed report.json discloses the missing own_job_entry",
-              r.get("queue_artifact_limitation") is not None,
-              f"own_job_entry present in the artifact: {has_entry}")
-        check("queue state in the artifact is non-null own_job_id",
-              (r.get("queue_at_start") or {}).get("own_job_id"),
-              (r.get("queue_at_start") or {}).get("own_job_id"))
+        states = {}
+        for step in ("step1", "step2", "step2b_recovery"):
+            st = (r.get(step) or {}).get("step_state") or {}
+            states[step] = st
+            check(f"artifact step {step} carries its OWN step_state",
+                  bool(st.get("own_job_id")), st.get("own_job_id"))
+        ids = [s.get("own_job_id") for s in states.values()]
+        check("three genuinely distinct per-step samples (own_job_id)",
+              len(set(ids)) == 3, ids)
+        times = [s.get("recorded_at_iso") for s in states.values()]
+        check("three distinct sample timestamps",
+              len(set(times)) == 3, times)
+        check("own_job_entry_present true in all three step_states",
+              all(s.get("own_job_entry_present") is True
+                  for s in states.values()),
+              {k: v.get("own_job_entry_present")
+               for k, v in states.items()})
 
-        # 4. ITEM 1: read the ARTIFACT's steps, not synthetic ones.
-        #
-        # Everything above this point exercises synthetic step states, so the
-        # suite passed while the committed artifact satisfied nothing. These
-        # assertions read step1/step2/step2b_recovery out of report.json and ask
-        # whether each carries a queue state of its own -- which is acceptance
-        # criterion 6, and which nothing was actually checking.
+        # 4. verdict scoping for the NEW state (positive, not vanished).
         verdict = r.get("verdict") or {}
-        for step in ("step1", "step2", "step2b_recovery", "step2b"):
-            if step not in r:
-                continue
-            qs_ = r[step].get("queue_state")
-            check(f"artifact step {step} carries its OWN queue state",
-                  isinstance(qs_, dict) and bool(qs_),
-                  f"queue_state={qs_!r}")
-
-        # 4b. overall_pass must not read as though the WHOLE bead passed.
-        #
-        # The reviewer's point, and it is the one a hurried reader would miss:
-        # overall_pass is true, and without a scope line beside it a reader concludes
-        # every criterion was met -- including criterion 6, which is not.
         check("overall_pass is scoped to the hang/recovery validation",
-          "hang" in verdict.get("overall_pass_SCOPE", "").lower()
-          and "criterion 6" in verdict.get("overall_pass_SCOPE", ""),
+          "hang" in verdict.get("overall_pass_SCOPE", "").lower(),
           verdict.get("overall_pass_SCOPE"))
-        check("the verdict records that criterion 6 is NOT met",
-          verdict.get("criterion_6_met") is False, verdict.get("criterion_6_met"))
+        check("the verdict records that criterion 6 is MET",
+          verdict.get("criterion_6_met") is True,
+          verdict.get("criterion_6_met"))
+        check("criterion_6_evidence names the three-sample basis",
+          "three" in (verdict.get("criterion_6_evidence") or ""),
+          (verdict.get("criterion_6_evidence") or "")[:80])
         check("the verdict does not claim the whole bead is validated",
           verdict.get("whole_bead_validated") is False,
           verdict.get("whole_bead_validated"))
 
-        # 5. ITEM 2: a field NAMED queue_state must hold a queue state.
-        #
-        # step1.queue_state was null. A null reads as coverage -- a reader
-        # scanning keys sees the field and concludes the queue state is recorded
-        # there. It is not fixed by inventing one: the run happened, and making
-        # up a sample for a dose that never took one would fabricate the very
-        # evidence this bead exists to verify.
+        # 5. a field NAMED queue_state must HOLD a queue state (contents,
+        #    not just non-null): the cgroup containment dict passes a
+        #    non-null check while being exactly the misnomer.
+        def is_queue_shaped(v):
+            return isinstance(v, dict) and "own_job_id" in v
         for step, blob in r.items():
             if isinstance(blob, dict) and "queue_state" in blob:
-                check(f"field named queue_state in {step} is not null",
-                      blob["queue_state"] is not None,
-                      f"{step}.queue_state is None, which reads as coverage "
-                      f"but records nothing")
-
-        # The provenance must survive too. A queue state attached per step with
-        # no statement of WHEN it was taken is the original defect wearing a
-        # value instead of a null.
-        for step in ("step1", "step2", "step2b_recovery"):
-            if step not in r:
-                continue
-            prov = r[step].get("queue_state_provenance")
-            check(f"{step} says WHEN its queue_state was sampled",
-                  isinstance(prov, dict) and prov.get("sampled_at_utc")
-                  and "BEFORE this step" in prov.get("relation_to_this_step", ""),
-                  prov)
-            check(f"{step} does not claim to be a per-step sample",
-                  (prov or {}).get("is_a_per_step_sample") is False,
-                  "if this flips to True the artifact must carry a real "
-                  "per-step sample, not the run-start one")
+                check(f"field named queue_state in {step} holds a queue state",
+                      is_queue_shaped(blob["queue_state"]),
+                      (f"keys={sorted(blob['queue_state'])}"
+                       if isinstance(blob["queue_state"], dict)
+                       else repr(blob["queue_state"])))
+        s1 = r.get("step1") or {}
+        check("step1 containment holds the cgroup record (renamed, not lost)",
+              (s1.get("containment") or {}).get("mechanism") == "cgroup",
+              (s1.get("containment") or {}).get("mechanism"))
+        check("step1 has no misnamed queue_state key",
+              "queue_state" not in s1, sorted(s1.keys()))
 
     else:
         check("report.json exists", False, str(rp))
