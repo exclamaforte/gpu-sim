@@ -47,3 +47,12 @@ build/
 # Deliberately NOT ignored: *.md specification files. They are inputs, and a
 # few of them are stubs; those are left untracked by DECISION, recorded in
 # experiments/gpu-sim-u2o.6.11/tracks_inventory.md, not hidden by a rule.
+
+# Lab runtime state: worktrees, unix sockets, daemon files. The .lab/ tree
+# holds a git worktree per agent session plus live sockets -- none of it belongs
+# in git. Mirrors the rule set cclm uses.
+.lab/wt/
+.lab/*.sock
+.lab/labd.log
+.lab/labd.pid
+.lab/labd-state.json
