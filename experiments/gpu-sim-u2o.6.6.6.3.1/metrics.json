@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.3.1",
+  "gpu_used": false,
+  "what": "negative cache for permanently-unparseable queue files: remember path+(mtime_ns,size) after 3 exhausted retries; later calls parse once with no sleeps until a rewrite heals the entry",
+  "live_queue_measurement": {
+    "where": "/home/gabe/.local/state/gpqueue/jobs (read-only; nothing written)",
+    "files": 1104,
+    "before_fix_per_bead": "cached 152ms / uncached 164ms per call (3x50ms sleeps)",
+    "after_fix": "cold 162.5ms (first call still retries the unknown file: transient tolerance intact), warm median 0.25ms over 5 calls",
+    "unparseable_skipped_retry": 1,
+    "unparseable_remembered": 1,
+    "method": "qs.reset_cache() then qs._load_all_with_provenance() x6 in-process; queue_state() itself refuses without identifying args (fail-loud design), so the load path is timed directly"
+  },
+  "tests": "tests/test_queue_retry_bound.py: unknown bad file retried 3x (sleep counts, deterministic); remembered file costs 0 sleeps, stays out of records, skip counted in provenance; rewrite heals and forgets",
+  "code_commit": "9ec69cd"
+}

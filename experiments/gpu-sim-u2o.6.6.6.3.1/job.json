@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.3.1",
+  "gpu_used": false,
+  "ts_jobs": [],
+  "cpu_runs": [
+    {
+      "command": "experiments/gpu-sim-u2o.6.6.6.3.1/run.sh",
+      "started_utc": "2026-10-04T13:40:41Z",
+      "ended_utc": "2026-10-04T13:40:45Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.6.3.1/output.log",
+      "what": "tests/test_queue_retry_bound.py 3/3 green + pre-existing queue_state suites (differential 8, state, cost, step: 21 checks) green; live-queue timing measured separately (read-only) and recorded in metrics.json"
+    }
+  ],
+  "cpu_runs_note": "ts_jobs empty and gpu_used false by design: no device work. A CPU job in the shared GPU queue would block real GPU work."
+}
