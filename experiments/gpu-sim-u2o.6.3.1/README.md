@@ -50,14 +50,20 @@ demonstration now injects a genuinely bad AS value, and there is a separate
 negative control asserting that lowering `vram_limit_mb` alone leaves AS at
 256 GiB and the gate green.
 
-## Recorded discrepancy: `RLIMIT_FSIZE`
+## Resolved discrepancy: `RLIMIT_FSIZE`
 
 This bead's description lists `FSIZE(min(256, quota))` as part of the set the
-harness applies today. `apply()` never calls `setrlimit(RLIMIT_FSIZE)`. Rather
-than write a safety table describing a different file than the one that runs,
-the table records FSIZE as **not applied**, and a test fails if
-`RLIMIT_FSIZE` ever appears in `safe_harness.py`, so the entry cannot go stale
-in the other direction either.
+harness applies today, and `apply()` used to never call
+`setrlimit(RLIMIT_FSIZE)` — so the table recorded FSIZE as **not applied**,
+with a test failing if the name ever appeared in `safe_harness.py`.
+
+The rebase onto gpu-sim-u2o.6.3-rb (2026-10-04) brought in 6.3's disk work,
+which adds the per-file FSIZE backstop to `apply()`. That test failed on
+rebase: the gate working as designed. The table now claims FSIZE **applied**
+(`min(file_size_limit_mb, disk_quota_mb)` = 256 MiB at defaults), evidenced by
+the post-rebase probe, and a new test parses every `setrlimit` call out of
+`apply()`'s body to keep table and code from drifting again. Kept here so the
+resolution is not mistaken for the original gap.
 
 ## The mandated purity assertion (previously missing)
 
@@ -107,17 +113,23 @@ markers, the destination, and the survival of 6.1.2's and 6.11's sections.
 
 ## Verification
 
-* `python3 tests/test_rlimit_cuda_gate.py` — **36 checks, 0 failures**, CPU
-  only, no GPU. Covers both invariants, the table/evidence consistency, the
-  FSIZE discrepancy, the diagnostic path (including "no limit explains this" →
-  *do not add a limit*), and four `preflight_check` wiring cases.
+* `python3 -m unittest tests.test_rlimit_cuda_gate tests.test_vram_hunk_present`
+  — CPU only, no GPU. Covers both invariants, the table/evidence consistency,
+  the RESOLVED FSIZE entry, the diagnostic path (including "no limit explains
+  this" → *do not add a limit*), four `preflight_check` wiring cases, and
+  `test_vram_hunk_present` (the 6.3 guard: `preflight_check` consults the VRAM
+  budget, and the table and the code agree — it skips without the gate module
+  and runs for real on this branch).
 * One check exercises the real `apply()` in a child process with
   `processes_limit=1` and asserts it is **refused with the gate's message**
   rather than dying from an NPROC abort — the old code's two failure modes were
   indistinguishable, which is why the message is the thing being asserted.
-* The table-vs-code check derives the applied set from the real
-  `ResourceLimits` dataclass, so the table cannot describe a different file
-  than the one that runs.
+* The table-vs-code check parses every `setrlimit` call out of `apply()`'s
+  own body and requires each to have an applied row and vice versa. The
+  weaker form — table vs. a second hand derivation — let the FSIZE addition
+  sail through both agreeing with each other while both disagreed with the
+  running code; the rebase caught it and this is the test that now forbids
+  that shape.
 
 ## The probe
 
@@ -135,18 +147,24 @@ launches and computes the wrong answer still fails. On failure
 in the set explains the failure it says exactly that, because "cannot diagnose"
 must not become "add a limit to fix it".
 
-### Real 5090 result (authoritative: ts `20260928t091903-9d586536`)
+### Real 5090 result (authoritative: ts `20261004t053314-3dcc3aa3`)
 
 ```
 applied_limits: {RLIMIT_AS: 274877906944, RLIMIT_CPU: 60, RLIMIT_DATA: 8589934592,
-                 RLIMIT_NOFILE: 256, RLIMIT_CORE: 0}
+                 RLIMIT_NOFILE: 256, RLIMIT_CORE: 0, RLIMIT_FSIZE: 268435456}
 cuda_malloc: ok   launch: ok   result_correct: true   rc: 0
-device: NVIDIA GeForce RTX 5090      uid_tasks: 2006      0.70s
+device: NVIDIA GeForce RTX 5090      uid_tasks: 1496      1.50s
 ```
 
 `cudaFree(0) → cudaMalloc → launch → cudaDeviceSynchronize → read-back`, all
-under the harness's exact limit set applied in the child's `preexec_fn`. 0.70 s
+under the harness's exact limit set applied in the child's `preexec_fn`. 1.50 s
 against the design's <10 s budget, so it can gate every batch job.
+
+This is the POST-REBASE probe. The pre-rebase authoritative run (ts
+`20260928t091903-9d586536`, 0.70 s, uid_tasks 2006) proved the set WITHOUT
+FSIZE; the rebase onto gpu-sim-u2o.6.3-rb added `RLIMIT_FSIZE` to `apply()`,
+so that evidence described a set the harness no longer applies and the gate
+stayed red until this run proved the new one. Both jobs are kept in `job.json`.
 
 ## The probe caught its own author — which is the part worth keeping
 

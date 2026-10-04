@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-u2o.6.3.1",
-  "authoritative_job": "20260928t091903-9d586536",
-  "authoritative_job_result": "finished, exit 0, PASS",
+  "authoritative_job": "20261004t053314-3dcc3aa3",
+  "authoritative_job_result": "finished in 1.0s, exit 0, PASS",
   "ts_jobs": [
     {
       "id": "20260928t091846-a635d8f7",
@@ -12,7 +12,12 @@
     {
       "id": "20260928t091903-9d586536",
       "result": "finished, exit 0, PASS",
-      "note": "Authoritative. cuda_malloc ok, launch ok, read-back correct, 0.70s wall (design budget <10s). uid_tasks on this run: 2006."
+      "note": "Authoritative for the PRE-REBASE limit set (no FSIZE). cuda_malloc ok, launch ok, read-back correct, 0.70s wall (design budget <10s). uid_tasks on this run: 2006. Superseded as authoritative by 20261004t053314-3dcc3aa3, kept because it evidences the AS/CPU/DATA/NOFILE/CORE values, which are unchanged."
+    },
+    {
+      "id": "20261004t053314-3dcc3aa3",
+      "result": "finished in 1.0s, exit 0, PASS",
+      "note": "Authoritative for the POST-REBASE set. Re-probe required by the rebase onto gpu-sim-u2o.6.3-rb, which added RLIMIT_FSIZE=268435456 (256 MiB per-file backstop) to apply(): the old evidence described a set the harness no longer applies. cuda_malloc ok, launch ok, read-back correct, 1.50s wall (design budget <10s). uid_tasks on this run: 1496."
     }
   ],
   "failed_job_kept_deliberately": true,
@@ -34,9 +39,11 @@
     "run_1_20260928t091846-a635d8f7": 1979,
     "run_2_20260928t091903-9d586536": 2006,
     "delta_in_about_2_minutes": 27,
-    "why_it_matters": "gpu-sim-u2o.6.1.1 bracketed this uid's live task total between 2048 (aborts the process at its first thread creation) and 3072 (works). The live count is now 2006, i.e. 42 tasks below the abort threshold, and it moved 27 tasks in two minutes. This is direct evidence for the gate's central claim that EVERY fixed RLIMIT_NPROC value is a race on this shared host -- and that 2048, which reads as a generous limit, is currently within a rounding error of killing CUDA."
+    "why_it_matters": "gpu-sim-u2o.6.1.1 bracketed this uid's live task total between 2048 (aborts the process at its first thread creation) and 3072 (works). The live count is now 2006, i.e. 42 tasks below the abort threshold, and it moved 27 tasks in two minutes. This is direct evidence for the gate's central claim that EVERY fixed RLIMIT_NPROC value is a race on this shared host -- and that 2048, which reads as a generous limit, is currently within a rounding error of killing CUDA.",
+    "run_3_20261004t053314-3dcc3aa3": 1496,
+    "run_3_note": "Six days later the same uid holds 1496 tasks -- 510 fewer, a third of the abort threshold away from where it was. The count drifts by HUNDREDS across days, not just tens across minutes. A fixed NPROC value chosen against any single measurement is stale before the run starts."
   },
   "gpu_used": true,
   "queue_position_respected": true,
-  "note": "Both jobs were submitted through ts and waited behind other tenants (cclm, conway-gode) without jumping. No nvidia-smi was used for GPU work; the probe reports the device from cudaGetDeviceProperties."
+  "note": "All three probe jobs were submitted through ts and waited behind other tenants without jumping. No nvidia-smi was used for GPU work; the probe reports the device from cudaGetDeviceProperties. Run 3 was required by the 2026-10-04 rebase onto gpu-sim-u2o.6.3-rb: 6.3's disk work added RLIMIT_FSIZE to apply(), so the pre-rebase evidence described a limit set the harness no longer applies. The gate's own source-reading test failed on rebase until the table, the derivation, and the evidence were updated and the probe re-run."
 }
