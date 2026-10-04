@@ -1,0 +1,45 @@
+{
+  "label": "rework-verification",
+  "fields": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "610.57.04",
+    "memory.total": "32607 MiB",
+    "clocks.sm": "2895 MHz",
+    "clocks.max.sm": "3105 MHz",
+    "temperature.gpu": "54",
+    "power.draw": "314.89 W",
+    "power.limit": "575.00 W",
+    "clocks_throttle_reasons.active": "0x0000000000000000",
+    "persistence_mode": "Disabled",
+    "utilization.gpu": "72 %",
+    "memory.used": "3404 MiB"
+  },
+  "n_fields": 12,
+  "expected": [
+    "clocks.max.sm",
+    "clocks.sm",
+    "clocks_throttle_reasons.active",
+    "memory.used",
+    "persistence_mode",
+    "power.draw",
+    "power.limit",
+    "temperature.gpu",
+    "utilization.gpu"
+  ],
+  "throttle_predicate_false_on_empty": true,
+  "failure_recorded": null,
+  "rc": 0
+}
+test_measure_family_gap_is_documented_not_silent (__main__.TestAgreementIsReal.test_measure_family_gap_is_documented_not_silent) ... ok
+test_telemetry_set_matches_measure_noise (__main__.TestAgreementIsReal.test_telemetry_set_matches_measure_noise) ... ok
+test_expected_field_set (__main__.TestSamplerRuns.test_expected_field_set)
+The fields 6.6.3 needs must actually come back. ... ok
+test_sampling_is_read_only (__main__.TestSamplerRuns.test_sampling_is_read_only)
+Criterion 6: no -lgc, no persistence change, no sudo in the sampler. ... ok
+test_throttled_predicate (__main__.TestSamplerRuns.test_throttled_predicate)
+A throttle bitmask is causes; the predicate reads it as such. ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.026s
+
+OK

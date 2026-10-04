@@ -1,0 +1,34 @@
+{
+  "bead": "gpu-sim-u2o.6.6.5",
+  "gpu_used": false,
+  "what": "telemetry sampler verified live (driver read, no CUDA context, no queue)",
+  "telemetry_fields_expected": [
+    "clocks.max.sm",
+    "clocks.sm",
+    "clocks_throttle_reasons.active",
+    "memory.used",
+    "persistence_mode",
+    "power.draw",
+    "power.limit",
+    "temperature.gpu",
+    "utilization.gpu"
+  ],
+  "telemetry_fields_returned": [
+    "clocks.max.sm",
+    "clocks.sm",
+    "clocks_throttle_reasons.active",
+    "driver_version",
+    "memory.total",
+    "memory.used",
+    "name",
+    "persistence_mode",
+    "power.draw",
+    "power.limit",
+    "temperature.gpu",
+    "utilization.gpu"
+  ],
+  "throttle_predicate": "zero/absent mask -> False (tested)",
+  "read_only": "nvidia-smi --query-gpu only; no -lgc, no persistence change, no sudo (tested)",
+  "duplication_account": "verify_harness == measure_noise (9 fields, tested); measure_family has 5 (gap documented, PI schema decision pending)",
+  "code_commit": "86d8041"
+}
