@@ -60,5 +60,18 @@
     "evidence": "tests/test_preflight_cannot_pass.py runs 0 failures in the clean clone, including the check that \"'cannot check' FAILS rather than passing\" with the message naming why.",
     "what_changes_for_8dw": "Nothing in the repair. What changes is that 'make check: 9/9 pass' -- which the reviewer cited when validating 8dw -- is now something a clean clone can produce, so that citation is evidence about the repository rather than about one working tree. The same applies to gpu-sim-u2o.19's 'exit 0'."
   },
-  "residual_risk_stated": "The guard covers the build INPUTS. It does not cover the compiler, the CUDA version, or the queue, so `make check` passing in a clone is evidence about the repository and about this toolchain, not about every environment."
+  "residual_risk_stated": "The guard covers the build INPUTS. It does not cover the compiler, the CUDA version, or the queue, so `make check` passing in a clone is evidence about the repository and about this toolchain, not about every environment.",
+  "widened_scope_20261004_worktree_hygiene": {
+    "deliverable": "tests/assert_worktree_hygiene.sh --target <ref> [--worktree <path>]",
+    "properties": ["read-only (stages/stashes/checks out nothing)", "--target required, no default", "refuses unknown refs (exit 2)", "names identical vs differing shadows", "exit 1 on any shadow"],
+    "seen_to_fail": ["missing --target -> refuse 2", "unknown ref -> refuse 2", "identical shadow in scratch repo -> fail 1 naming file", "differing shadow in scratch repo -> fail 1 naming file"],
+    "live_survey_vs_master": {"worktrees": 28, "clean": 19, "failing": ["gpu-sim-8dw", "gpu-sim-u2o.6.10", "gpu-sim-u2o.6.1.1", "gpu-sim-u2o.6.1.2", "gpu-sim-u2o.6.3", "gpu-sim-u2o.6.6.2-r2", "gpu-sim-u2o.6.6.3", "gpu-sim-u2o.6.6.5", "gpu-sim-u2o.7.1"], "character": "mostly stale pre-6.11 untracked copies of epic_u2o/*, several byte-differing", "log": "experiments/gpu-sim-u2o.20/hygiene_survey.txt"},
+    "not_touched": "other trees' hygiene belongs to their owners/reviewers; the survey was read-only"
+  },
+  "vacuous_make_check_found_by_rebase_20261004": {
+    "defect": "guard-wiring commit REPLACED check's recipe with the guard alone; `make check` passed running 14 ok-lines and zero tests",
+    "evidence": "first clean-clone log held only the guard output (16 lines)",
+    "fix": "check: guard-build-inputs $(LIB) + full suite recipe; guard-free check-only target deleted",
+    "reverified": "post-fix clean-clone make check: guard 14/14 + self-test + workloads + 9/9 cudart-none, exit 0 (experiments/gpu-sim-u2o.20/clean_clone_make_check.log)"
+  }
 }

@@ -43,14 +43,7 @@ tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 # files, the header and the three test programs were committed, so every
 # "make check passes" claim made before that -- including the reviewer's own
 # validation of gpu-sim-8dw -- was true here and unreproducible elsewhere.
-check: guard-build-inputs
-	@bash tests/assert_build_inputs_tracked.sh
-
-.PHONY: guard-build-inputs
-guard-build-inputs:
-	@:
-
-check-only: $(LIB)
+check: guard-build-inputs $(LIB)
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	$(TEST_BIN)
@@ -61,6 +54,20 @@ check-only: $(LIB)
 	LD_PRELOAD=$(CURDIR)/$(LIB) FAKEGPU_NUM_DEVICES=4 $(RING_BIN)
 	@echo "--- -cudart=none fake path, no LD_PRELOAD (gpu-sim-u2o.6.1.3) ---"
 	@bash tests/test_cudart_none.sh
+
+.PHONY: guard-build-inputs
+# The guard runs FIRST, as a prerequisite: a red guard stops the suite before
+# it can go green on untracked state. (An earlier form of this wiring replaced
+# `check`'s recipe with the guard alone, so `make check` passed without
+# building or testing anything -- the vacuous gate this bead exists to kill.
+# The 2026-10-04 rebase caught it because the clean-clone log held only the
+# guard's 14 lines.)
+guard-build-inputs:
+	bash tests/assert_build_inputs_tracked.sh
+
+# No `check-only` (suite without the guard) is offered: a guard-free gate
+# alongside the guarded one is how `make check` silently stops meaning
+# anything the next time someone reaches for the shorter name.
 
 clean:
 	rm -f $(OBJS) $(LIB) src/*.o $(TEST_BIN) $(VEC_BIN) $(RING_BIN)
