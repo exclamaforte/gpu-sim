@@ -152,6 +152,18 @@
     },
     "why_the_default_suite_is_green": "the reproduction test is marked expectedFailure, so merging this branch does not put a designed failure into the repository's default signal. That is not a skip: if it ever starts PASSING the suite reports a FAILURE, so the debt cannot be forgotten by going green.",
     "how_to_ask_the_question": "python3 experiments/gpu-sim-u2o.7.1/verify_reproduction.py -- exits nonzero while this is open and prints the measured numbers. A decorator is not a check anyone runs.",
-    "not_fixed_here": "the cause is not yet known. Making the medians agree by loosening the tolerance, or by re-deriving the reference, would certify a throughput fix that changed the numbers, which is the outcome this acceptance exists to prevent."
+    "not_fixed_here": "the cause is not yet known. Making the medians agree by loosening the tolerance, or by re-deriving the reference, would certify a throughput fix that changed the numbers, which is the outcome this acceptance exists to prevent.",
+    "corner_71x71_20261004": {
+      "arm": "7.1's own per-kernel binaries x 7.1's own per-invocation process model (ts 20261004t184644-1ef85ac0, tree f323c28)",
+      "reproducing": 202,
+      "of": 264,
+      "fraction": 0.7652,
+      "median_rel_diff": 0.1452,
+      "faster_fraction": 0.9167,
+      "median_ai_cv": 0.0288,
+      "ex_per_s": 1.37,
+      "worst_rel": 0.4534,
+      "reading": "does NOT reproduce: 202/264 sits inside the 161-218 band of every prior arm, so the shared build/process context is exonerated as the sole cause and the fifth mechanism REMAINS unidentified; the run_kernel()/preexec-limits path is now the leading candidate. Full columns in corner_summary.json."
+    }
   }
 }
