@@ -6,12 +6,15 @@ that master already owns -- in a throwaway repository, and asserts the guard
 refuses it. The real repo is never touched: a test that dirties the repository it
 is guarding is the defect it tests for.
 
-Three properties, and the second is the one that keeps this honest:
+Four properties, and the second is the one that keeps this honest:
   1. a bulk add over master-owned copies is REFUSED, naming them;
   2. it says WHICH KIND of collision, because "identical" (stale duplicate) and
      "DIFFERS" (an add would overwrite master) call for different responses;
   3. a repo whose untracked files are genuinely its own PASSES -- a guard that
      refuses everything is a guard nobody runs.
+  4. the CLI entry point checks the CALLER's tree (subprocess, cwd set),
+     because every other test passes repo in explicitly and never touches
+     the path that once resolved the wrong tree with a green suite.
 """
 import importlib.util
 import json
@@ -102,6 +105,56 @@ class TestItCanPass(Fixture):
         self.assertEqual(rc, 0,
                          "with nothing of master's here, the guard must pass; "
                          "a guard that refuses everything is one nobody runs")
+
+
+class TestEntryPointChecksTheCallersTree(Fixture):
+    """The regression this suite could not see.
+
+    main() used to resolve the repo from __file__ and never called
+    parse_args(), so run from anywhere it reported on the SCRIPT's tree
+    (usually clean) instead of the caller's -- a false all-clear with a
+    green suite, because every other test passes repo in explicitly and
+    never touches the entry point. These run the real argv path as a
+    SUBPROCESS with cwd inside the hazardous tree, so current_repo() and
+    argument parsing are exercised, not bypassed.
+    """
+    SCRIPT = REPO / "scripts" / "safe_git_add.py"
+
+    def run_cli(self, *argv, cwd):
+        return subprocess.run([sys.executable, str(self.SCRIPT), *argv],
+                              capture_output=True, text=True, cwd=str(cwd))
+
+    def test_cli_refuses_from_inside_the_hazardous_tree(self):
+        r = self.run_cli(cwd=self.repo)
+        self.assertEqual(r.returncode, 2,
+                         "the CLI must refuse from inside the hazardous tree, "
+                         "not report on the script's own directory.\n" + r.stdout)
+        self.assertIn("owned_by_master.py", r.stdout)
+        self.assertIn("stable.md", r.stdout)
+        self.assertIn("identical", r.stdout,
+                      "the stale-duplicate kind must be named")
+        self.assertIn("DIFFERS", r.stdout,
+                      "the would-overwrite kind must be named")
+
+    def test_cli_passes_where_the_files_are_our_own(self):
+        for p in ("owned_by_master.py", "stable.md"):
+            (self.repo / p).unlink()
+        r = self.run_cli(cwd=self.repo)
+        self.assertEqual(r.returncode, 0,
+                         "with nothing of master's here the CLI must pass.\n"
+                         + r.stdout)
+
+    def test_cli_honours_repo_from_elsewhere(self):
+        """--repo must point the check; the old code swallowed every flag."""
+        r = self.run_cli("--repo", str(self.repo), cwd=self.td)
+        self.assertEqual(r.returncode, 2,
+                         "--repo naming the hazardous tree must refuse.\n"
+                         + r.stdout)
+
+    def test_cli_rejects_bogus_flags(self):
+        r = self.run_cli("--totally-bogus", cwd=self.repo)
+        self.assertNotEqual(r.returncode, 0,
+                            "argparse must reject unknown flags, not run silently")
 
 
 if __name__ == "__main__":
