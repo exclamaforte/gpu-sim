@@ -6,18 +6,19 @@
     "RLIMIT_CPU": 60,
     "RLIMIT_DATA": 8589934592,
     "RLIMIT_NOFILE": 256,
-    "RLIMIT_CORE": 0
+    "RLIMIT_CORE": 0,
+    "RLIMIT_FSIZE": 268435456
   },
   "limits_applied_in": "child preexec_fn (same mechanism as run_kernel)",
   "arch": "sm_120",
   "rc": 0,
-  "elapsed_s": 0.696,
-  "stdout": "{\"cuda_malloc\": \"ok\", \"launch\": \"ok\", \"rc\": 0, \"result_correct\": true, \"device\": \"NVIDIA GeForce RTX 5090\", \"uid_tasks\": 2006, \"uid_task_note\": \"RLIMIT_NPROC is checked against this count, not our subtree; the live total drifts with other tenants\"}",
+  "elapsed_s": 1.5,
+  "stdout": "{\"cuda_malloc\": \"ok\", \"launch\": \"ok\", \"rc\": 0, \"result_correct\": true, \"device\": \"NVIDIA GeForce RTX 5090\", \"uid_tasks\": 1496, \"uid_task_note\": \"RLIMIT_NPROC is checked against this count, not our subtree; the live total drifts with other tenants\"}",
   "cuda_malloc": "ok",
   "launch": "ok",
   "result_correct": true,
   "device": "NVIDIA GeForce RTX 5090",
-  "uid_tasks": 2006,
+  "uid_tasks": 1496,
   "uid_task_note": "RLIMIT_NPROC is checked against this count, not our subtree; the live total drifts with other tenants",
   "passed": true
 }

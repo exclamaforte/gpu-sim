@@ -50,7 +50,8 @@ def main() -> int:
         if is_applied:
             val = applied.get(name)
             shown = (f"{val // (1024*1024)} MiB"
-                     if name in ("RLIMIT_AS", "RLIMIT_DATA") else str(val))
+                     if name in ("RLIMIT_AS", "RLIMIT_DATA", "RLIMIT_FSIZE")
+                     else str(val))
         else:
             shown = "—"
         rows.append(
@@ -79,15 +80,18 @@ Honest limitation, unchanged: on ReBAR GPUs `RLIMIT_AS` **cannot** serve as a
 VRAM cap — the BAR mapping dwarfs any useful value — so it is a leak backstop
 only, not a VRAM accounting mechanism.
 
-## Recorded discrepancy
+## Resolved discrepancy: `RLIMIT_FSIZE`
 
-`RLIMIT_FSIZE` is in the table as **not applied**. gpu-sim-u2o.6.3.1's
-description lists `FSIZE(min(256, quota))` as part of the set the harness
-applies today, but `apply()` never calls `setrlimit(RLIMIT_FSIZE)`. Recorded
-rather than written in as though it were enforced, because a safety table that
-describes a different file than the one that runs is worse than no table.
-`tests/test_rlimit_cuda_gate.py` fails if `RLIMIT_FSIZE` ever appears in
-`safe_harness.py`, so the entry cannot go stale.
+`RLIMIT_FSIZE` used to be in the table as **not applied**: the bead description
+listed `FSIZE(min(256, quota))` as part of the set, but `apply()` never called
+`setrlimit(RLIMIT_FSIZE)`, so the table recorded the gap honestly. Then the
+rebase onto gpu-sim-u2o.6.3-rb brought in 6.3's disk work, which ADDS the
+per-file FSIZE backstop to `apply()` -- and the source-reading test failed on
+rebase, which is the gate working as designed rather than a regression. The
+row above now claims applied with a ts job as evidence, because a safety table
+that describes a different file than the one that runs is worse than no table.
+The history is kept here so nobody "resolves" it again by re-recording the
+dead discrepancy.
 
 ## The probe
 

@@ -115,7 +115,7 @@ a **gate** (`epic_u2o/rlimit_cuda_gate.py`), not a comment.
 | `RLIMIT_DATA` | 8192 MiB | yes | brk/heap only. CUDA's allocations are mmap-based and the BAR1 mapping is not charged to RLIMIT_DATA, so this bounds a runaway heap without touching device or pinned memory. | `20260927t180239-90a79c87` |
 | `RLIMIT_NOFILE` | 256 | yes | measured fine on the 5090 (u2o.6.1.1 bracketed NOFILE=256 as acceptable while NPROC=32 and 512 were both fatal). The driver opens far fewer than 256 descriptors for a single-context run. | `20260927t180239-90a79c87` |
 | `RLIMIT_CORE` | 0 | yes | disables core dumps; touches no CUDA state. Safe by inspection and by the fact that the 5090 runs above produced no core. | `20260927t180239-90a79c87` |
-| `RLIMIT_FSIZE` | — | **no** | NOT APPLIED. The bead description lists FSIZE(min(256, quota)) as part of the set the harness applies today, but apply() never calls setrlimit(RLIMIT_FSIZE). Recorded as a discrepancy rather than written into the table as if it were enforced. | `untested` |
+| `RLIMIT_FSIZE` | 256 MiB | yes | a per-FILE write cap, not a per-directory quota (the quota is accounted in Python and enforced mid-run by the 6.3 monitor thread). The CUDA context/malloc/launch path performs no file writes and the probe binary writes nothing (stdout is a pipe), so a single-file ceiling cannot present as a device error. | `20261004t053314-3dcc3aa3` |
 | `RLIMIT_NPROC` | — | **no** | NEVER SET. The kernel checks RLIMIT_NPROC against the real uid's TOTAL process+thread count, not our subtree, on every clone. This uid has ~2934 tasks (ps -eL -o uid=) against 256 processes, and a kernel-side probe bracketed the live total between 2048 (aborts at first thread creation) and 3072 (works). Because the count drifts with the other tenants on this shared box, EVERY fixed value is a race -- 2048 looks generous and is already fatal. Containment goes through the cgroup v2 pids.max route in gpu-sim-u2o.6.1.2 instead. | `20260927t123630-05fd9bd0` |
 
 
@@ -139,15 +139,18 @@ Honest limitation, unchanged: on ReBAR GPUs `RLIMIT_AS` **cannot** serve as a
 VRAM cap — the BAR mapping dwarfs any useful value — so it is a leak backstop
 only, not a VRAM accounting mechanism.
 
-## Recorded discrepancy
+## Resolved discrepancy: `RLIMIT_FSIZE`
 
-`RLIMIT_FSIZE` is in the table as **not applied**. gpu-sim-u2o.6.3.1's
-description lists `FSIZE(min(256, quota))` as part of the set the harness
-applies today, but `apply()` never calls `setrlimit(RLIMIT_FSIZE)`. Recorded
-rather than written in as though it were enforced, because a safety table that
-describes a different file than the one that runs is worse than no table.
-`tests/test_rlimit_cuda_gate.py` fails if `RLIMIT_FSIZE` ever appears in
-`safe_harness.py`, so the entry cannot go stale.
+`RLIMIT_FSIZE` used to be in the table as **not applied**: the bead description
+listed `FSIZE(min(256, quota))` as part of the set, but `apply()` never called
+`setrlimit(RLIMIT_FSIZE)`, so the table recorded the gap honestly. Then the
+rebase onto gpu-sim-u2o.6.3-rb brought in 6.3's disk work, which ADDS the
+per-file FSIZE backstop to `apply()` -- and the source-reading test failed on
+rebase, which is the gate working as designed rather than a regression. The
+row above now claims applied with a ts job as evidence, because a safety table
+that describes a different file than the one that runs is worse than no table.
+The history is kept here so nobody "resolves" it again by re-recording the
+dead discrepancy.
 
 ## The probe
 

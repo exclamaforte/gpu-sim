@@ -27,10 +27,12 @@ from dataclasses import dataclass
 # each. `evidence` is a ts job id that ran a real kernel under that limit on the
 # 5090, or "untested" -- and "untested" is a FAILING state, not a passing one.
 #
-# FSIZE is listed as NOT APPLIED. The bead description describes the current set
-# as including "FSIZE(min(256, quota))", but apply() in safe_harness.py never
-# calls setrlimit(RLIMIT_FSIZE). Rather than write a table that describes a
-# different file than the one that runs, the table records the discrepancy.
+# FSIZE was listed as NOT APPLIED until the rebase onto gpu-sim-u2o.6.3-rb
+# (2026-10-04): 6.3's disk work adds a per-file RLIMIT_FSIZE backstop to
+# apply(), so the set the harness applies grew under this gate and the
+# source-reading test failed -- the gate working as designed. FSIZE is now
+# applied and evidenced like every other row; the old discrepancy note is
+# kept in the experiments README as history, not as a live claim.
 LIMIT_TABLE: tuple[dict, ...] = (
     {
         "limit": "RLIMIT_AS",
@@ -89,16 +91,24 @@ LIMIT_TABLE: tuple[dict, ...] = (
     },
     {
         "limit": "RLIMIT_FSIZE",
-        "attribute": None,
-        "default": None,
+        # No single attribute: the value is min(file_size_limit_mb,
+        # disk_quota_mb), mirroring apply() exactly (see below). `default`
+        # is in MiB like the other byte-valued rows.
+        "attribute": "min(file_size_limit_mb, disk_quota_mb)",
+        "default": 256,  # min(256, 1024) MiB
         "why_cuda_safe": (
-            "NOT APPLIED. The bead description lists FSIZE(min(256, quota)) "
-            "as part of the set the harness applies today, but apply() never "
-            "calls setrlimit(RLIMIT_FSIZE). Recorded as a discrepancy rather "
-            "than written into the table as if it were enforced."),
-        "evidence": "untested",
-        "harmless": None,   # None = not applied, so nothing to be unsafe
-        "applied": False,
+            "a per-FILE write cap, not a per-directory quota (the quota is "
+            "accounted in Python and enforced mid-run by the 6.3 monitor "
+            "thread). The CUDA context/malloc/launch path performs no file "
+            "writes and the probe binary writes nothing (stdout is a pipe), "
+            "so a single-file ceiling cannot present as a device error."),
+        # Proven by the post-rebase probe, which ran WITH this limit in the
+        # set (ts 20261004t053314-3dcc3aa3: malloc ok, launch ok, read-back
+        # correct, 1.5s). The pre-rebase probe could not evidence this row --
+        # FSIZE was not applied then -- which is why this said "untested"
+        # (a FAILING state) until the new job finished.
+        "evidence": "20261004t053314-3dcc3aa3",
+        "harmless": True,
     },
     {
         "limit": "RLIMIT_NPROC",
@@ -140,6 +150,12 @@ def limits_harness_applies(limits) -> dict:
         "RLIMIT_DATA": limits.memory_limit_mb * 1024 * 1024,
         "RLIMIT_NOFILE": limits.open_files_limit,
         "RLIMIT_CORE": 0,
+        # Mirrors the FSIZE hunk in ResourceLimits.apply() EXACTLY:
+        # max(1, min(file_size_limit_mb, disk_quota_mb)) MiB, in bytes.
+        # If apply() changes its formula without updating this, the
+        # table-vs-code test fails -- which is the gate doing its job.
+        "RLIMIT_FSIZE": (max(1, min(limits.file_size_limit_mb,
+                                     limits.disk_quota_mb)) * 1024 * 1024),
     }
 
 

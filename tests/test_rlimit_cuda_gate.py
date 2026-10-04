@@ -142,21 +142,83 @@ class TestLimitTable(unittest.TestCase):
                 f"{'does' if e['limit'] in applied else 'does not'} apply it")
 
         # And where the table does claim a limit, its declared default must be
-        # the value actually set.
+        # the value actually set. Byte-valued rows compare in MiB.
         for e in LIMIT_TABLE:
             if e["limit"] in applied:
                 self.assertEqual(
                     applied[e["limit"]] // (1024 * 1024)
-                    if e["limit"] in ("RLIMIT_AS", "RLIMIT_DATA")
+                    if e["limit"] in ("RLIMIT_AS", "RLIMIT_DATA",
+                                        "RLIMIT_FSIZE")
                     else applied[e["limit"]],
                     e["default"], e["limit"])
 
-    def test_fsize_discrepancy_is_recorded_not_faked(self):
+    def test_fsize_applied_and_evidenced(self):
+        """The recorded discrepancy is resolved, not re-recorded.
+
+        Until the rebase onto gpu-sim-u2o.6.3-rb, apply() never called
+        setrlimit(RLIMIT_FSIZE) and the table recorded that honestly. 6.3's
+        disk work added the per-file FSIZE backstop to apply(), the
+        source-reading assertion below failed on rebase -- the gate working
+        -- and this test now asserts the RESOLVED state: the table claims
+        applied, the code sets it, the derivation carries it, and a ts job
+        proves it. Re-recording the old discrepancy would be a table
+        describing a different file than the one that runs.
+        """
         fsize = next(e for e in LIMIT_TABLE if e["limit"] == "RLIMIT_FSIZE")
-        self.assertFalse(fsize["applied"])
+        self.assertTrue(fsize.get("applied", True),
+                        "FSIZE is applied by apply(); the table must say so")
+        self.assertNotEqual(fsize["evidence"], "untested",
+                            "FSIZE is applied with no ts job proving it CUDA-safe")
         src = (REPO / "epic_u2o" / "safe_harness.py").read_text()
-        self.assertNotIn("RLIMIT_FSIZE", src,
-                         "FSIZE is now applied; update the table entry")
+        self.assertIn("RLIMIT_FSIZE", src,
+                      "table claims FSIZE applied but apply() never sets it")
+        applied = limits_harness_applies(ResourceLimits())
+        self.assertIn("RLIMIT_FSIZE", applied,
+                      "limits_harness_applies omits a limit apply() sets")
+        self.assertEqual(applied["RLIMIT_FSIZE"],
+                         min(ResourceLimits().file_size_limit_mb,
+                             ResourceLimits().disk_quota_mb) * 1024 * 1024)
+
+    def test_every_setrlimit_in_apply_is_a_table_row(self):
+        """Close the circle the FSIZE rebase exposed.
+
+        test_table_matches_what_apply_actually_sets compares the table to
+        limits_harness_applies() -- a SECOND hand derivation, not to apply()
+        itself. When 6.3 added setrlimit(RLIMIT_FSIZE) to apply(), both the
+        table and the derivation still agreed with each other while BOTH
+        disagreed with the running code; only the source-reading FSIZE test
+        caught it. So: parse the setrlimit calls out of apply()'s body and
+        require each to have an applied=True row, and each applied=True row
+        to have a call. NPROC is the intended exception -- refused, never
+        set -- and the test says so explicitly rather than filtering it.
+        """
+        import ast
+        tree = ast.parse((REPO / "epic_u2o" / "safe_harness.py").read_text())
+        apply_node = next(
+            n for n in ast.walk(tree)
+            if isinstance(n, ast.FunctionDef) and n.name == "apply")
+        called = set()
+        for n in ast.walk(apply_node):
+            if not (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                    and n.func.attr == "setrlimit" and n.args):
+                continue
+            arg = n.args[0]
+            if isinstance(arg, ast.Attribute):
+                called.add(arg.attr)
+        # RLIMIT_NPROC must NEVER be among the calls (the 6.1.1 ruling).
+        self.assertNotIn("RLIMIT_NPROC", called,
+                         "apply() sets RLIMIT_NPROC; the gate refuses this")
+        rows_applied = {e["limit"] for e in LIMIT_TABLE
+                        if e.get("applied", True)}
+        for name in called:
+            rname = name if name.startswith("RLIMIT_") else f"RLIMIT_{name}"
+            self.assertIn(rname, rows_applied,
+                          f"apply() sets {rname} with no applied=True table row")
+        for row in rows_applied:
+            short = row[7:] if row.startswith("RLIMIT_") else row
+            self.assertTrue(
+                any(c == row or c == short for c in called),
+                f"table claims {row} applied but apply() never sets it")
 
 
 class TestSmokePurity(unittest.TestCase):
