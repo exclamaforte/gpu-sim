@@ -9,11 +9,11 @@ PASS  budget: oversized spec refused  VRAM budget exceeded: need 9216.0 MB (allo
 PASS  budget: limit<=0 disables the cap
 PASS  budget: unsizable args refused (no silent under-count)  VRAM budget: cannot size argument types ['x:mystery_t*']; refusing to guess
 PASS  disk: under quota ok  disk quota ok: 0.5 MB of 1 MB
-PASS  disk: over quota detected  disk quota exceeded: 1.5 MB > 1 MB in /tmp/tmpoiemkfv5/scratch/t-1790523256-3599342
+PASS  disk: over quota detected  disk quota exceeded: 1.5 MB > 1 MB in /tmp/tmp4vicwkki/scratch/t-0000-1534772-1791093870911045351
 PASS  disk: size accounted  1.500 MB
 PASS  disk: remaining accounting
 PASS  disk: scratch removed on exit
-PASS  disk: refuses when base over quota  disk quota already exceeded in /tmp/tmpoiemkfv5/scratch: 0.0 MB > 0 MB
+PASS  disk: refuses when base over quota  disk quota already exceeded in /tmp/tmp4vicwkki/scratch: 0.0 MB > 0 MB
 PASS  disk: RLIMIT_FSIZE stops an 8 MB write at 1 MB  rc=1 size=1048576
 PASS  kill: tier 0 is process-group SIGKILL on timeout
 PASS  kill: only SOFT_RESET is automatic
