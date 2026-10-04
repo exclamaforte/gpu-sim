@@ -154,14 +154,35 @@ class TestCoverageMustBeProven(unittest.TestCase):
             g._query = real_query
 
     def test_an_unproven_query_cannot_certify(self):
-        """The end-to-end property, on the record itself."""
-        rec = {"violations": [], "satisfies_the_acceptance": True}
-        rec["query_coverage"] = {"coverage_proven": False}
-        if not rec["query_coverage"]["coverage_proven"]:
-            rec["satisfies_the_acceptance"] = None
-            rec["blocked_reason"] = "coverage unproven"
-        self.assertIsNone(rec["satisfies_the_acceptance"])
-        self.assertIn("blocked_reason", rec)
+        """The end-to-end property, through the real pipeline, not a restatement.
+
+        The previous form built a record by hand and re-applied the gate's
+        rule inline, so deleting the gate from close_requires_artifact.py
+        left the suite green. This blinds the primary query (like the test
+        above), then runs the REAL gather, audit, and gate: with no closed
+        beads seen, audit alone would certify (no violations), and only the
+        gate stops it. If the gate is removed, this fails.
+        """
+        real_query = g._query
+
+        def blind(args):
+            # `--all` "fails" and the old fallback returned OPEN ONLY.
+            if "--all" in args:
+                return [], 1
+            return real_query(args)
+
+        g._query = blind
+        try:
+            issues, cov = g.gather_with_proven_coverage()
+            self.assertFalse(cov["coverage_proven"])
+            rec = g.audit(issues)
+            # Without the gate this would certify: nothing seen, nothing wrong.
+            self.assertTrue(rec["satisfies_the_acceptance"])
+            rec = g.apply_coverage_gate(rec, cov)
+            self.assertIsNone(rec["satisfies_the_acceptance"])
+            self.assertIn("blocked_reason", rec)
+        finally:
+            g._query = real_query
 
 
 class TestScopeIsExactlyTheAuditLabel(unittest.TestCase):

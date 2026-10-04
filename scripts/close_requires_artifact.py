@@ -236,17 +236,20 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
     return issues, coverage
 
 
-def main() -> int:
-    issues, coverage = gather_with_proven_coverage()
-    rec = audit(issues)
+def apply_coverage_gate(rec: dict, coverage: dict) -> dict:
+    """Never certify on a blind query. Extracted so the test calls it."""
     rec["query_coverage"] = coverage
     if not coverage["coverage_proven"]:
-        # Never certify on a blind query.
         rec["satisfies_the_acceptance"] = None
         rec["blocked_reason"] = (
             "the board query's coverage is unproven, so no verdict -- satisfied "
             "or violated -- can be produced from it")
-    out = REPO / "experiments" / "gpu-sim-u2o.15" / "close_audit.json"
+    return rec
+
+
+def main() -> int:
+    issues, coverage = gather_with_proven_coverage()
+    rec = apply_coverage_gate(audit(issues), coverage)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rec, indent=2) + "\n")
     print(json.dumps({k: v for k, v in rec.items()
