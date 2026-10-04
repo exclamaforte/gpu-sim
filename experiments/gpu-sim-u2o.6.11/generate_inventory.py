@@ -98,6 +98,10 @@ def main() -> int:
     #
     # n_remove = the paths a reader must clear from the main tree before the
     # merge: the ones this branch tracks that the main tree holds untracked.
+    # (Kept through the 2026-10-04 rebase: the branch's own f5d5bc7 derived
+    # the same numbers over `tracked`, which post-rebase includes paths
+    # master already has; deriving over `added` is the set the removal
+    # instruction actually depends on.)
     n_remove = len(added)
     base_note = ("" if n_remove else
                  f" NOTE: derived against '{base}', which already contains these "
@@ -121,6 +125,10 @@ def main() -> int:
         # you delete from the tree, and what the merge puts back
         (identical if branch_txt is not None
          and branch_txt == disk_path.read_text() else divergent).append(name)
+    # The explicit rm list, GENERATED over `added` (not a glob, not a count
+    # in prose for a reader to mistype). Every path line carries a trailing
+    # backslash EXCEPT the last, so the block is one shell command.
+    rm_paths = sorted(added)
 
     def classify(name: str, tracked_here: bool):
         if name in VOLATILE:
@@ -262,7 +270,14 @@ def main() -> int:
             "```",
             "mkdir -p /tmp/epic_u2o_backup && cp epic_u2o/*.py epic_u2o/*.md \\",
             "    /tmp/epic_u2o_backup/          # back up first, and CHECK it",
-            f"rm -f <the {n_remove} paths this branch tracks>  # DERIVED, not typed",
+            # The explicit list, GENERATED over the same `added` set the count
+            # above derives from. Not a glob, and not a count in prose for a
+            # reader to mistype. Every path line carries a trailing backslash
+            # EXCEPT the last, so the block is one shell command.
+            "rm -f \\",
+            *[f"      epic_u2o/{n}" + ("" if i == len(rm_paths) - 1 else " \\")
+              for i, n in enumerate(rm_paths)],
+            f"      # {len(rm_paths)} paths, generated; explicit list, not a glob",
             "git merge --ff-only lab/gpu-sim-u2o.6.11",
             "# restore anything the content check says should exist",
             "```", ""]
