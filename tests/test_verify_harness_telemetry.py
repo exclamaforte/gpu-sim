@@ -57,6 +57,34 @@ class TestSamplerRuns(unittest.TestCase):
             self.assertNotIn(forbidden, src,
                              f"sampler must stay read-only: {forbidden!r} found")
 
+class TestAgreementIsReal(unittest.TestCase):
+    """The duplication account, as executable checks, not prose.
+
+    The README once claimed all three samplers agree; measure_family has 5
+    fields, so that claim was false. What IS true: verify_harness and
+    measure_noise carry the same 9-field set. Pinned here so a list edit on
+either side fires loudly instead of silently forking the sets. The
+    measure_family gap (missing power.draw, power.limit, utilization.gpu,
+    memory.used) is asserted too -- as a DOCUMENTED gap awaiting the PI's
+    schema decision, so closing it later means updating this test on
+    purpose, not tripping it by accident.
+    """
+
+    def test_telemetry_set_matches_measure_noise(self):
+        sys.path.insert(0, str(REPO / "experiments" / "gpu-sim-u2o.6.6.1"))
+        import measure_noise as mn
+        self.assertEqual(set(vh.TELEMETRY_FIELDS), set(mn.TELEMETRY_FIELDS),
+                         "verify_harness and measure_noise field sets forked")
+
+    def test_measure_family_gap_is_documented_not_silent(self):
+        sys.path.insert(0, str(REPO / "experiments" / "gpu-sim-u2o.6.6.2"))
+        import measure_family as mf
+        missing = (set(vh.TELEMETRY_FIELDS) - set(mf.TELEMETRY_FIELDS))
+        self.assertEqual(missing, {"power.draw", "power.limit",
+                                   "utilization.gpu", "memory.used"},
+                         "the measure_family gap moved: re-check the README "
+                         "account and the PI schema decision")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
