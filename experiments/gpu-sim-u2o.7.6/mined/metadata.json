@@ -1,5 +1,7 @@
 {
   "total_kernels": 289,
+  "window": "signature + next 60 lines per kernel (epic_u2o/corpus_miner.py: signature line, then lines[i:min(len, i+60)])",
+  "unit": "idiom_hits[idiom] = number of kernels whose 60-line WINDOW contains the idiom -- NOT corpus coverage. A zero (atomicAdd 0, wmma:: 0, __shfl 0) is a statement about prefixes, not about real code: whole-file counts in metrics.json find wmma in 38 files of the same tree. Read alongside whole-file coverage, never alone.",
   "idiom_hits": {
     "__shared__": 9,
     "__syncthreads": 7,

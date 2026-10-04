@@ -120,3 +120,16 @@ I also removed a `k_wmma_gemm` by line-surgery that ate a docstring in
 `generate_scale_corpus.py`, breaking the file. Restored from git and re-applied
 cleanly. Third time this session a hand edit to a generated-source pipeline cost
 more than redoing it.
+
+## The `loop` binary is not committed (and how to rebuild it)
+
+`build_scale/loop` was a 1.6 MB compiled ELF checked into the tree -- a build
+output of the source sitting next to it, unreproducible in diff and permanent
+in every clone. Removed; rebuild with:
+
+```
+cd experiments/gpu-sim-u2o.7.6/build_scale && nvcc -O2 loop.cu k*.cu -o loop
+```
+
+Verified 2026-10-04 (builds clean, ~1.3 MB). `specs.json` records what the
+loop runs, not how it is built -- this is the how.

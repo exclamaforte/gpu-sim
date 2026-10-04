@@ -112,6 +112,7 @@
     ],
     "n_gaps": 2
   },
+  "MEASUREMENT_CAVEAT_streams": "The 'streams / multi-device' gap is NOT a finding about the synthetic kernels. The idiom it looks for is '<<<' and 'cudaStream', which live in the LAUNCH HARNESS, not in a kernel body -- and both sides of this comparison are measured over kernel sources. So the real-code count of 165 files reflects real code containing its own launch sites, while the synthetic count of 0 reflects sources that contain none. The gap is an artefact of measuring kernels, and reporting it as a family-mix gap would be the same category error as the vocabulary mismatch earlier in this same file. It is excluded from the actionable findings and kept here so a reader is not misled by it.",
   "FOLLOW_UP_the_gap_is_being_closed": {
     "what": "gpu-sim-u2o.7.6 measured three capability classes absent from the 24 synthetic families. Three families were added -- k_warp_reduce, k_atomic_hist, k_atomic_sum -- and all 27 families synthesize AND compile, which is the condition that matters.",
     "gap_now": {
