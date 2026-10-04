@@ -244,8 +244,14 @@ def harness_kwargs() -> dict:
     return kw
 
 
-def measure(exe, invocations=INVOCATIONS):
-    """One process per invocation, through run_kernel, as the anchor does."""
+def measure(exe, invocations=INVOCATIONS, provenance=None):
+    """One process per invocation, through run_kernel, as the anchor does.
+
+    provenance, when given, is the condition's queue_state record (or the
+    fields of it) and is attached to EVERY per-invocation row, so the place
+    a reader looks for per-sample provenance carries it (criterion 4 as
+    written). A bare {n, median_us} row is what the rework round removed.
+    """
     h = SafeHarness(**harness_kwargs())
     meds, per_inv = [], []
     for _ in range(invocations):
@@ -262,7 +268,10 @@ def measure(exe, invocations=INVOCATIONS):
                     pass
         if trials:
             meds.append(statistics.median(trials))
-            per_inv.append({"n": len(trials), "median_us": meds[-1]})
+            row = {"n": len(trials), "median_us": meds[-1]}
+            if provenance is not None:
+                row["queue_state"] = dict(provenance)
+            per_inv.append(row)
     return meds, per_inv
 
 
@@ -298,7 +307,12 @@ def main() -> int:
                 {k: q.get(k) for k in ("own_job_id", "n_other_active",
                                         "n_other_running_at_sample_time")}))
             for name, (exe, spec) in jobs.items():
-                meds, per_inv = measure(exe)
+                meds, per_inv = measure(exe, provenance={
+                    "own_job_id": q.get("own_job_id"),
+                    "n_other_active": q.get("n_other_active"),
+                    "overlapping_job_ids": q.get("other_active_jobs", []),
+                    "condition": cond_name,
+                })
                 if not meds:
                     print(f"  {name}: NO DATA")
                     continue
@@ -347,23 +361,25 @@ def main() -> int:
         "invocations_per_condition": INVOCATIONS,
         "task_limit_source": TASK_LIMIT_SOURCE,
         "telemetry_fields": TELEMETRY_FIELDS,
-        "cells": {k: v for k, v in results.items() if not k.startswith("_")},
-        "telemetry_delta": results.get("_telemetry", {}),
-        "detection": detection,
-        "headline": headline,
         "queue_policy_note": (
             "No GPU work runs outside the queue. The 'unqueued' condition is a "
             "burner started INSIDE this ts job with its own session and no "
             "JOB_ID, so it models a tenant invisible to the queue channel. That "
             "is the detection question; it is not a decision to bypass the "
             "queue."),
+        "cells": shape_cells_for_criterion(
+            {k: v for k, v in results.items() if not k.startswith("_")}),
+        "telemetry_delta": results.get("_telemetry", {}),
+        "detection": detection,
+        "headline": headline,
+        "discard_rule": build_discard_rule(),
     }
     (HERE / "metrics.json").write_text(json.dumps(metrics, indent=2))
     print("\n=== detection: does each read-only signal move? ===")
     for sig, v in detection.get("signals", {}).items():
         print(f"  {sig:32s} uncontended={v['uncontended']}  "
               f"queued={v['queued_routed']}  unqueued={v['unqueued']}  "
-              f"discriminates={v['discriminates']}")
+              f"spread={v['relative_spread']}")
     print(f"  ANSWER: contention detectable from read-only telemetry alone? "
           f"{detection.get('detectable_from_telemetry_alone')}")
     print(f"  HEADLINE: {headline.get('statement')}")
@@ -387,7 +403,6 @@ def analyse_detection(tel: dict) -> dict:
     sigs = ["clocks.sm", "temperature.gpu", "power.draw", "utilization.gpu",
             "clocks_throttle_reasons.active", "memory.used"]
     out = {}
-    movers = []
     for s in sigs:
         u = num(tel.get("uncontended", {}).get("after", {}), s)
         c = num(tel.get("queued_routed", {}).get("after", {}), s)
@@ -396,26 +411,157 @@ def analyse_detection(tel: dict) -> dict:
         moved = None
         if len(vals) == 3 and max(vals) > 0:
             moved = (max(vals) - min(vals)) / max(vals)
-        discriminates = bool(moved and moved > 0.05)
-        if discriminates:
-            movers.append(s)
+        # No 'discriminates' boolean here, by PI ruling: every signal moved
+        # (even clocks.sm at 0.098), so a flag that is always true carries no
+        # information and gets trusted without being read. The ordering lives
+        # in relative_spread, which is what the rule below is actually built
+        # from. A threshold belongs in the RULE, stated with its derivation,
+        # not on the signal.
         out[s] = {"uncontended": u, "queued_routed": c, "unqueued": n,
-                   "relative_spread": moved, "discriminates": discriminates}
+                  "relative_spread": moved}
     throttled = any(
         (tel.get(cond, {}).get("after", {}).get("fields", {})
          .get("clocks_throttle_reasons.active", "0x0") not in
          ("0x0000000000000000", "", "Not Supported"))
         for cond in ("queued_routed", "unqueued"))
+    ranked = sorted(
+        ((s, v["relative_spread"]) for s, v in out.items()
+         if v["relative_spread"] is not None),
+        key=lambda kv: kv[1], reverse=True)
+    top = [s for s, _ in ranked[:3]]
     return {
         "signals": out,
-        "signals_that_move": movers,
+        "signals_ranked_by_spread": [
+            {"signal": s, "relative_spread": sp} for s, sp in ranked],
         "throttle_reasons_went_nonzero_while_contended": throttled,
-        "detectable_from_telemetry_alone": bool(movers),
+        "detectable_from_telemetry_alone": bool(ranked),
         "answer": (
-            "YES, from " + ", ".join(movers) if movers else
+            "YES, strongest first: " + ", ".join(
+                f"{s} ({sp:.3f})" for s, sp in ranked[:3])
+            if ranked else
             "NO. No read-only signal separated the conditions, so there is no "
             "telemetry-based discard rule; the queue-state record and the "
             "estimator's own robustness are the only defences."),
+    }
+
+
+CONDS = ("uncontended", "queued_routed", "unqueued")
+
+
+def shape_cells_for_criterion(cells: dict) -> dict:
+    """Add the criterion-1 flat keys to each cell, keeping the nested blocks.
+
+    Criterion 1 asks for {median_uncontended_us, median_contended_us, ratio,
+    ai_cv_uncontended, ai_cv_contended}, but this bead measured THREE
+    conditions (two contended), so a single median_contended_us cannot name
+    anything without choosing which contender it means. The flat keys below
+    are condition-suffixed, and key_map says exactly how they relate to the
+    criterion's two-condition vocabulary, so a checker written from the
+    specification can execute. The nested per-condition blocks stay as the
+    primary record; the flat keys are aliases, not a second computation.
+    """
+    shaped = {}
+    for name, cell in cells.items():
+        cell = dict(cell)
+        for cond in CONDS:
+            blk = cell.get(cond) or {}
+            if "median_us" in blk:
+                cell[f"median_{cond}_us"] = blk["median_us"]
+            if "ai_cv" in blk:
+                cell[f"ai_cv_{cond}"] = blk["ai_cv"]
+        cell["key_map"] = {
+            "criterion": "criterion 1 names one median_contended_us; "
+                           "this artifact measured two contended conditions",
+            "median_uncontended_us": "criterion name, verbatim",
+            "median_queued_routed_us": "the queued-routed contender's "
+                                          "median (criterion: median_contended_us "
+                                          "for the queue-routed condition)",
+            "median_unqueued_us": "the unqueued contender's median",
+            "ratio_queued_routed": "queued-routed median / uncontended median",
+            "ratio_unqueued": "unqueued median / uncontended median",
+            "ai_cv_<cond>": "across-invocation CV under that condition",
+            "authoritative": "the nested per-condition blocks; flat keys "
+                               "are aliases of the same numbers",
+        }
+        shaped[name] = cell
+    return shaped
+
+
+def build_discard_rule() -> dict:
+    """The discard rule WITH its detection floor, in one block, in code.
+
+    PI rulings applied: (1) the clocks.sm clause is DROPPED -- relative
+    spread 0.098 makes it the weakest signal by an order of magnitude, and
+    it misfires on legitimately cold starts (idle floor 195-345 MHz vs
+    2490-2760 MHz under load); (2) thresholds are REGIME-WEIGHTED, because
+    memory-bound cells move 2.33x under a co-tenant while launch-bound move
+    1.19x/1.05x -- and the numeric DROP thresholds below stay UNIFORM only
+    because they are saturation-proven bounds, while the regime weighting is
+    procedural (what a comparison is allowed to conclude), since the partial-
+    tenant response curve between the measured extremes is UNMEASURED and a
+    tighter memory-bound number would be invented, not measured.
+    """
+    return {
+        "drop_if": [
+            "power.draw at either boundary exceeds 150 W",
+            "utilization.gpu at either boundary exceeds 50%",
+            "temperature.gpu at either boundary exceeds 50 C",
+        ],
+        "derivation": ("uncontended reads 25.9/77 W, 6%, 38-40 C; BOTH "
+                        "contended conditions read 574 W, 97-98%, 57-60 C. "
+                        "An order-of-magnitude gap on power, so the threshold "
+                        "is insensitive rather than delicate. Stated in the "
+                        "units it was measured in."),
+        "dropped_clauses": [
+            "clocks.sm < 0.75x run-max: relative spread 0.098, weakest by an "
+            "order of magnitude, and fires on legitimate cold starts. Dropped "
+            "per PI ruling; a rule that cannot detect its target and does "
+            "fire on cold starts is worse than no rule.",
+            "clocks_throttle_reasons as primary signal: went 0x4 here only "
+            "because the burner sits at the 575 W cap; the reviewer's unqueued "
+            "sweeps ran 0x0 throughout. Would catch this run and miss theirs.",
+        ],
+        "detection_floor_travels_with_rule": (
+            "Catches sustained contention at or near saturation (>50% "
+            "utilisation class). BELOW that floor -- a partial tenant at low "
+            "duty, e.g. ~20% -- the thresholds may not fire, and that case is "
+            "undetectable by ANY channel available here, telemetry or "
+            "queue_state alike. A rule applied without this floor is a "
+            "general contamination filter, which this is not."),
+        "regime_weighting": {
+            "memory_bound": ("NEVER compare memory-bound cells across runs "
+                              "without a contention record attached to BOTH "
+                              "sides: a 2.33x neighbour effect manufactures "
+                              "regressions. The numeric DROP thresholds above "
+                              "still apply, but they are necessary, not "
+                              "sufficient, for this regime."),
+            "launch_bound": ("A null result on a launch-bound cell is NOT "
+                              "evidence of no change: a 2.33x-class effect "
+                              "can hide inside that noise floor. A launch-bound "
+                              "A/B is a statement about the instrument, not "
+                              "the kernel."),
+            "why_procedural_not_numeric": (
+                "The thresholds were derived from two extremes (idle vs a "
+                "saturated burner); the partial-tenant response curve is "
+                "UNMEASURED. A tighter memory-bound NUMBER would be invented. "
+                "Measure a partial-tenant condition when one occurs naturally "
+                "rather than manufacturing one."),
+        },
+        "channels": ("RETAIN the queue-state record as the primary channel "
+                      "for queue-routed contention, and telemetry as the "
+                      "primary channel for the rest. In this run queue_state "
+                      "reported n_other_active=0 in ALL THREE conditions, "
+                      "including both with a burner resident -- the burner is "
+                      "a child of this job with no JOB_ID. Neither alone is "
+                      "sufficient."),
+        "merge_note_ordering_artefact": (
+            "This artifact's queue_state records predate own_job_entry "
+            "(6.6.6 reached master after this run): own_job_id is non-null "
+            "in all three conditions and own_job_entry is ABSENT in all "
+            "three. The n_other_active=0 readings are real and recorded and "
+            "simultaneously unverifiable from the record itself. No re-run: "
+            "re-measuring to attach a field the next run carries anyway "
+            "would spend shared-box time on a superseded record."),
     }
 
 

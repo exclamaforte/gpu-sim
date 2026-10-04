@@ -26,15 +26,33 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 2.976
+            "median_us": 2.976,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           },
           {
             "n": 20,
-            "median_us": 2.352
+            "median_us": 2.352,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           },
           {
             "n": 20,
-            "median_us": 2.3040000000000003
+            "median_us": 2.3040000000000003,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           }
         ]
       },
@@ -49,15 +67,33 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 2.8
+            "median_us": 2.8,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           },
           {
             "n": 20,
-            "median_us": 2.192
+            "median_us": 2.192,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           },
           {
             "n": 20,
-            "median_us": 2.832
+            "median_us": 2.832,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           }
         ]
       },
@@ -72,20 +108,54 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 3.088
+            "median_us": 3.088,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           },
           {
             "n": 20,
-            "median_us": 2.112
+            "median_us": 2.112,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           },
           {
             "n": 20,
-            "median_us": 2.48
+            "median_us": 2.48,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           }
         ]
       },
       "ratio_queued_routed": 1.1904761904761905,
-      "ratio_unqueued": 1.054421768707483
+      "ratio_unqueued": 1.054421768707483,
+      "median_uncontended_us": 2.352,
+      "ai_cv_uncontended": 0.147363201432201,
+      "median_queued_routed_us": 2.8,
+      "ai_cv_queued_routed": 0.13827518612987288,
+      "median_unqueued_us": 2.48,
+      "ai_cv_unqueued": 0.19253652250936704,
+      "key_map": {
+        "criterion": "criterion 1 names one median_contended_us; this artifact measured two contended conditions",
+        "median_uncontended_us": "criterion name, verbatim",
+        "median_queued_routed_us": "the queued-routed contender's median (criterion: median_contended_us for the queue-routed condition)",
+        "median_unqueued_us": "the unqueued contender's median",
+        "ratio_queued_routed": "queued-routed median / uncontended median",
+        "ratio_unqueued": "unqueued median / uncontended median",
+        "ai_cv_<cond>": "across-invocation CV under that condition",
+        "authoritative": "the nested per-condition blocks; flat keys are aliases of the same numbers"
+      }
     },
     "memory_bound": {
       "uncontended": {
@@ -99,15 +169,33 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 10.544
+            "median_us": 10.544,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           },
           {
             "n": 20,
-            "median_us": 9.92
+            "median_us": 9.92,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           },
           {
             "n": 20,
-            "median_us": 10.752
+            "median_us": 10.752,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           }
         ]
       },
@@ -122,15 +210,33 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 24.544
+            "median_us": 24.544,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           },
           {
             "n": 20,
-            "median_us": 26.32
+            "median_us": 26.32,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           },
           {
             "n": 20,
-            "median_us": 15.056000000000001
+            "median_us": 15.056000000000001,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           }
         ]
       },
@@ -145,20 +251,54 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 25.232
+            "median_us": 25.232,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           },
           {
             "n": 20,
-            "median_us": 24.64
+            "median_us": 24.64,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           },
           {
             "n": 20,
-            "median_us": 12.527999999999999
+            "median_us": 12.527999999999999,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           }
         ]
       },
       "ratio_queued_routed": 2.3277693474962065,
-      "ratio_unqueued": 2.3368740515933233
+      "ratio_unqueued": 2.3368740515933233,
+      "median_uncontended_us": 10.544,
+      "ai_cv_uncontended": 0.04161198051213698,
+      "median_queued_routed_us": 24.544,
+      "ai_cv_queued_routed": 0.2756088000594061,
+      "median_unqueued_us": 24.64,
+      "ai_cv_unqueued": 0.34470551705930713,
+      "key_map": {
+        "criterion": "criterion 1 names one median_contended_us; this artifact measured two contended conditions",
+        "median_uncontended_us": "criterion name, verbatim",
+        "median_queued_routed_us": "the queued-routed contender's median (criterion: median_contended_us for the queue-routed condition)",
+        "median_unqueued_us": "the unqueued contender's median",
+        "ratio_queued_routed": "queued-routed median / uncontended median",
+        "ratio_unqueued": "unqueued median / uncontended median",
+        "ai_cv_<cond>": "across-invocation CV under that condition",
+        "authoritative": "the nested per-condition blocks; flat keys are aliases of the same numbers"
+      }
     },
     "compute_bound": {
       "uncontended": {
@@ -172,15 +312,33 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 257.696
+            "median_us": 257.696,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           },
           {
             "n": 20,
-            "median_us": 259.67999999999995
+            "median_us": 259.67999999999995,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           },
           {
             "n": 20,
-            "median_us": 258.86400000000003
+            "median_us": 258.86400000000003,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "uncontended"
+            }
           }
         ]
       },
@@ -195,15 +353,33 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 274.48
+            "median_us": 274.48,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           },
           {
             "n": 20,
-            "median_us": 274.352
+            "median_us": 274.352,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           },
           {
             "n": 20,
-            "median_us": 274.288
+            "median_us": 274.288,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "queued_routed"
+            }
           }
         ]
       },
@@ -218,20 +394,54 @@
         "per_invocation": [
           {
             "n": 20,
-            "median_us": 274.144
+            "median_us": 274.144,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           },
           {
             "n": 20,
-            "median_us": 274.384
+            "median_us": 274.384,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           },
           {
             "n": 20,
-            "median_us": 273.984
+            "median_us": 273.984,
+            "queue_state": {
+              "own_job_id": "20260928t072008-b34ddec9",
+              "n_other_active": 0,
+              "overlapping_job_ids": [],
+              "condition": "unqueued"
+            }
           }
         ]
       },
       "ratio_queued_routed": 1.0598306446628343,
-      "ratio_unqueued": 1.0590271339390567
+      "ratio_unqueued": 1.0590271339390567,
+      "median_uncontended_us": 258.86400000000003,
+      "ai_cv_uncontended": 0.003853926829233384,
+      "median_queued_routed_us": 274.352,
+      "ai_cv_queued_routed": 0.0003563087332068195,
+      "median_unqueued_us": 274.144,
+      "ai_cv_unqueued": 0.0007343196875203149,
+      "key_map": {
+        "criterion": "criterion 1 names one median_contended_us; this artifact measured two contended conditions",
+        "median_uncontended_us": "criterion name, verbatim",
+        "median_queued_routed_us": "the queued-routed contender's median (criterion: median_contended_us for the queue-routed condition)",
+        "median_unqueued_us": "the unqueued contender's median",
+        "ratio_queued_routed": "queued-routed median / uncontended median",
+        "ratio_unqueued": "unqueued median / uncontended median",
+        "ai_cv_<cond>": "across-invocation CV under that condition",
+        "authoritative": "the nested per-condition blocks; flat keys are aliases of the same numbers"
+      }
     }
   },
   "telemetry_delta": {
@@ -418,56 +628,68 @@
         "uncontended": 2490.0,
         "queued_routed": 2745.0,
         "unqueued": 2760.0,
-        "relative_spread": 0.09782608695652174,
-        "discriminates": true
+        "relative_spread": 0.09782608695652174
       },
       "temperature.gpu": {
         "uncontended": 40.0,
         "queued_routed": 59.0,
         "unqueued": 60.0,
-        "relative_spread": 0.3333333333333333,
-        "discriminates": true
+        "relative_spread": 0.3333333333333333
       },
       "power.draw": {
         "uncontended": 76.94,
         "queued_routed": 574.3,
         "unqueued": 573.73,
-        "relative_spread": 0.866028208253526,
-        "discriminates": true
+        "relative_spread": 0.866028208253526
       },
       "utilization.gpu": {
         "uncontended": 6.0,
         "queued_routed": 97.0,
         "unqueued": 98.0,
-        "relative_spread": 0.9387755102040817,
-        "discriminates": true
+        "relative_spread": 0.9387755102040817
       },
       "clocks_throttle_reasons.active": {
         "uncontended": 0,
         "queued_routed": 4,
         "unqueued": 4,
-        "relative_spread": 1.0,
-        "discriminates": true
+        "relative_spread": 1.0
       },
       "memory.used": {
         "uncontended": 425.0,
         "queued_routed": 1101.0,
         "unqueued": 1101.0,
-        "relative_spread": 0.6139872842870118,
-        "discriminates": true
+        "relative_spread": 0.6139872842870118
       }
     },
-    "signals_that_move": [
-      "clocks.sm",
-      "temperature.gpu",
-      "power.draw",
-      "utilization.gpu",
-      "clocks_throttle_reasons.active",
-      "memory.used"
+    "signals_ranked_by_spread": [
+      {
+        "signal": "clocks_throttle_reasons.active",
+        "relative_spread": 1.0
+      },
+      {
+        "signal": "utilization.gpu",
+        "relative_spread": 0.9387755102040817
+      },
+      {
+        "signal": "power.draw",
+        "relative_spread": 0.866028208253526
+      },
+      {
+        "signal": "memory.used",
+        "relative_spread": 0.6139872842870118
+      },
+      {
+        "signal": "temperature.gpu",
+        "relative_spread": 0.3333333333333333
+      },
+      {
+        "signal": "clocks.sm",
+        "relative_spread": 0.09782608695652174
+      }
     ],
     "throttle_reasons_went_nonzero_while_contended": true,
     "detectable_from_telemetry_alone": true,
-    "answer": "YES, from clocks.sm, temperature.gpu, power.draw, utilization.gpu, clocks_throttle_reasons.active, memory.used"
+    "answer": "YES, strongest first: clocks_throttle_reasons.active (1.000), utilization.gpu (0.939), power.draw (0.866)"
   },
   "headline": {
     "rows": [
@@ -541,6 +763,32 @@
   },
   "queue_policy_note": "No GPU work runs outside the queue. The 'unqueued' condition is a burner started INSIDE this ts job with its own session and no JOB_ID, so it models a tenant invisible to the queue channel. That is the detection question; it is not a decision to bypass the queue.",
   "discard_rule": {
+    "drop_if": [
+      "power.draw at either boundary exceeds 150 W",
+      "utilization.gpu at either boundary exceeds 50%",
+      "temperature.gpu at either boundary exceeds 50 C"
+    ],
+    "derivation": "uncontended reads 25.9/77 W, 6%, 38-40 C; BOTH contended conditions read 574 W, 97-98%, 57-60 C. An order-of-magnitude gap on power, so the threshold is insensitive rather than delicate. Stated in the units it was measured in.",
+    "dropped_clauses": [
+      "clocks.sm < 0.75x run-max: relative spread 0.098, weakest by an order of magnitude, and fires on legitimate cold starts. Dropped per PI ruling; a rule that cannot detect its target and does fire on cold starts is worse than no rule.",
+      "clocks_throttle_reasons as primary signal: went 0x4 here only because the burner sits at the 575 W cap; the reviewer's unqueued sweeps ran 0x0 throughout. Would catch this run and miss theirs."
+    ],
+    "detection_floor_travels_with_rule": "Catches sustained contention at or near saturation (>50% utilisation class). BELOW that floor -- a partial tenant at low duty, e.g. ~20% -- the thresholds may not fire, and that case is undetectable by ANY channel available here, telemetry or queue_state alike. A rule applied without this floor is a general contamination filter, which this is not.",
+    "regime_weighting": {
+      "memory_bound": "NEVER compare memory-bound cells across runs without a contention record attached to BOTH sides: a 2.33x neighbour effect manufactures regressions. The numeric DROP thresholds above still apply, but they are necessary, not sufficient, for this regime.",
+      "launch_bound": "A null result on a launch-bound cell is NOT evidence of no change: a 2.33x-class effect can hide inside that noise floor. A launch-bound A/B is a statement about the instrument, not the kernel.",
+      "why_procedural_not_numeric": "The thresholds were derived from two extremes (idle vs a saturated burner); the partial-tenant response curve is UNMEASURED. A tighter memory-bound NUMBER would be invented. Measure a partial-tenant condition when one occurs naturally rather than manufacturing one."
+    },
+    "channels": "RETAIN the queue-state record as the primary channel for queue-routed contention, and telemetry as the primary channel for the rest. In this run queue_state reported n_other_active=0 in ALL THREE conditions, including both with a burner resident -- the burner is a child of this job with no JOB_ID. Neither alone is sufficient.",
+    "merge_note_ordering_artefact": "This artifact's queue_state records predate own_job_entry (6.6.6 reached master after this run): own_job_id is non-null in all three conditions and own_job_entry is ABSENT in all three. The n_other_active=0 readings are real and recorded and simultaneously unverifiable from the record itself. No re-run: re-measuring to attach a field the next run carries anyway would spend shared-box time on a superseded record."
+  },
+  "process_discipline": {
+    "queue_slot": "the whole experiment ran inside ONE ts job",
+    "burner_placement": "started INSIDE that job; no GPU work ran outside the queue. Condition C models a tenant invisible to the queue channel, which is the detection question, not a decision to bypass the queue",
+    "no_clock_locking": "no -lgc, no sudo, no persistence-mode change; gpu-sim-u2o.6.4 stays held",
+    "untrusted_kernels": "none: the cells are 6.6.2's hand-written anchor kernels"
+  },
+  "superseded_20260928_rule": {
     "proposed": [
       "DROP the sample if power.draw at either boundary exceeds 150 W, or utilization.gpu exceeds 50 %, or temperature.gpu exceeds 50 C. Rationale from this run: uncontended reads 25.9/77 W, 6 %, 38-40 C; BOTH contended conditions read 574 W, 97-98 %, 57-60 C. The gap is an order of magnitude on power, so the threshold is not delicate.",
       "DROP the sample if clocks.sm at a boundary is below 0.75x the max SM clock seen in the same run (the idle floor here read 195-300 MHz against 2490-2760 MHz under load).",
@@ -549,10 +797,11 @@
     "do_not_rely_on": "clocks_throttle_reasons.active as the PRIMARY signal. It did go non-zero here (0x4 = SW power cap) because the burner I chose sits at the 575 W limit, but the reviewer's own unqueued sweeps ran with it at 0x0 throughout. A detector built on it would have caught this run and missed theirs.",
     "residual_risk": "Light contention that does not move power, utilisation, temperature or clocks is undetectable by ANY channel available here, and neither is queue_state. For it the only defences are the estimator itself -- the three-invocation median plus the max_cv gate -- and process discipline. This is the uncomfortable claim the bead exists to surface, so it is stated rather than smoothed over."
   },
-  "process_discipline": {
-    "queue_slot": "the whole experiment ran inside ONE ts job",
-    "burner_placement": "started INSIDE that job; no GPU work ran outside the queue. Condition C models a tenant invisible to the queue channel, which is the detection question, not a decision to bypass the queue",
-    "no_clock_locking": "no -lgc, no sudo, no persistence-mode change; gpu-sim-u2o.6.4 stays held",
-    "untrusted_kernels": "none: the cells are 6.6.2's hand-written anchor kernels"
+  "rework_provenance": {
+    "ts_job": "20260928t072008-b34ddec9 (no re-measurement; all numbers are the committed ones, reshaped)",
+    "committed_metrics_commit": "d073300",
+    "rewrite_script": "experiments/gpu-sim-u2o.6.6.3/rewrite_artifact.py",
+    "rewrite_commit": "d073300",
+    "deterministic": "re-running this script byte-reproduces metrics.json except this stamp block"
   }
 }

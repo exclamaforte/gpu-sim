@@ -26,14 +26,20 @@ disagreement rises by ~7×.
 
 ## Detection: yes, from telemetry — but the obvious signal is the wrong one
 
-| signal | uncontended | queued-routed | unqueued | discriminates |
+| signal | uncontended | queued-routed | unqueued | relative spread |
 |---|---|---|---|---|
-| power.draw | 76.9 W | 574.3 W | 573.7 W | yes |
-| utilization.gpu | 6% | 97% | 98% | yes |
-| temperature.gpu | 40 °C | 59 °C | 60 °C | yes |
-| clocks.sm | 2490 MHz | 2745 MHz | 2760 MHz | yes |
-| memory.used | 425 MiB | 1101 MiB | 1101 MiB | yes |
-| clocks_throttle_reasons.active | 0x0 | 0x4 | 0x4 | yes **here** |
+| power.draw | 76.9 W | 574.3 W | 573.7 W | 0.866 |
+| utilization.gpu | 6% | 97% | 98% | 0.939 |
+| temperature.gpu | 40 °C | 59 °C | 60 °C | 0.333 |
+| clocks.sm | 2490 MHz | 2745 MHz | 2760 MHz | 0.098 |
+| memory.used | 425 MiB | 1101 MiB | 1101 MiB | 0.614 |
+| clocks_throttle_reasons.active | 0x0 | 0x4 | 0x4 | 1.000 **here** |
+
+The ordering lives in the spread, not in a yes/no flag: every signal moves,
+so a `discriminates: true` on all six would carry no information (removed
+from the artifact by PI ruling). `clocks.sm` at 0.098 is the weakest by an
+order of magnitude — which is why the rule below no longer contains a clock
+clause.
 
 **Do not build the detector on `clocks_throttle_reasons`.** It went non-zero
 in this run only because the burner I chose sits at the 575 W power cap. The
@@ -55,23 +61,60 @@ device telemetry for everything else.
 Drop a sample if, at either boundary:
 
 * `power.draw > 150 W`, **or** `utilization.gpu > 50%`, **or**
-  `temperature.gpu > 50 °C` — uncontended reads 26–77 W / 6% / 38–40 °C,
-  contended 574 W / 97–98% / 57–60 °C, so an order-of-magnitude gap makes the
-  threshold insensitive rather than delicate; **or**
-* `clocks.sm < 0.75 ×` the max SM clock seen in the same run (idle floor read
-  195–300 MHz against 2490–2760 MHz under load).
+  `temperature.gpu > 50 C` — uncontended reads 26–77 W / 6% / 38–40 C,
+  contended 574 W / 97–98% / 57–60 C, so an order-of-magnitude gap makes the
+  threshold insensitive rather than delicate. Stated in the units measured in.
+
+Dropped clauses (recorded, not silent): the `clocks.sm < 0.75x run-max`
+clause (spread 0.098, weakest by an order of magnitude, and it fires on
+legitimately cold starts — worse than no rule) and `clocks_throttle_reasons`
+as a primary signal (0x4 here only because the burner sits at the 575 W cap;
+the reviewer's unqueued sweeps ran 0x0 throughout).
+
+**Detection floor, travelling with the rule:** this catches sustained
+contention at or near saturation (>50% utilisation class). Below that floor
+— a partial tenant at low duty — the thresholds may not fire, and that case
+is undetectable by **any** channel available here, telemetry or `queue_state`
+alike. The thresholds were derived from two extremes (idle vs a saturated
+burner); the partial-tenant response curve is unmeasured, so treat them as
+provisional for anything short of saturation and measure a partial tenant
+when one occurs naturally rather than manufacturing one.
+
+**Regime weighting (PI ruling):** memory-bound cells move 2.33x under a
+co-tenant while launch-bound move 1.19x/1.05x, so the weighting is procedural
+— a tighter memory-bound *number* would be invented, not measured:
+
+* memory-bound: NEVER compare across runs without a contention record on
+  BOTH sides (a 2.33x neighbour effect manufactures regressions); the numeric
+  thresholds above are necessary, not sufficient, for this regime;
+* launch-bound: a null result is NOT evidence of no change (a 2.33x-class
+  effect hides inside that noise floor) — a launch-bound A/B states something
+  about the instrument, not the kernel.
 
 Keep the queue-state record as the primary channel for queue-routed
-contention, telemetry as the primary channel for the rest.
+contention, telemetry as the primary channel for the rest. Neither alone is
+sufficient: in this run `queue_state` reported `n_other_active=0` in all
+three conditions with a burner resident on the device.
 
-## Residual risk, stated rather than smoothed over
+## Merge note (ordering artefact, not a defect)
 
-Light contention that moves none of power, utilisation, temperature or clocks
-is undetectable by **any** channel available here — neither telemetry nor
-`queue_state`. For that case the only defences are the estimator itself (the
-three-invocation median plus the `max_cv` gate, which the CV column above
-shows is doing real work) and process discipline. I would rather hand 6.6 and
-9.3 an uncomfortable boundary than a false sense that the record is complete.
+This artifact's `queue_state` records predate `own_job_entry` (6.6.6 reached
+master after ts job 20260928t072008-b34ddec9): `own_job_id` is non-null in
+all three conditions and `own_job_entry` is absent in all three. The
+`n_other_active=0` readings are real and recorded and simultaneously
+unverifiable from the record itself. No re-run: the next run carries the
+field anyway.
+
+## Criterion key map (item 1)
+
+Criterion 1 names one `median_contended_us`; this bead measured two
+contended conditions, so per-cell flat keys are condition-suffixed
+(`median_queued_routed_us`, `median_unqueued_us`, `ratio_queued_routed`,
+`ratio_unqueued`, `ai_cv_*` per condition) with a `key_map` in each cell
+stating the relation. The nested per-condition blocks stay authoritative;
+the flat keys are aliases. Every per-invocation row carries its condition's
+`queue_state` (`own_job_id`, `n_other_active`, `overlapping_job_ids`)
+— criterion 4 as written.
 
 ## Process
 
