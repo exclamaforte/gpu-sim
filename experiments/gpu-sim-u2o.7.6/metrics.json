@@ -1,0 +1,127 @@
+{
+  "bead": "gpu-sim-u2o.7.6",
+  "gpu_used": false,
+  "roots": [
+    "/tmp/cutlass",
+    "/home/gabe/.local/lib/python3.14/site-packages/torch/include"
+  ],
+  "instrument_defect": {
+    "what": "corpus_miner.py reports idiom presence over a 60-line WINDOW from each kernel's signature, and presents it as corpus coverage",
+    "miner_reports": {
+      "__shared__": 9,
+      "__syncthreads": 7,
+      "atomicAdd": 0,
+      "cooperative_groups": 0,
+      "wmma::": 0,
+      "cudaStream": 7,
+      "<<<": 22,
+      "__shfl": 0
+    },
+    "whole_file_counts": {
+      "cudaStream": 95,
+      "<<<": 70,
+      "cp.async": 46,
+      "cp_async": 35,
+      "__shared__": 34,
+      "__syncthreads": 115,
+      "__syncwarp": 4,
+      "__shfl": 38,
+      "__shfl_xor": 11,
+      "mma.sync": 53,
+      "atomicMax": 4,
+      "atomicMin": 4,
+      "atomicAdd": 12,
+      "atomicCAS": 6,
+      "ldmatrix": 16,
+      "wmma": 38,
+      "__popc": 4,
+      "__ballot": 2,
+      "__activemask": 2
+    },
+    "example": "wmma: the miner reports 0, while a direct grep of the same tree finds wmma in 37 files. cp.async is in 48. A zero from this instrument is a statement about a prefix, not about real code.",
+    "my_own_instance_of_it": "my first corpus was a sparse-checkout of CUTLASS examples/ ONLY, which contains no tensor-core or atomic idioms at all. I measured coverage on a partial corpus and the partiality was invisible in the output. The same shape: a signal true of the sample, false of the population.",
+    "not_fixed_here": "corpus_miner.py is not this bead's artifact and its window is a deliberate size choice for a lightweight corpus. What is fixed here is that COVERAGE is measured over whole files, and the window-based number is reported beside it rather than instead of it."
+  },
+  "corpus": {
+    "n_files": 10189,
+    "files_per_capability": {
+      "streams / multi-device": 165,
+      "tensor cores": 188,
+      "shared memory + sync": 153,
+      "warp intrinsics": 57,
+      "atomics": 26
+    },
+    "files_per_idiom": {
+      "cudaStream": 95,
+      "<<<": 70,
+      "cp.async": 46,
+      "cp_async": 35,
+      "__shared__": 34,
+      "__syncthreads": 115,
+      "__syncwarp": 4,
+      "__shfl": 38,
+      "__shfl_xor": 11,
+      "mma.sync": 53,
+      "atomicMax": 4,
+      "atomicMin": 4,
+      "atomicAdd": 12,
+      "atomicCAS": 6,
+      "ldmatrix": 16,
+      "wmma": 38,
+      "__popc": 4,
+      "__ballot": 2,
+      "__activemask": 2
+    },
+    "capabilities_present": [
+      "atomics",
+      "shared memory + sync",
+      "streams / multi-device",
+      "tensor cores",
+      "warp intrinsics"
+    ],
+    "capabilities_absent": [
+      "async copy",
+      "cooperative launch",
+      "dynamic parallelism"
+    ]
+  },
+  "synthetic_families": {
+    "capabilities": [
+      "shared memory + sync"
+    ],
+    "files_per_capability": {
+      "shared memory + sync": 2
+    },
+    "n_families": 24,
+    "measured": true
+  },
+  "gap": {
+    "real_code_uses_synthetic_lacks": [
+      "atomics",
+      "streams / multi-device",
+      "tensor cores",
+      "warp intrinsics"
+    ],
+    "synthetic_covers_real_lacks": [],
+    "both": [
+      "shared memory + sync"
+    ],
+    "n_gaps": 4
+  },
+  "MEASUREMENT_CAVEAT_streams": "The 'streams / multi-device' gap is NOT a finding about the synthetic kernels. The idiom it looks for is '<<<' and 'cudaStream', which live in the LAUNCH HARNESS, not in a kernel body -- and both sides of this comparison are measured over kernel sources. So the real-code count of 165 files reflects real code containing its own launch sites, while the synthetic count of 0 reflects sources that contain none. The gap is an artefact of measuring kernels, and reporting it as a family-mix gap would be the same category error as the vocabulary mismatch earlier in this same file. It is excluded from the actionable findings and kept here so a reader is not misled by it.",
+  "FINDING_measured": {
+    "what": "the 24 synthetic families are almost entirely plain elementwise kernels. Exactly ONE of 24 (k_block_sum) uses any shared-memory idiom, and NONE uses tensor cores, warp intrinsics or atomics -- which real code uses in 188, 57 and 26 files respectively.",
+    "actionable_gaps": [
+      "tensor cores",
+      "warp intrinsics",
+      "atomics"
+    ],
+    "excluded_artefact": "streams / multi-device (see MEASUREMENT_CAVEAT_streams)",
+    "why_it_matters": "the family mix is the one corpus decision the PI left to me and the reviewer jointly, and this is the first EVIDENCE about it rather than an opinion. Three capability classes that dominate real kernels have no synthetic family at all."
+  },
+  "corpus_completeness": {
+    "first_attempt": "git sparse-checkout of CUTLASS examples/ ONLY -- 167 .cu files, containing no tensor-core, atomic or cooperative idioms at all. Coverage measured on it was a measurement of an empty sample.",
+    "second_attempt": "examples + include/cutlass + include/cute -- 10,189 .cu/.cuh/.h files, plus torch's 62 bundled kernels.",
+    "lesson": "the first result looked like a finding ('real CUDA uses no tensor cores') and was entirely an artefact of an incomplete checkout. The completeness of the corpus is now recorded BEFORE any coverage number."
+  }
+}
