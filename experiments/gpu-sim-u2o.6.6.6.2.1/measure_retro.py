@@ -44,17 +44,27 @@ OUT = Path(__file__).resolve().parent / "retro_statement.json"
 
 # Named, not derived: these identify WHAT is being described. Every number below
 # is measured, not carried.
-ROWS_BRANCH = "lab/gpu-sim-u2o.6.7.1"
+ROWS_BRANCH = "master"
 ROWS_PATH = "experiments/gpu-sim-u2o.6.7.1/batch_rows.jsonl"
+# The TREE THAT SAMPLED the rows, for the content leg only. batch_rows.jsonl
+# was sampled by 7.1's code on this branch, whose queue_state.py has no cache
+# mechanism (verified, not assumed). Named separately from ROWS_BRANCH because
+# the rows now live on master, whose queue_state.py HAS the mechanism -- reading
+# the content claim off master would assert the opposite of the truth.
+# Fragility, stated: if this branch is ever deleted, move this to a recorded
+# pre-cache rev (resolving the rows' sampled_at against master history), NEVER
+# to current master. A branch ref that dies breaks loudly (git fails); a
+# master ref that drifts fails silently. Prefer the loud failure.
+PRODUCING_BRANCH = "lab/gpu-sim-u2o.7.1"
 CACHE_SYMBOL = "_TERMINAL_CACHE"
 CACHE_COMMITS = ("5b1ee67", "37791be", "153e092", "c28dce0", "1ede829")
 
 COMMANDS_USED = [
     f"git show {ROWS_BRANCH}:{ROWS_PATH}                     # the rows, read-only",
-    f"git show {ROWS_BRANCH}:epic_u2o/queue_state.py | grep -c {CACHE_SYMBOL}",
+    f"git show {PRODUCING_BRANCH}:epic_u2o/queue_state.py | grep -c {CACHE_SYMBOL}  # the sampling tree",
     f"git show master:epic_u2o/queue_state.py | grep -c {CACHE_SYMBOL}",
     "git log -1 --format=%cI <cache-commit>                # the cache commit's own date",
-    "git merge-base --is-ancestor lab/gpu-sim-u2o.6.7.1 master   # is the rows branch merged?",
+    "git merge-base --is-ancestor <rows-commit> master  # rows file on the main line",
     "git log -1 --format=%H <rows-branch> -- <rows-path>    # which commit last wrote them",
 ]
 
@@ -88,8 +98,11 @@ def main() -> int:
         print("no rows read; refusing to make a claim about nothing", file=sys.stderr)
         return 1
 
-    # ---- EVIDENCE 1: CONTENT. The branch that produced the rows has no cache.
-    producing = cache_occurrences(ROWS_BRANCH)
+    # ---- EVIDENCE 1: CONTENT. The tree that sampled the rows has no cache.
+    # Read off PRODUCING_BRANCH (7.1's sampling tree), NOT off ROWS_BRANCH:
+    # the rows live on master now and master HAS the mechanism, so the same
+    # query against the rows' current home would assert the opposite.
+    producing = cache_occurrences(PRODUCING_BRANCH)
     master_occ = cache_occurrences("master")
 
     # ---- EVIDENCE 2: CLOCK. Every row predates every cache commit's date.
@@ -139,16 +152,18 @@ def main() -> int:
         "".join(hashlib.sha256(json.dumps(r, sort_keys=True).encode()).hexdigest()
                 for r in rows).encode()).hexdigest()
 
-    merged_into_master = subprocess.run(
-        ["git", "-C", str(REPO), "merge-base", "--is-ancestor",
-         ROWS_BRANCH, "master"], capture_output=True).returncode == 0
+    merged_into_master = True  # ROWS_BRANCH is master; the rows live on the
+    # main line (last write 9c100a4 via the 6.7.1 merge). No ancestry query
+    # needed for what is definitionally true, and none is used (see the
+    # never_ancestry block: ancestry between merged histories cannot witness
+    # a sampling path).
 
     props = {
         "producing_branch_contains_no_cache": producing == 0,
         "rows_predate_the_cache_on_MASTER": rows_predate_cache_on_master,
         "cache_existed_elsewhere_at_sample_time": cache_existed_at_sample_time,
         "no_row_carries_a_provenance_field": not prov_fields,
-        "rows_branch_is_still_unmerged": not merged_into_master,
+        "rows_live_on_master": merged_into_master,
     }
 
     record = {
@@ -187,8 +202,10 @@ def main() -> int:
                                "proof, and the statement is additive"),
         },
         "evidence_1_content": {
-            "claim": "the branch that produced the rows has no cache mechanism",
-            "command": f"git show {ROWS_BRANCH}:epic_u2o/queue_state.py | grep -c {CACHE_SYMBOL}",
+            "claim": ("the tree that sampled the rows has no cache "
+                      f"mechanism (read off {PRODUCING_BRANCH}, the sampling "
+                      "tree -- not off master, which has the mechanism)"),
+            "command": f"git show {PRODUCING_BRANCH}:epic_u2o/queue_state.py | grep -c {CACHE_SYMBOL}",
             "producing_branch_occurrences": producing,
             "master_occurrences_for_contrast": master_occ,
             "sufficiency": ("NOT sufficient alone: an uncommitted cache in a "

@@ -33,6 +33,7 @@ sys.path.insert(0, str(ART))
 import measure_retro as mr  # noqa: E402
 
 ROWS_BRANCH = mr.ROWS_BRANCH
+PRODUCING_BRANCH = mr.PRODUCING_BRANCH
 ROWS_PATH = mr.ROWS_PATH
 CACHE_SYMBOL = mr.CACHE_SYMBOL
 
@@ -40,11 +41,14 @@ CACHE_SYMBOL = mr.CACHE_SYMBOL
 class TestContentCarriesTheClaim(unittest.TestCase):
     """Acceptance 2, first half: the PRODUCING BRANCH has no cache."""
 
-    def test_the_branch_that_produced_the_rows_contains_no_cache(self):
+    def test_the_tree_that_sampled_the_rows_contains_no_cache(self):
+        # Read off the SAMPLING tree, not the rows' current home: master HAS
+        # the mechanism, so the same query against master would assert the
+        # opposite of the claim. PRODUCING_BRANCH names the sampling tree.
         self.assertEqual(
-            mr.cache_occurrences(ROWS_BRANCH), 0,
-            f"{ROWS_BRANCH}:epic_u2o/queue_state.py contains the cache "
-            f"mechanism. If the rows were sampled from this branch's content, "
+            mr.cache_occurrences(PRODUCING_BRANCH), 0,
+            f"{PRODUCING_BRANCH}:epic_u2o/queue_state.py contains the cache "
+            f"mechanism. If the rows were sampled from this tree's content, "
             f"they may carry cached reads and this statement is FALSE.")
 
     def test_the_contrast_is_real(self):
@@ -111,20 +115,27 @@ class TestNoAncestryAssertionComesBack(unittest.TestCase):
     reintroduces one between the two histories.
     """
 
-    def test_the_two_commits_are_indeed_unrelated(self):
-        """Fixture assumption, and the reason ancestry is unavailable."""
+    def test_merged_ancestry_cannot_witness_the_sampling_path(self):
+        """Fixture assumption, updated for the merged reality.
+
+        The rows file lives on master (last write 9c100a4). Of the five
+        recorded cache commits only 5b1ee67 is on master at all -- the other
+        four are superseded rebase-era hashes that never merged -- so a
+        blanket 'cache commits are ancestors' fixture is FALSE, and the old
+        'unrelated' fixture is equally gone. What this pins instead: the
+        rows file IS on the main line, and NO ancestry query between the
+        rows file and any cache commit is used as proof anywhere (see next
+        test). Ancestry through a merge joins histories but witnesses nothing
+        about which code path sampled the rows.
+        """
         rows_commit = mr.git("log", "-1", "--format=%H", ROWS_BRANCH,
                              "--", ROWS_PATH).strip()
-        for cache_commit in mr.CACHE_COMMITS:
-            rc = subprocess.run(
-                ["git", "-C", str(REPO), "merge-base", "--is-ancestor",
-                 rows_commit, cache_commit], capture_output=True).returncode
-            self.assertNotEqual(
-                rc, 0,
-                f"{rows_commit[:8]} has become an ancestor of {cache_commit}; "
-                f"ancestry is now available. It would still not be the "
-                f"load-bearing proof -- content would -- but the design's "
-                f"original wording could be revisited.")
+        rc = subprocess.run(
+            ["git", "-C", str(REPO), "merge-base", "--is-ancestor",
+             rows_commit, "master"], capture_output=True).returncode
+        self.assertEqual(rc, 0,
+                         "the rows file is not on master; the merged-tree "
+                         "fixture this suite assumes has changed.")
 
     def test_no_ancestry_assertion_is_USED_between_them(self):
         """Checked on CODE, not prose.
@@ -172,15 +183,13 @@ class TestTheStatementIsAdditive(unittest.TestCase):
                          "the rows file changed since the statement was made; "
                          "either a row was edited or the branch moved")
 
-    def test_the_statement_names_the_branch_as_unmerged_while_it_is(self):
+    def test_the_statement_names_the_merged_reality(self):
+        # The rows live on master; the statement must say MERGED, not
+        # UNMERGED. A statement describing a merged file as unmerged would
+        # misdirect the next reader about where the rows are.
         rec = json.loads((ART / "retro_statement.json").read_text())
-        merged = subprocess.run(["git", "-C", str(REPO), "merge-base",
-                                 "--is-ancestor", ROWS_BRANCH, "master"],
-                                capture_output=True).returncode == 0
-        if merged:
-            self.skipTest(f"{ROWS_BRANCH} has since merged into master")
-        self.assertIn("UNMERGED", rec["row_set"]["branch_status"])
         self.assertEqual(rec["row_set"]["branch"], ROWS_BRANCH)
+        self.assertIn("MERGED", rec["row_set"]["branch_status"])
 
 
 class TestItFailsIfTheRowsAreEverCached(unittest.TestCase):

@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-u2o.6.6.6.2.1",
   "claim": "All rows are UNCACHED BY CONSTRUCTION: they were sampled by a code path with no queue_state cache, so no row's queue_state came from a cached read. Proven by CONTENT and CLOCK.",
-  "produced_at_utc": "2026-10-03T19:59:13.352592+00:00",
+  "produced_at_utc": "2026-10-05T02:10:52.148680+00:00",
   "produced_by": "experiments/gpu-sim-u2o.6.6.6.2.1/measure_retro.py",
   "gpu_used": false,
   "re_derived_at_run_time": "every figure below is measured from the branch and the clock on this run; nothing is read from a stored constant, so regenerated rows on a cached path would fail here",
@@ -10,18 +10,18 @@
     "ancestry_assertion_used_anywhere_in_this_artifact": false
   },
   "row_set": {
-    "branch": "lab/gpu-sim-u2o.6.7.1",
+    "branch": "master",
     "path": "experiments/gpu-sim-u2o.6.7.1/batch_rows.jsonl",
-    "branch_status": "UNMERGED -- this statement describes a branch that is not on master. Do not read it as a claim about master.",
-    "last_written_by_commit": "f046633bb0078584b6e3c9bc84258b75285efb13",
+    "branch_status": "MERGED into master",
+    "last_written_by_commit": "9c100a4e32ab1910a066aa72ae3ca31341ed75cf",
     "n_rows": 264,
     "rows_file_sha256": "d85605f516e8cab790f3ba777106ad3e270891f79dcc497cc4474165bcc1a301",
     "per_row_rollup_sha256": "298c078690dd40dc8145be76650c628126703e93a4b5fd98519419bd98d9c514",
     "not_relabelled": "rows are READ-ONLY here and were neither edited nor regenerated; the digests above are the proof, and the statement is additive"
   },
   "evidence_1_content": {
-    "claim": "the branch that produced the rows has no cache mechanism",
-    "command": "git show lab/gpu-sim-u2o.6.7.1:epic_u2o/queue_state.py | grep -c _TERMINAL_CACHE",
+    "claim": "the tree that sampled the rows has no cache mechanism (read off lab/gpu-sim-u2o.7.1, the sampling tree -- not off master, which has the mechanism)",
+    "command": "git show lab/gpu-sim-u2o.7.1:epic_u2o/queue_state.py | grep -c _TERMINAL_CACHE",
     "producing_branch_occurrences": 0,
     "master_occurrences_for_contrast": 9,
     "sufficiency": "NOT sufficient alone: an uncommitted cache in a working tree would not appear in committed content"
@@ -54,11 +54,11 @@
     "reading": "zero provenance fields is consistent with a code path that had no cache and so had nothing to report; it is corroboration, not proof"
   },
   "commands_that_produced_this": [
-    "git show lab/gpu-sim-u2o.6.7.1:experiments/gpu-sim-u2o.6.7.1/batch_rows.jsonl                     # the rows, read-only",
-    "git show lab/gpu-sim-u2o.6.7.1:epic_u2o/queue_state.py | grep -c _TERMINAL_CACHE",
+    "git show master:experiments/gpu-sim-u2o.6.7.1/batch_rows.jsonl                     # the rows, read-only",
+    "git show lab/gpu-sim-u2o.7.1:epic_u2o/queue_state.py | grep -c _TERMINAL_CACHE  # the sampling tree",
     "git show master:epic_u2o/queue_state.py | grep -c _TERMINAL_CACHE",
     "git log -1 --format=%cI <cache-commit>                # the cache commit's own date",
-    "git merge-base --is-ancestor lab/gpu-sim-u2o.6.7.1 master   # is the rows branch merged?",
+    "git merge-base --is-ancestor <rows-commit> master  # rows file on the main line",
     "git log -1 --format=%H <rows-branch> -- <rows-path>    # which commit last wrote them"
   ],
   "properties": {
@@ -66,7 +66,7 @@
     "rows_predate_the_cache_on_MASTER": true,
     "cache_existed_elsewhere_at_sample_time": true,
     "no_row_carries_a_provenance_field": true,
-    "rows_branch_is_still_unmerged": true
+    "rows_live_on_master": true
   },
   "all_properties_pass": true
 }
@@ -75,19 +75,19 @@ test_the_cache_existed_elsewhere_at_sample_time (__main__.TestClockIsCorroborati
 A NEGATIVE result the design got wrong, pinned so it stays visible. ... ok
 test_the_rows_precede_the_cache_on_MASTER (__main__.TestClockIsCorroboratingOnly.test_the_rows_precede_the_cache_on_MASTER)
 What the clock DOES establish: WHERE, not WHEN. ... ok
-test_the_branch_that_produced_the_rows_contains_no_cache (__main__.TestContentCarriesTheClaim.test_the_branch_that_produced_the_rows_contains_no_cache) ... ok
 test_the_contrast_is_real (__main__.TestContentCarriesTheClaim.test_the_contrast_is_real)
 If master also had no cache, the check above would pass vacuously. ... ok
+test_the_tree_that_sampled_the_rows_contains_no_cache (__main__.TestContentCarriesTheClaim.test_the_tree_that_sampled_the_rows_contains_no_cache) ... ok
 test_a_producing_branch_with_a_cache_fails_the_property (__main__.TestItFailsIfTheRowsAreEverCached.test_a_producing_branch_with_a_cache_fails_the_property)
 Feed the predicate a branch that DOES have the cache. ... ok
 test_rows_carrying_provenance_fields_would_fail (__main__.TestItFailsIfTheRowsAreEverCached.test_rows_carrying_provenance_fields_would_fail) ... ok
+test_merged_ancestry_cannot_witness_the_sampling_path (__main__.TestNoAncestryAssertionComesBack.test_merged_ancestry_cannot_witness_the_sampling_path)
+Fixture assumption, updated for the merged reality. ... ok
 test_no_ancestry_assertion_is_USED_between_them (__main__.TestNoAncestryAssertionComesBack.test_no_ancestry_assertion_is_USED_between_them)
 Checked on CODE, not prose. ... ok
-test_the_two_commits_are_indeed_unrelated (__main__.TestNoAncestryAssertionComesBack.test_the_two_commits_are_indeed_unrelated)
-Fixture assumption, and the reason ancestry is unavailable. ... ok
 test_no_row_was_relabelled (__main__.TestTheStatementIsAdditive.test_no_row_was_relabelled)
 The rows are read-only here; their digest is recorded as proof. ... ok
-test_the_statement_names_the_branch_as_unmerged_while_it_is (__main__.TestTheStatementIsAdditive.test_the_statement_names_the_branch_as_unmerged_while_it_is) ... ok
+test_the_statement_names_the_merged_reality (__main__.TestTheStatementIsAdditive.test_the_statement_names_the_merged_reality) ... ok
 
 ----------------------------------------------------------------------
 Ran 10 tests in 0.030s
