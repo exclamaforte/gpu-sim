@@ -16,6 +16,11 @@ Two measurement conventions, both learned the hard way in this session:
     that, and a min alone flatters.
 
 Writes sweep.json beside this file. Exits nonzero if the sweep cannot be run.
+
+About the "commit" stamp: it names the pre-commit HEAD (rev-parse at run
+time), so a committed sweep.json always stamps its parent, not the commit
+that carries it. The delta cannot affect all-valid fixtures (verified by
+re-running at the carrying commit), so this is documented rather than fixed.
 """
 import importlib.util
 import json
@@ -112,6 +117,76 @@ def bench(qs, n: int, trials: int = TRIALS) -> dict:
         shutil.rmtree(d, ignore_errors=True)
 
 
+ACTIVE_FIXED = 8
+
+
+def synth_fixed_active(d: Path, n: int, k: int = ACTIVE_FIXED) -> None:
+    """Same mix shape, but the ACTIVE set is FIXED across sizes.
+
+    The bead's acceptance is sub-linear per-call growth; with a proportional
+    active fraction any constant per-active cost reads as linear, so the
+    asserting sweep holds the active set at k files while the terminal bulk
+    grows. k=8 mirrors a busy shared box better than 0, and 0 would measure
+    a bound no real queue enjoys.
+    """
+    for i in range(n):
+        state = "running" if i < k else "finished"
+        (d / f"job{i:05d}.json").write_text(json.dumps({
+            "id": f"j{i}", "state": state, "command": ["python3", "x.py"],
+            "description": f"job {i}", "created_at": 1.0}))
+
+
+def bench_fixed(qs, n: int, trials: int = TRIALS) -> dict:
+    """bench() against a fixed-active fixture. Same timing discipline."""
+    d = Path(tempfile.mkdtemp(prefix="qs_fixed_"))
+    try:
+        synth_fixed_active(d, n)
+        qs.QUEUE_DIR = d
+        qs.reset_cache()
+        qs._load_all()                       # warm: first-call cost is not steady
+        samples = []
+        for _ in range(trials):
+            t0 = time.perf_counter()
+            qs._load_all()
+            samples.append((time.perf_counter() - t0) * 1e3)
+        return {"median_ms": round(statistics.median(samples), 5),
+                "min_ms": round(min(samples), 5),
+                "max_ms": round(max(samples), 5),
+                "trials": trials,
+                "active_fixed": ACTIVE_FIXED}
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def assert_sublinear(fixed: list) -> dict:
+    """The bead's acceptance, as code: per-call cost must not grow with n.
+
+    Active set fixed, so any growth with directory size is the instrument's
+    own scaling. log-log slope < 0.5 AND largest/smallest median < 3.
+    Margins are wide (a linear instrument measures slope ~1.0 and ratio
+    ~20x across 200->4000 files) but the assertion still fails loudly on
+    linear growth -- which the pre-partition code does, verified by running
+    this same assertion against it. Exits nonzero via the caller on failure.
+    """
+    import math
+    xs = [p["files"] for p in fixed]
+    ys = [p["median_ms"] for p in fixed]
+    lx = [math.log(x) for x in xs]
+    ly = [math.log(y) if y > 0 else math.log(1e-9) for y in ys]
+    mx, my = sum(lx) / len(lx), sum(ly) / len(ly)
+    denom = sum((x - mx) ** 2 for x in lx)
+    slope = (sum((x - mx) * (y - my) for x, y in zip(lx, ly)) / denom
+             if denom else None)
+    ratio = max(ys) / min(ys) if min(ys) > 0 else None
+    met = (slope is not None and slope < 0.5
+           and ratio is not None and ratio < 3.0)
+    return {"loglog_slope": round(slope, 3) if slope is not None else None,
+            "max_min_median_ratio": round(ratio, 3) if ratio else None,
+            "criterion": "loglog slope < 0.5 AND max/min median < 3.0 "
+                           "(active fixed; linear reads ~1.0 and ~20x)",
+            "met": met}
+
+
 def bench_ab(qs_branch, qs_master, n: int, trials: int = TRIALS) -> dict:
     """Interleaved branch-vs-master timing on ONE shared fixture.
 
@@ -182,6 +257,20 @@ def main() -> int:
     slope = sum(x * y for x, y in zip(xs, ys)) / denom if denom else None
     per_file = [p["us_per_file"] for p in points]
 
+    # THE CRITERION, measured with the active set FIXED: terminal bulk grows,
+    # active stays at ACTIVE_FIXED, so any growth with n is the instrument's
+    # own scaling. Asserts sub-linearity and fails the run if absent.
+    fixed = []
+    for n in SIZES:
+        r = bench_fixed(qs, n)
+        r["files"] = n
+        fixed.append(r)
+        print(f"  fixed-active {n:5d} files  {r['median_ms']:.4f} ms")
+    sublinear = assert_sublinear(fixed)
+    print(f"  sub-linear: slope {sublinear['loglog_slope']}, "
+          f"max/min {sublinear['max_min_median_ratio']}x, "
+          f"met={sublinear['met']}")
+
     # Attempt-2 gain vs master, measured HERE rather than asserted in prose.
     # Same process, same fixture per size, order alternated per trial, so
     # load cancels; the load stamp above covers this arm too.
@@ -238,7 +327,11 @@ def main() -> int:
                    "loadavg above; a bare millisecond figure from this sweep is "
                    "not comparable with one taken at a different load. The "
                    "gain_vs_master ratios are comparable only within this "
-                   "run, where both arms shared each fixture and each load."),
+                   "run, where both arms shared each fixture and each load. "
+                   "Steady-state sub-linearity asserted above; worst case per "
+                   "call is still O(n) on listing refresh -- see queue_state.py."),
+        "fixed_active_points": fixed,
+        "sublinear": sublinear,
     }
     OUT.write_text(json.dumps(record, indent=2) + "\n")
     print(f"\nloadavg(1m)={loadavg[0] if loadavg else 'n/a'}")
@@ -248,6 +341,10 @@ def main() -> int:
     print(f"median gain vs master {record['gain_vs_master']['median_gain']}x "
           f"(master@{mcommit})")
     print(f"wrote {OUT.name}")
+    if not sublinear["met"]:
+        print("SUB-LINEAR CRITERION NOT MET -- failing the run rather than "
+              "recording a miss as prose", flush=True)
+        return 1
     return 0
 
 

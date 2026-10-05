@@ -1,19 +1,27 @@
-    200 files  0.0847 ms  0.4234 us/file  0.61x
-    400 files  0.1862 ms  0.4656 us/file  1.34x
-    700 files  0.2797 ms  0.3996 us/file  2.01x
-    862 files  0.3392 ms  0.3936 us/file  2.44x
-   1200 files  0.4764 ms  0.3970 us/file  3.43x
-   2000 files  0.7995 ms  0.3998 us/file  5.75x
-   4000 files  1.9086 ms  0.4772 us/file  13.73x
-  A/B   200 files  branch 0.0962 ms  master 0.1045 ms  gain 1.09x
-  A/B   400 files  branch 0.1694 ms  master 0.1849 ms  gain 1.09x
-  A/B   700 files  branch 0.2953 ms  master 0.3240 ms  gain 1.10x
-  A/B   862 files  branch 0.3488 ms  master 0.3868 ms  gain 1.11x
-  A/B  1200 files  branch 0.4859 ms  master 0.5906 ms  gain 1.22x
-  A/B  2000 files  branch 0.8967 ms  master 1.2920 ms  gain 1.44x
-  A/B  4000 files  branch 2.7489 ms  master 4.3649 ms  gain 1.59x
+    200 files  0.0294 ms  0.1469 us/file  0.21x
+    400 files  0.0496 ms  0.1241 us/file  0.36x
+    700 files  0.0827 ms  0.1181 us/file  0.59x
+    862 files  0.1034 ms  0.1199 us/file  0.74x
+   1200 files  0.1356 ms  0.1130 us/file  0.98x
+   2000 files  0.2356 ms  0.1178 us/file  1.70x
+   4000 files  0.4536 ms  0.1134 us/file  3.26x
+  fixed-active   200 files  0.0542 ms
+  fixed-active   400 files  0.0559 ms
+  fixed-active   700 files  0.0556 ms
+  fixed-active   862 files  0.0837 ms
+  fixed-active  1200 files  0.0565 ms
+  fixed-active  2000 files  0.0610 ms
+  fixed-active  4000 files  0.1020 ms
+  sub-linear: slope 0.169, max/min 1.88x, met=True
+  A/B   200 files  branch 0.0306 ms  master 0.0627 ms  gain 2.05x
+  A/B   400 files  branch 0.0514 ms  master 0.1187 ms  gain 2.31x
+  A/B   700 files  branch 0.0862 ms  master 0.2092 ms  gain 2.43x
+  A/B   862 files  branch 0.1079 ms  master 0.2642 ms  gain 2.45x
+  A/B  1200 files  branch 0.1451 ms  master 0.3729 ms  gain 2.57x
+  A/B  2000 files  branch 0.2428 ms  master 0.6086 ms  gain 2.51x
+  A/B  4000 files  branch 0.4777 ms  master 1.2125 ms  gain 2.54x
 
-loadavg(1m)=41.15
-slope 0.45402 us/file, linear=True, per-file spread 1.212x
-median gain vs master 1.109x (master@16e0c9c)
+loadavg(1m)=11.14
+slope 0.11459 us/file, linear=True, per-file spread 1.3x
+median gain vs master 2.449x (master@c423b7b)
 wrote sweep.json

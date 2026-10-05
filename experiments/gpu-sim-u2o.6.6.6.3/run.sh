@@ -39,6 +39,16 @@ for q in g["per_size"]:
     lines.append(f"| {q['files']} | {q['branch_median_ms']:.4f} | "
                  f"{q['master_median_ms']:.4f} | {q['gain']:.2f}x |")
 lines.append(f"\nMedian gain {g['median_gain']}x (gain > 1 means this branch is faster).")
+lines.append("")
+fx = rec["fixed_active_points"]
+sl = rec["sublinear"]
+lines.append(f"Fixed-active sweep (active={fx[0]['active_fixed']}, terminal bulk grows):")
+lines.append("| files | median ms |")
+lines.append("|---|---|")
+for p in fx:
+    lines.append(f"| {p['files']} | {p['median_ms']:.4f} |")
+lines.append(f"\nSub-linear verdict: log-log slope {sl['loglog_slope']}, "
+             f"max/min {sl['max_min_median_ratio']}x -> met={sl['met']}.")
 md = art / "FINDING.md"
 s = md.read_text()
 a, b = "<!-- BEGIN QUOTED FROM sweep.json -->", "<!-- END QUOTED FROM sweep.json -->"

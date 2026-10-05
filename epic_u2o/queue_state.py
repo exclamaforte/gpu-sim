@@ -100,6 +100,45 @@ _SNAPSHOT_REVERIFY_EPOCH = 0
 _LOAD_STATS = {"calls": 0, "files_seen": 0, "hits": 0, "parses": 0}
 
 
+def _fresh_record(p):
+    """stat + parse ONE path, transient-tolerant, unparseable-aware.
+
+    Returns (record_or_None, sig_or_None, skipped_without_retry). A
+    remembered-bad file with unchanged signature gets ONE parse and no
+    sleeps (skipped True); a rewrite heals. An exhausted first-time parse
+    remembers the signature and returns skipped False, exactly as the inline
+    loop always did -- the flag counts only the no-retry skips.
+    """
+    try:
+        st = os.stat(p)
+    except OSError:
+        return None, None, False
+    sig = (st.st_mtime_ns, st.st_size)
+    if _UNPARSEABLE.get(p) == sig:
+        try:
+            rec = json.loads(Path(p).read_text())
+        except Exception:
+            rec = None
+        if rec is None:
+            return None, sig, True
+        del _UNPARSEABLE[p]
+        return rec, sig, False
+    rec = None
+    for _ in range(3):
+        try:
+            rec = json.loads(Path(p).read_text())
+            break
+        except FileNotFoundError:
+            break
+        except Exception:
+            time.sleep(0.05)
+    if rec is None:
+        _UNPARSEABLE[p] = sig
+        return None, sig, False
+    _UNPARSEABLE.pop(p, None)
+    return rec, sig, False
+
+
 def _load_all() -> list[dict]:
     """Records only; see _load_all_with_provenance for what this reads."""
     return _load_all_with_provenance()[0]
@@ -238,7 +277,29 @@ def _load_all_with_provenance() -> tuple:
     # TERMINAL_REVERIFY_SEC as before), while every file whose last known state
     # was ACTIVE, and every file never seen, is re-read on this call. That keeps
     # the guarantee exactly and still removes the O(n) over terminal files,
-    # which is the bulk of the queue.
+    # PARTITION, not a sweep: terminal records preassembled, active re-read.
+    #
+    # gpu-sim-u2o.6.6.6.3: the per-file loop was the whole residual cost even
+    # with parsing and stat'ing cached (~0.26 us/file of dict lookup + append,
+    # linear in directory size). The partition serves terminal records in BULK
+    # (one C-speed list copy, no per-file Python) and re-reads only the ACTIVE
+    # set plus remembered-bad files on every call -- O(active + delta).
+    # Bounds, all stated because a bound that lives in prose may as well not
+    # exist: (1) terminal->active transitions hide until the reverify epoch
+    # (30 s), the SAME bound the bulk path already had -- no new class; (2)
+    # brand-new files appear on the next listing refresh (<= LISTING_TTL);
+    # (3) a file DELETED while the listing is cached is still served until the
+    # next refresh (the slow path drops it on stat, the fast path never
+    # stats). gpqueue never deletes job files, so (3) bounds an unobserved
+    # event rather than describing a behaviour. Worst case per call is still
+    # O(n): any listing refresh forces a real sweep. Steady state (calls
+    # faster than the TTL -- i.e. every real use) is O(active). The sweep
+    # asserts the steady state; this comment states the worst case so the
+    # assertion cannot be misread as a bound it is not.
+    use_bulk = (bool(_SNAPSHOT) and len(_SNAPSHOT) > 7
+                and _SNAPSHOT[2] == _SNAPSHOT_GENERATION
+                and _SNAPSHOT[3] == _SNAPSHOT_REVERIFY_EPOCH
+                and not listing_fresh)
     if _SNAPSHOT and _SNAPSHOT[2] == _SNAPSHOT_GENERATION \
             and _SNAPSHOT[3] == _SNAPSHOT_REVERIFY_EPOCH:
         _TERMINAL_BY_PATH = _SNAPSHOT[4]          # path -> record, terminal only
@@ -250,7 +311,36 @@ def _load_all_with_provenance() -> tuple:
     # _FILE_LIST[1][i] are not in correspondence and a zip silently pairs the
     # wrong record with the wrong path.
     terminal_snapshot: dict = {}
-    for p in _FILE_LIST[1]:
+    part_term_records: list = []
+    part_active: set = set()
+    part_bad: set = set()
+    if use_bulk:
+        snap_term_records = _SNAPSHOT[5]
+        snap_active = _SNAPSHOT[6]
+        snap_bad = _SNAPSHOT[7]
+        out = list(snap_term_records)
+        n_bulk = len(snap_term_records)
+        _LOAD_STATS["hits"] += n_bulk
+        _LOAD_STATS["files_seen"] += n_bulk
+        files_seen_this_sample += n_bulk
+        by_path["terminal_hit_no_stat"] += n_bulk
+        oldest_read_age_s = now - _SNAPSHOT[1]
+        for p in snap_active | snap_bad:
+            _LOAD_STATS["files_seen"] += 1
+            files_seen_this_sample += 1
+            rec, sig, skipped = _fresh_record(p)
+            if skipped:
+                unparseable_skipped += 1
+                continue
+            if rec is None:
+                continue
+            _LOAD_STATS["parses"] += 1
+            by_path["listing_ttl_hit"] += 1
+            oldest_read_age_s = max(oldest_read_age_s, now - _FILE_LIST[0])
+            out.append(rec)
+            if rec.get("state") in TERMINAL:
+                _TERMINAL_CACHE[p] = (sig, rec.get("state"), rec, time.time())
+    for p in ([] if use_bulk else _FILE_LIST[1]):
         _LOAD_STATS["files_seen"] += 1
         files_seen_this_sample += 1
         if _TERMINAL_BY_PATH is not None:
@@ -260,6 +350,7 @@ def _load_all_with_provenance() -> tuple:
                 by_path["terminal_hit_no_stat"] += 1
                 terminal_snapshot[p] = rec_cached
                 out.append(rec_cached)
+                part_term_records.append(rec_cached)
                 continue
         hit = _TERMINAL_CACHE.get(p)
         if hit is not None and not reverify and hit[1] in TERMINAL:
@@ -268,6 +359,7 @@ def _load_all_with_provenance() -> tuple:
             oldest_read_age_s = max(oldest_read_age_s, now - hit[3])
             terminal_snapshot[p] = hit[2]
             out.append(hit[2])
+            part_term_records.append(hit[2])
             continue
         try:
             st = os.stat(p)
@@ -280,40 +372,21 @@ def _load_all_with_provenance() -> tuple:
             oldest_read_age_s = max(oldest_read_age_s, now - hit[3])
             terminal_snapshot[p] = hit[2]
             out.append(hit[2])
+            part_term_records.append(hit[2])
             continue
-        # The daemon writes these files while we read them, so a partial file
-        # is a normal transient, not an error. Retry briefly: a job we fail to
-        # parse is a job we cannot report as "ours", which is exactly the
-        # auditability this module exists to provide.
-        rec = None
-        if _UNPARSEABLE.get(p) == sig:
-            # Seen-bad and unchanged: one parse, no sleeps. A rewrite heals
-            # the entry below; an unchanged file stays skipped. The skip is
-            # counted in provenance, never silent.
-            try:
-                rec = json.loads(Path(p).read_text())
-            except Exception:
-                rec = None
-            if rec is None:
-                unparseable_skipped += 1
-                continue
-            del _UNPARSEABLE[p]
-        else:
-            for _ in range(3):
-                try:
-                    rec = json.loads(Path(p).read_text())
-                    break
-                except FileNotFoundError:
-                    break
-                except Exception:
-                    time.sleep(0.05)
-            if rec is None:
-                _UNPARSEABLE[p] = sig
-                continue
-            # Parsed after all: any remembered signature for this path is
-            # stale (the file moved since it failed). Forget it now rather
-            # than leaving it for the lazy prune.
-            _UNPARSEABLE.pop(p, None)
+        # Fresh read via the shared helper: stat + transient-tolerant parse,
+        # unparseable-aware. Same semantics as the inline block it replaces
+        # (6.6.6.3 rework 3 factors it for the fast path); the differential
+        # suite pins the behavior, not the shape.
+        rec, sig, skipped = _fresh_record(p)
+        if skipped:
+            unparseable_skipped += 1
+            part_bad.add(p)
+            continue
+        if rec is None:
+            if sig is not None:
+                part_bad.add(p)
+            continue
         if listing_fresh:
             by_path["fresh_parse"] += 1
         else:
@@ -326,6 +399,9 @@ def _load_all_with_provenance() -> tuple:
         state = rec.get("state")
         if state in TERMINAL:
             _TERMINAL_CACHE[p] = (sig, state, rec, time.time())
+            part_term_records.append(rec)
+        else:
+            part_active.add(p)
 
     # Bound the negative cache: drop entries for paths no longer listed. Lazy
     # (only past 64) so the common case costs nothing; a prune is O(bad),
@@ -348,8 +424,10 @@ def _load_all_with_provenance() -> tuple:
                  "ACTIVE set is never cached, so active jobs are always "
                  "fresh_parse and contribute 0."),
     }
-    _SNAPSHOT[:] = [list(out), time.time(), _SNAPSHOT_GENERATION,
-                    _SNAPSHOT_REVERIFY_EPOCH, terminal_snapshot]
+    if not use_bulk:
+        _SNAPSHOT[:] = [list(out), time.time(), _SNAPSHOT_GENERATION,
+                        _SNAPSHOT_REVERIFY_EPOCH, terminal_snapshot,
+                        part_term_records, part_active, part_bad]
     return out, provenance
 
 

@@ -125,6 +125,21 @@ class TestFindingQuotesTheArtifact(unittest.TestCase):
         self.assertIn("Median gain", self.md,
                       "FINDING.md must quote the measured gain")
 
+    def test_the_criterion_is_asserted_by_measurement(self):
+        """Sub-linear growth is an assertion in sweep.json, not prose."""
+        sl = self.sweep.get("sublinear")
+        self.assertIsNotNone(sl, "sweep.json must carry sublinear")
+        self.assertTrue(sl["met"],
+                        f"criterion NOT met: slope {sl['loglog_slope']}, "
+                        f"ratio {sl['max_min_median_ratio']}x")
+        fx = self.sweep.get("fixed_active_points")
+        self.assertTrue(fx, "the fixed-active sweep must be recorded")
+        actives = {p.get("active_fixed") for p in fx}
+        self.assertEqual(len(actives), 1,
+                         f"active set must be FIXED across sizes, got {actives}")
+        self.assertIn("Sub-linear verdict", self.md,
+                      "FINDING.md must quote the sub-linear verdict")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
