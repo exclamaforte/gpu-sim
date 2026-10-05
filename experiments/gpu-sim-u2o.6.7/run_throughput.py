@@ -172,7 +172,7 @@ def main() -> int:
     print(f"  {split['overhead_fraction_of_wall']*100:.2f}% overhead, "
           f"{split['kernel_fraction_of_wall']*100:.3f}% kernel")
     print(f"  {split['wall_sec_per_launch']*1e3:.2f} ms wall per launch vs "
-          f"{split['kernel_us_per_launch_median']:.1f} us of kernel")
+          f"{split['kernel_us_per_launch_mean']:.1f} us of kernel (mean)")
     if fab_report.get("refused"):
         print(f"\nfabricated artifact: REFUSED -- {fab_report['reason'][:110]}")
         print(f"  claimed {fab_report['claimed_examples_per_hour']:,.0f} ex/hour, "

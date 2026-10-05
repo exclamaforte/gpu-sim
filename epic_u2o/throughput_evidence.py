@@ -193,7 +193,22 @@ def bottleneck_split(rows: list, wall_sec: float, launches_per_row: int) -> dict
         "launches_per_row": launches_per_row,
         "total_launches": total_launches,
         "wall_sec_per_launch": wall_sec / total_launches,
-        "kernel_us_per_launch_median": measured_kernel_sec / total_launches * 1e6,
+        # A MEAN, named as one: total measured kernel time divided by total
+        # launches. (Previously kernel_us_per_launch_median; a mean is exactly
+        # the statistic that lets the 16 deliberately_poor outliers move a
+        # headline while a median would resist -- hence the honest name.)
+        "kernel_us_per_launch_mean": measured_kernel_sec / total_launches * 1e6,
+        "per_launch_reading": (
+            "DECISION, stated not assumed: each row contributes "
+            "sum(invocation_medians_ms) over launches_per_row (2 x 20 = 40) "
+            "launches. The two invocation medians estimate the SAME "
+            "per-example quantity, so summing them double-counts next to "
+            "the alternative reading (median of the two medians, 0.083 us "
+            "per launch vs 0.166 here). The overhead fraction moves only in "
+            "the fifth decimal either way, so the conclusion is robust and "
+            "the number is a matter of stated interpretation. 12.2's "
+            "correction was checked against 7.1's data and rejected; it is "
+            "not re-applied here."),
         "verdict": (
             f"{overhead / wall_sec * 100:.2f}% of the measurement wall clock is "
             f"NOT the kernel running. The GPU is asked to do "
