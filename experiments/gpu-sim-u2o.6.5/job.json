@@ -5,13 +5,19 @@
     {
       "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.5/build_corpus.py --out experiments/gpu-sim-u2o.6.5/preflight_results.json",
       "worktree": ".lab/wt/gpu-sim-u2o.6.5",
+      "start_utc": "2026-10-06T04:00:15Z",
+      "end_utc": "2026-10-06T04:00:21Z",
       "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.5/output.log",
       "result": "8 pass / 4 reject, surprises=[]"
     },
     {
       "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.5/pair_results.py --metrics-out experiments/gpu-sim-u2o.6.5/metrics.json",
       "worktree": ".lab/wt/gpu-sim-u2o.6.5",
+      "start_utc": "2026-10-06T04:00:26Z",
+      "end_utc": "2026-10-06T04:00:26Z",
       "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.5/output.log",
       "result": "paired=8 rejected_kept_out=4 verdict=pass"
     }
   ],
