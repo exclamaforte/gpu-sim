@@ -250,7 +250,29 @@ class TestPerExampleSampling(unittest.TestCase):
                       s["per_example_sampling"])
         self.assertGreater(s["per_example_sampling"]["sampling_ms_per_example"],
                            0.0)
-
+    def test_default_mode_is_cold_buffers(self):
+        """The copy verdict (ae75a16) ruled position-covariate OUT and named
+        per-example realloc as the fix for the uniform -3.1 pct warm offset.
+        A future edit flipping the default back to warm must fail here,
+        not quietly reintroduce the offset. Static: no GPU needed."""
+        import ast as _ast
+        _src = (REPO / "experiments" / "gpu-sim-u2o.6.7.1"
+                / "batch_measure_worker.py").read_text()
+        _found = None
+        for _node in _ast.walk(_ast.parse(_src)):
+            if not (isinstance(_node, _ast.Call)
+                    and getattr(_node.func, "attr", "") == "add_argument"):
+                continue
+            _names = [a.value for a in _node.args
+                       if isinstance(a, _ast.Constant)]
+            if "--mode" not in _names:
+                continue
+            for _kw in _node.keywords:
+                if _kw.arg == "default" \
+                        and isinstance(_kw.value, _ast.Constant):
+                    _found = _kw.value.value
+        self.assertEqual(_found, "cold",
+                         "worker default is not cold: the copy-verdict fix regressed")
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

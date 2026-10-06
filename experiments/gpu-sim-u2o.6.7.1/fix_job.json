@@ -1,0 +1,20 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "packet": "cold-buffer fix: default cold + copy verify (dose 1 of 2)",
+  "fix": "batch_measure_worker.py --mode default warm->cold (copy verdict ae75a16); position-covariate OUT",
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t164921-fca26124",
+      "state": "queued",
+      "purpose": "fix_verify.sh: DEFAULT-mode (cold) copy x33; asserts mode==cold + device-time-unchanged in-job",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t164921-fca26124.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-coldfix-20261006/"
+    }
+  ],
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/fix_verify.py --metrics-out experiments/gpu-sim-u2o.6.7.1/fix_metrics.json",
+    "status": "pending dose 1",
+    "gates": "copy reproduce >= 30/33; device unchanged; sampling 33/33; throughput stated vs ceiling"
+  },
+  "dose_2_plan": "full-corpus (264) confirm on wake from dose 1, only if verdict=pass"
+}

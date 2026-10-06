@@ -276,10 +276,13 @@ def main() -> int:
                          "timestamp.")
     ap.add_argument("--mode",
                     choices=("warm", "cold", "reset", "perproc"),
-                    default="warm",
-                    help="warm: persistent process, state carries (current). "
-                         "cold: buffers freed and reallocated between EXAMPLES "
-                         "(tests warm-state carryover). reset: "
+                    default="cold",
+                    help="warm: persistent process, state carries (legacy; carries "
+                         "the uniform -3.1 pct offset the copy verdict measured). "
+                         "cold (THE DEFAULT since the copy verdict ae75a16): buffers "
+                         "freed and reallocated between EXAMPLES, removing the "
+                         "uniform -3.1 pct warm offset; position-covariate ruled out. "
+                         "reset: "
                          "cudaDeviceReset between the two INVOCATIONS (tests "
                          "shared CUDA context).")
     ap.add_argument("--op-filter", default="")
