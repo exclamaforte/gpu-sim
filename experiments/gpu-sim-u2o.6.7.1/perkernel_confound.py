@@ -338,8 +338,16 @@ def main() -> int:
         "examples_per_sec": n / wall, "examples_per_hour": (n / wall) * 3600,
         "build_sec": build_sec,
         "sampling_wall_sec": sampling,
+        # Device time per example, in the units the acceptance speaks:
+        # median_runtime_ms is the median-of-invocation-medians per timed
+        # LAUNCH; each example runs 40 timed launches (2 invocations x 20),
+        # so device time = median * 40 launches * 1000 ms->us. The previous
+        # formula (* 25 * 1e6) was wrong by ~600x since this script was
+        # written (u2o.6.7.1 rerun 2026-10-06: it printed 77628 us for ~3 us
+        # medians); the September 145.8 us figure was hand-derived, never this
+        # expression's output.
         "device_time_per_example_us": sum(
-            r["median_runtime_ms"] * 25 for r in rows) / n * 1e6,
+            r["median_runtime_ms"] * 40 for r in rows) / n * 1e3,
         "protocol_note": (
             "each spec is ONE invocation of 5 warmup + 20 timed, so this arm has "
             "40 timed launches per example: each of 7.1's binaries is called "
