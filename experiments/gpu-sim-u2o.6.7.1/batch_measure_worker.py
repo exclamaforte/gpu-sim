@@ -405,7 +405,13 @@ def main() -> int:
             inv_meds = [statistics.median(v) for v in by_inv.values()]
             trials = [ms for _i, _t, ms in raw]
             t_s0 = time.time()
-            qstate = qs.queue_state()
+            # 6.6.6 hardening: queue_state() refuses unidentified calls.
+            # Identify by our own command substring (matcher prefers the
+            # RUNNING job); U2O_OWN_CMD overrides for uniquely-named runs.
+            import os as _os
+            qstate = qs.queue_state(
+                own_command_substr=_os.environ.get(
+                    "U2O_OWN_CMD", "batch_measure_worker.py"))
             telemetry = _telemetry()
             sampling_wall += time.time() - t_s0
             s = spec_by_hash[h]
@@ -703,7 +709,10 @@ def _run_per_invocation_process(args, specs, exe, td, t_start, started_at, _):
         if not inv_meds:
             continue
         t_s0 = time.time()
-        qstate = qs.queue_state()
+        import os as _os2
+        qstate = qs.queue_state(
+            own_command_substr=_os2.environ.get(
+                "U2O_OWN_CMD", "batch_measure_worker.py"))
         telemetry = _telemetry()
         sampling += time.time() - t_s0
         rows_by_hash[h] = {
