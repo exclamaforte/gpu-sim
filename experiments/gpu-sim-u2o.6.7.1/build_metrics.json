@@ -1,0 +1,35 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "blocker_2_rides_along": "criterion-2 red test untouched; no reproduce claim made here",
+  "device_time_unchanged": {
+    "asserted_us": 126.0,
+    "measured_us": 130.90454545454546,
+    "unchanged": true
+  },
+  "dose": {
+    "mode": "warm, full 264",
+    "n_rows": 264,
+    "ts_job": "20261006t062332-cfcbaa4f"
+  },
+  "failures": [],
+  "median_of_medians_us": 2.448,
+  "per_example_sampling": {
+    "distinct_sample_times": 264,
+    "rows": 264,
+    "rows_lacking_own_job_id": 0
+  },
+  "throughput_vs_ceiling": {
+    "ceiling_ex_s": 7911.0,
+    "ceiling_is_upper_bound": true,
+    "fraction_of_ceiling": 0.0332,
+    "gap_attribution_ms_per_example": {
+      "device_ms": 0.131,
+      "ms_per_example": 3.8024512204256924,
+      "reading": "device work is 3% of the per-example budget; per-example sampling (queue_state over ~1700 job files + telemetry) is the dominant measured cost",
+      "residual_ms": 1.777,
+      "sampling_ms": 1.8948081767920293
+    },
+    "measured_ex_s": 262.99
+  },
+  "verdict": "pass"
+}
