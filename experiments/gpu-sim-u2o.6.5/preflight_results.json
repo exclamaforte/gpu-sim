@@ -1,0 +1,421 @@
+{
+  "bead": "gpu-sim-u2o.6.5",
+  "n_corpus": 12,
+  "n_pass": 8,
+  "n_reject": 4,
+  "passes": [
+    {
+      "cid": "good-0",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-1",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          32,
+          32,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-2",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          512,
+          1,
+          1
+        ],
+        "grid": [
+          2,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-3",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          2,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-4",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          16,
+          32,
+          1
+        ],
+        "grid": [
+          2,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-5",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          32,
+          16,
+          1
+        ],
+        "grid": [
+          2,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-6",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          32,
+          32,
+          1
+        ],
+        "grid": [
+          2,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    },
+    {
+      "cid": "good-7",
+      "cpu_sec": 0.7,
+      "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
+      "ok": true,
+      "op": "saxpy",
+      "problem_size": 4096,
+      "spec": {
+        "args": [
+          {
+            "name": "alpha",
+            "ptr": false,
+            "type": "float"
+          },
+          {
+            "name": "x",
+            "ptr": true,
+            "type": "const float*"
+          },
+          {
+            "name": "y",
+            "ptr": true,
+            "type": "float*"
+          },
+          {
+            "name": "n",
+            "ptr": false,
+            "type": "int"
+          }
+        ],
+        "block": [
+          256,
+          1,
+          1
+        ],
+        "grid": [
+          4,
+          1,
+          1
+        ],
+        "kernel_name": "saxpy_kernel",
+        "op_type": "saxpy",
+        "problem_size": 4096,
+        "shared_mem_bytes": 0,
+        "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+      }
+    }
+  ],
+  "phase": "cpu-preflight",
+  "rejects": [
+    {
+      "cid": "bad-launch",
+      "cpu_sec": 0.2,
+      "msg": "Pre-flight FAILED: threads/block=2048 outside [1, 1024]; block dims [2048, 1, 1] exceed (1024, 1024, 64)",
+      "ok": false,
+      "op": "saxpy",
+      "problem_size": 4096
+    },
+    {
+      "cid": "bad-symbol",
+      "cpu_sec": 0.2,
+      "msg": "Pre-flight FAILED: Multiple __global__ kernels (2) - only one allowed in v1; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmpjo8wdaqx.cu(5): error: identifier \"no_such_fn\" is undefined\n  __attribute__((global)) void oops(flo",
+      "ok": false,
+      "op": "saxpy",
+      "problem_size": 4096
+    },
+    {
+      "cid": "bad-syntax",
+      "cpu_sec": 0.2,
+      "msg": "Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmplnqv2xzb.cu(1): error: expected a declaration\n  this is not CUDA {{{\n  ^\n\n1 error detected in the compilation of \"/tmp/tmplnqv2xz",
+      "ok": false,
+      "op": "saxpy",
+      "problem_size": 4096
+    },
+    {
+      "cid": "bad-shmem",
+      "cpu_sec": 0.2,
+      "msg": "Pre-flight FAILED: shared_mem=524288 exceeds 228KB/SM",
+      "ok": false,
+      "op": "saxpy",
+      "problem_size": 4096
+    }
+  ],
+  "surprises": [],
+  "verdict": "pass"
+}
