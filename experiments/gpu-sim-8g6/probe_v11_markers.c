@@ -90,5 +90,11 @@ static ncclNet_v11_t g_plugin = {
     .setNetAttr = (int(*)(void*,void*))stub_setNetAttr,
 };
 
-#define ENTRY(VER) __attribute__((visibility("default"))) ncclNet_v11_t* ncclNetPlugin##VER(void* logFunction) { (void)logFunction; return &g_plugin; }
-ENTRY(_v6) ENTRY(_v7) ENTRY(_v8) ENTRY(_v9) ENTRY(_v10) ENTRY(_v11)
+ncclNet_v11_t* entry_body(void* logFunction, const char *ver) { (void)logFunction; mark(ver, -2); return &g_plugin; }
+__attribute__((visibility("default")))
+ncclNet_v11_t* ncclNetPlugin_v6(void* lf) { return entry_body(lf, "ENTRY__v6"); }
+ncclNet_v11_t* ncclNetPlugin_v7(void* lf) { return entry_body(lf, "ENTRY__v7"); }
+ncclNet_v11_t* ncclNetPlugin_v8(void* lf) { return entry_body(lf, "ENTRY__v8"); }
+ncclNet_v11_t* ncclNetPlugin_v9(void* lf) { return entry_body(lf, "ENTRY__v9"); }
+ncclNet_v11_t* ncclNetPlugin_v10(void* lf) { return entry_body(lf, "ENTRY__v10"); }
+ncclNet_v11_t* ncclNetPlugin_v11(void* lf) { return entry_body(lf, "ENTRY__v11"); }

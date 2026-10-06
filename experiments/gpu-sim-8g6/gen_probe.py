@@ -82,8 +82,10 @@ def main():
         L.append(f"    .{name} = ({cast})stub_{name},")
     L.append("};")
     L.append("")
-    L.append("#define ENTRY(VER) __attribute__((visibility(\"default\"))) ncclNet_v11_t* ncclNetPlugin##VER(void* logFunction) { (void)logFunction; return &g_plugin; }")
-    L.append("ENTRY(_v6) ENTRY(_v7) ENTRY(_v8) ENTRY(_v9) ENTRY(_v10) ENTRY(_v11)")
+    L.append("ncclNet_v11_t* entry_body(void* logFunction, const char *ver) { (void)logFunction; mark(ver, -2); return &g_plugin; }")
+    L.append("__attribute__((visibility(\"default\")))")
+    for _v in ("v6", "v7", "v8", "v9", "v10", "v11"):
+        L.append("ncclNet_v11_t* ncclNetPlugin_" + _v + "(void* lf) { return entry_body(lf, \"ENTRY__" + _v + "\"); }")
     L.append("")
     Path(args.out).write_text("\n".join(L))
     print(f"members={len(MEMBERS)} -> {args.out}")
