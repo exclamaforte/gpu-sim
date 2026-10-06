@@ -1,0 +1,2969 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "family": "memory",
+  "queue_state_before": {
+    "recorded_at": "2026-10-06T04:18:36.828919+00:00",
+    "own_job_id": "20260928t053729-7b328655",
+    "own_description_substr": "u2o.6.6.2 anchor: memory",
+    "own_job_id_resolution": "command:newest",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 1150,
+      "failed": 374,
+      "canceled": 103,
+      "timed_out": 8,
+      "killed_underused": 21,
+      "killed_oom": 1,
+      "running": 1,
+      "queued": 1
+    },
+    "own_job_entry": null,
+    "own_job_in_active_set": false,
+    "n_active_including_self": 2,
+    "n_jobs_read": 1659,
+    "empty_claim_derived_from_n": 2,
+    "empty_claim_verified": false,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      },
+      {
+        "id": "20261006t041807-f414f28e",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-10-06T04:18:07+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      }
+    ],
+    "queue_was_empty": null,
+    "queue_was_empty_omitted_because": "our own job could not be identified in the set we read, so an emptiness claim is not derivable from this record",
+    "sample_provenance": {
+      "source": "fresh_parse",
+      "counts_by_path": {
+        "listing_ttl_hit": 0,
+        "terminal_hit_no_stat": 0,
+        "terminal_hit_stat_ok": 0,
+        "fresh_parse": 1659
+      },
+      "read_age_ms": 0.0,
+      "listing_age_ms": 0.0,
+      "n_files_seen": 1660,
+      "unparseable_skipped_retry": 0,
+      "note": "read_age_ms is the age of the OLDEST underlying read among the records served, so it is the worst case for this sample. The ACTIVE set is never cached, so active jobs are always fresh_parse and contribute 0."
+    },
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-10-06T04:21:53.602927+00:00",
+    "own_job_id": "20260928t053729-7b328655",
+    "own_description_substr": "u2o.6.6.2 anchor: memory",
+    "own_job_id_resolution": "command:newest",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 1150,
+      "failed": 374,
+      "canceled": 103,
+      "timed_out": 8,
+      "killed_underused": 21,
+      "killed_oom": 1,
+      "running": 1,
+      "queued": 1
+    },
+    "own_job_entry": null,
+    "own_job_in_active_set": false,
+    "n_active_including_self": 2,
+    "n_jobs_read": 1659,
+    "empty_claim_derived_from_n": 2,
+    "empty_claim_verified": false,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      },
+      {
+        "id": "20261006t041807-f414f28e",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-10-06T04:18:07+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      }
+    ],
+    "queue_was_empty": null,
+    "queue_was_empty_omitted_because": "our own job could not be identified in the set we read, so an emptiness claim is not derivable from this record",
+    "sample_provenance": {
+      "source": "terminal_hit_stat_ok",
+      "counts_by_path": {
+        "listing_ttl_hit": 0,
+        "terminal_hit_no_stat": 0,
+        "terminal_hit_stat_ok": 1656,
+        "fresh_parse": 3
+      },
+      "read_age_ms": 196949.451,
+      "listing_age_ms": 0.0,
+      "n_files_seen": 1660,
+      "unparseable_skipped_retry": 1,
+      "note": "read_age_ms is the age of the OLDEST underlying read among the records served, so it is the worst case for this sample. The ACTIVE set is never cached, so active jobs are always fresh_parse and contribute 0."
+    },
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "preflight_bypassed": true,
+  "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
+  "telemetry_before": {
+    "label": "before",
+    "at": 1791260316.617533,
+    "rc": 0,
+    "csv": "2407 MHz, 3105 MHz, 41, 67.05 W, 2 %, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2407 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "41",
+      "power.draw": "67.05 W",
+      "utilization.gpu": "2 %",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "telemetry_after": {
+    "label": "after",
+    "at": 1791260513.5709107,
+    "rc": 0,
+    "csv": "2422 MHz, 3105 MHz, 45, 66.58 W, 0 %, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2422 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "45",
+      "power.draw": "66.58 W",
+      "utilization.gpu": "0 %",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "throttling_observed": false,
+  "design": {
+    "trials": 100,
+    "invocations": 3,
+    "note": "invocations are independent PROCESSES"
+  },
+  "results": [
+    {
+      "label": "saxpy n=1024 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002288,
+      "iqr_ms": 0.0012159999999999999,
+      "mean_ms": 0.002784,
+      "std_ms": 0.0017132021757268621,
+      "cv": 0.6153743447294764,
+      "medians_across_invocations_ms": [
+        0.0024000000000000002,
+        0.002288,
+        0.0020959999999999998
+      ],
+      "across_invocation_cv": 0.06798837408207356,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=1024 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002304,
+      "iqr_ms": 0.0011839999999999997,
+      "mean_ms": 0.002676266666666667,
+      "std_ms": 0.0013872488304244933,
+      "cv": 0.5183522433331855,
+      "medians_across_invocations_ms": [
+        0.002304,
+        0.0020959999999999998,
+        0.002576
+      ],
+      "across_invocation_cv": 0.10351636785685107,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=1024 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002592,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.0026869333333333334,
+      "std_ms": 0.0011633932524675419,
+      "cv": 0.432981807935022,
+      "medians_across_invocations_ms": [
+        0.002752,
+        0.002592,
+        0.0024159999999999997
+      ],
+      "across_invocation_cv": 0.06497299487253093,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=1024 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002176,
+      "iqr_ms": 0.0010240000000000002,
+      "mean_ms": 0.0026890666666666663,
+      "std_ms": 0.0014810740704839468,
+      "cv": 0.5507762558820707,
+      "medians_across_invocations_ms": [
+        0.002176,
+        0.002112,
+        0.0027359999999999997
+      ],
+      "across_invocation_cv": 0.14661990926427412,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=1024 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002272,
+      "iqr_ms": 0.0010880000000000002,
+      "mean_ms": 0.002751466666666667,
+      "std_ms": 0.0018041476081768907,
+      "cv": 0.655703966918331,
+      "medians_across_invocations_ms": [
+        0.0017599999999999998,
+        0.002272,
+        0.002528
+      ],
+      "across_invocation_cv": 0.17883222224217915,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=1024 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002768,
+      "iqr_ms": 0.0011840000000000002,
+      "mean_ms": 0.0032677333333333333,
+      "std_ms": 0.0016057398513011057,
+      "cv": 0.4913925609906273,
+      "medians_across_invocations_ms": [
+        0.002704,
+        0.003088,
+        0.002768
+      ],
+      "across_invocation_cv": 0.07210206176443333,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=1024 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002608,
+      "iqr_ms": 0.001056,
+      "mean_ms": 0.003008,
+      "std_ms": 0.0015967859243291172,
+      "cv": 0.5308463844179246,
+      "medians_across_invocations_ms": [
+        0.002288,
+        0.002608,
+        0.002704
+      ],
+      "across_invocation_cv": 0.0859813804491037,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=1024 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00216,
+      "iqr_ms": 0.0008320000000000001,
+      "mean_ms": 0.002693866666666667,
+      "std_ms": 0.0015861036308147131,
+      "cv": 0.5887832721792886,
+      "medians_across_invocations_ms": [
+        0.00216,
+        0.002656,
+        0.00216
+      ],
+      "across_invocation_cv": 0.12315040145558528,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=1024 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002288,
+      "iqr_ms": 0.0012479999999999998,
+      "mean_ms": 0.0025781333333333334,
+      "std_ms": 0.0012515394109556203,
+      "cv": 0.4854440205920124,
+      "medians_across_invocations_ms": [
+        0.002288,
+        0.002016,
+        0.00256
+      ],
+      "across_invocation_cv": 0.11888111888111892,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=1024 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00224,
+      "iqr_ms": 0.0009919999999999998,
+      "mean_ms": 0.002779733333333333,
+      "std_ms": 0.0015661611262722387,
+      "cv": 0.5634213568228027,
+      "medians_across_invocations_ms": [
+        0.0025599999999999998,
+        0.002192,
+        0.00224
+      ],
+      "across_invocation_cv": 0.08583523722430685,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=1024 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002288,
+      "iqr_ms": 0.0014719999999999998,
+      "mean_ms": 0.002908266666666667,
+      "std_ms": 0.001924767790235405,
+      "cv": 0.6618264453862799,
+      "medians_across_invocations_ms": [
+        0.0022719999999999997,
+        0.00264,
+        0.002288
+      ],
+      "across_invocation_cv": 0.0866666666666667,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=1024 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002624,
+      "iqr_ms": 0.0016640000000000001,
+      "mean_ms": 0.0028592,
+      "std_ms": 0.0012772692905875277,
+      "cv": 0.44672261142540837,
+      "medians_across_invocations_ms": [
+        0.002624,
+        0.00264,
+        0.00232
+      ],
+      "across_invocation_cv": 0.07132549157964965,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=1024 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002704,
+      "iqr_ms": 0.001088,
+      "mean_ms": 0.0034533333333333334,
+      "std_ms": 0.00182036906917872,
+      "cv": 0.5271339003413281,
+      "medians_across_invocations_ms": [
+        0.002704,
+        0.003712,
+        0.002624
+      ],
+      "across_invocation_cv": 0.20123356753755633,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=1024 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002656,
+      "iqr_ms": 0.0010239999999999997,
+      "mean_ms": 0.0029594666666666668,
+      "std_ms": 0.002067437351471596,
+      "cv": 0.6985844357558555,
+      "medians_across_invocations_ms": [
+        0.00264,
+        0.002656,
+        0.002688
+      ],
+      "across_invocation_cv": 0.009183518426765184,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=1024 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002576,
+      "iqr_ms": 0.001344,
+      "mean_ms": 0.0028837333333333335,
+      "std_ms": 0.0017388045558992015,
+      "cv": 0.6029699541910492,
+      "medians_across_invocations_ms": [
+        0.002576,
+        0.002032,
+        0.002736
+      ],
+      "across_invocation_cv": 0.15075245221791894,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=1024 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002672,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.0031557333333333336,
+      "std_ms": 0.0018938704863873453,
+      "cv": 0.6001364140571696,
+      "medians_across_invocations_ms": [
+        0.002848,
+        0.002672,
+        0.002624
+      ],
+      "across_invocation_cv": 0.04344468445480543,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=1024 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0025599999999999998,
+      "iqr_ms": 0.0012799999999999999,
+      "mean_ms": 0.0031744,
+      "std_ms": 0.0019729010490018356,
+      "cv": 0.6215036066664048,
+      "medians_across_invocations_ms": [
+        0.0025599999999999998,
+        0.002608,
+        0.0025440000000000003
+      ],
+      "across_invocation_cv": 0.01295642738256928,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=1024 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028,
+      "iqr_ms": 0.001696,
+      "mean_ms": 0.0032928,
+      "std_ms": 0.0018094328805326112,
+      "cv": 0.5495119292190875,
+      "medians_across_invocations_ms": [
+        0.002704,
+        0.003248,
+        0.0028
+      ],
+      "across_invocation_cv": 0.09952948876648048,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=16384 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002592,
+      "iqr_ms": 0.001088,
+      "mean_ms": 0.0029295999999999997,
+      "std_ms": 0.0017165665691841602,
+      "cv": 0.5859388889896779,
+      "medians_across_invocations_ms": [
+        0.002608,
+        0.002288,
+        0.002592
+      ],
+      "across_invocation_cv": 0.07223992095887594,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=16384 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002512,
+      "iqr_ms": 0.0012799999999999999,
+      "mean_ms": 0.0030170666666666664,
+      "std_ms": 0.0018519285949798266,
+      "cv": 0.613817591583379,
+      "medians_across_invocations_ms": [
+        0.002512,
+        0.00248,
+        0.0028
+      ],
+      "across_invocation_cv": 0.06785507861132774,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=16384 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002896,
+      "iqr_ms": 0.001216,
+      "mean_ms": 0.0031845333333333334,
+      "std_ms": 0.0018263011750313538,
+      "cv": 0.5734909903171643,
+      "medians_across_invocations_ms": [
+        0.002592,
+        0.002896,
+        0.002896
+      ],
+      "across_invocation_cv": 0.0628033689767341,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=16384 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002352,
+      "iqr_ms": 0.0013759999999999998,
+      "mean_ms": 0.002707733333333333,
+      "std_ms": 0.0013387350197508635,
+      "cv": 0.494411692344469,
+      "medians_across_invocations_ms": [
+        0.002288,
+        0.0024159999999999997,
+        0.002352
+      ],
+      "across_invocation_cv": 0.027210884353741423,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=16384 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0024000000000000002,
+      "iqr_ms": 0.0008640000000000002,
+      "mean_ms": 0.0026005333333333335,
+      "std_ms": 0.0010477726410556027,
+      "cv": 0.40290682977425246,
+      "medians_across_invocations_ms": [
+        0.0024000000000000002,
+        0.0025120000000000003,
+        0.002336
+      ],
+      "across_invocation_cv": 0.03687261167437108,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=16384 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0028640000000000002,
+      "iqr_ms": 0.0017919999999999998,
+      "mean_ms": 0.0034549333333333335,
+      "std_ms": 0.0019019989294643716,
+      "cv": 0.5505168250610831,
+      "medians_across_invocations_ms": [
+        0.002848,
+        0.0028640000000000002,
+        0.003232
+      ],
+      "across_invocation_cv": 0.0728637275649957,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=16384 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0027359999999999997,
+      "iqr_ms": 0.001248,
+      "mean_ms": 0.0034319999999999997,
+      "std_ms": 0.0018504053609952604,
+      "cv": 0.5391624012223952,
+      "medians_across_invocations_ms": [
+        0.003376,
+        0.002608,
+        0.0027359999999999997
+      ],
+      "across_invocation_cv": 0.14155817630815348,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=16384 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0022719999999999997,
+      "iqr_ms": 0.00176,
+      "mean_ms": 0.0030645333333333335,
+      "std_ms": 0.002018201577900371,
+      "cv": 0.658567343989418,
+      "medians_across_invocations_ms": [
+        0.002256,
+        0.0022719999999999997,
+        0.0023680000000000003
+      ],
+      "across_invocation_cv": 0.02635224290394566,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=16384 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00248,
+      "iqr_ms": 0.0014399999999999999,
+      "mean_ms": 0.00292,
+      "std_ms": 0.0014620340602121207,
+      "cv": 0.500696595963055,
+      "medians_across_invocations_ms": [
+        0.002672,
+        0.00248,
+        0.00224
+      ],
+      "across_invocation_cv": 0.08784252765239409,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=16384 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002352,
+      "iqr_ms": 0.001376,
+      "mean_ms": 0.0028842666666666667,
+      "std_ms": 0.001654454673500204,
+      "cv": 0.573613630327826,
+      "medians_across_invocations_ms": [
+        0.002352,
+        0.002336,
+        0.0024000000000000002
+      ],
+      "across_invocation_cv": 0.01409706094446597,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=16384 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002736,
+      "iqr_ms": 0.0010240000000000002,
+      "mean_ms": 0.0031408,
+      "std_ms": 0.0015188285941162302,
+      "cv": 0.48358016878382265,
+      "medians_across_invocations_ms": [
+        0.00248,
+        0.002736,
+        0.003088
+      ],
+      "across_invocation_cv": 0.11028198860311511,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=16384 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002976,
+      "iqr_ms": 0.0013119999999999998,
+      "mean_ms": 0.003104,
+      "std_ms": 0.0014000515244755962,
+      "cv": 0.4510475272150761,
+      "medians_across_invocations_ms": [
+        0.0030559999999999997,
+        0.00264,
+        0.002976
+      ],
+      "across_invocation_cv": 0.07636236932315449,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=16384 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.005264,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.0057024,
+      "std_ms": 0.0020802277841376663,
+      "cv": 0.36479864340236856,
+      "medians_across_invocations_ms": [
+        0.004784,
+        0.005552,
+        0.005264
+      ],
+      "across_invocation_cv": 0.07461141940296699,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=16384 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.005264,
+      "iqr_ms": 0.0006719999999999999,
+      "mean_ms": 0.005980266666666667,
+      "std_ms": 0.0023579822303974336,
+      "cv": 0.3942938269861043,
+      "medians_across_invocations_ms": [
+        0.005376,
+        0.005184,
+        0.005264
+      ],
+      "across_invocation_cv": 0.018284268271006147,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=16384 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.005408,
+      "iqr_ms": 0.0010559999999999996,
+      "mean_ms": 0.0058485333333333335,
+      "std_ms": 0.00203048755493218,
+      "cv": 0.34717893174337383,
+      "medians_across_invocations_ms": [
+        0.005776,
+        0.0048319999999999995,
+        0.005408
+      ],
+      "across_invocation_cv": 0.08912410361514866,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=16384 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002432,
+      "iqr_ms": 0.001152,
+      "mean_ms": 0.0028293333333333334,
+      "std_ms": 0.0017840238147937971,
+      "cv": 0.6305456461335287,
+      "medians_across_invocations_ms": [
+        0.002432,
+        0.0025440000000000003,
+        0.002128
+      ],
+      "across_invocation_cv": 0.09090286518293049,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=16384 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00264,
+      "iqr_ms": 0.000768,
+      "mean_ms": 0.0029994666666666664,
+      "std_ms": 0.0017401193750855206,
+      "cv": 0.5801429282157453,
+      "medians_across_invocations_ms": [
+        0.00264,
+        0.0025120000000000003,
+        0.00264
+      ],
+      "across_invocation_cv": 0.028452580001131374,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=16384 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 16384,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002448,
+      "iqr_ms": 0.0018559999999999998,
+      "mean_ms": 0.0030597333333333334,
+      "std_ms": 0.0017683778822591277,
+      "cv": 0.5779516348676773,
+      "medians_across_invocations_ms": [
+        0.0024479999999999997,
+        0.0028320000000000003,
+        0.002448
+      ],
+      "across_invocation_cv": 0.08606463640093809,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=262144 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.003536,
+      "iqr_ms": 0.0011519999999999998,
+      "mean_ms": 0.003971733333333333,
+      "std_ms": 0.001878023319530555,
+      "cv": 0.47284728402306847,
+      "medians_across_invocations_ms": [
+        0.003536,
+        0.003456,
+        0.003568
+      ],
+      "across_invocation_cv": 0.016388869433927245,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=262144 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0031999999999999997,
+      "iqr_ms": 0.0013439999999999997,
+      "mean_ms": 0.0035285333333333335,
+      "std_ms": 0.0013347460809326138,
+      "cv": 0.3782722040127949,
+      "medians_across_invocations_ms": [
+        0.003456,
+        0.0031999999999999997,
+        0.003088
+      ],
+      "across_invocation_cv": 0.05807796119483544,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=262144 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0027359999999999997,
+      "iqr_ms": 0.0008639999999999998,
+      "mean_ms": 0.0033306666666666667,
+      "std_ms": 0.0015980711537442187,
+      "cv": 0.479805190275486,
+      "medians_across_invocations_ms": [
+        0.0031999999999999997,
+        0.00272,
+        0.0027359999999999997
+      ],
+      "across_invocation_cv": 0.094487082581383,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=262144 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.003168,
+      "iqr_ms": 0.0008319999999999998,
+      "mean_ms": 0.003264533333333333,
+      "std_ms": 0.0012261272014453858,
+      "cv": 0.3755903451576701,
+      "medians_across_invocations_ms": [
+        0.0028640000000000002,
+        0.0033439999999999998,
+        0.003168
+      ],
+      "across_invocation_cv": 0.07769660367120956,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=262144 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00472,
+      "iqr_ms": 0.0012799999999999999,
+      "mean_ms": 0.004865066666666667,
+      "std_ms": 0.0017347160551774447,
+      "cv": 0.35656573157835003,
+      "medians_across_invocations_ms": [
+        0.0049759999999999995,
+        0.00472,
+        0.004256
+      ],
+      "across_invocation_cv": 0.07847757849048444,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=262144 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0040160000000000005,
+      "iqr_ms": 0.0006720000000000003,
+      "mean_ms": 0.004206933333333333,
+      "std_ms": 0.0017123962580643443,
+      "cv": 0.40704145333045716,
+      "medians_across_invocations_ms": [
+        0.0040160000000000005,
+        0.004032,
+        0.0036
+      ],
+      "across_invocation_cv": 0.06308221155607166,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=262144 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.003392,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.0034912,
+      "std_ms": 0.0013392743393092408,
+      "cv": 0.3836143272540218,
+      "medians_across_invocations_ms": [
+        0.003456,
+        0.002928,
+        0.003392
+      ],
+      "across_invocation_cv": 0.08842515652530342,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=262144 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00336,
+      "iqr_ms": 0.001088,
+      "mean_ms": 0.0037797333333333336,
+      "std_ms": 0.001655342187643416,
+      "cv": 0.43795210975467824,
+      "medians_across_invocations_ms": [
+        0.00336,
+        0.003744,
+        0.0030239999999999998
+      ],
+      "across_invocation_cv": 0.10671403079808252,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=262144 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.003136,
+      "iqr_ms": 0.0010559999999999996,
+      "mean_ms": 0.0034885333333333334,
+      "std_ms": 0.001520092676330219,
+      "cv": 0.4357397596879928,
+      "medians_across_invocations_ms": [
+        0.002736,
+        0.003136,
+        0.0033280000000000002
+      ],
+      "across_invocation_cv": 0.09848761832881926,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=262144 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.003136,
+      "iqr_ms": 0.0008960000000000001,
+      "mean_ms": 0.0036730666666666668,
+      "std_ms": 0.0022526179561783606,
+      "cv": 0.6132798994967948,
+      "medians_across_invocations_ms": [
+        0.003136,
+        0.002928,
+        0.003488
+      ],
+      "across_invocation_cv": 0.08890354780378965,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=262144 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00376,
+      "iqr_ms": 0.0014719999999999998,
+      "mean_ms": 0.004111466666666667,
+      "std_ms": 0.0018201612097225154,
+      "cv": 0.44270362799710944,
+      "medians_across_invocations_ms": [
+        0.00376,
+        0.004256,
+        0.0028320000000000003
+      ],
+      "across_invocation_cv": 0.19990012385976136,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=262144 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.003984,
+      "iqr_ms": 0.001088,
+      "mean_ms": 0.004207466666666667,
+      "std_ms": 0.00165760954559562,
+      "cv": 0.39396855089260835,
+      "medians_across_invocations_ms": [
+        0.003776,
+        0.003984,
+        0.00408
+      ],
+      "across_invocation_cv": 0.03937514130900941,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=262144 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.040336,
+      "iqr_ms": 0.0011839999999999976,
+      "mean_ms": 0.04122986666666666,
+      "std_ms": 0.002341950103440645,
+      "cv": 0.05680227206104584,
+      "medians_across_invocations_ms": [
+        0.040928,
+        0.040336,
+        0.040288
+      ],
+      "across_invocation_cv": 0.008797633177047256,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=262144 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.038144,
+      "iqr_ms": 0.0013120000000000007,
+      "mean_ms": 0.039205333333333335,
+      "std_ms": 0.0028769440158015755,
+      "cv": 0.07338144510444775,
+      "medians_across_invocations_ms": [
+        0.039328,
+        0.038000000000000006,
+        0.038144
+      ],
+      "across_invocation_cv": 0.018932319394707204,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=262144 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.038848,
+      "iqr_ms": 0.0011840000000000045,
+      "mean_ms": 0.039161600000000005,
+      "std_ms": 0.002231879129222196,
+      "cv": 0.056991520500239916,
+      "medians_across_invocations_ms": [
+        0.038848,
+        0.038208000000000006,
+        0.038848
+      ],
+      "across_invocation_cv": 0.009564057468629834,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=262144 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002608,
+      "iqr_ms": 0.0015999999999999999,
+      "mean_ms": 0.002929066666666667,
+      "std_ms": 0.0013654141219036024,
+      "cv": 0.46616013812258816,
+      "medians_across_invocations_ms": [
+        0.0025440000000000003,
+        0.002608,
+        0.003232
+      ],
+      "across_invocation_cv": 0.13600592215722768,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=262144 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002208,
+      "iqr_ms": 0.0013759999999999998,
+      "mean_ms": 0.0027786666666666667,
+      "std_ms": 0.0014200918884887035,
+      "cv": 0.5110695376039,
+      "medians_across_invocations_ms": [
+        0.002064,
+        0.002208,
+        0.002592
+      ],
+      "across_invocation_cv": 0.11929176300162231,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=262144 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 262144,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0025919999999999997,
+      "iqr_ms": 0.001408,
+      "mean_ms": 0.0032352,
+      "std_ms": 0.0015829074814768089,
+      "cv": 0.4892765459559869,
+      "medians_across_invocations_ms": [
+        0.002352,
+        0.003376,
+        0.0025919999999999997
+      ],
+      "across_invocation_cv": 0.19310412005814886,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=4194304 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010656,
+      "iqr_ms": 0.0011839999999999993,
+      "mean_ms": 0.010698666666666667,
+      "std_ms": 0.0011465886716346468,
+      "cv": 0.10717117444242087,
+      "medians_across_invocations_ms": [
+        0.010544000000000001,
+        0.010735999999999999,
+        0.010656
+      ],
+      "across_invocation_cv": 0.009059690040092643,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=4194304 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010575999999999999,
+      "iqr_ms": 0.0013760000000000005,
+      "mean_ms": 0.010684266666666666,
+      "std_ms": 0.0017290953632293515,
+      "cv": 0.1618356614613405,
+      "medians_across_invocations_ms": [
+        0.010575999999999999,
+        0.010656,
+        0.010224
+      ],
+      "across_invocation_cv": 0.021919085886485466,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=4194304 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010384000000000001,
+      "iqr_ms": 0.0012480000000000008,
+      "mean_ms": 0.010469866666666666,
+      "std_ms": 0.0012115456924820258,
+      "cv": 0.11571739460057046,
+      "medians_across_invocations_ms": [
+        0.010384000000000001,
+        0.010208,
+        0.010544000000000001
+      ],
+      "across_invocation_cv": 0.016193166759084054,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=4194304 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010512,
+      "iqr_ms": 0.001568,
+      "mean_ms": 0.011056,
+      "std_ms": 0.0018248656881154342,
+      "cv": 0.16505659262983305,
+      "medians_across_invocations_ms": [
+        0.010224,
+        0.010784,
+        0.010512
+      ],
+      "across_invocation_cv": 0.026653371762081365,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=4194304 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.030048,
+      "iqr_ms": 0.0009919999999999998,
+      "mean_ms": 0.0302544,
+      "std_ms": 0.0013741183823868888,
+      "cv": 0.045418794700502696,
+      "medians_across_invocations_ms": [
+        0.030064,
+        0.029792,
+        0.030048
+      ],
+      "across_invocation_cv": 0.005093108389839548,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=4194304 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.010624,
+      "iqr_ms": 0.0012799999999999999,
+      "mean_ms": 0.010770666666666668,
+      "std_ms": 0.0012706819024347286,
+      "cv": 0.11797616078559622,
+      "medians_across_invocations_ms": [
+        0.011071999999999999,
+        0.010624,
+        0.009984
+      ],
+      "across_invocation_cv": 0.051781840880712256,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=4194304 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013295999999999999,
+      "iqr_ms": 0.0014719999999999994,
+      "mean_ms": 0.013771733333333334,
+      "std_ms": 0.002137469166130401,
+      "cv": 0.15520698189507015,
+      "medians_across_invocations_ms": [
+        0.012944,
+        0.013295999999999999,
+        0.013744
+      ],
+      "across_invocation_cv": 0.030083947385694233,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=4194304 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.01256,
+      "iqr_ms": 0.0016000000000000007,
+      "mean_ms": 0.012614933333333333,
+      "std_ms": 0.001901899691402833,
+      "cv": 0.1507657346374799,
+      "medians_across_invocations_ms": [
+        0.011424,
+        0.01256,
+        0.012624
+      ],
+      "across_invocation_cv": 0.05532429599658035,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=4194304 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.011807999999999999,
+      "iqr_ms": 0.0010559999999999996,
+      "mean_ms": 0.012521066666666667,
+      "std_ms": 0.002151116681756495,
+      "cv": 0.1717997946199867,
+      "medians_across_invocations_ms": [
+        0.011807999999999999,
+        0.01176,
+        0.012208
+      ],
+      "across_invocation_cv": 0.020625854306977144,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=4194304 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.01192,
+      "iqr_ms": 0.0010879999999999987,
+      "mean_ms": 0.011915733333333334,
+      "std_ms": 0.001490116567692184,
+      "cv": 0.12505454142077005,
+      "medians_across_invocations_ms": [
+        0.01192,
+        0.011232,
+        0.011984000000000002
+      ],
+      "across_invocation_cv": 0.03559785306228248,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=4194304 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.014159999999999999,
+      "iqr_ms": 0.0007679999999999996,
+      "mean_ms": 0.014570133333333334,
+      "std_ms": 0.002088427187505977,
+      "cv": 0.14333617543005625,
+      "medians_across_invocations_ms": [
+        0.014304,
+        0.014159999999999999,
+        0.01392
+      ],
+      "across_invocation_cv": 0.013730867104170048,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=4194304 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013232,
+      "iqr_ms": 0.001568,
+      "mean_ms": 0.013528533333333334,
+      "std_ms": 0.0015925452548359704,
+      "cv": 0.11771750976966981,
+      "medians_across_invocations_ms": [
+        0.01344,
+        0.013232,
+        0.013232
+      ],
+      "across_invocation_cv": 0.009028332196630066,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=4194304 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.60568,
+      "iqr_ms": 0.0050240000000000284,
+      "mean_ms": 0.6085125333333333,
+      "std_ms": 0.004660810344421523,
+      "cv": 0.007659349790036956,
+      "medians_across_invocations_ms": [
+        0.610336,
+        0.60568,
+        0.605568
+      ],
+      "across_invocation_cv": 0.004481348283844981,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=4194304 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.5728800000000001,
+      "iqr_ms": 0.0012799999999999478,
+      "mean_ms": 0.5737717333333333,
+      "std_ms": 0.0029798027341525935,
+      "cv": 0.005193359242082903,
+      "medians_across_invocations_ms": [
+        0.572416,
+        0.573248,
+        0.5728800000000001
+      ],
+      "across_invocation_cv": 0.0007278057269387797,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=4194304 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.575312,
+      "iqr_ms": 0.0029760000000000897,
+      "mean_ms": 0.5769877333333333,
+      "std_ms": 0.004740236187588573,
+      "cv": 0.008215488672876303,
+      "medians_across_invocations_ms": [
+        0.575728,
+        0.574896,
+        0.575312
+      ],
+      "across_invocation_cv": 0.0007230859081681375,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=4194304 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002496,
+      "iqr_ms": 0.001568,
+      "mean_ms": 0.0027786666666666667,
+      "std_ms": 0.001422534127756789,
+      "cv": 0.511948462484449,
+      "medians_across_invocations_ms": [
+        0.0024479999999999997,
+        0.002496,
+        0.002704
+      ],
+      "across_invocation_cv": 0.05337803691285807,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=4194304 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0025440000000000003,
+      "iqr_ms": 0.0016960000000000002,
+      "mean_ms": 0.0028288,
+      "std_ms": 0.001275016740335433,
+      "cv": 0.45072707166835163,
+      "medians_across_invocations_ms": [
+        0.002176,
+        0.0025440000000000003,
+        0.002672
+      ],
+      "across_invocation_cv": 0.10450309700929274,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=4194304 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002608,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.002984,
+      "std_ms": 0.0015298024686933732,
+      "cv": 0.5126683876318274,
+      "medians_across_invocations_ms": [
+        0.002608,
+        0.0025919999999999997,
+        0.0026560000000000004
+      ],
+      "across_invocation_cv": 0.012718936860281993,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=67108864 auto/256",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.510976,
+      "iqr_ms": 0.006303999999999976,
+      "mean_ms": 0.5136672,
+      "std_ms": 0.004543911004141612,
+      "cv": 0.008846021323030966,
+      "medians_across_invocations_ms": [
+        0.5165919999999999,
+        0.510416,
+        0.510976
+      ],
+      "across_invocation_cv": 0.006662397225186947,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=67108864 auto/256",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.349584,
+      "iqr_ms": 0.0040320000000000356,
+      "mean_ms": 0.35095573333333335,
+      "std_ms": 0.004630588577249266,
+      "cv": 0.013194224050049046,
+      "medians_across_invocations_ms": [
+        0.349008,
+        0.350016,
+        0.349584
+      ],
+      "across_invocation_cv": 0.0014468077111855048,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=67108864 auto/256",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.349136,
+      "iqr_ms": 0.0029120000000000257,
+      "mean_ms": 0.3504496,
+      "std_ms": 0.0030459484354116123,
+      "cv": 0.008691544905206376,
+      "medians_across_invocations_ms": [
+        0.349744,
+        0.349136,
+        0.34894400000000003
+      ],
+      "across_invocation_cv": 0.0011957288674709504,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=67108864 stride=17 auto/256",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.34905600000000003,
+      "iqr_ms": 0.0020479999999999943,
+      "mean_ms": 0.3502826666666667,
+      "std_ms": 0.003768719976316494,
+      "cv": 0.01075908212124825,
+      "medians_across_invocations_ms": [
+        0.34905600000000003,
+        0.348976,
+        0.349904
+      ],
+      "across_invocation_cv": 0.0014721655075107846,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=67108864 auto/256",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.886432,
+      "iqr_ms": 0.00601599999999991,
+      "mean_ms": 0.8892549333333334,
+      "std_ms": 0.006334222223913598,
+      "cv": 0.007123066723026255,
+      "medians_across_invocations_ms": [
+        0.886432,
+        0.886864,
+        0.885856
+      ],
+      "across_invocation_cv": 0.0005705330648307468,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=67108864 auto/256",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        262144,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.34919999999999995,
+      "iqr_ms": 0.003392000000000006,
+      "mean_ms": 0.3506517333333333,
+      "std_ms": 0.004299312037463698,
+      "cv": 0.01226091768203731,
+      "medians_across_invocations_ms": [
+        0.348336,
+        0.349472,
+        0.34919999999999995
+      ],
+      "across_invocation_cv": 0.0016995630374139962,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=67108864 auto/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.509552,
+      "iqr_ms": 0.007487999999999939,
+      "mean_ms": 0.5077770666666667,
+      "std_ms": 0.00665438302827585,
+      "cv": 0.013104930224515556,
+      "medians_across_invocations_ms": [
+        0.51016,
+        0.49971200000000005,
+        0.509552
+      ],
+      "across_invocation_cv": 0.011579109590085854,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=67108864 auto/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.362816,
+      "iqr_ms": 0.00787199999999999,
+      "mean_ms": 0.3636624,
+      "std_ms": 0.006057602779194793,
+      "cv": 0.01665721498619267,
+      "medians_across_invocations_ms": [
+        0.359136,
+        0.363776,
+        0.362816
+      ],
+      "across_invocation_cv": 0.006767639779071005,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=67108864 auto/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.36008,
+      "iqr_ms": 0.004640000000000033,
+      "mean_ms": 0.36091413333333333,
+      "std_ms": 0.0058629751673045126,
+      "cv": 0.016244792391905533,
+      "medians_across_invocations_ms": [
+        0.360768,
+        0.35948800000000003,
+        0.36008
+      ],
+      "across_invocation_cv": 0.0017788902314094979,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=67108864 stride=17 auto/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.358464,
+      "iqr_ms": 0.0016960000000000308,
+      "mean_ms": 0.35927893333333333,
+      "std_ms": 0.0026651781246584978,
+      "cv": 0.007418130809762195,
+      "medians_across_invocations_ms": [
+        0.358176,
+        0.358688,
+        0.358464
+      ],
+      "across_invocation_cv": 0.0007160581725697097,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=67108864 auto/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.58448,
+      "iqr_ms": 0.005792000000000019,
+      "mean_ms": 0.5862336,
+      "std_ms": 0.004690407387893591,
+      "cv": 0.008000918725732525,
+      "medians_across_invocations_ms": [
+        0.58448,
+        0.587072,
+        0.5828
+      ],
+      "across_invocation_cv": 0.0036802709420187337,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=67108864 auto/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.36495999999999995,
+      "iqr_ms": 0.004288000000000014,
+      "mean_ms": 0.36674666666666667,
+      "std_ms": 0.004509005056425426,
+      "cv": 0.01229460405845659,
+      "medians_across_invocations_ms": [
+        0.366576,
+        0.36495999999999995,
+        0.36360000000000003
+      ],
+      "across_invocation_cv": 0.004081230080720803,
+      "throttle_active": false
+    },
+    {
+      "label": "saxpy n=67108864 1block/1024",
+      "kernel": "k_saxpy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 23.030160000000002,
+      "iqr_ms": 0.019007000000001995,
+      "mean_ms": 23.053746583333336,
+      "std_ms": 0.102974843868155,
+      "cv": 0.004466729236218831,
+      "medians_across_invocations_ms": [
+        23.030160000000002,
+        23.025648,
+        23.043967000000002
+      ],
+      "across_invocation_cv": 0.00041437613352780333,
+      "throttle_active": false
+    },
+    {
+      "label": "relu n=67108864 1block/1024",
+      "kernel": "k_relu",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 21.972111499999997,
+      "iqr_ms": 0.029887999999999693,
+      "mean_ms": 22.02992795,
+      "std_ms": 0.2004134043898585,
+      "cv": 0.009097324550707778,
+      "medians_across_invocations_ms": [
+        21.9665605,
+        21.980128,
+        21.972111499999997
+      ],
+      "across_invocation_cv": 0.00031042664229661367,
+      "throttle_active": false
+    },
+    {
+      "label": "copy n=67108864 1block/1024",
+      "kernel": "k_copy",
+      "op_type": "memory",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 21.996703,
+      "iqr_ms": 0.02579099999999812,
+      "mean_ms": 22.081496416666667,
+      "std_ms": 0.22730977968628371,
+      "cv": 0.010294129319728298,
+      "medians_across_invocations_ms": [
+        22.1564485,
+        21.9799195,
+        21.996703
+      ],
+      "across_invocation_cv": 0.00442000334285942,
+      "throttle_active": false
+    },
+    {
+      "label": "strided_read n=67108864 stride=17 1block/1024",
+      "kernel": "k_strided_read",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002288,
+      "iqr_ms": 0.0009599999999999999,
+      "mean_ms": 0.0024965333333333336,
+      "std_ms": 0.0012206795477077883,
+      "cv": 0.48894982951337385,
+      "medians_across_invocations_ms": [
+        0.002528,
+        0.002064,
+        0.002288
+      ],
+      "across_invocation_cv": 0.10118283682700972,
+      "throttle_active": false
+    },
+    {
+      "label": "scatter_write n=67108864 1block/1024",
+      "kernel": "k_scatter_write",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002576,
+      "iqr_ms": 0.0011520000000000002,
+      "mean_ms": 0.0031765333333333336,
+      "std_ms": 0.002059171788971764,
+      "cv": 0.6482449805779142,
+      "medians_across_invocations_ms": [
+        0.002576,
+        0.002736,
+        0.002336
+      ],
+      "across_invocation_cv": 0.07897316354885724,
+      "throttle_active": false
+    },
+    {
+      "label": "random_access n=67108864 1block/1024",
+      "kernel": "k_random_access",
+      "op_type": "access",
+      "n_problem_size": 67108864,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002976,
+      "iqr_ms": 0.0015040000000000001,
+      "mean_ms": 0.0031210666666666668,
+      "std_ms": 0.0013151310029051327,
+      "cv": 0.4213722881830355,
+      "medians_across_invocations_ms": [
+        0.002688,
+        0.0036,
+        0.002976
+      ],
+      "across_invocation_cv": 0.150972044397238,
+      "throttle_active": false
+    }
+  ],
+  "wall_sec": 196.77376246452332,
+  "artifact_provenance": {
+    "written_by_job": "20260928t053729-7b328655",
+    "written_at_utc": "2026-10-06T04:21:53.603055+00:00",
+    "content_sha256": "5d1c124383c053475a37c171e9a1e26c633978cae5887b108aa185858c1c6925",
+    "note": "content_sha256 covers this artifact EXCLUDING this provenance block, so it can be recomputed after a restore to detect that the on-disk content is not what this job produced."
+  }
+}
