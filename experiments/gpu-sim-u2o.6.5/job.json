@@ -1,0 +1,28 @@
+{
+  "bead": "gpu-sim-u2o.6.5",
+  "mode": "CPU preflight (direct) + ONE batched ts GPU job",
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.5/build_corpus.py --out experiments/gpu-sim-u2o.6.5/preflight_results.json",
+      "worktree": ".lab/wt/gpu-sim-u2o.6.5",
+      "exit": 0,
+      "result": "8 pass / 4 reject, surprises=[]"
+    },
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.5/pair_results.py --metrics-out experiments/gpu-sim-u2o.6.5/metrics.json",
+      "worktree": ".lab/wt/gpu-sim-u2o.6.5",
+      "exit": 0,
+      "result": "paired=8 rejected_kept_out=4 verdict=pass"
+    }
+  ],
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t010919-80b3abca",
+      "state": "finished",
+      "exit": 0,
+      "purpose": "measure_spec over the 8 preflight-passing specs only (normal kernels, 30s timeouts)",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t010919-80b3abca.log",
+      "result": "measured_success=8/8, 20 trials each, no timeouts"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "bead": "gpu-sim-u2o.6.5",
+  "corpus": {
+    "n": 12,
+    "passed": [
+      "good-0",
+      "good-1",
+      "good-2",
+      "good-3",
+      "good-4",
+      "good-5",
+      "good-6",
+      "good-7"
+    ],
+    "rejected": {
+      "bad-launch": "Pre-flight FAILED: threads/block=2048 outside [1, 1024]; block dims [2048, 1, 1] exceed (1024, 1024, 64)",
+      "bad-shmem": "Pre-flight FAILED: shared_mem=524288 exceeds 228KB/SM",
+      "bad-symbol": "Pre-flight FAILED: Multiple __global__ kernels (2) - only one allowed in v1; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmpjo8wdaqx.cu(5): error: identifier \"no_such_fn\" is undefined\n  __attribute__((global)) void oops(flo",
+      "bad-syntax": "Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmplnqv2xzb.cu(1): error: expected a declaration\n  this is not CUDA {{{\n  ^\n\n1 error detected in the compilation of \"/tmp/tmplnqv2xz"
+    }
+  },
+  "cost": {
+    "finding": "preflight screens a kernel in ~0.7 s CPU; GPU time is spent only on passes",
+    "gpu_wall_sec_per_kernel": [
+      0.4,
+      0.389,
+      0.43,
+      0.328,
+      0.383,
+      0.382,
+      0.353,
+      0.329
+    ],
+    "preflight_cpu_sec_per_kernel": 0.7,
+    "preflight_cpu_sec_total": 5.6
+  },
+  "failures": [],
+  "pairing": {
+    "good-0": {
+      "median_ms": 0.003184,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-1": {
+      "median_ms": 0.002496,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-2": {
+      "median_ms": 0.005232,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-3": {
+      "median_ms": 0.002704,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-4": {
+      "median_ms": 0.002576,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-5": {
+      "median_ms": 0.00256,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-6": {
+      "median_ms": 0.002704,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    },
+    "good-7": {
+      "median_ms": 0.002064,
+      "n_trials": 20,
+      "preflight_msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)"
+    }
+  },
+  "scope_guard": "single-op corpus (saxpy n=4096, 8 distinct launch configs); the validator is op-agnostic by construction (launch bounds, API scan, ptx, smoke launch) and the 4 rejects span 4 distinct failure modes. Multi-op coverage is u2o.7 batch territory, not this bead.",
+  "submitted": {
+    "cids": [
+      "good-0",
+      "good-1",
+      "good-2",
+      "good-3",
+      "good-4",
+      "good-5",
+      "good-6",
+      "good-7"
+    ],
+    "rejected_submitted": [],
+    "tree": {
+      "branch": "lab/gpu-sim-u2o.6.5",
+      "commit": "36f5303"
+    },
+    "ts_job": "20261006t010919-80b3abca"
+  },
+  "surprises": [],
+  "verdict": "pass"
+}
