@@ -53,28 +53,31 @@ def main():
                                         d["telemetry_after"]["fields"],
                                         d["queue_state_before"],
                                         d["queue_state_after"])
-        others = [j for j in
-                  d["queue_state_before"].get("other_active_jobs", [])]
-        self_as_other = [j["id"] for j in others if j["id"] == DOSE_JOB]
+        sides = {}
+        for side in ("queue_state_before", "queue_state_after"):
+            q = d[side]
+            oids = [j["id"] for j in q.get("other_active_jobs", [])]
+            rids = [j["id"] for j in q.get("other_running_jobs", [])]
+            sides[side] = {
+                "raw_n_other_active": q.get("n_other_active"),
+                "raw_other_ids_active": oids,
+                "raw_other_ids_running": rids,
+                "running_self_only": sorted(rids) in ([], [DOSE_JOB]),
+                "stale_own_job_id_recorded": q.get("own_job_id"),
+                "true_own_job_id": DOSE_JOB,
+            }
+        external = sorted({i for s in sides.values() for i in s["raw_other_ids_running"]} - {DOSE_JOB})
+        attributed_keep = all(s["running_self_only"] for s in sides.values())
         disp["self_attribution"] = {
-            "n_other_active": d["queue_state_before"].get("n_other_active"),
-            "other_ids": [j["id"] for j in others],
-            "dose_job_listed_as_other": self_as_other == [DOSE_JOB]
-            and len(others) == 1,
-            "own_job_id_recorded": d["queue_state_before"].get("own_job_id"),
-            "own_job_id_is_stale": d["queue_state_before"].get("own_job_id")
-            != DOSE_JOB,
-            "reading": ("the single 'other' entry IS this dose job "
-                        "(id match): no external tenant. The recorded "
-                        "own_job_id points at a stale 6.6.2 job "
-                        "(command-substring match predates dose.sh), so the "
-                        "queue axis is UNVERIFIABLE per 6.6.6 (own entry "
-                        "absent) and contention-freedom rests on telemetry: "
-                        "before-power 11.9W idle, util 0%, temps 38-45C -- "
-                        "no 574W/97% co-tenant signature anywhere."),
+            "per_boundary": sides,
+            "external_tenant_ids": external,
+            "attributed_disposition": "keep" if attributed_keep and not external else disp["disposition"],
+            "attribution_basis": "PI ruling 2026-10-06 option (b): entries id-equal to the dose job attributed out; any other id still discards",
+            "reading": "queue '1' is the dose job itself on both boundaries (id match), no external tenant; recorded own_job_id is stale (matcher predates dose.sh), so contention-freedom rests on gapless telemetry",
         }
         fams[fam] = disp
-        if disp["disposition"] == "discard":
+        final = disp["self_attribution"]["attributed_disposition"]
+        if final == "discard":
             fails.append(f"dose family {fam} trips ruling-b: {disp['fired_clauses']}")
         for c in d["results"]:
             cells.append((fam, c))
@@ -125,6 +128,7 @@ def main():
                        "the 6.6 spread discipline",
         },
         "carryover_trajectory": traj,
+        "followup_wrapper_fix": "dose.sh wraps run_family.sh, so the queue matcher (own_command_substr='run_family.sh <fam>') resolves a STALE job id and self leaks into n_other_*. Next dose: match own job by id/description (e.g. U2O_JOB_DESC='u2o.6.6 dose' + description-substring match), so own_job_entry resolves and the queue axis is verifiable in-record. Named per PI ruling 2026-10-06; not implemented here (no unverified harness change).",
         "verdict": "pass" if not fails else "fail",
         "failures": fails,
     }

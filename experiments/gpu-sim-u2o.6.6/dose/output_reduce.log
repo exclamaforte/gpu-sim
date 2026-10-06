@@ -1,0 +1,44 @@
+OK  anchor_kernels.py
+OK  measure_family.py
+OK  merge_metrics.py
+OK  module body executes: measure_family.py
+OK  module body executes: merge_metrics.py
+OK  module body executes: anchor_kernels.py
+OK  import epic_u2o.kernel_driver
+OK  import epic_u2o.safe_harness
+OK  import epic_u2o.queue_state
+OK  import anchor_kernels
+OK  tests/test_anchor_metrics.py
+OK  tests/test_queue_state.py
+OK  tests/test_queue_state.py
+
+safe to submit
+submission gate: PASS
+=== ts job 2026-10-05T21:21:53-07:00 family=reduce ===
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'reduce'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2407 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "45", "power.draw": "66.90 W", "utilization.gpu": "0 %", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t053729-c1b9c919", "n_other_active": 2, "n_other_running_at_sample_time": 1}
+overlapping jobs: [{"id": "20261006t041800-5878994f", "state": "running", "description": "u2o.6.6 dose: 124 anchor cells ruling-b"}, {"id": "20261006t041807-f414f28e", "state": "queued", "description": ""}]
+reduce: 8 configs x 3 process invocations x 100 trials
+  block_sum n=4096 auto/256    grid=    [16, 1, 1] med=    3.328us iqr=   1.440us cv=0.519 ai_cv=0.0354
+  block_sum n=4096 auto/1024   grid=     [4, 1, 1] med=    4.144us iqr=   1.056us cv=0.418 ai_cv=0.0239
+  block_sum n=65536 auto/256   grid=   [256, 1, 1] med=    2.880us iqr=   1.152us cv=0.452 ai_cv=0.1295
+  block_sum n=65536 auto/1024  grid=    [64, 1, 1] med=    3.440us iqr=   1.280us cv=0.478 ai_cv=0.0503
+  block_sum n=1048576 auto/256 grid=  [4096, 1, 1] med=    6.944us iqr=   1.056us cv=0.238 ai_cv=0.046
+  block_sum n=1048576 auto/1024 grid=  [1024, 1, 1] med=   10.784us iqr=   0.896us cv=0.141 ai_cv=0.0294
+  block_sum n=16777216 auto/256 grid= [65536, 1, 1] med=   65.216us iqr=   1.280us cv=0.034 ai_cv=0.0047
+  block_sum n=16777216 auto/1024 grid= [16384, 1, 1] med=  118.320us iqr=   2.720us cv=0.038 ai_cv=0.0115
+telemetry after:  {"clocks.sm": "2490 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "46", "power.draw": "71.79 W", "utilization.gpu": "0 %", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim-runs/u66-dose-20261006/family_reduce.json
+reduce: 8/8 configs measured, 17.4s
+=== family=reduce exit=0 ===

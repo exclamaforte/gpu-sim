@@ -1,0 +1,44 @@
+OK  anchor_kernels.py
+OK  measure_family.py
+OK  merge_metrics.py
+OK  module body executes: measure_family.py
+OK  module body executes: merge_metrics.py
+OK  module body executes: anchor_kernels.py
+OK  import epic_u2o.kernel_driver
+OK  import epic_u2o.safe_harness
+OK  import epic_u2o.queue_state
+OK  import anchor_kernels
+OK  tests/test_anchor_metrics.py
+OK  tests/test_queue_state.py
+OK  tests/test_queue_state.py
+
+safe to submit
+submission gate: PASS
+=== ts job 2026-10-05T21:22:11-07:00 family=gemm ===
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'gemm'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2422 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "45", "power.draw": "70.50 W", "utilization.gpu": "0 %", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t053730-ae3d17fb", "n_other_active": 2, "n_other_running_at_sample_time": 1}
+overlapping jobs: [{"id": "20261006t041800-5878994f", "state": "running", "description": "u2o.6.6 dose: 124 anchor cells ruling-b"}, {"id": "20261006t041807-f414f28e", "state": "queued", "description": ""}]
+gemm: 8 configs x 3 process invocations x 100 trials
+  tiled_gemm 512^3 32x32       grid=   [16, 16, 1] med=   40.208us iqr=   1.344us cv=0.036 ai_cv=0.0091
+  tiled_gemm 512^3 16x16       grid=   [16, 16, 1] med=   13.008us iqr=   0.736us cv=0.139 ai_cv=0.0047
+  tiled_gemm 1024^3 32x32      grid=   [32, 32, 1] med=  257.280us iqr=   1.184us cv=0.010 ai_cv=0.0017
+  tiled_gemm 1024^3 16x16      grid=   [32, 32, 1] med=   62.656us iqr=   2.368us cv=0.050 ai_cv=0.0219
+  tiled_gemm 2048^3 32x32      grid=   [64, 64, 1] med= 1838.944us iqr=  15.488us cv=0.006 ai_cv=0.0048
+  tiled_gemm 2048^3 16x16      grid=   [64, 64, 1] med=  406.512us iqr=   2.560us cv=0.008 ai_cv=0.0002
+  tiled_gemm 4096^3 32x32      grid= [128, 128, 1] med=15029.360us iqr=  19.904us cv=0.012 ai_cv=0.0005
+  tiled_gemm 4096^3 16x16      grid= [128, 128, 1] med= 3092.848us iqr=  17.664us cv=0.005 ai_cv=0.0055
+telemetry after:  {"clocks.sm": "2595 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "47", "power.draw": "124.47 W", "utilization.gpu": "1 %", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim-runs/u66-dose-20261006/family_gemm.json
+gemm: 8/8 configs measured, 18.9s
+=== family=gemm exit=0 ===
