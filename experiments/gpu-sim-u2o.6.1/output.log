@@ -1,0 +1,10 @@
+PASS  normal.succeeds  rc=0 err=
+PASS  normal.stdout_captured  'ok\n'
+PASS  normal.no_timeout
+PASS  hang.timeout_reported  timeout=True rc=-1
+PASS  hang.waited_full_budget  wall=3.03s
+PASS  hang.killed_promptly  wall=3.03s
+PASS  hang.pidfile_written  [500752, 500757]
+PASS  hang.no_survivors  {500752: True, 500757: True}
+PASS  pipeline.continues  rc=0
+verdict=pass -> experiments/gpu-sim-u2o.6.1/metrics.json

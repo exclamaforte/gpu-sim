@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-u2o.6.1",
+  "mode": "CPU-only, direct (no ts queue: no CUDA in this test)",
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 tests/test_process_isolation_timeout.py --metrics-out experiments/gpu-sim-u2o.6.1/metrics.json",
+      "worktree": ".lab/wt/gpu-sim-u2o.6.1",
+      "start_utc": "2026-10-06T00:56:26Z",
+      "end_utc": "2026-10-06T00:56:30Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.1/output.log"
+    }
+  ],
+  "gpu_jobs": [],
+  "gpu_note": "No GPU job: the subprocess+timeout kill path is GPU-independent and this bead's acceptance (hang killed in-budget, pipeline continues) is demonstrated on compiled CPU binaries. The post-hang GPU-health probe is stubbed here and covered for real by the supervised dose in gpu-sim-u2o.6.10 (experiments/gpu-sim-u2o.6.10/, ts 20260928t072424-9816875f)."
+}
