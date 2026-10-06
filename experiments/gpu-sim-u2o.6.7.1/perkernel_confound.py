@@ -286,7 +286,15 @@ def main() -> int:
         inv_meds = [statistics.median(v) for v in by_inv]
         trials = [x for v in by_inv for x in v]
         t_s = time.time()
-        qstate, telemetry = qs.queue_state(), _telemetry()
+        # 6.6.6 hardening: queue_state() refuses unidentified calls (null
+        # own_job_id is unauditable). Identify by our own command substring:
+        # the ts job command carries this script's filename, and the matcher
+        # prefers the RUNNING job, so old finished runs of the same script
+        # cannot shadow us. U2O_OWN_CMD overrides for uniquely-named reruns.
+        import os as _os
+        qstate, telemetry = qs.queue_state(
+            own_command_substr=_os.environ.get(
+                "U2O_OWN_CMD", "perkernel_confound.py")), _telemetry()
         sampling += time.time() - t_s
         toks = tokenize_for_model(s["source"], max_length=256)
         rows.append({
