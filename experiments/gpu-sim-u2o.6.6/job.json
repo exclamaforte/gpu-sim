@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-u2o.6.6",
+  "mode": "CPU-only, direct (no ts queue: statistics over committed JSON, no CUDA)",
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.6/build_targets.py --metrics-out experiments/gpu-sim-u2o.6.6/metrics.json",
+      "worktree": ".lab/wt/gpu-sim-u2o.6.6",
+      "start_utc": "2026-10-06T01:02:09Z",
+      "end_utc": "2026-10-06T01:02:10Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6/output.log"
+    }
+  ],
+  "gpu_jobs": [],
+  "gpu_note": "No GPU job. All numbers derive from committed GPU-measured artifacts: 6.6.1 trial arrays (ts jobs in its job.json), 6.6.2 anchor families (4 authoritative ts jobs in its job.json), 6.6.3 contention rule, variance_probe witness. No new measurement was needed; the bead's work is target construction, not data collection."
+}

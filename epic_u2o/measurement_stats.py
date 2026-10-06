@@ -20,6 +20,8 @@ class DiscardReason(Enum):
     HIGH_VARIANCE = "high_variance"
     OUTLIER_CONTAMINATION = "outlier_contamination"
     BIMODAL_DISTRIBUTION = "bimodal_distribution"
+    CONTENTION_BIAS = "contention_bias"  # gpu-sim-u2o.6.6: co-tenancy is a
+    # systematic multiplier, not trial noise; it must discard, never average in.
     NONE = "none"
 
 
@@ -561,6 +563,163 @@ def verdict_for_ratio(ratio: float, spread: Optional[SpreadRecord]) -> dict:
             ("indistinguishable from run-to-run movement of the same code"
              if verdict == "inconclusive" else
              f"outside the band, so the shift exceeds measured run-to-run noise")),
+    }
+
+
+# ---------------------------------------------------------------------------
+# gpu-sim-u2o.6.6 -- noise-aware target construction on REAL data.
+#
+# The audit (gpu-sim-u2o.15) found this module's __main__ demo ran on synthetic
+# random.lognormvariate draws, not real trial statistics. This section is the
+# real-data path, and it encodes the PI rulings that govern it:
+#
+#   * regime: the informative split is 10 us (PI 2026-09-27). Trial-noise sigma
+#     is regime-dependent (~7% sub-10us, ~0.1% over-10us) -- a single sigma
+#     learns the mixture and is wrong for both, so 9.3 must calibrate per regime.
+#   * cell median = median of PER-INVOCATION medians, quoted with its invocation
+#     count and cell (acceptance criterion 2). A single run can sit far from its
+#     cell's median (1.472 / 2.208 / 2.304 us on 6.6.1).
+#   * noise vs bias separate (criterion 4): trial noise averages away, co-tenancy
+#     bias does not. Contention discards via ContentionBias; it never widens sigma.
+#   * every number carries its population and convention (criterion 3).
+# ---------------------------------------------------------------------------
+
+REGIME_CUTOFF_MS = 0.01  # 10 us, PI ruling 2026-09-27
+
+# gpu-sim-u2o.6.6.3 discard thresholds, quoted verbatim in the units measured.
+# Derived idle-vs-saturated-burner; insensitive, not delicate.
+CONTENTION_POWER_W = 150.0
+CONTENTION_UTIL_PCT = 50.0
+CONTENTION_TEMP_C = 50.0
+
+
+def regime_of(median_ms: float) -> str:
+    """Informative-regime split (PI 2026-09-27): below 10 us the labels are
+    launch-dominated (~7% across-invocation noise); at/above 10 us they are
+    reproducible to ~0.1%."""
+    return "sub-10us" if median_ms < REGIME_CUTOFF_MS else "over-10us"
+
+
+def _num(text) -> Optional[float]:
+    """Leading float of a telemetry field ('574.3 W' -> 574.3); None if absent."""
+    if text is None:
+        return None
+    try:
+        return float(str(text).split()[0])
+    except (ValueError, IndexError):
+        return None
+
+
+def apply_contention_rule(telemetry_before: dict, telemetry_after: dict,
+                          queue_before: dict, queue_after: dict) -> dict:
+    """Apply the gpu-sim-u2o.6.6.3 discard rule to one family's boundary records.
+
+    Returns a disposition dict (JSON-safe). Fields the telemetry schema does not
+    carry are listed under coverage_gaps -- a stated omission, never a null
+    pretending to be coverage. Channels per the 6.6.3 rule: queue_state is
+    primary for queue-routed contention, telemetry for the rest; neither alone
+    is sufficient, and queue_state is blind to unqueued tenants by measurement.
+    """
+    fired = []
+    gaps = []
+    readings = {}
+    # PI ruling 2026-10-06 (gpu-sim-u2o.6.6): temperature reads the BEFORE
+    # (ambient) boundary only. Post-run heat is our own workload's exhaust --
+    # the anchor's gemm family read 44C before / 53C after 9 s of its own
+    # hottest kernels with a clean queue, and a clause that fires on that
+    # discards the reference for being measured. Power/util stay
+    # either-boundary: a co-tenant burns power throughout the run.
+    observed = {}
+    for sig, thresh, unit, boundaries in (
+            ("power.draw", CONTENTION_POWER_W, "W", ("before", "after")),
+            ("utilization.gpu", CONTENTION_UTIL_PCT, "%", ("before", "after")),
+            ("temperature.gpu", CONTENTION_TEMP_C, "C", ("before",))):
+        src = {"before": telemetry_before, "after": telemetry_after}
+        vals = {b: _num(src[b].get(sig)) for b in boundaries}
+        readings[sig] = {b: vals.get(b) for b in ("before", "after")}
+        if all(v is None for v in vals.values()):
+            gaps.append(f"{sig}: absent from telemetry schema, clause unevaluated")
+            continue
+        present = [v for v in vals.values() if v is not None]
+        worst = max(present)
+        if worst > thresh:
+            where = sorted(b for b, v in vals.items() if v == worst)
+            scope = "either-boundary" if len(boundaries) > 1 else "before-only"
+            fired.append(f"{sig} {worst} {unit} exceeds {thresh} {unit} "
+                         f"at {'+'.join(where)} ({scope} clause)")
+    q = {}
+    for name, rec in (("before", queue_before), ("after", queue_after)):
+        q[name] = {
+            "n_other_active": rec.get("n_other_active"),
+            "n_other_running_at_sample_time": rec.get(
+                "n_other_running_at_sample_time"),
+            "own_job_id_present": rec.get("own_job_id") is not None,
+            "own_job_id": rec.get("own_job_id"),
+            "own_job_entry_present": rec.get("own_job_entry") is not None,
+        }
+    running = [q[b]["n_other_running_at_sample_time"] for b in ("before", "after")]
+    if any(r is not None and r > 0 for r in running):
+        fired.append(f"queue_state n_other_running_at_sample_time={running}: "
+                     "a queue-routed tenant was running at sample time")
+    discard = bool(fired)
+    return {
+        "disposition": "discard" if discard else "keep",
+        "discard_reason": (DiscardReason.CONTENTION_BIAS.value
+                             if discard else DiscardReason.NONE.value),
+        "fired_clauses": fired,
+        "signal_readings": readings,
+        "coverage_gaps": gaps,
+        "queue_channel": q,
+        "population": ("one family's boundary records: telemetry_before/after "
+                         "plus queue_state_before/after"),
+        "convention": ("discard on ANY fired clause (bias, systematic); gaps "
+                         "are stated omissions and never count as passes; "
+                         "temperature reads the BEFORE (ambient) boundary only "
+                         "per PI ruling 2026-10-06 -- post-run heat is our own "
+                         "workload's exhaust, not a co-tenant"),
+    }
+
+
+def construct_cell_target(label: str, medians_across_invocations_ms: list[float],
+                          n_trials: int, regime_sigma: dict,
+                          contention: dict) -> dict:
+    """Noise-aware training target for one anchor cell.
+
+    target_median_ms is the median of the PER-INVOCATION medians (criterion 2),
+    never a single run. trial_noise_sigma is the REGIME sigma (reducible noise);
+    co-tenancy is a separate bias channel that discards via contention, and the
+    two are never mixed into one sigma (criterion 4). Every value states its
+    population and convention (criterion 3).
+    """
+    meds = sorted(medians_across_invocations_ms)
+    target = statistics.median(meds)
+    regime = regime_of(target)
+    sigma = regime_sigma[regime]
+    keep = contention.get("disposition", "keep") == "keep"
+    return {
+        "cell": label,
+        "n_trials_per_invocation": n_trials,
+        "n_invocations": len(meds),
+        "target_median_ms": target,
+        "invocation_spread": {"min_ms": meds[0], "max_ms": meds[-1],
+                                "max_min_ratio": (meds[-1] / meds[0]
+                                                   if meds[0] else None)},
+        "regime": regime,
+        "trial_noise_sigma": sigma["cv"],
+        "trial_noise_sigma_population": sigma["population"],
+        "observed_across_invocation_cv": None,  # joined by the driver from
+        # the anchor record; None here means not yet joined, not zero.
+        "bias_disposition": contention.get("disposition"),
+        "bias_fired_clauses": contention.get("fired_clauses", []),
+        "bias_coverage_gaps": contention.get("coverage_gaps", []),
+        "discard": not keep,
+        "discard_reason": contention.get(
+            "discard_reason", DiscardReason.NONE.value),
+        "population": (f"{len(meds)} per-invocation medians of {n_trials} "
+                         f"cudaEvent trials each, cell '{label}'"),
+        "convention": ("target = median of per-invocation medians, ms; noise "
+                         "= regime CV (reducible); bias = contention channel "
+                         "(discards, never widens noise)"),
     }
 
 

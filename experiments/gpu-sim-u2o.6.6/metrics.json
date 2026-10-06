@@ -1,0 +1,4337 @@
+{
+  "bead": "gpu-sim-u2o.6.6",
+  "carryover_guard": {
+    "before_trips_in_this_sequence": [],
+    "no_silent_widening": "temp narrowed to before-only only; power 150W / util 50% either-boundary and the 6.6.3 regime_weighting stand as written",
+    "rule": "a LATER family whose BEFORE boundary trips >50C is NOT auto-dropped: attribute via trajectory (prior family AFTER + gap + queue/power/util at this BEFORE). Own-heat carryover keeps under PI ruling 2026-10-06; co-tenant heat (queue non-empty or power/util tripped at the same boundary) drops. Record which it was.",
+    "status": "armed, no trip in this anchor sequence: max before-temp 44.0C",
+    "trajectory": [
+      {
+        "after_temp_C": 42.0,
+        "before_temp_C": 40.0,
+        "family": "launch",
+        "gap_from_prior_s": null
+      },
+      {
+        "after_temp_C": 44.0,
+        "before_temp_C": 42.0,
+        "family": "memory",
+        "gap_from_prior_s": 0.3
+      },
+      {
+        "after_temp_C": 45.0,
+        "before_temp_C": 44.0,
+        "family": "reduce",
+        "gap_from_prior_s": 0.3
+      },
+      {
+        "after_temp_C": 53.0,
+        "before_temp_C": 44.0,
+        "family": "gemm",
+        "gap_from_prior_s": 0.3
+      }
+    ]
+  },
+  "contention_dispositions": {
+    "gemm": {
+      "after_temp_C_recorded_not_ruled": 53.0,
+      "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant",
+      "coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "discard_reason": "none",
+      "disposition": "keep",
+      "fired_clauses": [],
+      "gap_from_prior_family_sec": 0.3,
+      "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+      "queue_channel": {
+        "after": {
+          "n_other_active": 11,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-3f5587a6",
+          "own_job_id_present": true
+        },
+        "before": {
+          "n_other_active": 1,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-3f5587a6",
+          "own_job_id_present": true
+        }
+      },
+      "recorded_at": {
+        "after": "2026-09-28T03:29:19.710241+00:00",
+        "before": "2026-09-28T03:29:10.727705+00:00"
+      },
+      "run_order": 3,
+      "signal_readings": {
+        "power.draw": {
+          "after": null,
+          "before": null
+        },
+        "temperature.gpu": {
+          "after": null,
+          "before": 44.0
+        },
+        "utilization.gpu": {
+          "after": null,
+          "before": null
+        }
+      },
+      "wall_sec": 8.98244047164917
+    },
+    "launch": {
+      "after_temp_C_recorded_not_ruled": 42.0,
+      "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant",
+      "coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "discard_reason": "none",
+      "disposition": "keep",
+      "fired_clauses": [],
+      "gap_from_prior_family_sec": null,
+      "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+      "queue_channel": {
+        "after": {
+          "n_other_active": 3,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-6356dbf2",
+          "own_job_id_present": true
+        },
+        "before": {
+          "n_other_active": 3,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-6356dbf2",
+          "own_job_id_present": true
+        }
+      },
+      "recorded_at": {
+        "after": "2026-09-28T03:27:33.296237+00:00",
+        "before": "2026-09-28T03:27:17.988985+00:00"
+      },
+      "run_order": 0,
+      "signal_readings": {
+        "power.draw": {
+          "after": null,
+          "before": null
+        },
+        "temperature.gpu": {
+          "after": null,
+          "before": 40.0
+        },
+        "utilization.gpu": {
+          "after": null,
+          "before": null
+        }
+      },
+      "wall_sec": 15.307268619537354
+    },
+    "memory": {
+      "after_temp_C_recorded_not_ruled": 44.0,
+      "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant",
+      "coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "discard_reason": "none",
+      "disposition": "keep",
+      "fired_clauses": [],
+      "gap_from_prior_family_sec": 0.3,
+      "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+      "queue_channel": {
+        "after": {
+          "n_other_active": 3,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-5c2e74a0",
+          "own_job_id_present": true
+        },
+        "before": {
+          "n_other_active": 2,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-5c2e74a0",
+          "own_job_id_present": true
+        }
+      },
+      "recorded_at": {
+        "after": "2026-09-28T03:29:03.022912+00:00",
+        "before": "2026-09-28T03:27:33.572955+00:00"
+      },
+      "run_order": 1,
+      "signal_readings": {
+        "power.draw": {
+          "after": null,
+          "before": null
+        },
+        "temperature.gpu": {
+          "after": null,
+          "before": 42.0
+        },
+        "utilization.gpu": {
+          "after": null,
+          "before": null
+        }
+      },
+      "wall_sec": 89.44992232322693
+    },
+    "reduce": {
+      "after_temp_C_recorded_not_ruled": 45.0,
+      "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant",
+      "coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "discard_reason": "none",
+      "disposition": "keep",
+      "fired_clauses": [],
+      "gap_from_prior_family_sec": 0.3,
+      "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+      "queue_channel": {
+        "after": {
+          "n_other_active": 2,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-ff2f2da2",
+          "own_job_id_present": true
+        },
+        "before": {
+          "n_other_active": 2,
+          "n_other_running_at_sample_time": 0,
+          "own_job_entry_present": false,
+          "own_job_id": "20260928t032717-ff2f2da2",
+          "own_job_id_present": true
+        }
+      },
+      "recorded_at": {
+        "after": "2026-09-28T03:29:10.467026+00:00",
+        "before": "2026-09-28T03:29:03.311855+00:00"
+      },
+      "run_order": 2,
+      "signal_readings": {
+        "power.draw": {
+          "after": null,
+          "before": null
+        },
+        "temperature.gpu": {
+          "after": null,
+          "before": 44.0
+        },
+        "utilization.gpu": {
+          "after": null,
+          "before": null
+        }
+      },
+      "wall_sec": 7.155068397521973
+    }
+  },
+  "failures": [],
+  "gemm_attribution": {
+    "after_C": 53.0,
+    "attribution": "after-boundary heat attributed to own workload self-heat per PI ruling 2026-10-06; KEEP",
+    "before_C": 44.0,
+    "disposition": "keep",
+    "power_util": "unevaluated: absent from anchor telemetry schema (coverage gaps in disposition), NOT asserted clean",
+    "queue_clean_both_sides": true,
+    "wall_s": 9.0
+  },
+  "pass_a_arrays": [
+    {
+      "cell": "empty n=1024 grid=4 block=256 mode=single inv=0",
+      "cv": 0.3271,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.3395,
+      "n_trials": 200,
+      "outliers_removed": 3,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=1024 grid=4 block=256 mode=single inv=1",
+      "cv": 0.331,
+      "discard_reason": "high_variance",
+      "log_std": 0.3421,
+      "n_trials": 200,
+      "outliers_removed": 1,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=1024 grid=4 block=256 mode=single inv=2",
+      "cv": 0.3598,
+      "discard_reason": "high_variance",
+      "log_std": 0.3422,
+      "n_trials": 200,
+      "outliers_removed": 1,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=1024 grid=4 block=256 mode=batched inv=0",
+      "cv": 0.0839,
+      "discard_reason": "outlier_contamination",
+      "log_std": 0,
+      "n_trials": 200,
+      "outliers_removed": 48,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=1024 grid=4 block=256 mode=batched inv=1",
+      "cv": 0.0234,
+      "discard_reason": "none",
+      "log_std": 0.0232,
+      "n_trials": 200,
+      "outliers_removed": 38,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=1024 grid=4 block=256 mode=batched inv=2",
+      "cv": 0.0202,
+      "discard_reason": "none",
+      "log_std": 0.0201,
+      "n_trials": 200,
+      "outliers_removed": 15,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=16384 grid=64 block=256 mode=single inv=0",
+      "cv": 0.3415,
+      "discard_reason": "high_variance",
+      "log_std": 0.3127,
+      "n_trials": 200,
+      "outliers_removed": 4,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=16384 grid=64 block=256 mode=single inv=1",
+      "cv": 0.3292,
+      "discard_reason": "high_variance",
+      "log_std": 0.344,
+      "n_trials": 200,
+      "outliers_removed": 2,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=16384 grid=64 block=256 mode=single inv=2",
+      "cv": 0.3329,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.3565,
+      "n_trials": 200,
+      "outliers_removed": 3,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=16384 grid=64 block=256 mode=batched inv=0",
+      "cv": 0.0253,
+      "discard_reason": "none",
+      "log_std": 0.0251,
+      "n_trials": 200,
+      "outliers_removed": 14,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=16384 grid=64 block=256 mode=batched inv=1",
+      "cv": 0.0201,
+      "discard_reason": "none",
+      "log_std": 0.02,
+      "n_trials": 200,
+      "outliers_removed": 34,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=16384 grid=64 block=256 mode=batched inv=2",
+      "cv": 0.1376,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.1277,
+      "n_trials": 200,
+      "outliers_removed": 4,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=262144 grid=1024 block=256 mode=single inv=0",
+      "cv": 0.1011,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.1073,
+      "n_trials": 200,
+      "outliers_removed": 25,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=262144 grid=1024 block=256 mode=single inv=1",
+      "cv": 0.2857,
+      "discard_reason": "high_variance",
+      "log_std": 0.3067,
+      "n_trials": 200,
+      "outliers_removed": 5,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=262144 grid=1024 block=256 mode=single inv=2",
+      "cv": 0.0675,
+      "discard_reason": "none",
+      "log_std": 0.0702,
+      "n_trials": 200,
+      "outliers_removed": 12,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=262144 grid=1024 block=256 mode=batched inv=0",
+      "cv": 0.0332,
+      "discard_reason": "none",
+      "log_std": 0.0329,
+      "n_trials": 200,
+      "outliers_removed": 15,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=262144 grid=1024 block=256 mode=batched inv=1",
+      "cv": 0.0383,
+      "discard_reason": "none",
+      "log_std": 0.0379,
+      "n_trials": 200,
+      "outliers_removed": 27,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=262144 grid=1024 block=256 mode=batched inv=2",
+      "cv": 0.0314,
+      "discard_reason": "none",
+      "log_std": 0.031,
+      "n_trials": 200,
+      "outliers_removed": 26,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=4194304 grid=16384 block=256 mode=single inv=0",
+      "cv": 0.0885,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0885,
+      "n_trials": 200,
+      "outliers_removed": 1,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=4194304 grid=16384 block=256 mode=single inv=1",
+      "cv": 0.0878,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0872,
+      "n_trials": 200,
+      "outliers_removed": 0,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=4194304 grid=16384 block=256 mode=single inv=2",
+      "cv": 0.0905,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0893,
+      "n_trials": 200,
+      "outliers_removed": 2,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=4194304 grid=16384 block=256 mode=batched inv=0",
+      "cv": 0.0012,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0012,
+      "n_trials": 200,
+      "outliers_removed": 7,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=4194304 grid=16384 block=256 mode=batched inv=1",
+      "cv": 0.0007,
+      "discard_reason": "none",
+      "log_std": 0.0007,
+      "n_trials": 200,
+      "outliers_removed": 14,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=4194304 grid=16384 block=256 mode=batched inv=2",
+      "cv": 0.0005,
+      "discard_reason": "none",
+      "log_std": 0.0005,
+      "n_trials": 200,
+      "outliers_removed": 21,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=67108864 grid=65535 block=256 mode=single inv=0",
+      "cv": 0.0216,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0216,
+      "n_trials": 200,
+      "outliers_removed": 0,
+      "regime": "over-10us",
+      "reliable": false
+    },
+    {
+      "cell": "empty n=67108864 grid=65535 block=256 mode=single inv=1",
+      "cv": 0.0079,
+      "discard_reason": "none",
+      "log_std": 0.0078,
+      "n_trials": 200,
+      "outliers_removed": 37,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=67108864 grid=65535 block=256 mode=single inv=2",
+      "cv": 0.0049,
+      "discard_reason": "none",
+      "log_std": 0.0049,
+      "n_trials": 200,
+      "outliers_removed": 30,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=67108864 grid=65535 block=256 mode=batched inv=0",
+      "cv": 0.0002,
+      "discard_reason": "none",
+      "log_std": 0.0002,
+      "n_trials": 200,
+      "outliers_removed": 18,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=67108864 grid=65535 block=256 mode=batched inv=1",
+      "cv": 0.0002,
+      "discard_reason": "none",
+      "log_std": 0.0002,
+      "n_trials": 200,
+      "outliers_removed": 16,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "empty n=67108864 grid=65535 block=256 mode=batched inv=2",
+      "cv": 0.0003,
+      "discard_reason": "none",
+      "log_std": 0.0003,
+      "n_trials": 200,
+      "outliers_removed": 35,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=1024 grid=4 block=256 mode=single inv=0",
+      "cv": 0.082,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0827,
+      "n_trials": 200,
+      "outliers_removed": 28,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "scale n=1024 grid=4 block=256 mode=single inv=1",
+      "cv": 0.0987,
+      "discard_reason": "none",
+      "log_std": 0.1023,
+      "n_trials": 200,
+      "outliers_removed": 22,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=1024 grid=4 block=256 mode=single inv=2",
+      "cv": 0.086,
+      "discard_reason": "none",
+      "log_std": 0.089,
+      "n_trials": 200,
+      "outliers_removed": 27,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=1024 grid=4 block=256 mode=batched inv=0",
+      "cv": 0.0277,
+      "discard_reason": "none",
+      "log_std": 0.0275,
+      "n_trials": 200,
+      "outliers_removed": 37,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=1024 grid=4 block=256 mode=batched inv=1",
+      "cv": 0.032,
+      "discard_reason": "none",
+      "log_std": 0.0318,
+      "n_trials": 200,
+      "outliers_removed": 12,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=1024 grid=4 block=256 mode=batched inv=2",
+      "cv": 0.0375,
+      "discard_reason": "none",
+      "log_std": 0.0368,
+      "n_trials": 200,
+      "outliers_removed": 36,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=16384 grid=64 block=256 mode=single inv=0",
+      "cv": 0.0845,
+      "discard_reason": "none",
+      "log_std": 0.0888,
+      "n_trials": 200,
+      "outliers_removed": 34,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=16384 grid=64 block=256 mode=single inv=1",
+      "cv": 0.3056,
+      "discard_reason": "high_variance",
+      "log_std": 0.309,
+      "n_trials": 200,
+      "outliers_removed": 3,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "scale n=16384 grid=64 block=256 mode=single inv=2",
+      "cv": 0.0983,
+      "discard_reason": "none",
+      "log_std": 0.1009,
+      "n_trials": 200,
+      "outliers_removed": 24,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=16384 grid=64 block=256 mode=batched inv=0",
+      "cv": 0.0317,
+      "discard_reason": "none",
+      "log_std": 0.0313,
+      "n_trials": 200,
+      "outliers_removed": 31,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=16384 grid=64 block=256 mode=batched inv=1",
+      "cv": 0.0812,
+      "discard_reason": "outlier_contamination",
+      "log_std": 0,
+      "n_trials": 200,
+      "outliers_removed": 41,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "scale n=16384 grid=64 block=256 mode=batched inv=2",
+      "cv": 0.0162,
+      "discard_reason": "none",
+      "log_std": 0.0161,
+      "n_trials": 200,
+      "outliers_removed": 19,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=262144 grid=1024 block=256 mode=single inv=0",
+      "cv": 0.0647,
+      "discard_reason": "none",
+      "log_std": 0.0665,
+      "n_trials": 200,
+      "outliers_removed": 13,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=262144 grid=1024 block=256 mode=single inv=1",
+      "cv": 0.0759,
+      "discard_reason": "none",
+      "log_std": 0.0778,
+      "n_trials": 200,
+      "outliers_removed": 13,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=262144 grid=1024 block=256 mode=single inv=2",
+      "cv": 0.09,
+      "discard_reason": "none",
+      "log_std": 0.0908,
+      "n_trials": 200,
+      "outliers_removed": 21,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=262144 grid=1024 block=256 mode=batched inv=0",
+      "cv": 0.0453,
+      "discard_reason": "none",
+      "log_std": 0.0443,
+      "n_trials": 200,
+      "outliers_removed": 20,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=262144 grid=1024 block=256 mode=batched inv=1",
+      "cv": 0.0883,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0856,
+      "n_trials": 200,
+      "outliers_removed": 0,
+      "regime": "sub-10us",
+      "reliable": false
+    },
+    {
+      "cell": "scale n=262144 grid=1024 block=256 mode=batched inv=2",
+      "cv": 0.0189,
+      "discard_reason": "none",
+      "log_std": 0.0188,
+      "n_trials": 200,
+      "outliers_removed": 20,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=4194304 grid=16384 block=256 mode=single inv=0",
+      "cv": 0.0175,
+      "discard_reason": "none",
+      "log_std": 0.0176,
+      "n_trials": 200,
+      "outliers_removed": 37,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=4194304 grid=16384 block=256 mode=single inv=1",
+      "cv": 0.02,
+      "discard_reason": "bimodal_distribution",
+      "log_std": 0.0202,
+      "n_trials": 200,
+      "outliers_removed": 35,
+      "regime": "over-10us",
+      "reliable": false
+    },
+    {
+      "cell": "scale n=4194304 grid=16384 block=256 mode=single inv=2",
+      "cv": 0.0612,
+      "discard_reason": "none",
+      "log_std": 0.063,
+      "n_trials": 200,
+      "outliers_removed": 2,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=4194304 grid=16384 block=256 mode=batched inv=0",
+      "cv": 0.0012,
+      "discard_reason": "none",
+      "log_std": 0.0012,
+      "n_trials": 200,
+      "outliers_removed": 10,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=4194304 grid=16384 block=256 mode=batched inv=1",
+      "cv": 0.001,
+      "discard_reason": "none",
+      "log_std": 0.001,
+      "n_trials": 200,
+      "outliers_removed": 6,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=4194304 grid=16384 block=256 mode=batched inv=2",
+      "cv": 0.001,
+      "discard_reason": "none",
+      "log_std": 0.001,
+      "n_trials": 200,
+      "outliers_removed": 7,
+      "regime": "sub-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=67108864 grid=65535 block=256 mode=single inv=0",
+      "cv": 0.0214,
+      "discard_reason": "none",
+      "log_std": 0.0213,
+      "n_trials": 200,
+      "outliers_removed": 10,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=67108864 grid=65535 block=256 mode=single inv=1",
+      "cv": 0.0198,
+      "discard_reason": "none",
+      "log_std": 0.0197,
+      "n_trials": 200,
+      "outliers_removed": 8,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=67108864 grid=65535 block=256 mode=single inv=2",
+      "cv": 0.0222,
+      "discard_reason": "none",
+      "log_std": 0.022,
+      "n_trials": 200,
+      "outliers_removed": 8,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=67108864 grid=65535 block=256 mode=batched inv=0",
+      "cv": 0.0017,
+      "discard_reason": "none",
+      "log_std": 0.0017,
+      "n_trials": 200,
+      "outliers_removed": 28,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=67108864 grid=65535 block=256 mode=batched inv=1",
+      "cv": 0.0018,
+      "discard_reason": "none",
+      "log_std": 0.0019,
+      "n_trials": 200,
+      "outliers_removed": 39,
+      "regime": "over-10us",
+      "reliable": true
+    },
+    {
+      "cell": "scale n=67108864 grid=65535 block=256 mode=batched inv=2",
+      "cv": 0.0192,
+      "discard_reason": "outlier_contamination",
+      "log_std": 0,
+      "n_trials": 200,
+      "outliers_removed": 43,
+      "regime": "over-10us",
+      "reliable": false
+    }
+  ],
+  "pass_a_within_run_real_trials": {
+    "by_regime": {
+      "over-10us": {
+        "convention": "compute_trial_stats(min_trials=30, max_cv=0.15); CV in raw-trial units",
+        "discard_rate": 0.2,
+        "median_cv": 0.0175,
+        "n_invocation_arrays": 15,
+        "n_reliable_under_single_cv_gate": 12,
+        "population": "15 real per-invocation trial arrays (n=200 cudaEvent trials each), 6.6.1 cells"
+      },
+      "sub-10us": {
+        "convention": "compute_trial_stats(min_trials=30, max_cv=0.15); CV in raw-trial units",
+        "discard_rate": 0.4,
+        "median_cv": 0.0759,
+        "n_invocation_arrays": 45,
+        "n_reliable_under_single_cv_gate": 27,
+        "population": "45 real per-invocation trial arrays (n=200 cudaEvent trials each), 6.6.1 cells"
+      }
+    },
+    "finding": "a single 15% CV gate discards 40% of sub-10us invocation arrays vs 20% over-10us: the gate discards the launch-bound regime for being itself, which is why the sigma must be regime-dependent (PI 2026-09-27), not single.",
+    "n_arrays": 60
+  },
+  "provenance": {
+    "anchor": "anchor_v1",
+    "anchor_jobs": [
+      "20260928t032717-6356dbf2",
+      "20260928t032717-5c2e74a0",
+      "20260928t032717-ff2f2da2",
+      "20260928t032717-3f5587a6"
+    ],
+    "anchor_tree": {
+      "base": "master a688a84 plus the untracked epic_u2o/ modules copied in. epic_u2o/ was untracked in master when this was measured; a fresh checkout of master at that time did not contain the code that produced these numbers. Tracked as of gpu-sim-u2o.6.11.",
+      "branch": "lab/gpu-sim-u2o.6.6.2-r2",
+      "measured_at_commits": [
+        "4e934ef (anchor + measurement code)",
+        "168b516 (submission gate)",
+        "THIS COMMIT (post-processing fixes + stamps)"
+      ],
+      "note": "the ts jobs below are the authority; this records the tree they ran on",
+      "superseded_by": {
+        "branch_ref": "lab/gpu-sim-u2o.6.6.2-r2",
+        "branch_still_exists": true,
+        "commit": "566ba0b",
+        "commit_subject": "6.6.2: rebased onto master, and the cross-run variance probe",
+        "note": "the content landed on master at 566ba0b; the stamped branch ref still exists, so it is a live-but-not-current tree and a reader following the stamp alone would get a tree that disagrees with this artifact",
+        "reachable_from_master": true
+      }
+    },
+    "code": "epic_u2o/measurement_stats.py: compute_trial_stats + 6.6 section (regime_of, apply_contention_rule, construct_cell_target)",
+    "contention_rule_source": "gpu-sim-u2o.6.6.3 discard_rule (power>150W, util>50%, temp>50C)",
+    "trial_jobs": [
+      {
+        "job_id": "20260927t154858-71fa45c8",
+        "log": "ts_job_logs/20260927t154858-71fa45c8.log",
+        "purpose": "first attempt; crashed parsing stdout (JSON error), no data kept",
+        "state": "failed"
+      },
+      {
+        "job_id": "20260927t154936-b1b133bc",
+        "log": "ts_job_logs/20260927t154936-b1b133bc.log",
+        "purpose": "tolerant parse added; crashed on the return-tuple change before reaching the summary",
+        "state": "failed"
+      },
+      {
+        "job_id": "20260927t154954-2de31b37",
+        "log": "ts_job_logs/20260927t154954-2de31b37.log",
+        "purpose": "all 20 cells measured; crashed in the noise-floor summary (cell dicts expose median_ms, not median_us)",
+        "state": "failed"
+      },
+      {
+        "job_id": "20260927t155030-79877e21",
+        "log": "ts_job_logs/20260927t155030-79877e21.log",
+        "purpose": "same summary bug, re-run to confirm the cell data was complete",
+        "state": "failed"
+      },
+      {
+        "job_id": "20260927t155125-9cc71df8",
+        "log": "ts_job_logs/20260927t155125-9cc71df8.log",
+        "purpose": "summary fixed; produced a full noise_floor block, but the crossover definition compared single-mode medians so it was rejected and redefined from the data. SUPERSEDED -- an earlier draft of the README/comment quoted this run's numbers, which is exactly the stale-number problem the reviewer caught.",
+        "state": "finished"
+      },
+      {
+        "job_id": "20260927t162535-cb00ea78",
+        "log": "ts_job_logs/20260927t162535-cb00ea78.log",
+        "purpose": "FINAL / AUTHORITATIVE: adds the negative control (+ positive control), stores every raw per-trial vector, adds the residual column to the decomposition, and records the across-invocation spread range per mode. 20 cells, 15.6 s",
+        "state": "finished"
+      }
+    ],
+    "trial_source": "gpu-sim-u2o.6.6.1",
+    "witness": "experiments/gpu-sim-u2o.6.6.2/variance_probe.json"
+  },
+  "regime_noise": {
+    "magnitude_consistent_within_3x": true,
+    "measured": {
+      "over-10us": {
+        "cv": 0.0018,
+        "population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+      },
+      "sub-10us": {
+        "cv": 0.0467,
+        "population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+      }
+    },
+    "ordering_reproduced": true,
+    "pi_quoted": {
+      "over-10us": {
+        "cv": 0.0013,
+        "population": "6.6.1 noise floor / 6.6.2 ruling: across-invocation CV of the reported median"
+      },
+      "sub-10us": {
+        "cv": 0.074,
+        "population": "6.6.1 noise floor / 6.6.2 ruling: across-invocation CV of the reported median"
+      }
+    }
+  },
+  "seed": 474315584357,
+  "self_heat_side_result": {
+    "delta_C": 9.0,
+    "family": "gemm",
+    "note": "first isolated self-heat number: +9C in 9s on the hottest family; the 6.6.3 derivation's burner-masked gap never gave one (PI ruling 2026-10-06 side-result)",
+    "wall_s": 9.0
+  },
+  "summary": {
+    "n_cells": 124,
+    "n_discarded": 0,
+    "n_kept": 124
+  },
+  "target_version": 1,
+  "targets": [
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.1170212765957448,
+        "max_ms": 0.00168,
+        "min_ms": 0.001504
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.060225371587111144,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0016640000000000001,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.6,
+        "max_ms": 0.002432,
+        "min_ms": 0.00152
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.24301537776280974,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002384,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.5333333333333334,
+        "max_ms": 0.002208,
+        "min_ms": 0.0014399999999999999
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.25129588149063087,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0014880000000000002,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.0970873786407767,
+        "max_ms": 0.0018080000000000001,
+        "min_ms": 0.0016480000000000002
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.049453295533917585,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00168,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.4772727272727275,
+        "max_ms": 0.0020800000000000003,
+        "min_ms": 0.001408
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.1974920881439087,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0016640000000000001,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.304761904761905,
+        "max_ms": 0.0021920000000000004,
+        "min_ms": 0.00168
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.1426454075304907,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0021599999999999996,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=65536 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.4565217391304348,
+        "max_ms": 0.002144,
+        "min_ms": 0.001472
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.20770940100600216,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=65536 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.001584,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=65536 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.5300000000000002,
+        "max_ms": 0.002448,
+        "min_ms": 0.0015999999999999999
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.23052380984393608,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=65536 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.001776,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=65536 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.523809523809524,
+        "max_ms": 0.00256,
+        "min_ms": 0.00168
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.22516460221775866,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=65536 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.001888,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=65536 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.0692307692307692,
+        "max_ms": 0.002224,
+        "min_ms": 0.00208
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.03636031593844901,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=65536 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002208,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=65536 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.4673913043478262,
+        "max_ms": 0.00216,
+        "min_ms": 0.001472
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.19223815236493197,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=65536 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0017599999999999998,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=65536 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.5813953488372092,
+        "max_ms": 0.002176,
+        "min_ms": 0.001376
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.2739467580072535,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=65536 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.001408,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.0936395759717312,
+        "max_ms": 0.009904,
+        "min_ms": 0.009056000000000002
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.049555457145225267,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=4194304 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.009152,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.0831918505942273,
+        "max_ms": 0.010207999999999998,
+        "min_ms": 0.009424
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.040719657298280525,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=4194304 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.009696,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.0192926045016077,
+        "max_ms": 0.005072,
+        "min_ms": 0.0049759999999999995
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.010215731738340048,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=4194304 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.005056,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.0796178343949046,
+        "max_ms": 0.005424,
+        "min_ms": 0.005024
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0407757835596836,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=4194304 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00536,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "empty n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.595959595959596,
+        "max_ms": 0.002528,
+        "min_ms": 0.001584
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.2807366795363628,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'empty n=4194304 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.001616,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "noop_store n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "launch",
+      "invocation_spread": {
+        "max_min_ratio": 1.5104166666666667,
+        "max_ms": 0.00232,
+        "min_ms": 0.001536
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.24857353622834283,
+      "op_type": "launch",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'noop_store n=4194304 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.001552,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.4354838709677418,
+        "max_ms": 0.002848,
+        "min_ms": 0.001984
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.1862506087884738,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002736,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.3076923076923077,
+        "max_ms": 0.00272,
+        "min_ms": 0.0020800000000000003
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.14060964334002168,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00264,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.3575757575757577,
+        "max_ms": 0.0035840000000000004,
+        "min_ms": 0.00264
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.17084630556697722,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002768,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=1024 stride=17 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0718562874251498,
+        "max_ms": 0.0028640000000000002,
+        "min_ms": 0.002672
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.03477527176927914,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=1024 stride=17 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0294117647058822,
+        "max_ms": 0.0028,
+        "min_ms": 0.00272
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.014603161383502376,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002752,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=1024 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0736196319018405,
+        "max_ms": 0.0028,
+        "min_ms": 0.002608
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.037744229984316834,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=1024 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002768,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0595238095238093,
+        "max_ms": 0.002848,
+        "min_ms": 0.0026880000000000003
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.03305440472459681,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002848,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0411764705882351,
+        "max_ms": 0.002832,
+        "min_ms": 0.00272
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.020221984170542627,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.2499999999999998,
+        "max_ms": 0.0028,
+        "min_ms": 0.0022400000000000002
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.12223839782313657,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=1024 stride=17 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0588235294117647,
+        "max_ms": 0.00288,
+        "min_ms": 0.00272
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.03123385943640511,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=1024 stride=17 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0028640000000000002,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0613496932515338,
+        "max_ms": 0.002768,
+        "min_ms": 0.002608
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.030424514463123817,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00272,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=1024 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0424242424242425,
+        "max_ms": 0.002752,
+        "min_ms": 0.00264
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.022357906873229454,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=1024 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002736,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.186335403726708,
+        "max_ms": 0.0030559999999999997,
+        "min_ms": 0.002576
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.08512915122266686,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002832,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0172413793103448,
+        "max_ms": 0.002832,
+        "min_ms": 0.002784
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.008695589553995877,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002816,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0465116279069768,
+        "max_ms": 0.00288,
+        "min_ms": 0.002752
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.02490799396308958,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002768,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=1024 stride=17 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.035928143712575,
+        "max_ms": 0.002768,
+        "min_ms": 0.002672
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.01764705882352944,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=1024 stride=17 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00272,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1165644171779139,
+        "max_ms": 0.0029119999999999997,
+        "min_ms": 0.002608
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.05597489438990117,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00272,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=1024 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0171428571428571,
+        "max_ms": 0.002848,
+        "min_ms": 0.0028
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.008662713979122546,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=1024 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002816,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=16384 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.064327485380117,
+        "max_ms": 0.002912,
+        "min_ms": 0.002736
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0320652671226165,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=16384 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0028640000000000002,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=16384 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.4786324786324787,
+        "max_ms": 0.002768,
+        "min_ms": 0.001872
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.19539134519670465,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=16384 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00256,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=16384 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.144736842105263,
+        "max_ms": 0.002784,
+        "min_ms": 0.002432
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.07088062835180219,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=16384 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00272,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=16384 stride=17 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0935672514619883,
+        "max_ms": 0.002992,
+        "min_ms": 0.002736
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.04598512793186766,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=16384 stride=17 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002816,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=16384 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0887573964497042,
+        "max_ms": 0.002944,
+        "min_ms": 0.002704
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.04535573676110728,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=16384 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002752,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=16384 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0348837209302324,
+        "max_ms": 0.002848,
+        "min_ms": 0.002752
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.019908629972056006,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=16384 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002752,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=16384 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0598802395209581,
+        "max_ms": 0.002832,
+        "min_ms": 0.002672
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.033895319130506404,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=16384 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002672,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=16384 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0282485875706215,
+        "max_ms": 0.002912,
+        "min_ms": 0.002832
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.016007863286218872,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=16384 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002912,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=16384 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1666666666666667,
+        "max_ms": 0.003248,
+        "min_ms": 0.002784
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.08495261430000926,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=16384 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002848,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=16384 stride=17 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0470588235294116,
+        "max_ms": 0.002848,
+        "min_ms": 0.00272
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.023835870222894587,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=16384 stride=17 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002816,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=16384 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0172413793103448,
+        "max_ms": 0.002832,
+        "min_ms": 0.002784
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.009841197770277683,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=16384 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002832,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=16384 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0292397660818713,
+        "max_ms": 0.002816,
+        "min_ms": 0.002736
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.014491044981325776,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=16384 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=16384 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1085526315789471,
+        "max_ms": 0.005391999999999999,
+        "min_ms": 0.004864
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.05479328300733175,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=16384 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0049759999999999995,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=16384 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1564625850340138,
+        "max_ms": 0.00544,
+        "min_ms": 0.004704
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.08387096774193556,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=16384 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.004736,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=16384 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0981012658227849,
+        "max_ms": 0.005552,
+        "min_ms": 0.005056
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.04746577714522326,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=16384 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.005391999999999999,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=16384 stride=17 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.6,
+        "max_ms": 0.002816,
+        "min_ms": 0.0017599999999999998
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.2380078001628212,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=16384 stride=17 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0026880000000000003,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=16384 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1818181818181819,
+        "max_ms": 0.002912,
+        "min_ms": 0.002464
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0848365005991527,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=16384 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=16384 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0654761904761907,
+        "max_ms": 0.0028640000000000002,
+        "min_ms": 0.002688
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.03400076563103863,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=16384 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00272,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=262144 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.2485549132947975,
+        "max_ms": 0.003456,
+        "min_ms": 0.002768
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.1216468364194883,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=262144 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0028799999999999997,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=262144 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1123595505617978,
+        "max_ms": 0.003168,
+        "min_ms": 0.002848
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.05585865830410014,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=262144 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002928,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=262144 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1542857142857141,
+        "max_ms": 0.0032319999999999996,
+        "min_ms": 0.0028
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.07351725713832892,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=262144 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002944,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=262144 stride=17 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0350877192982455,
+        "max_ms": 0.002832,
+        "min_ms": 0.002736
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.017524190038071995,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=262144 stride=17 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0028,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=262144 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1496062992125984,
+        "max_ms": 0.004672,
+        "min_ms": 0.004064
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.07366131464444502,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=262144 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.004576,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=262144 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.171270718232044,
+        "max_ms": 0.003392,
+        "min_ms": 0.002896
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0919110279076439,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=262144 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002912,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=262144 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0701754385964912,
+        "max_ms": 0.002928,
+        "min_ms": 0.002736
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.034650855916490274,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=262144 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0028,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=262144 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0632183908045978,
+        "max_ms": 0.00296,
+        "min_ms": 0.002784
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.031104828842625817,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=262144 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002848,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=262144 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.028735632183908,
+        "max_ms": 0.0028640000000000002,
+        "min_ms": 0.002784
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.016433119616403053,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=262144 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=262144 stride=17 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.011494252873563,
+        "max_ms": 0.002816,
+        "min_ms": 0.002784
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.006610880944919362,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=262144 stride=17 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=262144 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.144186046511628,
+        "max_ms": 0.003936,
+        "min_ms": 0.00344
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.07676704235795345,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=262144 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0034720000000000003,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=262144 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0514285714285714,
+        "max_ms": 0.002944,
+        "min_ms": 0.0028000000000000004
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.025458753860865702,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=262144 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002896,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=262144 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.02938808373591,
+        "max_ms": 0.040912000000000004,
+        "min_ms": 0.039744
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.01594483569826179,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=262144 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.039872,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=262144 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0063884156729133,
+        "max_ms": 0.037808,
+        "min_ms": 0.037568
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0032959491365576344,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=262144 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.037744,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=262144 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.018313458262351,
+        "max_ms": 0.038256,
+        "min_ms": 0.037568
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0093181548771961,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=262144 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.037776000000000004,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=262144 stride=17 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.196078431372549,
+        "max_ms": 0.002928,
+        "min_ms": 0.002448
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.09055767246082735,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=262144 stride=17 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=262144 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0598802395209581,
+        "max_ms": 0.002832,
+        "min_ms": 0.002672
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.029719699456256087,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=262144 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=262144 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0115606936416186,
+        "max_ms": 0.0028,
+        "min_ms": 0.0027679999999999996
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.005747126436781671,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=262144 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002784,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0044247787610618,
+        "max_ms": 0.010896,
+        "min_ms": 0.010848
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.002550884841780349,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=4194304 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.010848,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0319148936170215,
+        "max_ms": 0.010864,
+        "min_ms": 0.010528
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.01583477399958635,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=4194304 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.010735999999999999,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0468750000000002,
+        "max_ms": 0.01072,
+        "min_ms": 0.010239999999999999
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.022945163388707245,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=4194304 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.010512,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=4194304 stride=17 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.125418060200669,
+        "max_ms": 0.010768,
+        "min_ms": 0.009568
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.06682294782287333,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=4194304 stride=17 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.010768,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0030895983522143,
+        "max_ms": 0.031168,
+        "min_ms": 0.031072
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.001542416452442197,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=4194304 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.031120000000000002,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=4194304 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0103397341211227,
+        "max_ms": 0.010944,
+        "min_ms": 0.010832
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.005294495264998556,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=4194304 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.010912,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.011124845488257,
+        "max_ms": 0.013088,
+        "min_ms": 0.012944
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.005803293851313059,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=4194304 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.013056,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0334302325581395,
+        "max_ms": 0.011376,
+        "min_ms": 0.011008
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.016890868370417783,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=4194304 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.01112,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0406976744186045,
+        "max_ms": 0.011456,
+        "min_ms": 0.011008
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.01999175285171292,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=4194304 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.011264,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=4194304 stride=17 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0541727672035137,
+        "max_ms": 0.011519999999999999,
+        "min_ms": 0.010928
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.02914735772347943,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=4194304 stride=17 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.010992,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0048780487804878,
+        "max_ms": 0.013184,
+        "min_ms": 0.01312
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.002533467747828952,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=4194304 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.013136,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=4194304 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0049321824907522,
+        "max_ms": 0.01304,
+        "min_ms": 0.012976
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0025594254091796803,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=4194304 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.013024,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.000683185747694,
+        "max_ms": 0.609328,
+        "min_ms": 0.608912
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0003497786517609164,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=4194304 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.6092,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0010348492476366,
+        "max_ms": 0.572656,
+        "min_ms": 0.572064
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0005816046745677683,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=4194304 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.572624,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.001226309921962,
+        "max_ms": 0.574784,
+        "min_ms": 0.57408
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0006161690599259207,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=4194304 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.574368,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=4194304 stride=17 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0828402366863907,
+        "max_ms": 0.002928,
+        "min_ms": 0.002704
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.042201038907435116,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=4194304 stride=17 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002752,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.168918918918919,
+        "max_ms": 0.002768,
+        "min_ms": 0.002368
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0847100243259135,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=4194304 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002736,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=4194304 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.151685393258427,
+        "max_ms": 0.00328,
+        "min_ms": 0.002848
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0750129464484541,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=4194304 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002944,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=67108864 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0013166144200627,
+        "max_ms": 0.511072,
+        "min_ms": 0.5104
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0007420749470220552,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=67108864 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.5110399999999999,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=67108864 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0050945474573159,
+        "max_ms": 0.35038400000000003,
+        "min_ms": 0.34860800000000003
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0025626813545746308,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=67108864 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.349296,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=67108864 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0046330275229358,
+        "max_ms": 0.350416,
+        "min_ms": 0.3488
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0025794811163418483,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=67108864 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.350304,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=67108864 stride=17 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0014672168729941,
+        "max_ms": 0.349472,
+        "min_ms": 0.34896
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0007373872595386635,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=67108864 stride=17 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.34916800000000003,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=67108864 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.000706713780919,
+        "max_ms": 0.883584,
+        "min_ms": 0.88296
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.00038437447876927064,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=67108864 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.8835040000000001,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=67108864 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0019271359089659,
+        "max_ms": 0.349376,
+        "min_ms": 0.348704
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0009857697280052796,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=67108864 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.348912,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=67108864 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0039771471860106,
+        "max_ms": 0.508912,
+        "min_ms": 0.506896
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.001996340163473722,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=67108864 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.508096,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=67108864 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0010661928031985,
+        "max_ms": 0.360544,
+        "min_ms": 0.36016
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0005479720170361063,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=67108864 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.360432,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=67108864 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.00186799501868,
+        "max_ms": 0.360416,
+        "min_ms": 0.359744
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0009678925249341363,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=67108864 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.35992,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=67108864 stride=17 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0004898468115426,
+        "max_ms": 0.359472,
+        "min_ms": 0.359296
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0002531455935006997,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=67108864 stride=17 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.35942399999999997,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=67108864 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0092425546087875,
+        "max_ms": 0.5817920000000001,
+        "min_ms": 0.576464
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.004665163445918928,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=67108864 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.57992,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=67108864 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0033926683115968,
+        "max_ms": 0.364368,
+        "min_ms": 0.363136
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0016935214976997385,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=67108864 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.363744,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "saxpy n=67108864 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0019575616937801,
+        "max_ms": 22.9713605,
+        "min_ms": 22.9264805
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0009984926387303363,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'saxpy n=67108864 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 22.956977,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "relu n=67108864 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0007245706652865,
+        "max_ms": 21.9661445,
+        "min_ms": 21.95024
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0003927504789721331,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'relu n=67108864 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 21.9524155,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "copy n=67108864 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0011474042685429,
+        "max_ms": 21.959023000000002,
+        "min_ms": 21.933856
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0005765726438530963,
+      "op_type": "memory",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'copy n=67108864 1block/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 21.948752499999998,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "strided_read n=67108864 stride=17 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.1748251748251748,
+        "max_ms": 0.002688,
+        "min_ms": 0.002288
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.08883210772201729,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'strided_read n=67108864 stride=17 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002672,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "scatter_write n=67108864 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0869565217391306,
+        "max_ms": 0.0028000000000000004,
+        "min_ms": 0.002576
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.04189126740696919,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'scatter_write n=67108864 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002672,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "random_access n=67108864 1block/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "memory",
+      "invocation_spread": {
+        "max_min_ratio": 1.0308641975308643,
+        "max_ms": 0.002672,
+        "min_ms": 0.0025919999999999997
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.01746018959242825,
+      "op_type": "access",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'random_access n=67108864 1block/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002672,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 512^3 32x32",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.0024232633279482,
+        "max_ms": 0.039712,
+        "min_ms": 0.039616
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0012325378415695908,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 512^3 32x32'",
+      "regime": "over-10us",
+      "target_median_ms": 0.039648,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 512^3 16x16",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.002460024600246,
+        "max_ms": 0.01304,
+        "min_ms": 0.013008
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0012285012285011916,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 512^3 16x16'",
+      "regime": "over-10us",
+      "target_median_ms": 0.013024,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 1024^3 32x32",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.001245873045537,
+        "max_ms": 0.257168,
+        "min_ms": 0.25684799999999997
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0007187081921073496,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 1024^3 32x32'",
+      "regime": "over-10us",
+      "target_median_ms": 0.257168,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 1024^3 16x16",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.0015463917525773,
+        "max_ms": 0.062176,
+        "min_ms": 0.06208
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0007868433542163134,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 1024^3 16x16'",
+      "regime": "over-10us",
+      "target_median_ms": 0.062112,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 2048^3 32x32",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.0001410213471063,
+        "max_ms": 1.8155839999999999,
+        "min_ms": 1.815328
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 7.213989134856896e-05,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 2048^3 32x32'",
+      "regime": "over-10us",
+      "target_median_ms": 1.8154080000000001,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 2048^3 16x16",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.0003940420836948,
+        "max_ms": 0.406208,
+        "min_ms": 0.40604799999999996
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.00020216155163221174,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 2048^3 16x16'",
+      "regime": "over-10us",
+      "target_median_ms": 0.40615999999999997,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 4096^3 32x32",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.0037339559087475,
+        "max_ms": 15.023392000000001,
+        "min_ms": 14.967504
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0018721129549397642,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 4096^3 32x32'",
+      "regime": "over-10us",
+      "target_median_ms": 15.00016,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "tiled_gemm 4096^3 16x16",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "gemm",
+      "invocation_spread": {
+        "max_min_ratio": 1.0000311829242308,
+        "max_ms": 3.078704,
+        "min_ms": 3.078608
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 1.5877292797251875e-05,
+      "op_type": "gemm",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'tiled_gemm 4096^3 16x16'",
+      "regime": "over-10us",
+      "target_median_ms": 3.078672,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=4096 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.1170212765957446,
+        "max_ms": 0.00336,
+        "min_ms": 0.0030080000000000003
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.05737593330681985,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=4096 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.00328,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=4096 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.0167597765363128,
+        "max_ms": 0.002912,
+        "min_ms": 0.0028640000000000002
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.009622504486493735,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=4096 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0028640000000000002,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=65536 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.174863387978142,
+        "max_ms": 0.00344,
+        "min_ms": 0.002928
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.08406820970130524,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=65536 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.0033439999999999998,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=65536 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.0662983425414363,
+        "max_ms": 0.0030879999999999996,
+        "min_ms": 0.002896
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.03357525805590528,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=65536 auto/1024'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.002944,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=1048576 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.0235294117647058,
+        "max_ms": 0.00696,
+        "min_ms": 0.0068000000000000005
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.011915483218529876,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=1048576 auto/256'",
+      "regime": "sub-10us",
+      "target_median_ms": 0.006912,
+      "trial_noise_sigma": 0.0467,
+      "trial_noise_sigma_population": "median over 80 anchor_v1 cells in regime sub-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=1048576 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.0177777777777777,
+        "max_ms": 0.010992,
+        "min_ms": 0.0108
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.008855602997073981,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=1048576 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.01088,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=16777216 auto/256",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.0061927173643792,
+        "max_ms": 0.064992,
+        "min_ms": 0.06459200000000001
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.0031516033904722845,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=16777216 auto/256'",
+      "regime": "over-10us",
+      "target_median_ms": 0.064864,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    },
+    {
+      "bias_coverage_gaps": [
+        "power.draw: absent from telemetry schema, clause unevaluated",
+        "utilization.gpu: absent from telemetry schema, clause unevaluated"
+      ],
+      "bias_disposition": "keep",
+      "bias_fired_clauses": [],
+      "cell": "block_sum n=16777216 auto/1024",
+      "convention": "target = median of per-invocation medians, ms; noise = regime CV (reducible); bias = contention channel (discards, never widens noise)",
+      "discard": false,
+      "discard_reason": "none",
+      "family": "reduce",
+      "invocation_spread": {
+        "max_min_ratio": 1.0077230726796302,
+        "max_ms": 0.116912,
+        "min_ms": 0.11601600000000001
+      },
+      "n_invocations": 3,
+      "n_trials_per_invocation": 100,
+      "observed_across_invocation_cv": 0.003942402834611617,
+      "op_type": "reduce",
+      "population": "3 per-invocation medians of 100 cudaEvent trials each, cell 'block_sum n=16777216 auto/1024'",
+      "regime": "over-10us",
+      "target_median_ms": 0.11664,
+      "trial_noise_sigma": 0.0018,
+      "trial_noise_sigma_population": "median over 44 anchor_v1 cells in regime over-10us of across_invocation_cv (3 per-invocation medians of 100 trials each)"
+    }
+  ],
+  "verdict": "pass",
+  "witness": {
+    "artifact": "experiments/gpu-sim-u2o.6.6.2/variance_probe.json",
+    "kind": "VARIANCE PROBE -- NOT AN ANCHOR",
+    "question": "how far does the SAME configuration move between two runs?",
+    "reading": "independent re-run (different ts jobs, ~6h apart) orders the regimes the same way and shows run-to-run drift (median 1.0181, p90 1.235) far above the within-cell invocation noise (over-10us regime sigma 0.0018). Invocation noise understates run-to-run movement: they are different populations and this artifact never substitutes one for the other.",
+    "run_to_run_drift_v8_over_v6": {
+      "max": 1.5587,
+      "median": 1.0181,
+      "min": 0.8523,
+      "p10": 0.9408,
+      "p90": 1.235
+    }
+  }
+}
