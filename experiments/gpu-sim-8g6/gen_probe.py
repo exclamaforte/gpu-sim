@@ -71,6 +71,7 @@ def main():
     L.append('    fprintf(f, "{\\"member\\": \\"%s\\", \\"off\\": %d}\\n", member, off);')
     L.append("    fclose(f);")
     L.append("}")
+    L.append("__attribute__((constructor)) static void probe_loaded(void) { mark(\"LOADED\", -1); }")
     L.append("")
     for name, off, cast in MEMBERS:
         L.append(f"static int stub_{name}(void) {{ mark(\"{name}\", {off}); return 0; }}")

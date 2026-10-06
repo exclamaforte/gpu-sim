@@ -41,6 +41,7 @@ static void mark(const char *member, int off) {
     fprintf(f, "{\"member\": \"%s\", \"off\": %d}\n", member, off);
     fclose(f);
 }
+__attribute__((constructor)) static void probe_loaded(void) { mark("LOADED", -1); }
 
 static int stub_init(void) { mark("init", 8); return 0; }
 static int stub_devices(void) { mark("devices", 16); return 0; }

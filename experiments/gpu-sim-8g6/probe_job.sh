@@ -24,7 +24,7 @@ export NCCL_DEBUG_SUBSYS=INIT,NET,ENV
 export U2O_MARKER="$OUTDIR/markers.jsonl"
 export LD_LIBRARY_PATH="$NCCL_LIB${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 : > "$OUTDIR/markers.jsonl"
-"$OUTDIR/probe_load" > "$OUTDIR/nccl_debug.log" 2>&1
+stdbuf -o0 -e0 "$OUTDIR/probe_load" > "$OUTDIR/nccl_debug.log" 2>&1
 rc=$?
 echo "probe exit=$rc (139=SIGSEGV, diagnostic)"
 echo "--- markers ---"
