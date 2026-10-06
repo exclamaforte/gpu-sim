@@ -35,7 +35,13 @@ OWN_JOB_DESCRIPTION = os.environ.get("U2O_JOB_DESC", "u2o.6.6.2 anchor")
 
 TRIALS = 100
 INVOCATIONS = 3          # independent PROCESSES, not trials
+# gpu-sim-u2o.6.6 dose (PI 2026-10-06, ruling b): power.draw +
+# utilization.gpu added so the 6.6.3 contention rule applies with NO coverage
+# gaps. The 6.6.2 anchor schema lacked both (only temp was evaluable); the
+# dose is the first gapless application. Parsing is positional-free
+# (dict(zip(FIELDS, csv))) so extra fields cannot shift existing ones.
 TELEMETRY_FIELDS = ["clocks.sm", "clocks.max.sm", "temperature.gpu",
+                    "power.draw", "utilization.gpu",
                     "clocks_throttle_reasons.active", "persistence_mode"]
 
 
@@ -245,7 +251,11 @@ def main() -> int:
     family = sys.argv[1] if len(sys.argv) > 1 else "launch"
     data = measure_family(family)
     data["artifact_provenance"] = _artifact_provenance(data, HERE)
-    out = HERE / f"family_{family}.json"
+    # Dose (6.6 ruling b): U2O_DOSE_OUTDIR redirects the artifact to an
+    # absolute dir so committed anchor files are never overwritten in-tree.
+    dest = Path(os.environ.get("U2O_DOSE_OUTDIR") or HERE)
+    dest.mkdir(parents=True, exist_ok=True)
+    out = dest / f"family_{family}.json"
     out.write_text(json.dumps(data, indent=2))
     print(f"\nwrote {out}")
     ok = sum(1 for r in data["results"] if "error" not in r)
