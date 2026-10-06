@@ -1,0 +1,21 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "cold_reproduces_7_1": "30/33",
+  "first_vs_cold": {
+    "cid": "ac4c11d43c48d87e",
+    "rel": -0.0113,
+    "reproduces": true
+  },
+  "n_copy_cells": 33,
+  "packet": "copy-warmth-probe",
+  "perproc_reproduces_7_1": "29/33",
+  "position_gradient": {
+    "first_third_median_rel": -0.0957,
+    "gradient_present": false,
+    "last_third_median_rel": -0.1184,
+    "spearman_position_vs_rel": 0.009
+  },
+  "verdict": "WARMTH-REJECTED-AS-STATED: first_reproduces_cold=True (-0.011), gradient=False (first-third -0.096, last-third -0.118, spearman 0.009). Warm cells faster than cold: 27/33. Cold reproduces 7.1: 30/33; perproc reproduces 7.1: 29/33. The copy offset is NOT a within-batch warmth gradient -- next hypothesis must come from where cold/perproc sit relative to 7.1.",
+  "warm_faster_than_cold": "27/33",
+  "warm_vs_cold_median_rel": -0.0306
+}

@@ -79,6 +79,10 @@ def main():
     warm_faster = sum(1 for c in cids
                       if arms["warm"][c]["median_runtime_ms"]
                       < arms["cold"][c]["median_runtime_ms"])
+    wvc = sorted((arms["warm"][c]["median_runtime_ms"]
+                  - arms["cold"][c]["median_runtime_ms"])
+                 / arms["cold"][c]["median_runtime_ms"] for c in cids)
+    wvc_med = statistics.median(wvc)
 
     # 3. Cold vs 7.1 (does the cold control reproduce the reference?).
     cold_rep = sum(1 for c in cids if abs(rel("cold", c)) <= tol[c])
@@ -115,6 +119,7 @@ def main():
                           "rel": round(first_rel_cold, 4),
                           "reproduces": first_reproduces_cold},
         "warm_faster_than_cold": f"{warm_faster}/{len(cids)}",
+        "warm_vs_cold_median_rel": round(wvc_med, 4),
         "cold_reproduces_7_1": f"{cold_rep}/{len(cids)}",
         "perproc_reproduces_7_1": f"{perproc_rep}/{len(cids)}",
         "verdict": verdict,
