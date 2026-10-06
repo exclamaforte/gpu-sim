@@ -1,0 +1,19 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "packet": "copy-locus causal probe: position sweep + cold controls",
+  "hypothesis": "batched-worker warmth makes later copy cells faster than cold single-run medians",
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t093539-c2cdf03f",
+      "state": "queued",
+      "purpose": "copy_probe.sh: warm + cold + perproc arms on --op-filter copy (33 cells), 40-trial protocol, per-example sampling, per-arm device-time gate",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t093539-c2cdf03f.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-copyprobe-20261006/"
+    }
+  ],
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/copy_verdict.py --metrics-out experiments/gpu-sim-u2o.6.7.1/copy_metrics.json",
+    "status": "pending dose",
+    "verdict_condition": "first-in-batch reproduces cold AND later positions faster with gradient => warmth confirmed, fix warm-up/discard or position covariate"
+  }
+}

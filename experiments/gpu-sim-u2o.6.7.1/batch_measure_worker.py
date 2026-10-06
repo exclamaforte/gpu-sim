@@ -282,9 +282,11 @@ def main() -> int:
                          "(tests warm-state carryover). reset: "
                          "cudaDeviceReset between the two INVOCATIONS (tests "
                          "shared CUDA context).")
+    ap.add_argument("--op-filter", default="")
     args = ap.parse_args()
-
     specs = load_specs()
+    specs = [s for s in specs if not args.op_filter or s.get("op_type") == args.op_filter]
+
     if args.limit:
         specs = specs[:args.limit]
     print(f"batched worker: {len(specs)} examples, per example "
@@ -550,8 +552,9 @@ def _finish(args, rows, wall, started_at, sampling_wall, n_begin, n_end,
         "n_begin_markers": n_begin, "n_end_markers": n_end,
     }
     (HERE / args.summary_out).write_text(json.dumps(out, indent=2))
-    for r in rows:
+    for i, r in enumerate(rows):
         r["mode"] = args.mode
+        r["position_in_batch"] = i
     (HERE / args.out).write_text("".join(json.dumps(r) + "\n" for r in rows))
 
     if n == 0:
