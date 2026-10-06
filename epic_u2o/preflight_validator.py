@@ -196,9 +196,10 @@ static int failures = 0;
 
 int main() {
     CHECK_API(cudaFree(0));                       /* context creation */
-    // No cudaMemGetInfo probe here: libfakegpu does not export it (see 8dw),
-    // and a diagnostic print is not worth failing the link over. The device
-    // totals come from the fake's own cudaMemGetInfo once that is exported.
+    // No cudaMemGetInfo probe here: it was unexported when this harness was
+    // written (see 8dw) and a diagnostic print is not worth churning the
+    // link over. libfakegpu exports cudaMemGetInfo today; the device totals
+    // still come from the driver's own calls, not from a probe here.
 
     const int n = %(n)d;
     float *d_a = NULL, *d_b = NULL;

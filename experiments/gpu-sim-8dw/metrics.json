@@ -1,0 +1,64 @@
+{
+  "bead": "gpu-sim-8dw",
+  "criteria": {
+    "C1": {
+      "false_returns": 9,
+      "true_returns": 1
+    },
+    "C2": {
+      "exit": 0
+    },
+    "C3": {
+      "exit": 0,
+      "route": "-cudart=none + direct -lfakegpu link, LD_PRELOAD popped, device not hidden",
+      "route_in_code": true
+    },
+    "C4": {
+      "exit": 0,
+      "non_blanking_documented": true
+    },
+    "C5": {
+      "code_hits": [],
+      "hits": [
+        {
+          "comment": true,
+          "file": "bottleneck_check.py",
+          "line": 19,
+          "text": "Defaults: data-gen 1200 ex/hr is a placeholder; replace with the measured"
+        },
+        {
+          "comment": true,
+          "file": "generator_multistream.py",
+          "line": 7,
+          "text": "placeholder; it must NOT feed the v1 dataset pipeline."
+        },
+        {
+          "comment": true,
+          "file": "generator_stage4.py",
+          "line": 102,
+          "text": "// One 16x16x16 WMMA tile per warp (simplified placeholder layout)"
+        },
+        {
+          "comment": true,
+          "file": "preflight_validator.py",
+          "line": 176,
+          "text": "# (placeholder)\", \"\") unconditionally -- a validation that could not fail."
+        },
+        {
+          "comment": true,
+          "file": "preflight_validator.py",
+          "line": 248,
+          "text": "(placeholder)\", \"\"` unconditionally -- a validation that could not fail,"
+        },
+        {
+          "comment": true,
+          "file": "cuda_runtime.h",
+          "line": 368,
+          "text": "void cudaDeviceProp_(void); /* placeholder, unused */"
+        }
+      ]
+    }
+  },
+  "failures": [],
+  "verdict": "pass"
+}
