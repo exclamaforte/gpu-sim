@@ -3,7 +3,9 @@
 entry through the full SafeHarness.preflight_check (bounds + scan + nvcc -ptx
 + -cudart=none smoke, i.e. the 6.5.1-fixed route). CPU-only.
 
-Corpus: 8 good kernels from generator_stage1 (mixed ops/sizes) + 4
+Corpus: 8 good kernels from generator_stage1 (saxpy n=4096 across 8
+launch configs -- the generator's max_kernels truncation yields one
+op/size; see scope guard in metrics.json) + 4
 deliberately broken ones (bad launch, undefined symbol, syntax garbage,
 oversize shared-mem). Output: preflight_results.json {passes:[...], rejects:
 [{reason}]}. The GPU half (measure passes via ts) runs after the PI approves

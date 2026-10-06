@@ -288,7 +288,7 @@
     },
     {
       "cid": "good-6",
-      "cpu_sec": 0.7,
+      "cpu_sec": 0.6,
       "msg": "Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)",
       "ok": true,
       "op": "saxpy",
@@ -393,16 +393,16 @@
     },
     {
       "cid": "bad-symbol",
-      "cpu_sec": 0.2,
-      "msg": "Pre-flight FAILED: Multiple __global__ kernels (2) - only one allowed in v1; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmpjo8wdaqx.cu(5): error: identifier \"no_such_fn\" is undefined\n  __attribute__((global)) void oops(flo",
+      "cpu_sec": 0.1,
+      "msg": "Pre-flight FAILED: Multiple __global__ kernels (2) - only one allowed in v1; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmpz3jj4ga4.cu(5): error: identifier \"no_such_fn\" is undefined\n  __attribute__((global)) void oops(flo",
       "ok": false,
       "op": "saxpy",
       "problem_size": 4096
     },
     {
       "cid": "bad-syntax",
-      "cpu_sec": 0.2,
-      "msg": "Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmplnqv2xzb.cu(1): error: expected a declaration\n  this is not CUDA {{{\n  ^\n\n1 error detected in the compilation of \"/tmp/tmplnqv2xz",
+      "cpu_sec": 0.1,
+      "msg": "Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmp8_e3hnno.cu(1): error: expected a declaration\n  this is not CUDA {{{\n  ^\n\n1 error detected in the compilation of \"/tmp/tmp8_e3hnn",
       "ok": false,
       "op": "saxpy",
       "problem_size": 4096
