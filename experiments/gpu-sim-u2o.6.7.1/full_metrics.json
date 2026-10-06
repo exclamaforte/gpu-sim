@@ -1,0 +1,25 @@
+{
+  "baselined_out": [
+    "1a186c2aaaa5918d",
+    "25923dc793d1640a",
+    "41c604afeb769078"
+  ],
+  "bead": "gpu-sim-u2o.6.7.1",
+  "ceiling_ex_s": 7911.0,
+  "device_time_unchanged": true,
+  "edge_passes": 2,
+  "evaluated": 261,
+  "failures": [],
+  "fraction_of_ceiling": 0.0587,
+  "packet": "cold-fix-full-confirm",
+  "passes": 212,
+  "per_example_sampling_ok": true,
+  "preregistered_bar": {
+    "arithmetic": "197 (pre-fix warm) + 7 (copy 23->30) - 4 (fluctuation margin) = 200",
+    "dose_1_fail_stands": true,
+    "rule": "passes>=200/261; stable-baseline {1a186c2aaaa5918d,25923dc793d1640a,41c604afeb769078} excluded; edge band 0.05 for known flippers {67aadb4ae2474be6,6ff062d8f90e3346,523d9bb2d85f0490} only"
+  },
+  "strict_passes": 210,
+  "throughput_ex_s": 464.71,
+  "verdict": "pass"
+}

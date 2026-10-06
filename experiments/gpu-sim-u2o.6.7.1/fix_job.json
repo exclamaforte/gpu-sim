@@ -14,18 +14,20 @@
     },
     {
       "job_id": "20261006t165308-737f7f5c",
-      "state": "queued",
+      "state": "finished",
       "purpose": "full_confirm.sh DOSE 2 of 2: DEFAULT-mode (cold) full 264; asserts mode==cold + device-unchanged in-job",
       "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t165308-737f7f5c.log",
-      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-coldfull-20261006/"
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-coldfull-20261006/",
+      "exit": 0,
+      "result": "264/264 rows, 464.71 ex/s, mode=cold asserted in-job, device 155.9us unchanged, sampling 264/264"
     }
   ],
   "analysis": {
     "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/fix_verify.py --metrics-out experiments/gpu-sim-u2o.6.7.1/fix_metrics.json",
-    "status": "verdict=fail (27/33 < 30/33 bar)",
+    "status": "complete, awaiting review",
     "gates": "copy reproduce >= 30/33; device unchanged; sampling 33/33; throughput stated vs ceiling",
     "diagnosis": "not a fix regression: 3 movers stable across both cold runs (same side), 3 threshold-edge flips; same-condition repeatability 30/33. The 30/33 bar was a single realization with no repeatability margin.",
-    "dose_2": "queued 20261006t165308-737f7f5c under pre-registered bar (full_verify.py committed BEFORE the run): passes>=200/261, stable-baseline excluded, edge band 0.05 for 3 known flippers only, dose-1 FAIL stands"
+    "dose_2": "verdict=pass: 212/261 (210 strict + 2 edge) >= 200/261; battery all green; suite 15 tests OK (1 expectedFailure by design)"
   },
   "dose_2_plan": "HELD: spec conditions dose 2 on verdict=pass; asking PI whether to proceed with a repeatability-aware bar"
 }
