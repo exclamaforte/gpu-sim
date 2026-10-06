@@ -1,0 +1,35 @@
+{
+  "bead": "gpu-sim-8g6",
+  "mode": "CPU probe build + THREE batched ts GPU probe jobs",
+  "cpu_runs": [],
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t053031-9ef7a761",
+      "state": "finished",
+      "exit": 139,
+      "exit_note": "SIGSEGV is diagnostic per bead, not failure",
+      "purpose": "per-member probe: which v11 member the loader reaches",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t053031-9ef7a761.log",
+      "result": "empty markers, empty NCCL log (buffering); fault precedes first stub call"
+    },
+    {
+      "job_id": "20261006t053152-7b064477",
+      "state": "finished",
+      "exit": 139,
+      "exit_note": "SIGSEGV is diagnostic per bead, not failure",
+      "purpose": "constructor LOADED marker bisects dlopen-vs-structread + stdbuf preserves NCCL lines",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t053152-7b064477.log",
+      "result": "LOADED only; NCCL log ends after NCCL_NET_PLUGIN read"
+    },
+    {
+      "job_id": "20261006t053533-36d82f0a",
+      "state": "finished",
+      "exit": 139,
+      "exit_note": "SIGSEGV is diagnostic per bead, not failure",
+      "purpose": "entry_body marker distinguishes entry-entered vs entry-never-entered",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t053533-36d82f0a.log",
+      "result": "LOADED only, no ENTRY: entry never entered"
+    }
+  ],
+  "installed_untouched": true
+}
