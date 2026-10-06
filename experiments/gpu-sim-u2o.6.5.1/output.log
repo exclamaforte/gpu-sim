@@ -1,0 +1,20 @@
+PASS  build.compile_succeeds_hostile_env
+PASS  build.binary_produced
+PASS  build.no_nvidia_smi_contact
+PASS  build.only_spawns_nvcc  ['nvcc']
+PASS  snapshot.calls_nvidia_smi
+PASS  snapshot.query_only  --query-gpu=name,driver_version,memory.total,clocks.gr,clocks.mem,power.limit --format=csv,noheader,nounits
+PASS  snapshot.no_reset_flag  --query-gpu=name,driver_version,memory.total,clocks.gr,clocks.mem,power.limit --format=csv,noheader,nounits
+PASS  snapshot.returns_record
+PASS  smoke.cudart_none_links
+PASS  smoke.ldd_no_cudart
+PASS  smoke.ldd_no_libcuda  	linux-vdso.so.1 (0x0000732af72b3000)
+	libfakegpu.so => /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.5.1/libfakegpu.so (0x0000732af7271000)
+	libstdc++.so.6 => /usr/lib/libstdc++.so.6 (0x0000732a
+PASS  smoke.runs_hostile_env
+PASS  smoke.prints_trial_json  21 lines
+PASS  preflight.smoke_passes_real_path  Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS  preflight.message_carries_no_ms_timing  Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS  preflight.ptx_gate_rejects_broken  Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmp0w2pzm77.cu(1): error: expect
+PASS  preflight.ptx_gate_names_cause  Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmp0w2pzm77.cu(1): error: expect
+failures=[]

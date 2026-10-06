@@ -10,8 +10,10 @@ Features:
 - Single post-timeout GPU health check (SOFT_RESET only, never reboot)
 - Structured logging for experiment tracking
 - Real pre-flight validation: PTX syntax check + launch-config bounds +
-  disallowed-construct scan + LD_PRELOAD smoke run of the synthesized
-  driver (GPU-free)
+  disallowed-construct scan + -cudart=none + libfakegpu smoke run of the
+  synthesized driver (GPU-free, gpu-sim-u2o.6.5.1: LD_PRELOAD is a no-op
+  against nvcc's default -cudart=static, so the smoke links no cudart at
+  all instead of trying to interpose over it)
 """
 
 import subprocess
@@ -244,10 +246,11 @@ class SafeHarness:
 
         Always: launch-config bounds + disallowed-construct scan + nvcc -ptx
         syntax check. When a full KernelSpec is supplied, additionally:
-        synthesize the driver, compile against real headers linked with
-        libfakegpu, and run it under LD_PRELOAD (fake device, GPU-free),
-        requiring exit 0. Reported timings from that smoke run are FAKE
-        (configured latency) and never used as measurements.
+        synthesize the driver, compile against real headers with -cudart=none
+        linked to libfakegpu, and run the resulting binary (fake device,
+        GPU-free: ldd shows neither libcudart nor libcuda), requiring exit 0.
+        Reported timings from that smoke run are FAKE and never used as
+        measurements.
         """
         if not self.use_fakegpu_preflight:
             return True, "Pre-flight skipped (disabled)"
@@ -318,14 +321,17 @@ class SafeHarness:
         if errors:
             return False, "Pre-flight FAILED: " + "; ".join(errors)
 
-        # 4. LD_PRELOAD smoke run (requires full spec for driver synthesis).
+        # 4. -cudart=none + libfakegpu smoke run (requires full spec).
         if spec is None:
-            return True, ("Pre-flight passed (bounds+scan+ptx; LD_PRELOAD smoke "
+            return True, ("Pre-flight passed (bounds+scan+ptx; -cudart=none smoke "
                           "skipped: no arg spec)")
         return self._preflight_smoke_run(spec)
 
     def _preflight_smoke_run(self, spec: dict) -> tuple[bool, str]:
-        """Compile synthesized driver (real headers) + run under LD_PRELOAD."""
+        """Compile synthesized driver (real headers, -cudart=none) + run linked
+        against libfakegpu. No LD_PRELOAD: against nvcc's default
+        -cudart=static it would be a no-op (gpu-sim-u2o.6.5.1), so the smoke
+        links no cudart at all instead. """
         import tempfile
         sys.path.insert(0, str(REPO_ROOT))
         from epic_u2o.kernel_driver import synthesize
@@ -341,17 +347,15 @@ class SafeHarness:
         exe_file = cu_file + '.smoke.out'
         try:
             r = subprocess.run(
-                ['nvcc', '-O2', cu_file, '-o', exe_file,
+                ['nvcc', '-cudart=none', '-O2', cu_file, '-o', exe_file,
                  f'-L{REPO_ROOT}', '-lfakegpu',
                  '-Xlinker', '-rpath', '-Xlinker', str(REPO_ROOT)],
                 capture_output=True, text=True, timeout=180)
             if r.returncode != 0:
                 return False, f"Pre-flight FAILED: smoke compile: {r.stderr.strip()[:500]}"
+            # No LD_PRELOAD: the binary links libfakegpu directly (rpath) and
+            # links no cudart at all, so there is nothing to interpose over.
             env = os.environ.copy()
-            env['LD_PRELOAD'] = str(LIBFAKEGPU) + (
-                f":{env['LD_PRELOAD']}" if env.get('LD_PRELOAD') else '')
-            env['LD_LIBRARY_PATH'] = str(REPO_ROOT) + (
-                f":{env['LD_LIBRARY_PATH']}" if env.get('LD_LIBRARY_PATH') else '')
             env['FAKEGPU_KERNEL_LATENCY_MS'] = '0.5'
             r = subprocess.run(
                 [exe_file], capture_output=True, text=True, timeout=60, env=env,

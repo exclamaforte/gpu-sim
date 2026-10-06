@@ -40,7 +40,10 @@ typedef const void *cudaKernel_t;
  * is abandoned: nvcc force-includes cuda_runtime.h AND pulls its own
  * headers through wrapper chains, making a shadowing header unworkable.
  * Preflight smoke binaries compile against REAL headers and link
- * libfakegpu, running GPU-free under LD_PRELOAD instead. This header
+ * libfakegpu, running GPU-free against the direct link instead (gpu-sim-
+ * u2o.6.5.1: no LD_PRELOAD -- against nvcc's default -cudart=static it
+ * would be a no-op, so smoke binaries compile -cudart=none and link no
+ * cudart at all). This header
  * stays gcc-only by design.
 
  * The fake path that DOES work, and is now the mandated preflight route

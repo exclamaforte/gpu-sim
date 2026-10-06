@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-u2o.6.5.1",
+  "inventory": "experiments/gpu-sim-u2o.6.5.1/claims_inventory.md",
+  "claims_inventoried": 11,
+  "false_on_arrival": 1,
+  "rows_gained_new_check": 6,
+  "rows_backed_preexisting": 5,
+  "new_checks": {
+    "test": "tests/test_isolation_claims.py",
+    "checks_passed": 17,
+    "failures": [],
+    "log": "experiments/gpu-sim-u2o.6.5.1/output.log"
+  },
+  "make_check": "pass",
+  "correction": "SafeHarness._preflight_smoke_run: -cudart=none + direct libfakegpu link, no LD_PRELOAD (was -cudart=static + LD_PRELOAD, interposition no-op, potentially real-GPU-touching)",
+  "verdict": "pass",
+  "failures": []
+}

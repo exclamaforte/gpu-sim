@@ -1,0 +1,22 @@
+{
+  "bead": "gpu-sim-u2o.6.5.1",
+  "mode": "CPU-only, direct (no ts queue: no CUDA in any check; hostile device env used instead of hiding the GPU)",
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 tests/test_isolation_claims.py",
+      "worktree": ".lab/wt/gpu-sim-u2o.6.5.1",
+      "start_utc": "2026-10-06T01:05:21Z",
+      "end_utc": "2026-10-06T01:05:23Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.5.1/output.log"
+    },
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 make check",
+      "worktree": ".lab/wt/gpu-sim-u2o.6.5.1",
+      "exit": 0,
+      "note": "green baseline re-verified after the fix (guard + fake_client + vector_add + ring_allreduce + test_cudart_none.sh 9/9 PASS); full log in run output, tailed by run.sh"
+    }
+  ],
+  "gpu_jobs": [],
+  "gpu_note": "No GPU job. All isolation properties are proven by link structure (ldd), hostile-env execution, and argv capture -- none require a device."
+}
