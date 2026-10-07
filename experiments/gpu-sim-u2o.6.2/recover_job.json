@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-u2o.6.2",
+  "packet": "recovery exercise: hang kill + survivor decline",
+  "gpu_jobs": [
+    {
+      "job_id": "20261007t021536-a745afa4",
+      "state": "queued",
+      "purpose": "recover_dose.sh: calibrator pre/post + arm A (spin hang, watchdog kill) + arm B (SIGTERM-ignoring holder, survivor-indicated gated attempt); pulse-safety interlock aborts rather than firing",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261007t021536-a745afa4.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u62-recover-20261007/"
+    }
+  ],
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.2/recover_analyze.py --metrics-out experiments/gpu-sim-u2o.6.2/recover_metrics.json",
+    "status": "pending dose",
+    "gates": "AC1 exercised+job id; AC2 SOFT_RESET-only + DECLINED with foreign holders; AC3 post calibrators within 25pct; AC4 survivor observed, arm A clean; AC5 NOT_COVERED stated; AC6 named checks"
+  }
+}
