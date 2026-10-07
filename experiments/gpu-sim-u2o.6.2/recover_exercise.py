@@ -75,11 +75,17 @@ int main() {
 """
 
 SPIN_SRC = r"""
+#include <cstdio>
 #include <cuda_runtime.h>
+#define CHECK(x) do { cudaError_t e_=(x); if(e_!=cudaSuccess){ \
+    fprintf(stderr,"FAIL %s:%d %s\n",__FILE__,__LINE__, \
+    cudaGetErrorString(e_)); return 3; } } while(0)
 __global__ void spin() { while (1) { } }
 int main() {
     spin<<<1, 1>>>();
-    cudaDeviceSynchronize();
+    CHECK(cudaGetLastError());
+    CHECK(cudaDeviceSynchronize());
+    fprintf(stderr,"SPIN-EXITED-UNEXPECTEDLY\n");
     return 0;
 }
 """
@@ -87,20 +93,23 @@ int main() {
 HOLDER_SRC = r"""
 #include <cstdio>
 #include <csignal>
+#include <unistd.h>
 #include <cuda_runtime.h>
+#define CHECK(x) do { cudaError_t e_=(x); if(e_!=cudaSuccess){ \
+    fprintf(stderr,"FAIL %s:%d %s\n",__FILE__,__LINE__, \
+    cudaGetErrorString(e_)); return 3; } } while(0)
 __global__ void nap() {
     long long t0 = clock64();
     while (clock64() - t0 < 180LL * 1000000000LL) { }
 }
 int main() {
-#include <cstdio>
-#include <csignal>
-#include <unistd.h>
-#include <cuda_runtime.h>
-    float *p; cudaMalloc(&p, 64 << 20);
+    signal(SIGTERM, SIG_IGN);  /* the survivor: SIGTERM does not kill us */
+    float *p = 0; CHECK(cudaMalloc(&p, 64 << 20));
     printf("READY %d\n", (int)getpid()); fflush(stdout);
     nap<<<1, 1>>>();
-    cudaDeviceSynchronize();
+    CHECK(cudaGetLastError());
+    CHECK(cudaDeviceSynchronize());
+    fprintf(stderr,"HOLDER-EXITED-UNEXPECTEDLY\n");
     return 0;
 }
 """
@@ -241,6 +250,7 @@ def main():
     med_post_a, rc_a = calibrator(exe["calib"])
     log("arm_a_hang", timeout=res.timeout, success=res.success,
         wall_s=round(res.wall_time_sec, 2),
+        spin_stderr_tail=(res.stderr or "")[-500:],
         spin_still_holding_gpu=spin_alive, health=health_a,
         decision=dec_a.action.value, decision_msg=dec_a.message,
         calibrator_post_ms=med_post_a, calibrator_rc=rc_a)
@@ -251,10 +261,19 @@ def main():
     rec_b = GPURecovery(checkpoint_dir=str(OUTDIR / "ckpt_b"),
                         own_pids={os.getpid()})
     holder = subprocess.Popen([exe["holder"]], stdout=subprocess.PIPE,
-                              text=True, bufsize=1)
+                              stderr=subprocess.PIPE, text=True, bufsize=1)
     ready = holder.stdout.readline().strip()
     rec_b.own_pids.add(holder.pid)
     time.sleep(2)
+    # Alive-precheck: if the holder self-exited before SIGTERM, the survivor
+    # was never induced -- record its stderr (loud CHECK failures land here)
+    # and abort the arm honestly instead of a vacuous no-survivor.
+    if holder.poll() is not None:
+        _, herr = holder.communicate()
+        log("arm_b_no_holder", ready=ready, rc=holder.returncode,
+            holder_stderr=(herr or "")[-500:])
+        flush()
+        return 12
     holder.send_signal(signal.SIGTERM)
     try:
         holder.wait(timeout=HOLDER_GRACE)
@@ -285,11 +304,16 @@ def main():
     except subprocess.TimeoutExpired:
         pass
     cleaned = holder.poll() is not None
+    try:
+        herr = holder.stderr.read() or ""
+    except Exception:
+        herr = ""
     med_post_b, rc_b = calibrator(exe["calib"])
     log("arm_b_survivor", holder_ready=ready, sigterm_survived=survived,
         survivor_pids=survivor_pids, health=health_b,
         decision=dec_b.action.value, decision_msg=dec_b.message,
         surface_file=surface_exists, holder_sigkilled=cleaned,
+        holder_stderr=herr[-500:],
         calibrator_post_ms=med_post_b, calibrator_rc=rc_b)
 
     state_after = snapshot()

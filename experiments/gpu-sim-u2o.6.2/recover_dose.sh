@@ -9,5 +9,5 @@ mkdir -p "$U2O_REC_OUTDIR"
 cd /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.2/experiments/gpu-sim-u2o.6.2
 python3 recover_exercise.py
 rc=$?
-echo "EXERCISE EXIT: $rc (0=both arms, 2=safety abort, 10=build fail, 11=calibrator fail)"
+echo "EXERCISE EXIT: $rc (0=both arms, 2=safety abort, 10=build fail, 11=calibrator fail, 12=holder self-exited)"
 exit $rc

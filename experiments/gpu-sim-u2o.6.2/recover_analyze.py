@@ -58,7 +58,7 @@ def main():
                  "arm_b_survivor", "state_after"):
         if need not in by:
             fails.append(f"AC1: missing step {need}")
-    if "arm_b_aborted" in by or "arm_b_aborted_after_survivor" in by:
+    if "arm_b_aborted" in by or "arm_b_aborted_after_survivor" in by or "arm_b_no_holder" in by:
         fails.append("AC1: safety interlock fired -- survivor path not covered")
 
     blob = "\n".join(json.dumps(s) for s in steps)

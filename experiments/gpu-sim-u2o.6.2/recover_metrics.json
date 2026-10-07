@@ -1,0 +1,34 @@
+{
+  "arm_a": {
+    "decision": "none",
+    "health": "healthy",
+    "post_vs_pre": 1.1583,
+    "survivor": [],
+    "timeout_kill": false
+  },
+  "arm_b": {
+    "decision": "none",
+    "health": "healthy",
+    "post_vs_pre": 1.1799,
+    "sigterm_survived": false,
+    "surface_file": false,
+    "survivor_pids": []
+  },
+  "bead": "gpu-sim-u2o.6.2",
+  "failures": [
+    "AC2: arm_b must be soft_reset DECLINED (got none: GPU healthy, no recovery needed)",
+    "AC6: decline names no foreign holders",
+    "AC4: arm_b recorded no survivor",
+    "AC1: arm_a induced no timeout kill",
+    "AC1: arm_b holder did not survive SIGTERM",
+    "AC2: arm_b wrote no SURFACE_TO_OWNER flag"
+  ],
+  "not_covered": [
+    "an actual nvidia-smi -r pulse (declined by the foreign-holder gate)",
+    "a true Xid/off-bus wedge (only a simulated hang + a SIGTERM-ignorer)",
+    "the MANUAL-ONLY rungs (hard reset, driver reload, reboot)"
+  ],
+  "packet": "recovery-exercise",
+  "ts_job": "20261007t021536-a745afa4",
+  "verdict": "fail"
+}

@@ -4,15 +4,24 @@
   "gpu_jobs": [
     {
       "job_id": "20261007t021536-a745afa4",
-      "state": "queued",
+      "state": "finished",
       "purpose": "recover_dose.sh: calibrator pre/post + arm A (spin hang, watchdog kill) + arm B (SIGTERM-ignoring holder, survivor-indicated gated attempt); pulse-safety interlock aborts rather than firing",
       "log": "/home/gabe/.local/state/gpqueue/jobs/20261007t021536-a745afa4.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u62-recover-20261007/",
+      "exit": 0,
+      "result": "dose 1: exercise ran but induced neither failure (spin exited 0 in 0.28s; holder died on SIGTERM) -- silent CUDA errors suspected; verdict=fail, honest"
+    },
+    {
+      "job_id": "20261007t023500-bdd70905",
+      "state": "queued",
+      "purpose": "re-dose: CHECK-macro binaries (fail loud, exit 3) + holder alive-precheck (exit 12 if self-exited) + stderr captured in records",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261007t023500-bdd70905.log",
       "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u62-recover-20261007/"
     }
   ],
   "analysis": {
     "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.2/recover_analyze.py --metrics-out experiments/gpu-sim-u2o.6.2/recover_metrics.json",
-    "status": "pending dose",
+    "status": "dose-1 verdict=fail (no induction); re-dose queued",
     "gates": "AC1 exercised+job id; AC2 SOFT_RESET-only + DECLINED with foreign holders; AC3 post calibrators within 25pct; AC4 survivor observed, arm A clean; AC5 NOT_COVERED stated; AC6 named checks"
   }
 }
