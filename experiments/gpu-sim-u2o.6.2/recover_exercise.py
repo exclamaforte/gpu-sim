@@ -80,9 +80,15 @@ SPIN_SRC = r"""
 #define CHECK(x) do { cudaError_t e_=(x); if(e_!=cudaSuccess){ \
     fprintf(stderr,"FAIL %s:%d %s\n",__FILE__,__LINE__, \
     cudaGetErrorString(e_)); return 3; } } while(0)
-__global__ void spin() { while (1) { } }
+// Volatile-flag spin: the earlier empty `while (1) {}` was deleted by ptxas
+// as side-effect-free (dose 2 proved it: launch + sync both succeeded, main
+// fell through in 0.27s). A volatile global read is observable memory
+// traffic the optimizer cannot delete, so this genuinely hangs till killed.
+__global__ void spin(volatile int *flag) { while (*flag == 0) { } }
 int main() {
-    spin<<<1, 1>>>();
+    int *flag = 0; CHECK(cudaMalloc(&flag, sizeof(int)));
+    CHECK(cudaMemset(flag, 0, sizeof(int)));
+    spin<<<1, 1>>>((volatile int *)flag);
     CHECK(cudaGetLastError());
     CHECK(cudaDeviceSynchronize());
     fprintf(stderr,"SPIN-EXITED-UNEXPECTEDLY\n");
