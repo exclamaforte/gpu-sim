@@ -53,9 +53,6 @@ class KernelSpec:
     op_type: str
     metadata: dict
     
-    def kernel_hash(self) -> str:
-        return hashlib.sha256(self.source.encode()).hexdigest()[:16]
-    
     def to_dict(self) -> dict:
         return asdict(self)
 

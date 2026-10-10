@@ -13,6 +13,22 @@ from typing import Iterator
 from pathlib import Path
 
 
+def kernel_hash_for(source: str, grid: list, block: list,
+                      problem_size: int) -> str:
+    """THE kernel hash (gpu-sim-9yt). One definition.
+
+    sha256(source + json([grid, block, problem_size]))[:16]. Both corpora
+    (7.1's 264, e5q's 192) are keyed by this; the old KernelSpec.kernel_hash
+    method (sha256(source) alone) had no callers and a second meaning, so it
+    is gone from all three generator stages. Stable across recompiles of the
+    same source: the compiler never enters the hash, only source text +
+    launch config (relevant to gpu-sim-00o's attachment-key question).
+    """
+    return hashlib.sha256(
+        (source + json.dumps([grid, block, problem_size])).encode()
+    ).hexdigest()[:16]
+
+
 @dataclass
 class KernelSpec:
     """Specification for a generated kernel."""
@@ -25,10 +41,6 @@ class KernelSpec:
     problem_size: int
     op_type: str
     metadata: dict
-    
-    def kernel_hash(self) -> str:
-        """SHA-256 hash of kernel source for deduplication."""
-        return hashlib.sha256(self.source.encode()).hexdigest()[:16]
     
     def to_dict(self) -> dict:
         return asdict(self)

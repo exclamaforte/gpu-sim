@@ -110,16 +110,24 @@ class KernelFeatures:
         return asdict(self)
 
 
-# RTX 5090 (Blackwell) specs for normalization
+# RTX 5090 specs for normalization. gpu-sim-g8x: SINGLE-SOURCED from
+# epic_u2o.hw_5090 -- this dict used to carry its own copies (228KB
+# shared-mem, 1792 theory BW, unsourced 82.6), which is how the baseline
+# came to normalise against a part that does not exist. One definition,
+# imported, not two copies. NOTE the rescale this implies: normalization
+# denominators changed, so normalized vectors from before this commit are
+# not comparable to ones from after it.
+from epic_u2o import hw_5090 as _hw
+
 RTX_5090_SPECS = {
-    'max_threads_per_block': 1024,
-    'max_shared_mem_per_block': 228 * 1024,  # 228 KB
-    'max_registers_per_thread': 255,
-    'max_blocks_per_sm': 32,
-    'num_sms': 170,  # RTX 5090 has 170 SMs
-    'warp_size': 32,
-    'peak_fp32_tflops': 82.6,  # Approximate
-    'memory_bandwidth_gbps': 1792,  # 1792 GB/s
+    'max_threads_per_block': _hw.MAX_THREADS_PER_BLOCK,  # 1024, own probe
+    'max_shared_mem_per_block': _hw.SHARED_MEM_PER_BLOCK,  # 49152, own probe (was 228*1024: per-SM value in a per-block slot)
+    'max_registers_per_thread': _hw.MAX_REGISTERS_PER_THREAD,  # ARCH 255
+    'max_blocks_per_sm': _hw.MAX_BLOCKS_PER_SM,  # ARCH 32
+    'num_sms': _hw.SM_COUNT,  # 170, megakern-37e.2 + own probe
+    'warp_size': _hw.WARP_SIZE,  # ARCH 32
+    'peak_fp32_tflops': _hw.PEAK_FP32_TFLOPS,  # VENDOR, UNSOURCED -- same number, honest label
+    'memory_bandwidth_gbps': _hw.MEASURED_READ_BW_GBS,  # 1688.592 achievable, megakern-37e.2 (was 1792 theory)
 }
 
 

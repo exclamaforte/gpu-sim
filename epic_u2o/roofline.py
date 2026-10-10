@@ -10,32 +10,41 @@ from dataclasses import dataclass
 from typing import Optional
 import math
 
+from epic_u2o import hw_5090
+
 
 @dataclass
 class RTX5090Specs:
     """RTX 5090 (Blackwell) specifications."""
-    # Compute
-    peak_fp32_tflops: float = 82.6  # TFLOP/s
+    # Compute (vendor figures where marked; measured quantities live in
+    # epic_u2o.hw_5090 and are imported as defaults below)
+    peak_fp32_tflops: float = hw_5090.PEAK_FP32_TFLOPS  # VENDOR, UNSOURCED IN-TREE -- never an occupancy input
+    peak_fp16_tflops: float = hw_5090.PEAK_FP16_TFLOPS  # VENDOR, UNSOURCED IN-TREE
+    peak_int32_tiops: float = hw_5090.PEAK_INT32_TOPS  # VENDOR, UNSOURCED IN-TREE
     peak_fp16_tflops: float = 165.2  # TFLOP/s (with sparsity)
     peak_int32_tiops: float = 82.6  # TIOP/s
     
     # Memory
-    memory_bandwidth_gbps: float = 1792  # GB/s
-    l2_cache_mb: float = 64  # MB
-    l1_cache_kb_per_sm: float = 128  # KB per SM
+    # Memory (measured achievable quantities, not vendor theory)
+    memory_bandwidth_gbps: float = hw_5090.MEASURED_READ_BW_GBS  # 1688.592, megakern-37e.2 peak_read (theory 1792)
+    l2_cache_bytes: int = hw_5090.L2_CACHE_BYTES  # 100663296 (96 MiB), own probe + megakern-37e.2
+    l1_cache_kb_per_sm: float = hw_5090.L1_CACHE_KB_PER_SM
     
     # Architecture
-    num_sms: int = 170
-    warp_size: int = 32
-    max_threads_per_sm: int = 2048
-    max_blocks_per_sm: int = 32
-    max_warps_per_sm: int = 64
-    max_registers_per_thread: int = 255
-    shared_mem_per_sm_kb: float = 228  # KB
+    # Architecture (measured quantities imported; the rest are arch invariants)
+    num_sms: int = hw_5090.SM_COUNT  # 170, megakern-37e.2 + own multiProcessorCount
+    warp_size: int = hw_5090.WARP_SIZE  # ARCH
+    max_threads_per_sm: int = hw_5090.MAX_THREADS_PER_SM  # 1536, own probe + attr readthrough (was 2048)
+    max_blocks_per_sm: int = hw_5090.MAX_BLOCKS_PER_SM  # ARCH
+    max_warps_per_sm: int = hw_5090.MAX_WARPS_PER_SM  # ARCH
+    max_registers_per_thread: int = hw_5090.MAX_REGISTERS_PER_THREAD  # ARCH cap (not a file size)
+    regs_per_sm: int = hw_5090.REGISTERS_PER_SM  # 65536, megakern-37e.2 + own probe (the real file size)
+    shared_mem_per_sm_bytes: int = hw_5090.SHARED_MEM_PER_SM_BYTES  # 102400, own probe + megakern-37e.2 (was 228KB)
     
     # Clock
-    base_clock_mhz: float = 2235
-    boost_clock_mhz: float = 2520
+    # Clock (measured max, not the vendor boost figure)
+    base_clock_mhz: float = hw_5090.BASE_CLOCK_MHZ  # VENDOR
+    boost_clock_mhz: float = hw_5090.MAX_SM_CLOCK_MHZ  # 2422, megakern-37e.2 (was vendor 2520)
 
 
 # Global specs instance
@@ -96,11 +105,15 @@ def calculate_occupancy(features: KernelFeatures) -> float:
     # Register limit
     regs_per_thread = min(features.estimated_registers_per_thread, specs.max_registers_per_thread)
     regs_per_block = regs_per_thread * threads_per_block
-    max_blocks_regs = (specs.max_registers_per_thread * specs.max_threads_per_sm) // regs_per_block if regs_per_block > 0 else specs.max_blocks_per_sm
+    # Register limit. gpu-sim-g8x: the old formula multiplied the per-thread
+    # CAP (255) by a thread count to fake a file size (255*2048 = 522240 -- a
+    # number with no hardware meaning, ~7.96x the real file, so this bound
+    # never fired). The bound is register FILE / registers per block.
+    max_blocks_regs = specs.regs_per_sm // regs_per_block if regs_per_block > 0 else specs.max_blocks_per_sm
     
     # Shared memory limit
     shared_mem_per_block = features.shared_mem_bytes
-    max_blocks_smem = (specs.shared_mem_per_sm_kb * 1024) // shared_mem_per_block if shared_mem_per_block > 0 else specs.max_blocks_per_sm
+    max_blocks_smem = specs.shared_mem_per_sm_bytes // shared_mem_per_block if shared_mem_per_block > 0 else specs.max_blocks_per_sm
     
     # Thread limit
     max_blocks_threads = specs.max_threads_per_sm // threads_per_block
