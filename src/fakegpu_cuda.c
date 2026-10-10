@@ -125,9 +125,15 @@ cudaError_t cudaMemGetInfo(size_t *free, size_t *total)
  * exist, and the reviewer's bead blamed the wrong thing: the byte OFFSETS were
  * correct (verified with offsetof against CUDA 13.3) and the VALUES were wrong.
  * ========================================================================== */
-#define FG_MAX_THREADS_PER_SM      1536       /* was 2048 */
-#define FG_SHMEM_PER_SM          102400       /* was 233472 (228 KB) */
-#define FG_L2_BYTES            100663296      /* was 134217728 (128 MB) */
+#define FG_MAX_THREADS_PER_SM      1536       /* was 2048: own probe + re-probe, no attr exists */
+#define FG_SHMEM_PER_SM          102400       /* was 233472 (228 KB): own probe + megakern-37e.2 */
+#define FG_L2_BYTES            100663296      /* was 134217728 (128 MB): own probe + megakern-37e.2 */
+/* gpu-sim-u2o.19 C5: max shared memory per block (opt-in), measured on the
+ * real 5090 by gpu-sim's own probe (ts 20261010t211802-ff147780: 101376) AND
+ * megakern-37e.2 (101376 to the byte). Set from the two-source agreement,
+ * not borrowed. Served through cudaDeviceGetAttribute only: the real
+ * cudaDeviceProp has no opt-in field. */
+#define FG_OPTIN_PER_BLOCK       101376
 #define FG_SMEM_PER_BLOCK         49152
 #define FG_REGS_PER_BLOCK         65536
 #define FG_REGS_PER_SM            65536
@@ -571,6 +577,16 @@ cudaError_t cudaDeviceGetAttribute(int *pi, int attr, int device)
         *pi = FG_MAX_THREADS_PER_SM; break;
     case cudaDevAttrMultiProcessorCount:         *pi = FG_SM_COUNT; break;   /* match real RTX 5090 */
     case cudaDevAttrMaxSharedMemoryPerBlock:     *pi = FG_SMEM_PER_BLOCK; break;
+    /* gpu-sim-u2o.19 C5: the fake stays self-consistent -- both attribute
+     * channels serve the single-sourced value. Recorded hardware quirk: the
+     * REAL 5090's cudaDevAttrMaxSharedMemoryPerMultiprocessor reads 0 while
+     * the struct reads 102400 (ts 20261010t211802-ff147780). Emulating the 0
+     * would reintroduce one-struct-two-answers, so the fake reports what the
+     * part has, and the discrepancy lives in metrics.json, not in a case. */
+    case cudaDevAttrMaxSharedMemoryPerMultiprocessor:
+        *pi = FG_SHMEM_PER_SM; break;
+    case cudaDevAttrMaxSharedMemoryPerBlockOptin:
+        *pi = FG_OPTIN_PER_BLOCK; break;
     case cudaDevAttrClockRate:                   *pi = 1590000; break;
     /* gpu-sim-u2o.19: cudaDevAttrTotalGlobalMem does not exist in CUDA 13.x --
      * it was removed when the attribute list was renumbered. The case is GONE

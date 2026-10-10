@@ -147,6 +147,11 @@ int main(void)
             {cudaDevAttrMultiProcessorCount, "smCount", p.multiProcessorCount},
             {cudaDevAttrMaxThreadsPerBlock, "maxThreadsPerBlock",
              p.maxThreadsPerBlock},
+            /* gpu-sim-u2o.19 C2/C4: the smem-per-SM attribute channel must
+             * serve the same number as the struct channel. The real 5090
+             * reads 102400 through BOTH (ts 20261010t213835-4d4bdf3f). */
+            {cudaDevAttrMaxSharedMemoryPerMultiprocessor, "smemPerSM",
+             (long)p.sharedMemPerMultiprocessor},
         };
         for (unsigned i = 0; i < sizeof(pairs)/sizeof(pairs[0]); i++) {
             int got = 0;
@@ -178,6 +183,27 @@ int main(void)
                 printf("  ok   attr %s == struct      %d\n",
                        pairs[i].name, got);
             }
+        }
+    }
+
+    /* gpu-sim-u2o.19 C5/C6: opt-in shmem per block. The real cudaDeviceProp
+     * has no opt-in field, so there is no struct channel to pin against --
+     * the literal IS the spec here (same precedent as the offsets above):
+     * 101376, gpu-sim's own probe (ts 20261010t211802-ff147780) agreeing
+     * with megakern-37e.2 to the byte. */
+    {
+        int optin = -1;
+        e = cudaDeviceGetAttribute(&optin,
+                                   cudaDevAttrMaxSharedMemoryPerBlockOptin, 0);
+        if (e != cudaSuccess) {
+            printf("  FAIL optin attribute unavailable: %s\n",
+                   cudaGetErrorString(e));
+            failures++;
+        } else if (optin != 101376) {
+            printf("  FAIL attr optinPerBlock = %d, want 101376\n", optin);
+            failures++;
+        } else {
+            printf("  ok   attr optinPerBlock      %d\n", optin);
         }
     }
 

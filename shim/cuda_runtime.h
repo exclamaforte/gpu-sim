@@ -133,6 +133,10 @@ enum cudaDeviceAttr {
     cudaDevAttrMaxSharedMemoryPerBlock      = 8,
     cudaDevAttrL2CacheSize                  = 38,
     cudaDevAttrMaxThreadsPerMultiProcessor  = 39,
+    /* gpu-sim-u2o.19 C5: values read from CUDA 13.3's driver_types.h (the
+     * runtime header does not carry the numbers). 81/97, not guessed. */
+    cudaDevAttrMaxSharedMemoryPerMultiprocessor = 81,
+    cudaDevAttrMaxSharedMemoryPerBlockOptin  = 97,
     cudaDevAttrComputeCapabilityMajor       = 75,
     cudaDevAttrComputeCapabilityMinor       = 76,
     cudaDevAttrTotalAmountOfConstantMemory  = 10,
