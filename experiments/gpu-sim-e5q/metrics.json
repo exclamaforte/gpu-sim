@@ -1,0 +1,28 @@
+{
+  "bead": "gpu-sim-e5q",
+  "evidence": {
+    "ai_cv_everywhere": true,
+    "compile_ok": true,
+    "compile_wall_s": 292.4,
+    "hash_overlap_71": 0,
+    "measure_job": "20261010t224024-465ad815",
+    "measure_wall_s": 166.1,
+    "n_filtered": 0,
+    "n_rows": 192,
+    "n_unreliable_in_place": 1,
+    "no_regime_hint": true,
+    "provenance_everywhere": true,
+    "queue_gate_recorded": true,
+    "regimes": {
+      "launch_bound": 19,
+      "measurable": 173
+    }
+  },
+  "failures": [],
+  "median_ms_range": [
+    0.0067,
+    0.12
+  ],
+  "regime_statement": "173 measurable + 19 launch_bound (all 19 at 2^22 on partial-coverage grids: under-covered large-n cells are still launcher-dominated by measurement, not by size guess). The corpus now spans ~7us..120us, two regimes: Phase 2 baselines can interpolate launch-vs-memory behaviour instead of extrapolating from the dispatch floor.",
+  "verdict": "pass"
+}
