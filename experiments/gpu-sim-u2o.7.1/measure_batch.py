@@ -134,7 +134,8 @@ def main() -> int:
                                   * d["block"][0] * d["block"][1] * d["block"][2]},
                 "covers": d["covers"],
                 "deliberately_poor": d["deliberately_poor"],
-                "regime_hint": d["regime_hint"],
+                # 7.1 rework: no regime_hint -- measured_regime (below) is
+                # authoritative; the design-time guess shipped unlabelled.
                 "n_trials": ntr,
                 "n_invocations": len(meds),
                 "median_runtime_ms": med,

@@ -85,8 +85,7 @@ def main() -> int:
          "specs": specs}, indent=2))
     print(f"built {len(specs)} specs -> {manifest}")
     poor = sum(1 for s in specs if s["deliberately_poor"])
-    lb = sum(1 for s in specs if s["regime_hint"] == "launch_bound_expected")
-    print(f"  deliberately_poor: {poor}   launch_bound_expected: {lb}")
+    print(f"  deliberately_poor: {poor}")
     return 0
 
 
@@ -103,9 +102,10 @@ def _row(spec, n, block, grid) -> dict:
     threads = (d["grid"][0] * d["grid"][1] * d["grid"][2]
                * d["block"][0] * d["block"][1] * d["block"][2])
     d["covers"] = min(threads, d["problem_size"])
-    d["regime_hint"] = ("launch_bound_expected"
-                        if d["problem_size"] <= LAUNCH_BOUND_N
-                        else "measurable_expected")
+    # gpu-sim-u2o.7.1 rework: regime_hint REMOVED. The design-time guess was
+    # wrong wherever it mattered (128/264 rows said measurable_expected for
+    # launch_bound measurements); measured_regime is authoritative and the
+    # only regime field shipped.
     d["deliberately_poor"] = (d["grid"] == [1, 1, 1] or d["block"] == [1, 1, 1])
     d["kernel_hash"] = hashlib.sha256(
         (d["source"] + json.dumps([d["grid"], d["block"],

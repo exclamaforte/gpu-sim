@@ -55,7 +55,7 @@ try:
     else:
         m = json.loads((HERE / "build" / "manifest.json").read_text())
         need = {"kernel_hash", "kernel_name", "grid", "block", "problem_size",
-                "covers", "regime_hint", "deliberately_poor", "source_path"}
+                "covers", "deliberately_poor", "source_path"}  # 7.1 rework: no regime_hint
         bad = [s["kernel_hash"] for s in m["specs"] if not need <= set(s)]
         if bad:
             fails.append(f"{len(bad)} manifest rows missing required keys")
