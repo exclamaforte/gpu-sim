@@ -26,11 +26,27 @@ from epic_u2o.features import LaunchConfig, extract_features  # noqa: E402
 import epic_u2o.roofline as roof_new  # noqa: E402
 
 
+# Reviewer pin (g8x rework): the pre-fix reference is a FIXED merged commit,
+# not HEAD. HEAD moves (rebase, merge); a gate that loads 'before' from a
+# moving ref can silently compare the fix against itself and pass on
+# byte-identical metrics. 46ddfa9 is the merged master the g8x branch was
+# cut from, whose roofline.py still ships the three inflating constants.
+PRE_FIX_REF = "46ddfa9358df2d8836bbee2e9b48f0d680b251f8"
+
+
 def load_old_roofline():
-    src = subprocess.run(["git", "show", "HEAD:epic_u2o/roofline.py"],
+    src = subprocess.run(["git", "show", f"{PRE_FIX_REF}:epic_u2o/roofline.py"],
                          cwd=str(REPO), capture_output=True, text=True,
                          check=True).stdout
-    assert "shared_mem_per_sm_kb" in src, "not the pre-fix roofline"
+    # Both directions: the old markers present AND the fix absent. Either
+    # check alone passes on the wrong tree (a fixed tree keeps no old
+    # markers; an unrelated old tree may lack the fix for other reasons --
+    # the pair pins THIS ref, not just 'some old file').
+    assert "shared_mem_per_sm_kb" in src, "pre-fix marker gone: wrong ref?"
+    assert "max_registers_per_thread * specs.max_threads_per_sm" in src, \
+        "pre-fix formula gone: wrong ref?"
+    assert "regs_per_sm" not in src, "fix already present in pre-fix ref?!"
+    assert "hw_5090" not in src, "fix already present in pre-fix ref?!"
     spec = importlib.util.spec_from_loader("roofline_before", loader=None)
     mod = importlib.util.module_from_spec(spec)
     exec(compile(src, "roofline_before.py", "exec"), mod.__dict__)
