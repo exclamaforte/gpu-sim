@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-u2o.6.3.1",
-  "authoritative_job": "20261004t053314-3dcc3aa3",
-  "authoritative_job_result": "finished in 1.0s, exit 0, PASS",
+  "authoritative_job": "20261010t204103-97af869c",
+  "authoritative_job_result": "finished, exit 0, PASS",
   "ts_jobs": [
     {
       "id": "20260928t091846-a635d8f7",
@@ -18,6 +18,11 @@
       "id": "20261004t053314-3dcc3aa3",
       "result": "finished in 1.0s, exit 0, PASS",
       "note": "Authoritative for the POST-REBASE set. Re-probe required by the rebase onto gpu-sim-u2o.6.3-rb, which added RLIMIT_FSIZE=268435456 (256 MiB per-file backstop) to apply(): the old evidence described a set the harness no longer applies. cuda_malloc ok, launch ok, read-back correct, 1.50s wall (design budget <10s). uid_tasks on this run: 1496."
+    },
+    {
+      "id": "20261010t204103-97af869c",
+      "result": "finished, exit 0, PASS",
+      "note": "Post-dispatch re-probe (PI 2026-10-10: gate runs on every batch job; 7.1 blocked on it). Same set as run 3 (AS/CPU/DATA/NOFILE/CORE/FSIZE=268435456, NPROC absent). cuda_malloc ok, launch ok, read-back correct, 1.32s wall (<10s budget). uid_tasks 2016 vs 1496 on Oct 4 (+520 in 6 days) -- further drift evidence every fixed NPROC value is a race. Authoritative for the current limit set; supersedes 20261004t053314-3dcc3aa3 as newest evidence, same applied values."
     }
   ],
   "failed_job_kept_deliberately": true,
@@ -41,7 +46,9 @@
     "delta_in_about_2_minutes": 27,
     "why_it_matters": "gpu-sim-u2o.6.1.1 bracketed this uid's live task total between 2048 (aborts the process at its first thread creation) and 3072 (works). The live count is now 2006, i.e. 42 tasks below the abort threshold, and it moved 27 tasks in two minutes. This is direct evidence for the gate's central claim that EVERY fixed RLIMIT_NPROC value is a race on this shared host -- and that 2048, which reads as a generous limit, is currently within a rounding error of killing CUDA.",
     "run_3_20261004t053314-3dcc3aa3": 1496,
-    "run_3_note": "Six days later the same uid holds 1496 tasks -- 510 fewer, a third of the abort threshold away from where it was. The count drifts by HUNDREDS across days, not just tens across minutes. A fixed NPROC value chosen against any single measurement is stale before the run starts."
+    "run_3_note": "Six days later the same uid holds 1496 tasks -- 510 fewer, a third of the abort threshold away from where it was. The count drifts by HUNDREDS across days, not just tens across minutes. A fixed NPROC value chosen against any single measurement is stale before the run starts.",
+    "run_4_20261010t204103-97af869c": 2016,
+    "run_4_note": "Six more days, +520 tasks since run 3 (1496->2016). The live per-uid total now sits 32 tasks BELOW the 2048 abort threshold bracketed in 6.1.1 -- a fixed NPROC=2048 chosen any time this week would be lethal today."
   },
   "gpu_used": true,
   "queue_position_respected": true,
