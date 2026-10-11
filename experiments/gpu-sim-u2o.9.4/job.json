@@ -1,7 +1,1 @@
-{
-  "bead": "gpu-sim-u2o.9.4",
-  "ts_jobs": [],
-  "gpu_used": false,
-  "input": "lab/gpu-sim-u2o.6.6.2-r2:experiments/gpu-sim-u2o.6.6.2/metrics.json, 124 real measured cells, read read-only via git show",
-  "note": "The audit note for this bead is that the baseline was only ever evaluated against compare_baselines.py's _synthetic_kernel() fixtures. This evaluates it against real measured kernels. Criterion 3's reconciliation reads the COMMITTED artifact rather than recomputing it locally, because a check against fresh output is an identity once both fields share a helper."
-}
+{"analysis": "report: 7.7238->0.6581 per-regime, cancellation stated, contention clean, residuals A/B carried", "bead": "gpu-sim-u2o.9.4", "branch": "lab/gpu-sim-u2o.9.4", "cpu_runs": [{"command": "python3 -m unittest tests.test_baseline_report", "exit": 0, "note": "8/8 OK"}, {"command": "python3 experiments/gpu-sim-u2o.9.4/report_verify.py", "exit": 0, "note": "456 uncontended; regimes 220/204/32; verdict=pass"}, {"command": "bash experiments/gpu-sim-u2o.9.4/run.sh", "exit": 0, "note": "RECOMPUTE PASS byte-identical"}], "gpu_jobs": []}
