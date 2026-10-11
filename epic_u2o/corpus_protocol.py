@@ -94,16 +94,18 @@ PROTOCOLS = {
         # protocol: stamping these single_run_7_1 would claim reference
         # status for non-reference kernels. rows/wall_sec/ex_per_sec/
         # median_ai_cv filled at landing (gpu-sim-u2o.11.3 metrics.json:
-        # 1804 unique rows, 1735.67s queued measure wall).
+        # 1804 unique rows, 1735.67s queued measure wall; gpu-sim-f6y
+        # appended 18 fixed-template rows under the identical procedure:
+        # 1822 rows, median_ai_cv recomputed over all 1822).
         "measured": True,
-        "rows": 1804,
+        "rows": 1822,
         "wall_sec": 1735.67,
         "ex_per_sec": 1.039,
         "invocations": 2,
         "timed_launches_per_example": 40,
         "process_model": "one process PER INVOCATION (7.1's own harness)",
         "executable": "one binary per kernel, via kernel_driver.synthesize()",
-        "median_ai_cv": 0.0783,
+        "median_ai_cv": 0.0780,
         "authority": "SCALE ONLY. Additive and labelled; may not be pooled "
                      "with the reference rows without a recorded decision.",
     },

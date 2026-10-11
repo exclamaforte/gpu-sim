@@ -37,7 +37,7 @@ EXPECTED_ROWS = {
     "single_run_7_1": 264,
     "perproc_7_1_driver": 264,
     "perkernel_shared_ctx": 264,
-    "single_run_stages_2_5": 1804,
+    "single_run_stages_2_5": 1822,
 }
 
 
