@@ -5,6 +5,10 @@ Without this, every stage-4 driver launched with M=N=K=1 (int default) and
 measured the launcher, not the GEMM -- and every 2D driver launched with
 rows=cols=1. Stage-1 drivers must be byte-identical to before (no colliding
 metadata keys there).
+
+s4 re-run: GEMM pointer buffers are arity-sized (A: M*K, B: K*N, C: M*N).
+The generic N-per-buffer rule filled gigabytes on the host while the timed
+kernel ran microseconds (5.5% GPU util, killed by the queue's 10% gate).
 """
 import sys
 import unittest
@@ -88,6 +92,39 @@ class TestDimScalars(unittest.TestCase):
         tail = f", {m['rows']}, {m['cols']})"
         self.assertTrue(_timed_call(prog).endswith(tail),
                         _timed_call(prog))
+
+
+class TestGemmBufferCounts(unittest.TestCase):
+    def _gemm(self, m=512, n=512, k=256):
+        s = next(s for s in s4.generate_kernels(max_kernels=100000)
+                 if s.op_type == "gemm_tiled" and s.metadata["M"] == m
+                 and s.metadata["N"] == n and s.metadata["K"] == k)
+        return s.to_dict()
+
+    def test_buffers_are_arity_sized(self):
+        prog = synthesize(self._gemm())
+        # A: 512*256, B: 256*512, C: 512*512 -- none of them M*N*K.
+        for frag in ("131072 * sizeof(float)",  # A and B
+                     "262144 * sizeof(float)"):  # C
+            self.assertIn(frag, prog)
+        self.assertNotIn("134217728 * sizeof", prog)  # M*N*K must be gone
+
+    def test_fills_match_mallocs(self):
+        prog = synthesize(self._gemm())
+        self.assertIn("for (int i = 0; i < 131072; i++)", prog)
+
+    def test_missing_dims_fall_back_to_N(self):
+        d = self._gemm()
+        d["metadata"] = {"generator": "stage4_gemm"}  # dims stripped
+        prog = synthesize(d)
+        self.assertIn(f"{d['problem_size']} * sizeof(float)", prog)
+
+    def test_nongemm_buffers_stay_N(self):
+        s = next(gen1(ops=["scale"], grid_sweeps=[[4, 1, 1]],
+                      block_sweeps=[[256, 1, 1]], problem_sizes=[4096],
+                      max_kernels=1)).to_dict()
+        prog = synthesize(s)
+        self.assertIn("4096 * sizeof(float)", prog)
 
 
 if __name__ == "__main__":

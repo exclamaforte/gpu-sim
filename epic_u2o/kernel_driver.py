@@ -18,6 +18,15 @@ driver launched with M=N=K=1 and measured the launcher, not the GEMM.
 Metadata wins over the size-names on purpose: GEMM's N is a dimension, not
 the element count. Stage-1 specs carry no colliding metadata keys, so their
 drivers are byte-identical to before.
+
+gpu-sim-u2o.11.3 (s4 re-run): arity-sized GEMM buffers. The generic rule sized
+every pointer at N = M*N*K elements, so a (1024,1024,256) GEMM filled and
+copied 3 GB per buffer on the host while the timed kernel ran microseconds --
+the s4 slice averaged 5.5% GPU util and the queue killed it at the 5-minute
+grace check (10% minimum). GEMM args are exactly A: M*K, B: K*N, C: M*N by
+the generator's fixed convention; sizing them so cuts host work ~500x on
+square cases while the timed launch is byte-identical. Falls back to N for
+any GEMM-family spec whose dims are absent, never silently.
 """
 
 import json
@@ -49,6 +58,22 @@ def _is_pointer(ctype: str) -> bool:
     return '*' in ctype
 
 
+def _buffer_counts(spec: dict, dims: dict, n: int) -> dict:
+    """Element count per pointer arg. The default is N (problem_size).
+
+    GEMM-family specs (op_type gemm_*, fixed A/B/C args, M/N/K dims present)
+    size arity-correct: A: M*K, B: K*N, C: M*N. Anything else -- including a
+    GEMM spec missing its dims -- falls back to N rather than guessing.
+    """
+    counts = {}
+    if (spec.get("op_type", "").startswith("gemm")
+            and all(k in dims for k in ("M", "N", "K"))):
+        counts = {"A": dims["M"] * dims["K"],
+                  "B": dims["K"] * dims["N"],
+                  "C": dims["M"] * dims["N"]}
+    return counts
+
+
 def synthesize(spec: dict) -> str:
     """Build a full .cu program from a KernelSpec dict.
 
@@ -76,6 +101,7 @@ def synthesize(spec: dict) -> str:
     # keeps the old size-name/default behaviour below.
     dims = {k: v for k, v in (spec.get('metadata') or {}).items()
             if type(v) is int}
+    buf_counts = _buffer_counts(spec, dims, n)
 
     if '__global__' not in src:
         raise ValueError("spec['source'] contains no __global__ kernel")
@@ -89,14 +115,15 @@ def synthesize(spec: dict) -> str:
             if base not in _BASE_SIZES:
                 raise ValueError(f"unsupported pointer base type: {ctype!r} "
                                  f"(stage-1 synthesizer handles {sorted(_BASE_SIZES)})")
+            cnt = buf_counts.get(name, n)
             decls.append(f"    {base} *d_{name} = NULL;")
-            decls.append(f"    {base} *h_{name} = ({base}*)malloc(N * sizeof({base}));")
-            mallocs.append(f"    CHECK(cudaMalloc((void**)&d_{name}, N * sizeof({base})));")
+            decls.append(f"    {base} *h_{name} = ({base}*)malloc({cnt} * sizeof({base}));")
+            mallocs.append(f"    CHECK(cudaMalloc((void**)&d_{name}, {cnt} * sizeof({base})));")
             if name.startswith('out') or name == 'y':
-                fills.append(f"    for (int i = 0; i < N; i++) h_{name}[i] = ({base})0;")
+                fills.append(f"    for (int i = 0; i < {cnt}; i++) h_{name}[i] = ({base})0;")
             else:
-                fills.append(f"    for (int i = 0; i < N; i++) h_{name}[i] = ({base})(i * 0.5f + 1.0f);")
-            mallocs.append(f"    CHECK(cudaMemcpy(d_{name}, h_{name}, N * sizeof({base}), cudaMemcpyHostToDevice));")
+                fills.append(f"    for (int i = 0; i < {cnt}; i++) h_{name}[i] = ({base})(i * 0.5f + 1.0f);")
+            mallocs.append(f"    CHECK(cudaMemcpy(d_{name}, h_{name}, {cnt} * sizeof({base}), cudaMemcpyHostToDevice));")
             call_args.append(f"d_{name}")
             frees.append(f"    cudaFree(d_{name}); free(h_{name});")
         else:
