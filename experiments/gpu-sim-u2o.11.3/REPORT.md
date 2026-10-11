@@ -31,9 +31,10 @@ Compiled unqueued (2211/2211, 3079s). Measured in 8 queued slices
 (287/285/233/259/210/89/180/54s walls); a paired trial first paced the
 full batch at ~37m (over the 30m slice) and proved queue identification.
 
-**Trial.** `20261011t122852-fd4d2829` (30 rows, 27s) + held
-`20261011t122852-65af9df8` (rejected: full-batch projection ~37m outruns
-the slice). own_job_id identified, contention clean.
+**Trial.** `20261011t122933-e206d4a9` (30 rows, 27s) + held
+`20261011t122933-65af9df8` (rejected: full-batch projection ~37m outruns
+the slice; the held job was itself held at 0.2% GPU util for printing no
+progress output). own_job_id identified, contention clean.
 
 **Stage-4 kill and the arity fix.** The s4 slice (96 big-GEMM rows)
 averaged 5.5% GPU util and was `killed_underused` at 301s (10% minimum
@@ -64,7 +65,7 @@ unique cells throughout.
 `out[i*stride]`: out of bounds by construction for segment/stride > 0/1,
 so those kernels crash (binaries present, 0 successful invocations).
 55 + 25 occurrences = 80 manifest rows affected, 18 unique cells. Filed as
-follow-up; the bead clears 1544 without them.
+follow-up (`gpu-sim-f6y`); the bead clears 1544 without them.
 
 **Census FAIL then extension.** The 1693-row base corpus censused to
 latency->latency 1460 / latency->memory 233 / memory->memory **0** --
@@ -81,8 +82,9 @@ after honest candidate additions. Measured: **111/111 cells classify
 memory->memory -- prediction 111/111 correct, zero drift.** Extension
 specs were appended (base 2211 byte-identical asserted), compiled
 (111/111, 276s), measured in slice `20261011t135536-0fe42b23` (111/111,
-140s). One extension attempt failed first (missing `covers`/`source_path`
-fields, fixed to the identical base rules) -- CPU-side, no GPU wasted.
+140s). One extension attempt failed first (`20261011t134705-1172e7b7`,
+exit 1 in 1s: missing `covers`/`source_path` fields, fixed to the
+identical base rules) -- CPU-side, no GPU wasted.
 
 **Shared-memory subtlety.** Occupancy feeds both pinned models, so the
 keep-list predicts with construction shmem values (reduce/tiled block*4,
@@ -102,12 +104,18 @@ measuring with block*4 could move the class after the fact.
 ## Provenance
 
 - Queue jobs (all `u2o.11.3`-labelled): trial pair
-  `20261011t122852-fd4d2829` / held `20261011t122852-65af9df8`; slices
+  `20261011t122933-e206d4a9` / held `20261011t122933-65af9df8`; slices
   s2a `20261011t123221-2521361e`, s2b, s3a, s3b, s3c, s4-killed
   `20261011t123222-54909c19`, s4r `20261011t130848-fd150d4d`, s5a, s5b;
+  mmx-attempt `20261011t134705-1172e7b7` (failed, exit 1, missing fields);
   mmx `20261011t135536-0fe42b23`.
 - Recompute: `run.sh` re-runs merge + verify + census controls + unit
   tests from committed files (CPU-only). GPU steps (compile, measure) are
   forward-only and recorded, not recomputed.
+- Registry landing: the `single_run_stages_2_5` entry in
+  `epic_u2o/corpus_protocol.py` is completed with measured values
+  (rows 1804, wall 1735.67s, 1.039 ex/s, median ai_cv 0.0783); the
+  6.7.1 rows test now expects per-protocol counts (a new protocol with
+  no declared N fails loudly) instead of a single 264 constant.
 - 9.1 is NOT started (this bead delivers its training corpus; modelling
   begins after review).
