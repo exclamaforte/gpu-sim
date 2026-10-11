@@ -38,7 +38,8 @@ done < <(grep -oE 'src/[A-Za-z0-9_./-]+\.c' Makefile | sort -u)
 #    because criterion 3 is about `make check`, not just about the library
 for f in include/fakegpu.h shim/cuda_runtime.h shim/nccl.h \
          tests/fake_client.c tests/vector_add.c tests/ring_allreduce.c \
-         tests/test_cudart_none.cu tests/test_cudart_none.sh; do
+         tests/test_cudart_none.cu tests/test_cudart_none.sh \
+         tests/test_device_prop_overlay.cu tests/test_shim_prop_size.c; do
     [ -e "$f" ] || continue          # not required by this Makefile
     checked=$((checked + 1))
     if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then

@@ -15,6 +15,25 @@
  * (ts 20260928t105453-2dc7af7c). The three this bead is about are marked;
  * the rest are pinned too because the same overlay writes them and a silent
  * drift in any of them is the same defect.
+ *
+ * TWO cudaDeviceProp LAYOUTS (gpu-sim-m64): shim/cuda_runtime.h is 696
+ * bytes, real CUDA 13.3 is 1008. This file is compiled by real nvcc
+ * against the REAL headers, so it sees the 1008-byte struct -- the same
+ * struct a third-party caller passes, and the layout the overlay's 19
+ * absolute-offset writes target. The shim's 696 is guarded separately by
+ * tests/test_shim_prop_size.c (gcc, shim headers): that one covers the
+ * fake's OWN field writes (prop->maxThreadsPerBlock = 1024 style), this
+ * one covers the overlay. An insertion in either struct moves what that
+ * side writes; each assertion fails only for its own side.
+ *
+ * 19 overlay writes exist (src/fakegpu_cuda.c memcpy(base + 288..636));
+ * 3 are pinned by offsetof below. The other 16 are covered structurally:
+ * sizeof(cudaDeviceProp) == 1008 fails on ANY insertion in the real
+ * layout, wherever it lands. maxThreadsPerBlock@320 and warpSize@308 are
+ * gpu-sim-u2o.19's two undiagnosed gaps (WARN, not asserted -- diagnosis
+ * owned by gpu-sim-u2o.19, and a WARN-turned-assert without one is a gate
+ * that fails for a reason nobody understands); these two sizeof guards are
+ * the durable protection for that open edge, closing it as a side effect.
  */
 #include <cstdio>
 #include <cstddef>
@@ -71,8 +90,17 @@ int main(void)
      * entirely and get the default of 0. The attribute query below returning
      * 0 while the struct fields are correct is consistent with that, and
      * inconsistent with the overlay simply not running. Someone should test
-     * the enum values directly before acting on it.
-     */
+     * the enum values directly before acting on it. Diagnosis is owned by
+     * gpu-sim-u2o.19 (CLOSED with these two gaps open); this bead does not
+     * adjudicate them.
+     *
+     * WHY 308 AND 320 ARE LOAD-BEARING (gpu-sim-m64): these two offsets are
+     * exactly u2o.19's unfixable remainder -- the only overlay writes with
+     * no passing assertion behind them. Nothing detects a further change
+     * near them either. The sizeof guards added by m64 (1008 here, 696 in
+     * tests/test_shim_prop_size.c) are the durable protection for that
+     * open edge: an insertion moving either layout fails loudly instead of
+     * silently writing 16 fields to the wrong places.
     if (p.maxThreadsPerBlock != 1024)
         printf("  WARN maxThreadsPerBlock        %d (overlay writes 1024 at 320)\n",
                p.maxThreadsPerBlock);
@@ -104,8 +132,20 @@ int main(void)
     /* --- the offsets, asserted from the header, not from a constant ----- *
      * If CUDA moves a field, the overlay's hardcoded offset stops matching
      * and the read above silently returns whatever is at the new location.
-     * Pinning the offsets makes that a loud failure instead.
-     */
+     * Pinning the offsets makes that a loud failure instead. The struct SIZE
+     * is pinned too: any field added anywhere in the real layout moves the
+     * sizeof, regardless of which of the 19 offsets it disturbs. A changed
+     * sizeof on a new CUDA version is a FINDING about the layout -- report
+     * it, do not silently accommodate it by editing the constant. */
+    if (sizeof(cudaDeviceProp) != 1008) {
+        printf("  FAIL sizeof(cudaDeviceProp) = %zu, want 1008 -- the real "
+               "layout moved; all 19 overlay offsets suspect\n",
+               sizeof(cudaDeviceProp));
+        failures++;
+    } else {
+        printf("  ok   sizeof(cudaDeviceProp)     %zu\n",
+               sizeof(cudaDeviceProp));
+    }
     struct { const char *name; size_t got; size_t want; } offs[] = {
         {"offsetof(l2CacheSize)",                 offsetof(cudaDeviceProp, l2CacheSize),                 596},
         {"offsetof(maxThreadsPerMultiProcessor)", offsetof(cudaDeviceProp, maxThreadsPerMultiProcessor), 604},

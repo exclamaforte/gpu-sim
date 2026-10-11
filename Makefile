@@ -58,6 +58,9 @@ check: guard-build-inputs $(LIB)
 	@echo "--- real-layout device-property overlay (gpu-sim-u2o.19) ---"
 	@$(NVCC) -cudart=none -arch=sm_120 -Xlinker -rpath -Xlinker $(CURDIR) tests/test_device_prop_overlay.cu -o build/test_device_prop_overlay -L. -lfakegpu
 	@./build/test_device_prop_overlay
+	@echo "--- shim device-property sizeof (gpu-sim-m64) ---"
+	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_shim_prop_size tests/test_shim_prop_size.c
+	@./build/test_shim_prop_size
 
 .PHONY: guard-build-inputs
 # The guard runs FIRST, as a prerequisite: a red guard stops the suite before

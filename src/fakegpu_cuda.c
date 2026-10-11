@@ -461,9 +461,15 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device)
      * shim/cuda_runtime.h. They read major/minor (and a few basics) at real
      * offsets (driver_types.h, CUDA 13): totalGlobalMem@288,
      * sharedMemPerBlock@296, maxThreadsPerBlock@320, totalConstMem@352,
-     * major@360, minor@364, multiProcessorCount@384. Without this overlay
      * they read zeros -> compute capability 0.0 -> SIGFPE (gpu-sim-u2o.16).
-     * All offsets are < shim sizeof (verified 696 by sizeof_check). */
+     * 19 writes at 288..636, all < the SHIM sizeof 696 as plain arithmetic
+     * (last write ends at 636 + 4 = 640 < 696; the 8-byte writes sit at
+     * lower offsets). "Shim" matters:
+     * there are TWO cudaDeviceProp structs -- shim/cuda_runtime.h (696) and
+     * real CUDA 13.3 (1008) -- and this overlay targets the REAL layout.
+     * The live guards are in tests/test_device_prop_overlay.cu (built
+     * against real headers): offsetof 596/604/624 asserted from the header,
+     * sizeof(l2CacheSize) == 4, sizeof(cudaDeviceProp) == 1008. */
     {
         unsigned char *base = (unsigned char *)prop;
         size_t total_mem = (size_t)c->device_mem_mb * 1024 * 1024;
