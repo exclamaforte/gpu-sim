@@ -434,6 +434,10 @@ def generate_kernels(
                                 'access_pattern': 'transpose' if 'transpose' in op_name else 'diagonal',
                                 'coalesced': 'transpose' in op_name,
                                 '2d': True,
+                                # u2o.11.3: dims for the driver (rows/cols args
+                                # would otherwise synthesize as 1 -> vacuous).
+                                'rows': rows,
+                                'cols': cols,
                             },
                         )
                         count += 1

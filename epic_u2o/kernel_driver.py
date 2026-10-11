@@ -10,6 +10,14 @@ as one JSON line to stdout.
 Median/IQR are intentionally NOT computed here -- measurement_stats.py owns
 that in Python. Supports the stage-1 elementwise family (float/int/double
 pointers + float/int scalars). Other families fail loudly, not silently.
+
+gpu-sim-u2o.11.3: dimension scalars. A scalar arg whose name matches an
+int-valued entry in the spec's metadata (GEMM M/N/K, 2D rows/cols, strided
+stride, histogram nbins) is passed that value; without this every stage-4
+driver launched with M=N=K=1 and measured the launcher, not the GEMM.
+Metadata wins over the size-names on purpose: GEMM's N is a dimension, not
+the element count. Stage-1 specs carry no colliding metadata keys, so their
+drivers are byte-identical to before.
 """
 
 import json
@@ -63,6 +71,11 @@ def synthesize(spec: dict) -> str:
     args = spec['args']
     n = int(spec['problem_size'])
     shmem = int(spec.get('shared_mem_bytes', 0))
+    # gpu-sim-u2o.11.3: dimension scalars (M/N/K, rows/cols, stride, nbins)
+    # come from the spec's metadata. Only plain ints qualify; anything else
+    # keeps the old size-name/default behaviour below.
+    dims = {k: v for k, v in (spec.get('metadata') or {}).items()
+            if type(v) is int}
 
     if '__global__' not in src:
         raise ValueError("spec['source'] contains no __global__ kernel")
@@ -88,7 +101,9 @@ def synthesize(spec: dict) -> str:
             frees.append(f"    cudaFree(d_{name}); free(h_{name});")
         else:
             base = _base_type(ctype)
-            if name in ('n', 'N', 'size', 'len', 'count'):
+            if name in dims:
+                val = str(dims[name])
+            elif name in ('n', 'N', 'size', 'len', 'count'):
                 val = 'N'
             elif base in _SCALAR_DEFAULTS:
                 val = _SCALAR_DEFAULTS[base]

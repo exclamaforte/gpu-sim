@@ -87,6 +87,21 @@ PROTOCOLS = {
                      "with the reference rows. A ~9.4% median offset against "
                      "the reference remains unexplained.",
     },
+    "single_run_stages_2_5": {
+        # gpu-sim-u2o.11.3: the scale-up rows (stages 2-5). Same process shape
+        # as single_run_7_1 -- one binary per kernel via kernel_driver.
+        # synthesize(), 2 invocations x 20 timed launches -- but a separate
+        # protocol: stamping these single_run_7_1 would claim reference
+        # status for non-reference kernels. rows/wall_sec/ex_per_sec/
+        # median_ai_cv are filled at landing (this entry's own bead).
+        "measured": True,
+        "invocations": 2,
+        "timed_launches_per_example": 40,
+        "process_model": "one process PER INVOCATION (7.1's own harness)",
+        "executable": "one binary per kernel, via kernel_driver.synthesize()",
+        "authority": "SCALE ONLY. Additive and labelled; may not be pooled "
+                     "with the reference rows without a recorded decision.",
+    },
 }
 
 

@@ -408,6 +408,10 @@ def generate_kernels(
                                 'op_type': op_name,
                                 'uses_shared_memory': True,
                                 'stencil_pattern': '5pt',
+                                # u2o.11.3: dims for the driver (rows/cols args
+                                # would otherwise synthesize as 1 -> vacuous).
+                                'rows': rows,
+                                'cols': cols,
                             },
                         )
                         count += 1
@@ -437,6 +441,9 @@ def generate_kernels(
                                 'op_type': op_name,
                                 'uses_shared_memory': True,
                                 'access_pattern': 'transpose',
+                                # u2o.11.3: dims for the driver (see stencil site).
+                                'rows': rows,
+                                'cols': cols,
                             },
                         )
                         count += 1
