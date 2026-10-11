@@ -1,0 +1,36 @@
+{
+  "bead": "gpu-sim-urr",
+  "branch": "lab/gpu-sim-urr",
+  "d_gpusim": "resolver returns long ns into sleep only; no out-params, no record access; repeat launches deliver identical inputs (attach test)",
+  "identity": {
+    "all_launches_resolve": true,
+    "deviceFun_eq_hostFun": false,
+    "mechanism": "chevron lowers to __cudaLaunchKernel; kernel IS the hostFun stub (__cudaGetKernel identity); deviceFun (fatbin address) never appears at launch. Both keys recorded; hostFun entries serve.",
+    "n_launches": 2,
+    "n_registered": 2,
+    "names": [
+      "_Z16urr_probe_kernelPf",
+      "_Z17urr_second_kernelPf"
+    ],
+    "names_mangled": true,
+    "note_91": "deviceName is the MANGLED C++ symbol; the model artifact must key by it (or demangle). Follow-on, not this bead."
+  },
+  "resolver": {
+    "default": "NULL (static zero-init): scalar path, byte-identical",
+    "fg_config_sizeof": 80,
+    "lives_in": "struct fg_config",
+    "not_in_cudaDeviceProp": "shim sizeof re-witnessed 696 in attach test; m64 guards both layouts",
+    "signature": "(kernel_name, gridX/Y/Z, blockX/Y/Z, sharedMem) -> long ns; NO problem_size"
+  },
+  "timing": {
+    "lookup_bar_ns": 700.0,
+    "lookup_per_launch_ns": 102.9,
+    "lookup_subject_ns": 1400.0,
+    "resolver0_2000_total_ns": 205770,
+    "scalar_50x20ms_total_ns": 1006913732,
+    "scalar_margin": "lower bound 0.9*N*LAT"
+  },
+  "unresolvable_sites": {
+    "cuLaunchKernel": "NULL name -> scalar default; driver handles never pass registration (documented not-applicable)"
+  }
+}

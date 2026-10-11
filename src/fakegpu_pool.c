@@ -37,6 +37,7 @@ typedef struct fg_hnode {
     uint64_t id;
     void    *ptr;            /* the opaque pointer returned to the caller */
     int      kind;           /* 0 free, 1 stream, 2 event, 3 comm ...     */
+    const char *name;        /* kind 9 only: kernel symbol for deviceFun   */
     struct fg_hnode *next;
     struct fg_hnode *prev;
 } fg_hnode_t;
@@ -143,4 +144,40 @@ void fg_handle_free(fg_handle_t *h)
 void *fg_handle_ptr(fg_handle_t *h)
 {
     return h ? ((fg_hnode_t *)h)->ptr : NULL;
+}
+
+/* ---- kernel symbol map (gpu-sim-urr) -------------------------------------- *
+ * Same list, same alloc discipline, new kind 9: no second registry. A kind-9
+ * node stores the registrant's pointer in ptr (nothing is handed back to a
+ * caller for these) and the kernel symbol in name. Lookup is a walk, like
+ * everything else here; the launch path measures it (urr acceptance 4). */
+void fg_handle_record_name(const void *key, const char *name)
+{
+    fg_hnode_t *node;
+    if (!key || !name) return;
+    for (node = g_handles; node; node = node->next)
+        if (node->kind == FG_HANDLE_NAME && node->ptr == key) {
+            if (node->name && strcmp(node->name, name) == 0) return;
+            free((void *)node->name);
+            node->name = strdup(name);
+            return;
+        }
+    node = (fg_hnode_t *)calloc(1, sizeof(*node));
+    if (!node) return;
+    node->id = g_next_id++;
+    node->kind = FG_HANDLE_NAME;
+    node->ptr = (void *)key;
+    node->name = strdup(name);
+    node->next = g_handles;
+    if (g_handles) g_handles->prev = node;
+    g_handles = node;
+}
+
+const char *fg_handle_find_name(const void *key)
+{
+    fg_hnode_t *node;
+    if (!key) return NULL;
+    for (node = g_handles; node; node = node->next)
+        if (node->kind == FG_HANDLE_NAME && node->ptr == key)
+            return node->name;
 }

@@ -61,6 +61,9 @@ check: guard-build-inputs $(LIB)
 	@echo "--- shim device-property sizeof (gpu-sim-m64) ---"
 	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_shim_prop_size tests/test_shim_prop_size.c
 	@./build/test_shim_prop_size
+	@echo "--- resolver attachment (gpu-sim-urr) ---"
+	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_resolver_attach tests/test_resolver_attach.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
+	@./build/test_resolver_attach
 
 .PHONY: guard-build-inputs
 # The guard runs FIRST, as a prerequisite: a red guard stops the suite before

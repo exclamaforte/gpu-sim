@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Write `count` random bytes to `dst` at an API boundary. src is not touched. */
@@ -642,7 +643,18 @@ cudaError_t cudaLaunchKernel(const void *func,
                                            blockX, blockY, blockZ, sharedMem);
         if (v != cudaSuccess) return fg_record(v); /* sticky: see fg_record */
     }
-    fg_simulate_kernel();
+    if (getenv("FAKEGPU_DEBUG_REGISTRY")) {
+        const char *n = fg_handle_find_name(func);
+        fprintf(stderr, "[fg-launch] func=%p name=%s grid=(%d,%d,%d) "
+                "block=(%d,%d,%d) shmem=%u\n",
+                func, n ? n : "(unresolved)",
+                gridX, gridY, gridZ, blockX, blockY, blockZ, sharedMem);
+    }
+    /* gpu-sim-urr: resolve func -> kernel_name and hand the launch to the
+     * simulator. Unregistered func resolves NULL -> scalar default. */
+    fg_simulate_kernel_resolved(fg_handle_find_name(func),
+                                gridX, gridY, gridZ, blockX, blockY, blockZ,
+                                sharedMem);
     return cudaSuccess;
 }
 
@@ -766,8 +778,21 @@ void __cudaRegisterFunction(void **fatCubinHandle,
                             dim3 *gDim,
                             int *wSize)
 {
-    (void)fatCubinHandle; (void)hostFun; (void)deviceFun; (void)deviceName;
+    (void)fatCubinHandle;
     (void)thread_limit; (void)tid; (void)bid; (void)bDim; (void)gDim; (void)wSize;
+    /* gpu-sim-urr: stop discarding the identity. Record BOTH keys the launch
+     * paths may present: deviceFun (cudaLaunchKernel's func) and hostFun
+     * (the stub __cudaGetKernel/__cudaLaunchKernel hand back). Which one the
+     * generated stub actually passes is verified empirically, not assumed. */
+    if (deviceName) {
+        if (deviceFun) fg_handle_record_name(deviceFun, deviceName);
+        if (hostFun && hostFun != (const char *)deviceFun)
+            fg_handle_record_name(hostFun, deviceName);
+    }
+    if (getenv("FAKEGPU_DEBUG_REGISTRY"))
+        fprintf(stderr, "[fg-register] deviceFun=%p hostFun=%p name=%s\n",
+                (void *)deviceFun, (void *)hostFun,
+                deviceName ? deviceName : "(null)");
     /* No device code is loaded, so a later __cudaGetKernel on this stub is
      * answered by the identity map below. */
 }
@@ -831,7 +856,8 @@ cudaError_t __cudaGetKernel(cudaKernel_t *kernel, const void *stub)
     return cudaSuccess;
 }
 
-static cudaError_t fg_launch_through_dyn_api(dim3 gridDim, dim3 blockDim,
+static cudaError_t fg_launch_through_dyn_api(const char *kernel_name,
+                                             dim3 gridDim, dim3 blockDim,
                                              void **args, size_t sharedMem,
                                              cudaStream_t stream)
 {
@@ -843,7 +869,10 @@ static cudaError_t fg_launch_through_dyn_api(dim3 gridDim, dim3 blockDim,
                                            (unsigned int)sharedMem);
         if (v != cudaSuccess) return fg_record(v); /* sticky: see fg_record */
     }
-    fg_simulate_kernel();
+    fg_simulate_kernel_resolved(kernel_name,
+                                (int)gridDim.x, (int)gridDim.y, (int)gridDim.z,
+                                (int)blockDim.x, (int)blockDim.y, (int)blockDim.z,
+                                (unsigned int)sharedMem);
     return cudaSuccess;
 }
 
@@ -851,7 +880,15 @@ cudaError_t __cudaLaunchKernel(cudaKernel_t kernel, dim3 gridDim, dim3 blockDim,
                                void **args, size_t sharedMem, cudaStream_t stream)
 {
     (void)kernel;
-    return fg_launch_through_dyn_api(gridDim, blockDim, args, sharedMem, stream);
+    if (getenv("FAKEGPU_DEBUG_REGISTRY")) {
+        const char *n = fg_handle_find_name(kernel);
+        fprintf(stderr, "[fg-launch-dyn] kernel=%p name=%s\n",
+                (void *)kernel, n ? n : "(unresolved)");
+    }
+    /* gpu-sim-urr: kernel IS the stub (__cudaGetKernel identity), resolved
+     * through the hostFun entries recorded at registration. */
+    return fg_launch_through_dyn_api(fg_handle_find_name(kernel),
+                                     gridDim, blockDim, args, sharedMem, stream);
 }
 
 cudaError_t __cudaLaunchKernel_ptsz(cudaKernel_t kernel, dim3 gridDim,
@@ -859,7 +896,13 @@ cudaError_t __cudaLaunchKernel_ptsz(cudaKernel_t kernel, dim3 gridDim,
                                     cudaStream_t stream)
 {
     (void)kernel;
-    return fg_launch_through_dyn_api(gridDim, blockDim, args, sharedMem, stream);
+    if (getenv("FAKEGPU_DEBUG_REGISTRY")) {
+        const char *n = fg_handle_find_name(kernel);
+        fprintf(stderr, "[fg-launch-dyn] kernel=%p name=%s\n",
+                (void *)kernel, n ? n : "(unresolved)");
+    }
+    return fg_launch_through_dyn_api(fg_handle_find_name(kernel),
+                                     gridDim, blockDim, args, sharedMem, stream);
 }
 
 /* ---- modules / driver ---------------------------------------------------- */
@@ -942,7 +985,13 @@ cudaError_t cuLaunchKernel(CUfunction f,
                                            blockX, blockY, blockZ, sharedMem);
         if (v != cudaSuccess) return fg_record(v); /* sticky: see fg_record */
     }
-    fg_simulate_kernel();
+    /* gpu-sim-urr, documented NOT applicable: CUfunction handles from
+     * cuModuleGetFunction are opaque kind-4 registry entries, never stubs,
+     * so no registration key exists for them. NULL name -> scalar default.
+     * (Driver-API launches are outside the symbol-keyed design.) */
+    fg_simulate_kernel_resolved(NULL,
+                                gridX, gridY, gridZ, blockX, blockY, blockZ,
+                                sharedMem);
     return cudaSuccess;
 }
 

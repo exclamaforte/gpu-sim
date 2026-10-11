@@ -43,7 +43,28 @@ void fg_simulate_memcpy(size_t bytes)
 
 void fg_simulate_kernel(void)
 {
+    fg_simulate_kernel_resolved(NULL, 0, 0, 0, 0, 0, 0, 0);
+}
+
+void fg_simulate_kernel_resolved(const char *kernel_name,
+                                 int gridX, int gridY, int gridZ,
+                                 int blockX, int blockY, int blockZ,
+                                 unsigned int sharedMem)
+{
     const struct fg_config *c = fg_cfg();
+    /* Resolved path: the resolver owns the number. Its return flows only
+     * into fg_sleep_ns -- there is no record, no artifact, no writeback
+     * anywhere downstream (D_GPUSIM: consume, never produce). */
+    if (c->cost_resolver && kernel_name) {
+        long ns = c->cost_resolver(kernel_name, gridX, gridY, gridZ,
+                                   blockX, blockY, blockZ, sharedMem);
+        if (ns > 0) g_have_any_latency = 1;
+        fg_sleep_ns(ns);
+        return;
+    }
+    /* Default path: today's scalar behaviour. NULL resolver (static
+     * zero-init default) or an unresolvable site both land here; neither
+     * consults nor disturbs any model state. */
     if (c->kernel_latency_ms > 0) {
         g_have_any_latency = 1;
         fg_sleep_ns(c->kernel_latency_ms * 1000000L);
