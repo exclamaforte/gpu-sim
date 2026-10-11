@@ -1,0 +1,65 @@
+{
+  "bead": "gpu-sim-zhq",
+  "bottleneck_before_after": {
+    "latency->compute": 25,
+    "latency->latency": 431
+  },
+  "deleted_terms": [
+    "sync_overhead_us = grid*0.01",
+    "wave_overhead_us = (waves-1)*5.0"
+  ],
+  "failures": [],
+  "launch_floor_us": 1.3652799999999998,
+  "launch_source": "6.6.1 metrics.json noise_floor, max of sub-2^18 floors; ts final job 20260927t162535-cb00ea78",
+  "mean_occupancy_after": 0.6842,
+  "mean_occupancy_before": 0.6842,
+  "mean_prediction_movement": 0.9326,
+  "n_rows": 456,
+  "overall_mean_abs_after": 0.7258,
+  "overall_mean_abs_before": 7.7238,
+  "per_op": {
+    "add": {
+      "mean_abs_after": 0.7294,
+      "mean_abs_before": 7.5037,
+      "n": 57
+    },
+    "copy": {
+      "mean_abs_after": 0.7194,
+      "mean_abs_before": 8.0479,
+      "n": 57
+    },
+    "div": {
+      "mean_abs_after": 0.7479,
+      "mean_abs_before": 7.1408,
+      "n": 57
+    },
+    "mul": {
+      "mean_abs_after": 0.7246,
+      "mean_abs_before": 7.479,
+      "n": 57
+    },
+    "relu": {
+      "mean_abs_after": 0.723,
+      "mean_abs_before": 8.0186,
+      "n": 57
+    },
+    "saxpy": {
+      "mean_abs_after": 0.7273,
+      "mean_abs_before": 7.9037,
+      "n": 57
+    },
+    "scale": {
+      "mean_abs_after": 0.7185,
+      "mean_abs_before": 8.0541,
+      "n": 57
+    },
+    "triad": {
+      "mean_abs_after": 0.7161,
+      "mean_abs_before": 7.6427,
+      "n": 57
+    }
+  },
+  "signed_bias_after": -0.7258,
+  "signed_bias_before": 7.7238,
+  "verdict": "pass"
+}

@@ -174,24 +174,16 @@ def calculate_memory_time(features: KernelFeatures, occupancy: float) -> float:
 
 
 def calculate_latency_time(features: KernelFeatures) -> float:
-    """Calculate latency-limited time (launch overhead, synchronization)."""
-    # Rough estimate: launch overhead + grid synchronization
-    grid_size = features.grid_x * features.grid_y * features.grid_z
-    
-    # Base launch overhead ~5-10 microseconds
-    launch_overhead_us = 10.0
-    
-    # Grid synchronization scales with grid size
-    sync_overhead_us = grid_size * 0.01  # ~0.01 us per block
-    
-    # Wave count effect
-    specs = SPECS
-    max_blocks_concurrent = specs.num_sms * specs.max_blocks_per_sm
-    waves = max(1, grid_size / max_blocks_concurrent)
-    wave_overhead_us = (waves - 1) * 5.0  # ~5 us per additional wave
-    
-    total_us = launch_overhead_us + sync_overhead_us + wave_overhead_us
-    return total_us / 1000.0  # ms
+    """Latency floor: the measured irreducible dispatch, nothing else."""
+    # gpu-sim-zhq: the old arm was three invented constants (launch 10.0,
+    # sync grid*0.01, wave (waves-1)*5.0). The sync term alone predicted
+    # 0.363 ms for rows measuring 0.022-0.035 ms -- the whole 772% error.
+    # No measurement sources a per-block or per-wave cost, so both terms are
+    # DELETED, not re-guessed (bead item 3). What remains is the one measured
+    # quantity: 6.6.1's irreducible dispatch floor on this path.
+    # `features` is unused and kept for API compatibility.
+    _ = features
+    return hw_5090.LAUNCH_FLOOR_US / 1000.0  # ms
 
 
 def roofline_predict(features: KernelFeatures) -> RooflinePrediction:

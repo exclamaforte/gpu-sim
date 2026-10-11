@@ -55,3 +55,15 @@ PEAK_FP16_TFLOPS = 165.2        # VENDOR, UNSOURCED IN-TREE
 PEAK_INT32_TOPS = 82.6          # VENDOR, UNSOURCED IN-TREE
 BASE_CLOCK_MHZ = 2235           # VENDOR
 L1_CACHE_KB_PER_SM = 128        # VENDOR/ARCH
+
+# ---- launch floor: MEASURED, this lab, this path (gpu-sim-zhq) -----------
+# gpu-sim-u2o.6.6.1 decomposed reported time on this exact harness path:
+# irreducible_launch_us = 1.308/1.330/1.365 at n = 1K/16K/256K (ts final
+# job 20260927t162535-cb00ea78, metrics.json noise_floor). Rule for the
+# single constant: the max over the n-range the corpus's launch-bound rows
+# occupy (all <= 2^18 < 262144). NOT tuned to the baseline error.
+# Context (not used): at n = 4M/64M the 'irreducible' term itself grows
+# (8.1/31.0 us) -- that is real work entering, past launch_bound_crossover_n
+# = 67108864. megakern's end-to-end stream launch (2.8455 us) is a different
+# quantity (submit-to-start incl. queueing), not this floor.
+LAUNCH_FLOOR_US = 1.3652799999999998  # raw 6.6.1 value at n=256K, unrounded
