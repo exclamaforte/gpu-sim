@@ -93,12 +93,17 @@ PROTOCOLS = {
         # synthesize(), 2 invocations x 20 timed launches -- but a separate
         # protocol: stamping these single_run_7_1 would claim reference
         # status for non-reference kernels. rows/wall_sec/ex_per_sec/
-        # median_ai_cv are filled at landing (this entry's own bead).
+        # median_ai_cv filled at landing (gpu-sim-u2o.11.3 metrics.json:
+        # 1804 unique rows, 1735.67s queued measure wall).
         "measured": True,
+        "rows": 1804,
+        "wall_sec": 1735.67,
+        "ex_per_sec": 1.039,
         "invocations": 2,
         "timed_launches_per_example": 40,
         "process_model": "one process PER INVOCATION (7.1's own harness)",
         "executable": "one binary per kernel, via kernel_driver.synthesize()",
+        "median_ai_cv": 0.0783,
         "authority": "SCALE ONLY. Additive and labelled; may not be pooled "
                      "with the reference rows without a recorded decision.",
     },

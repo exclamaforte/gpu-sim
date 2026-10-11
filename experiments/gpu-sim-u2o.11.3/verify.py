@@ -5,6 +5,10 @@ Reads measured.jsonl + manifest.json (the COMMITTED copy at this directory,
 so a fresh checkout recomputes) + measure/compile summaries; writes
 metrics.json. Nonzero exit on any gate failure. No GPU.
 
+The compile summary is committed at this directory (compile_summary.json)
+because build/ is gitignored repo-wide: a fresh checkout recomputes from
+committed files only.
+
 HASH REALITY: the manifest holds occurrences over unique cells
 (kernel_hash_for does not cover driver scalar values; phantom duplicates
 documented in merge_slices.py). Every count below is over UNIQUE CELLS;
@@ -62,7 +66,10 @@ def main() -> int:
     manifest = json.loads((HERE / "manifest.json").read_text())
     by_hash = {d["kernel_hash"]: d for d in manifest["specs"]}
     ms = json.loads((HERE / "measure_summary.json").read_text())
-    cs = json.loads((HERE / "build" / "compile_summary.json").read_text())
+    cs_path = HERE / "compile_summary.json"
+    if not cs_path.exists():
+        cs_path = HERE / "build" / "compile_summary.json"
+    cs = json.loads(cs_path.read_text())
 
     # ---- 1. join (unique cells) ----
     unjoined, mismatched = [], []

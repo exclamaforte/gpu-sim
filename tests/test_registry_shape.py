@@ -13,6 +13,12 @@ The suite below pins the uniform shape AND the two things normalisation must not
 cost: a real measurement must survive (rows are still 264 for all three), and a
 consumer asking a question the registry cannot answer must get a testable value
 rather than an exception.
+
+gpu-sim-u2o.11.3: a fourth protocol joined the registry (single_run_stages_2_5,
+1804 scale-up rows). The rows expectation is therefore per-protocol, not a
+single constant: a new protocol MUST declare its measured row count here, or
+the test fails loudly. The intent is unchanged -- normalisation must not erase
+a measurement -- but "264 for all three" is now "each protocol's own N".
 """
 import sys
 import unittest
@@ -23,6 +29,16 @@ sys.path.insert(0, str(REPO))
 from epic_u2o.corpus_protocol import (  # noqa: E402
     PROTOCOLS, REGISTRY_FIELDS, REGISTRY_MISSING, registry_field,
 )
+
+# Each protocol's measured row count, declared at landing. A protocol whose
+# entry is missing here fails the suite: the row count is a measurement, and
+# an undeclared one is one normalisation away from being quietly deleted.
+EXPECTED_ROWS = {
+    "single_run_7_1": 264,
+    "perproc_7_1_driver": 264,
+    "perkernel_shared_ctx": 264,
+    "single_run_stages_2_5": 1804,
+}
 
 
 class TestOneShape(unittest.TestCase):
@@ -43,15 +59,18 @@ class TestNormalisationCostNothing(unittest.TestCase):
     """The dangerous failure is a uniformity fix that erases a measurement."""
 
     def test_rows_survived_normalisation(self):
-        """All three protocols really did measure 264 rows.
+        """Each protocol kept its own measured row count.
 
         `rows` was NOT missing anywhere, so the null-filling must not have
         touched it. If it had, the corpus decision's own reasoning -- which
-        compares protocols that 'both measured 264 rows' -- would have been
-        quietly deleted.
+        compares protocols by their measured rows -- would have been quietly
+        deleted. A protocol with no declared count fails here by design.
         """
+        self.assertEqual(set(PROTOCOLS), set(EXPECTED_ROWS),
+                         "registry gained a protocol with no declared row "
+                         "count; declare its measured N in EXPECTED_ROWS")
         for name, entry in PROTOCOLS.items():
-            self.assertEqual(entry.get("rows"), 264,
+            self.assertEqual(entry.get("rows"), EXPECTED_ROWS[name],
                              f"{name} lost its rows count to normalisation")
 
     def test_medians_survived_normalisation(self):

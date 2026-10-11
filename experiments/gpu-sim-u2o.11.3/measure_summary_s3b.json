@@ -1,0 +1,141 @@
+{
+  "bead": "gpu-sim-u2o.11.3",
+  "stage": "measure",
+  "n_specs": 304,
+  "n_measured": 200,
+  "n_failed": 104,
+  "n_launch_bound_measured": 200,
+  "n_unreliable": 63,
+  "median_ai_cv": 0.10386663794128184,
+  "per_stage": [
+    {
+      "stage": "stage3",
+      "n_measured": 200,
+      "n_failed": 104,
+      "failures": [
+        {
+          "hash": "1f879582bc5be979",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "17308fd5406e108f",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "13a32be21cbb732b",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "b65127d5f139d1cb",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "1f879582bc5be979",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "17308fd5406e108f",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "13a32be21cbb732b",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "b65127d5f139d1cb",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "1f879582bc5be979",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        },
+        {
+          "hash": "17308fd5406e108f",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        }
+      ],
+      "wall_sec": 258.40412998199463,
+      "telemetry_before": {
+        "clocks.sm": "2415 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "45",
+        "power.draw": "63.70 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "telemetry_after": {
+        "clocks.sm": "2460 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "47",
+        "power.draw": "74.70 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "queue_before": {
+        "own_job_id": "20261011t123222-b7284e1f",
+        "n_other_active": 4,
+        "n_other_running_at_sample_time": 0
+      },
+      "queue_after": {
+        "own_job_id": "20261011t123222-b7284e1f",
+        "n_other_active": 4,
+        "n_other_running_at_sample_time": 0
+      },
+      "contention_disposition": {
+        "disposition": "keep",
+        "discard_reason": "none",
+        "fired_clauses": [],
+        "signal_readings": {
+          "power.draw": {
+            "before": 63.7,
+            "after": 74.7
+          },
+          "utilization.gpu": {
+            "before": 0.0,
+            "after": 0.0
+          },
+          "temperature.gpu": {
+            "before": 45.0,
+            "after": null
+          }
+        },
+        "coverage_gaps": [],
+        "queue_channel": {
+          "before": {
+            "n_other_active": 4,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t123222-b7284e1f",
+            "own_job_entry_present": true
+          },
+          "after": {
+            "n_other_active": 4,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t123222-b7284e1f",
+            "own_job_entry_present": true
+          }
+        },
+        "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+        "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant"
+      }
+    }
+  ],
+  "wall_sec": 258.68630719184875,
+  "rows_path": "measured_s3b.jsonl",
+  "protocol": "single_run_stages_2_5",
+  "slice": "949:1253",
+  "tag": "s3b"
+}

@@ -1,0 +1,71 @@
+{
+  "bead": "gpu-sim-u2o.11.3",
+  "total_rows": 1804,
+  "manifest_occurrences": 2322,
+  "unique_cells": 1822,
+  "phantom_duplicates": 500,
+  "join": {
+    "unjoined": 0,
+    "mismatched": 0
+  },
+  "per_stage_rows": {
+    "stage2": 727,
+    "stage3": 631,
+    "stage4": 96,
+    "stage5": 350
+  },
+  "protocol": "single_run_stages_2_5",
+  "regime_census": {
+    "total": 1804,
+    "per_class": {
+      "latency->memory": 233,
+      "latency->latency": 1460,
+      "memory->memory": 111
+    },
+    "n_classes": 3,
+    "smallest_share": 0.0615,
+    "verdict": "PASS",
+    "reasons": []
+  },
+  "stage4_rows": 96,
+  "ai_cv": {
+    "missing": 0,
+    "median": 0.07829928563988489,
+    "unreliable_in_place": 457
+  },
+  "queue_state": {
+    "rows_missing_fields": 0,
+    "contention_fired_stages": []
+  },
+  "split": {
+    "compile_wall_sec": 3079.0302889347076,
+    "measure_wall_sec": 1735.6742372512817,
+    "queue_at_submit_recorded": true
+  },
+  "anchor_v1_untouched": true,
+  "shortfall": {
+    "preflight": [],
+    "compile": 0,
+    "measure_missing_unique": 18,
+    "missing_hashes": [
+      "15394b3c780772f1",
+      "a6109c15c4962a35",
+      "093babf816eff1c3",
+      "3bb0e6dae457df18",
+      "054787adb5450b4f",
+      "09cb3b31a8c1ce7f",
+      "7f45340935ed9f0c",
+      "be4d4b3535abeafb",
+      "e1ca3807ece24097",
+      "e6498197facc41ce",
+      "7e4fb711f581c02a",
+      "924d9dcb3efc6694",
+      "aa567b7e2d35c303",
+      "b2506bc36880e2f2",
+      "05e95be1fea2b11a",
+      "2c41c3608d75ddb6",
+      "3d04ec59f09d38c7",
+      "595a1b558163496b"
+    ]
+  }
+}
