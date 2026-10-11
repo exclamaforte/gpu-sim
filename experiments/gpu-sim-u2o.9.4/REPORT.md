@@ -11,7 +11,7 @@ below is verified by `report_verify.py` against COMMITTED paths
 |---|---|---|---|
 | latency->latency (latency-bound) | 220 | 0.5638 | **-0.5638, all 220 underpredict** |
 | latency->memory (memory via the latency map) | 204 | 0.6873 | +0.3780 |
-| memory->memory (memory-bound throughout) | 32 | 1.1209 | **+1.1164, all 32 overpredict** |
+| memory->memory (memory-bound throughout) | 32 | 1.1209 | **+1.1164, 29 of 32 overpredict (3 underpredict)** |
 | **overall** | 456 | 0.6581 | -0.0245 |
 
 Overall arc: **7.7238 -> 0.6581 (11.7x)**, by removing four wrong
@@ -35,9 +35,9 @@ rates (bytes/median, cache-inclusive) exceed DRAM read-peak on 148/456
 rows (max 7480 GB/s), all at large n across all ops: 119/204 in
 latency->memory, 29/32 in memory->memory, 0/220 in latency->latency.
 Repeated trials on resident buffers serve issued traffic from L2, so a
-DRAM-ceiling model overpredicts structurally. The read-peak-vs-mixed-write
-candidate is DEMOTED on sign (slower writes predict underprediction; all
-32 rows overpredict). Scalar overcount (alpha as DRAM) contributes at most
+candidate is DEMOTED on sign (slower writes predict underprediction; 29 of
+32 rows overpredict, 3 underpredict -- the demotion holds but is weaker than
+an "all" would warrant). Scalar overcount (alpha as DRAM) contributes at most
 ~25% for saxpy-class rows. Follow-up: a cache-busting streaming
 measurement by arity. The memory arm's form does not change in this bead.
 
