@@ -1,0 +1,20 @@
+--- 1. tree_state suite: 12/12 ---
+Ran 12 tests in 0.065s
+
+OK
+[tree_state] opt-in artifacts checked: 3; carrying a stamp: 2; opted-in but unstamped (reported, not failed): ['experiments/gpu-sim-u2o.6.6.4/anchor_metrics.json: landed at 77bb051, no stamp']
+--- 2. 6.6.2 citations equal the mechanical per-file values ---
+citations mechanical: 97575af x2
+--- 3. item 6: no other closed artifact rewritten ---
+experiments/ diff limited to the two 6.6.2 citation fields + this bead
+--- 4. repo-wide suite: tree_state fixed, nothing new ---
+tests/test_generated_recipe.py::TestTheRecipeIsGenerated::test_the_generated_rm_lists_every_tracked_path
+tests/test_lint_prose_numbers.py::TestDoesNotFireOnSupportedClaims::test_6_10_correct_ratio_does_not_fire
+tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_10_seconds_vs_milliseconds
+tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_11_typed_count
+tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_6_3_discriminates_ordering
+tests/test_retro_rows_uncached.py::TestContentCarriesTheClaim::test_the_tree_that_sampled_the_rows_contains_no_cache
+tests/test_verify_harness_telemetry.py::TestAgreementIsReal::test_measure_family_gap_is_documented_not_silent
+suite: failures are a subset of the 7 known pre-existing; nothing new
+metrics written
+PRODUCED in /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2.1.1.1/experiments/gpu-sim-u2o.6.6.2.1.1.1

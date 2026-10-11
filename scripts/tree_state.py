@@ -87,12 +87,14 @@ def stamped_artifacts(repo: Path = REPO_DEFAULT) -> list[tuple[Path, dict, dict]
 
 
 def landing_commit(bead_dir: str, repo: Path = REPO_DEFAULT) -> str | None:
-    """The commit on master that FIRST added this bead's artifact directory.
+    """LEGACY directory rule: newest commit that added files under the dir.
 
-    'First added' rather than 'most recent touched' on purpose: the question a
-    reader has is 'where does this content live', and the oldest commit that
-    introduced it on master answers that, whereas the newest commit that merely
-    edited it points at a later state the reader does not have.
+    Kept ONLY for frozen importers (6.6.2.1.1's measure_supersession.py).
+    Do not use for new artifacts: adding a sibling file moves this query,
+    which is the defect gpu-sim-u2o.6.6.2.1.1.1 fixes. The rule that holds
+    still is landing_commit_for (per FILE, oldest add). Note the old
+    docstring here once claimed 'first added' while the code took newest --
+    the contradiction is preserved in git history, not in behavior.
     """
     out = _git(repo, "log", "--oneline", "-1", "--diff-filter=A", "master",
                "--", f"experiments/{bead_dir}/")
@@ -101,9 +103,30 @@ def landing_commit(bead_dir: str, repo: Path = REPO_DEFAULT) -> str | None:
     return out.split()[0]
 
 
-def resolve_superseded_by(branch_field: str, bead_dir: str,
+def landing_commit_for(artifact: str | Path,
+                       repo: Path = REPO_DEFAULT) -> str | None:
+    """The commit on master that FIRST added THIS FILE (gpu-sim-u2o.6.6.2.1.1.1).
+
+    Per-file, oldest add: a sibling file added later cannot move it, which
+    is the property the bead exists for ('where it landed must not move
+    every time someone adds a file beside it'). Returns the oldest add's
+    short hash (%h, same convention as the existing citations).
+    """
+    out = _git(repo, "log", "--format=%h", "--diff-filter=A", "--reverse",
+               "master", "--", str(artifact))
+    if not out:
+        return None
+    return out.splitlines()[0]
+
+
+def resolve_superseded_by(branch_field: str, artifact: str | Path,
                           repo: Path = REPO_DEFAULT) -> dict | None:
     """Superseding-commit record, or None when it cannot be established.
+
+    artifact is the artifact FILE's path (per-file landing, 6.6.2.1.1.1);
+    the previous bead_dir form resolved the whole directory and moved
+    whenever a sibling file was added. Callers holding only a bead dir
+    (frozen: 6.6.2's merge_metrics) keep stamp_tree_state's legacy path.
 
     Returns None rather than a null-filled dict: the caller must OMIT the key.
 
@@ -119,9 +142,25 @@ def resolve_superseded_by(branch_field: str, bead_dir: str,
     ref = first_word(branch_field)
     if not ref:
         return None
-    commit = landing_commit(bead_dir, repo)
+    commit = landing_commit_for(artifact, repo)
     if not commit:
         return None                      # content is not on master: OMIT the key
+    return _supersession_record(ref, commit, repo)
+
+
+def _supersession_record(ref: str, commit: str,
+                         repo: Path = REPO_DEFAULT) -> dict | None:
+    """The record body both rules share; the rules differ only in COMMIT.
+
+    Per-file (resolve_superseded_by) or legacy directory (stamp_tree_state
+    without artifact_path): either way, an empty ref or an unreachable
+    commit yields None (OMIT the key), never a null.
+    """
+    if not ref:
+        return None
+    if _git(repo, "merge-base", "--is-ancestor", commit,
+            "master") is None:
+        return None
     still_live = branch_exists(ref, repo)
     subject = _git(repo, "log", "-1", "--format=%s", commit) or ""
     return {
@@ -129,8 +168,7 @@ def resolve_superseded_by(branch_field: str, bead_dir: str,
         "branch_still_exists": still_live,
         "commit": commit,
         "commit_subject": subject,
-        "reachable_from_master": _git(
-            repo, "merge-base", "--is-ancestor", commit, "master") is not None,
+        "reachable_from_master": True,
         "note": (
             f"the content landed on master at {commit}; the stamped branch ref "
             + ("still exists, so it is a live-but-not-current tree and a reader "
@@ -142,8 +180,15 @@ def resolve_superseded_by(branch_field: str, bead_dir: str,
 
 
 def stamp_tree_state(tree_state: dict, bead_dir: str,
-                     repo: Path = REPO_DEFAULT) -> dict:
+                     repo: Path = REPO_DEFAULT,
+                     artifact_path: str | Path | None = None) -> dict:
     """Return tree_state with superseded_by present, or OMITTED if unresolvable.
+
+    artifact_path is the writer's mechanical emission (6.6.2.1.1.1 part 2):
+    when the writer knows the file it is writing, the landing resolves
+    per-file at write time and cannot drift from the query. When absent
+    (frozen callers), the legacy directory rule applies -- unchanged
+    behavior, do not touch.
 
     Never writes None. See the module docstring for why absence and null are
     different claims here.
@@ -151,7 +196,13 @@ def stamp_tree_state(tree_state: dict, bead_dir: str,
     ts = dict(tree_state or {})
     if "superseded_by" in ts:
         return ts
-    rec = resolve_superseded_by(ts.get("branch", ""), bead_dir, repo)
+    if artifact_path is not None:
+        rec = resolve_superseded_by(ts.get("branch", ""), artifact_path, repo)
+    else:
+        ref = first_word(ts.get("branch", ""))
+        commit = landing_commit(bead_dir, repo)
+        rec = (None if not commit
+               else _supersession_record(ref, commit, repo))
     if rec is None:
         ts.pop("superseded_by", None)   # omitted, explicitly
         return ts

@@ -1,0 +1,119 @@
+.............x.......................................................... [ 17%]
+........................................................................ [ 34%]
+.....................................F......................FF.F.F...... [ 51%]
+........................................................................ [ 68%]
+................F....................................................... [ 85%]
+...................ss.....................................F....          [100%]
+=================================== FAILURES ===================================
+___ TestTheRecipeIsGenerated.test_the_generated_rm_lists_every_tracked_path ____
+
+self = <test_generated_recipe.TestTheRecipeIsGenerated testMethod=test_the_generated_rm_lists_every_tracked_path>
+
+    def test_the_generated_rm_lists_every_tracked_path(self):
+        text = DOC.read_text()
+        listed = set(re.findall(r"^\s+(epic_u2o/\S+?)\s*\\?$", text, re.M))
+        expected = {f"epic_u2o/{n}" for n in tracked_on_branch()}
+>       self.assertEqual(listed, expected,
+                         "the generated rm must name exactly the tracked set")
+E       AssertionError: Items in the second set but not the first:
+E       'epic_u2o/throughput_evidence.py'
+E       'epic_u2o/hw_5090.py'
+E       'epic_u2o/representation_cardinality.py'
+E       'epic_u2o/rlimit_cuda_gate.py' : the generated rm must name exactly the tracked set
+
+tests/test_generated_recipe.py:52: AssertionError
+_____________ TestFiresOnHistory.test_6_10_seconds_vs_milliseconds _____________
+
+self = <test_lint_prose_numbers.TestFiresOnHistory testMethod=test_6_10_seconds_vs_milliseconds>
+
+    def test_6_10_seconds_vs_milliseconds(self):
+        f = []
+        lint.check_6_10_ratio(f)
+        self.assertTrue(f, "6.10's unit-ratio was not caught")
+        # the operands give ~2713x, the prose reported the printed 3x
+>       self.assertIn("2713", f[0].artifact_value)
+E       AssertionError: '2713' not found in '(process_wall_sec*1000)/sum_of_trials_ms = 6338; stored wall_over_trials_ratio=6338'
+
+tests/test_lint_prose_numbers.py:57: AssertionError
+___________________ TestFiresOnHistory.test_6_11_typed_count ___________________
+
+self = <test_lint_prose_numbers.TestFiresOnHistory testMethod=test_6_11_typed_count>
+
+    def test_6_11_typed_count(self):
+        f = []
+        lint.check_6_11_counts(f)
+>       self.assertTrue(f, "6.11's typed removal count was not caught")
+E       AssertionError: [] is not true : 6.11's typed removal count was not caught
+
+tests/test_lint_prose_numbers.py:69: AssertionError
+_____________ TestFiresOnHistory.test_6_6_3_discriminates_ordering _____________
+
+self = <test_lint_prose_numbers.TestFiresOnHistory testMethod=test_6_6_3_discriminates_ordering>
+
+    def test_6_6_3_discriminates_ordering(self):
+        f = []
+        lint.check_6_6_3_constant_boolean(f)
+>       self.assertTrue(f, "6.6.3's constant-boolean-as-discriminator was not caught")
+E       AssertionError: [] is not true : 6.6.3's constant-boolean-as-discriminator was not caught
+
+tests/test_lint_prose_numbers.py:49: AssertionError
+____ TestDoesNotFireOnSupportedClaims.test_6_10_correct_ratio_does_not_fire ____
+
+self = <test_lint_prose_numbers.TestDoesNotFireOnSupportedClaims testMethod=test_6_10_correct_ratio_does_not_fire>
+
+    def test_6_10_correct_ratio_does_not_fire(self):
+        f = []
+        lint.check_6_10_ratio(
+            f, comments="it printed 2713x where the real ratio is 2713x")
+>       self.assertEqual(f, [], "fired on a ratio the operands support")
+E       AssertionError: Lists differ: [Finding(bead='gpu-sim-u2o.6.10', check='r[528 chars]e.")] != []
+E       
+E       First list contains 1 additional elements.
+E       First extra element 0:
+E       Finding(bead='gpu-sim-u2o.6.10', check='ratio printed in prose is not what the operands give', fragment='it printed 2713x where the real ratio is 2713x', artifact_path='lab/gpu-sim-u2o.6.10:experiments/gpu-sim-u2o.6.10/report.json', artifact_value='(process_wall_sec*1000)/sum_of_trials_ms = 6338; stored wall_over_trials_ratio=6338', comment_value=2713.0, note="the same sentence claims the real ratio is 2713.0x, which the operands DO support (6338); the disagreement is with the value the harness actually printed. artifact's own unit_bug_correction records the cause.")
+E       
+E       Diff is 735 characters long. Set self.maxDiff to None to see it. : fired on a ratio the operands support
+
+tests/test_lint_prose_numbers.py:91: AssertionError
+_ TestContentCarriesTheClaim.test_the_tree_that_sampled_the_rows_contains_no_cache _
+
+self = <test_retro_rows_uncached.TestContentCarriesTheClaim testMethod=test_the_tree_that_sampled_the_rows_contains_no_cache>
+
+    def test_the_tree_that_sampled_the_rows_contains_no_cache(self):
+        # Read off the SAMPLING tree, not the rows' current home: master HAS
+        # the mechanism, so the same query against master would assert the
+        # opposite of the claim. PRODUCING_BRANCH names the sampling tree.
+>       self.assertEqual(
+            mr.cache_occurrences(PRODUCING_BRANCH), 0,
+            f"{PRODUCING_BRANCH}:epic_u2o/queue_state.py contains the cache "
+            f"mechanism. If the rows were sampled from this tree's content, "
+            f"they may carry cached reads and this statement is FALSE.")
+E       AssertionError: 10 != 0 : lab/gpu-sim-u2o.7.1:epic_u2o/queue_state.py contains the cache mechanism. If the rows were sampled from this tree's content, they may carry cached reads and this statement is FALSE.
+
+tests/test_retro_rows_uncached.py:48: AssertionError
+_____ TestAgreementIsReal.test_measure_family_gap_is_documented_not_silent _____
+
+self = <test_verify_harness_telemetry.TestAgreementIsReal testMethod=test_measure_family_gap_is_documented_not_silent>
+
+    def test_measure_family_gap_is_documented_not_silent(self):
+        sys.path.insert(0, str(REPO / "experiments" / "gpu-sim-u2o.6.6.2"))
+        import measure_family as mf
+        missing = (set(vh.TELEMETRY_FIELDS) - set(mf.TELEMETRY_FIELDS))
+>       self.assertEqual(missing, {"power.draw", "power.limit",
+                                   "utilization.gpu", "memory.used"},
+                         "the measure_family gap moved: re-check the README "
+                         "account and the PI schema decision")
+E       AssertionError: Items in the second set but not the first:
+E       'utilization.gpu'
+E       'power.draw' : the measure_family gap moved: re-check the README account and the PI schema decision
+
+tests/test_verify_harness_telemetry.py:83: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_generated_recipe.py::TestTheRecipeIsGenerated::test_the_generated_rm_lists_every_tracked_path
+FAILED tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_10_seconds_vs_milliseconds
+FAILED tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_11_typed_count
+FAILED tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_6_3_discriminates_ordering
+FAILED tests/test_lint_prose_numbers.py::TestDoesNotFireOnSupportedClaims::test_6_10_correct_ratio_does_not_fire
+FAILED tests/test_retro_rows_uncached.py::TestContentCarriesTheClaim::test_the_tree_that_sampled_the_rows_contains_no_cache
+FAILED tests/test_verify_harness_telemetry.py::TestAgreementIsReal::test_measure_family_gap_is_documented_not_silent
+7 failed, 413 passed, 2 skipped, 1 xfailed in 19.20s
