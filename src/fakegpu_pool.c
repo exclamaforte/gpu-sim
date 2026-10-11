@@ -180,4 +180,7 @@ const char *fg_handle_find_name(const void *key)
     for (node = g_handles; node; node = node->next)
         if (node->kind == FG_HANDLE_NAME && node->ptr == key)
             return node->name;
+    return NULL; /* miss: the caller promises NULL -> scalar default, so the
+                    function must deliver it, not fall off the end (urr
+                    rework: that was UB handed to the resolver as a name). */
 }

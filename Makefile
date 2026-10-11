@@ -11,7 +11,11 @@
 
 CC ?= gcc
 NVCC ?= nvcc
-CFLAGS  = -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default
+CFLAGS  = -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type
+# -Werror=return-type (gpu-sim-urr rework): falling off the end of a non-void
+# function is UB the test suite cannot reliably catch (a negative control
+# showed the miss test PASSING on the broken code -- rax residue luck). The
+# flag makes the class a build failure instead. Verified clean on all SRCS.
 LDFLAGS = -shared
 INCLUDES = -Iinclude -Ishim
 

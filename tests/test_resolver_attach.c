@@ -110,6 +110,20 @@ int main(void)
     CHECK(e == cudaSuccess, "unregistered func still launches");
     CHECK(n_calls == before, "unregistered func takes scalar default");
 
+    /* urr rework: the MISS contract, asserted directly. find_name must
+     * return NULL -- never a garbage pointer, never "" (empty would make
+     * every unresolvable launch look like a kernel called "", and the
+     * resolver's default path distinguishes NULL from a real name). The
+     * launch-level check above could not catch this: reading UB happened
+     * to behave. */
+    CHECK(fg_handle_find_name(key_unknown) == NULL,
+          "miss returns NULL, not garbage");
+    CHECK(fg_handle_find_name(NULL) == NULL,
+          "NULL key returns NULL");
+    CHECK(fg_handle_find_name(key_dev_alpha) != NULL &&
+          strcmp(fg_handle_find_name(key_dev_alpha), "kernel_alpha") == 0,
+          "hit still resolves after the miss-path fix");
+
     /* 7: D_GPUSIM -- the resolver is a pure function of launch params from
      * the sim's side: repeat the identical launch, get identical inputs,
      * with nothing accumulated anywhere in between. */
