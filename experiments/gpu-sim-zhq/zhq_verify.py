@@ -68,6 +68,22 @@ def row_features(row):
     return extract_features(src, lc)
 
 
+def ac1_gate(mean_move, bn):
+    """AC1 as a pure function, so the suite can prove BOTH halves fire.
+
+    Returns the failures list. A gate half demonstrated only against passing
+    data is not a gate half (this function's movement branch shipped dead
+    behind a rebound `fails = []`, caught by review, not by any test)."""
+    fails = []
+    if mean_move <= 0.01:
+        fails.append(f"AC1: mean prediction movement {mean_move:.4f} <= 1% -- "
+                     "the fix changed nothing; failing loudly")
+    if set(bn) == {"latency->latency"}:
+        fails.append("AC1: bottleneck map still latency->latency everywhere -- "
+                     "the fix changed no decision; failing loudly")
+    return fails
+
+
 def to_new(f):
     d = f.to_dict() if hasattr(f, "to_dict") else dict(f.__dict__)
     return roof_new.KernelFeatures(**{k: d[k] for k in
@@ -120,16 +136,8 @@ def main():
     # now an explicit failure, not a verdict. Thresholds: mean abs
     # prediction movement must exceed 1% relative, and the bottleneck map
     # must stop being latency->latency everywhere.
-    fails = []
     mean_move = statistics.fmean(moves)
-    if mean_move <= 0.01:
-        fails.append(f"AC1: mean prediction movement {mean_move:.4f} <= 1% -- "
-                     "the fix changed nothing; failing loudly")
-    fails = []
-    lat_only = (set(bn) == {"latency->latency"})
-    if lat_only:
-        fails.append("AC1: bottleneck map still latency->latency everywhere -- "
-                     "the fix changed no decision; failing loudly")
+    fails = ac1_gate(mean_move, bn)
     metrics = {
         "bead": "gpu-sim-zhq", "n_rows": len(rows),
         "overall_mean_abs_before": round(statistics.fmean(tot_b), 4),

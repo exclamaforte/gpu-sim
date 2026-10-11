@@ -66,5 +66,40 @@ class TestLatencyFloor(unittest.TestCase):
         self.assertEqual(hw_5090.LAUNCH_FLOOR_US, max(small))
 
 
+def load_ac1_gate():
+    import importlib.util
+    p = REPO / "experiments" / "gpu-sim-zhq" / "zhq_verify.py"
+    spec = importlib.util.spec_from_file_location("zhq_verify_gate", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.ac1_gate
+
+
+class TestAc1GateFires(unittest.TestCase):
+    """The rework: BOTH halves must demonstrably fail, not just read as code.
+
+    The movement half shipped dead behind a rebound `fails = []` while the
+    comment described it as live -- the exact shape hje was filed for. These
+    feed each half a failing input and require a nonzero-equivalent (a
+    non-empty failures list, which is what makes the driver exit 1)."""
+
+    def test_movement_half_fires_at_or_below_threshold(self):
+        ac1_gate = load_ac1_gate()
+        self.assertTrue(ac1_gate(0.01, {"latency->compute": 25}),
+                        "move == 1% must fail")
+        self.assertTrue(ac1_gate(0.0, {"latency->compute": 25}),
+                        "move == 0 (byte-identical) must fail")
+        self.assertEqual(ac1_gate(0.9326, {"latency->compute": 25}), [],
+                         "passing movement must stay green")
+
+    def test_bottleneck_half_fires_on_latency_only(self):
+        ac1_gate = load_ac1_gate()
+        self.assertTrue(ac1_gate(0.9326, {"latency->latency": 456}),
+                        "all-latency map must fail even when predictions move")
+        self.assertEqual(
+            ac1_gate(0.9326, {"latency->latency": 431, "latency->compute": 25}),
+            [], "the shipped map must stay green")
+
+
 if __name__ == "__main__":
     unittest.main()
