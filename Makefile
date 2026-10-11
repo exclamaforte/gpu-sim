@@ -8,6 +8,15 @@
 #
 # Self-test (builds a tiny workload against shim/cuda_runtime.h):
 #   make check
+#
+# TREE-WIDE POLICY (gpu-sim-xy8): -Werror=return-type is in CFLAGS below.
+# Falling off the end of a non-void function is UB no test can reliably
+# catch (gpu-sim-urr's miss test PASSED on the broken code -- rax luck;
+# only the flag's rc=2 build failure caught it). A clean full rebuild from
+# zero .o files produces 0 warnings, which is what makes adopting it free.
+# Deliberately NOT blanket -Werror: one warning class as an error has a
+# known blast radius; blanket suppression would hide unrelated warnings
+# people may care about. If you add a C file, it builds under this flag.
 
 CC ?= gcc
 NVCC ?= nvcc

@@ -1,0 +1,11 @@
+--- 1. clean rebuild, warning count ---
+make rc=0 warnings=0
+--- 2. negative control: broken find_name, with and without the flag ---
+5
+with flag rc=1 (want nonzero)
+/home/gabe/.cache/xy8-recompute-93sfIs/broken/fakegpu_pool.c:183:1: error: control reaches end of non-void function [-Werror=return-type]
+without flag rc=0 (want 0)
+--- 3. evidence: miss test on the no-flag broken build ---
+  ok   miss returns NULL, not garbage
+resolver attach gate PASSED
+attach-on-broken rc=0 (evidence only: rax luck, not gated)
