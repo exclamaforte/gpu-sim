@@ -6,10 +6,13 @@ one manifest spec per cell to build/manifest.json. The first 2211
 occurrences are asserted byte-identical afterwards -- the extension is
 purely additive; nothing regenerates, nothing reorders.
 
-Each spec is synthesized (not just hashed) here: a template/args mismatch
-fails now on CPU, not in the GPU slot. Metadata mirrors the stage
-generators' own schemas key-for-key so downstream code (driver dims rule,
-features, census) treats extension rows identically.
+Each spec carries the same fields as build_batch.py's (covers via the
+identical min(threads, n) rule, source_path via the identical
+build/k_<hash>.cu preflight write, deliberately_poor via the identical
+[1,1,1] rule) and is synthesized (not just hashed) here: a template/args
+mismatch fails now on CPU, not in the GPU slot. Metadata mirrors the
+stage generators' own schemas key-for-key so downstream code (driver dims
+rule, features, census) treats extension rows identically.
 
 Shared memory equals the predicted values (mm_keeplist records them):
 predicting with one shmem and measuring with another would move the class
@@ -120,8 +123,14 @@ def metadata_for(op, cell):
 
 def main() -> int:
     keep = json.loads((HERE / "mm_keeplist.json").read_text())
-    old = json.loads((HERE / "build" / "manifest.json").read_text())
-    old_hashes = {d["kernel_hash"] for d in old["specs"]}
+    build = HERE / "build"
+    old = json.loads((build / "manifest.json").read_text())
+    # Rebuild from the COMMITTED base (build/manifest.json may already
+    # carry a failed extension attempt): base = non-extension specs.
+    base = [d for d in old["specs"] if not d.get("extension")]
+    assert len(base) == old.get("n_base", len(base)), \
+        "committed base size moved; refusing to stack extensions"
+    old_hashes = {d["kernel_hash"] for d in base}
     new_specs, seen = [], set()
     for cell in keep:
         op = cell["op"]
@@ -138,29 +147,37 @@ def main() -> int:
         d["kernel_hash"] = kernel_hash_for(src, d["grid"], d["block"],
                                            cell["n"])
         d["stage"] = STAGE[op]
-        d["deliberately_poor"] = False
+        # identical rules to build_batch.py:
+        threads = (d["grid"][0] * d["grid"][1] * d["grid"][2]
+                   * d["block"][0] * d["block"][1] * d["block"][2])
+        d["covers"] = min(threads, cell["n"])
+        d["deliberately_poor"] = (d["grid"] == [1, 1, 1]
+                                  or d["block"] == [1, 1, 1])
         d["extension"] = "mm-regime"
         # synthesize NOW: template/arg mismatches fail on CPU, not in queue.
         prog = synthesize({**d, "metadata": d["metadata"]})
         assert "cudaEventRecord" in prog
+        cu = build / f"k_{d['kernel_hash']}.cu"
+        cu.write_text(src)
+        d["source_path"] = cu.name
         assert d["kernel_hash"] not in old_hashes, \
             f"extension cell collides with existing {d['kernel_hash']}"
         assert d["kernel_hash"] not in seen, \
             f"extension keep-list has duplicate {d['kernel_hash']}"
         seen.add(d["kernel_hash"])
         new_specs.append(d)
-    specs = old["specs"] + new_specs
-    assert [d["kernel_hash"] for d in specs[:len(old["specs"])]] == \
-           [d["kernel_hash"] for d in old["specs"]], \
-        "first 2211 occurrences moved: extension must be purely additive"
+    specs = base + new_specs
+    assert [d["kernel_hash"] for d in specs[:len(base)]] == \
+           [d["kernel_hash"] for d in base], \
+        "base occurrences moved: extension must be purely additive"
     out = {"bead": "gpu-sim-u2o.11.3",
            "n_specs": len(specs),
-           "n_base": len(old["specs"]),
+           "n_base": len(base),
            "n_extension": len(new_specs),
            "specs": specs}
-    (HERE / "build" / "manifest.json").write_text(json.dumps(out, indent=2))
+    (build / "manifest.json").write_text(json.dumps(out, indent=2))
     print(f"extension: +{len(new_specs)} specs "
-          f"({len(old['specs'])} -> {len(specs)}), base order preserved, "
+          f"({len(base)} -> {len(specs)}), base order preserved, "
           f"all synthesize clean")
     return 0
 
