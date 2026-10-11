@@ -14,7 +14,8 @@ Gates (acceptance in parentheses):
   noise: ai_cv present on every row; unreliable marked in place, row count
     unchanged (5)
   contention: per-row queue_state carries own_job_id + n_other_running;
-    per-stage contention dispositions present and reported (6)
+    per-slice contention dispositions present, all four stages covered,
+    and reported (6)
   split: compile/measure walls + queue-at-submit recorded (7)
   anchor: path filter proves anchor_v1 untouched (8)
   item9: row count AND census both present (9)
@@ -105,18 +106,22 @@ def main() -> int:
     print(f"ai_cv present on {len(rows) - len(missing_cv)}/{len(rows)}; "
           f"unreliable (in place): {n_unrel}")
 
-    # ---- 6. queue_state + contention ----
+    # ---- 6. queue_state + contention (per slice job, all stages covered) ----
     bad_q = [r["kernel_hash"] for r in rows
              if not r.get("queue_state", {}).get("own_job_id")
              or r["queue_state"].get("n_other_running") is None]
     if bad_q:
         fail(f"{len(bad_q)} rows lack queue_state fields, e.g. {bad_q[:3]}")
-    dispositions = [s.get("contention_disposition") for s in ms.get("per_stage", [])]
-    if len(dispositions) != 4 or not all(isinstance(d, dict) for d in dispositions):
-        fail("per-stage contention dispositions missing (rule not run)")
-    fired = [s["stage"] for s in ms.get("per_stage", [])
-             if (s.get("contention_disposition") or {}).get("fired")]
-    print(f"contention rule ran per stage; fired on: {fired or 'none'}")
+    slices = ms.get("per_stage", [])
+    covered = sorted({s.get("stage") for s in slices})
+    if covered != ["stage2", "stage3", "stage4", "stage5"]:
+        fail(f"contention dispositions cover {covered}, not all four stages")
+    if not all(isinstance(s.get("contention_disposition"), dict) for s in slices):
+        fail("a slice lacks its contention disposition (rule not run)")
+    fired = sorted({s["stage"] for s in slices
+                    if (s.get("contention_disposition") or {}).get("fired")})
+    print(f"contention rule ran in {len(slices)} slice jobs across {covered}; "
+          f"fired on: {fired or 'none'}")
 
     # ---- 3/4. regime census (9.4's construction, live) ----
     zv = load_mod("u113_zv", str(REPO / "experiments/gpu-sim-zhq/zhq_verify.py"))
@@ -152,7 +157,7 @@ def main() -> int:
     if not qat.exists() or not qat.read_text().strip():
         fail("queue state at submit not recorded")
     print(f"compile wall {cs.get('wall_sec'):.0f}s (CPU, unqueued) / "
-          f"measure wall {ms.get('wall_sec'):.0f}s (queued)")
+          f"measure wall {ms.get('wall_sec'):.0f}s (queued slices)")
 
     # ---- 8. anchor_v1 path filter ----
     p = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],

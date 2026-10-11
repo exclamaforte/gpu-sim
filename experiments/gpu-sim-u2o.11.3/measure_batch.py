@@ -11,8 +11,12 @@ Row protocol is stamped here ("single_run_stages_2_5"); corpus_protocol.
 write_rows refuses to serialise an unstamped row, so a missing stamp fails
 loud, not silent.
 
-GPQUEUE_TRIAL=1 (submit-pair trial leg): first 30 specs only, binaries kept,
-trial outputs. The full leg is unaffected.
+Slicing (the full 2211-row batch outruns a 10m smoke and the 30m slice, so it
+ships as 8 plain jobs, each its own queue sample): U113_SLICE="lo:hi" takes
+manifest rows [lo:hi) and U113_TAG names the outputs (measured_<tag>.jsonl +
+measure_summary_<tag>.json). A merge step (merge_slices.py, CPU) concatenates
+rows and summaries afterwards. GPQUEUE_TRIAL=1 (submit-pair trial leg): first
+30 specs only, binaries kept, trial outputs.
 """
 import hashlib
 import json
@@ -67,7 +71,7 @@ def slim(q):
                                   "n_other_running_at_sample_time")}
 
 
-def measure_stage(h, build, specs, fh, tel_rows, trial=False):
+def measure_stage(h, build, specs, fh, tel_rows, keep_binaries=False):
     stage = specs[0]["stage"]
     q0 = queue_now()
     tel0 = telemetry()
@@ -143,7 +147,7 @@ def measure_stage(h, build, specs, fh, tel_rows, trial=False):
         if (i + 1) % 100 == 0:
             print(f"  [{stage}] {i + 1}/{len(specs)} last={med:.4f} ms",
                   flush=True)
-        if not trial:
+        if not keep_binaries:
             exe.unlink(missing_ok=True)
     tel1 = telemetry()
     q1 = queue_now()
@@ -164,32 +168,34 @@ def main() -> int:
     build = HERE / "build"
     manifest = json.loads((build / "manifest.json").read_text())
     specs = manifest["specs"]
+    trial = os.environ.get("GPQUEUE_TRIAL") == "1"
+    tag = os.environ.get("U113_TAG", "")
+    if trial:
+        specs = specs[:30]
+        suffix, keep = "_trial", True
+    elif tag:
+        lo, hi = (int(x) for x in os.environ["U113_SLICE"].split(":"))
+        specs = specs[lo:hi]
+        suffix, keep = f"_{tag}", False
+    else:
+        suffix, keep = "", False
     by_stage = {}
     for d in specs:
         by_stage.setdefault(d["stage"], []).append(d)
     print(f"measuring {len(specs)} specs in {len(by_stage)} stages "
-          f"({TRIALS} trials x {INVOCATIONS} invocations each)")
+          f"({TRIALS} trials x {INVOCATIONS} invocations each) suffix={suffix!r}")
     h = SafeHarness(timeout_sec=300)
     all_rows, all_fail, stage_recs = [], [], []
     t0 = time.time()
-    trial = os.environ.get("GPQUEUE_TRIAL") == "1"
-    if trial:
-        specs = specs[:30]
-        by_stage = {}
-        for d in specs:
-            by_stage.setdefault(d["stage"], []).append(d)
-        print("TRIAL MODE: first 30 specs only; binaries kept; trial outputs")
-    tmp = HERE / "build" / ("measured_trial_raw.jsonl" if trial
-                              else "measured_raw.jsonl")
+    tmp = HERE / "build" / f"measured{suffix}_raw.jsonl"
     with tmp.open("w") as fh:
         for stage in sorted(by_stage):
             rows, failures = measure_stage(h, build, by_stage[stage], fh,
-                                           stage_recs, trial)
+                                           stage_recs, keep)
             all_rows.extend(rows)
             all_fail.extend(failures)
     # Protocol-stamped serialisation: refuses unstamped rows.
-    cp.write_rows(HERE / ("measured_trial.jsonl" if trial else "measured.jsonl"),
-                  all_rows)
+    cp.write_rows(HERE / f"measured{suffix}.jsonl", all_rows)
     summary = {
         "bead": "gpu-sim-u2o.11.3", "stage": "measure",
         "n_specs": len(specs), "n_measured": len(all_rows),
@@ -200,11 +206,12 @@ def main() -> int:
         "median_ai_cv": statistics.median([r["ai_cv"] for r in all_rows]),
         "per_stage": stage_recs,
         "wall_sec": time.time() - t0,
-        "rows_path": "measured.jsonl",
+        "rows_path": f"measured{suffix}.jsonl",
         "protocol": PROTOCOL,
+        "slice": os.environ.get("U113_SLICE", ""),
+        "tag": tag,
     }
-    (HERE / ("measure_trial_summary.json" if trial else "measure_summary.json")
-     ).write_text(json.dumps(summary, indent=2))
+    (HERE / f"measure_summary{suffix}.json").write_text(json.dumps(summary, indent=2))
     print(f"\nmeasured {len(all_rows)}/{len(specs)} failed={len(all_fail)} "
           f"wall={summary['wall_sec']:.0f}s")
     return 0 if all_rows else 1
