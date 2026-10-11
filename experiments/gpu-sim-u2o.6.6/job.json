@@ -1,16 +1,1 @@
-{
-  "bead": "gpu-sim-u2o.6.6",
-  "mode": "CPU-only, direct (no ts queue: statistics over committed JSON, no CUDA)",
-  "cpu_runs": [
-    {
-      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.6/build_targets.py --metrics-out experiments/gpu-sim-u2o.6.6/metrics.json",
-      "worktree": ".lab/wt/gpu-sim-u2o.6.6",
-      "start_utc": "2026-10-06T01:02:09Z",
-      "end_utc": "2026-10-06T01:02:10Z",
-      "exit": 0,
-      "log": "experiments/gpu-sim-u2o.6.6/output.log"
-    }
-  ],
-  "gpu_jobs": [],
-  "gpu_note": "No GPU job. All numbers derive from committed GPU-measured artifacts: 6.6.1 trial arrays (ts jobs in its job.json), 6.6.2 anchor families (4 authoritative ts jobs in its job.json), 6.6.3 contention rule, variance_probe witness. No new measurement was needed; the bead's work is target construction, not data collection."
-}
+{"analysis": "targets: per-cell (median, sigma_log) on 456 rows; bias beside noise, never subtracted; 43 disagree flags; e5q protocol id pending registration (named, not hidden)", "bead": "gpu-sim-u2o.6.6", "branch": "lab/gpu-sim-u2o.6.6-r2 (lab/gpu-sim-u2o.6.6 already exists, merged; -r2 continues the bead)", "cpu_runs": [{"command": "python3 experiments/gpu-sim-u2o.6.6/build_targets.py", "exit": 0, "note": "n=456 flags=43 zeros=2 verdict=pass"}, {"command": "python3 -m unittest tests.test_noise_targets", "exit": 0, "note": "18/18 OK"}, {"command": "bash experiments/gpu-sim-u2o.6.6/run.sh", "exit": 0, "note": "RECOMPUTE PASS byte-identical"}], "gpu_jobs": []}

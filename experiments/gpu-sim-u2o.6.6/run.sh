@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
-# gpu-sim-u2o.6.6 -- recompute check. CPU-ONLY: statistics over committed JSON,
-# no CUDA, no ts queue. Re-runs build_targets.py into a scratch dir and
-# byte-compares against the committed metrics.json (seeded RNG + sort_keys make
-# it deterministic). Writes nothing tracked. Fails on mismatch.
+# gpu-sim-u2o.6.6 -- recompute check. CPU-ONLY (stdlib + repo).
+# Re-runs the target gates + target driver into scratch, byte-compares BOTH
+# committed artifacts. A diff means the tree moved under the targets (stale
+# snapshot); a driver nonzero means a claim stopped holding. Never writes a
+# tracked file.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
-cd "$HERE"
-SCRATCH="$(mktemp -d /tmp/u66-recompute-XXXXXX)"
+cd "$REPO"
+CUDA_VISIBLE_DEVICES= nice -n 10 python3 -m unittest \
+    tests.test_noise_targets 2>&1 | tail -n 3
+SCRATCH="$(mktemp -d "${XDG_CACHE_HOME:-$HOME/.cache}/66-recompute-XXXXXX")"
 trap 'rm -rf "$SCRATCH"' EXIT
 CUDA_VISIBLE_DEVICES= nice -n 10 python3 "$HERE/build_targets.py" \
-    --metrics-out "$SCRATCH/recomputed.json" > "$SCRATCH/out.log" 2>&1
+    --targets-out "$SCRATCH/targets.jsonl" \
+    --metrics-out "$SCRATCH/metrics.json" > "$SCRATCH/out.log" 2>&1
 rc=$?
-cat "$SCRATCH/out.log"
-[ "$rc" -eq 0 ] || { echo "RECOMPUTE FAIL: driver exited $rc"; exit 1; }
-cmp -s "$HERE/metrics.json" "$SCRATCH/recomputed.json" \
+tail -n 1 "$SCRATCH/out.log"
+[ "$rc" -eq 0 ] || { echo "RECOMPUTE FAIL: driver rc=$rc"; exit 1; }
+cmp -s "$HERE/targets.jsonl" "$SCRATCH/targets.jsonl" \
+    || { echo "RECOMPUTE FAIL: targets differ"; exit 1; }
+cmp -s "$HERE/metrics.json" "$SCRATCH/metrics.json" \
     && echo "RECOMPUTE PASS (byte-identical)" \
-    || { echo "RECOMPUTE FAIL: metrics differ"; diff <(head -c 2000 "$HERE/metrics.json") <(head -c 2000 "$SCRATCH/recomputed.json"); exit 1; }
+    || { echo "RECOMPUTE FAIL: metrics differ"; exit 1; }
