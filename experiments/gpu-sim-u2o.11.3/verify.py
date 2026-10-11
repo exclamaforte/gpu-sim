@@ -5,12 +5,19 @@ Reads measured.jsonl + manifest.json (the COMMITTED copy at this directory,
 so a fresh checkout recomputes) + measure/compile summaries; writes
 metrics.json. Nonzero exit on any gate failure. No GPU.
 
+HASH REALITY: the manifest holds occurrences over unique cells
+(kernel_hash_for does not cover driver scalar values; phantom duplicates
+documented in merge_slices.py). Every count below is over UNIQUE CELLS;
+the join is per row against its cell. See merge_slices.py, which annotates
+each row with the driver scalars it launched with.
+
 Gates (acceptance in parentheses):
-  join: every row's kernel_hash recomputed from its manifest spec
+  join: every row's kernel_hash recomputed from its manifest cell
     (source/grid/block/n) matches; every row joins (1)
   stages: all four stages present with per-stage counts (2)
-  census: 9.4's regime construction recomputed live per row (NOT a stored
-    guess); census verdict + memory-bound count + stage-4 population (3,4)
+  census: 9.4's regime construction recomputed live per row via
+    census.classify -- the SAME function predict_mm.py used for the
+    extension keep-list, so prediction and verdict cannot drift (3,4)
   noise: ai_cv present on every row; unreliable marked in place, row count
     unchanged (5)
   contention: per-row queue_state carries own_job_id + n_other_running;
@@ -21,10 +28,8 @@ Gates (acceptance in parentheses):
   item9: row count AND census both present (9)
   protocol: single protocol over all rows (corpus condition)
 """
-import importlib.util
 import json
 import statistics
-import subprocess
 import argparse
 import sys
 from collections import Counter
@@ -38,7 +43,7 @@ sys.path.insert(0, str(HERE))
 from epic_u2o.generator_stage1 import kernel_hash_for  # noqa: E402
 from epic_u2o.features import LaunchConfig, extract_features  # noqa: E402
 from epic_u2o import corpus_protocol as cp  # noqa: E402
-from census import census, require_census  # noqa: E402
+from census import census, require_census, classify, check_git_clean_of_anchors  # noqa: E402
 
 FAILURES = []
 
@@ -46,14 +51,6 @@ FAILURES = []
 def fail(msg):
     FAILURES.append(msg)
     print(f"GATE FAIL: {msg}")
-
-
-def load_mod(name, path):
-    spec = importlib.util.spec_from_loader(name, loader=None)
-    mod = importlib.util.module_from_spec(spec)
-    mod.__dict__["__file__"] = str(Path(path).resolve())
-    exec(compile(Path(path).read_text(), path, "exec"), mod.__dict__)
-    return mod
 
 
 def main() -> int:
@@ -67,7 +64,7 @@ def main() -> int:
     ms = json.loads((HERE / "measure_summary.json").read_text())
     cs = json.loads((HERE / "build" / "compile_summary.json").read_text())
 
-    # ---- 1. join ----
+    # ---- 1. join (unique cells) ----
     unjoined, mismatched = [], []
     for r in rows:
         d = by_hash.get(r["kernel_hash"])
@@ -78,9 +75,11 @@ def main() -> int:
                            d["problem_size"]) != r["kernel_hash"]:
             mismatched.append(r["kernel_hash"])
     if unjoined:
-        fail(f"{len(unjoined)} rows join to no manifest spec, e.g. {unjoined[:3]}")
+        fail(f"{len(unjoined)} rows join to no manifest cell, e.g. {unjoined[:3]}")
     if mismatched:
         fail(f"{len(mismatched)} rows fail hash re-computation, e.g. {mismatched[:3]}")
+    if len({r["kernel_hash"] for r in rows}) != len(rows):
+        fail("measured.jsonl contains duplicate hashes")
 
     # ---- 2. stages ----
     per_stage = Counter(r["stage"] for r in rows)
@@ -123,11 +122,7 @@ def main() -> int:
     print(f"contention rule ran in {len(slices)} slice jobs across {covered}; "
           f"fired on: {fired or 'none'}")
 
-    # ---- 3/4. regime census (9.4's construction, live) ----
-    zv = load_mod("u113_zv", str(REPO / "experiments/gpu-sim-zhq/zhq_verify.py"))
-    bwv = load_mod("u113_bwv", str(REPO / "experiments/gpu-sim-46p/bw_verify.py"))
-    ancient = zv.load_old_roofline()
-    old = bwv.load_before()
+    # ---- 3/4. regime census (same classify() as the keep-list) ----
     counts, s4_rows = Counter(), 0
     for r in rows:
         d = by_hash[r["kernel_hash"]]
@@ -135,11 +130,7 @@ def main() -> int:
         lc = LaunchConfig(grid_x=g[0], grid_y=g[1], grid_z=g[2],
                           block_x=b[0], block_y=b[1], block_z=b[2],
                           shared_mem_bytes=r["launch_config"]["shared_mem_bytes"])
-        f = extract_features(d["source"], lc, r["problem_size"])
-        rz = ancient.roofline_predict(zv.to_old(ancient, f))
-        rb = old.roofline_predict(zv.to_old(old, f))
-        cls = f"{rz.bottleneck}->{rb.bottleneck}"
-        counts[cls] += 1
+        counts[classify(extract_features(d["source"], lc, r["problem_size"]))] += 1
         if r["stage"] == "stage4":
             s4_rows += 1
     cen = census(dict(counts))
@@ -160,19 +151,17 @@ def main() -> int:
           f"measure wall {ms.get('wall_sec'):.0f}s (queued slices)")
 
     # ---- 8. anchor_v1 path filter ----
-    p = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],
-                       capture_output=True, text=True)
-    changed = [l[3:] for l in p.stdout.splitlines()]
-    anchor_touched = [c for c in changed
-                      if "anchor" in c or "u2o.6.6.2/" in c]
+    anchor_touched = check_git_clean_of_anchors()
     if anchor_touched:
         fail(f"anchor paths touched: {anchor_touched}")
-    print(f"anchor filter: {len(changed)} changed/untracked paths, "
-          f"0 under anchor paths")
+    print("anchor filter: 0 paths under anchor paths")
 
     metrics = {
         "bead": "gpu-sim-u2o.11.3",
         "total_rows": len(rows),
+        "manifest_occurrences": ms.get("n_manifest_occurrences"),
+        "unique_cells": ms.get("n_unique_cells"),
+        "phantom_duplicates": ms.get("n_phantom_duplicates"),
         "join": {"unjoined": len(unjoined), "mismatched": len(mismatched)},
         "per_stage_rows": dict(sorted(per_stage.items())),
         "protocol": proto,
@@ -189,7 +178,8 @@ def main() -> int:
         "anchor_v1_untouched": not anchor_touched,
         "shortfall": {"preflight": manifest.get("preflight_failures", []),
                       "compile": cs.get("n_failed"),
-                      "measure": ms.get("n_failed")},
+                      "measure_missing_unique": ms.get("n_missing_unique"),
+                      "missing_hashes": ms.get("missing_hashes")},
     }
     # ---- 9. the trap: total AND census, or fail here ----
     try:

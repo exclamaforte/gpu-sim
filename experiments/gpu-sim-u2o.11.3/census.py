@@ -15,15 +15,61 @@ shipped 264/360 launch-bound cells, 73%, on its first pass).
 
 Regime classes are 9.4's construction ({old-roofline bottleneck} ->
 {new-roofline bottleneck}), recomputed live per row -- never a stored guess.
+classify() is the single construction: verify.py and predict_mm.py both
+call it, so the extension keep-list and the final census cannot drift apart.
 """
+import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO))
 
 MIN_CLASSES = 3
 MIN_SMALLEST_SHARE = 0.05
 MIN_MEMORY_BOUND = 100
 MEMORY_CLASS = "memory->memory"
+
+
+def _load_mod(name, path):
+    spec = importlib.util.spec_from_loader(name, loader=None)
+    mod = importlib.util.module_from_spec(spec)
+    mod.__dict__["__file__"] = str(Path(path).resolve())
+    exec(compile(Path(path).read_text(), path, "exec"), mod.__dict__)
+    return mod
+
+
+_ZV = _BWV = _ANCIENT = _OLD = None
+
+
+def _models():
+    global _ZV, _BWV, _ANCIENT, _OLD
+    if _ANCIENT is None:
+        _ZV = _load_mod("u113_zv", str(REPO / "experiments/gpu-sim-zhq/zhq_verify.py"))
+        _BWV = _load_mod("u113_bwv", str(REPO / "experiments/gpu-sim-46p/bw_verify.py"))
+        _ANCIENT = _ZV.load_old_roofline()
+        _OLD = _BWV.load_before()
+    return _ZV, _BWV, _ANCIENT, _OLD
+
+
+def classify(features) -> str:
+    """9.4's regime class for live 8.3 features: bottleneck under the
+    zhq-pinned pre-zhq roofline -> bottleneck under the 46p-pinned pre-46p
+    roofline. Both modules carry their own four-way pin asserts."""
+    zv, bwv, ancient, old = _models()
+    rz = ancient.roofline_predict(zv.to_old(ancient, features))
+    rb = old.roofline_predict(zv.to_old(old, features))
+    return f"{rz.bottleneck}->{rb.bottleneck}"
+
+
+def check_git_clean_of_anchors() -> list:
+    """Files under anchor paths in the working tree (8: anchor_v1 untouched)."""
+    p = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],
+                       capture_output=True, text=True)
+    return [l[3:] for l in p.stdout.splitlines()
+            if "anchor" in l[3:] or "u2o.6.6.2/" in l[3:]]
 
 
 def census(counts: dict) -> dict:

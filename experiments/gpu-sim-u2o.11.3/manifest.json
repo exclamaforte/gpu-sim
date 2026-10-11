@@ -1,38 +1,8 @@
 {
   "bead": "gpu-sim-u2o.11.3",
-  "stage": "build",
-  "selection_rule": "per (stage, op): all of the two largest sizes, then smaller sizes up to the per-op cap; generator order, no sampling",
-  "per_op_cap": {
-    "stage2": 90,
-    "stage3": 70,
-    "stage4": 1000000000,
-    "stage5": 1000000000
-  },
-  "per_stage": {
-    "stage2": {
-      "enumerated": 1436,
-      "selected": 645,
-      "kept": 645
-    },
-    "stage3": {
-      "enumerated": 11112,
-      "selected": 910,
-      "kept": 910
-    },
-    "stage4": {
-      "enumerated": 96,
-      "selected": 96,
-      "kept": 96
-    },
-    "stage5": {
-      "enumerated": 560,
-      "selected": 560,
-      "kept": 560
-    }
-  },
-  "n_specs": 2211,
-  "preflight_failures": [],
-  "protocol": "single_run_stages_2_5",
+  "n_specs": 2322,
+  "n_base": 2211,
+  "n_extension": 111,
   "specs": [
     {
       "kernel_hash": "492e96a171c90d9b",
@@ -110231,6 +110201,5192 @@
         "nbins": 256
       },
       "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}"
+    },
+    {
+      "kernel_name": "gather_read",
+      "source": "__global__ void gather_read(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[indices[i]];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "gather_read",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "gather",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "985588c183376321",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "gather_read",
+      "source": "__global__ void gather_read(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[indices[i]];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "gather_read",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "gather",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "42612af809d190ab",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "gather_read",
+      "source": "__global__ void gather_read(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[indices[i]];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "gather_read",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "gather",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "bcbd73412739c8e5",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "gather_read",
+      "source": "__global__ void gather_read(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[indices[i]];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "gather_read",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "gather",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "c9dc87864fc53ec8",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "gather_read",
+      "source": "__global__ void gather_read(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[indices[i]];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "gather_read",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "gather",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "5225996c4dafc597",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "random_access",
+      "source": "__global__ void random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        unsigned int seed = seeds[i];\n        // Simple LCG for pseudo-random access\n        seed = seed * 1664525u + 1013904223u;\n        int idx = seed % n;\n        out[i] = in[idx];\n    }\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "seeds",
+          "type": "const unsigned int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "random_access",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "random",
+        "coalesced": false,
+        "pseudo_random": true
+      },
+      "kernel_hash": "85c10e61af74284d",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "random_access",
+      "source": "__global__ void random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        unsigned int seed = seeds[i];\n        // Simple LCG for pseudo-random access\n        seed = seed * 1664525u + 1013904223u;\n        int idx = seed % n;\n        out[i] = in[idx];\n    }\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "seeds",
+          "type": "const unsigned int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "random_access",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "random",
+        "coalesced": false,
+        "pseudo_random": true
+      },
+      "kernel_hash": "13b454204ef4b054",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "random_access",
+      "source": "__global__ void random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        unsigned int seed = seeds[i];\n        // Simple LCG for pseudo-random access\n        seed = seed * 1664525u + 1013904223u;\n        int idx = seed % n;\n        out[i] = in[idx];\n    }\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "seeds",
+          "type": "const unsigned int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "random_access",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "random",
+        "coalesced": false,
+        "pseudo_random": true
+      },
+      "kernel_hash": "ed135d706eeae3f8",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "random_access",
+      "source": "__global__ void random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        unsigned int seed = seeds[i];\n        // Simple LCG for pseudo-random access\n        seed = seed * 1664525u + 1013904223u;\n        int idx = seed % n;\n        out[i] = in[idx];\n    }\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "seeds",
+          "type": "const unsigned int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "random_access",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "random",
+        "coalesced": false,
+        "pseudo_random": true
+      },
+      "kernel_hash": "20336bccdafbb133",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "random_access",
+      "source": "__global__ void random_access(const float* __restrict__ in, float* __restrict__ out, const unsigned int* __restrict__ seeds, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        unsigned int seed = seeds[i];\n        // Simple LCG for pseudo-random access\n        seed = seed * 1664525u + 1013904223u;\n        int idx = seed % n;\n        out[i] = in[idx];\n    }\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "seeds",
+          "type": "const unsigned int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "random_access",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "random",
+        "coalesced": false,
+        "pseudo_random": true
+      },
+      "kernel_hash": "f601a2f562cb5342",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "scatter_write",
+      "source": "__global__ void scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[indices[i]] = in[i];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "scatter_write",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "scatter",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "8d80e1db53fcb895",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "scatter_write",
+      "source": "__global__ void scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[indices[i]] = in[i];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "scatter_write",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "scatter",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "034271ff5c64ae21",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "scatter_write",
+      "source": "__global__ void scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[indices[i]] = in[i];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "scatter_write",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "scatter",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "626342a649483815",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "scatter_write",
+      "source": "__global__ void scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[indices[i]] = in[i];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "scatter_write",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "scatter",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "b7ef4b3f760288aa",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "scatter_write",
+      "source": "__global__ void scatter_write(const float* __restrict__ in, float* __restrict__ out, const int* __restrict__ indices, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[indices[i]] = in[i];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "indices",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "scatter_write",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "scatter",
+        "coalesced": false,
+        "indirect": true
+      },
+      "kernel_hash": "e606c24bd2d6ea12",
+      "stage": "stage3",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "5cc4745f117ebf4e",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "f68530b6cd220cba",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "0685c0c5e96e4284",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "7224a8ee94c9b591",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "38d88b7aba6ac7e4",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "3df5785ab368d989",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "0c5af056fbbb8704",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "f3bb1df4afcb1ec2",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "712bef075ccf2a2b",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "9580ffbf5b4254e4",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "b82027700fd5013d",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_max_block",
+      "source": "__global__ void reduce_max_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : -__FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] > sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        131072,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_max_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_max_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "c133ba41d67bd6e2",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "3a30fb23dfa928a7",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "99d5e7333c7703e9",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "4920eced955cf512",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "75684abcc5bfdb71",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "215ae47214195f3a",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "759e2777206e86e0",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "0dbb743e9a41ca2b",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "6e1ca5fb843ff1f2",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "2346d427844a76a6",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "02844253ef0808c4",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "aa075a557c7a4324",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_min_block",
+      "source": "__global__ void reduce_min_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : __FLT_MAX__;\n    __syncthreads();\n    \n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            if (sdata[tid + s] < sdata[tid]) sdata[tid] = sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        131072,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_min_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_min_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "48bada7efac64605",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "031e991ee0f207de",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "ad9583c385f8b728",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "b71f470947996b33",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "5116b43ac9968803",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "13a205407b5a5ddf",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "5af126d8e5c04a42",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "40a96c0af99298ea",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "257ff67c01bcd9d3",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "1d8d06d4a3588c5c",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "69cfab2a53c66ee7",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "5d5282ed2c46a54d",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_block",
+      "source": "__global__ void reduce_sum_block(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    \n    sdata[tid] = (i < n) ? in[i] : 0.0f;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[blockIdx.x] = sdata[0];\n}",
+      "grid": [
+        131072,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_sum_block",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_block",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "4972296fdc92fb02",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_warp_shuffle",
+      "source": "__global__ void reduce_sum_warp_shuffle(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    float val = (i < n) ? in[i] : 0.0f;\n    \n    // Warp-level reduction using shuffle\n    for (int offset = 16; offset > 0; offset >>= 1) {\n        val += __shfl_down_sync(0xffffffff, val, offset);\n    }\n    \n    if (tid % 32 == 0) {\n        atomicAdd(out, val);\n    }\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "reduce_sum_warp_shuffle",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_warp_shuffle",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": true,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "a09079d1211059a6",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_warp_shuffle",
+      "source": "__global__ void reduce_sum_warp_shuffle(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    float val = (i < n) ? in[i] : 0.0f;\n    \n    // Warp-level reduction using shuffle\n    for (int offset = 16; offset > 0; offset >>= 1) {\n        val += __shfl_down_sync(0xffffffff, val, offset);\n    }\n    \n    if (tid % 32 == 0) {\n        atomicAdd(out, val);\n    }\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "reduce_sum_warp_shuffle",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_warp_shuffle",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": true,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "b457b024d39df9b9",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_warp_shuffle",
+      "source": "__global__ void reduce_sum_warp_shuffle(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    float val = (i < n) ? in[i] : 0.0f;\n    \n    // Warp-level reduction using shuffle\n    for (int offset = 16; offset > 0; offset >>= 1) {\n        val += __shfl_down_sync(0xffffffff, val, offset);\n    }\n    \n    if (tid % 32 == 0) {\n        atomicAdd(out, val);\n    }\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "reduce_sum_warp_shuffle",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_warp_shuffle",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": true,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "4f9c17d886f6b5ba",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_warp_shuffle",
+      "source": "__global__ void reduce_sum_warp_shuffle(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    float val = (i < n) ? in[i] : 0.0f;\n    \n    // Warp-level reduction using shuffle\n    for (int offset = 16; offset > 0; offset >>= 1) {\n        val += __shfl_down_sync(0xffffffff, val, offset);\n    }\n    \n    if (tid % 32 == 0) {\n        atomicAdd(out, val);\n    }\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "reduce_sum_warp_shuffle",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_warp_shuffle",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": true,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "7e294192d54f6031",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "reduce_sum_warp_shuffle",
+      "source": "__global__ void reduce_sum_warp_shuffle(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    float val = (i < n) ? in[i] : 0.0f;\n    \n    // Warp-level reduction using shuffle\n    for (int offset = 16; offset > 0; offset >>= 1) {\n        val += __shfl_down_sync(0xffffffff, val, offset);\n    }\n    \n    if (tid % 32 == 0) {\n        atomicAdd(out, val);\n    }\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "reduce_sum_warp_shuffle",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "reduce_sum_warp_shuffle",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": true,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "28f337b1e502daea",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_1way",
+      "source": "__global__ void shared_mem_bank_conflict_1way(float* out, int n) {\n    __shared__ float sdata[32 * 33];  // 33 elements per warp = 1-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    // Each thread writes to consecutive banks (no conflict)\n    sdata[warp * 33 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // Each thread reads from next element (1-way conflict within warp)\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 33 + (lane + 1) % 32];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4224,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "shared_mem_bank_conflict_1way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_1way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "1way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "2e765416595c2ec3",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_1way",
+      "source": "__global__ void shared_mem_bank_conflict_1way(float* out, int n) {\n    __shared__ float sdata[32 * 33];  // 33 elements per warp = 1-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    // Each thread writes to consecutive banks (no conflict)\n    sdata[warp * 33 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // Each thread reads from next element (1-way conflict within warp)\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 33 + (lane + 1) % 32];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4224,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "shared_mem_bank_conflict_1way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_1way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "1way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "46cd021e598db3cd",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_1way",
+      "source": "__global__ void shared_mem_bank_conflict_1way(float* out, int n) {\n    __shared__ float sdata[32 * 33];  // 33 elements per warp = 1-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    // Each thread writes to consecutive banks (no conflict)\n    sdata[warp * 33 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // Each thread reads from next element (1-way conflict within warp)\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 33 + (lane + 1) % 32];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4224,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "shared_mem_bank_conflict_1way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_1way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "1way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "f271a87ee7d45676",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_1way",
+      "source": "__global__ void shared_mem_bank_conflict_1way(float* out, int n) {\n    __shared__ float sdata[32 * 33];  // 33 elements per warp = 1-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    // Each thread writes to consecutive banks (no conflict)\n    sdata[warp * 33 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // Each thread reads from next element (1-way conflict within warp)\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 33 + (lane + 1) % 32];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4224,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "shared_mem_bank_conflict_1way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_1way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "1way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "f26ec1b8797256b4",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_1way",
+      "source": "__global__ void shared_mem_bank_conflict_1way(float* out, int n) {\n    __shared__ float sdata[32 * 33];  // 33 elements per warp = 1-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    // Each thread writes to consecutive banks (no conflict)\n    sdata[warp * 33 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // Each thread reads from next element (1-way conflict within warp)\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 33 + (lane + 1) % 32];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4224,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "shared_mem_bank_conflict_1way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_1way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "1way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "ba65fca31c1a2db9",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_1way",
+      "source": "__global__ void shared_mem_bank_conflict_1way(float* out, int n) {\n    __shared__ float sdata[32 * 33];  // 33 elements per warp = 1-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    // Each thread writes to consecutive banks (no conflict)\n    sdata[warp * 33 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // Each thread reads from next element (1-way conflict within warp)\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 33 + (lane + 1) % 32];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4224,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "shared_mem_bank_conflict_1way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_1way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "1way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "8911fa2d91994b9d",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_2way",
+      "source": "__global__ void shared_mem_bank_conflict_2way(float* out, int n) {\n    __shared__ float sdata[32 * 34];  // 34 elements per warp = 2-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    sdata[warp * 34 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // 2-way bank conflict\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 34 + (lane + 2) % 32];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4352,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "shared_mem_bank_conflict_2way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_2way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "2way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "6b6f4932c4ca55bc",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_2way",
+      "source": "__global__ void shared_mem_bank_conflict_2way(float* out, int n) {\n    __shared__ float sdata[32 * 34];  // 34 elements per warp = 2-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    sdata[warp * 34 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // 2-way bank conflict\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 34 + (lane + 2) % 32];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4352,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "shared_mem_bank_conflict_2way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_2way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "2way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "f99e793bf7acc047",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_2way",
+      "source": "__global__ void shared_mem_bank_conflict_2way(float* out, int n) {\n    __shared__ float sdata[32 * 34];  // 34 elements per warp = 2-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    sdata[warp * 34 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // 2-way bank conflict\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 34 + (lane + 2) % 32];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4352,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "shared_mem_bank_conflict_2way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_2way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "2way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "febc3ae47984bccc",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_2way",
+      "source": "__global__ void shared_mem_bank_conflict_2way(float* out, int n) {\n    __shared__ float sdata[32 * 34];  // 34 elements per warp = 2-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    sdata[warp * 34 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // 2-way bank conflict\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 34 + (lane + 2) % 32];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4352,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "shared_mem_bank_conflict_2way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_2way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "2way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "ed753c5e77216ebb",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_2way",
+      "source": "__global__ void shared_mem_bank_conflict_2way(float* out, int n) {\n    __shared__ float sdata[32 * 34];  // 34 elements per warp = 2-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    sdata[warp * 34 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // 2-way bank conflict\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 34 + (lane + 2) % 32];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4352,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "shared_mem_bank_conflict_2way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_2way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "2way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "2c22a49f173c0b81",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_2way",
+      "source": "__global__ void shared_mem_bank_conflict_2way(float* out, int n) {\n    __shared__ float sdata[32 * 34];  // 34 elements per warp = 2-way bank conflict\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    int warp = tid / 32;\n    \n    sdata[warp * 34 + lane] = lane * 1.0f;\n    __syncthreads();\n    \n    // 2-way bank conflict\n    out[blockIdx.x * blockDim.x + tid] = sdata[warp * 34 + (lane + 2) % 32];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4352,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "shared_mem_bank_conflict_2way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_2way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "2way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "99e82da21393f442",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_32way",
+      "source": "__global__ void shared_mem_bank_conflict_32way(float* out, int n) {\n    __shared__ float sdata[32];\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    \n    // All threads in warp write to same bank (32-way conflict)\n    if (lane == 0) sdata[0] = 1.0f;\n    __syncthreads();\n    \n    // All threads read from same bank\n    out[blockIdx.x * blockDim.x + tid] = sdata[0];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 128,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "shared_mem_bank_conflict_32way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_32way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "32way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "5423139490e3ea1e",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_32way",
+      "source": "__global__ void shared_mem_bank_conflict_32way(float* out, int n) {\n    __shared__ float sdata[32];\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    \n    // All threads in warp write to same bank (32-way conflict)\n    if (lane == 0) sdata[0] = 1.0f;\n    __syncthreads();\n    \n    // All threads read from same bank\n    out[blockIdx.x * blockDim.x + tid] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 128,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "shared_mem_bank_conflict_32way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_32way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "32way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "c6308c074b86c7fa",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_32way",
+      "source": "__global__ void shared_mem_bank_conflict_32way(float* out, int n) {\n    __shared__ float sdata[32];\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    \n    // All threads in warp write to same bank (32-way conflict)\n    if (lane == 0) sdata[0] = 1.0f;\n    __syncthreads();\n    \n    // All threads read from same bank\n    out[blockIdx.x * blockDim.x + tid] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 128,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "shared_mem_bank_conflict_32way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_32way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "32way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "e130fd5b74b38208",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_32way",
+      "source": "__global__ void shared_mem_bank_conflict_32way(float* out, int n) {\n    __shared__ float sdata[32];\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    \n    // All threads in warp write to same bank (32-way conflict)\n    if (lane == 0) sdata[0] = 1.0f;\n    __syncthreads();\n    \n    // All threads read from same bank\n    out[blockIdx.x * blockDim.x + tid] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 128,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "shared_mem_bank_conflict_32way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_32way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "32way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "ebe21588ca0bbef4",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_32way",
+      "source": "__global__ void shared_mem_bank_conflict_32way(float* out, int n) {\n    __shared__ float sdata[32];\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    \n    // All threads in warp write to same bank (32-way conflict)\n    if (lane == 0) sdata[0] = 1.0f;\n    __syncthreads();\n    \n    // All threads read from same bank\n    out[blockIdx.x * blockDim.x + tid] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 128,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "shared_mem_bank_conflict_32way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_32way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "32way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "a7a31c7b559ed865",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_bank_conflict_32way",
+      "source": "__global__ void shared_mem_bank_conflict_32way(float* out, int n) {\n    __shared__ float sdata[32];\n    \n    int tid = threadIdx.x;\n    int lane = tid % 32;\n    \n    // All threads in warp write to same bank (32-way conflict)\n    if (lane == 0) sdata[0] = 1.0f;\n    __syncthreads();\n    \n    // All threads read from same bank\n    out[blockIdx.x * blockDim.x + tid] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 128,
+      "args": [
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "shared_mem_bank_conflict_32way",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_bank_conflict_32way",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": "32way",
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "583ed93dfe872518",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "bb127b922a662c6b",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "8cf20459bb381a9c",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "b8cd338a41016c2b",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "12e178bb8d5b6a48",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "552d69bc974228ec",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "d87dc887248ba61d",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "db2348afa64f3184",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "b12651084593af4e",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "7a4dbba87fe48ddc",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "6bdf7958ca5e1d28",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "03c8295ccd1e2dac",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_reduction_tiled",
+      "source": "__global__ void shared_mem_reduction_tiled(const float* __restrict__ in, float* __restrict__ out, int n) {\n    extern __shared__ float sdata[];\n    \n    int tid = threadIdx.x;\n    int bid = blockIdx.x;\n    int i = bid * blockDim.x * 2 + tid;\n    \n    // Load two elements per thread\n    float val1 = (i < n) ? in[i] : 0.0f;\n    float val2 = (i + blockDim.x < n) ? in[i + blockDim.x] : 0.0f;\n    float sum = val1 + val2;\n    \n    sdata[tid] = sum;\n    __syncthreads();\n    \n    // Tree reduction\n    for (int s = blockDim.x / 2; s > 0; s >>= 1) {\n        if (tid < s) {\n            sdata[tid] += sdata[tid + s];\n        }\n        __syncthreads();\n    }\n    \n    if (tid == 0) out[bid] = sdata[0];\n}",
+      "grid": [
+        131072,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 2048,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 67108864,
+      "op_type": "shared_mem_reduction_tiled",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_reduction_tiled",
+        "uses_shared_memory": true,
+        "uses_warp_shuffle": false,
+        "bank_conflict_pattern": null,
+        "arithmetic_intensity": 0.5
+      },
+      "kernel_hash": "6c1cb4af2bd1e618",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_global",
+      "source": "__global__ void histogram_global(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&hist[b], 1);\n    }\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "histogram_global",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_global",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": false,
+        "nbins": 1024
+      },
+      "kernel_hash": "f734406517017878",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_global",
+      "source": "__global__ void histogram_global(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&hist[b], 1);\n    }\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "histogram_global",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_global",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": false,
+        "nbins": 1024
+      },
+      "kernel_hash": "bb6d87008632e76b",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_global",
+      "source": "__global__ void histogram_global(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&hist[b], 1);\n    }\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "histogram_global",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_global",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": false,
+        "nbins": 1024
+      },
+      "kernel_hash": "94bf7ae5e047833b",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_global",
+      "source": "__global__ void histogram_global(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&hist[b], 1);\n    }\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "histogram_global",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_global",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": false,
+        "nbins": 1024
+      },
+      "kernel_hash": "23593d362183b308",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "4fe7441718461802",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "e479f7e8c7d36831",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "37a9f41eceb0dd02",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "31daebfb36483d63",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        8192,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "fcd038d1d7952a2f",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "4e8c497e5acdbb7c",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "43630f499bac383e",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "814b6936cc62cd02",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        32768,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "2656c9e3eb48a09b",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "histogram_shared",
+      "source": "__global__ void histogram_shared(const int* __restrict__ in, int* __restrict__ hist, int n, int nbins) {\n    extern __shared__ int s_hist[];\n    int tid = threadIdx.x;\n    int i = blockIdx.x * blockDim.x + tid;\n    for (int b = tid; b < nbins; b += blockDim.x) s_hist[b] = 0;\n    __syncthreads();\n    if (i < n) {\n        int b = in[i] % nbins;\n        if (b < 0) b += nbins;\n        atomicAdd(&s_hist[b], 1);\n    }\n    __syncthreads();\n    for (int b = tid; b < nbins; b += blockDim.x) atomicAdd(&hist[b], s_hist[b]);\n}",
+      "grid": [
+        65536,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const int*",
+          "ptr": true
+        },
+        {
+          "name": "hist",
+          "type": "int*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "nbins",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 33554432,
+      "op_type": "histogram_shared",
+      "metadata": {
+        "generator": "stage5_divergence_atomics",
+        "op_type": "histogram_shared",
+        "divergent": false,
+        "uses_atomics": true,
+        "uses_shared_memory": true,
+        "nbins": 1024
+      },
+      "kernel_hash": "65a72bcb20b863c3",
+      "stage": "stage5",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 1024,
+        "cols": 1024
+      },
+      "kernel_hash": "3658bf975db5fbf6",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 1024,
+        "cols": 1024
+      },
+      "kernel_hash": "c68714f667c46a31",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        128,
+        64,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 1024,
+        "cols": 2048
+      },
+      "kernel_hash": "8b5947ccd927414b",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        64,
+        32,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 2097152,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 1024,
+        "cols": 2048
+      },
+      "kernel_hash": "5c05cddb2418e231",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 2048,
+        "cols": 2048
+      },
+      "kernel_hash": "81f3e0e16251ccdc",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 2048,
+        "cols": 2048
+      },
+      "kernel_hash": "a78efb34eeaa00b3",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        128,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 2048,
+        "cols": 4096
+      },
+      "kernel_hash": "4ef67f649bb0bce5",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "stencil_2d_5pt",
+      "source": "__global__ void stencil_2d_5pt(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[34][34];  // Halo for 5-point stencil\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int x = blockIdx.x * 32 + tx;\n    int y = blockIdx.y * 32 + ty;\n    \n    // Load with halo\n    if (x < cols && y < rows) {\n        tile[ty + 1][tx + 1] = in[y * cols + x];\n    }\n    \n    // Load halo\n    if (tx == 0 && x > 0) tile[ty + 1][0] = in[y * cols + x - 1];\n    if (tx == 31 && x < cols - 1) tile[ty + 1][33] = in[y * cols + x + 1];\n    if (ty == 0 && y > 0) tile[0][tx + 1] = in[(y - 1) * cols + x];\n    if (ty == 31 && y < rows - 1) tile[33][tx + 1] = in[(y + 1) * cols + x];\n    \n    __syncthreads();\n    \n    // 5-point stencil\n    if (x < cols && y < rows) {\n        float center = tile[ty + 1][tx + 1];\n        float sum = center * 4.0f - tile[ty][tx + 1] - tile[ty + 2][tx + 1] - tile[ty + 1][tx] - tile[ty + 1][tx + 2];\n        out[y * cols + x] = sum;\n    }\n}",
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4624,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "stencil_2d_5pt",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "stencil_2d_5pt",
+        "uses_shared_memory": true,
+        "stencil_pattern": "5pt",
+        "rows": 4096,
+        "cols": 4096
+      },
+      "kernel_hash": "4b45203dd30f26f0",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_transpose",
+      "source": "__global__ void shared_mem_transpose(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[32][32];\n    \n    int x = blockIdx.x * 32 + threadIdx.x;\n    int y = blockIdx.y * 32 + threadIdx.y;\n    \n    if (x < cols && y < rows) {\n        tile[threadIdx.y][threadIdx.x] = in[y * cols + x];\n    }\n    __syncthreads();\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int out_x = blockIdx.y * 32 + tx;\n    int out_y = blockIdx.x * 32 + ty;\n    \n    if (out_x < rows && out_y < cols) {\n        out[out_y * rows + out_x] = tile[tx][ty];\n    }\n}",
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 4194304,
+      "op_type": "shared_mem_transpose",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_transpose",
+        "uses_shared_memory": true,
+        "access_pattern": "transpose",
+        "rows": 2048,
+        "cols": 2048
+      },
+      "kernel_hash": "84087187946e4774",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_transpose",
+      "source": "__global__ void shared_mem_transpose(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[32][32];\n    \n    int x = blockIdx.x * 32 + threadIdx.x;\n    int y = blockIdx.y * 32 + threadIdx.y;\n    \n    if (x < cols && y < rows) {\n        tile[threadIdx.y][threadIdx.x] = in[y * cols + x];\n    }\n    __syncthreads();\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int out_x = blockIdx.y * 32 + tx;\n    int out_y = blockIdx.x * 32 + ty;\n    \n    if (out_x < rows && out_y < cols) {\n        out[out_y * rows + out_x] = tile[tx][ty];\n    }\n}",
+      "grid": [
+        128,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 8388608,
+      "op_type": "shared_mem_transpose",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_transpose",
+        "uses_shared_memory": true,
+        "access_pattern": "transpose",
+        "rows": 2048,
+        "cols": 4096
+      },
+      "kernel_hash": "64908b9c3b4802ae",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
+    },
+    {
+      "kernel_name": "shared_mem_transpose",
+      "source": "__global__ void shared_mem_transpose(const float* __restrict__ in, float* __restrict__ out, int rows, int cols) {\n    __shared__ float tile[32][32];\n    \n    int x = blockIdx.x * 32 + threadIdx.x;\n    int y = blockIdx.y * 32 + threadIdx.y;\n    \n    if (x < cols && y < rows) {\n        tile[threadIdx.y][threadIdx.x] = in[y * cols + x];\n    }\n    __syncthreads();\n    \n    int tx = threadIdx.x;\n    int ty = threadIdx.y;\n    int out_x = blockIdx.y * 32 + tx;\n    int out_y = blockIdx.x * 32 + ty;\n    \n    if (out_x < rows && out_y < cols) {\n        out[out_y * rows + out_x] = tile[tx][ty];\n    }\n}",
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 4096,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 16777216,
+      "op_type": "shared_mem_transpose",
+      "metadata": {
+        "generator": "stage2_reduction_shared",
+        "op_type": "shared_mem_transpose",
+        "uses_shared_memory": true,
+        "access_pattern": "transpose",
+        "rows": 4096,
+        "cols": 4096
+      },
+      "kernel_hash": "e5f320e2bd1069e6",
+      "stage": "stage2",
+      "deliberately_poor": false,
+      "extension": "mm-regime"
     }
   ]
 }
