@@ -33,8 +33,20 @@ L2_CACHE_BYTES = 100663296      # OWN (FG_L2_BYTES) + XLAB l2_bytes (96 MiB)
 REGISTERS_PER_SM = 65536        # XLAB regs_per_sm + OWN regsPerBlock/SM 65536
 MAX_SMEM_PER_BLOCK_OPTIN = 101376  # OWN probe + XLAB max_smem_per_block_optin
 MAX_SM_CLOCK_MHZ = 2422         # XLAB max_sm_clock_mhz
-MEASURED_READ_BW_GBS = 1688.592  # XLAB peak_read_GBps (achievable, not the
-                                # 1792.0 theoretical figure also in that file)
+MEASURED_READ_BW_GBS = 1688.592  # XLAB peak_read_GBps: ACHIEVED, not maximum.
+                                # Reached at best_read_config {blocks 680,
+                                # threads 512, gib 4} -- a thin 512-thread
+                                # config that saturates DRAM. Whatever occupancy
+                                # and MLP effects exist at saturation are
+                                # ALREADY INSIDE this number (46p: derating it
+                                # again by occupancy double-counts; the memory
+                                # arm takes it flat). The ONLY ceiling input.
+THEORETICAL_READ_BW_GBS = 1792.0  # XLAB theoretical_read_bw_GBs: vendor
+                                # theory from the same json, NO measurement
+                                # behind it. Carried so the two are never
+                                # silently interchanged (46p AC4: this bug was
+                                # one label 'peak' meaning two things). Never a
+                                # ceiling input without a measured efficiency.
 SM_COUNT = 170                  # XLAB sm_count + OWN multiProcessorCount
 SHARED_MEM_PER_BLOCK = 49152    # OWN sharedMemPerBlock
 MAX_THREADS_PER_BLOCK = 1024    # OWN maxThreadsPerBlock

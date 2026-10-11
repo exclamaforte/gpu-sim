@@ -129,16 +129,29 @@ def calculate_compute_time(features: KernelFeatures, occupancy: float) -> float:
 
 
 def calculate_memory_time(features: KernelFeatures, occupancy: float) -> float:
-    """Calculate memory-limited time in milliseconds."""
+    """Memory-limited time: bytes over the ACHIEVED bandwidth, flat."""
+    # gpu-sim-46p, decision (a): NO occupancy derate on this arm. The
+    # ceiling (1688.592 GB/s) was achieved at a thin saturating config, so
+    # occupancy/MLP effects at saturation are already inside it; multiplying
+    # by occupancy again discounted an achieved number a second time (46.2%
+    # too slow on a full-cover scale row, the whole +0.37 bias). Occupancy
+    # bounds warp ISSUE (compute arm keeps its derate); DRAM saturation
+    # bounds on in-flight requests, which streaming kernels have plenty of
+    # at 0.68 occupancy. (b) -- theory x one efficiency -- collapses: the
+    # only measured efficiency is 1688.592/1792 at saturation, i.e. (a) with
+    # extra steps; any other factor would be occupancy-dependence renamed.
+    # Stated cost: rows too small to saturate DRAM now UNDERpredict on this
+    # arm. That is what a ceiling means; the latency floor binds them.
+    # `occupancy` is unused and kept for signature compatibility.
     specs = SPECS
-    
+    _ = occupancy
+
     total_bytes = features.estimated_bytes_moved
     if total_bytes == 0:
         return 0.0
-    
-    # Effective memory bandwidth considering occupancy
-    effective_bw = specs.memory_bandwidth_gbps * occupancy * 1e9  # Bytes/s
-    
+
+    effective_bw = specs.memory_bandwidth_gbps * 1e9  # Bytes/s, flat
+
     # Time = Bytes / bandwidth
     time_s = total_bytes / effective_bw
     return time_s * 1000  # ms
@@ -179,7 +192,7 @@ def roofline_predict(features: KernelFeatures) -> RooflinePrediction:
     
     # Ceilings
     compute_ceiling = SPECS.peak_fp32_tflops * occupancy
-    memory_ceiling = SPECS.memory_bandwidth_gbps * occupancy
+    memory_ceiling = SPECS.memory_bandwidth_gbps  # flat (46p): the reported ceiling is the ceiling
     
     return RooflinePrediction(
         compute_time_ms=compute_time,
