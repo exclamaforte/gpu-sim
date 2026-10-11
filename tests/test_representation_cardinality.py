@@ -130,15 +130,21 @@ class TestAgainstRealArtifacts(unittest.TestCase):
         self.assertEqual(gate["as_written"]["verdict"], CardinalityError.COLLAPSED)
         # and the working representation PASSES
         self.assertTrue(gate["corrected"]["passed"])
-        # and the ceiling was measured, not assumed
-        self.assertEqual(gate["n_distinct_configs_in_the_rows"], N_ROWS)
+        # and the ceiling was measured, not assumed (456: both corpora)
+        self.assertEqual(gate["n_distinct_configs_in_the_rows"], 456)
 
-    def test_residual_collision_names_the_family_axis(self):
+    def test_no_residual_collision_on_the_full_corpus(self):
+        # Supersedes the old FAMILY-axis expectation: with the operator mix
+        # (add/mul/div on different units) and call sites in the vector,
+        # add/mul/div/copy/relu at the same launch no longer share a vector.
+        # 456/456 distinct means there IS no residual to name -- and if a
+        # future change re-collapses it, the item-5 gate fails loudly.
         p = REPO / "experiments/gpu-sim-u2o.8.3/metrics.json"
         if not p.exists():
             self.skipTest("run populate_feature_vector.py first")
-        note = json.loads(p.read_text())["cardinality_gate"]["corrected"]["residual_note"]
-        self.assertIn("FAMILY axis", note)
+        m = json.loads(p.read_text())
+        self.assertEqual(m["distinct_vectors"]["corrected"], 456)
+        self.assertEqual(m["item5_collision_groups"], 0)
 
 
 if __name__ == "__main__":

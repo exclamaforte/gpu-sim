@@ -19,10 +19,8 @@ class RTX5090Specs:
     # Compute (vendor figures where marked; measured quantities live in
     # epic_u2o.hw_5090 and are imported as defaults below)
     peak_fp32_tflops: float = hw_5090.PEAK_FP32_TFLOPS  # VENDOR, UNSOURCED IN-TREE -- never an occupancy input
-    peak_fp16_tflops: float = hw_5090.PEAK_FP16_TFLOPS  # VENDOR, UNSOURCED IN-TREE
-    peak_int32_tiops: float = hw_5090.PEAK_INT32_TOPS  # VENDOR, UNSOURCED IN-TREE
-    peak_fp16_tflops: float = 165.2  # TFLOP/s (with sparsity)
-    peak_int32_tiops: float = 82.6  # TIOP/s
+    # (8.3 D2: the sparsity-variant literals that shadowed the two lines
+    # above are deleted -- a third copy of two constants with no reader.)
     
     # Memory
     # Memory (measured achievable quantities, not vendor theory)
@@ -51,38 +49,11 @@ class RTX5090Specs:
 SPECS = RTX5090Specs()
 
 
-@dataclass
-class KernelFeatures:
-    """Static features extracted from kernel (matches features.py)."""
-    grid_x: int
-    grid_y: int
-    grid_z: int
-    block_x: int
-    block_y: int
-    block_z: int
-    shared_mem_bytes: int
-    estimated_registers_per_thread: int
-    num_args: int
-    num_pointer_args: int
-    num_scalar_args: int
-    total_arg_bytes: int
-    estimated_global_reads: int
-    estimated_global_writes: int
-    estimated_shared_reads: int
-    estimated_shared_writes: int
-    estimated_bytes_moved: int
-    estimated_flops: int
-    estimated_int_ops: int
-    has_loops: bool
-    has_conditionals: bool
-    max_loop_depth: int
-    has_syncthreads: bool
-    num_syncthreads: int
-    uses_shared_memory: bool
-    uses_constant_memory: bool
-    uses_vector_types: bool
-
-
+# gpu-sim-u2o.8.3 D2: the hand-copied KernelFeatures mirror that stood here is
+# DELETED. This module imports the struct from features.py -- one definition,
+# not two. (Verified the acceptance way: by deleting this copy and watching
+# the suite pass, not by asserting the copies match.)
+from epic_u2o.features import KernelFeatures  # noqa: E402
 @dataclass
 class RooflinePrediction:
     """Roofline model prediction result."""
