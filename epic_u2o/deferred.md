@@ -1,5 +1,16 @@
 # Deferred: cross-GPU generalization
-# gpu-sim-u2o.13.1 placeholder
+## 13.1 whole-program / multi-kernel prediction (GATED, design only)
+
+Entry gate (machine-checked by tests/test_gate_131.py): the transformer
+beats GBT on both head-to-head triples AND D8 multi-stream measured
+composition data exists. Gate is CLOSED (beats 0/2 per 11.4) -- building
+composition on a per-kernel model that loses to GBT compounds the gap.
+Design when open: per-kernel mus summed along the critical path + a
+learned overlap term for concurrent streams/memcpy (D8 generator
+provides the multi-stream programs; measure end-to-end, fit the
+interaction residual, not the total). Deliverable then: composition
+error vs sum-of-mus on held-out programs. No compute spent here by
+design.
 ## 13.2 cross-GPU conditioning (schema shipped, data gated)
 
 Shipped: epic_u2o/gpu_spec.py -- fixed-order 6-dim conditioning vector
