@@ -10,7 +10,16 @@ could survive this. Proof: tests/test_overfit_111.py (~4 min CPU).
 Test subsets: targets non-degenerate (asserted). New data generation was
 not needed: the audit point was 'never ran against real data', and these
 are real measured rows.
-# placeholder gpu-sim-u2o.11.2
+# 11.2 Step-2 failure modes (ran on real data)
+
+Per-row test predictions from 9.1's 39M ckpt (CPU inference, no
+retraining; predictions.json committed, 57 rows). Diagnosis: worst-10
+all latency->memory + measurable regime with tiny sigmas (0.004-0.05)
+-- a systematic subfamily failure (the pattern this step was filed to
+catch), not noise (err-vs-sigma corr -0.25). Measurable-regime MAE 2x
+launch_bound. Head calibration on real outputs: coverage_90 0.965
+(conservative -- intervals too wide), ECE 0.22. Side effect: fills 10.4's
+transformer per-row gap on family_holdout.
 # placeholder gpu-sim-u2o.11.3
 # 11.4 headline (from 10.4's verdict, not a re-run)
 

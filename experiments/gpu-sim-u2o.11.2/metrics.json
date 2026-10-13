@@ -1,0 +1,22 @@
+{
+  "bead": "gpu-sim-u2o.11.2",
+  "n_test": 57,
+  "worst10_mean_abs": 0.4889,
+  "worst10_all_latency_memory_measurable": true,
+  "mean_abs_by_regime": {
+    "launch_bound": 0.1451,
+    "measurable": 0.2964
+  },
+  "mean_abs_by_triple": {
+    "latency->latency": 0.1438,
+    "latency->memory": 0.26
+  },
+  "err_vs_sigma_corr": -0.251,
+  "coverage_90_head": 0.9649,
+  "ece_1sigma_head": 0.2196,
+  "head_var_range": [
+    0.0925,
+    0.2104
+  ],
+  "predictions_artifact": "experiments/gpu-sim-u2o.11.2/predictions.json (57 rows; fills 10.4 transformer per-row gap on family_holdout)"
+}

@@ -1,0 +1,118 @@
+{
+  "n": 57,
+  "worst10": [
+    {
+      "hash": "513bb21e",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -3.425,
+      "mu": -4.125,
+      "abs_err": 0.701,
+      "sigma_log": 0.013
+    },
+    {
+      "hash": "bbf23c32",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -4.015,
+      "mu": -4.708,
+      "abs_err": 0.693,
+      "sigma_log": 0.006
+    },
+    {
+      "hash": "fceb87b7",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -2.376,
+      "mu": -3.017,
+      "abs_err": 0.641,
+      "sigma_log": 0.004
+    },
+    {
+      "hash": "dc593f1d",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -3.996,
+      "mu": -3.423,
+      "abs_err": 0.574,
+      "sigma_log": 0.046
+    },
+    {
+      "hash": "52365ba2",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -3.399,
+      "mu": -3.948,
+      "abs_err": 0.549,
+      "sigma_log": 0.016
+    },
+    {
+      "hash": "fd30ba23",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -2.745,
+      "mu": -3.144,
+      "abs_err": 0.399,
+      "sigma_log": 0.011
+    },
+    {
+      "hash": "3a24e92b",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -4.026,
+      "mu": -3.677,
+      "abs_err": 0.349,
+      "sigma_log": 0.03
+    },
+    {
+      "hash": "d9650572",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -4.029,
+      "mu": -4.373,
+      "abs_err": 0.344,
+      "sigma_log": 0.003
+    },
+    {
+      "hash": "faa92613",
+      "op": "relu",
+      "triple": "latency->memory",
+      "regime": "measurable",
+      "y": -4.444,
+      "mu": -4.77,
+      "abs_err": 0.327,
+      "sigma_log": 0.005
+    },
+    {
+      "hash": "9b474b0e",
+      "op": "relu",
+      "triple": "latency->latency",
+      "regime": "launch_bound",
+      "y": -5.955,
+      "mu": -5.642,
+      "abs_err": 0.313,
+      "sigma_log": 0.165
+    }
+  ],
+  "mean_abs_by_regime": {
+    "launch_bound": 0.1451,
+    "measurable": 0.2964
+  },
+  "mean_abs_by_triple": {
+    "latency->latency": 0.1438,
+    "latency->memory": 0.26
+  },
+  "worst10_regimes": {
+    "launch_bound": 1,
+    "measurable": 9
+  },
+  "err_vs_sigma_corr": -0.25114574808651313
+}
