@@ -11,6 +11,14 @@ second GPU needs its spec entry + measured rows for a holdout test; only
 rtx5090 exists today, so training with the vector is gated. Design when
 open: concatenate spec vector to the numeric channel, hold one GPU out
 entirely, report cross-GPU MAE vs in-GPU MAE.
-# gpu-sim-u2o.13.3 placeholder
+## 13.3 autotuning surrogate (search shipped, validation gated)
+
+Shipped: epic_u2o/surrogate_search.py -- greedy/UCB rank over launch
+configs with regret vs measured truth (tested: perfect surrogate regret
+0, noisy bounded, UCB explores). Gate (test-pinned, 5 files scanned):
+max 1 config per kernel_hash corpus-wide -- there is NOTHING to rank
+within-kernel today. Opening needs a multi-config measurement campaign
+(same kernel x N launch configs, real GPU) + a cost model beating GBT.
+Then: rank by mu, validate top-k on GPU, report regret + top-k hit.
 # gpu-sim-u2o.13.4 placeholder
 # gpu-sim-u2o.13.5 placeholder
