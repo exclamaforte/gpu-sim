@@ -31,7 +31,16 @@ max 1 config per kernel_hash corpus-wide -- there is NOTHING to rank
 within-kernel today. Opening needs a multi-config measurement campaign
 (same kernel x N launch configs, real GPU) + a cost model beating GBT.
 Then: rank by mu, validate top-k on GPU, report regret + top-k hit.
-# gpu-sim-u2o.13.4 placeholder
+## 13.4 calibrated latencies into gpu-sim (SHIPPED, CPU/CI lane)
+
+Per phase-5 plan: per-op-class medians from 456 measured rows
+(op_latency_table.json, 8 ops x 57, ~0.004 ms -- launch-bound small sizes
+only, coverage stated) exposed via GPUSIM_OP_LATENCY_JSON, consumed by
+safe_harness smoke runs per spec op_type with the legacy 0.5 ms fallback
+for unknown ops. D_GPUSIM carried in table metadata: CI/behavioral
+timing only, never training truth. No LD_PRELOAD involved (harness links
+libfakegpu directly). Model-derived latencies (vs measured medians) wait
+for a model that beats GBT.
 ## 13.5 active learning (selector shipped, loop gated, retrospective negative)
 
 Shipped: epic_u2o/acquisition.py -- variance-topk (+ sigma floor) and

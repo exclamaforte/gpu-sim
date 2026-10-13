@@ -401,7 +401,12 @@ class SafeHarness:
             # No LD_PRELOAD: the binary links libfakegpu directly (rpath) and
             # links no cudart at all, so there is nothing to interpose over.
             env = os.environ.copy()
-            env['FAKEGPU_KERNEL_LATENCY_MS'] = '0.5'
+            # 13.4: calibrated per-op latency from the measured table
+            # (spec op_type), legacy 0.5 default when unknown -- CI timing
+            # only, never training truth (see op_latency D_GPUSIM note).
+            from epic_u2o.op_latency import latency_ms_for_spec
+            env['FAKEGPU_KERNEL_LATENCY_MS'] = \
+                str(latency_ms_for_spec(spec))
             r = subprocess.run(
                 [exe_file], capture_output=True, text=True, timeout=60, env=env,
                 start_new_session=True)

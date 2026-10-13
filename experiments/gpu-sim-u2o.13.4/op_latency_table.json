@@ -1,0 +1,48 @@
+{
+  "_meta": {
+    "bead": "gpu-sim-u2o.13.4",
+    "sources": [
+      "experiments/gpu-sim-u2o.7.1/measured.jsonl",
+      "experiments/gpu-sim-e5q/measured.jsonl"
+    ],
+    "n_rows": 456,
+    "statistic": "median of per-row median_runtime_ms",
+    "unit": "ms",
+    "coverage": "stage-1 small sizes, launch-bound; NOT a general latency model",
+    "d_gpusim": "CI/behavioral-simulation timing ONLY -- never training ground truth"
+  },
+  "ops": {
+    "add": {
+      "median_ms": 0.0038079999999999998,
+      "n": 57
+    },
+    "copy": {
+      "median_ms": 0.0036880000000000003,
+      "n": 57
+    },
+    "div": {
+      "median_ms": 0.003968,
+      "n": 57
+    },
+    "mul": {
+      "median_ms": 0.003752,
+      "n": 57
+    },
+    "relu": {
+      "median_ms": 0.004056000000000001,
+      "n": 57
+    },
+    "saxpy": {
+      "median_ms": 0.00384,
+      "n": 57
+    },
+    "scale": {
+      "median_ms": 0.00392,
+      "n": 57
+    },
+    "triad": {
+      "median_ms": 0.0036799999999999997,
+      "n": 57
+    }
+  }
+}
