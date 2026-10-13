@@ -1,0 +1,28 @@
+{
+  "bead": "gpu-sim-u2o.17.4",
+  "criterion": "median |sim-measured|/measured <= 25% per op class + same dominant class by total time",
+  "criterion_set": "PI amendment pre-run (no knee data existed)",
+  "per_class": {
+    "elementwise": {
+      "median_abs_rel_err": 0.969,
+      "n_sizes": 7,
+      "passes_25pct": false
+    },
+    "matmul": {
+      "median_abs_rel_err": 0.4091,
+      "n_sizes": 5,
+      "passes_25pct": false
+    },
+    "reduce": {
+      "median_abs_rel_err": 0.4728,
+      "n_sizes": 4,
+      "passes_25pct": false
+    }
+  },
+  "rank_order": {
+    "dominant_measured": "matmul",
+    "dominant_predicted": "matmul",
+    "preserved": true
+  },
+  "verdict": "FAIL"
+}
