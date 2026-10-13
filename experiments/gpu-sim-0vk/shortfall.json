@@ -1,0 +1,114 @@
+[
+  {
+    "kernel_hash": "52b74687f0176489",
+    "op": "random_access",
+    "n": 805306368,
+    "grid": [
+      786432,
+      1,
+      1
+    ],
+    "block": [
+      1024,
+      1,
+      1
+    ],
+    "predicted_class": "memory->memory"
+  },
+  {
+    "kernel_hash": "f75dd6548da5eaac",
+    "op": "stencil_2d_5pt",
+    "n": 16777216,
+    "grid": [
+      256,
+      256,
+      1
+    ],
+    "block": [
+      16,
+      16,
+      1
+    ],
+    "predicted_class": "memory->memory"
+  },
+  {
+    "kernel_hash": "a825093819ab614b",
+    "op": "scatter_write",
+    "n": 805306368,
+    "grid": [
+      786432,
+      1,
+      1
+    ],
+    "block": [
+      1024,
+      1,
+      1
+    ],
+    "predicted_class": "memory->memory"
+  },
+  {
+    "kernel_hash": "cbb698ef6b292067",
+    "op": "scatter_write",
+    "n": 805306368,
+    "grid": [
+      1572864,
+      1,
+      1
+    ],
+    "block": [
+      512,
+      1,
+      1
+    ],
+    "predicted_class": "latency->memory"
+  },
+  {
+    "kernel_hash": "effa0593d5a31b80",
+    "op": "gather_read",
+    "n": 805306368,
+    "grid": [
+      1572864,
+      1,
+      1
+    ],
+    "block": [
+      512,
+      1,
+      1
+    ],
+    "predicted_class": "latency->memory"
+  },
+  {
+    "kernel_hash": "f0e0ba8dd571a5c3",
+    "op": "random_access",
+    "n": 805306368,
+    "grid": [
+      1572864,
+      1,
+      1
+    ],
+    "block": [
+      512,
+      1,
+      1
+    ],
+    "predicted_class": "latency->memory"
+  },
+  {
+    "kernel_hash": "f971fefc28711209",
+    "op": "gather_read",
+    "n": 805306368,
+    "grid": [
+      786432,
+      1,
+      1
+    ],
+    "block": [
+      1024,
+      1,
+      1
+    ],
+    "predicted_class": "memory->memory"
+  }
+]

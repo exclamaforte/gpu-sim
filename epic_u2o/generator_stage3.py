@@ -74,19 +74,19 @@ __global__ void coalesced_write(const float* __restrict__ in, float* __restrict_
     'strided_read': '''
 __global__ void strided_read(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i * stride < n) out[i] = in[i * stride];
+    if (i < n / stride) out[i] = in[i * stride];
 }
 ''',
     'strided_write': '''
 __global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i * stride < n) out[i * stride] = in[i];
+    if (i < n / stride) out[i * stride] = in[i];
 }
 ''',
     'strided_read_write': '''
 __global__ void strided_read_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i * stride < n) out[i * stride] = in[i * stride];
+    if (i < n / stride) out[i * stride] = in[i * stride];
 }
 ''',
     'segmented_read': '''

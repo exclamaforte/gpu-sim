@@ -39,7 +39,8 @@ params with driver-known values, and integer literals, combined with
 can reach them. Ranges come from guard contexts: `if (i < n)` / early
 `if (i >= n) return;` narrow to [0, min(threads, n)); an `if (<EXPR> < n)`
 guard caps that exact expression at n-1, and monotone idioms (i*K / i+K
-with known K) narrow the linear id itself by inversion. A subscript inside
+with known K, and the overflow-safe i < n/K) narrow the linear id itself
+by inversion. A subscript inside
 an `if (i < n && ...)` condition past the && is covered left-to-right
 short-circuit order. Everything else is reported UNCHECKED and passed
 through, never refused: data-dependent indices (gather/scatter/random),
@@ -112,6 +113,7 @@ _GUARD_LT_RE = re.compile(r'if\s*\(\s*([A-Za-z_]\w*)\s*<\s*n\s*\)')
 _GUARD_LT_AND_RE = re.compile(r'if\s*\(\s*([A-Za-z_]\w*)\s*<\s*n\s*&&')
 _GUARD_GE_RE = re.compile(r'if\s*\(\s*([A-Za-z_]\w*)\s*>=\s*n\s*\)\s*return\s*;')
 _GUARD_EXPR_RE = re.compile(r'if\s*\(\s*(.+?)\s*<\s*n\s*\)')
+_GUARD_FRAC_RE = re.compile(r'if\s*\(\s*([A-Za-z_]\w*)\s*<\s*n\s*/\s*([A-Za-z_]\w*|\d+)\s*\)')
 _NAME_RE = re.compile(r'[A-Za-z_]\w*|\d+|[+\-*/%()]')
 
 _LID = object()  # env marker: the linear thread id, range supplied at eval
@@ -355,6 +357,19 @@ def check_subscripts_bounded(src, *, kernel_name, args, capacities, scalars,
         for gm in _GUARD_GE_RE.finditer(src):
             if gm.group(1) == lid:
                 guarded.append(((gm.end(), len(src)), None))
+        for gm in _GUARD_FRAC_RE.finditer(src):
+            if gm.group(1) != lid:
+                continue
+            try:
+                cond_end = _cond_end(src, gm.start())
+                body = _span_after(src, cond_end)
+                ktxt = gm.group(2)
+                kval = int(ktxt) if ktxt.isdigit() else scalars.get(ktxt)
+                if isinstance(kval, int) and kval >= 1:
+                    # `lid < n/K` (int division): reachable lid <= n//K - 1.
+                    inverted.append(((body[0], body[1]), n // kval - 1))
+            except _Unchecked:
+                pass
         for gm in _GUARD_EXPR_RE.finditer(src):
             try:
                 cond_end = _cond_end(src, gm.start())

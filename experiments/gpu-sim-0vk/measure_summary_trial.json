@@ -1,0 +1,397 @@
+{
+  "bead": "gpu-sim-0vk",
+  "stage": "measure",
+  "n_specs": 30,
+  "n_measured": 23,
+  "n_failed": 1,
+  "n_launch_bound_measured": 0,
+  "n_measurable_measured": 23,
+  "n_unreliable": 0,
+  "median_ai_cv": 0.0007690699515971556,
+  "per_stage": [
+    {
+      "stage": "stage1",
+      "n_measured": 1,
+      "n_failed": 0,
+      "failures": [],
+      "wall_sec": 2.020434617996216,
+      "telemetry_before": {
+        "clocks.sm": "195 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "48",
+        "power.draw": "16.23 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "telemetry_after": {
+        "clocks.sm": "2452 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "49",
+        "power.draw": "75.03 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "queue_before": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "queue_after": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "contention_disposition": {
+        "disposition": "keep",
+        "discard_reason": "none",
+        "fired_clauses": [],
+        "signal_readings": {
+          "power.draw": {
+            "before": 16.23,
+            "after": 75.03
+          },
+          "utilization.gpu": {
+            "before": 0.0,
+            "after": 0.0
+          },
+          "temperature.gpu": {
+            "before": 48.0,
+            "after": null
+          }
+        },
+        "coverage_gaps": [],
+        "queue_channel": {
+          "before": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          },
+          "after": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          }
+        },
+        "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+        "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant"
+      }
+    },
+    {
+      "stage": "stage2",
+      "n_measured": 3,
+      "n_failed": 0,
+      "failures": [],
+      "wall_sec": 5.858320951461792,
+      "telemetry_before": {
+        "clocks.sm": "2452 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "49",
+        "power.draw": "75.03 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "telemetry_after": {
+        "clocks.sm": "2917 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "51",
+        "power.draw": "108.68 W",
+        "utilization.gpu": "68 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "queue_before": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "queue_after": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "contention_disposition": {
+        "disposition": "discard",
+        "discard_reason": "contention_bias",
+        "fired_clauses": [
+          "utilization.gpu 68.0 % exceeds 50.0 % at after (either-boundary clause)"
+        ],
+        "signal_readings": {
+          "power.draw": {
+            "before": 75.03,
+            "after": 108.68
+          },
+          "utilization.gpu": {
+            "before": 0.0,
+            "after": 68.0
+          },
+          "temperature.gpu": {
+            "before": 49.0,
+            "after": null
+          }
+        },
+        "coverage_gaps": [],
+        "queue_channel": {
+          "before": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          },
+          "after": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          }
+        },
+        "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+        "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant"
+      }
+    },
+    {
+      "stage": "stage3",
+      "n_measured": 8,
+      "n_failed": 1,
+      "failures": [
+        {
+          "hash": "048efd4815c1d713",
+          "phase": "compile",
+          "error": "no prebuilt binary; run compile_all.py"
+        }
+      ],
+      "wall_sec": 32.19652724266052,
+      "telemetry_before": {
+        "clocks.sm": "2917 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "51",
+        "power.draw": "108.68 W",
+        "utilization.gpu": "68 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "telemetry_after": {
+        "clocks.sm": "2490 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "50",
+        "power.draw": "79.15 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "queue_before": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "queue_after": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "contention_disposition": {
+        "disposition": "discard",
+        "discard_reason": "contention_bias",
+        "fired_clauses": [
+          "utilization.gpu 68.0 % exceeds 50.0 % at before (either-boundary clause)",
+          "temperature.gpu 51.0 C exceeds 50.0 C at before (before-only clause)"
+        ],
+        "signal_readings": {
+          "power.draw": {
+            "before": 108.68,
+            "after": 79.15
+          },
+          "utilization.gpu": {
+            "before": 68.0,
+            "after": 0.0
+          },
+          "temperature.gpu": {
+            "before": 51.0,
+            "after": null
+          }
+        },
+        "coverage_gaps": [],
+        "queue_channel": {
+          "before": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          },
+          "after": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          }
+        },
+        "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+        "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant"
+      }
+    },
+    {
+      "stage": "stage4",
+      "n_measured": 3,
+      "n_failed": 0,
+      "failures": [],
+      "wall_sec": 2.259255886077881,
+      "telemetry_before": {
+        "clocks.sm": "2490 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "50",
+        "power.draw": "80.43 W",
+        "utilization.gpu": "0 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "telemetry_after": {
+        "clocks.sm": "2475 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "50",
+        "power.draw": "85.14 W",
+        "utilization.gpu": "1 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "queue_before": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "queue_after": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "contention_disposition": {
+        "disposition": "keep",
+        "discard_reason": "none",
+        "fired_clauses": [],
+        "signal_readings": {
+          "power.draw": {
+            "before": 80.43,
+            "after": 85.14
+          },
+          "utilization.gpu": {
+            "before": 0.0,
+            "after": 1.0
+          },
+          "temperature.gpu": {
+            "before": 50.0,
+            "after": null
+          }
+        },
+        "coverage_gaps": [],
+        "queue_channel": {
+          "before": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          },
+          "after": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          }
+        },
+        "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+        "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant"
+      }
+    },
+    {
+      "stage": "stage5",
+      "n_measured": 8,
+      "n_failed": 0,
+      "failures": [],
+      "wall_sec": 87.8570647239685,
+      "telemetry_before": {
+        "clocks.sm": "2550 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "51",
+        "power.draw": "85.14 W",
+        "utilization.gpu": "1 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "telemetry_after": {
+        "clocks.sm": "2917 MHz",
+        "clocks.max.sm": "3105 MHz",
+        "temperature.gpu": "46",
+        "power.draw": "139.90 W",
+        "utilization.gpu": "1 %",
+        "clocks_throttle_reasons.active": "0x0000000000000000",
+        "persistence_mode": "Disabled"
+      },
+      "queue_before": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "queue_after": {
+        "own_job_id": "20261011t165143-94d85959",
+        "n_other_active": 0,
+        "n_other_running_at_sample_time": 0
+      },
+      "contention_disposition": {
+        "disposition": "discard",
+        "discard_reason": "contention_bias",
+        "fired_clauses": [
+          "temperature.gpu 51.0 C exceeds 50.0 C at before (before-only clause)"
+        ],
+        "signal_readings": {
+          "power.draw": {
+            "before": 85.14,
+            "after": 139.9
+          },
+          "utilization.gpu": {
+            "before": 1.0,
+            "after": 1.0
+          },
+          "temperature.gpu": {
+            "before": 51.0,
+            "after": null
+          }
+        },
+        "coverage_gaps": [],
+        "queue_channel": {
+          "before": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          },
+          "after": {
+            "n_other_active": 0,
+            "n_other_running_at_sample_time": 0,
+            "own_job_id_present": true,
+            "own_job_id": "20261011t165143-94d85959",
+            "own_job_entry_present": true
+          }
+        },
+        "population": "one family's boundary records: telemetry_before/after plus queue_state_before/after",
+        "convention": "discard on ANY fired clause (bias, systematic); gaps are stated omissions and never count as passes; temperature reads the BEFORE (ambient) boundary only per PI ruling 2026-10-06 -- post-run heat is our own workload's exhaust, not a co-tenant"
+      }
+    }
+  ],
+  "wall_sec": 130.55940198898315,
+  "rows_path": "measured_trial.jsonl",
+  "protocol": "single_run_stages_2_5",
+  "trial": true,
+  "slice": "0:450",
+  "tag": "A2"
+}

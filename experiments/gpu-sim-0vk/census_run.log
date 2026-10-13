@@ -1,0 +1,10 @@
+new rows: 983
+new-row census: {'latency->memory': 586, 'memory->memory': 395, 'latency->latency': 2}
+forecast-vs-verdict mm agreement: 983/983
+require_census: structure OK {'latency->memory': 586, 'memory->memory': 395, 'latency->latency': 2}
+bead bar: mm_new=395 (>=250) meas_new=933 (>=750) -> PASS
+new-only diversity gate (INFORMATIVE): FAIL ['smallest-class share 0.002 (< 0.05)']
+full-corpus census: {'latency->latency': 1696, 'latency->memory': 1027, 'memory->memory': 538}
+FULL diversity gate (binding): PASS []
+NEG-CONTROL 90%-lb mix (must FAIL): FAIL ['only 2 regime classes (< 3)']
+CENSUS PASS
