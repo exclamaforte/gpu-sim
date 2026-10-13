@@ -42,6 +42,15 @@ def main() -> int:
                "protocol": "dose_14",
                "rows_path": "dose_measured.jsonl"}
     (HERE / "dose_summary.json").write_text(json.dumps(summary, indent=2))
+    (HERE / "metrics.json").write_text(json.dumps(
+        {"bead": "gpu-sim-u2o.14", "stage": "dose",
+         "n_specs": summary["n_specs"],
+         "n_measured": summary["n_measured"],
+         "n_shortfall": summary["n_shortfall"],
+         "n_launch_bound": summary["n_launch_bound"],
+         "n_measurable": summary["n_measurable"],
+         "median_ai_cv": summary["median_ai_cv"],
+         "protocol": summary["protocol"]}, indent=2))
     print(f"MERGED {len(rows)}/{len(man)} rows "
           f"({summary['n_measurable']} measurable, "
           f"{summary['n_launch_bound']} launch_bound), "

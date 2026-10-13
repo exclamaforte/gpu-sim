@@ -115,9 +115,11 @@ PROTOCOLS = {
         # kernel_driver.synthesize(), 2 invocations x 20 timed launches --
         # but stage-1 kernels under a bead-scoped id: stamping these
         # single_run_* would claim the wrong stage. rows/median_ai_cv
-        # filled at landing (dose_summary.json).
+        # filled at landing (dose_summary.json: 48 rows, median_ai_cv
+        # 0.0253 over the 48 dose rows).
         "measured": True,
         "rows": 48,
+        "median_ai_cv": 0.0253,
         "invocations": 2,
         "timed_launches_per_example": 40,
         "process_model": "one process PER INVOCATION (SafeHarness.run_kernel)",
