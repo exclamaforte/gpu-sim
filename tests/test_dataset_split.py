@@ -206,5 +206,71 @@ def real_rows() -> list:
     return [json.loads(l) for l in r.stdout.splitlines() if l.strip()]
 
 
+MERGED_CORPUS = [
+    "experiments/gpu-sim-u2o.7.1/measured.jsonl",
+    "experiments/gpu-sim-e5q/measured.jsonl",
+    "experiments/gpu-sim-u2o.11.3/measured.jsonl",
+    "experiments/gpu-sim-f6y/measured_new.jsonl",
+    "experiments/gpu-sim-0vk/measured_new.jsonl",
+]
+
+
+def merged_rows() -> list:
+    """Merged 3261-row corpus, or skip if any file is absent."""
+    rows = []
+    for f in MERGED_CORPUS:
+        p = REPO / f
+        if not p.exists():
+            raise unittest.SkipTest(f"merged corpus file missing: {f}")
+        rows += [json.loads(l) for l in p.read_text().splitlines()
+                 if l.strip()]
+    return rows
+
+
+def holdout_v1_side(digest: str, sizes: dict) -> str:
+    """Mirror of run_merged_audit.py family_holdout_v1 rule."""
+    ordered = sorted(sizes, key=lambda d: (sizes[d], d))
+    test = set(ordered[4::5])
+    val = set(ordered[3::5])
+    return "test" if digest in test else "val" if digest in val else "train"
+
+
+class TestMergedCorpusSplit(unittest.TestCase):
+    """gpu-sim-u2o.7.7 merged audit: digest-group families on 3261 rows."""
+
+    def test_every_row_assignable_no_pooling(self):
+        rows = merged_rows()
+        self.assertEqual(len(rows), 3261)
+        for r in rows:
+            structural_family(r)  # raises rather than pooling to None
+            self.assertTrue(r["token_digest"])
+
+    def test_shared_digest_ops_never_split(self):
+        """copy/coalesced_read/coalesced_write share one token stream: an
+        op-level holdout can separate them, the digest rule cannot."""
+        rows = merged_rows()
+        sizes = {}
+        for r in rows:
+            sizes[r["token_digest"]] = sizes.get(r["token_digest"], 0) + 1
+        by_digest = {}
+        for r in rows:
+            by_digest.setdefault(r["token_digest"], set()).add(
+                holdout_v1_side(r["token_digest"], sizes))
+        for d, sides in by_digest.items():
+            self.assertEqual(len(sides), 1, f"digest group split: {d}")
+        ops = {}
+        for r in rows:
+            ops.setdefault(r["token_digest"], set()).add(r["op_type"])
+        shared = [d for d, o in ops.items() if len(o) > 1]
+        self.assertTrue(shared, "expected shared-digest op groups")
+
+    def test_size_slice_rule_has_measurable_mass(self):
+        rows = merged_rows()
+        hi = [r for r in rows if r["problem_size"] >= 2 ** 26]
+        self.assertGreaterEqual(len(hi), 5)
+        self.assertGreater(
+            sum(1 for r in hi if r["measured_regime"] == "measurable"), 0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

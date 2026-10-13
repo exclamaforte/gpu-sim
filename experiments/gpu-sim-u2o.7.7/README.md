@@ -107,3 +107,26 @@ did not match the file (`d[:5]` against a file containing `d[:2]`), so it
 no-op'd with no error and the test kept failing against old code. Every
 subsequent edit asserts its anchor is present and refuses to write otherwise.
 A patch that quietly does nothing is indistinguishable from a patch that worked.
+
+## Merged-corpus audit (reopened bead, 3261 rows)
+
+`run_merged_audit.py` re-runs the audit on all five measured files
+(`metrics.json`; the 7.1-only output is kept as `metrics_71.json`).
+Two findings update the 7.1-era conclusions:
+
+1. **token_digest is not 1:1 with op_type.** 3 digests are shared across ops
+   (copy/coalesced_read/coalesced_write; bank_conflict_1way/2way;
+   block_cyclic/interleaved_read) and 3 strided ops carry 2-3 digests. The
+   split family is therefore the **digest group** (40 of them), not the op:
+   an op-level holdout separates representation-identical rows while
+   reporting zero leakage. Measured: seed 42 leaks 0.0% (luck), but 8/20
+   seeds leak 13-32% of test rows at representation level.
+2. **Size-range holdout is now possible** (41 sizes, 1285 measurable rows):
+   `problem_size >= 2^26` carves a 609-row slice (603 measurable); its 29
+   digests shared below the cutoff are by design (same template, unseen size).
+
+Recommendation for 9.5-stage-1: **family_holdout_v1** -- digest groups sorted
+by (n_rows, digest), every 5th to test, every 5th offset 1 to val:
+train/val/test 1794/674/793 rows (measurable 711/288/286), 0 shared digest
+groups across sides, all guards (empty/straddle/conservation/shared-key/
+min-5) raising. `run.sh` replays audit + tests byte-identical.

@@ -1,114 +1,560 @@
 {
   "bead": "gpu-sim-u2o.7.7",
-  "dataset": "lab/gpu-sim-u2o.7.1:experiments/gpu-sim-u2o.7.1/measured.jsonl",
-  "dataset_ts_job": "20260928t074004-b429f469",
-  "n_rows": 264,
-  "families": [
-    "add",
-    "copy",
-    "div",
-    "mul",
-    "relu",
-    "saxpy",
-    "scale",
-    "triad"
-  ],
-  "n_families": 8,
-  "problem_sizes": [
-    4096,
-    16384,
-    65536,
-    262144
-  ],
-  "measured_regimes": {
-    "launch_bound": 264
-  },
-  "pre_existing_structural_split": {
-    "assign_family_returns": null,
-    "split_sizes": {
-      "train": 264,
-      "val": 0,
-      "test": 0
+  "n_rows": 3261,
+  "n_ops": 40,
+  "n_digest_groups": 40,
+  "family_table": {
+    "add": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 27,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
     },
-    "quality_reported_total_families": 0,
-    "quality_reported_leakage_train_test": 0,
-    "verdict": "FAIL-OPEN: every row went to train, val and test are empty, and the leakage analyzer reported 0 families and 0 leakage. A check that reports 'no leakage' for a split with no test set is not a weak check, it is a green result produced by nothing having been tested."
-  },
-  "representation_finding": {
-    "n_distinct_token_digests": 8,
-    "rows_per_digest": [
-      33
-    ],
-    "digests_mapping_to_more_than_one_family": 0,
-    "digest_invariant_to_problem_size": false,
-    "digest_invariant_to_launch_config": false,
-    "what_it_means": "The tokenizer emits ONE distinct sequence per family and it does not vary with problem_size or launch_config. So 264 measured rows collapse to 8 distinct model inputs. A row-level split therefore puts token-identical examples on both sides, and a model asked to predict runtime from this representation cannot see the two things that determine runtime. This is a gpu-sim-u2o.8 finding that only became visible once the split was run on real data."
-  },
-  "leakage_audit": {
-    "n_rows": 264,
-    "n_distinct_kernel_hash": 264,
-    "n_distinct_representation_keys": 8,
-    "rows_per_representation_key": 33.0,
-    "row_level_split": {
-      "train_rows": 224,
-      "test_rows": 40,
-      "test_rows_with_a_representation_key_also_in_train": 40,
-      "test_rows_leaked_fraction": 1.0,
-      "families_shared_train_test": [
-        "add",
-        "copy",
-        "div",
-        "mul",
-        "relu",
-        "saxpy",
-        "scale",
-        "triad"
-      ],
-      "n_families_shared": 8,
-      "n_families_total": 8
+    "atomic_counter": {
+      "stage": "stage5",
+      "n": 60,
+      "measurable": 4,
+      "n_digests": 1,
+      "n_sizes": 6,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
     },
-    "note": "kernel_hash is distinct on every row, so a leakage check keyed on kernel_hash reports 0% leakage on a split that leaks every row. The model never sees kernel_hash; it sees the token sequence. Keying the check on the wrong identifier is how the pre-existing analyzer returned leakage_train_test: 0."
+    "block_cyclic": {
+      "stage": "stage3",
+      "n": 50,
+      "measurable": 36,
+      "n_digests": 1,
+      "n_sizes": 22,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "coalesced_read": {
+      "stage": "stage3",
+      "n": 106,
+      "measurable": 36,
+      "n_digests": 1,
+      "n_sizes": 25,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "coalesced_write": {
+      "stage": "stage3",
+      "n": 106,
+      "measurable": 36,
+      "n_digests": 1,
+      "n_sizes": 25,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "copy": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 28,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "diagonal_access": {
+      "stage": "stage3",
+      "n": 74,
+      "measurable": 2,
+      "n_digests": 1,
+      "n_sizes": 5,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "div": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 28,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "divergent_branch": {
+      "stage": "stage5",
+      "n": 60,
+      "measurable": 4,
+      "n_digests": 1,
+      "n_sizes": 6,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "divergent_loop": {
+      "stage": "stage5",
+      "n": 60,
+      "measurable": 4,
+      "n_digests": 1,
+      "n_sizes": 6,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "divergent_switch": {
+      "stage": "stage5",
+      "n": 60,
+      "measurable": 4,
+      "n_digests": 1,
+      "n_sizes": 6,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "gather_read": {
+      "stage": "stage3",
+      "n": 122,
+      "measurable": 45,
+      "n_digests": 1,
+      "n_sizes": 32,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "gemm_naive": {
+      "stage": "stage4",
+      "n": 29,
+      "measurable": 23,
+      "n_digests": 1,
+      "n_sizes": 9,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "gemm_tiled": {
+      "stage": "stage4",
+      "n": 67,
+      "measurable": 45,
+      "n_digests": 1,
+      "n_sizes": 9,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "gemm_wmma_fp16": {
+      "stage": "stage4",
+      "n": 24,
+      "measurable": 20,
+      "n_digests": 1,
+      "n_sizes": 7,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "histogram_global": {
+      "stage": "stage5",
+      "n": 110,
+      "measurable": 57,
+      "n_digests": 1,
+      "n_sizes": 31,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "histogram_shared": {
+      "stage": "stage5",
+      "n": 110,
+      "measurable": 54,
+      "n_digests": 1,
+      "n_sizes": 31,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "interleaved_read": {
+      "stage": "stage3",
+      "n": 50,
+      "measurable": 36,
+      "n_digests": 1,
+      "n_sizes": 22,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "mul": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 28,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "random_access": {
+      "stage": "stage3",
+      "n": 122,
+      "measurable": 46,
+      "n_digests": 1,
+      "n_sizes": 32,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "reduce_max_block": {
+      "stage": "stage2",
+      "n": 144,
+      "measurable": 51,
+      "n_digests": 1,
+      "n_sizes": 34,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "reduce_min_block": {
+      "stage": "stage2",
+      "n": 144,
+      "measurable": 52,
+      "n_digests": 1,
+      "n_sizes": 34,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "reduce_sum_block": {
+      "stage": "stage2",
+      "n": 144,
+      "measurable": 53,
+      "n_digests": 1,
+      "n_sizes": 34,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "reduce_sum_warp_shuffle": {
+      "stage": "stage2",
+      "n": 144,
+      "measurable": 61,
+      "n_digests": 1,
+      "n_sizes": 34,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "relu": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 27,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "saxpy": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 27,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "scale": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 28,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "scatter_write": {
+      "stage": "stage3",
+      "n": 122,
+      "measurable": 49,
+      "n_digests": 1,
+      "n_sizes": 32,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "segmented_read": {
+      "stage": "stage3",
+      "n": 50,
+      "measurable": 36,
+      "n_digests": 1,
+      "n_sizes": 22,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "shared_mem_bank_conflict_1way": {
+      "stage": "stage2",
+      "n": 81,
+      "measurable": 46,
+      "n_digests": 1,
+      "n_sizes": 38,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "shared_mem_bank_conflict_2way": {
+      "stage": "stage2",
+      "n": 81,
+      "measurable": 45,
+      "n_digests": 1,
+      "n_sizes": 38,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "shared_mem_bank_conflict_32way": {
+      "stage": "stage2",
+      "n": 81,
+      "measurable": 43,
+      "n_digests": 1,
+      "n_sizes": 38,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "shared_mem_reduction_tiled": {
+      "stage": "stage2",
+      "n": 144,
+      "measurable": 53,
+      "n_digests": 1,
+      "n_sizes": 34,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "shared_mem_transpose": {
+      "stage": "stage2",
+      "n": 31,
+      "measurable": 7,
+      "n_digests": 1,
+      "n_sizes": 11,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "stencil_2d_5pt": {
+      "stage": "stage2",
+      "n": 101,
+      "measurable": 8,
+      "n_digests": 1,
+      "n_sizes": 11,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "strided_read": {
+      "stage": "stage3",
+      "n": 70,
+      "measurable": 36,
+      "n_digests": 2,
+      "n_sizes": 22,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "strided_read_write": {
+      "stage": "stage3",
+      "n": 70,
+      "measurable": 36,
+      "n_digests": 2,
+      "n_sizes": 22,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "strided_write": {
+      "stage": "stage3",
+      "n": 70,
+      "measurable": 36,
+      "n_digests": 3,
+      "n_sizes": 22,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    },
+    "transpose_2d": {
+      "stage": "stage3",
+      "n": 70,
+      "measurable": 0,
+      "n_digests": 1,
+      "n_sizes": 4,
+      "regimes": [
+        "launch_bound"
+      ]
+    },
+    "triad": {
+      "stage": "stage1",
+      "n": 63,
+      "measurable": 28,
+      "n_digests": 1,
+      "n_sizes": 10,
+      "regimes": [
+        "launch_bound",
+        "measurable"
+      ]
+    }
   },
-  "recommended_split": {
-    "rule": "families sorted alphabetically; first 2 to test, next 1 to val. A stated rule rather than a random draw, so the split is reproducible and auditable instead of lucky.",
-    "test_families": [
-      "add",
+  "digest_groups_shared_across_ops": {
+    "955de3f9c4dfaf98": [
+      "coalesced_read",
+      "coalesced_write",
       "copy"
     ],
-    "val_families": [
-      "div"
+    "66d7a5a20ad3bbb3": [
+      "shared_mem_bank_conflict_1way",
+      "shared_mem_bank_conflict_2way"
     ],
-    "validation": {
-      "n_train": 165,
-      "n_val": 33,
-      "n_test": 66,
-      "train_families": [
-        "mul",
-        "relu",
-        "saxpy",
-        "scale",
-        "triad"
-      ],
-      "val_families": [
-        "div"
-      ],
-      "test_families": [
-        "add",
-        "copy"
-      ],
-      "n_representation_keys": {
-        "train": 5,
-        "val": 1,
-        "test": 2
-      },
-      "family_disjoint": true,
-      "representation_disjoint": true,
-      "rows_conserve": true
-    },
-    "passed": true
+    "e9372a9642e80184": [
+      "block_cyclic",
+      "interleaved_read"
+    ]
   },
-  "size_range_holdout": {
-    "possible": false,
-    "why": "the dataset has 4 problem sizes ([4096, 16384, 65536, 262144]) and every one of the 264 rows is measured_regime='launch_bound'. A size-range holdout needs sizes spanning more than one regime; here every size is launch-bound (7.1's finding), so holding out a size range would hold out a regime change that does not exist in the data. Recorded as impossible rather than implemented and reported as if it worked."
+  "ops_with_multiple_digests": {
+    "strided_read": [
+      "3951560fc686d78f",
+      "d4cdc46f7f9e81b7"
+    ],
+    "strided_read_write": [
+      "68347680a97d6e55",
+      "93954b2d2421a84b"
+    ],
+    "strided_write": [
+      "69543717061f5da0",
+      "7a002c043644d943",
+      "9584e28d1643e807"
+    ]
+  },
+  "pre_existing_op_split_rep_leak_by_seed_0_19": [
+    0.1575,
+    0.1832,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.3222,
+    0.3006,
+    0.3011,
+    0.1258,
+    0.0,
+    0.0,
+    0.3136,
+    0.0,
+    0.1616,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "pre_existing_op_split_seeds_leaking": 8,
+  "pre_existing_op_split_sizes_seed42": {
+    "train": 2457,
+    "val": 647,
+    "test": 157
+  },
+  "row_level_baseline": {
+    "test_n": 490,
+    "test_rows_sharing_digest_with_train": 490
+  },
+  "recommended_9_5_split": {
+    "name": "family_holdout_v1",
+    "rule": "digest groups sorted by (n_rows, digest); every 5th group to test, every 5th offset 1 to val",
+    "test_groups": [
+      "140f0caecc39e989",
+      "41461d70f733457a",
+      "5f886612ba651cb4",
+      "6ae23ce1994bb18a",
+      "955de3f9c4dfaf98",
+      "c3074d10b00afdb6",
+      "d4cdc46f7f9e81b7",
+      "d8acba76473cf755"
+    ],
+    "val_groups": [
+      "2fceff74d3b5840f",
+      "44287f78c23a01f2",
+      "509f9dec6db0d905",
+      "66d7a5a20ad3bbb3",
+      "69543717061f5da0",
+      "7a16057070b9f043",
+      "7e42bb52b076e9be",
+      "9b01e45b33fd008f"
+    ],
+    "sizes": {
+      "train": {
+        "n": 1794,
+        "measurable": 711,
+        "n_digest_groups": 24,
+        "n_ops": 23
+      },
+      "val": {
+        "n": 674,
+        "measurable": 288,
+        "n_digest_groups": 8,
+        "n_ops": 9
+      },
+      "test": {
+        "n": 793,
+        "measurable": 286,
+        "n_digest_groups": 8,
+        "n_ops": 10
+      }
+    },
+    "shared_digest_groups_across_sides": 0,
+    "size_slice_rule": "problem_size >= 2^26 (67108864)",
+    "size_slice": {
+      "n": 609,
+      "measurable": 603,
+      "digests_shared_with_below_cutoff_by_design": 29
+    }
   }
 }
