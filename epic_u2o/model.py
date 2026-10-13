@@ -456,6 +456,7 @@ def create_model(
     numeric_dim: int = 26,
     use_numeric: bool = True,
     dual_head: bool = False,
+    fusion_type: str = "concat",  # gpu-sim-u2o.9.2: expose fusion choice
 ) -> nn.Module:
     """Factory function to create model."""
     config = ModelConfig(
@@ -467,6 +468,7 @@ def create_model(
         d_ff=d_ff,
         numeric_dim=numeric_dim,
         use_numeric=use_numeric,
+        fusion_type=fusion_type,
     )
     
     if dual_head:

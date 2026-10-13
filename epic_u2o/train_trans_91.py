@@ -122,7 +122,7 @@ def report(rows, errs, biases):
 
 
 def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
-        resume=None, arm_tag="full"):
+        resume=None, arm_tag="full", fusion_type="concat"):
     random.seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
@@ -154,8 +154,8 @@ def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
     out.mkdir(parents=True, exist_ok=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = create_model(vocab_size=256, max_seq_len=SEQ, d_model=d_model,
-                         n_heads=n_heads, n_layers=n_layers, d_ff=d_ff,
-                         numeric_dim=33, use_numeric=True, dual_head=True)
+                         numeric_dim=33, use_numeric=True, dual_head=True,
+                         fusion_type=fusion_type)
     n_params = sum(p.numel() for p in model.parameters())
     model.to(device)
     tr_ds = TTDataset(parts["train"])
@@ -200,6 +200,7 @@ def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
     rep = {"n_params": n_params, "epochs": epochs, "seed": SEED,
            "d_model": d_model, "n_heads": n_heads, "n_layers": n_layers,
            "d_ff": d_ff, "lr": LR, "batch": BATCH,
+           "fusion_type": fusion_type,
            "step_time_s_median_first10": sorted(step_times[:10])[5] if
            len(step_times) >= 10 else None,
            "num_norm": {"mean": mean, "std": std,
@@ -223,12 +224,14 @@ def main() -> int:
     ap.add_argument("--mode", required=True, choices=["scratch", "full"])
     ap.add_argument("--data", default=None)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--resume", default=None)
+    ap.add_argument("--fusion-type", default="concat",
+                    choices=["concat", "cross_attention"])
     args = ap.parse_args()
     if args.mode == "scratch":
         raise SystemExit("scratch mode lives in negctrl_91.py (single-family probe)")
     return 0 if run(args.data, args.out, EPOCHS, D_MODEL, N_HEADS, N_LAYERS,
-                     D_FF, resume=args.resume) else 1
+                     D_FF, resume=args.resume,
+                     fusion_type=args.fusion_type) else 1
 
 
 if __name__ == "__main__":
