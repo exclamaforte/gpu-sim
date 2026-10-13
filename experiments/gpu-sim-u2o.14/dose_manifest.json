@@ -1,0 +1,873 @@
+{
+  "bead": "gpu-sim-u2o.14",
+  "rule": "8 ops x n{12,18} x block{64,256,1024}, full-coverage grid",
+  "n_specs": 48,
+  "n_compiled": 48,
+  "failures": [],
+  "specs": [
+    {
+      "kernel_hash": "9c9e5c9c245bf8a6",
+      "kernel_name": "scale_kernel",
+      "op_type": "scale",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void scale_kernel(const float* __restrict__ in, float* __restrict__ out, float alpha, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i] * alpha;\n}"
+    },
+    {
+      "kernel_hash": "9d991ff15dcc3f6f",
+      "kernel_name": "scale_kernel",
+      "op_type": "scale",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void scale_kernel(const float* __restrict__ in, float* __restrict__ out, float alpha, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i] * alpha;\n}"
+    },
+    {
+      "kernel_hash": "48fad45b009294ec",
+      "kernel_name": "scale_kernel",
+      "op_type": "scale",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void scale_kernel(const float* __restrict__ in, float* __restrict__ out, float alpha, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i] * alpha;\n}"
+    },
+    {
+      "kernel_hash": "bf75180876dcc4e0",
+      "kernel_name": "scale_kernel",
+      "op_type": "scale",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void scale_kernel(const float* __restrict__ in, float* __restrict__ out, float alpha, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i] * alpha;\n}"
+    },
+    {
+      "kernel_hash": "9943e055cdab9bb3",
+      "kernel_name": "scale_kernel",
+      "op_type": "scale",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void scale_kernel(const float* __restrict__ in, float* __restrict__ out, float alpha, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i] * alpha;\n}"
+    },
+    {
+      "kernel_hash": "2379a93df482b08d",
+      "kernel_name": "scale_kernel",
+      "op_type": "scale",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void scale_kernel(const float* __restrict__ in, float* __restrict__ out, float alpha, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i] * alpha;\n}"
+    },
+    {
+      "kernel_hash": "c3ff09a59c6867b7",
+      "kernel_name": "add_kernel",
+      "op_type": "add",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void add_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "a5ab61be5f3b5f6b",
+      "kernel_name": "add_kernel",
+      "op_type": "add",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void add_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "689a0f6acbccd2b4",
+      "kernel_name": "add_kernel",
+      "op_type": "add",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void add_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "ce903cbcf597075a",
+      "kernel_name": "add_kernel",
+      "op_type": "add",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void add_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "002f01a945880240",
+      "kernel_name": "add_kernel",
+      "op_type": "add",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void add_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "0bb066b7ceca39fb",
+      "kernel_name": "add_kernel",
+      "op_type": "add",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void add_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "9f1d5651ecd25cdf",
+      "kernel_name": "saxpy_kernel",
+      "op_type": "saxpy",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+    },
+    {
+      "kernel_hash": "68e33f64007a2664",
+      "kernel_name": "saxpy_kernel",
+      "op_type": "saxpy",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+    },
+    {
+      "kernel_hash": "97560f0bcc43e7a7",
+      "kernel_name": "saxpy_kernel",
+      "op_type": "saxpy",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+    },
+    {
+      "kernel_hash": "e8ad5990825b0ea3",
+      "kernel_name": "saxpy_kernel",
+      "op_type": "saxpy",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+    },
+    {
+      "kernel_hash": "9111ea7ba8f4a82d",
+      "kernel_name": "saxpy_kernel",
+      "op_type": "saxpy",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+    },
+    {
+      "kernel_hash": "0e51a66ce7f699f7",
+      "kernel_name": "saxpy_kernel",
+      "op_type": "saxpy",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void saxpy_kernel(float alpha, const float* __restrict__ x, float* __restrict__ y, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) y[i] = alpha * x[i] + y[i];\n}"
+    },
+    {
+      "kernel_hash": "64219f0495dc8b5d",
+      "kernel_name": "relu_kernel",
+      "op_type": "relu",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void relu_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = fmaxf(in[i], 0.0f);\n}"
+    },
+    {
+      "kernel_hash": "a730bfda8e87791b",
+      "kernel_name": "relu_kernel",
+      "op_type": "relu",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void relu_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = fmaxf(in[i], 0.0f);\n}"
+    },
+    {
+      "kernel_hash": "8c3abfd307c65d23",
+      "kernel_name": "relu_kernel",
+      "op_type": "relu",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void relu_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = fmaxf(in[i], 0.0f);\n}"
+    },
+    {
+      "kernel_hash": "6a6bdd4fc010f5fc",
+      "kernel_name": "relu_kernel",
+      "op_type": "relu",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void relu_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = fmaxf(in[i], 0.0f);\n}"
+    },
+    {
+      "kernel_hash": "338dbcb747826dca",
+      "kernel_name": "relu_kernel",
+      "op_type": "relu",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void relu_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = fmaxf(in[i], 0.0f);\n}"
+    },
+    {
+      "kernel_hash": "4f403e8b0faaff90",
+      "kernel_name": "relu_kernel",
+      "op_type": "relu",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void relu_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = fmaxf(in[i], 0.0f);\n}"
+    },
+    {
+      "kernel_hash": "ac4c11d43c48d87e",
+      "kernel_name": "copy_kernel",
+      "op_type": "copy",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void copy_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i];\n}"
+    },
+    {
+      "kernel_hash": "904e27435f371892",
+      "kernel_name": "copy_kernel",
+      "op_type": "copy",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void copy_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i];\n}"
+    },
+    {
+      "kernel_hash": "14e2c5459e214512",
+      "kernel_name": "copy_kernel",
+      "op_type": "copy",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void copy_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i];\n}"
+    },
+    {
+      "kernel_hash": "523d9bb2d85f0490",
+      "kernel_name": "copy_kernel",
+      "op_type": "copy",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void copy_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i];\n}"
+    },
+    {
+      "kernel_hash": "1b65b27bc619b3c8",
+      "kernel_name": "copy_kernel",
+      "op_type": "copy",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void copy_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i];\n}"
+    },
+    {
+      "kernel_hash": "542391b1ae3f554a",
+      "kernel_name": "copy_kernel",
+      "op_type": "copy",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void copy_kernel(const float* __restrict__ in, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = in[i];\n}"
+    },
+    {
+      "kernel_hash": "78a18830fd54406c",
+      "kernel_name": "triad_kernel",
+      "op_type": "triad",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void triad_kernel(float alpha, const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = alpha * a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "b94654444f5aa973",
+      "kernel_name": "triad_kernel",
+      "op_type": "triad",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void triad_kernel(float alpha, const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = alpha * a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "7115b82463906f77",
+      "kernel_name": "triad_kernel",
+      "op_type": "triad",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void triad_kernel(float alpha, const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = alpha * a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "e507e7c777215d8f",
+      "kernel_name": "triad_kernel",
+      "op_type": "triad",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void triad_kernel(float alpha, const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = alpha * a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "b63c7f10dd118f8c",
+      "kernel_name": "triad_kernel",
+      "op_type": "triad",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void triad_kernel(float alpha, const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = alpha * a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "2e00019c9f1523c6",
+      "kernel_name": "triad_kernel",
+      "op_type": "triad",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void triad_kernel(float alpha, const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = alpha * a[i] + b[i];\n}"
+    },
+    {
+      "kernel_hash": "db5761af5bd20f34",
+      "kernel_name": "mul_kernel",
+      "op_type": "mul",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void mul_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] * b[i];\n}"
+    },
+    {
+      "kernel_hash": "6d1bf0d5798a4e8f",
+      "kernel_name": "mul_kernel",
+      "op_type": "mul",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void mul_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] * b[i];\n}"
+    },
+    {
+      "kernel_hash": "613cbd1ec24e3bbb",
+      "kernel_name": "mul_kernel",
+      "op_type": "mul",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void mul_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] * b[i];\n}"
+    },
+    {
+      "kernel_hash": "ce2da0c006706e94",
+      "kernel_name": "mul_kernel",
+      "op_type": "mul",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void mul_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] * b[i];\n}"
+    },
+    {
+      "kernel_hash": "7459b5e9935ecbc7",
+      "kernel_name": "mul_kernel",
+      "op_type": "mul",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void mul_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] * b[i];\n}"
+    },
+    {
+      "kernel_hash": "d7c05f0e8ee7805d",
+      "kernel_name": "mul_kernel",
+      "op_type": "mul",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void mul_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] * b[i];\n}"
+    },
+    {
+      "kernel_hash": "79eea3ed253d7d07",
+      "kernel_name": "div_kernel",
+      "op_type": "div",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void div_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] / b[i];\n}"
+    },
+    {
+      "kernel_hash": "e47bbde2a60961f4",
+      "kernel_name": "div_kernel",
+      "op_type": "div",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void div_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] / b[i];\n}"
+    },
+    {
+      "kernel_hash": "081e024460d7d762",
+      "kernel_name": "div_kernel",
+      "op_type": "div",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 4096,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void div_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] / b[i];\n}"
+    },
+    {
+      "kernel_hash": "b413f74408a5262a",
+      "kernel_name": "div_kernel",
+      "op_type": "div",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void div_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] / b[i];\n}"
+    },
+    {
+      "kernel_hash": "740a7ad8a0222eaf",
+      "kernel_name": "div_kernel",
+      "op_type": "div",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void div_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] / b[i];\n}"
+    },
+    {
+      "kernel_hash": "906b2c01a69ff556",
+      "kernel_name": "div_kernel",
+      "op_type": "div",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "problem_size": 262144,
+      "shared_mem_bytes": 0,
+      "source": "__global__ void div_kernel(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ out, int n) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) out[i] = a[i] / b[i];\n}"
+    }
+  ]
+}

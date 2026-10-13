@@ -109,6 +109,22 @@ PROTOCOLS = {
         "authority": "SCALE ONLY. Additive and labelled; may not be pooled "
                      "with the reference rows without a recorded decision.",
     },
+    "dose_14": {
+        # gpu-sim-u2o.14: 48-cell stratified stage-1 dose. Same process shape
+        # as single_run_stages_2_5 -- one binary per kernel via
+        # kernel_driver.synthesize(), 2 invocations x 20 timed launches --
+        # but stage-1 kernels under a bead-scoped id: stamping these
+        # single_run_* would claim the wrong stage. rows/median_ai_cv
+        # filled at landing (dose_summary.json).
+        "measured": True,
+        "rows": 48,
+        "invocations": 2,
+        "timed_launches_per_example": 40,
+        "process_model": "one process PER INVOCATION (SafeHarness.run_kernel)",
+        "executable": "one binary per kernel, via kernel_driver.synthesize()",
+        "authority": "SCALE ONLY. Additive and labelled; may not be pooled "
+                     "with any reference rows without a recorded decision.",
+    },
 }
 
 
