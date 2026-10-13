@@ -1,0 +1,33 @@
+{
+  "bead": "gpu-sim-u2o.11.4",
+  "question": "does the learned model beat both baselines, by how much, on each axis",
+  "answer": "NO: transformer beats roofline, loses to GBT on both head-to-head triples",
+  "derived_from": "experiments/gpu-sim-u2o.10.4/metrics.json cells",
+  "latency->latency": {
+    "cells": {
+      "roofline_94": 0.5638,
+      "gbt_95": 0.1072,
+      "transformer_91": 0.1438
+    },
+    "roofline_over_transformer": 3.92,
+    "transformer_over_gbt": 1.34,
+    "reading": "transformer beats roofline ~4x, loses to GBT ~1.3x"
+  },
+  "latency->memory": {
+    "cells": {
+      "roofline_94": 0.6873,
+      "gbt_95": 0.0274,
+      "transformer_91": 0.26
+    },
+    "roofline_over_transformer": 2.64,
+    "transformer_over_gbt": 9.49,
+    "reading": "transformer beats roofline ~2.6x, loses to GBT ~9.5x"
+  },
+  "axes_without_headline": [
+    "ranking (Spearman/Kendall): no committed per-row predictions for any approach -- needs saved predictions (11.4 or follow-up)",
+    "calibration: same -- no committed (mean, var) rows",
+    "generalization suites: 10.3 frozen, no suite artifacts exist",
+    "memory->memory test: absent from the holdout template for learned approaches (roofline 1.1209 from its own analysis, different basis -- not a head-to-head cell)"
+  ],
+  "context_pending_review": "11.2 (branch lab/gpu-sim-u2o.11.2): transformer errors concentrate in measurable latency->memory; cited, not depended on -- files unmerged at write time"
+}
