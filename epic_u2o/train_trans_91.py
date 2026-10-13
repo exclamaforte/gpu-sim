@@ -224,6 +224,7 @@ def main() -> int:
     ap.add_argument("--mode", required=True, choices=["scratch", "full"])
     ap.add_argument("--data", default=None)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--resume", default=None)
     ap.add_argument("--fusion-type", default="concat",
                     choices=["concat", "cross_attention"])
     args = ap.parse_args()
