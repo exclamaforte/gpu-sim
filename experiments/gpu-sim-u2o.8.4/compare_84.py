@@ -19,6 +19,7 @@ def main() -> int:
     for arm in ("source", "ptx", "hybrid"):
         arms[arm] = json.loads((root / arm / "arm_metrics.json").read_text())
     cfgs = [{k: a[k] for k in ("n_params", "seed", "epochs", "batch", "lr",
+                               "d_model", "n_heads", "n_layers", "d_ff",
                                "n_train")} for a in arms.values()]
     assert all(c == cfgs[0] for c in cfgs), f"arms not matched: {cfgs}"
     suites = sorted(arms["source"]["suites"])

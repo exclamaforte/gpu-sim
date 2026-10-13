@@ -31,6 +31,7 @@ import sys
 sys.path = [p for p in sys.path if p != "/home/gabe/Documents/gpu-sim"]
 import time
 from pathlib import Path
+import signal  # noqa: E402  (preempt: below, after sys.path scrub)
 
 import numpy as np
 import torch
@@ -45,6 +46,13 @@ from epic_u2o.training_loop import TrainingConfig, TrainingLoop
 # (byte-identical, pure) -- tolerated, noted.
 from epic_u2o.generalization_suites import build_suites
 
+
+def _sigusr1_exit(signum, frame):  # preemptible: SIGUSR1 -> exit 75 requeue
+    print("PREEMPTED-SIGUSR1", flush=True)
+    raise SystemExit(75)
+
+
+signal.signal(signal.SIGUSR1, _sigusr1_exit)
 SEQ = 512
 HYB_SPLIT = 256
 SEED = 0
@@ -52,6 +60,12 @@ EPOCHS = 100  # gpu-sim-u2o.8.4: 30 epochs underfit (train MSE still falling
               # at step 1230: 12.2->3.5); 100 epochs ~= 17 min total, in slice.
 BATCH = 64
 LR = 3e-4
+# Encoder dims are CLI-overridable for the authorized capacity rerun; defaults
+# reproduce the 199K null. Matched-size is enforced by compare_84 (dims in key).
+D_MODEL = 64
+N_HEADS = 4
+N_LAYERS = 2
+D_FF = 256
 
 
 class AblationDataset(Dataset):
@@ -110,6 +124,10 @@ def main() -> int:
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--arm-index", type=int, default=0)
     ap.add_argument("--n-arms", type=int, default=1)
+    ap.add_argument("--d-model", type=int, default=D_MODEL)
+    ap.add_argument("--n-heads", type=int, default=N_HEADS)
+    ap.add_argument("--n-layers", type=int, default=N_LAYERS)
+    ap.add_argument("--d-ff", type=int, default=D_FF)
     args = ap.parse_args()
 
     random.seed(SEED)
@@ -132,9 +150,9 @@ def main() -> int:
         shutil.rmtree(stale, ignore_errors=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = create_model(vocab_size=256, max_seq_len=SEQ, d_model=64,
-                         n_heads=4, n_layers=2, d_ff=256, use_numeric=False,
-                         dual_head=False)
+    model = create_model(vocab_size=256, max_seq_len=SEQ, d_model=args.d_model,
+                         n_heads=args.n_heads, n_layers=args.n_layers,
+                         d_ff=args.d_ff, use_numeric=False, dual_head=False)
     n_params = sum(p.numel() for p in model.parameters())
     train_loader = DataLoader(AblationDataset(train_rows, args.arm),
                               batch_size=BATCH, shuffle=True, num_workers=0,
@@ -173,6 +191,8 @@ def main() -> int:
     train_mape, _ = mape_on(model, device, train_rows, args.arm)
     arm_metrics = {"arm": args.arm, "n_params": n_params, "seed": SEED,
                    "epochs": EPOCHS, "batch": BATCH, "lr": LR,
+                   "d_model": args.d_model, "n_heads": args.n_heads,
+                   "n_layers": args.n_layers, "d_ff": args.d_ff,
                    "n_train": len(train_rows),
                    "train_mape": train_mape, "suites": suite_mape,
                    "device": device}
