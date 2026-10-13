@@ -1,0 +1,37 @@
+{
+  "bead": "gpu-sim-u2o.10.4",
+  "split": "family_holdout_v1: test relu 57 / val mul 57 / train 342",
+  "metric": "log-space mean abs err (committed aggregates)",
+  "cells": {
+    "latency->latency": {
+      "roofline_94": 0.5638,
+      "gbt_95": 0.1072,
+      "transformer_91": 0.1438
+    },
+    "latency->memory": {
+      "roofline_94": 0.6873,
+      "gbt_95": 0.0274,
+      "transformer_91": 0.26
+    },
+    "memory->memory": {
+      "roofline_94": 1.1209,
+      "gbt_95": null,
+      "transformer_91": null
+    }
+  },
+  "provenance": {
+    "roofline_94": "experiments/gpu-sim-u2o.9.4/metrics.json + REPORT per-regime table (no holdout-MAE cell; figures quoted, not recomputed)",
+    "gbt_95": "experiments/gpu-sim-u2o.9.5/metrics.json .stage2_holdout.test_report.triple",
+    "transformer_91": "experiments/gpu-sim-u2o.9.1/metrics.json .test_report.triple"
+  },
+  "verdicts": {
+    "latency->latency": "GBT 0.107 < transformer 0.144 < roofline 0.564",
+    "latency->memory": "GBT 0.027 < transformer 0.260 < roofline 0.687"
+  },
+  "gaps": [
+    "ranking (Spearman/Kendall): no committed per-row predictions for any approach -- needs saved predictions (11.4 or follow-up)",
+    "calibration: same -- no committed (mean, var) rows",
+    "generalization suites: 10.3 frozen, no suite artifacts exist",
+    "memory->memory test: absent from the holdout template for learned approaches (roofline 1.1209 from its own analysis, different basis -- not a head-to-head cell)"
+  ]
+}

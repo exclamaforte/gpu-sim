@@ -40,4 +40,17 @@ single-op test split degenerates op-conditioned predictors to constants;
 the all-tie guards return 0.0 (not NaN), pinned by test. For autotuning
 (J3): order first, absolute error second -- this module is the scoreboard.
 # placeholder gpu-sim-u2o.10.3
-# placeholder gpu-sim-u2o.10.4
+
+## 10.4 model vs baselines (joined from committed artifacts, no retraining)
+
+Source of truth for the headline experiment (11.4): log-MAE on the
+family_holdout test split (relu, n=57), all cells provenance-pinned
+(experiments/gpu-sim-u2o.10.4/metrics.json + join_104.py drift guard).
+latency->latency: GBT 0.107 < transformer 0.144 < roofline 0.564.
+latency->memory: GBT 0.027 < transformer 0.260 < roofline 0.687. GBT wins
+both; the transformer beats the roofline ~4x/2.6x and loses to the
+numeric-only GBT -- the sequence channel earns nothing at this scale.
+Gaps recorded, not filled: ranking/calibration need per-row predictions
+none of the three approaches committed; generalization suites await 10.3;
+memory->memory has no learned-approach test cell (roofline 1.1209 is from
+its own analysis, different basis).
