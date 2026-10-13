@@ -14,4 +14,14 @@ are real measured rows.
 # placeholder gpu-sim-u2o.11.3
 # placeholder gpu-sim-u2o.11.4
 # placeholder gpu-sim-u2o.11.5
-# placeholder gpu-sim-u2o.11.6
+# 11.6 experiment-recording protocol (exists AND used)
+
+scripts/bd-exp.sh (adapted from cclm): start (hypothesis+parent, one-active
+guard) / finish (outcome+kept+metrics metadata+REQUIRED artifact cite,
+closes the bead) / board. Guards kept: no verdict overwrite, start-
+signature check, needs-review block. Lab metric flags: --logmae --spearman
+--kendall --coverage --ece --ex-sec --topk + --set. Proven in production:
+gpu-sim-u2o.10.4.1 (transformer ranking from 11.2 mus: rho 0.886, neutral,
+kept=true, artifact-cited) is the first bead with real metrics metadata.
+Close rule added to AGENTS.md: no gpu-sim-u2o close without a concrete
+artifact cite.

@@ -92,6 +92,8 @@ This project uses **bd (beads)** for issue tracking. Run `bd prime` for task-tra
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 - `bd ready` / `bd show <id>` / `bd update <id> --claim` / `bd close <id>`
 - Architecture: issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export.
+- Experiment runs use `scripts/bd-exp.sh start/finish` (gpu-sim-u2o.11.6): hypothesis before, outcome + kept + metrics metadata after, negative results kept.
+- Closing a gpu-sim-u2o bead requires a concrete artifact cite (dataset+rows, checkpoint, log, or explicit negative kept=false) -- a bare restatement of the title is not a close reason.
 
 ## Git authority (bd never decides this)
 
