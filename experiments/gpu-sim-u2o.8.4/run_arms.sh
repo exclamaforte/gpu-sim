@@ -8,10 +8,12 @@ DATA=$WT/experiments/gpu-sim-u2o.8.4/ablation_data.jsonl
 OUT=/home/gabe/Documents/gpu-sim/runs/gpu-sim-u2o.8.4
 cd "$WT" || exit 1
 mkdir -p "$OUT"
+IDX=0
 for ARM in source ptx hybrid; do
   echo "ARM-START $ARM $(date -u +%FT%TZ)"
-  python3 -m epic_u2o.train_ablation --arm "$ARM" --data "$DATA" --out "$OUT/$ARM" || exit 1
+  python3 -m epic_u2o.train_ablation --arm "$ARM" --arm-index "$IDX" --n-arms 3 --data "$DATA" --out "$OUT/$ARM" || exit 1
   echo "ARM-DONE $ARM $(date -u +%FT%TZ)"
+  IDX=$((IDX + 1))
 done
 python3 "$WT/experiments/gpu-sim-u2o.8.4/compare_84.py" "$OUT"
 echo "ABLATION-COMPLETE $(date -u +%FT%TZ)"

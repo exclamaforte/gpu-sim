@@ -22,6 +22,8 @@ import argparse
 import json
 import math
 import random
+import shutil
+import sys
 import sys
 # Several epic_u2o modules hardcode sys.path.insert(0, main-tree); scrub it
 # so epic_u2o.* imports resolve in the LAUNCH tree (worktree runs would
@@ -105,6 +107,8 @@ def main() -> int:
     ap.add_argument("--data", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--arm-index", type=int, default=0)
+    ap.add_argument("--n-arms", type=int, default=1)
     args = ap.parse_args()
 
     random.seed(SEED)
@@ -121,6 +125,10 @@ def main() -> int:
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    # Fresh run: drop stale partial-trial checkpoints (a killed trial may
+    # have left a best_model.pt the loop would otherwise reload as final).
+    for stale in (out / "ckpt", out / "logs"):
+        shutil.rmtree(stale, ignore_errors=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     model = create_model(vocab_size=256, max_seq_len=SEQ, d_model=64,
@@ -138,7 +146,15 @@ def main() -> int:
                          eval_batches=100, log_every_steps=max(1, steps_per_epoch // 4),
                          checkpoint_dir=str(out / "ckpt"), log_dir=str(out / "logs"),
                          use_amp=(device == "cuda"), device=device)
-    loop = TrainingLoop(model=model, config=cfg)
+    steps_this_arm = steps_per_epoch * EPOCHS
+    done_total = steps_this_arm * args.n_arms
+    done_offset = steps_this_arm * args.arm_index
+
+    def progress_hook(model, step, val_metrics):
+        print(f"GPQUEUE_PROGRESS done={done_offset + step} "
+              f"total={done_total} unit=steps", flush=True)
+
+    loop = TrainingLoop(model=model, config=cfg, eval_fn=progress_hook)
     loop.run(train_loader, val_loader, max_epochs=EPOCHS)
 
     # Best checkpoint for the verdict (val-loss selection done by the loop).
