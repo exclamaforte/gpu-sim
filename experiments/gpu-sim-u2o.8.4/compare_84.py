@@ -22,7 +22,7 @@ def main() -> int:
             "d_model", "n_heads", "n_layers", "d_ff", "n_train")
     if all(all(k not in a for k in keys[5:9]) for a in arms.values()):
         keys = keys[:5] + keys[9:]  # pre-dims metrics: still assert matched
-    cfgs = [{k: a[k] for k in keys} for a in arms.values()]
+    cfgs = [{k: a.get(k) for k in keys} for a in arms.values()]
     assert all(c == cfgs[0] for c in cfgs), f"arms not matched: {cfgs}"
     suites = sorted(arms["source"]["suites"])
     per_suite, c1_wins, c2_close = {}, 0, {"source": 0, "ptx": 0}

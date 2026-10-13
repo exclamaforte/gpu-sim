@@ -1,0 +1,85 @@
+{
+  "bead": "gpu-sim-u2o.8.4",
+  "stage": "compare",
+  "matched": {
+    "n_params": 4936449,
+    "seed": 0,
+    "epochs": 100,
+    "batch": 64,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 8,
+    "n_layers": 6,
+    "d_ff": 1024,
+    "n_train": 2494
+  },
+  "train_mape": {
+    "source": 3.2606479038654035,
+    "ptx": 3.098339876218774,
+    "hybrid": 3.082307117563924
+  },
+  "per_suite": {
+    "random": {
+      "mape": {
+        "source": 7.351151259358831,
+        "ptx": 0.888655229622893,
+        "hybrid": 2.5831043006689245
+      },
+      "n": 319,
+      "hybrid_reduction": -1.9068,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": false,
+        "ptx": true
+      }
+    },
+    "unseen_families": {
+      "mape": {
+        "source": 1.5662799860184748,
+        "ptx": 1.5226262796735102,
+        "hybrid": 1.5977099293549506
+      },
+      "n": 749,
+      "hybrid_reduction": -0.0493,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": true,
+        "ptx": true
+      }
+    },
+    "unseen_occupancy": {
+      "mape": {
+        "source": 3.2592950631091564,
+        "ptx": 2.8538580903780852,
+        "hybrid": 2.934076486472362
+      },
+      "n": 1947,
+      "hybrid_reduction": -0.0281,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": false,
+        "ptx": true
+      }
+    },
+    "unseen_problem_sizes": {
+      "mape": {
+        "source": 0.9386373539645702,
+        "ptx": 0.9437433837313599,
+        "hybrid": 0.9406235596787387
+      },
+      "n": 308,
+      "hybrid_reduction": -0.0021,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": true,
+        "ptx": true
+      }
+    }
+  },
+  "criterion1_suites_won": "0/4",
+  "criterion2_suites_close": {
+    "source": "2/4",
+    "ptx": "4/4"
+  },
+  "verdict": "single-modality-sufficient"
+}
