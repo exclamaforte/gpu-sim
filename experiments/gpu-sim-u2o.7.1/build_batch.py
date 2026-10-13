@@ -23,7 +23,6 @@ the ranges chosen from what the lab has since measured rather than guessed:
 
 CPU only, no GPU, no queue. Writes manifest.json + one .cu per spec.
 """
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -32,7 +31,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO))
 
-from epic_u2o.generator_stage1 import generate_kernels  # noqa: E402
+from epic_u2o.generator_stage1 import generate_kernels, kernel_hash_for  # noqa: E402
 from epic_u2o.kernel_names import declared_kernel_names  # noqa: E402
 
 # The sweep. Grids are DERIVED from the problem size rather than fixed,
@@ -107,9 +106,9 @@ def _row(spec, n, block, grid) -> dict:
     # launch_bound measurements); measured_regime is authoritative and the
     # only regime field shipped.
     d["deliberately_poor"] = (d["grid"] == [1, 1, 1] or d["block"] == [1, 1, 1])
-    d["kernel_hash"] = hashlib.sha256(
-        (d["source"] + json.dumps([d["grid"], d["block"],
-                                   d["problem_size"]])).encode()).hexdigest()[:16]
+    # gpu-sim-9yt: the single canonical definition (was an inline copy here).
+    d["kernel_hash"] = kernel_hash_for(d["source"], d["grid"], d["block"],
+                                         d["problem_size"])
     cu = out / f"k_{d['kernel_hash']}.cu"
     cu.write_text(d["source"])
     d["source_path"] = cu.name

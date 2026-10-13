@@ -41,7 +41,7 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO))
 
 from epic_u2o import queue_state as qs  # noqa: E402
-from epic_u2o.generator_stage1 import generate_kernels  # noqa: E402
+from epic_u2o.generator_stage1 import generate_kernels, kernel_hash_for  # noqa: E402
 
 ARCH = "sm_120"
 WARMUP = 5            # unchanged: 5 warmup launches, as 7.1's driver does
@@ -89,7 +89,6 @@ def _regenerate_sweep() -> list:
             out.append([1, 1, 1])
         return out
 
-    import hashlib
     specs = []
     for n in SIZES:
         for block in BLOCKS:
@@ -100,14 +99,14 @@ def _regenerate_sweep() -> list:
                     d = spec.to_dict()
                     d["covers"] = min(grid[0] * block[0], n)
                     d["deliberately_poor"] = grid == [1, 1, 1] or block == [1, 1, 1]
-                    # kernel_hash EXACTLY as 7.1's build_batch._row computes it.
+                    # kernel_hash EXACTLY as 7.1's build_batch._row computes it
+                    # (gpu-sim-9yt: via the single canonical kernel_hash_for).
                     # Inheriting the identifier is what lets criterion 2 compare
                     # this run's medians against 7.1's row-for-row; inventing a
                     # different hash would make the comparison vacuous.
-                    d["kernel_hash"] = hashlib.sha256(
-                        (d["source"] + json.dumps(
-                            [d["grid"], d["block"], d["problem_size"]])
-                         ).encode()).hexdigest()[:16]
+                    d["kernel_hash"] = kernel_hash_for(
+                        d["source"], d["grid"], d["block"],
+                        d["problem_size"])
                     specs.append(d)
     return specs
 

@@ -36,7 +36,7 @@ SIZES = [4096, 16384, 65536]
 
 def build_batch(workdir: Path, arch: str = 'sm_120') -> Path:
     """CPU-only: specs -> drivers -> binaries -> manifest. Returns manifest path."""
-    from epic_u2o.generator_stage1 import generate_kernels
+    from epic_u2o.generator_stage1 import generate_kernels, kernel_hash_for
     from epic_u2o.kernel_driver import synthesize
 
     workdir = Path(workdir)
@@ -54,16 +54,16 @@ def build_batch(workdir: Path, arch: str = 'sm_120') -> Path:
         jobs.append((i, d, str(cu), str(exe)))
     # Compile serially here (caller parallelizes by sharding, or run with
     # xargs; kept serial in-process for log clarity).
-    import hashlib
     for i, d, cu, exe in jobs:
         r = subprocess.run(['nvcc', '-arch=' + arch, '-O2', cu, '-o', exe],
                            capture_output=True, text=True, timeout=300)
         if r.returncode != 0:
             print(f"COMPILE_FAIL k{i:04d} {d['op_type']}: {r.stderr[:300]}", flush=True)
             continue
-        khash = hashlib.sha256(
-            (d['source'] + json.dumps([d['grid'], d['block']])).encode()
-        ).hexdigest()[:16]
+        # gpu-sim-9yt: single canonical definition (was a divergent inline
+        # recipe missing problem_size).
+        khash = kernel_hash_for(d['source'], d['grid'], d['block'],
+                                d['problem_size'])
         manifest.append({'idx': i, 'kernel_hash': khash, 'exe': exe,
                          'grid': d['grid'], 'block': d['block'],
                          'shared_mem_bytes': d.get('shared_mem_bytes', 0),

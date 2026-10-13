@@ -773,9 +773,12 @@ class SafeHarness:
                 raise RuntimeError(f"measure_spec: spec missing {key}")
         grid, block = spec['grid'], spec['block']
         shmem = int(spec.get('shared_mem_bytes', 0))
-        khash_src = spec['source'] + json.dumps([grid, block, shmem])
-        import hashlib
-        khash = hashlib.sha256(khash_src.encode()).hexdigest()[:16]
+        # gpu-sim-9yt: single canonical definition (was a divergent inline
+        # recipe keyed by shmem instead of problem_size). Only a run label:
+        # corpus rows take kernel_hash from build manifests, never here.
+        from epic_u2o.generator_stage1 import kernel_hash_for
+        khash = kernel_hash_for(spec['source'], grid, block,
+                                spec['problem_size'])
         
         program = synthesize(spec)  # raises on unsupported specs
         
@@ -885,9 +888,11 @@ int main() {
         with open(args.kernel_file) as f:
             kernel = f.read()
         harness = SafeHarness(timeout_sec=args.timeout, vram_limit_mb=args.vram_mb, gpu_id=args.gpu, log_dir=args.log_dir)
+        # gpu-sim-9yt: debug-CLI run tag, NOT a kernel_hash (single
+        # definition lives in generator_stage1.kernel_hash_for).
         import hashlib
-        khash = hashlib.sha256(kernel.encode()).hexdigest()[:16]
-        result = harness.execute(kernel, khash, [1,1,1], [256,1,1])
+        run_tag = hashlib.sha256(kernel.encode()).hexdigest()[:16]
+        result = harness.execute(kernel, run_tag, [1,1,1], [256,1,1])
         print(json.dumps(result.to_dict(), indent=2))
     else:
         print("Usage: python safe_harness.py --kernel-file <file.cu> [--timeout 30] [--vram-mb 24576] [--gpu 0] [--log-dir runs/logs]")
