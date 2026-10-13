@@ -48,7 +48,8 @@ from epic_u2o.generalization_suites import build_suites
 SEQ = 512
 HYB_SPLIT = 256
 SEED = 0
-EPOCHS = 30
+EPOCHS = 100  # gpu-sim-u2o.8.4: 30 epochs underfit (train MSE still falling
+              # at step 1230: 12.2->3.5); 100 epochs ~= 17 min total, in slice.
 BATCH = 64
 LR = 3e-4
 
