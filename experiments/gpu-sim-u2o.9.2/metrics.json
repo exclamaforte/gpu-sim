@@ -1,0 +1,80 @@
+{
+  "bead": "gpu-sim-u2o.9.2",
+  "matched": {
+    "epochs": 20,
+    "seed": 0,
+    "d_model": 512,
+    "n_heads": 8,
+    "n_layers": 12,
+    "d_ff": 2048,
+    "lr": 0.0003,
+    "batch": 32
+  },
+  "n_params": {
+    "concat": 38950658,
+    "cross_attention": 39477506
+  },
+  "per_arm_test": {
+    "concat": {
+      "latency->latency": {
+        "n": 29,
+        "mean_abs_err": 0.1417428282258929,
+        "signed_bias": 0.07071991636169826
+      },
+      "latency->memory": {
+        "n": 28,
+        "mean_abs_err": 0.25907746872152276,
+        "signed_bias": -0.1426842369388314
+      }
+    },
+    "cross_attention": {
+      "latency->latency": {
+        "n": 29,
+        "mean_abs_err": 0.17303923040828192,
+        "signed_bias": 0.13040042757322506
+      },
+      "latency->memory": {
+        "n": 28,
+        "mean_abs_err": 0.2688363315812589,
+        "signed_bias": -0.1435239045996808
+      }
+    }
+  },
+  "per_arm_val": {
+    "concat": {
+      "latency->latency": {
+        "n": 28,
+        "mean_abs_err": 0.12428721479113854,
+        "signed_bias": 0.10859183195448154
+      },
+      "latency->memory": {
+        "n": 24,
+        "mean_abs_err": 0.23340362570893114,
+        "signed_bias": -0.0684976675438672
+      },
+      "memory->memory": {
+        "n": 5,
+        "mean_abs_err": 0.2491715362534473,
+        "signed_bias": -0.2491715362534473
+      }
+    },
+    "cross_attention": {
+      "latency->latency": {
+        "n": 28,
+        "mean_abs_err": 0.13751232214177017,
+        "signed_bias": 0.12247773871892072
+      },
+      "latency->memory": {
+        "n": 24,
+        "mean_abs_err": 0.2590876835575566,
+        "signed_bias": -0.08046869420287904
+      },
+      "memory->memory": {
+        "n": 5,
+        "mean_abs_err": 0.18355206756448245,
+        "signed_bias": -0.18355206756448245
+      }
+    }
+  },
+  "verdict": "concat"
+}
