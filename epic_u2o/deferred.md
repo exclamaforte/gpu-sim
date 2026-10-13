@@ -32,4 +32,15 @@ within-kernel today. Opening needs a multi-config measurement campaign
 (same kernel x N launch configs, real GPU) + a cost model beating GBT.
 Then: rank by mu, validate top-k on GPU, report regret + top-k hit.
 # gpu-sim-u2o.13.4 placeholder
-# gpu-sim-u2o.13.5 placeholder
+## 13.5 active learning (selector shipped, loop gated, retrospective negative)
+
+Shipped: epic_u2o/acquisition.py -- variance-topk (+ sigma floor) and
+op-stratified variant with overlap metric (tested). Retrospective on
+real 11.2 head outputs (57 rows, read cross-branch): total-variance
+top-10 overlaps error-top-10 2/10 (~chance 0.175) and hits the failure
+triple 7/10 vs 28/57 base (p~0.2, not significant). NEGATIVE: with an
+over-conservative head (11.2 coverage 0.965), uncertainty sampling does
+not prioritize better than chance -- calibration must come first; the
+closed loop (measure-selected, retrain, re-rank) waits for that + a GPU
+campaign. Sidebar: raw-var ranking gave 4/10 + 10/10 triple -- the sigma
+floor reshuffles acquisition, so the total-variance contract matters.
