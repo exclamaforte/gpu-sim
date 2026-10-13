@@ -10,70 +10,50 @@ from dataclasses import dataclass
 from typing import Optional
 import math
 
+from epic_u2o import hw_5090
+
 
 @dataclass
 class RTX5090Specs:
     """RTX 5090 (Blackwell) specifications."""
-    # Compute
-    peak_fp32_tflops: float = 82.6  # TFLOP/s
-    peak_fp16_tflops: float = 165.2  # TFLOP/s (with sparsity)
-    peak_int32_tiops: float = 82.6  # TIOP/s
+    # Compute (vendor figures where marked; measured quantities live in
+    # epic_u2o.hw_5090 and are imported as defaults below)
+    peak_fp32_tflops: float = hw_5090.PEAK_FP32_TFLOPS  # VENDOR, UNSOURCED IN-TREE -- never an occupancy input
+    # (8.3 D2: the sparsity-variant literals that shadowed the two lines
+    # above are deleted -- a third copy of two constants with no reader.)
     
     # Memory
-    memory_bandwidth_gbps: float = 1792  # GB/s
-    l2_cache_mb: float = 64  # MB
-    l1_cache_kb_per_sm: float = 128  # KB per SM
+    # Memory (measured achievable quantities, not vendor theory)
+    memory_bandwidth_gbps: float = hw_5090.MEASURED_READ_BW_GBS  # 1688.592, megakern-37e.2 peak_read (theory 1792)
+    l2_cache_bytes: int = hw_5090.L2_CACHE_BYTES  # 100663296 (96 MiB), own probe + megakern-37e.2
+    l1_cache_kb_per_sm: float = hw_5090.L1_CACHE_KB_PER_SM
     
     # Architecture
-    num_sms: int = 170
-    warp_size: int = 32
-    max_threads_per_sm: int = 2048
-    max_blocks_per_sm: int = 32
-    max_warps_per_sm: int = 64
-    max_registers_per_thread: int = 255
-    shared_mem_per_sm_kb: float = 228  # KB
+    # Architecture (measured quantities imported; the rest are arch invariants)
+    num_sms: int = hw_5090.SM_COUNT  # 170, megakern-37e.2 + own multiProcessorCount
+    warp_size: int = hw_5090.WARP_SIZE  # ARCH
+    max_threads_per_sm: int = hw_5090.MAX_THREADS_PER_SM  # 1536, own probe + attr readthrough (was 2048)
+    max_blocks_per_sm: int = hw_5090.MAX_BLOCKS_PER_SM  # ARCH
+    max_warps_per_sm: int = hw_5090.MAX_WARPS_PER_SM  # ARCH
+    max_registers_per_thread: int = hw_5090.MAX_REGISTERS_PER_THREAD  # ARCH cap (not a file size)
+    regs_per_sm: int = hw_5090.REGISTERS_PER_SM  # 65536, megakern-37e.2 + own probe (the real file size)
+    shared_mem_per_sm_bytes: int = hw_5090.SHARED_MEM_PER_SM_BYTES  # 102400, own probe + megakern-37e.2 (was 228KB)
     
     # Clock
-    base_clock_mhz: float = 2235
-    boost_clock_mhz: float = 2520
+    # Clock (measured max, not the vendor boost figure)
+    base_clock_mhz: float = hw_5090.BASE_CLOCK_MHZ  # VENDOR
+    boost_clock_mhz: float = hw_5090.MAX_SM_CLOCK_MHZ  # 2422, megakern-37e.2 (was vendor 2520)
 
 
 # Global specs instance
 SPECS = RTX5090Specs()
 
 
-@dataclass
-class KernelFeatures:
-    """Static features extracted from kernel (matches features.py)."""
-    grid_x: int
-    grid_y: int
-    grid_z: int
-    block_x: int
-    block_y: int
-    block_z: int
-    shared_mem_bytes: int
-    estimated_registers_per_thread: int
-    num_args: int
-    num_pointer_args: int
-    num_scalar_args: int
-    total_arg_bytes: int
-    estimated_global_reads: int
-    estimated_global_writes: int
-    estimated_shared_reads: int
-    estimated_shared_writes: int
-    estimated_bytes_moved: int
-    estimated_flops: int
-    estimated_int_ops: int
-    has_loops: bool
-    has_conditionals: bool
-    max_loop_depth: int
-    has_syncthreads: bool
-    num_syncthreads: int
-    uses_shared_memory: bool
-    uses_constant_memory: bool
-    uses_vector_types: bool
-
-
+# gpu-sim-u2o.8.3 D2: the hand-copied KernelFeatures mirror that stood here is
+# DELETED. This module imports the struct from features.py -- one definition,
+# not two. (Verified the acceptance way: by deleting this copy and watching
+# the suite pass, not by asserting the copies match.)
+from epic_u2o.features import KernelFeatures  # noqa: E402
 @dataclass
 class RooflinePrediction:
     """Roofline model prediction result."""
@@ -96,11 +76,15 @@ def calculate_occupancy(features: KernelFeatures) -> float:
     # Register limit
     regs_per_thread = min(features.estimated_registers_per_thread, specs.max_registers_per_thread)
     regs_per_block = regs_per_thread * threads_per_block
-    max_blocks_regs = (specs.max_registers_per_thread * specs.max_threads_per_sm) // regs_per_block if regs_per_block > 0 else specs.max_blocks_per_sm
+    # Register limit. gpu-sim-g8x: the old formula multiplied the per-thread
+    # CAP (255) by a thread count to fake a file size (255*2048 = 522240 -- a
+    # number with no hardware meaning, ~7.96x the real file, so this bound
+    # never fired). The bound is register FILE / registers per block.
+    max_blocks_regs = specs.regs_per_sm // regs_per_block if regs_per_block > 0 else specs.max_blocks_per_sm
     
     # Shared memory limit
     shared_mem_per_block = features.shared_mem_bytes
-    max_blocks_smem = (specs.shared_mem_per_sm_kb * 1024) // shared_mem_per_block if shared_mem_per_block > 0 else specs.max_blocks_per_sm
+    max_blocks_smem = specs.shared_mem_per_sm_bytes // shared_mem_per_block if shared_mem_per_block > 0 else specs.max_blocks_per_sm
     
     # Thread limit
     max_blocks_threads = specs.max_threads_per_sm // threads_per_block
@@ -145,40 +129,45 @@ def calculate_compute_time(features: KernelFeatures, occupancy: float) -> float:
 
 
 def calculate_memory_time(features: KernelFeatures, occupancy: float) -> float:
-    """Calculate memory-limited time in milliseconds."""
+    """Memory-limited time: bytes over the ACHIEVED bandwidth, flat."""
+    # gpu-sim-46p, decision (a): NO occupancy derate on this arm. The
+    # ceiling (1688.592 GB/s) was achieved at a thin saturating config, so
+    # occupancy/MLP effects at saturation are already inside it; multiplying
+    # by occupancy again discounted an achieved number a second time (46.2%
+    # too slow on a full-cover scale row, the whole +0.37 bias). Occupancy
+    # bounds warp ISSUE (compute arm keeps its derate); DRAM saturation
+    # bounds on in-flight requests, which streaming kernels have plenty of
+    # at 0.68 occupancy. (b) -- theory x one efficiency -- collapses: the
+    # only measured efficiency is 1688.592/1792 at saturation, i.e. (a) with
+    # extra steps; any other factor would be occupancy-dependence renamed.
+    # Stated cost: rows too small to saturate DRAM now UNDERpredict on this
+    # arm. That is what a ceiling means; the latency floor binds them.
+    # `occupancy` is unused and kept for signature compatibility.
     specs = SPECS
-    
+    _ = occupancy
+
     total_bytes = features.estimated_bytes_moved
     if total_bytes == 0:
         return 0.0
-    
-    # Effective memory bandwidth considering occupancy
-    effective_bw = specs.memory_bandwidth_gbps * occupancy * 1e9  # Bytes/s
-    
+
+    effective_bw = specs.memory_bandwidth_gbps * 1e9  # Bytes/s, flat
+
     # Time = Bytes / bandwidth
     time_s = total_bytes / effective_bw
     return time_s * 1000  # ms
 
 
 def calculate_latency_time(features: KernelFeatures) -> float:
-    """Calculate latency-limited time (launch overhead, synchronization)."""
-    # Rough estimate: launch overhead + grid synchronization
-    grid_size = features.grid_x * features.grid_y * features.grid_z
-    
-    # Base launch overhead ~5-10 microseconds
-    launch_overhead_us = 10.0
-    
-    # Grid synchronization scales with grid size
-    sync_overhead_us = grid_size * 0.01  # ~0.01 us per block
-    
-    # Wave count effect
-    specs = SPECS
-    max_blocks_concurrent = specs.num_sms * specs.max_blocks_per_sm
-    waves = max(1, grid_size / max_blocks_concurrent)
-    wave_overhead_us = (waves - 1) * 5.0  # ~5 us per additional wave
-    
-    total_us = launch_overhead_us + sync_overhead_us + wave_overhead_us
-    return total_us / 1000.0  # ms
+    """Latency floor: the measured irreducible dispatch, nothing else."""
+    # gpu-sim-zhq: the old arm was three invented constants (launch 10.0,
+    # sync grid*0.01, wave (waves-1)*5.0). The sync term alone predicted
+    # 0.363 ms for rows measuring 0.022-0.035 ms -- the whole 772% error.
+    # No measurement sources a per-block or per-wave cost, so both terms are
+    # DELETED, not re-guessed (bead item 3). What remains is the one measured
+    # quantity: 6.6.1's irreducible dispatch floor on this path.
+    # `features` is unused and kept for API compatibility.
+    _ = features
+    return hw_5090.LAUNCH_FLOOR_US / 1000.0  # ms
 
 
 def roofline_predict(features: KernelFeatures) -> RooflinePrediction:
@@ -203,7 +192,7 @@ def roofline_predict(features: KernelFeatures) -> RooflinePrediction:
     
     # Ceilings
     compute_ceiling = SPECS.peak_fp32_tflops * occupancy
-    memory_ceiling = SPECS.memory_bandwidth_gbps * occupancy
+    memory_ceiling = SPECS.memory_bandwidth_gbps  # flat (46p): the reported ceiling is the ceiling
     
     return RooflinePrediction(
         compute_time_ms=compute_time,

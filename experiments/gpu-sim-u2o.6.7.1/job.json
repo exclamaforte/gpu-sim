@@ -1,0 +1,70 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "ts_jobs": [
+    "20260928t110229-599e5e71",
+    "20260928t110250-ee0024b1",
+    "20260928t110412-90bf81cc",
+    "20260928t110506-af61ee56",
+    "20260928t110621-4fdb49c6",
+    "20260928t110739-b79cbc34",
+    "20260928t110919-55c55ae4",
+    "20260928t111020-562bf0c3",
+    "20260928t111129-c64cef28",
+    "20260928t111224-46c287f9",
+    "20260928t111322-e0720458",
+    "20260928t112353-9a17d97c",
+    "20260928t121126-77415fac",
+    "20260928t121233-9fc66049",
+    "20260928t121521-a515d937",
+    "20260928t121926-ab46f839",
+    "20260928t124811-f6457da5",
+    "20260928t125019-cf25145a",
+    "20260928t125232-12502001",
+    "20260928t125506-50c9a9b3",
+    "20260928t135509-270446c4",
+    "20260928t135646-96e8abc2",
+    "20260928t135824-2b06467b",
+    "20260928t135959-a3c63641",
+    "20260928t140221-892ab931",
+    "20261004t184644-1ef85ac0",
+    "20261004t224248-b8464bdc"
+  ],
+  "authoritative_job": "20260928t121926-ab46f839",
+  "gpu_used": true,
+  "failed_jobs_kept": "eleven submissions are recorded, not one. Seven failed BEFORE any GPU work (a KeyError on a missing field, a template signature that had drifted from its call site, a missing brace) and one succeeded while VIOLATING the protocol -- it ran 25 launches per example instead of 40, which is what the device-time assertion caught. All are cheap because the preflight and the assertions are CPU-side, but the record matters: the protocol violation is the interesting one and it would have been invisible without criterion 2b.",
+  "note": "The queue was empty before submission and no tenant was jumped. The job carried a 10m max-runtime. Superseded job 20260928t111322-e0720458 (25.05 ex/s, nvidia-smi sampling) by 20260928t112353-9a17d97c (168.81 ex/s, in-process NVML sampling). Both are kept: the first is the evidence for the 39 ms per-example sample cost that motivated the increment, and the second is the result of acting on it. The discriminator's own first two versions reported a confident H1 from a single run per mode, which the repeats showed was noise. Both are kept in job.json because a verdict retracted after three runs is part of the record, not something to quietly overwrite.",
+  "next_increment": "queue_state() is now 94% of the remaining per-example cost (6.09 ms/call, it re-reads all ~500 job files per example). Fixing it touches a 6.6.6-owned module, so it belongs on its own bead.",
+  "discriminator_jobs": {
+    "20260928t121126-77415fac": "first attempt, 1 run per mode; reset mode CRASHED (illegal memory access) and the argmax verdict picked H1 from 1 sample",
+    "20260928t121233-9fc66049": "reset fixed; verdict STILL came from an argmax over single runs and again said H1",
+    "20260928t121521-a515d937": "AUTHORITATIVE: 2 repeats per mode (6 GPU runs); the within-mode spread (0.186) exceeds the best-minus-warm gap (0.068), so the script REFUSES to attribute. Verdict: UNDERPOWERED, no attribution."
+  },
+  "restored_artifact": {
+    "what": "the discriminator's three diagnostic modes all wrote batch_summary.json, so the COMMITTED artifact of record ended up describing the slow reset diagnostic (7.54 ex/s) instead of the authoritative warm run -- and I committed that. A diagnostic that clobbers the thing it is diagnosing is the same class of defect as a stale artifact, wearing a FRESH timestamp, which is the most expensive version of it.",
+    "fix": "--summary-out added to the worker; the discriminator now writes summary_<mode>.json and can never touch the artifact of record again",
+    "restored_by": "20260928t121926-ab46f839, warm mode, 167.30 ex/s, 264/264 distinct sample times"
+  },
+  "criterion_2_wired_into_criterion_7": {
+    "what": "the PI caught that criterion 7 asserted only that overhead falls and device time holds, so it PASSED on a run whose medians moved 15-25%. A throughput acceptance that certifies a run whose numbers changed is a speedometer, not an acceptance.",
+    "fix": "TestMediansReproduce is now inside the same suite as the speed guards, as an ordinary assertion rather than a note, so if the medians move the suite fails",
+    "status": "IT FAILS, and that failure is the bead's real status rather than a broken test. 14 tests: 13 pass, 1 fails, and the one that fails is criterion 2."
+  },
+  "decisive_arm": {
+    "20260928t124811-f6457da5": "per-invocation-process arm v1: NameError, timed_launches_per_example was computed in main() and _finish is also the other arm's exit",
+    "20260928t125019-cf25145a": "v2: 0 examples in 65.85 s -- the one-spec file had 4 fields where the driver's fscanf wants 5 (hash, kernel index, grid, block, n). It PRINTED A WELL-FORMED 0.00 ex/s LINE, so a run that measured nothing looked like a measurement of a very slow batch. Empty runs now fail loudly.",
+    "20260928t125232-12502001": "v3: 264 examples at 3.82 ex/s but NO rows artifact -- the rows write sat in main() AFTER the return _finish(), so the per-invocation arm never reached it",
+    "20260928t125506-50c9a9b3": "AUTHORITATIVE: 264 examples, 528 processes, 3.78 ex/s, 264/264 distinct sample times"
+  },
+  "crashes_kept_because_each_one_looked_like_a_result": "Three of the four jobs above failed SILENTLY in a way that printed well-formed output: a NameError after the summary was built, a run that measured nothing and printed '0.00 ex/s', and a run that measured everything and wrote no artifact. A crash that looks like a measurement is more dangerous than one that looks like a crash, so all three are recorded rather than cleaned up.",
+  "confound_test": {
+    "20260928t135509-270446c4": "bare C % specifier introduced with the DISPATCH_FAIL guard; substitution failed naming the wrong line",
+    "20260928t135646-96e8abc2": "the new guard fired and reported 11 bare specifiers -- FALSE ALARM: the guard's negative lookahead did not consume the first % of a %% pair, so every correctly-escaped literal read as bare. A false alarm in the check meant to catch false alarms, and I nearly 'fixed' correct code because of it. Corrected to mask %% first, then scan.",
+    "20260928t135824-2b06467b": "264 objects linked (per-spec, before the dedup fix); driver read the template as a Python string again",
+    "20260928t135959-a3c63641": "dedup by source working: 8 translation units from 264 specs; dispatch was keyed by SPEC index while the switch is keyed by KERNEL index, so spec 8 onward returned rc=2",
+    "20260928t140221-892ab931": "AUTHORITATIVE: 264 specs, 8 TUs, 510.80 ex/s, 214/264 reproduce at 9.4% median. The first working build of this arm returned 87.3% with 100% of rows 'faster' because the hoisting RESET N to 0 inside the kernel's main; the fix was to DELETE the declaration."
+  },
+  "october_doses": {
+    "20261004t184644-1ef85ac0": "corner 71x71 (7.1 binaries x 7.1 process model): exit 0, no retry, 264/264 measured, wall 193.1s, 202/264 reproduce",
+    "20261004t224248-b8464bdc": "ABAB harness-vs-bare: exit 0, no retry, wall 4.1s vs 10m cap, verdict EXONERATED (0.982 vs 1.086, opposite signs)"
+  }
+}

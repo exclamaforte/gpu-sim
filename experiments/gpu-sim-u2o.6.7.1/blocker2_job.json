@@ -1,0 +1,13 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "packet": "blocker2-direction: WHY the 67 cells move",
+  "cpu_runs": [],
+  "gpu_jobs": [],
+  "gpu_note": "NO GPU dose spent. The PI budgeted one confirmatory dose; analysis sufficed instead: the independent build-protocol dataset (already measured, committed) corroborates the copy locus (9/10 overlap, 8/9 same-sign). Spending a dose to re-confirm would be grinding a quantity already answered.",
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/blocker2_direction.py --metrics-out experiments/gpu-sim-u2o.6.7.1/blocker2_metrics.json",
+    "exit": 0,
+    "log": "experiments/gpu-sim-u2o.6.7.1/blocker2_output.log",
+    "result": "global direction inconclusive (39/67, p=0.22); copy-op locus 10/0 faster (p=0.002, Bonferroni 0.016), 8/9 cross-dataset same-sign"
+  }
+}

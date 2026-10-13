@@ -1,0 +1,42 @@
+{
+  "workload": "4096x4096 fp32 matmul + relu on the same tensor, 5 warmup + 20 trials",
+  "device": "NVIDIA GeForce RTX 5090",
+  "real_measured": {
+    "aten::mm": {
+      "self_cuda_time_total_us": 51223.426000000014,
+      "count": 20,
+      "self_cuda_time_avg_us": 2561.171300000001
+    },
+    "aten::relu": {
+      "self_cuda_time_total_us": 1013.2230000000059,
+      "count": 20,
+      "self_cuda_time_avg_us": 50.66115000000029
+    }
+  },
+  "naive_roofline_predicted": {
+    "aten::mm": {
+      "predicted_time_avg_us": 1311.4403957251907
+    },
+    "aten::relu": {
+      "predicted_time_avg_us": 85.59804081632653
+    }
+  },
+  "comparison": {
+    "aten::mm": {
+      "real_us": 2561.171300000001,
+      "naive_predicted_us": 1311.4403957251907,
+      "relative_error": -0.48795287698046974
+    },
+    "aten::relu": {
+      "real_us": 50.66115000000029,
+      "naive_predicted_us": 85.59804081632653,
+      "relative_error": 0.6896189844945494
+    },
+    "rank_order": {
+      "real_mm_over_relu_ratio": 50.554938054110224,
+      "naive_predicted_mm_over_relu_ratio": 15.320916030534349,
+      "rank_order_matches": true
+    }
+  },
+  "verdict": "FAIL -- naive flat roofline model is -48.8% off on matmul and +69.0% off on relu, real mm/relu ratio 50.6x vs predicted 15.3x this run (this ratio itself varies run to run -- see notes on measurement variance). Per-op-class predictions from a real trained model (epics .6/.7/.9, not yet built) are required for parity. Rank-order (mm dominates relu) does hold even with this naive model."
+}

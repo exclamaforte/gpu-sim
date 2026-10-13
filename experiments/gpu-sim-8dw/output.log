@@ -1,0 +1,26 @@
+PASS  C1.branches_can_fail  false_returns=9 true_returns=1
+PASS  C2.cannot_pass_exits_0  PASS  4. the pass carries EVIDENCE (it really launched)  launch_done grid=(8,1,1) block=(128,1,1)
+failures=0
+PASS  5. a kernel with an undefined symbol is rejected  ['Compilation failed: /tmp/tmp4yip1_hz.cu(3): error: id
+PASS  C2.failure_check_1_passes  PASS  4. the pass carries EVIDENCE (it really launched)  launch_done grid=(8,1,1) block=(128,1,1)
+failures=0
+PASS  5. a 
+PASS  C2.failure_check_2_passes  PASS  4. the pass carries EVIDENCE (it really launched)  launch_done grid=(8,1,1) block=(128,1,1)
+failures=0
+PASS  5. a 
+PASS  C2.failure_check_3_passes  PASS  4. the pass carries EVIDENCE (it really launched)  launch_done grid=(8,1,1) block=(128,1,1)
+failures=0
+PASS  5. a 
+PASS  C2.failure_check_5_passes  PASS  4. the pass carries EVIDENCE (it really launched)  launch_done grid=(8,1,1) block=(128,1,1)
+failures=0
+PASS  5. a 
+PASS  C3.cudart_none_exits_0  PASS: reported the fake's configured latency (2 ms)
+PASS: invalid launch config is rejected by the fake
+PASS: same compile without -lfakegpu fails to link (no silent fallthrough)
+PASS: all new symbols exported by libfake
+PASS  C3.route_recorded_in_code
+PASS  C4.non_blanking_documented
+PASS  C4.hostile_env_suite_exits_0  PASS  preflight.ptx_gate_names_cause  Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel bodies (driver adds it); nvcc -ptx failed: /tmp/tmp7bcjpnxy.cu
+PASS  C5.no_load_bearing_stubs  6 comment hits
+PASS  C5._run_under_fakegpu_true_coexists_with_false
+verdict=pass -> experiments/gpu-sim-8dw/metrics.json

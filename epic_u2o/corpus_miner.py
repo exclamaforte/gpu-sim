@@ -27,9 +27,6 @@ class CorpusKernel:
     line: int
     provenance: str
 
-    def kernel_hash(self) -> str:
-        return hashlib.sha256(self.source.encode()).hexdigest()[:16]
-
     def to_dict(self) -> dict:
         d = asdict(self)
         d['metadata'] = {

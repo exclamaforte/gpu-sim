@@ -1,0 +1,38 @@
+=== ts job 2026-09-27T20:27:17-07:00 family=launch ===
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'launch'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "195 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "40", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t032717-6356dbf2", "n_other_active": 3, "n_other_running_at_sample_time": 0}
+overlapping jobs: [{"id": "20260928t032717-3f5587a6", "state": "queued", "description": "u2o.6.6.2 anchor v6: gemm"}, {"id": "20260928t032717-5c2e74a0", "state": "queued", "description": "u2o.6.6.2 anchor v6: memory"}, {"id": "20260928t032717-ff2f2da2", "state": "queued", "description": "u2o.6.6.2 anchor v6: reduce"}]
+launch: 18 configs x 3 process invocations x 100 trials
+  empty n=1024 auto/256        grid=     [4, 1, 1] med=    1.664us iqr=   0.608us cv=0.726 ai_cv=0.0602
+  noop_store n=1024 auto/256   grid=     [4, 1, 1] med=    2.384us iqr=   1.312us cv=0.682 ai_cv=0.243
+  empty n=1024 auto/1024       grid=     [1, 1, 1] med=    1.488us iqr=   1.248us cv=0.790 ai_cv=0.2513
+  noop_store n=1024 auto/1024  grid=     [1, 1, 1] med=    1.680us iqr=   1.376us cv=0.682 ai_cv=0.0495
+  empty n=1024 1block/1024     grid=     [1, 1, 1] med=    1.664us iqr=   1.216us cv=0.685 ai_cv=0.1975
+  noop_store n=1024 1block/1024 grid=     [1, 1, 1] med=    2.160us iqr=   1.280us cv=0.665 ai_cv=0.1426
+  empty n=65536 auto/256       grid=   [256, 1, 1] med=    1.584us iqr=   0.928us cv=0.692 ai_cv=0.2077
+  noop_store n=65536 auto/256  grid=   [256, 1, 1] med=    1.776us iqr=   1.184us cv=0.678 ai_cv=0.2305
+  empty n=65536 auto/1024      grid=    [64, 1, 1] med=    1.888us iqr=   1.376us cv=0.595 ai_cv=0.2252
+  noop_store n=65536 auto/1024 grid=    [64, 1, 1] med=    2.208us iqr=   1.408us cv=0.603 ai_cv=0.0364
+  empty n=65536 1block/1024    grid=     [1, 1, 1] med=    1.760us iqr=   1.472us cv=0.758 ai_cv=0.1922
+  noop_store n=65536 1block/1024 grid=     [1, 1, 1] med=    1.408us iqr=   1.504us cv=0.813 ai_cv=0.2739
+  empty n=4194304 auto/256     grid= [16384, 1, 1] med=    9.152us iqr=   1.664us cv=0.081 ai_cv=0.0496
+  noop_store n=4194304 auto/256 grid= [16384, 1, 1] med=    9.696us iqr=   1.728us cv=0.173 ai_cv=0.0407
+  empty n=4194304 auto/1024    grid=  [4096, 1, 1] med=    5.056us iqr=   1.440us cv=0.261 ai_cv=0.0102
+  noop_store n=4194304 auto/1024 grid=  [4096, 1, 1] med=    5.360us iqr=   1.248us cv=0.267 ai_cv=0.0408
+  empty n=4194304 1block/1024  grid=     [1, 1, 1] med=    1.616us iqr=   0.928us cv=0.735 ai_cv=0.2807
+  noop_store n=4194304 1block/1024 grid=     [1, 1, 1] med=    1.552us iqr=   1.024us cv=0.742 ai_cv=0.2486
+telemetry after:  {"clocks.sm": "2467 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "42", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/family_launch.json
+launch: 18/18 configs measured, 15.3s
+=== family=launch exit=0 ===

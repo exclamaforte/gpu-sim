@@ -1,0 +1,35 @@
+{
+  "source": "terminal_hit_no_stat",
+  "counts_by_path": {
+    "listing_ttl_hit": 8,
+    "terminal_hit_no_stat": 854,
+    "terminal_hit_stat_ok": 0,
+    "fresh_parse": 0
+  },
+  "read_age_ms": 10.8,
+  "listing_age_ms": 10.8,
+  "n_files_seen": 862,
+  "note": "read_age_ms is the age of the OLDEST underlying read among the records served, so it is the worst case for this sample. The ACTIVE set is never cached, so active jobs are always fresh_parse and contribute 0."
+}
+total keys in record: 19
+test_no_pre_existing_key_changes_value (__main__.TestAdditiveOnly.test_no_pre_existing_key_changes_value)
+The acceptance constraint: adding the field changes nothing else. ... ok
+test_the_provenance_key_is_the_only_new_one (__main__.TestAdditiveOnly.test_the_provenance_key_is_the_only_new_one) ... ok
+test_every_prior_key_is_identical_to_master (__main__.TestByteIdenticalToThePreChangeCode.test_every_prior_key_is_identical_to_master) ... ok
+test_the_count_matches_what_the_sample_actually_served (__main__.TestCountsArePerSampleNotPerProcess.test_the_count_matches_what_the_sample_actually_served) ... ok
+test_the_process_counter_is_still_cumulative_and_separate (__main__.TestCountsArePerSampleNotPerProcess.test_the_process_counter_is_still_cumulative_and_separate)
+The process counter keeps its meaning; the two must not be conflated. ... ok
+test_two_samples_report_the_same_per_sample_count (__main__.TestCountsArePerSampleNotPerProcess.test_two_samples_report_the_same_per_sample_count) ... ok
+test_an_empty_queue_reports_none_not_a_false_zero (__main__.TestItCanSayNothingHappened.test_an_empty_queue_reports_none_not_a_false_zero) ... ok
+test_all_four_paths_are_named_distinctly (__main__.TestProvenanceIsPresentAndHonest.test_all_four_paths_are_named_distinctly)
+A listing-TTL read and a terminal-cache read are stale DIFFERENTLY. ... ok
+test_an_active_job_is_never_served_stale (__main__.TestProvenanceIsPresentAndHonest.test_an_active_job_is_never_served_stale)
+The property 6.6.6.6.1 exists to protect, now visible per sample. ... ok
+test_the_first_cold_sample_is_fresh_parse (__main__.TestProvenanceIsPresentAndHonest.test_the_first_cold_sample_is_fresh_parse) ... ok
+test_the_record_carries_its_own_provenance (__main__.TestProvenanceIsPresentAndHonest.test_the_record_carries_its_own_provenance) ... ok
+test_read_age_grows_between_samples_from_cache (__main__.TestReadAgeIsTheWorstCase.test_read_age_grows_between_samples_from_cache) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.177s
+
+OK

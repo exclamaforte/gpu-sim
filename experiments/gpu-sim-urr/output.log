@@ -1,0 +1,30 @@
+=== identity trace (FAKEGPU_DEBUG_REGISTRY=1) ===
+[fg-register] deviceFun=0x5e5285def061 hostFun=0x5e5285dee853 name=_Z17urr_second_kernelPf
+[fg-register] deviceFun=0x5e5285def079 hostFun=0x5e5285dee670 name=_Z16urr_probe_kernelPf
+[fg-launch-dyn] kernel=0x5e5285dee670 name=_Z16urr_probe_kernelPf
+[fg-launch-dyn] kernel=0x5e5285dee853 name=_Z17urr_second_kernelPf
+=== identity stdout ===
+identity probe launches returned success
+=== attach gate ===
+  ok   launch by deviceFun succeeds
+  ok   resolver consumed exactly one launch
+  ok   deviceFun key resolves to kernel_alpha
+  ok   grid/block/shmem pass through (8,256,0)
+  ok   launch by hostFun succeeds
+  ok   hostFun key resolves to kernel_alpha
+  ok   second kernel launches
+  ok   same (8,256,0), different name reaches resolver
+  ok   unregistered func still launches
+  ok   unregistered func takes scalar default
+  ok   repeat launch succeeds
+  ok   repeat launch consumed once
+  ok   repeat launch delivers identical inputs (no feedback)
+  ok   cost_resolver inside fg_config
+  ok   shim cudaDeviceProp still 696 (resolver NOT there)
+  info fg_config sizeof = 80
+
+resolver attach gate PASSED
+=== bench scalar ===
+mode=scalar n=50 total_ns=1006913732 per_launch_ns=20138274.6
+=== bench resolver0 ===
+mode=resolver0 n=2000 total_ns=205770 per_launch_ns=102.9

@@ -1,0 +1,86 @@
+{
+  "bead": "gpu-sim-u2o.6.1.2",
+  "what": "a real kernel still completes under the per-run task cap, at the same speed",
+  "preflight_bypassed": true,
+  "mechanisms_available": [
+    {
+      "name": "systemd-run",
+      "available": true,
+      "detail": "cgroup2=cgroup2fs pids=True systemd-run=/usr/bin/systemd-run"
+    },
+    {
+      "name": "cgroup",
+      "available": true,
+      "detail": "own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20260928t043102-a79af3df.scope writable=True"
+    },
+    {
+      "name": "rlimit_nproc",
+      "available": true,
+      "detail": "live tasks=1894, fallback would be live+64 (never a constant)"
+    },
+    {
+      "name": "none",
+      "available": true,
+      "detail": "no task containment"
+    }
+  ],
+  "chosen_mechanism": "systemd-run",
+  "tasks_max": 256,
+  "observed_max_threads": {
+    "tasks_max": 256,
+    "mechanism": "cgroup",
+    "mechanism_detail": "own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20260928t043102-a79af3df.scope writable=True",
+    "systemd_run_not_used_because": "systemd-run --wait detaches the child from our process group, which silently disables the timeout kill; see task_limits.py",
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/fgpu-1790579084-4110496",
+    "cgroup_cleaned": true
+  },
+  "enforcement": "observed",
+  "enforcement_evidence": "tests/test_task_limits.py: a child fails to fork with EAGAIN at 63 children under TasksMax=64, and forks 200 children when uncapped",
+  "reference_median_ms": 0.002848,
+  "reference_source": "gpu-sim-u2o.6.1.1, ts 20260927t145454-9c2420b3 (saxpy n=8192 grid 32x1x1 block 256)",
+  "tolerance": 0.1,
+  "capped_median_ms": 0.0026880000000000003,
+  "within_tolerance": true,
+  "results": {
+    "capped": {
+      "runs": 3,
+      "median_ms": 0.0026880000000000003,
+      "medians_ms": [
+        0.00264,
+        0.0028,
+        0.0026880000000000003
+      ],
+      "cv_pct": 5.952380952380952,
+      "task_limits": {
+        "tasks_max": 256,
+        "mechanism": "cgroup",
+        "mechanism_detail": "own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/gpqueue-20260928t043102-a79af3df.scope writable=True",
+        "systemd_run_not_used_because": "systemd-run --wait detaches the child from our process group, which silently disables the timeout kill; see task_limits.py",
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/fgpu-1790579084-4110496",
+        "cgroup_cleaned": true
+      }
+    },
+    "uncapped": {
+      "runs": 3,
+      "median_ms": 0.0027359999999999997,
+      "medians_ms": [
+        0.00248,
+        0.0027359999999999997,
+        0.0028
+      ],
+      "cv_pct": 11.69590643274854,
+      "task_limits": {
+        "tasks_max": 0,
+        "mechanism": "none"
+      }
+    }
+  },
+  "telemetry_before": {
+    "rc": 0,
+    "csv": "NVIDIA GeForce RTX 5090, 2452 MHz, 43, 0x0000000000000000"
+  },
+  "telemetry_after": {
+    "rc": 0,
+    "csv": "NVIDIA GeForce RTX 5090, 2452 MHz, 43, 0x0000000000000000"
+  }
+}

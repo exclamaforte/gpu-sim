@@ -1,0 +1,33 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "packet": "cold-buffer fix: default cold + copy verify (dose 1 of 2)",
+  "fix": "batch_measure_worker.py --mode default warm->cold (copy verdict ae75a16); position-covariate OUT",
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t164921-fca26124",
+      "state": "finished",
+      "purpose": "fix_verify.sh: DEFAULT-mode (cold) copy x33; asserts mode==cold + device-time-unchanged in-job",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t164921-fca26124.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-coldfix-20261006/",
+      "exit": 0,
+      "result": "33/33 rows, 100.76 ex/s, mode=cold asserted in-job, device 150.0us unchanged"
+    },
+    {
+      "job_id": "20261006t165308-737f7f5c",
+      "state": "finished",
+      "purpose": "full_confirm.sh DOSE 2 of 2: DEFAULT-mode (cold) full 264; asserts mode==cold + device-unchanged in-job",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t165308-737f7f5c.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-coldfull-20261006/",
+      "exit": 0,
+      "result": "264/264 rows, 464.71 ex/s, mode=cold asserted in-job, device 155.9us unchanged, sampling 264/264"
+    }
+  ],
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/fix_verify.py --metrics-out experiments/gpu-sim-u2o.6.7.1/fix_metrics.json",
+    "status": "complete, awaiting review",
+    "gates": "copy reproduce >= 30/33; device unchanged; sampling 33/33; throughput stated vs ceiling",
+    "diagnosis": "not a fix regression: 3 movers stable across both cold runs (same side), 3 threshold-edge flips; same-condition repeatability 30/33. The 30/33 bar was a single realization with no repeatability margin.",
+    "dose_2": "verdict=pass: 212/261 (210 strict + 2 edge) >= 200/261; battery all green; suite 15 tests OK (1 expectedFailure by design)"
+  },
+  "dose_2_plan": "HELD: spec conditions dose 2 on verdict=pass; asking PI whether to proceed with a repeatability-aware bar"
+}

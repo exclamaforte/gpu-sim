@@ -1,0 +1,681 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "family": "launch",
+  "queue_state_before": {
+    "recorded_at": "2026-09-28T03:27:17.988985+00:00",
+    "own_job_id": "20260928t032717-6356dbf2",
+    "own_description_substr": "u2o.6.6.2 anchor: launch",
+    "own_job_id_resolution": "running",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 290,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "queued": 3,
+      "running": 1
+    },
+    "n_active_including_self": 4,
+    "n_other_active": 3,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032717-3f5587a6",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v6: gemm",
+        "created_at": "2026-09-28T03:27:17+00:00"
+      },
+      {
+        "id": "20260928t032717-5c2e74a0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v6: memory",
+        "created_at": "2026-09-28T03:27:17+00:00"
+      },
+      {
+        "id": "20260928t032717-ff2f2da2",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v6: reduce",
+        "created_at": "2026-09-28T03:27:17+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-09-28T03:27:33.296237+00:00",
+    "own_job_id": "20260928t032717-6356dbf2",
+    "own_description_substr": "u2o.6.6.2 anchor: launch",
+    "own_job_id_resolution": "running",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 290,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "queued": 3,
+      "running": 1
+    },
+    "n_active_including_self": 4,
+    "n_other_active": 3,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032717-3f5587a6",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v6: gemm",
+        "created_at": "2026-09-28T03:27:17+00:00"
+      },
+      {
+        "id": "20260928t032717-5c2e74a0",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v6: memory",
+        "created_at": "2026-09-28T03:27:17+00:00"
+      },
+      {
+        "id": "20260928t032717-ff2f2da2",
+        "state": "queued",
+        "description": "u2o.6.6.2 anchor v6: reduce",
+        "created_at": "2026-09-28T03:27:17+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "preflight_bypassed": true,
+  "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
+  "telemetry_before": {
+    "label": "before",
+    "at": 1790566037.9629276,
+    "rc": 0,
+    "csv": "195 MHz, 3105 MHz, 40, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "195 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "40",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "telemetry_after": {
+    "label": "after",
+    "at": 1790566053.2772164,
+    "rc": 0,
+    "csv": "2467 MHz, 3105 MHz, 42, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2467 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "42",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "throttling_observed": false,
+  "design": {
+    "trials": 100,
+    "invocations": 3,
+    "note": "invocations are independent PROCESSES"
+  },
+  "results": [
+    {
+      "label": "empty n=1024 auto/256",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0016640000000000001,
+      "iqr_ms": 0.0006079999999999998,
+      "mean_ms": 0.0020533333333333332,
+      "std_ms": 0.0014898742827940462,
+      "cv": 0.7255881247373602,
+      "medians_across_invocations_ms": [
+        0.0016640000000000001,
+        0.001504,
+        0.00168
+      ],
+      "across_invocation_cv": 0.060225371587111144,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=1024 auto/256",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002384,
+      "iqr_ms": 0.001312,
+      "mean_ms": 0.0023317333333333335,
+      "std_ms": 0.001590168756279134,
+      "cv": 0.6819685311123916,
+      "medians_across_invocations_ms": [
+        0.002432,
+        0.002384,
+        0.00152
+      ],
+      "across_invocation_cv": 0.24301537776280974,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=1024 auto/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0014880000000000002,
+      "iqr_ms": 0.0012480000000000002,
+      "mean_ms": 0.0022543999999999997,
+      "std_ms": 0.0017811723733902943,
+      "cv": 0.7900871067203222,
+      "medians_across_invocations_ms": [
+        0.0014399999999999999,
+        0.0014880000000000002,
+        0.002208
+      ],
+      "across_invocation_cv": 0.25129588149063087,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=1024 auto/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00168,
+      "iqr_ms": 0.0013760000000000003,
+      "mean_ms": 0.0022389333333333334,
+      "std_ms": 0.0015264103660712336,
+      "cv": 0.6817578457321494,
+      "medians_across_invocations_ms": [
+        0.0016480000000000002,
+        0.0018080000000000001,
+        0.00168
+      ],
+      "across_invocation_cv": 0.049453295533917585,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=1024 1block/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0016640000000000001,
+      "iqr_ms": 0.001216,
+      "mean_ms": 0.0021824,
+      "std_ms": 0.0014938719932455359,
+      "cv": 0.6845087945589882,
+      "medians_across_invocations_ms": [
+        0.001408,
+        0.0020800000000000003,
+        0.0016640000000000001
+      ],
+      "across_invocation_cv": 0.1974920881439087,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=1024 1block/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 1024,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0021599999999999996,
+      "iqr_ms": 0.0012799999999999999,
+      "mean_ms": 0.0022986666666666667,
+      "std_ms": 0.0015293660885374572,
+      "cv": 0.6653274747117708,
+      "medians_across_invocations_ms": [
+        0.0021920000000000004,
+        0.0021599999999999996,
+        0.00168
+      ],
+      "across_invocation_cv": 0.1426454075304907,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=65536 auto/256",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001584,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.0020549333333333333,
+      "std_ms": 0.0014221427360085628,
+      "cv": 0.6920627121765003,
+      "medians_across_invocations_ms": [
+        0.001472,
+        0.001584,
+        0.002144
+      ],
+      "across_invocation_cv": 0.20770940100600216,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=65536 auto/256",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001776,
+      "iqr_ms": 0.0011840000000000002,
+      "mean_ms": 0.0023002666666666668,
+      "std_ms": 0.0015596494811190118,
+      "cv": 0.6780298578943073,
+      "medians_across_invocations_ms": [
+        0.0015999999999999999,
+        0.001776,
+        0.002448
+      ],
+      "across_invocation_cv": 0.23052380984393608,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=65536 auto/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001888,
+      "iqr_ms": 0.001376,
+      "mean_ms": 0.002338133333333333,
+      "std_ms": 0.0013904841671910685,
+      "cv": 0.5946984063602312,
+      "medians_across_invocations_ms": [
+        0.001888,
+        0.00256,
+        0.00168
+      ],
+      "across_invocation_cv": 0.22516460221775866,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=65536 auto/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.002208,
+      "iqr_ms": 0.0014080000000000002,
+      "mean_ms": 0.0023279999999999998,
+      "std_ms": 0.0014044778751176237,
+      "cv": 0.6032980563220034,
+      "medians_across_invocations_ms": [
+        0.00208,
+        0.002208,
+        0.002224
+      ],
+      "across_invocation_cv": 0.03636031593844901,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=65536 1block/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.0017599999999999998,
+      "iqr_ms": 0.001472,
+      "mean_ms": 0.0023333333333333335,
+      "std_ms": 0.0017686448193956698,
+      "cv": 0.7579906368838584,
+      "medians_across_invocations_ms": [
+        0.001472,
+        0.00216,
+        0.0017599999999999998
+      ],
+      "across_invocation_cv": 0.19223815236493197,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=65536 1block/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 65536,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001408,
+      "iqr_ms": 0.001504,
+      "mean_ms": 0.0024362666666666666,
+      "std_ms": 0.0019811414435140767,
+      "cv": 0.8131874357681467,
+      "medians_across_invocations_ms": [
+        0.002176,
+        0.001408,
+        0.001376
+      ],
+      "across_invocation_cv": 0.2739467580072535,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=4194304 auto/256",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.009152,
+      "iqr_ms": 0.0016639999999999988,
+      "mean_ms": 0.009779733333333334,
+      "std_ms": 0.00078739557535612,
+      "cv": 0.08051299033608142,
+      "medians_across_invocations_ms": [
+        0.009904,
+        0.009056000000000002,
+        0.009152
+      ],
+      "across_invocation_cv": 0.049555457145225267,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=4194304 auto/256",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        16384,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.009696,
+      "iqr_ms": 0.0017280000000000004,
+      "mean_ms": 0.010153066666666665,
+      "std_ms": 0.0017556120750872302,
+      "cv": 0.1729144634547753,
+      "medians_across_invocations_ms": [
+        0.009696,
+        0.010207999999999998,
+        0.009424
+      ],
+      "across_invocation_cv": 0.040719657298280525,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=4194304 auto/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.005056,
+      "iqr_ms": 0.0014399999999999994,
+      "mean_ms": 0.005635733333333334,
+      "std_ms": 0.0014730500798863246,
+      "cv": 0.26137682405477985,
+      "medians_across_invocations_ms": [
+        0.0049759999999999995,
+        0.005072,
+        0.005056
+      ],
+      "across_invocation_cv": 0.010215731738340048,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=4194304 auto/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.00536,
+      "iqr_ms": 0.001248,
+      "mean_ms": 0.005747733333333334,
+      "std_ms": 0.0015342373125020283,
+      "cv": 0.2669291046619006,
+      "medians_across_invocations_ms": [
+        0.005424,
+        0.00536,
+        0.005024
+      ],
+      "across_invocation_cv": 0.0407757835596836,
+      "throttle_active": false
+    },
+    {
+      "label": "empty n=4194304 1block/1024",
+      "kernel": "k_empty",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001616,
+      "iqr_ms": 0.000928,
+      "mean_ms": 0.0021637333333333333,
+      "std_ms": 0.0015906339197523315,
+      "cv": 0.7351339905190095,
+      "medians_across_invocations_ms": [
+        0.001616,
+        0.001584,
+        0.002528
+      ],
+      "across_invocation_cv": 0.2807366795363628,
+      "throttle_active": false
+    },
+    {
+      "label": "noop_store n=4194304 1block/1024",
+      "kernel": "k_noop_store",
+      "op_type": "launch",
+      "n_problem_size": 4194304,
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.001552,
+      "iqr_ms": 0.0010239999999999997,
+      "mean_ms": 0.0022154666666666665,
+      "std_ms": 0.0016445841622327107,
+      "cv": 0.7423195243587706,
+      "medians_across_invocations_ms": [
+        0.001552,
+        0.00232,
+        0.001536
+      ],
+      "across_invocation_cv": 0.24857353622834283,
+      "throttle_active": false
+    }
+  ],
+  "wall_sec": 15.307268619537354
+}

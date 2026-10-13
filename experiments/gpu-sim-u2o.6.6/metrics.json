@@ -1,0 +1,143 @@
+{
+  "bead": "gpu-sim-u2o.6.6",
+  "construction_rule": "v1: median = median of per-invocation medians (row median, unadjusted); sigma_log = sqrt(ln(1 + ai_cv^2)) from the cell's own sample ai_cv (statistics.stdev ddof=1 over n=2 invocation medians); regimes = measured_regime + tree binary + 9.4 triple; 9.4 residuals attached as labelled model bias, never subtracted.",
+  "contention": {
+    "n_contended": 0,
+    "n_excluded": 0,
+    "verdict": "456/456 cells queue_state (0,0); the rule runs, nothing adjusted."
+  },
+  "conventions": "population 456 (264 ref + 192 additive); byte convention 8.3 arity (subscripts + *p + atomics + float scalars, x4B, x covers; loop-resident once); estimator median-of-invocation-medians; 8 ops x 1 kernel each; deliberately_poor carried on 8 rows, not excluded (no rule authored; 9.1's sampling decision).",
+  "estimator": "median of per-invocation medians == committed row median on all 456 rows; n_invocation attached per row; never a single-run figure.",
+  "failures": [],
+  "model_bias_beside_noise": {
+    "candidates_pointer": "9.4 REPORT.md Residual A: cache-resident traffic (primary); Residual B: n-local floor or above-floor per-launch cost.",
+    "not_subtracted": "target median == committed row median on all 456 rows (gated); subtracting a model's error into the supervised signal would train 9.1 to reproduce the roofline's mistakes.",
+    "values": {
+      "latency->latency": -0.5638,
+      "latency->memory": 0.378,
+      "memory->memory": 1.1164
+    }
+  },
+  "n_targets": 456,
+  "noise_by_measured_regime": {
+    "launch_bound": {
+      "max_ai_cv": 0.48746810865547047,
+      "median_ai_cv": 0.08215348495113424,
+      "median_sigma_log": 0.08201537194599787,
+      "min_ai_cv": 0.0,
+      "n": 283
+    },
+    "measurable": {
+      "max_ai_cv": 0.1119217151619719,
+      "median_ai_cv": 0.010315689629417165,
+      "median_sigma_log": 0.010315415213197291,
+      "min_ai_cv": 0.00018593394193697996,
+      "n": 173
+    }
+  },
+  "noise_by_roofline_triple": {
+    "latency->latency": {
+      "max_ai_cv": 0.4437257232399987,
+      "median_ai_cv": 0.09494269576009148,
+      "median_sigma_log": 0.09472977631944628,
+      "min_ai_cv": 0.0,
+      "n": 220
+    },
+    "latency->memory": {
+      "max_ai_cv": 0.48746810865547047,
+      "median_ai_cv": 0.01593573468112763,
+      "median_sigma_log": 0.01593472286717687,
+      "min_ai_cv": 0.0003300381709155853,
+      "n": 204
+    },
+    "memory->memory": {
+      "max_ai_cv": 0.0915079363888473,
+      "median_ai_cv": 0.005939590196382161,
+      "median_sigma_log": 0.005939537644277326,
+      "min_ai_cv": 0.00018593394193697996,
+      "n": 32
+    }
+  },
+  "noise_floor_crosscheck_661": {
+    "661_characterisation": "across-invocation CV ~7.4% sub-10us, ~0.13% over-10us (anchor cells, 3 inv, 200 trials)",
+    "corpus_over_10us": {
+      "median_ai_cv": 0.010315689629417165,
+      "n": 173
+    },
+    "corpus_sub_10us": {
+      "median_ai_cv": 0.08215348495113424,
+      "n": 283
+    },
+    "note": "same direction, noisier estimate: corpus runs 2 inv x 20 trials vs 6.6.1's 3 x 200. Populations differ; the numbers are beside each other, not pooled."
+  },
+  "protocols_used": [
+    {
+      "id": "single_run_7_1",
+      "pooling_decision": "combined with single_run_e5q rows for per-regime NOISE DESCRIPTION only; no cell's sigma borrows another cell's noise, within or across protocols.",
+      "registry": "registered",
+      "rows": 264,
+      "ts_job": "20260928t074004-b429f469"
+    },
+    {
+      "id": "single_run_e5q",
+      "pooling_decision": "same harness constants (2 inv x 20 trials, identical ai_cv construction); see above.",
+      "registry": "PENDING registration (would trip 6.7.1's pinned rows==264 tests; separate bead's decision)",
+      "rows": 192,
+      "ts_job": "20261010t224024-465ad815"
+    }
+  ],
+  "regime_disagreement": {
+    "flagged_hashes": [
+      "002f01a945880240",
+      "00fe852dfe86ef41",
+      "0bb066b7ceca39fb",
+      "0e51a66ce7f699f7",
+      "18aa8e6da56e3dc0",
+      "1f3b2866fff6d3cd",
+      "2379a93df482b08d",
+      "2e00019c9f1523c6",
+      "2e0971ed19d65e78",
+      "40aace387a6bac81",
+      "42803a0ccfc25a6a",
+      "47e8b4ef528799c7",
+      "4adbc025d907cc91",
+      "740a7ad8a0222eaf",
+      "7459b5e9935ecbc7",
+      "75eedac67824b8a5",
+      "7b0e3dd5fc2edb93",
+      "82b66b334a0670d9",
+      "8825474238614008",
+      "906b2c01a69ff556",
+      "9111ea7ba8f4a82d",
+      "9943e055cdab9bb3",
+      "9b87193cde14df2d",
+      "9b9cf146228924d2",
+      "a0b1416b006aa705",
+      "a8f504d3aa547244",
+      "b413f74408a5262a",
+      "b541bbd9a35d6707",
+      "b63c7f10dd118f8c",
+      "bf75180876dcc4e0",
+      "cdb9010859cd4064",
+      "ce2da0c006706e94",
+      "ce903cbcf597075a",
+      "d4b6616f15e87ec7",
+      "d7c05f0e8ee7805d",
+      "d9356c864ca6c75c",
+      "da4b9a20d8b7332e",
+      "db1efce15b2f047f",
+      "dfa68053747e8433",
+      "e4da6e458f752510",
+      "e507e7c777215d8f",
+      "e8ad5990825b0ea3",
+      "f0f55a22bac12663"
+    ],
+    "mapping": "agree iff (measured==launch_bound) == (roofline==latency)",
+    "n_flags": 43,
+    "shape": "one-sided: all 43 are launch_bound x memory (model says memory-bound, measurement sits at the floor) -- information about the model, not noise."
+  },
+  "sigma_construction": "sigma_log = sqrt(ln(1 + ai_cv^2)) from the cell's own sample ai_cv (statistics.stdev, ddof=1, over n=2 invocation medians -- Bessel IS the tiny-sample correction; no further inflation). ai_cv == 0.0 -> sigma_log == 0.0 exactly (no invented floor; 9.3 owns its loss eps).",
+  "targets_version": 1,
+  "verdict": "pass",
+  "zero_sigma_cells": 2
+}

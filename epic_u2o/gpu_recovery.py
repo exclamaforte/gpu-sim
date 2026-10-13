@@ -50,7 +50,9 @@ class RecoveryResult:
 class GPURecovery:
     """Handles GPU recovery procedures."""
     
-    def __init__(self, gpu_id: int = 0, checkpoint_dir: str = "runs/checkpoints"):
+    def __init__(self, gpu_id: int = 0, checkpoint_dir: str = "runs/checkpoints",
+                 own_pids: Optional[set] = None):
+        self.own_pids = set(own_pids) if own_pids else {os.getpid()}
         self.gpu_id = gpu_id
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -133,16 +135,62 @@ class GPURecovery:
                 duration_sec=time.time() - start,
             )
     
+    def compute_app_pids(self) -> list:
+        """PIDs currently holding this GPU, via nvidia-smi (independent of
+        the harness's own bookkeeping, so the decline decision below never
+        rests on a self-report). Separated for testability. It
+        queries both compute AND graphics apps: the desktop compositor holds
+        this 5090 through graphics contexts, and a reset pulse would disrupt
+        those holders exactly as it would compute ones."""
+        out = []
+        for kind in ('compute-apps', 'graphics-apps'):
+            try:
+                r = subprocess.run(
+                    ['nvidia-smi', '-i', str(self.gpu_id),
+                     f'--query-{kind}=pid,process_name',
+                     '--format=csv,noheader,nounits'],
+                    capture_output=True, text=True, timeout=10)
+                if r.returncode != 0:
+                    continue
+                for line in r.stdout.splitlines():
+                    parts = [p.strip() for p in line.split(',')]
+                    if parts and parts[0].isdigit():
+                        entry = (int(parts[0]),
+                                 parts[1] if len(parts) > 1 else '')
+                        if entry not in out:
+                            out.append(entry)
+            except Exception:
+                continue
+        return out
+
     def _soft_reset(self) -> RecoveryResult:
-        """Soft reset: nvidia-smi -r (reset GPU)."""
+        """Soft reset: nvidia-smi -r, gated on foreign GPU holders.
+
+        A reset pulse on a GPU held by processes OUTSIDE this job (the
+        desktop session lives on this same 5090) would disrupt them, so the
+        pulse is DECLINED -- logged with the holder list -- when foreign
+        holders are present. The decline is a decision, recorded with the
+        independent observation that justified it, not a silent skip."""
         start = time.time()
         try:
+            holders = self.compute_app_pids()
+            foreign = [(p, n) for p, n in holders if p not in self.own_pids]
+            if foreign:
+                names = ', '.join(f'{n or "?"}:{p}' for p, n in foreign)
+                return RecoveryResult(
+                    success=False,
+                    action=RecoveryAction.SOFT_RESET,
+                    message=(f"Soft reset DECLINED: foreign GPU holders "
+                             f"present ({names}); reset would disrupt them. "
+                             f"Surface to owner."),
+                    duration_sec=time.time() - start,
+                )
             result = subprocess.run(
                 ['nvidia-smi', '-i', str(self.gpu_id), '-r'],
                 capture_output=True, text=True, timeout=30
             )
             time.sleep(3)  # Wait for reset
-            
+
             if result.returncode == 0:
                 return RecoveryResult(
                     success=True,
@@ -167,7 +215,7 @@ class GPURecovery:
             )
     
     def _hard_reset(self) -> RecoveryResult:
-        """Hard reset: nvidia-smi --gpu-reset."""
+        """MANUAL-ONLY (never automatic): nvidia-smi --gpu-reset. Unverified on"""
         start = time.time()
         try:
             result = subprocess.run(
@@ -200,7 +248,7 @@ class GPURecovery:
             )
     
     def _driver_reload(self) -> RecoveryResult:
-        """Reload NVIDIA driver: modprobe -r nvidia && modprobe nvidia."""
+        """MANUAL-ONLY (never automatic, needs sudo): reload NVIDIA driver."""
         start = time.time()
         try:
             # This requires root/sudo
@@ -240,7 +288,7 @@ class GPURecovery:
             )
     
     def _system_reboot(self) -> RecoveryResult:
-        """Request system reboot (last resort)."""
+        """MANUAL-ONLY (never automatic): surface a reboot request to the owner."""
         start = time.time()
         try:
             # Log the need for reboot
@@ -268,7 +316,7 @@ class GPURecovery:
             )
     
     def auto_recover(self) -> RecoveryResult:
-        """Automatically attempt recovery in escalating order."""
+        """SOFT_RESET-only automatic recovery (ruled ladder, gpu-sim-u2o.6.2)."""
         health = self.check_gpu_health()
         logger.warning(f"GPU {self.gpu_id} health: {health.value}")
         
@@ -281,38 +329,29 @@ class GPURecovery:
                 gpu_state_after=health.value,
             )
         
-        # Escalation order based on health state
-        if health == GPUHealth.DEGRADED:
-            actions = [RecoveryAction.SOFT_RESET, RecoveryAction.HARD_RESET, 
-                       RecoveryAction.DRIVER_RELOAD, RecoveryAction.SYSTEM_REBOOT]
-        elif health == GPUHealth.HUNG:
-            actions = [RecoveryAction.SOFT_RESET, RecoveryAction.HARD_RESET,
-                       RecoveryAction.DRIVER_RELOAD, RecoveryAction.SYSTEM_REBOOT]
-        elif health == GPUHealth.XID_ERROR:
-            actions = [RecoveryAction.HARD_RESET, RecoveryAction.DRIVER_RELOAD,
-                       RecoveryAction.SYSTEM_REBOOT]
-        elif health == GPUHealth.OFF_BUS:
-            actions = [RecoveryAction.DRIVER_RELOAD, RecoveryAction.SYSTEM_REBOOT]
-        else:
-            actions = [RecoveryAction.SOFT_RESET, RecoveryAction.HARD_RESET,
-                       RecoveryAction.DRIVER_RELOAD, RecoveryAction.SYSTEM_REBOOT]
-        
-        for action in actions:
-            logger.info(f"Attempting recovery: {action.value}")
-            result = self.attempt_recovery(action)
-            
-            if result.success:
-                logger.info(f"Recovery successful: {action.value}")
-                return result
-            else:
-                logger.warning(f"Recovery failed: {action.value} - {result.message}")
-        
-        # All failed
+        # RULED LADDER (gpu-sim-u2o.6.2, owner-accepted risk profile): SOFT_RESET
+        # is the ONE automated attempt. HARD_RESET/DRIVER_RELOAD/SYSTEM_REBOOT
+        # are NEVER selected automatically -- no passwordless sudo on this box,
+        # --gpu-reset is unverified on this consumer 5090, and the owner chose
+        # aggressive timeouts plus rare-crash risk over sudoers automation.
+        # On SOFT_RESET failure: log and stop, surface to the owner.
+        start = time.time()
+        result = self.attempt_recovery(RecoveryAction.SOFT_RESET)
+        if result.success:
+            logger.info("Recovery successful: soft_reset")
+            return result
+        logger.warning(f"SOFT_RESET failed: {result.message} -- stop, surface.")
+        flag = self.checkpoint_dir / "SURFACE_TO_OWNER.txt"
+        flag.write_text(
+            f"GPU {self.gpu_id} recovery needs owner at {time.time()}: "
+            f"health={health.value}; soft_reset: {result.message}\n")
         return RecoveryResult(
             success=False,
-            action=RecoveryAction.SYSTEM_REBOOT,
-            message="All recovery attempts failed",
-            duration_sec=0,
+            action=RecoveryAction.SOFT_RESET,
+            message=(f"SOFT_RESET failed ({result.message}); no further "
+                     f"automatic escalation by ruling -- surfaced to owner "
+                     f"via {flag}"),
+            duration_sec=time.time() - start,
         )
     
     def save_checkpoint(self, example_id: str, state: dict):

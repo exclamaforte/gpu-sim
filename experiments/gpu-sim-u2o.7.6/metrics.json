@@ -1,0 +1,144 @@
+{
+  "bead": "gpu-sim-u2o.7.6",
+  "gpu_used": false,
+  "roots": [
+    "/tmp/cutlass",
+    "/home/gabe/.local/lib/python3.14/site-packages/torch/include"
+  ],
+  "instrument_defect": {
+    "what": "corpus_miner.py reports idiom presence over a 60-line WINDOW from each kernel's signature, and presents it as corpus coverage",
+    "miner_reports": {
+      "__shared__": 9,
+      "__syncthreads": 7,
+      "atomicAdd": 0,
+      "cooperative_groups": 0,
+      "wmma::": 0,
+      "cudaStream": 7,
+      "<<<": 22,
+      "__shfl": 0
+    },
+    "whole_file_counts": {
+      "cudaStream": 95,
+      "<<<": 70,
+      "cp.async": 46,
+      "cp_async": 35,
+      "__shared__": 34,
+      "__syncthreads": 115,
+      "__syncwarp": 4,
+      "__shfl": 38,
+      "__shfl_xor": 11,
+      "mma.sync": 53,
+      "atomicMax": 4,
+      "atomicMin": 4,
+      "atomicAdd": 12,
+      "atomicCAS": 6,
+      "ldmatrix": 16,
+      "wmma": 38,
+      "__popc": 4,
+      "__ballot": 2,
+      "__activemask": 2
+    },
+    "example": "wmma: the miner reports 0, while a direct grep of the same tree finds wmma in 37 files. cp.async is in 48. A zero from this instrument is a statement about a prefix, not about real code.",
+    "my_own_instance_of_it": "my first corpus was a sparse-checkout of CUTLASS examples/ ONLY, which contains no tensor-core or atomic idioms at all. I measured coverage on a partial corpus and the partiality was invisible in the output. The same shape: a signal true of the sample, false of the population.",
+    "not_fixed_here": "corpus_miner.py is not this bead's artifact and its window is a deliberate size choice for a lightweight corpus. What is fixed here is that COVERAGE is measured over whole files, and the window-based number is reported beside it rather than instead of it."
+  },
+  "corpus": {
+    "n_files": 10189,
+    "files_per_capability": {
+      "streams / multi-device": 165,
+      "tensor cores": 188,
+      "shared memory + sync": 153,
+      "warp intrinsics": 57,
+      "atomics": 26
+    },
+    "files_per_idiom": {
+      "cudaStream": 95,
+      "<<<": 70,
+      "cp.async": 46,
+      "cp_async": 35,
+      "__shared__": 34,
+      "__syncthreads": 115,
+      "__syncwarp": 4,
+      "__shfl": 38,
+      "__shfl_xor": 11,
+      "mma.sync": 53,
+      "atomicMax": 4,
+      "atomicMin": 4,
+      "atomicAdd": 12,
+      "atomicCAS": 6,
+      "ldmatrix": 16,
+      "wmma": 38,
+      "__popc": 4,
+      "__ballot": 2,
+      "__activemask": 2
+    },
+    "capabilities_present": [
+      "atomics",
+      "shared memory + sync",
+      "streams / multi-device",
+      "tensor cores",
+      "warp intrinsics"
+    ],
+    "capabilities_absent": [
+      "async copy",
+      "cooperative launch",
+      "dynamic parallelism"
+    ]
+  },
+  "synthetic_families": {
+    "capabilities": [
+      "atomics",
+      "shared memory + sync",
+      "warp intrinsics"
+    ],
+    "files_per_capability": {
+      "shared memory + sync": 2,
+      "warp intrinsics": 1,
+      "atomics": 2
+    },
+    "n_families": 27,
+    "measured": true
+  },
+  "gap": {
+    "real_code_uses_synthetic_lacks": [
+      "streams / multi-device",
+      "tensor cores"
+    ],
+    "synthetic_covers_real_lacks": [],
+    "both": [
+      "atomics",
+      "shared memory + sync",
+      "warp intrinsics"
+    ],
+    "n_gaps": 2
+  },
+  "MEASUREMENT_CAVEAT_streams": "The 'streams / multi-device' gap is NOT a finding about the synthetic kernels. The idiom it looks for is '<<<' and 'cudaStream', which live in the LAUNCH HARNESS, not in a kernel body -- and both sides of this comparison are measured over kernel sources. So the real-code count of 165 files reflects real code containing its own launch sites, while the synthetic count of 0 reflects sources that contain none. The gap is an artefact of measuring kernels, and reporting it as a family-mix gap would be the same category error as the vocabulary mismatch earlier in this same file. It is excluded from the actionable findings and kept here so a reader is not misled by it.",
+  "FOLLOW_UP_the_gap_is_being_closed": {
+    "what": "gpu-sim-u2o.7.6 measured three capability classes absent from the 24 synthetic families. Three families were added -- k_warp_reduce, k_atomic_hist, k_atomic_sum -- and all 27 families synthesize AND compile, which is the condition that matters.",
+    "gap_now": {
+      "real_code_uses_synthetic_lacks": [
+        "streams / multi-device",
+        "tensor cores"
+      ],
+      "synthetic_covers_real_lacks": [],
+      "both": [
+        "atomics",
+        "shared memory + sync",
+        "warp intrinsics"
+      ],
+      "n_gaps": 2
+    },
+    "closed": [
+      "warp intrinsics",
+      "atomics"
+    ],
+    "STILL_OPEN": [
+      "tensor cores"
+    ],
+    "why_tensor_cores_stay_open": "k_wmma_gemm was written and then DROPPED. WMMA fragment instantiation fails on this toolchain with 'incomplete type ... is not allowed' for every arrangement tried: the fragment as a __global__ local, the fragment in a __device__ helper, and after correcting the non-existent wmma::float to float. Shipping a family that mentions wmma and does not BUILD would close the coverage gap on paper and widen it in fact -- which is the exact failure this coverage harness was written to catch, so the family is absent and the gap is reported as still open. The corpus decision that asked for >= 24 families across capability classes is therefore only TWO THIRDS delivered, and the tensor-core class needs a working WMMA or an mma.sync implementation before the family mix is right.",
+    "artefact_still_excluded": "streams / multi-device -- lives in the launch harness, not a kernel body (see MEASUREMENT_CAVEAT_streams).",
+    "families": 27,
+    "cells": 1863,
+    "all_families_compile": true
+  }
+}

@@ -1,0 +1,12 @@
+raws: ['measured_A2_raw.jsonl', 'measured_A_raw.jsonl', 'measured_C0_raw.jsonl', 'measured_C1_raw.jsonl', 'measured_C2_raw.jsonl', 'measured_C3_raw.jsonl', 'measured_C4_raw.jsonl', 'measured_C5_raw.jsonl', 'measured_C6_raw.jsonl', 'measured_C7_raw.jsonl', 'measured_MU2_raw.jsonl']
+merged 983 unique rows; 7 keep-cells shortfall
+MERGED 983 rows (933 measurable, 1 unreliable)
+full-corpus census: {'latency->latency': 1696, 'latency->memory': 1027, 'memory->memory': 538}
+FULL diversity gate (binding): PASS []
+NEG-CONTROL 90%-lb mix (must FAIL): FAIL ['only 2 regime classes (< 3)']
+CENSUS PASS
+  62b7e7ddf8fb1bb1 strided_write n=131072 grid=[128, 1, 1] block=[256, 1, 1] dims={'stride': 8}
+OOB-NAMING PASS
+
+VERIFY PASS
+RUN PASS: merge + census + oob-naming + verify replay byte-identical

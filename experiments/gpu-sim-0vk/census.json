@@ -1,0 +1,38 @@
+{
+  "bead": "gpu-sim-0vk",
+  "stage": "census",
+  "n_new": 983,
+  "mm_new": 395,
+  "meas_new": 933,
+  "forecast_mm_agreement": [
+    983,
+    983
+  ],
+  "require_census": {
+    "latency->memory": 586,
+    "memory->memory": 395,
+    "latency->latency": 2
+  },
+  "bead_bar": "PASS",
+  "new_only_gate_informative": "FAIL",
+  "full_corpus_specs": 3261,
+  "full_corpus_census": {
+    "latency->latency": 1696,
+    "latency->memory": 1027,
+    "memory->memory": 538
+  },
+  "full_gate": "PASS",
+  "full_gate_reasons": [],
+  "neg_control": {
+    "mix": 1000,
+    "counts": {
+      "latency->memory": 900,
+      "memory->memory": 100
+    },
+    "gate_verdict": "FAIL",
+    "reasons": [
+      "only 2 regime classes (< 3)"
+    ],
+    "control": "PASS"
+  }
+}

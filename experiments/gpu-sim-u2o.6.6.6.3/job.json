@@ -1,0 +1,17 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.3",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "python3 experiments/gpu-sim-u2o.6.6.6.3/run.sh",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.6.3/output.log",
+      "what": "measure_sweep.py regenerates sweep.json (7 sizes, 25 trials, loadavg stamped); run.sh rewrites FINDING.md quoted block FROM the artifact; 3 finding-quote tests + 4 suites pass"
+    }
+  ],
+  "status": "PARTIAL -- acceptance (sub-linear per-call growth) NOT met",
+  "not_done": "set-partition + preassembled terminal list; see FINDING.md",
+  "suites": "test_queue_state, test_cache_differential, test_queue_state_cost, test_sample_provenance all PASS",
+  "reviewer_item": "The sweep is now a REGENERATING artifact with loadavg attached, and FINDING.md quotes it rather than carrying its own numbers. tests/test_finding_quotes_sweep.py fails on any figure at measurement precision that sweep.json does not contain; verified by injecting 0.3177 and watching it fail."
+}

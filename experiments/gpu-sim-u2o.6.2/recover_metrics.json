@@ -1,0 +1,29 @@
+{
+  "arm_a": {
+    "decision": "none",
+    "health": "healthy",
+    "post_vs_pre": 0.9632,
+    "survivor": [],
+    "timeout_kill": true
+  },
+  "arm_b": {
+    "decision": "soft_reset",
+    "health": "healthy",
+    "post_vs_pre": 0.8466,
+    "sigterm_survived": true,
+    "surface_file": true,
+    "survivor_pids": [
+      335738
+    ]
+  },
+  "bead": "gpu-sim-u2o.6.2",
+  "failures": [],
+  "not_covered": [
+    "an actual nvidia-smi -r pulse (declined by the foreign-holder gate)",
+    "a true Xid/off-bus wedge (only a simulated hang + a SIGTERM-ignorer)",
+    "the MANUAL-ONLY rungs (hard reset, driver reload, reboot)"
+  ],
+  "packet": "recovery-exercise",
+  "ts_job": "20261007t021536-a745afa4",
+  "verdict": "pass"
+}

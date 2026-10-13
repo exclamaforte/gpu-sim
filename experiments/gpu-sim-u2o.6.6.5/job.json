@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-u2o.6.6.5",
+  "gpu_used": false,
+  "ts_jobs": [],
+  "cpu_runs": [
+    {
+      "command": "experiments/gpu-sim-u2o.6.6.5/run.sh",
+      "started_utc": "2026-10-04T13:32:07Z",
+      "ended_utc": "2026-10-04T13:32:07Z",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.5/output.log",
+      "what": "sampler probe live (9/9 telemetry fields from the driver, no CUDA context, no queue) + tests/test_verify_harness_telemetry.py 5/5 green; wrote metrics.json stamped at the code commit it ran against"
+    }
+  ],
+  "cpu_runs_note": "ts_jobs empty and gpu_used false by design: no device work. A CPU job in the shared GPU queue would block real GPU work."
+}

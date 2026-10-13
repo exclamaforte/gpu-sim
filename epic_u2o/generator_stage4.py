@@ -53,9 +53,6 @@ class KernelSpec:
     op_type: str
     metadata: dict
 
-    def kernel_hash(self) -> str:
-        return hashlib.sha256(self.source.encode()).hexdigest()[:16]
-
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -121,8 +118,11 @@ __global__ void gemm_wmma_fp16(const half* __restrict__ A, const half* __restric
 }
 
 TILE_SIZES = [16, 32]
-PROBLEM_SIZES_GEMM = [(64, 64, 64), (128, 128, 128), (256, 256, 256), (512, 512, 128)]
-BLOCK_DIMS_GEMM = [(16, 16)]
+# gpu-sim-u2o.11.3: extended for the compute-bound population (was 4 sizes ->
+# 16 specs). New sizes are multiples of 64 (the wmma kernel has no bounds
+# checks) with M*N*K <= 2.7e8 so three MNK-sized buffers stay under ~3.5 GB.
+PROBLEM_SIZES_GEMM = [(64, 64, 64), (128, 128, 128), (256, 256, 256), (512, 512, 128), (256, 256, 512), (512, 512, 256), (512, 512, 512), (1024, 1024, 128), (1024, 512, 256), (512, 1024, 256), (2048, 512, 128), (1024, 1024, 256)]
+BLOCK_DIMS_GEMM = [(16, 16), (32, 8)]
 
 GEMM_ARGS_FP32 = [
     {'name': 'A', 'type': 'const float*', 'ptr': True},

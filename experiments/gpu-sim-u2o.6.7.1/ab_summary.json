@@ -1,0 +1,43 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "arm": "ABAB harness-vs-bare",
+  "cells": {
+    "71cbc01535bc8a11": {
+      "median_A_ms": 0.002624,
+      "median_B_ms": 0.002672,
+      "ratio_A_over_B": 0.9820359281437127,
+      "A_medians": [
+        0.002672,
+        0.002624,
+        0.0024159999999999997
+      ],
+      "B_medians": [
+        0.002752,
+        0.002672,
+        0.002528
+      ]
+    },
+    "9c9e5c9c245bf8a6": {
+      "median_A_ms": 0.002624,
+      "median_B_ms": 0.0024159999999999997,
+      "ratio_A_over_B": 1.0860927152317883,
+      "A_medians": [
+        0.002784,
+        0.002624,
+        0.002592
+      ],
+      "B_medians": [
+        0.002448,
+        0.0024,
+        0.0024159999999999997
+      ]
+    }
+  },
+  "verdict": {
+    "criterion": "|A-B|/B > 5% same-sign on BOTH cells implicates the harness path; else EXONERATED",
+    "same_sign_over_5pct": false,
+    "reading": "harness path EXONERATED -- next: binary forensics"
+  },
+  "wall_s": 4.1,
+  "tree_rev": "47adbd5"
+}

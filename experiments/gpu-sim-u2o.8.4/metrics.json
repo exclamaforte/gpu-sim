@@ -1,0 +1,81 @@
+{
+  "bead": "gpu-sim-u2o.8.4",
+  "stage": "compare",
+  "matched": {
+    "n_params": 199169,
+    "seed": 0,
+    "epochs": 100,
+    "batch": 64,
+    "lr": 0.0003,
+    "n_train": 2494
+  },
+  "train_mape": {
+    "source": 3.0614023621909685,
+    "ptx": 3.4411135470549463,
+    "hybrid": 3.3576761741290464
+  },
+  "per_suite": {
+    "random": {
+      "mape": {
+        "source": 1.1693974225211468,
+        "ptx": 7.33485371506073,
+        "hybrid": 1.6879516210543188
+      },
+      "n": 319,
+      "hybrid_reduction": -0.4434,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": true,
+        "ptx": false
+      }
+    },
+    "unseen_families": {
+      "mape": {
+        "source": 1.5349637948316626,
+        "ptx": 1.623206863306717,
+        "hybrid": 1.9927925461131795
+      },
+      "n": 749,
+      "hybrid_reduction": -0.2983,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": true,
+        "ptx": true
+      }
+    },
+    "unseen_occupancy": {
+      "mape": {
+        "source": 2.940754593140017,
+        "ptx": 3.683515501525384,
+        "hybrid": 3.4127787248937853
+      },
+      "n": 1947,
+      "hybrid_reduction": -0.1605,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": true,
+        "ptx": false
+      }
+    },
+    "unseen_problem_sizes": {
+      "mape": {
+        "source": 0.9321742878059978,
+        "ptx": 0.926181411291134,
+        "hybrid": 0.936342505228205
+      },
+      "n": 308,
+      "hybrid_reduction": -0.011,
+      "criterion1_hybrid_wins": false,
+      "criterion2_within_2pct": {
+        "source": true,
+        "ptx": true
+      }
+    }
+  },
+  "criterion1_suites_won": "0/4",
+  "criterion2_suites_close": {
+    "source": "4/4",
+    "ptx": "2/4"
+  },
+  "verdict": "single-modality-sufficient"
+}

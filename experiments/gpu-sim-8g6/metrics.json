@@ -1,0 +1,75 @@
+{
+  "bead": "gpu-sim-8g6",
+  "failures": [],
+  "fault": {
+    "address_captured": false,
+    "exit": 139,
+    "note": "no core captured; localization is by marker absence (LOADED without ENTRY without member), not by fault address",
+    "signal": "SIGSEGV"
+  },
+  "followup": "LD_DEBUG=symbols run would show whether ncclNetPlugin_v11 is even dlsym'd (vs fault before resolution); named, not run -- three GPU jobs answer this bead, a fourth needs its own bead.",
+  "installed_untouched": true,
+  "jobs": {
+    "job1": {
+      "entry_calls": [],
+      "markers": [],
+      "member_calls": [],
+      "nccl_log_lines": 0,
+      "plugin_path_logged": false,
+      "ts_job": "20261006t053031-9ef7a761"
+    },
+    "job2": {
+      "entry_calls": [],
+      "markers": [
+        {
+          "member": "LOADED",
+          "off": -1
+        }
+      ],
+      "member_calls": [],
+      "nccl_log_lines": 7,
+      "plugin_path_logged": true,
+      "ts_job": "20261006t053152-7b064477"
+    },
+    "job3": {
+      "entry_calls": [],
+      "markers": [
+        {
+          "member": "LOADED",
+          "off": -1
+        }
+      ],
+      "member_calls": [],
+      "nccl_log_lines": 7,
+      "plugin_path_logged": true,
+      "ts_job": "20261006t053533-36d82f0a"
+    }
+  },
+  "member_mapping": {
+    "explanation": "no member stub fired in any of 3 jobs; stub_symbols.txt in each job dir maps the 21 distinct symbols had one fired",
+    "reached_member": null
+  },
+  "probe_source": {
+    "entries": [
+      "_v10",
+      "_v11",
+      "_v6",
+      "_v7",
+      "_v8",
+      "_v9"
+    ],
+    "layout_bytes": 176,
+    "members": 21
+  },
+  "tree": {
+    "branch": "lab/gpu-sim-8g6",
+    "commit": "59ddc62"
+  },
+  "ts_jobs": [
+    "20261006t053031-9ef7a761",
+    "20261006t053152-7b064477",
+    "20261006t053533-36d82f0a"
+  ],
+  "verdict": "NO MEMBER REACHED -- fault at entry invocation or earlier (dlopen ok, NCCL_NET_PLUGIN read, ncclNetPlugin_v11 never entered). Member-level calling-convention recovery is BLOCKED: the loader never gets far enough for member signatures to matter.",
+  "verdict_final": "pass"
+}

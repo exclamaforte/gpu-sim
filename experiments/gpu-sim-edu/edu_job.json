@@ -1,0 +1,28 @@
+{
+  "analysis": {
+    "packet": "activation-regression-cover, CPU-only",
+    "status": "rework: isolation stub ported to current main (359/359 with daemon up); AC6 restart observed"
+  },
+  "artifact_branch_gpu_sim": "lab/gpu-sim-edu",
+  "bead": "gpu-sim-edu",
+  "code_branch_pi_research_lab": "lab/gpu-sim-edu-isolation",
+  "code_commit": "5d0362d",
+  "cpu_work": {
+    "recompute": "edu_run.sh byte-identical, rc=0",
+    "suite": "115 tests OK",
+    "verifier": "edu_verify.py (AST contract checks + suite + probe record)"
+  },
+  "live_probe": {
+    "job_id": "20261007t053019-e62c8cef",
+    "note": "sleep job; canceled deliberately after probe, no measurement lost",
+    "queue_after": "empty",
+    "readings": "True 0.07s while live; False 0.08s after cancel",
+    "state": "canceled, exit -15 (SIGTERM)"
+  },
+  "open_item": "AC6: daemon restart with LAB_HOST explicit, verified by someone other than the severed session -- routed to PI/owner this packet",
+  "rework": {
+    "reason": "reviewer HELD + main moved (old lab/gpu-sim-edu repurposed for fqk.2; 71ac777 superseded)",
+    "suite": "359 tests OK with labd up (same-test failure reproduced pre-fix)",
+    "daemon_restart": "labd started 03:10 UTC Oct 8 on main containing both fixes (b144f76 + busy logic); fixes live"
+  }
+}

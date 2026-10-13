@@ -1,0 +1,123 @@
+{
+  "bead": "gpu-sim-u2o.6.6.7",
+  "produced_at_utc": "2026-10-03T19:34:38.429412+00:00",
+  "produced_by": "experiments/gpu-sim-u2o.6.6.7/measure_spread.py",
+  "gpu_used": false,
+  "commit": "df4b231",
+  "purpose": "A single-run ratio against a baseline resolves nothing below that baseline's own run-to-run spread. This records the spread beside the baseline so a comparison has to say which side of the noise it falls on.",
+  "overall_spread": {
+    "spread_version": 1,
+    "baseline_id": "v6-anchor",
+    "n_runs": 2,
+    "n_cells": 106,
+    "ratios_per_config": 1,
+    "run_job_ids": [
+      "v6",
+      "v8"
+    ],
+    "ratio_quantiles": {
+      "min": 0.8523,
+      "p10": 0.9408,
+      "median": 1.0181,
+      "p90": 1.235,
+      "max": 1.5587
+    },
+    "resolution_band": [
+      0.9408,
+      1.235
+    ],
+    "statement": "measured over 2 runs and 106 configs; a single-run ratio against v6-anchor cannot resolve anything inside [0.9408, 1.235]"
+  },
+  "per_family_spread": {
+    "memory": {
+      "spread_version": 1,
+      "baseline_id": "v6-anchor:memory",
+      "n_runs": 2,
+      "n_cells": 90,
+      "ratios_per_config": 1,
+      "run_job_ids": [
+        "memory:v6",
+        "memory:v8"
+      ],
+      "ratio_quantiles": {
+        "min": 0.8523,
+        "p10": 0.9367,
+        "median": 1.0177,
+        "p90": 1.2253,
+        "max": 1.5444
+      },
+      "resolution_band": [
+        0.9367,
+        1.2253
+      ],
+      "statement": "measured over 2 runs and 90 configs; a single-run ratio against v6-anchor:memory cannot resolve anything inside [0.9367, 1.2253]"
+    },
+    "reduce": {
+      "spread_version": 1,
+      "baseline_id": "v6-anchor:reduce",
+      "n_runs": 2,
+      "n_cells": 8,
+      "ratios_per_config": 1,
+      "run_job_ids": [
+        "reduce:v6",
+        "reduce:v8"
+      ],
+      "ratio_quantiles": {
+        "min": 1.0141,
+        "p10": 1.017,
+        "median": 1.1012,
+        "p90": 1.491,
+        "max": 1.5587
+      },
+      "resolution_band": [
+        1.017,
+        1.491
+      ],
+      "statement": "measured over 2 runs and 8 configs; a single-run ratio against v6-anchor:reduce cannot resolve anything inside [1.017, 1.491]"
+    },
+    "gemm": {
+      "spread_version": 1,
+      "baseline_id": "v6-anchor:gemm",
+      "n_runs": 2,
+      "n_cells": 8,
+      "ratios_per_config": 1,
+      "run_job_ids": [
+        "gemm:v6",
+        "gemm:v8"
+      ],
+      "ratio_quantiles": {
+        "min": 1.0033,
+        "p10": 1.0062,
+        "median": 1.0133,
+        "p90": 1.0443,
+        "max": 1.0921
+      },
+      "resolution_band": [
+        1.0062,
+        1.0443
+      ],
+      "statement": "measured over 2 runs and 8 configs; a single-run ratio against v6-anchor:gemm cannot resolve anything inside [1.0062, 1.0443]"
+    }
+  },
+  "cross_check_against_committed_probe": {
+    "this_module_median": 1.0181,
+    "committed_probe_median": 1.0181,
+    "agree_within_0.05": true,
+    "note": "AFTER the 6.6.7 rework the module computes the SAME statistic the probe does -- signed, baseline-relative v_later/v_baseline per config -- so these now agree exactly rather than approximately. An earlier version used a max/median statistic, could not represent the fast side, and disagreed here; that is what the reviewer caught."
+  },
+  "what_a_comparison_may_conclude": {
+    "ratio_1.02": "inconclusive",
+    "ratio_1.04": "inconclusive",
+    "ratio_1.1": "inconclusive",
+    "ratio_1.25": "effect_slower",
+    "ratio_1.5": "effect_slower"
+  },
+  "properties": {
+    "anchor_band_is_wide": true,
+    "four_percent_is_inconclusive": true,
+    "fifty_percent_is_an_effect": true,
+    "cross_check_agrees": true,
+    "no_single_run_spread": true
+  },
+  "all_properties_pass": true
+}

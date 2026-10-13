@@ -1,0 +1,24 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "mode": "perkernel",
+  "spec_provenance": {
+    "source": "regenerated with 7.1's own sweep code and hash construction",
+    "n_regenerated": 264,
+    "n_in_7_1_dataset": 264,
+    "hash_match_with_7_1": 264,
+    "proven_identical": true
+  },
+  "n_specs": 264,
+  "n_distinct_kernel_sources": 8,
+  "n_translation_units_built": 8,
+  "what_this_is": "7.1's OWN per-kernel synthesized binaries, each compiled as its own translation unit with its own per-kernel cudaMalloc calls, all LINKED into one executable driven by ONE process with ONE CUDA context. Removes the executable/memory-environment confound while keeping the shared context that produced the speed.",
+  "confound_removed": "7.1: one binary per kernel_hash, own main, own cudaMalloc sized to that kernel's arity. My earlier warm arm: ONE binary, all 8 kernels, dispatch switch, FOUR buffers of the MAXIMUM size regardless of arity. Same isolation, same estimator, different executable and different memory footprint.",
+  "n_rows": 264,
+  "wall_sec": 1.292466640472412,
+  "examples_per_sec": 204.26059113100575,
+  "examples_per_hour": 735338.1280716207,
+  "build_sec": 9.26047420501709,
+  "sampling_wall_sec": 15.59211778640747,
+  "device_time_per_example_us": 77628.0303030303,
+  "protocol_note": "each spec is ONE invocation of 5 warmup + 20 timed, so this arm has 40 timed launches per example: each of 7.1's binaries is called TWICE, because 7.1 ran 2 invocations of (5 warmup + 20 timed) and reusing its binaries unmodified means reusing its invocation loop."
+}

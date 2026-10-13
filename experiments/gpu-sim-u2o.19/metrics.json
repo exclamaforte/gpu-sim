@@ -1,0 +1,34 @@
+{
+  "adjudication": {
+    "evidence": "own struct probe (2 realizations) + attribute readthrough 1536; no megakern field exists",
+    "l2CacheSize": 100663296,
+    "maxThreadsPerMultiProcessor": 1536,
+    "optin_per_block": "SET 101376 from own probe + megakern agreement (was silently absent)",
+    "sharedMemPerMultiprocessor": 102400,
+    "two_lab_chain": "gpu-sim probes + megakern-37e.2 job 20261003t213327-db6b7f3f (to the byte)"
+  },
+  "attr_values": {
+    "A.l2CacheSize": 100663296,
+    "A.maxThreadsPerSM": 1536,
+    "A.optinPerBlock": 101376,
+    "A.sharedMemPerSM": 102400
+  },
+  "bead": "gpu-sim-u2o.19",
+  "failures": [],
+  "gate": {
+    "gate_optin_pin": true,
+    "gate_passed": true,
+    "gate_smem_pin": true
+  },
+  "probes": {
+    "attr_readthrough": "20261010t213835-4d4bdf3f",
+    "struct_reread": "20261010t211802-ff147780"
+  },
+  "struct_values": {
+    "S.l2CacheSize": 100663296,
+    "S.maxThreadsPerSM": 1536,
+    "S.sharedMemPerSM": 102400
+  },
+  "verdict": "pass",
+  "withdrawn": "probe-1 'A.sharedMemPerSM: 0' was uninitialized-status garbage (EMIT before assign); superseded by probe-2 A=102400"
+}

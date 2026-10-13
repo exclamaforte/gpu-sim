@@ -1,0 +1,39 @@
+{
+  "bead": "gpu-sim-46p",
+  "n_rows": 456,
+  "overall_mean_abs_after": 0.6581,
+  "overall_mean_abs_before": 0.9955,
+  "per_regime": {
+    "latency->latency": {
+      "mean_abs_after": 0.5638,
+      "mean_abs_before": 0.5638,
+      "n": 220,
+      "signed_bias_after": -0.5638,
+      "signed_bias_before": -0.5638
+    },
+    "latency->memory": {
+      "mean_abs_after": 0.6873,
+      "mean_abs_before": 1.1101,
+      "n": 204,
+      "signed_bias_after": 0.378,
+      "signed_bias_before": 0.9329
+    },
+    "memory->memory": {
+      "mean_abs_after": 1.1209,
+      "mean_abs_before": 3.2329,
+      "n": 32,
+      "signed_bias_after": 1.1164,
+      "signed_bias_before": 3.2329
+    }
+  },
+  "pre_ref": "e0016a7232677301845353ca20a9dc246b0bdd1f",
+  "preregistered_expectation": "form (a): achieved 1688.592 GB/s flat on the memory arm, occupancy kept on the compute arm only. Memory times shrink ~x0.68; the +0.37 signed bias is expected to fall toward zero-or-negative and mean abs to drop substantially from ~1.0. Stated cost: sub-saturation rows may underpredict on the memory arm (ceiling semantics).",
+  "signed_bias_after": -0.0245,
+  "signed_bias_before": 0.3722,
+  "transition_46p_internal": {
+    "latency->latency": 220,
+    "memory->latency": 20,
+    "memory->memory": 216
+  },
+  "verdict": "pass"
+}

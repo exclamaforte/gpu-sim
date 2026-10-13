@@ -1,0 +1,25 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.1",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.6.1/run.sh",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.6.1/output.log",
+      "what": "rework 4 on the rebased tree: 13 cost tests + 8 differential tests, 0 failures. Size sweep 0.1895 us/file, crossover ~733 AT THIS LOAD, criterion 1 at live size 1.859x at 849 files (not met, not regressed), criterion 3 holds, 41.0x differential."
+    }
+  ],
+  "cpu_runs_note": "ts_jobs is empty by design and gpu_used is false: this bead never touches the device, and a CPU job in the shared GPU queue would block real GPU work for its whole runtime. Run directly, per the CPU-work rule.",
+  "note": "Pure CPU. The instrument was measured on this host against this host's real queue directory (557 job files), which is the thing the bead is about: the cost IS the directory size, so a synthetic fixture would have measured nothing.",
+  "rebase_onto_master": {
+    "master_at_rebase": "07f2058",
+    "contains": "6.6.2 (merged 566ba0b) and gpu-sim-u2o.6.6.7",
+    "conflicts": 0,
+    "both_features_present": {
+      "terminal_cache": true,
+      "own_job_entry": true
+    },
+    "contract_break": "live: bare queue_state() raises IdentificationError"
+  }
+}

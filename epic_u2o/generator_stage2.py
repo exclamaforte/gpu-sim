@@ -53,9 +53,6 @@ class KernelSpec:
     op_type: str
     metadata: dict
     
-    def kernel_hash(self) -> str:
-        return hashlib.sha256(self.source.encode()).hexdigest()[:16]
-    
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -411,6 +408,10 @@ def generate_kernels(
                                 'op_type': op_name,
                                 'uses_shared_memory': True,
                                 'stencil_pattern': '5pt',
+                                # u2o.11.3: dims for the driver (rows/cols args
+                                # would otherwise synthesize as 1 -> vacuous).
+                                'rows': rows,
+                                'cols': cols,
                             },
                         )
                         count += 1
@@ -440,6 +441,9 @@ def generate_kernels(
                                 'op_type': op_name,
                                 'uses_shared_memory': True,
                                 'access_pattern': 'transpose',
+                                # u2o.11.3: dims for the driver (see stencil site).
+                                'rows': rows,
+                                'cols': cols,
                             },
                         )
                         count += 1

@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-u2o.19",
+  "ts_jobs": [
+    "20260928t105453-2dc7af7c",
+    "20261010t211802-ff147780",
+    "20261010t213835-4d4bdf3f"
+  ],
+  "gpu_used": true,
+  "job_purpose": "one read-only cudaDeviceProp query on the real 5090, to settle whether the overlay's VALUES or its OFFSETS were wrong. ~1 second, no data generation, no queue contention (the queue was empty).",
+  "cpu_only_work": "offsetof() probe against the real CUDA 13.3 headers, which established the offsets were CORRECT without touching a GPU at all",
+  "note": "Submitting one tiny diagnostic query was the right call: the offsets were answerable on CPU, but the correct VALUES were not knowable without reading them off the part.",
+  "probe_notes": {
+    "20261010t211802-ff147780": "struct re-read (1536/102400/100663296) + optin 101376; smem-attr reading VOID (uninitialized status, withdrawn)",
+    "20261010t213835-4d4bdf3f": "corrected: all four attribute channels assign-before-read; A=1536/102400/100663296/101376, struct==attr to the byte"
+  }
+}

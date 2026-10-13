@@ -1,0 +1,30 @@
+=== ts job: gabe at 2026-09-27T08:34:16-07:00 ===
+--- CPU unit tests (no GPU) ---
+PASS  harness: preflight refuses oversized spec (returns FAILED)  Pre-flight FAILED: VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+
+0 failure(s)
+cpu tests exit=0
+--- GPU validation ---
+device: NVIDIA GeForce RTX 5090, 610.57.04, 32607 MiB
+CUDA_VISIBLE_DEVICES= 0
+[PASS] A1 static VRAM cap rejects 8 GiB spec  VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+[PASS] A2 measure_spec refuses oversized spec (RuntimeError)  Pre-flight FAILED: VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+[PASS] A3 refusal was fast (no GPU work, <5s)  0.15s
+[PASS] B1 normal spec produces 20 real trials  20 trials
+[PASS] C1 device footprint recorded (cudaMemGetInfo delta)  {"delta_mb": 12.0, "free_after_mb": 31091.0, "total_mb": 32132.9, "device_used_mb": 1041.9}
+[PASS] C2 measured delta is in the right ballpark for 3x4MiB buffers  delta=12.0 MB, static estimate=12.0 MB, device-wide used=1041.9 MB
+[PASS] C3 device-wide figure is reported separately (shared-GPU aware)  {"delta_mb": 12.0, "free_after_mb": 31091.0, "total_mb": 32132.9, "device_used_mb": 1041.9}
+[PASS] C4 a 1 MB cap flags the real measured footprint  this run's device footprint 12.0 MB > cap 1 MB
+[PASS] C5 the same footprint passes a 2048 MB cap  device footprint 12.0 MB within cap 2048 MB
+[PASS] C6 cap<=0 disables the device-side check  cap disabled
+[PASS] D0 host writer compiles  
+[PASS] D1 small child run is within quota  {"scratch": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/experiments/gpu-sim-u2o.6.3/scratch/kern-1790523258-3599407", "used_mb": 1.0, "quota_mb": 2, "within_quota": true, "message": "disk quota ok: 1.0 MB of 2 
+[PASS] D2 RLIMIT_FSIZE backstop caps the 6 MB write at the 2 MB limit  rc=-25 used_mb=2.0 stderr=''
+[PASS] D2b quota accounting still ran and reported within-quota  {"scratch": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.3/experiments/gpu-sim-u2o.6.3/scratch/kern-1790523258-3599407", "used_mb": 2.0, "quota_mb": 2, "within_quota": true, "message": "disk quota ok: 2.0 MB of 2 
+[PASS] D3 scratch directories are cleaned up  []
+[PASS] E0 spinner compiles  
+[PASS] E1 infinite loop is killed by the timeout path  timeout=True wall=3.00s rc=-1
+[PASS] E2 no surviving child after the kill  pgrep found nothing
+[PASS] E3 harness recorded the post-timeout GPU health check  "healthy"
+SUMMARY {"n_checks": 19, "n_passed": 19, "n_failed": 0}
+=== cpu_rc=0 gpu_rc=0 ===

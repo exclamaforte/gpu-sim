@@ -1,0 +1,4091 @@
+{
+  "bead": "gpu-sim-f6y",
+  "stage": "build",
+  "selection_rule": "every 11.3 manifest occurrence under the 18 missing hashes, regenerated with the fixed generator_stage3 templates; no sampling",
+  "n_specs": 80,
+  "n_failures": 0,
+  "failures": [],
+  "protocol": "single_run_stages_2_5",
+  "specs": [
+    {
+      "kernel_hash": "156bb91e9556a5fe",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_156bb91e9556a5fe.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "15394b3c780772f1"
+    },
+    {
+      "kernel_hash": "f468e0262ab5a6fb",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_f468e0262ab5a6fb.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "a6109c15c4962a35"
+    },
+    {
+      "kernel_hash": "a06d64e3c6cf5c30",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_a06d64e3c6cf5c30.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "093babf816eff1c3"
+    },
+    {
+      "kernel_hash": "04fcb3209cd23752",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_04fcb3209cd23752.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "3bb0e6dae457df18"
+    },
+    {
+      "kernel_hash": "156bb91e9556a5fe",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_156bb91e9556a5fe.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "15394b3c780772f1"
+    },
+    {
+      "kernel_hash": "f468e0262ab5a6fb",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_f468e0262ab5a6fb.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "a6109c15c4962a35"
+    },
+    {
+      "kernel_hash": "a06d64e3c6cf5c30",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_a06d64e3c6cf5c30.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "093babf816eff1c3"
+    },
+    {
+      "kernel_hash": "04fcb3209cd23752",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_04fcb3209cd23752.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "3bb0e6dae457df18"
+    },
+    {
+      "kernel_hash": "156bb91e9556a5fe",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_156bb91e9556a5fe.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "15394b3c780772f1"
+    },
+    {
+      "kernel_hash": "f468e0262ab5a6fb",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_f468e0262ab5a6fb.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "a6109c15c4962a35"
+    },
+    {
+      "kernel_hash": "a06d64e3c6cf5c30",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_a06d64e3c6cf5c30.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "093babf816eff1c3"
+    },
+    {
+      "kernel_hash": "04fcb3209cd23752",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_04fcb3209cd23752.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "3bb0e6dae457df18"
+    },
+    {
+      "kernel_hash": "156bb91e9556a5fe",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_156bb91e9556a5fe.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "15394b3c780772f1"
+    },
+    {
+      "kernel_hash": "f468e0262ab5a6fb",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_f468e0262ab5a6fb.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "a6109c15c4962a35"
+    },
+    {
+      "kernel_hash": "a06d64e3c6cf5c30",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_a06d64e3c6cf5c30.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "093babf816eff1c3"
+    },
+    {
+      "kernel_hash": "04fcb3209cd23752",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_04fcb3209cd23752.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "3bb0e6dae457df18"
+    },
+    {
+      "kernel_hash": "156bb91e9556a5fe",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_156bb91e9556a5fe.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "15394b3c780772f1"
+    },
+    {
+      "kernel_hash": "f468e0262ab5a6fb",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_f468e0262ab5a6fb.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "a6109c15c4962a35"
+    },
+    {
+      "kernel_hash": "a06d64e3c6cf5c30",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 524288,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_a06d64e3c6cf5c30.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "093babf816eff1c3"
+    },
+    {
+      "kernel_hash": "04fcb3209cd23752",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 1048576,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_04fcb3209cd23752.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "3bb0e6dae457df18"
+    },
+    {
+      "kernel_hash": "e9fb39688e311e9b",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_e9fb39688e311e9b.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "054787adb5450b4f"
+    },
+    {
+      "kernel_hash": "e9fb39688e311e9b",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_e9fb39688e311e9b.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "054787adb5450b4f"
+    },
+    {
+      "kernel_hash": "e9fb39688e311e9b",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_e9fb39688e311e9b.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "054787adb5450b4f"
+    },
+    {
+      "kernel_hash": "e9fb39688e311e9b",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_e9fb39688e311e9b.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "054787adb5450b4f"
+    },
+    {
+      "kernel_hash": "e9fb39688e311e9b",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_e9fb39688e311e9b.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "054787adb5450b4f"
+    },
+    {
+      "kernel_hash": "43f10a67054c0258",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_43f10a67054c0258.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "09cb3b31a8c1ce7f"
+    },
+    {
+      "kernel_hash": "43f10a67054c0258",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_43f10a67054c0258.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "09cb3b31a8c1ce7f"
+    },
+    {
+      "kernel_hash": "43f10a67054c0258",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_43f10a67054c0258.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "09cb3b31a8c1ce7f"
+    },
+    {
+      "kernel_hash": "43f10a67054c0258",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_43f10a67054c0258.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "09cb3b31a8c1ce7f"
+    },
+    {
+      "kernel_hash": "43f10a67054c0258",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_43f10a67054c0258.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "09cb3b31a8c1ce7f"
+    },
+    {
+      "kernel_hash": "8aa7cb050c4bd749",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_8aa7cb050c4bd749.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7f45340935ed9f0c"
+    },
+    {
+      "kernel_hash": "8aa7cb050c4bd749",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_8aa7cb050c4bd749.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7f45340935ed9f0c"
+    },
+    {
+      "kernel_hash": "8aa7cb050c4bd749",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_8aa7cb050c4bd749.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7f45340935ed9f0c"
+    },
+    {
+      "kernel_hash": "8aa7cb050c4bd749",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_8aa7cb050c4bd749.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7f45340935ed9f0c"
+    },
+    {
+      "kernel_hash": "8aa7cb050c4bd749",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_8aa7cb050c4bd749.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7f45340935ed9f0c"
+    },
+    {
+      "kernel_hash": "000c915030b39b04",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_000c915030b39b04.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "be4d4b3535abeafb"
+    },
+    {
+      "kernel_hash": "000c915030b39b04",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_000c915030b39b04.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "be4d4b3535abeafb"
+    },
+    {
+      "kernel_hash": "000c915030b39b04",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_000c915030b39b04.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "be4d4b3535abeafb"
+    },
+    {
+      "kernel_hash": "000c915030b39b04",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_000c915030b39b04.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "be4d4b3535abeafb"
+    },
+    {
+      "kernel_hash": "000c915030b39b04",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_000c915030b39b04.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "be4d4b3535abeafb"
+    },
+    {
+      "kernel_hash": "6273769168077f1e",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_6273769168077f1e.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e1ca3807ece24097"
+    },
+    {
+      "kernel_hash": "6273769168077f1e",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_6273769168077f1e.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e1ca3807ece24097"
+    },
+    {
+      "kernel_hash": "6273769168077f1e",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_6273769168077f1e.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e1ca3807ece24097"
+    },
+    {
+      "kernel_hash": "6273769168077f1e",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_6273769168077f1e.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e1ca3807ece24097"
+    },
+    {
+      "kernel_hash": "6273769168077f1e",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_6273769168077f1e.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e1ca3807ece24097"
+    },
+    {
+      "kernel_hash": "05c0d0193416d221",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_05c0d0193416d221.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e6498197facc41ce"
+    },
+    {
+      "kernel_hash": "05c0d0193416d221",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_05c0d0193416d221.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e6498197facc41ce"
+    },
+    {
+      "kernel_hash": "05c0d0193416d221",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_05c0d0193416d221.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e6498197facc41ce"
+    },
+    {
+      "kernel_hash": "05c0d0193416d221",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_05c0d0193416d221.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e6498197facc41ce"
+    },
+    {
+      "kernel_hash": "05c0d0193416d221",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_05c0d0193416d221.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "e6498197facc41ce"
+    },
+    {
+      "kernel_hash": "cca8faebdcc094e0",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_cca8faebdcc094e0.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 256
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7e4fb711f581c02a"
+    },
+    {
+      "kernel_hash": "cca8faebdcc094e0",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_cca8faebdcc094e0.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 512
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7e4fb711f581c02a"
+    },
+    {
+      "kernel_hash": "cca8faebdcc094e0",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_cca8faebdcc094e0.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 1024
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7e4fb711f581c02a"
+    },
+    {
+      "kernel_hash": "cca8faebdcc094e0",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_cca8faebdcc094e0.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 4096
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7e4fb711f581c02a"
+    },
+    {
+      "kernel_hash": "cca8faebdcc094e0",
+      "kernel_name": "segmented_read",
+      "op_type": "segmented_read",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "segment_size",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_cca8faebdcc094e0.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "segmented",
+        "coalesced": false,
+        "segment_size": 16384
+      },
+      "source": "__global__ void segmented_read(const float* __restrict__ in, float* __restrict__ out, int n, int segment_size) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) {\n        int segment = i / segment_size;\n        int offset = i % segment_size;\n        out[i] = in[segment * segment_size + offset];\n    }\n}",
+      "old_hash": "7e4fb711f581c02a"
+    },
+    {
+      "kernel_hash": "3c0aec2d2083b470",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_3c0aec2d2083b470.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "924d9dcb3efc6694"
+    },
+    {
+      "kernel_hash": "3c0aec2d2083b470",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_3c0aec2d2083b470.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "924d9dcb3efc6694"
+    },
+    {
+      "kernel_hash": "3c0aec2d2083b470",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_3c0aec2d2083b470.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "924d9dcb3efc6694"
+    },
+    {
+      "kernel_hash": "604b4a53c516c7b6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_604b4a53c516c7b6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "aa567b7e2d35c303"
+    },
+    {
+      "kernel_hash": "604b4a53c516c7b6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_604b4a53c516c7b6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "aa567b7e2d35c303"
+    },
+    {
+      "kernel_hash": "604b4a53c516c7b6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 262144,
+      "deliberately_poor": false,
+      "source_path": "k_604b4a53c516c7b6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "aa567b7e2d35c303"
+    },
+    {
+      "kernel_hash": "ecd76044f7e32313",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_ecd76044f7e32313.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "b2506bc36880e2f2"
+    },
+    {
+      "kernel_hash": "ecd76044f7e32313",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_ecd76044f7e32313.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "b2506bc36880e2f2"
+    },
+    {
+      "kernel_hash": "ecd76044f7e32313",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 262144,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_ecd76044f7e32313.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "b2506bc36880e2f2"
+    },
+    {
+      "kernel_hash": "c60b7125649441f9",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_c60b7125649441f9.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "05e95be1fea2b11a"
+    },
+    {
+      "kernel_hash": "c60b7125649441f9",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_c60b7125649441f9.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "05e95be1fea2b11a"
+    },
+    {
+      "kernel_hash": "c60b7125649441f9",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_c60b7125649441f9.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "05e95be1fea2b11a"
+    },
+    {
+      "kernel_hash": "c60b7125649441f9",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 131072,
+      "deliberately_poor": false,
+      "source_path": "k_c60b7125649441f9.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 8
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "05e95be1fea2b11a"
+    },
+    {
+      "kernel_hash": "3d8cf89e8e7fa281",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_3d8cf89e8e7fa281.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "2c41c3608d75ddb6"
+    },
+    {
+      "kernel_hash": "3d8cf89e8e7fa281",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_3d8cf89e8e7fa281.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "2c41c3608d75ddb6"
+    },
+    {
+      "kernel_hash": "3d8cf89e8e7fa281",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_3d8cf89e8e7fa281.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "2c41c3608d75ddb6"
+    },
+    {
+      "kernel_hash": "3d8cf89e8e7fa281",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_3d8cf89e8e7fa281.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 8
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "2c41c3608d75ddb6"
+    },
+    {
+      "kernel_hash": "ddd3779c377ad5e6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_ddd3779c377ad5e6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "3d04ec59f09d38c7"
+    },
+    {
+      "kernel_hash": "ddd3779c377ad5e6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_ddd3779c377ad5e6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "3d04ec59f09d38c7"
+    },
+    {
+      "kernel_hash": "ddd3779c377ad5e6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_ddd3779c377ad5e6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "3d04ec59f09d38c7"
+    },
+    {
+      "kernel_hash": "ddd3779c377ad5e6",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_ddd3779c377ad5e6.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 8
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "3d04ec59f09d38c7"
+    },
+    {
+      "kernel_hash": "9b8b8021784c4c82",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_9b8b8021784c4c82.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": true,
+        "stride": 1
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "595a1b558163496b"
+    },
+    {
+      "kernel_hash": "9b8b8021784c4c82",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_9b8b8021784c4c82.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 2
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "595a1b558163496b"
+    },
+    {
+      "kernel_hash": "9b8b8021784c4c82",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_9b8b8021784c4c82.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 4
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "595a1b558163496b"
+    },
+    {
+      "kernel_hash": "9b8b8021784c4c82",
+      "kernel_name": "strided_write",
+      "op_type": "strided_write",
+      "stage": "stage3",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "shared_mem_bytes": 0,
+      "args": [
+        {
+          "name": "in",
+          "type": "const float*",
+          "ptr": true
+        },
+        {
+          "name": "out",
+          "type": "float*",
+          "ptr": true
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "ptr": false
+        },
+        {
+          "name": "stride",
+          "type": "int",
+          "ptr": false
+        }
+      ],
+      "problem_size": 131072,
+      "covers": 65536,
+      "deliberately_poor": false,
+      "source_path": "k_9b8b8021784c4c82.cu",
+      "metadata": {
+        "generator": "stage3_memory_access",
+        "access_pattern": "strided",
+        "coalesced": false,
+        "stride": 8
+      },
+      "source": "__global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {\n    int i = blockIdx.x * blockDim.x + threadIdx.x;\n    if (i * stride < n) out[i * stride] = in[i];\n}",
+      "old_hash": "595a1b558163496b"
+    }
+  ]
+}

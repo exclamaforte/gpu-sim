@@ -1,0 +1,21 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "packet": "batch build: warm worker full 264 on current master",
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t062332-cfcbaa4f",
+      "state": "finished",
+      "exit": 0,
+      "purpose": "batch_measure_worker.py warm mode, full 264 examples, per-example queue_state+telemetry",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t062332-cfcbaa4f.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-batchbuild-20261006/",
+      "result": "264/264 rows in 1.00s = 262.99 ex/s, 1 process, device 130.9us vs 126 asserted"
+    }
+  ],
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/build_metrics.py --metrics-out experiments/gpu-sim-u2o.6.7.1/build_metrics.json",
+    "exit": 0,
+    "log": "experiments/gpu-sim-u2o.6.7.1/build_output.log",
+    "result": "verdict=pass on the three PI-named checks; BLOCKER_2 rides along"
+  }
+}

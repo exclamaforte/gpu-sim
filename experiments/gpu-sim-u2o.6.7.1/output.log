@@ -1,0 +1,8 @@
+criterion 1: 167.30 ex/s vs 7.1's 2.39 = 70.0x; ceiling 7,911 is an UPPER BOUND
+           per example: 5.98 ms = 0.144 device + 5.59 sampling + 0.24 residual
+criterion 2: 206/264 medians reproduce (median rel diff 12.6%) -> DOES NOT REPRODUCE -- the throughput fix moved the numbers, which makes it worse than no fix
+criterion 2b: device 144.3 us vs 126 asserted (+14.5%)
+criterion 3: True (40 timed launches, unchanged); processes 528 -> 1
+criterion 4: 264/264 distinct sample times
+criterion 5: device utilisation 2.4%
+criterion 6: after batching, 167.3 ex/s against the 7,911 ex/s bound. smoke-as-written: NOT fed; small: NOT fed; medium: NOT fed; large: NOT fed. Stated here rather than left to be discovered, and the trial count was NOT revisited to improve it.

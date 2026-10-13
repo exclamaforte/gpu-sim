@@ -1,0 +1,28 @@
+PASS  estimate: 1Mi floats x2 = 8 MiB  8388608
+PASS  estimate: scalars excluded
+PASS  estimate: no unknown types
+PASS  estimate: double is 8 bytes
+PASS  estimate: unknown type is reported, not guessed
+PASS  budget: small spec passes  VRAM budget ok: need 1026.0 MB of 2048 MB (2.0 MB across 2 buffers)
+PASS  budget: message quotes the need  VRAM budget ok: need 1026.0 MB of 2048 MB (2.0 MB across 2 buffers)
+PASS  budget: oversized spec refused  VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+PASS  budget: limit<=0 disables the cap
+PASS  budget: unsizable args refused (no silent under-count)  VRAM budget: cannot size argument types ['x:mystery_t*']; refusing to guess
+PASS  disk: under quota ok  disk quota ok: 0.5 MB of 1 MB
+PASS  disk: over quota detected  disk quota exceeded: 1.5 MB > 1 MB in /tmp/tmp4vicwkki/scratch/t-0000-1534772-1791093870911045351
+PASS  disk: size accounted  1.500 MB
+PASS  disk: remaining accounting
+PASS  disk: scratch removed on exit
+PASS  disk: refuses when base over quota  disk quota already exceeded in /tmp/tmp4vicwkki/scratch: 0.0 MB > 0 MB
+PASS  disk: RLIMIT_FSIZE stops an 8 MB write at 1 MB  rc=1 size=1048576
+PASS  kill: tier 0 is process-group SIGKILL on timeout
+PASS  kill: only SOFT_RESET is automatic
+PASS  kill: no automatic driver reload / reboot
+PASS  kill: final tier stops and escalates to a human
+PASS  kill: policy never lowers RLIMIT_NPROC
+PASS  kill: markdown renderer works
+PASS  harness: NPROC limit is 0 (not 32)
+PASS  harness: NPROC rlimit left untouched by default
+PASS  harness: preflight refuses oversized spec (returns FAILED)  Pre-flight FAILED: VRAM budget exceeded: need 9216.0 MB (allocations 8192.0 MB + 1024 MB context reserve), limit 2048 MB
+
+0 failure(s)

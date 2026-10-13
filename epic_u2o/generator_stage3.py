@@ -53,9 +53,6 @@ class KernelSpec:
     op_type: str
     metadata: dict
     
-    def kernel_hash(self) -> str:
-        return hashlib.sha256(self.source.encode()).hexdigest()[:16]
-    
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -77,19 +74,19 @@ __global__ void coalesced_write(const float* __restrict__ in, float* __restrict_
     'strided_read': '''
 __global__ void strided_read(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i * stride < n) out[i] = in[i * stride];
+    if (i < n / stride) out[i] = in[i * stride];
 }
 ''',
     'strided_write': '''
 __global__ void strided_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < n) out[i * stride] = in[i];
+    if (i < n / stride) out[i * stride] = in[i];
 }
 ''',
     'strided_read_write': '''
 __global__ void strided_read_write(const float* __restrict__ in, float* __restrict__ out, int n, int stride) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i * stride < n) out[i * stride] = in[i * stride];
+    if (i < n / stride) out[i * stride] = in[i * stride];
 }
 ''',
     'segmented_read': '''
@@ -98,7 +95,7 @@ __global__ void segmented_read(const float* __restrict__ in, float* __restrict__
     if (i < n) {
         int segment = i / segment_size;
         int offset = i % segment_size;
-        out[i] = in[segment * n + offset];
+        out[i] = in[segment * segment_size + offset];
     }
 }
 ''',
@@ -437,6 +434,10 @@ def generate_kernels(
                                 'access_pattern': 'transpose' if 'transpose' in op_name else 'diagonal',
                                 'coalesced': 'transpose' in op_name,
                                 '2d': True,
+                                # u2o.11.3: dims for the driver (rows/cols args
+                                # would otherwise synthesize as 1 -> vacuous).
+                                'rows': rows,
+                                'cols': cols,
                             },
                         )
                         count += 1

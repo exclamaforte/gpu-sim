@@ -1,0 +1,190 @@
+{
+  "bead": "gpu-sim-edu.1",
+  "produced_at_utc": "2026-10-03T19:51:07.865727+00:00",
+  "produced_by": "experiments/gpu-sim-edu.1/measure_dispatch.py",
+  "gpu_used": false,
+  "commit": "ddc0143",
+  "bd_version": "bd version 1.3.0 (v1.3.0-fork1(071b61a): lab/gpu-sim-edu.1@071b61aa1f5c)",
+  "board_counts": {
+    "bd_ready_returned": 33,
+    "offered_after_filter": 27,
+    "excluded": 6,
+    "ready_by_priority": {
+      "P0": 12,
+      "P1": 18,
+      "P2": 2,
+      "P3": 1
+    }
+  },
+  "criterion_1_validated_but_unmerged": {
+    "present_in_bd_ready": [
+      "gpu-sim-u2o.20",
+      "gpu-sim-u2o.7.7",
+      "gpu-sim-u2o.8.3",
+      "gpu-sim-u2o.6.6.5",
+      "gpu-sim-u2o.6.6.6",
+      "gpu-sim-u2o.19"
+    ],
+    "count": 6,
+    "offered_any": [],
+    "verdict": "FIXED by the label filter"
+  },
+  "criterion_2_dep_blocked": {
+    "present_in_bd_ready": [],
+    "count": 0,
+    "offered_any": [],
+    "verdict": "ALREADY CORRECT in bd: `bd ready` honours type=blocks edges. This branch verifies it rather than reimplementing it, so a regression in bd is caught instead of assumed."
+  },
+  "excluded_with_reasons": [
+    {
+      "id": "gpu-sim-u2o.7.7",
+      "reason": "validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge"
+    },
+    {
+      "id": "gpu-sim-u2o.8.3",
+      "reason": "validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge"
+    },
+    {
+      "id": "gpu-sim-u2o.19",
+      "reason": "validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.5",
+      "reason": "validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.6",
+      "reason": "validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge"
+    },
+    {
+      "id": "gpu-sim-u2o.20",
+      "reason": "validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge"
+    }
+  ],
+  "ordering": {
+    "rule": "priority first, then created_at, then id",
+    "not_recency": "recency is what put a reviewed-and-merge-ready bead at the top of a dispatch in the first place",
+    "first_five_offered": [
+      "gpu-sim-u2o",
+      "gpu-sim-u2o.6",
+      "gpu-sim-u2o.6.1",
+      "gpu-sim-u2o.6.3",
+      "gpu-sim-u2o.6.4"
+    ]
+  },
+  "filter_can_pass": {
+    "offered": 27,
+    "removed_fraction": 0.1818,
+    "note": "a filter that emptied the list would satisfy every exclusion assertion and be useless; tests assert ordinary ready work SURVIVES"
+  },
+  "criterion_4_own_labels_RECORDED_not_gated": {
+    "labels": [
+      "fab-audit-reopened",
+      "needs-rework"
+    ],
+    "note": "recorded, never gated: these labels change when the reviewer acts, and a gate that flips on someone else's action is not a gate. See criterion_4_bd_offers_no_inherit_labels for what IS gated."
+  },
+  "criterion_4_bd_offers_no_inherit_labels": true,
+  "status_map_provenance": {
+    "total_issues": 151,
+    "closed_issues": 74,
+    "non_closed": 77,
+    "note": "bd list is partial in BOTH directions: the default returns only non-closed and --status closed only closed, so the map is their merge. Taking either alone makes absence silently mean 'open'."
+  },
+  "properties": {
+    "criterion_1_no_merge_pending_offered": true,
+    "criterion_2_no_dep_blocked_offered": true,
+    "criterion_4_bd_offers_no_inherit_labels": true,
+    "the_status_map_was_built_from_both_listings": true
+  },
+  "all_properties_pass": true
+}
+OK: criterion 1 fixed; criterion 2 verified-correct from a status map built from BOTH bd listings; criterion 4 gated on bd offering --no-inherit-labels, with this bead's labels RECORDED rather than gated.
+bd ready returned 33; offering 27; excluded 6
+  EXCLUDED gpu-sim-u2o.7.7  P1  -- validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge
+  EXCLUDED gpu-sim-u2o.8.3  P1  -- validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge
+  EXCLUDED gpu-sim-u2o.19  P3  -- validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge
+  EXCLUDED gpu-sim-u2o.6.6.5  P1  -- validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge
+  EXCLUDED gpu-sim-u2o.6.6.6  P1  -- validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge
+  EXCLUDED gpu-sim-u2o.20  P0  -- validated/validated-pending-merge with no outstanding verdict: finished, awaiting merge
+○ gpu-sim-u2o P1 [epic] CUDA runtime prediction: learned performance model for RTX 5090
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6 P0 [epic] Safe execution and measurement harness on the real 5090
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6.1 P0 [task] Process isolation and timeout/watchdog for untrusted generated kernels
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6.3 P1 [task] Resource limits: VRAM caps, disk quota, runaway-process kill rules
+      labels: fab-audit-reopened,needs-rework
+○ gpu-sim-u2o.6.4 P1 [task] Clock-locking and thermal-stability controls
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6.6 P1 [task] Repeated-trial statistics and noise-aware target construction
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6.7 P1 [task] Data-generation throughput instrumentation and experiment log
+      labels: needs-rework
+○ gpu-sim-u2o.7 P1 [epic] Program and kernel generator / dataset pipeline
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.7.6 P2 [task] Mine real-world kernel corpora for realistic distribution coverage
+      labels: needs-rework
+○ gpu-sim-u2o.8 P1 [epic] Representation and tokenization
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.14 P2 [feature] Epic follow-up: generator stage 1 + representation tokenizer
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.15 P0 [bug] AUDIT FINDING: gpu-sim-u2o epic was closed via fabricated/synthetic evidence, not real 5090 measurements
+      labels: fabrication-audit
+○ gpu-sim-u2o.17 P0 [epic] Definition-of-done gate: real-vs-simulated PyTorch trace parity for basic workloads
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.18 P0 [task] EXECUTION PLAN: phased approach to closing the gap (harness-first, baselines-before-transformer, ts-scheduled)
+      labels: execution-plan,fab-audit-reopened
+○ gpu-sim-u2o.6.10 P0 [task] Supervised single-dose harness validation: one normal kernel + the existing --test-hang kernel, via ts, watched
+      labels: fab-audit-reopened,needs-rework
+○ gpu-sim-u2o.6.1.2 P1 [task] Restore per-tree process/thread containment: cgroup v2 pids.max per run (RLIMIT_NPROC is unusable on this host)
+      labels: fab-audit-reopened,needs-rework
+○ gpu-sim-u2o.6.3.1 P1 [bug] rlimit CUDA-compatibility gate: every limit the harness applies must be proven harmless to CUDA, with a fail-fast probe
+      labels: needs-rework
+○ gpu-sim-u2o.6.11 P0 [task] master tracks 2 of ~40 epic_u2o/ modules: decide deliberately what to track, then track it
+      labels: fab-audit-reopened,needs-rework
+○ gpu-sim-u2o.6.6.4 P1 [task] Roofline sanity check against the anchor: does the analytic model predict the launch-bound regime, and what does it fail on
+      labels: -
+○ gpu-sim-8dw P1 [bug] preflight_validator._run_under_fakegpu is a stub that always returns success
+      labels: -
+○ gpu-sim-u2o.6.7.1 P0 [task] Batch or persist the measurement worker: the ~3,312x fix that is nobody's task
+      labels: needs-rework
+○ gpu-sim-465 P1 [epic] EPIC: a settable NCCL net-transport plugin, so simulated links become a first-class experiment parameter
+      labels: -
+○ gpu-sim-465.1 P0 [task] PHASE 0 (go/no-go): recover the ncclNet_vN ABI from the shipped libnccl and get a plugin dlopen'd and accepted
+      labels: needs-rework
+○ gpu-sim-edu P0 [bug] Fix two lab-tooling defects that made GPU and progress signals silently report the wrong thing
+      labels: fab-audit-reopened,needs-rework
+○ gpu-sim-u2o.6.6.6.2 P1 [bug] queue_state rows carry NO per-sample provenance: criterion 2's 'which path + read age' lives only in process-global load_stats()
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6.6.6.3 P1 [bug] queue_state's residual sweep is still O(n): the queue outgrew criterion 1 at ~739 files
+      labels: fab-audit-reopened
+○ gpu-sim-u2o.6.6.2.1 P0 [bug] A finished queue job's artifact was overwritten by a git restore 20 seconds later
+      labels: fab-audit-reopened
+test_a_bead_blocked_by_an_OPEN_issue_stays_hidden (__main__.TestAgainstTheRealDatabase.test_a_bead_blocked_by_an_OPEN_issue_stays_hidden)
+The property, stated so it does not expire when state moves. ... ok
+test_no_offered_bead_has_an_open_blocker (__main__.TestAgainstTheRealDatabase.test_no_offered_bead_has_an_open_blocker) ... ok
+test_no_offered_bead_is_finished_awaiting_merge (__main__.TestAgainstTheRealDatabase.test_no_offered_bead_is_finished_awaiting_merge) ... ok
+test_the_filter_does_not_empty_the_list (__main__.TestAgainstTheRealDatabase.test_the_filter_does_not_empty_the_list)
+THE CHECK MUST BE ABLE TO PASS. ... ok
+test_dep_blocked_by_open_issue_is_not_offered (__main__.TestFixtureExclusions.test_dep_blocked_by_open_issue_is_not_offered) ... ok
+test_every_exclusion_states_a_reason (__main__.TestFixtureExclusions.test_every_exclusion_states_a_reason) ... ok
+test_offered_and_dropped_partition_the_input (__main__.TestFixtureExclusions.test_offered_and_dropped_partition_the_input) ... ok
+test_outstanding_verdict_beats_a_merge_pending_label (__main__.TestFixtureExclusions.test_outstanding_verdict_beats_a_merge_pending_label)
+A bead under review is not finished, even if it says `validated`. ... ok
+test_plain_ready_work_survives (__main__.TestFixtureExclusions.test_plain_ready_work_survives)
+The assertion that stops this being a shredder. ... ok
+test_validated_unmerged_is_not_offered (__main__.TestFixtureExclusions.test_validated_unmerged_is_not_offered) ... ok
+test_order_is_deterministic (__main__.TestOrdering.test_order_is_deterministic) ... ok
+test_priority_beats_recency (__main__.TestOrdering.test_priority_beats_recency) ... ok
+test_a_map_with_no_closed_issues_raises (__main__.TestStatusLookupFailsLoudly.test_a_map_with_no_closed_issues_raises)
+The closed set disappearing is the original phantom-leak bug. ... ok
+test_a_real_map_carries_both_open_and_closed (__main__.TestStatusLookupFailsLoudly.test_a_real_map_carries_both_open_and_closed) ... ok
+test_the_live_map_is_not_all_closed (__main__.TestStatusLookupFailsLoudly.test_the_live_map_is_not_all_closed)
+Guards the merge itself: an all-closed map means a listing failed. ... ok
+test_total_failure_raises_instead_of_returning_empty (__main__.TestStatusLookupFailsLoudly.test_total_failure_raises_instead_of_returning_empty) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 2.377s
+
+OK

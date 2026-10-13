@@ -1,0 +1,427 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "family": "gemm",
+  "queue_state_before": {
+    "recorded_at": "2026-10-06T04:22:11.840858+00:00",
+    "own_job_id": "20260928t053730-ae3d17fb",
+    "own_description_substr": "u2o.6.6.2 anchor: gemm",
+    "own_job_id_resolution": "command:newest",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 1150,
+      "failed": 374,
+      "canceled": 103,
+      "timed_out": 8,
+      "killed_underused": 21,
+      "killed_oom": 1,
+      "running": 1,
+      "queued": 1
+    },
+    "own_job_entry": null,
+    "own_job_in_active_set": false,
+    "n_active_including_self": 2,
+    "n_jobs_read": 1659,
+    "empty_claim_derived_from_n": 2,
+    "empty_claim_verified": false,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      },
+      {
+        "id": "20261006t041807-f414f28e",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-10-06T04:18:07+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      }
+    ],
+    "queue_was_empty": null,
+    "queue_was_empty_omitted_because": "our own job could not be identified in the set we read, so an emptiness claim is not derivable from this record",
+    "sample_provenance": {
+      "source": "fresh_parse",
+      "counts_by_path": {
+        "listing_ttl_hit": 0,
+        "terminal_hit_no_stat": 0,
+        "terminal_hit_stat_ok": 0,
+        "fresh_parse": 1659
+      },
+      "read_age_ms": 0.0,
+      "listing_age_ms": 0.0,
+      "n_files_seen": 1660,
+      "unparseable_skipped_retry": 0,
+      "note": "read_age_ms is the age of the OLDEST underlying read among the records served, so it is the worst case for this sample. The ACTIVE set is never cached, so active jobs are always fresh_parse and contribute 0."
+    },
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-10-06T04:22:30.715474+00:00",
+    "own_job_id": "20260928t053730-ae3d17fb",
+    "own_description_substr": "u2o.6.6.2 anchor: gemm",
+    "own_job_id_resolution": "command:newest",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 1150,
+      "failed": 374,
+      "canceled": 103,
+      "timed_out": 8,
+      "killed_underused": 21,
+      "killed_oom": 1,
+      "running": 1,
+      "queued": 1
+    },
+    "own_job_entry": null,
+    "own_job_in_active_set": false,
+    "n_active_including_self": 2,
+    "n_jobs_read": 1659,
+    "empty_claim_derived_from_n": 2,
+    "empty_claim_verified": false,
+    "n_other_active": 2,
+    "n_other_running_at_sample_time": 1,
+    "other_active_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      },
+      {
+        "id": "20261006t041807-f414f28e",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-10-06T04:18:07+00:00"
+      }
+    ],
+    "other_running_jobs": [
+      {
+        "id": "20261006t041800-5878994f",
+        "state": "running",
+        "description": "u2o.6.6 dose: 124 anchor cells ruling-b",
+        "created_at": "2026-10-06T04:18:00+00:00"
+      }
+    ],
+    "queue_was_empty": null,
+    "queue_was_empty_omitted_because": "our own job could not be identified in the set we read, so an emptiness claim is not derivable from this record",
+    "sample_provenance": {
+      "source": "terminal_hit_no_stat",
+      "counts_by_path": {
+        "listing_ttl_hit": 0,
+        "terminal_hit_no_stat": 1656,
+        "terminal_hit_stat_ok": 0,
+        "fresh_parse": 3
+      },
+      "read_age_ms": 19050.609,
+      "listing_age_ms": 0.0,
+      "n_files_seen": 1660,
+      "unparseable_skipped_retry": 1,
+      "note": "read_age_ms is the age of the OLDEST underlying read among the records served, so it is the worst case for this sample. The ACTIVE set is never cached, so active jobs are always fresh_parse and contribute 0."
+    },
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "preflight_bypassed": true,
+  "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
+  "telemetry_before": {
+    "label": "before",
+    "at": 1791260531.6392725,
+    "rc": 0,
+    "csv": "2422 MHz, 3105 MHz, 45, 70.50 W, 0 %, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2422 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "45",
+      "power.draw": "70.50 W",
+      "utilization.gpu": "0 %",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "telemetry_after": {
+    "label": "after",
+    "at": 1791260550.6892226,
+    "rc": 0,
+    "csv": "2595 MHz, 3105 MHz, 47, 124.47 W, 1 %, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2595 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "47",
+      "power.draw": "124.47 W",
+      "utilization.gpu": "1 %",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "throttling_observed": false,
+  "design": {
+    "trials": 100,
+    "invocations": 3,
+    "note": "invocations are independent PROCESSES"
+  },
+  "results": [
+    {
+      "label": "tiled_gemm 512^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.040208,
+      "iqr_ms": 0.001344000000000005,
+      "mean_ms": 0.0404128,
+      "std_ms": 0.0014387604457792766,
+      "cv": 0.035601602605592204,
+      "medians_across_invocations_ms": [
+        0.040208,
+        0.039648,
+        0.040336
+      ],
+      "across_invocation_cv": 0.009133064397786895,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 512^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013008,
+      "iqr_ms": 0.0007359999999999988,
+      "mean_ms": 0.013498133333333334,
+      "std_ms": 0.0018811665283394326,
+      "cv": 0.13936493897966873,
+      "medians_across_invocations_ms": [
+        0.013008,
+        0.012912,
+        0.013024
+      ],
+      "across_invocation_cv": 0.00466631745751875,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 1024^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.25727999999999995,
+      "iqr_ms": 0.0011839999999999629,
+      "mean_ms": 0.2579626666666667,
+      "std_ms": 0.002675448770635274,
+      "cv": 0.010371457254674865,
+      "medians_across_invocations_ms": [
+        0.25784,
+        0.25695999999999997,
+        0.25727999999999995
+      ],
+      "across_invocation_cv": 0.0017307318504290819,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 1024^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.06265599999999999,
+      "iqr_ms": 0.002368000000000002,
+      "mean_ms": 0.06379626666666667,
+      "std_ms": 0.003162277820247515,
+      "cv": 0.04956838362925388,
+      "medians_across_invocations_ms": [
+        0.062,
+        0.06265599999999999,
+        0.06465599999999999
+      ],
+      "across_invocation_cv": 0.02192435290416584,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 2048^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 1.8389440000000001,
+      "iqr_ms": 0.015487999999999946,
+      "mean_ms": 1.8349365333333334,
+      "std_ms": 0.010417506190838494,
+      "cv": 0.005677311450066408,
+      "medians_across_invocations_ms": [
+        1.839056,
+        1.8389440000000001,
+        1.823712
+      ],
+      "across_invocation_cv": 0.004813070127891134,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 2048^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.406512,
+      "iqr_ms": 0.002559999999999951,
+      "mean_ms": 0.4074282666666667,
+      "std_ms": 0.003405600959270671,
+      "cv": 0.008358774385324936,
+      "medians_across_invocations_ms": [
+        0.406608,
+        0.406512,
+        0.406432
+      ],
+      "across_invocation_cv": 0.00021677090133897557,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 4096^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 15.02936,
+      "iqr_ms": 0.01990399999999859,
+      "mean_ms": 15.069684800000001,
+      "std_ms": 0.17658796883646927,
+      "cv": 0.011718093057690846,
+      "medians_across_invocations_ms": [
+        15.02936,
+        15.025488,
+        15.040432
+      ],
+      "across_invocation_cv": 0.0005159537971916497,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 4096^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 3.092848,
+      "iqr_ms": 0.017664000000000346,
+      "mean_ms": 3.0975887999999996,
+      "std_ms": 0.01442778466004431,
+      "cv": 0.004657746909481436,
+      "medians_across_invocations_ms": [
+        3.114896,
+        3.08112,
+        3.092848
+      ],
+      "across_invocation_cv": 0.005538487835783701,
+      "throttle_active": false
+    }
+  ],
+  "wall_sec": 18.874532461166382,
+  "artifact_provenance": {
+    "written_by_job": "20260928t053730-ae3d17fb",
+    "written_at_utc": "2026-10-06T04:22:30.715547+00:00",
+    "content_sha256": "40e78464dbd80d88667b70b484627d03cc2b21a765b0d83bcf8cd52a712ae660",
+    "note": "content_sha256 covers this artifact EXCLUDING this provenance block, so it can be recomputed after a restore to detect that the on-disk content is not what this job produced."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2.1.1",
+  "produced_at_utc": "2026-10-03T19:31:46.384562+00:00",
+  "produced_by": "experiments/gpu-sim-u2o.6.6.2.1.1/measure_supersession.py",
+  "gpu_used": false,
+  "commit": "566ba0b",
+  "rule": "OMISSION NOT NULL: an artifact that cannot name a superseding commit omits the key. A null asserts that nothing supersedes it, which is a claim nobody checked.",
+  "inventory": [
+    {
+      "artifact": "experiments/gpu-sim-u2o.17.5/job.json",
+      "bead": "gpu-sim-u2o.17.5",
+      "branch_ref": "lab/gpu-sim-u2o.17.5-r2",
+      "branch_still_exists": false,
+      "landed_on_master_at": "ccb32ad",
+      "superseded_by_location": "top-level",
+      "superseded_by_commit": "ccb32ad",
+      "resolves_to_master_commit": true,
+      "resolved_without_help": true
+    },
+    {
+      "artifact": "experiments/gpu-sim-u2o.6.6.2/job.json",
+      "bead": "gpu-sim-u2o.6.6.2",
+      "branch_ref": "lab/gpu-sim-u2o.6.6.2-r2",
+      "branch_still_exists": true,
+      "landed_on_master_at": "566ba0b",
+      "superseded_by_location": "tree_state",
+      "superseded_by_commit": "566ba0b",
+      "resolves_to_master_commit": true,
+      "resolved_without_help": true
+    },
+    {
+      "artifact": "experiments/gpu-sim-u2o.6.6.2/metrics.json",
+      "bead": "gpu-sim-u2o.6.6.2",
+      "branch_ref": "lab/gpu-sim-u2o.6.6.2-r2",
+      "branch_still_exists": true,
+      "landed_on_master_at": "566ba0b",
+      "superseded_by_location": "tree_state",
+      "superseded_by_commit": "566ba0b",
+      "resolves_to_master_commit": true,
+      "resolved_without_help": true
+    }
+  ],
+  "null_offenders": [],
+  "unstamped_but_landed": [],
+  "properties": {
+    "no_null_superseded_by": true,
+    "every_landed_artifact_is_stamped": true,
+    "at_least_one_artifact_inventoried": true,
+    "a_deleted_ref_is_detected": true,
+    "a_live_ref_is_flagged_as_a_hazard": true
+  },
+  "all_properties_pass": true,
+  "known_outstanding": "The dirty lab/gpu-sim-u2o.6.6.2-r2 worktree is NOT disposed of here. Disposal is destructive and is tracked under gpu-sim-u2o.6.6.2.1 criterion 3. Its content is preserved: the three v8 family files that mattered were copied into experiments/gpu-sim-u2o.6.6.2/variance_probe_v8/ before that bead merged, so disposal loses no measurement."
+}
+OK: every landed artifact names a master-reachable commit, no nulls, and both a deleted ref and a live-but-not-current ref are detected.
+test_empty_field_is_empty_not_an_index_error (__main__.TestBranchFieldParsing.test_empty_field_is_empty_not_an_index_error) ... ok
+test_prose_stamp_yields_the_ref (__main__.TestBranchFieldParsing.test_prose_stamp_yields_the_ref)
+gpu-sim-u2o.17.5 stamps the branch with a sentence glued on. ... ok
+test_a_live_branch_is_not_claimed_superseded (__main__.TestEveryStampedArtifact.test_a_live_branch_is_not_claimed_superseded)
+A branch that still resolves must not be reported as superseded. ... ok
+test_every_landed_artifact_names_a_master_reachable_commit (__main__.TestEveryStampedArtifact.test_every_landed_artifact_names_a_master_reachable_commit)
+Criterion 3 proper. ... ok
+test_no_artifact_carries_a_null_superseded_by (__main__.TestEveryStampedArtifact.test_no_artifact_carries_a_null_superseded_by)
+The absent-vs-null rule, asserted over real artifacts. ... ok
+test_the_suite_can_actually_find_a_bad_artifact (__main__.TestEveryStampedArtifact.test_the_suite_can_actually_find_a_bad_artifact)
+THE CHECK MUST BE ABLE TO FAIL. ... ok
+test_an_already_stamped_record_is_not_recomputed (__main__.TestTheSupersessionRule.test_an_already_stamped_record_is_not_recomputed) ... ok
+test_content_on_master_is_recorded_even_when_the_ref_survives (__main__.TestTheSupersessionRule.test_content_on_master_is_recorded_even_when_the_ref_survives)
+The case that made me rewrite the rule. ... ok
+test_deleted_ref_is_recorded_as_gone (__main__.TestTheSupersessionRule.test_deleted_ref_is_recorded_as_gone) ... ok
+test_unresolvable_omits_the_key_rather_than_writing_null (__main__.TestTheSupersessionRule.test_unresolvable_omits_the_key_rather_than_writing_null) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.030s
+
+OK

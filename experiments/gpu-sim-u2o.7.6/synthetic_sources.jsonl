@@ -1,0 +1,27 @@
+{"kernel_name": "k_scale", "source": "__global__ void k_scale(float alpha, const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=alpha*a[i];}"}
+{"kernel_name": "k_add", "source": "__global__ void k_add(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]+b[i];}"}
+{"kernel_name": "k_saxpy", "source": "__global__ void k_saxpy(float alpha, const float* a, const float* y, float* z, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)z[i]=alpha*a[i]+y[i];}"}
+{"kernel_name": "k_relu", "source": "__global__ void k_relu(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]>0.0f?a[i]:0.0f;}"}
+{"kernel_name": "k_copy", "source": "__global__ void k_copy(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i];}"}
+{"kernel_name": "k_triad", "source": "__global__ void k_triad(float alpha, const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=alpha*a[i]+b[i];}"}
+{"kernel_name": "k_mul", "source": "__global__ void k_mul(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]*b[i];}"}
+{"kernel_name": "k_div", "source": "__global__ void k_div(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]/b[i];}"}
+{"kernel_name": "k_block_sum", "source": "__global__ void k_block_sum(const float* a, float* y, int n){__shared__ float s[256];int i=blockIdx.x*blockDim.x+threadIdx.x;s[threadIdx.x]=(i<n)?a[i]:0.0f;__syncthreads();for(int k=blockDim.x/2;k>0;k>>=1){if(threadIdx.x<k)s[threadIdx.x]+=s[threadIdx.x+k];__syncthreads();}if(threadIdx.x==0)y[blockIdx.x]=s[0];}"}
+{"kernel_name": "k_strided_read", "source": "__global__ void k_strided_read(const float* a, float* y, int n, int stride){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i*stride<n?i*stride:n-1];}"}
+{"kernel_name": "k_scatter_write", "source": "__global__ void k_scatter_write(const float* a, float* y, const int* idx, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[idx[i]<n?idx[i]:n-1]=a[i];}"}
+{"kernel_name": "k_random_access", "source": "__global__ void k_random_access(const float* a, float* y, const unsigned int* seed, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n){unsigned s=seed[i]*1664525u+1013904223u;y[i]=a[s%n];}}"}
+{"kernel_name": "k_tiled_gemm", "source": "__global__ void k_tiled_gemm(const float* A,const float* B,float* C,int D){__shared__ float As[32][32],Bs[32][32];int t=blockIdx.x*32+threadIdx.x;for(int k=0;k<32;k+=1){As[threadIdx.x][k]=A[t*32+k];Bs[threadIdx.x][k]=B[k*32+threadIdx.x];}__syncthreads();for(int k=0;k<32;k++)C[t*32+threadIdx.x]+=As[threadIdx.x][k]*Bs[threadIdx.x][k];}"}
+{"kernel_name": "k_sub", "source": "__global__ void k_sub(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]-b[i];}"}
+{"kernel_name": "k_max", "source": "__global__ void k_max(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]>b[i]?a[i]:b[i];}"}
+{"kernel_name": "k_min", "source": "__global__ void k_min(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]<b[i]?a[i]:b[i];}"}
+{"kernel_name": "k_fma", "source": "__global__ void k_fma(const float* a, const float* b, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]*b[i]+a[i];}"}
+{"kernel_name": "k_neg", "source": "__global__ void k_neg(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=-a[i];}"}
+{"kernel_name": "k_abs", "source": "__global__ void k_abs(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]<0.0f?-a[i]:a[i];}"}
+{"kernel_name": "k_sqrt", "source": "__global__ void k_sqrt(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=sqrtf(a[i]);}"}
+{"kernel_name": "k_exp", "source": "__global__ void k_exp(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=expf(a[i]);}"}
+{"kernel_name": "k_sin", "source": "__global__ void k_sin(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=sinf(a[i]);}"}
+{"kernel_name": "k_cos", "source": "__global__ void k_cos(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=cosf(a[i]);}"}
+{"kernel_name": "k_warp_reduce", "source": "__global__ void k_warp_reduce(const float* a, float* y, int n){for(int b=blockIdx.x*blockDim.x; b<n; b+=blockDim.x*gridDim.x){float v=(b+threadIdx.x<n)?a[b+threadIdx.x]:0.0f;for(int o=16;o>0;o>>=1)v+=__shfl_down_sync(0xffffffffu,v,o);if(threadIdx.x==0&&b<n)y[b]=v;}}"}
+{"kernel_name": "k_atomic_hist", "source": "__global__ void k_atomic_hist(const float* a, unsigned* h, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n){int b=(int)fabsf(a[i]*16.0f);if(b<256)atomicAdd(&h[b],1u);}}"}
+{"kernel_name": "k_atomic_sum", "source": "__global__ void k_atomic_sum(const float* a, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)atomicAdd(&y[0],a[i]);}"}
+{"kernel_name": "k_clamp", "source": "__global__ void k_clamp(const float* a, float lo, float hi, float* y, int n){int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)y[i]=a[i]<lo?lo:(a[i]>hi?hi:a[i]);}"}

@@ -1,0 +1,34 @@
+{
+  "bead": "gpu-sim-u2o.6.1",
+  "timeout_sec": 3,
+  "gpu_health_probe": "stubbed (returns 'skipped-cpu-test'); real post-hang probe is gpu-sim-u2o.6.10",
+  "normal": {
+    "success": true,
+    "returncode": 0,
+    "timeout": false,
+    "wall_time_sec": 0.019
+  },
+  "hang": {
+    "timeout": true,
+    "success": false,
+    "returncode": -1,
+    "wall_time_sec": 3.03,
+    "task_limits": {
+      "tasks_max": 256,
+      "mechanism": "cgroup",
+      "mechanism_detail": "own cgroup /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-graphical.slice/app-Hyprland-xdg\\x2dterminal\\x2dexec-1217345c.scope writable=True",
+      "systemd_run_not_used_because": "systemd-run --wait detaches the child from our process group, which silently disables the timeout kill; see task_limits.py",
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-graphical.slice/fgpu-1791248187-500653",
+      "cgroup_cleaned": true
+    },
+    "pids": [
+      500752,
+      500757
+    ],
+    "survivors": [],
+    "kill_wall_sec": 3.062
+  },
+  "pipeline_continues": true,
+  "verdict": "pass",
+  "failures": []
+}

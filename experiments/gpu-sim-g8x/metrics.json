@@ -1,0 +1,57 @@
+{
+  "bead": "gpu-sim-g8x",
+  "bottleneck_before_after": {
+    "latency->latency": 456
+  },
+  "mean_occupancy_after": 0.6842,
+  "mean_occupancy_before": 1.0,
+  "n_rows": 456,
+  "overall_mean_abs_after": 7.7238,
+  "overall_mean_abs_before": 7.7238,
+  "per_op": {
+    "add": {
+      "mean_abs_after": 7.5037,
+      "mean_abs_before": 7.5037,
+      "n": 57
+    },
+    "copy": {
+      "mean_abs_after": 8.0479,
+      "mean_abs_before": 8.0479,
+      "n": 57
+    },
+    "div": {
+      "mean_abs_after": 7.1408,
+      "mean_abs_before": 7.1408,
+      "n": 57
+    },
+    "mul": {
+      "mean_abs_after": 7.479,
+      "mean_abs_before": 7.479,
+      "n": 57
+    },
+    "relu": {
+      "mean_abs_after": 8.0186,
+      "mean_abs_before": 8.0186,
+      "n": 57
+    },
+    "saxpy": {
+      "mean_abs_after": 7.9037,
+      "mean_abs_before": 7.9037,
+      "n": 57
+    },
+    "scale": {
+      "mean_abs_after": 8.0541,
+      "mean_abs_before": 8.0541,
+      "n": 57
+    },
+    "triad": {
+      "mean_abs_after": 7.6427,
+      "mean_abs_before": 7.6427,
+      "n": 57
+    }
+  },
+  "reading": "occupancy falls with the fix (fix bites), but every row is bottleneck=latency before AND after, so predicted times are identical: on THIS corpus occupancy was not binding. The bias correction will show up on smem/register-bound workloads (u2o.17 traces), not here. That is the no-change-means-not-binding outcome, measured, not asserted.",
+  "signed_bias_after": 7.7238,
+  "signed_bias_before": 7.7238,
+  "verdict": "pass"
+}

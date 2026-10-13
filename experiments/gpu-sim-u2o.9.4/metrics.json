@@ -1,0 +1,127 @@
+{
+  "arc": {
+    "g8x_after": 7.7238,
+    "g8x_before": 7.7238,
+    "p46_after": 0.6581,
+    "p46_before": 0.9955,
+    "p46_bias_after": -0.0245,
+    "p46_bias_before": 0.3722,
+    "p46_regimes": {
+      "latency->latency": [
+        0.5638,
+        -0.5638
+      ],
+      "latency->memory": [
+        0.6873,
+        0.378
+      ],
+      "memory->memory": [
+        1.1209,
+        1.1164
+      ]
+    },
+    "u83_distinct_corrected": 456,
+    "u83_item5_groups": 0,
+    "u83_zero_byte_rows": 0,
+    "zhq_after": 0.7258,
+    "zhq_before": 7.7238,
+    "zhq_bias_after": -0.7258
+  },
+  "arc_overall": "7.7238 -> 0.6581 (11.7x) by removing four wrong assumptions, none of it by fitting",
+  "bandwidth_convention": "8.3 arity counts per row: subscripts + *p derefs + atomics + float scalars, x4B, x covers; loop/branch-resident counted once. Printed beside EVERY figure (item 1).",
+  "bead": "gpu-sim-u2o.9.4",
+  "cancellation": "overall signed bias -0.0245 is CANCELLATION, not accuracy: latency->latency underpredicts (-0.5638, residual B) while latency->memory (+0.378) and memory->memory (+1.1164, residual A) overpredict. Reporting -0.0245 as accuracy would be the single most misleading thing this report could do.",
+  "ceiling_candidates": {
+    "argmax_rule": "the achieved-at-saturation figure: a ceiling is a rate some launch demonstrably sustains, not a rate no launch has reached",
+    "candidates": [
+      {
+        "source": "megakern peak_read_GBps",
+        "status": "CHOSEN (46p form a): measured at saturation",
+        "value_GBps": 1688.592
+      },
+      {
+        "source": "megakern theoretical_read_bw_GBs",
+        "status": "REJECTED: vendor theory, no measured efficiency",
+        "value_GBps": 1792.0
+      },
+      {
+        "source": "megakern peak_copy_GBps",
+        "status": "FOLLOW-UP (residual A): mixed-traffic ceiling by arity, to be measured not fitted",
+        "value_GBps": 1468.996
+      }
+    ],
+    "membership_rule": "measured on this silicon (megakern-37e.2) or vendor theory from the same file; no other numbers admitted"
+  },
+  "contention": {
+    "n_contended": 0,
+    "n_rows": 456,
+    "verdict": "456/456 corpus cells measured with no other job active or running (queue_state on every row). The ceiling anchor (megakern rtx5090.json, ts 20261003t213327-db6b7f3f) records NO contention state -- stated, not assumed; the corpus side of the bound is clean, the anchor side is unknown."
+  },
+  "excluded_rows": 0,
+  "exemplar_scale_2e22": {
+    "achieved_GBps": 1500.8,
+    "bytes_moved": 50331648,
+    "convention": "8.3 arity: 2 reads + 1 write of 4B = 3*4*n",
+    "kernel_hash": "66a4b75ee7ee19a8",
+    "median_ms": 0.033535999999999996
+  },
+  "failures": [],
+  "families": {
+    "add": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "copy": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "div": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "mul": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "relu": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "saxpy": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "scale": {
+      "n_kernels": 1,
+      "n_rows": 57
+    },
+    "triad": {
+      "n_kernels": 1,
+      "n_rows": 57
+    }
+  },
+  "n_rows": 456,
+  "per_regime_achieved": {
+    "latency->latency": {
+      "max_achieved_GBps": 538.7,
+      "median_achieved_GBps": 46.9,
+      "n": 220,
+      "n_exceeding_read_peak": 0
+    },
+    "latency->memory": {
+      "max_achieved_GBps": 7479.8,
+      "median_achieved_GBps": 1977.5,
+      "n": 204,
+      "n_exceeding_read_peak": 119
+    },
+    "memory->memory": {
+      "max_achieved_GBps": 6050.2,
+      "median_achieved_GBps": 3624.1,
+      "n": 32,
+      "n_exceeding_read_peak": 29
+    }
+  },
+  "residual_A": "memory->memory n=32, abs 1.1209 bias +1.1164, 29 of 32 overpredict (3 underpredict -- visible, not hidden). PRIMARY candidate (evidence in per_regime_achieved): cache-resident traffic. 148/456 rows show EFFECTIVE rates above DRAM read-peak (max 7480 GB/s), all at large n across all ops -- repeated trials on resident buffers serve issued traffic from L2, so a DRAM-ceiling model overpredicts structurally. The read-peak-vs-mixed-write candidate is DEMOTED on sign: slower write bandwidth predicts UNDERprediction, but 29 of 32 rows OVERpredict (3 underpredict -- the demotion holds but is weaker than an all-32 claim would warrant). Scalar overcount (alpha as 4B/thread DRAM) contributes at most ~25% for saxpy-class rows. Carry to a named follow-up with a cache-busting streaming measurement; the memory arm's form does not change in this bead.",
+  "residual_B": "latency->latency n=220, abs 0.5638 bias -0.5638, all underpredict. Candidates: n-local floor (39u ruled it out overall, not for this subset) or a fixed per-launch cost above the floor (39u mechanism (a), named, never tested). Carry, do not fit.",
+  "verdict": "pass"
+}

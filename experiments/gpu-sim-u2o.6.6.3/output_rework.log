@@ -1,0 +1,20 @@
+cells: ['compute_bound', 'launch_bound', 'memory_bound']
+headline statement: worst sub-10 us ratio 1.19x (+19%, cell launch_bound, queued_routed) against the 7.4% across-invocation CV 6.6.1 measured for the same regime
+wrote metrics.json (reshaped, not re-measured)
+test_cells_span_three_regimes (__main__.TestCriterionFieldsExist.test_cells_span_three_regimes) ... ok
+test_criterion_1_flat_keys_per_cell (__main__.TestCriterionFieldsExist.test_criterion_1_flat_keys_per_cell) ... ok
+test_criterion_4_provenance_on_every_invocation (__main__.TestCriterionFieldsExist.test_criterion_4_provenance_on_every_invocation) ... ok
+test_flat_keys_are_aliases_not_recomputations (__main__.TestCriterionFieldsExist.test_flat_keys_are_aliases_not_recomputations) ... ok
+test_no_always_true_discriminates_boolean (__main__.TestCriterionFieldsExist.test_no_always_true_discriminates_boolean) ... ok
+test_rework_provenance_names_no_remeasurement (__main__.TestCriterionFieldsExist.test_rework_provenance_names_no_remeasurement) ... ok
+test_rule_floor_regime_travel_together (__main__.TestCriterionFieldsExist.test_rule_floor_regime_travel_together) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.000s
+
+OK
+cells present: ['compute_bound', 'launch_bound', 'memory_bound']
+cells.launch_bound: all 9 criterion keys present
+cells.memory_bound: all 9 criterion keys present
+cells.compute_bound: all 9 criterion keys present
+signal spreads: {'clocks.sm': 0.09782608695652174, 'temperature.gpu': 0.3333333333333333, 'power.draw': 0.866028208253526, 'utilization.gpu': 0.9387755102040817, 'clocks_throttle_reasons.active': 1.0, 'memory.used': 0.6139872842870118}

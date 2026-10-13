@@ -1,0 +1,32 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "failures": [],
+  "provenance": {
+    "distinct_sample_times": 264,
+    "rows_lacking_own_job_id": 0
+  },
+  "reading": "fast path works on current master (85x single-run); loop wall 2.5x the September arm (1.29s vs 0.52s) with identical per-launch medians -- cause not isolated, recorded not explained; criterion 2 still fails, cause still unidentified (BLOCKER_2 open); device-time metric formula in perkernel_confound.py was wrong by ~600x since creation, corrected to median*40*1e3",
+  "reproduce_vs_7_1": {
+    "compared": 264,
+    "criterion_2_met_0_90": false,
+    "faster_fraction": 0.5379,
+    "fraction": 0.7462,
+    "median_rel_diff": 0.1245,
+    "median_signed_diff": -0.0279,
+    "reproducing": 197
+  },
+  "rerun": {
+    "device_time_ratio": 0.986,
+    "device_time_us_recomputed": 124.2,
+    "device_time_us_reference": 126.0,
+    "ex_s": 204.26,
+    "ex_s_ratio": 0.4,
+    "ex_s_reference": 510.8,
+    "n_rows": 264,
+    "trial_shape": [
+      40
+    ],
+    "ts_job": "20261006t055612-834191c6"
+  },
+  "verdict": "pass"
+}

@@ -11,7 +11,36 @@
 # placeholder gpu-sim-u2o.6.4   (clock locking) -- PARKED, needs root and a human.
 # placeholder gpu-sim-u2o.6.6   (repeated-trial statistics) -- written on
 #   lab/gpu-sim-u2o.6.6.1.
-# placeholder gpu-sim-u2o.6.7   (throughput instrumentation) -- not started.
+## Data-generation throughput (gpu-sim-u2o.6.7)
+
+Measured, not asserted, from gpu-sim-u2o.7.1's batch of 264
+rows (ts `20260928t074004-b429f469`, 0 failures):
+
+* **8,599 examples/hour** (2.389 ex/s)
+  over a 110.5 s wall clock, i.e. 419 ms per row.
+* Cross-checked against the per-row `measured_at` span, an independent
+  derivation: 0.43% disagreement. One derivation is an
+  assertion; two that agree is evidence.
+
+**Where the time goes: 100.00% of the wall
+clock is NOT the kernel running.** 10.47 ms of wall
+per launch against 0.2 us of kernel, over
+10,560 launches. The bottleneck is per-example process
+overhead -- spawn, driver init, per-row setup -- not GPU throughput and not
+training throughput. The remedy is batching or a persistent worker, not a
+faster GPU and not training-speed work.
+
+**A throughput number now requires evidence.** `epic_u2o/throughput_evidence.py`
+refuses to produce a rate from no rows, from rows carrying no measurements,
+from every row carrying an identical trial set, from rows with no timestamp, or
+from a non-positive wall clock. The rule: a throughput number with no
+underlying rows is not a throughput number. This exists because this bead's
+original backing artifact (`runs/logs/throughput_demo_run.jsonl`) was
+hand-authored -- identical fabricated trials across its rows, five rows with no
+trials at all yet marked completed, and only 10 distinct `kernel_hash` across
+15 rows. It claimed 357,013 ex/hour against a real 8,599, a 41.5x
+overstatement. The file was never committed and nothing read it, but the guard
+is the durable part.
 
 ## Per-run task containment (gpu-sim-u2o.6.1.2)
 
@@ -82,3 +111,101 @@ this epic has already paid for once.
 So it is TRACKED, carrying 6.1.2's content rather than the stub: a tracked stub
 would have closed the collision only by putting a known-false file in master.
 The 6.1.2 merge is now a small modification instead of a blocked add.
+
+NOTE (2026-10-03, rework; kept through the 2026-10-04 rebase onto master):
+this file on the branch was STALE. It carried only 6.1.2's own containment
+section and predated gpu-sim-u2o.6.11's merge, so merging this branch would
+have silently DELETED 6.11's VOLATILE header, the annotated placeholders,
+and the whole "Why this file is tracked" section -- including the note that
+explains 6.11 took 6.1.2's content deliberately.
+
+Resolved by taking master's copy, which already carries BOTH sections:
+6.1.2's containment ladder AND 6.11's account of why the file is tracked.
+Verified by `git diff master -- epic_u2o/harness.md` showing only this
+NOTE as the branch's addition, so this branch no longer regresses 6.11
+on merge.
+
+---
+
+<!-- BEGIN GENERATED: gpu-sim-u2o.6.3.1 rlimit table -->
+# harness.md — resource limits on the shared RTX 5090
+
+Every limit the harness applies, why it is safe for CUDA, and the ts job that
+proves it. **Generated** by `experiments/gpu-sim-u2o.6.3.1/render_harness_md.py`
+from `epic_u2o/rlimit_cuda_gate.LIMIT_TABLE`. Do not hand-edit the table.
+
+## Why this file exists
+
+Two real-GPU runs were killed by limits that had never been checked against
+CUDA, and both times the symptom pointed at the wrong subsystem:
+
+| what | what you saw | what it was |
+|---|---|---|
+| `RLIMIT_NPROC=32`/`512` | `cudaErrorOsOperationNotSupported` at the first `cudaMalloc` | the kernel compares NPROC against the real uid's **total** task count |
+| `RLIMIT_AS=24 GiB` | every run died in ~2 ms | the 5090's BAR1 mapping is 32 GiB |
+
+A misleading CUDA error is worse than a resource error, because it sends you
+looking at the driver instead of at the limit you just set. So the limit set is
+a **gate** (`epic_u2o/rlimit_cuda_gate.py`), not a comment.
+
+## The table
+
+| limit | value | applied | why CUDA-safe | evidence (ts job) |
+|---|---|---|---|---|
+| `RLIMIT_AS` | 262144 MiB | yes | must exceed the 5090's 32 GiB BAR1 mapping or CUDA context creation fails instantly; 256 GiB clears it. NOT a VRAM cap -- on ReBAR the BAR mapping dwarfs any useful value, so this is a leak backstop only. | `20260927t180239-90a79c87` |
+| `RLIMIT_CPU` | 60 | yes | a wall-clock-equivalent CPU-seconds budget; it does not constrain the driver's thread creation, and a kernel that exceeds it is killed by the process-group SIGKILL path anyway. | `20260927t180239-90a79c87` |
+| `RLIMIT_DATA` | 8192 MiB | yes | brk/heap only. CUDA's allocations are mmap-based and the BAR1 mapping is not charged to RLIMIT_DATA, so this bounds a runaway heap without touching device or pinned memory. | `20260927t180239-90a79c87` |
+| `RLIMIT_NOFILE` | 256 | yes | measured fine on the 5090 (u2o.6.1.1 bracketed NOFILE=256 as acceptable while NPROC=32 and 512 were both fatal). The driver opens far fewer than 256 descriptors for a single-context run. | `20260927t180239-90a79c87` |
+| `RLIMIT_CORE` | 0 | yes | disables core dumps; touches no CUDA state. Safe by inspection and by the fact that the 5090 runs above produced no core. | `20260927t180239-90a79c87` |
+| `RLIMIT_FSIZE` | 256 MiB | yes | a per-FILE write cap, not a per-directory quota (the quota is accounted in Python and enforced mid-run by the 6.3 monitor thread). The CUDA context/malloc/launch path performs no file writes and the probe binary writes nothing (stdout is a pipe), so a single-file ceiling cannot present as a device error. | `20261004t053314-3dcc3aa3` |
+| `RLIMIT_NPROC` | — | **no** | NEVER SET. The kernel checks RLIMIT_NPROC against the real uid's TOTAL process+thread count, not our subtree, on every clone. This uid has ~2934 tasks (ps -eL -o uid=) against 256 processes, and a kernel-side probe bracketed the live total between 2048 (aborts at first thread creation) and 3072 (works). Because the count drifts with the other tenants on this shared box, EVERY fixed value is a race -- 2048 looks generous and is already fatal. Containment goes through the cgroup v2 pids.max route in gpu-sim-u2o.6.1.2 instead. | `20260927t123630-05fd9bd0` |
+
+
+## Two invariants, executable rather than documented
+
+1. **`RLIMIT_NPROC` is never set.** `ResourceLimits.processes_limit` defaults to
+   0 and a non-zero value now **raises** instead of being applied. It used to be
+   `if self.processes_limit: setrlimit(RLIMIT_NPROC, ...)`, and a guard around a
+   live call is a footgun with a comment on it: the field exists, the name
+   looks like the containment knob it is not, and setting it kills CUDA at the
+   first `cudaMalloc`. This uid has ~2934 tasks against 256 processes, and a
+   kernel-side probe bracketed the live total between 2048 (aborts) and 3072
+   (works) — so **2048 looks generous and is already fatal**, and because the
+   count drifts with the other tenants on this box, every fixed value is a race.
+   Containment goes through cgroup v2 `pids.max` (gpu-sim-u2o.6.1.2).
+2. **`RLIMIT_AS` is independent of `vram_limit_mb`.** Asserted on the numbers,
+   not by a comment saying so, because a comment is exactly what was there when
+   the 24 GiB failure happened. `RLIMIT_AS` must also exceed 32768 MiB (BAR1).
+
+Honest limitation, unchanged: on ReBAR GPUs `RLIMIT_AS` **cannot** serve as a
+VRAM cap — the BAR mapping dwarfs any useful value — so it is a leak backstop
+only, not a VRAM accounting mechanism.
+
+## Resolved discrepancy: `RLIMIT_FSIZE`
+
+`RLIMIT_FSIZE` used to be in the table as **not applied**: the bead description
+listed `FSIZE(min(256, quota))` as part of the set, but `apply()` never called
+`setrlimit(RLIMIT_FSIZE)`, so the table recorded the gap honestly. Then the
+rebase onto gpu-sim-u2o.6.3-rb brought in 6.3's disk work, which ADDS the
+per-file FSIZE backstop to `apply()` -- and the source-reading test failed on
+rebase, which is the gate working as designed rather than a regression. The
+row above now claims applied with a ts job as evidence, because a safety table
+that describes a different file than the one that runs is worse than no table.
+The history is kept here so nobody "resolves" it again by re-recording the
+dead discrepancy.
+
+## The probe
+
+`epic_u2o/rlimit_cuda_gate.PROBE_SOURCE` builds a probe that runs under the
+harness's **exact** limit set: context creation (the BAR1 mapping),
+`cudaMalloc`, one launch, `cudaDeviceSynchronize`, and a read-back. It records
+the live uid task count, because `RLIMIT_NPROC` is per-uid and that number is
+what makes a future reintroduction detectable rather than mysterious. Cheap
+(<10 s) so it can run on every batch job; see
+`experiments/gpu-sim-u2o.6.3.1/metrics.json` for a real 5090 run.
+
+On failure, `diagnose_probe_failure()` names the offending limit by stage. When
+no limit in the set explains a failure it says exactly that — "cannot diagnose"
+must never degrade into "add a limit to fix it".
+
+<!-- END GENERATED: gpu-sim-u2o.6.3.1 rlimit table -->

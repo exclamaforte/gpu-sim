@@ -1,0 +1,77 @@
+{
+  "bead": "gpu-sim-u2o.20",
+  "gpu_used": false,
+  "headline": "A clean clone could not build libfakegpu.so at all. Every 'make check passes' claim this lab has made was true in one working tree and unreproducible anywhere else. Ten files were untracked; all ten are now tracked and a guard asserts it.",
+  "criterion_1_clone_builds": {
+    "method": "git clone to a temp dir, then make. NOT git status inspection.",
+    "before": {
+      "src_in_clone": ["src/fakegpu_cuda.c"],
+      "make_result": "No rule to make target 'src/fakegpu_config.o', needed by 'libfakegpu.so'. Stop."
+    },
+    "after": {
+      "src_in_clone": ["src/fakegpu_config.c", "src/fakegpu_cuda.c", "src/fakegpu_latency.c", "src/fakegpu_nccl.c", "src/fakegpu_pool.c", "src/fakegpu_random.c"],
+      "make_result": "libfakegpu.so links, 100736 bytes"
+    }
+  },
+  "criterion_2_committed_or_generated": {
+    "branch_taken": "COMMITTED (not generated)",
+    "why": "all ten are hand-written C dated 2026-09-19/20, 62 to 352 lines, and NO branch anywhere tracked any of them, so there is no generator rule to recover",
+    "files": [
+      {"path": "src/fakegpu_config.c", "lines": 63},
+      {"path": "src/fakegpu_random.c", "lines": 63},
+      {"path": "src/fakegpu_pool.c", "lines": 146},
+      {"path": "src/fakegpu_latency.c", "lines": 62},
+      {"path": "src/fakegpu_nccl.c", "lines": 352},
+      {"path": "include/fakegpu.h", "lines": 68},
+      {"path": "shim/nccl.h", "lines": 146},
+      {"path": "tests/fake_client.c", "lines": 157},
+      {"path": "tests/vector_add.c", "lines": 75},
+      {"path": "tests/ring_allreduce.c", "lines": 66}
+    ],
+    "scope_note": "THE BEAD NAMES FIVE; THE FIX IS TEN. The five src/*.c stop the LIBRARY building. But criterion 3 is about `make check`, which also needs include/fakegpu.h, shim/nccl.h and three test programs. Committing five would have fixed the headline and left criterion 3 false.",
+    "pre_commit_scan": "no credentials, no absolute home paths in any of the ten"
+  },
+  "criterion_3_make_check_in_a_clean_clone": {
+    "command": "git clone --no-hardlinks . /tmp/c20 && git checkout lab/gpu-sim-u2o.20 && make check",
+    "result": "exit 0",
+    "evidence": [
+      "fakegpu self-test: device query, memory, and the rest all pass",
+      "reference workloads under LD_PRELOAD: vector_add (4 fake GPUs, D2H random data yes), ring_allreduce (4 ranks, allreduce ok)",
+      "-cudart=none fake path, no LD_PRELOAD: 9/9 PASS including 'ldd matches neither libcudart nor libcuda' and 'same compile without -lfakegpu fails to link (no silent fallthrough)'",
+      "tests/test_preflight_cannot_pass.py: 0 failures, including \"'cannot check' FAILS rather than passing\""
+    ],
+    "a_failure_that_was_not_a_failure": "The first clone run reported 'FAIL: link with -cudart=none -lfakegpu' with an EMPTY error log. The real cause was `<built-in>: fatal error: Disk quota exceeded' -- /tmp full from earlier clones. Checking the compile error rather than the summary is what caught it; had I reported the commit as incomplete I would have been wrong."
+  },
+  "criterion_4_guard": {
+    "path": "tests/assert_build_inputs_tracked.sh",
+    "wired_into": "make check depends on it",
+    "scope": "every src/*.c the Makefile names, plus the headers and test programs `make check` compiles",
+    "SEEN_TO_FAIL": {
+      "where": "the clean clone, where the ten files are absent",
+      "message": "5 of 9 build inputs are missing or untracked",
+      "exit_code": 1
+    },
+    "exit_code_when_passing": 0,
+    "why_the_exit_code_was_checked": "a guard that PRINTS 'FAILED' and EXITS 0 is the worst possible outcome and the message would have looked fine. The message is not the check; the exit code is.",
+    "why_a_guard_not_a_comment": "every instance of this class here survived a comment: the .gitignore ALREADY warned that a missing libfakegpu.so 'can make a gate pass VACUOUSLY', and the gate passed anyway. A warning in the file describing the failure does not prevent the failure."
+  },
+  "criterion_5_does_8dw_survive": {
+    "verdict": "YES -- the verdict stands; only its CITATION was unreproducible.",
+    "evidence": "tests/test_preflight_cannot_pass.py runs 0 failures in the clean clone, including the check that \"'cannot check' FAILS rather than passing\" with the message naming why.",
+    "what_changes_for_8dw": "Nothing in the repair. What changes is that 'make check: 9/9 pass' -- which the reviewer cited when validating 8dw -- is now something a clean clone can produce, so that citation is evidence about the repository rather than about one working tree. The same applies to gpu-sim-u2o.19's 'exit 0'."
+  },
+  "residual_risk_stated": "The guard covers the build INPUTS. It does not cover the compiler, the CUDA version, or the queue, so `make check` passing in a clone is evidence about the repository and about this toolchain, not about every environment.",
+  "widened_scope_20261004_worktree_hygiene": {
+    "deliverable": "tests/assert_worktree_hygiene.sh --target <ref> [--worktree <path>]",
+    "properties": ["read-only (stages/stashes/checks out nothing)", "--target required, no default", "refuses unknown refs (exit 2)", "names identical vs differing shadows", "exit 1 on any shadow"],
+    "seen_to_fail": ["missing --target -> refuse 2", "unknown ref -> refuse 2", "identical shadow in scratch repo -> fail 1 naming file", "differing shadow in scratch repo -> fail 1 naming file"],
+    "live_survey_vs_master": {"worktrees": 28, "clean": 19, "failing": ["gpu-sim-8dw", "gpu-sim-u2o.6.10", "gpu-sim-u2o.6.1.1", "gpu-sim-u2o.6.1.2", "gpu-sim-u2o.6.3", "gpu-sim-u2o.6.6.2-r2", "gpu-sim-u2o.6.6.3", "gpu-sim-u2o.6.6.5", "gpu-sim-u2o.7.1"], "character": "mostly stale pre-6.11 untracked copies of epic_u2o/*, several byte-differing", "log": "experiments/gpu-sim-u2o.20/hygiene_survey.txt"},
+    "not_touched": "other trees' hygiene belongs to their owners/reviewers; the survey was read-only"
+  },
+  "vacuous_make_check_found_by_rebase_20261004": {
+    "defect": "guard-wiring commit REPLACED check's recipe with the guard alone; `make check` passed running 14 ok-lines and zero tests",
+    "evidence": "first clean-clone log held only the guard output (16 lines)",
+    "fix": "check: guard-build-inputs $(LIB) + full suite recipe; guard-free check-only target deleted",
+    "reverified": "post-fix clean-clone make check: guard 14/14 + self-test + workloads + 9/9 cudart-none, exit 0 (experiments/gpu-sim-u2o.20/clean_clone_make_check.log)"
+  }
+}

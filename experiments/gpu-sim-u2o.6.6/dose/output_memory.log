@@ -1,0 +1,126 @@
+OK  anchor_kernels.py
+OK  measure_family.py
+OK  merge_metrics.py
+OK  module body executes: measure_family.py
+OK  module body executes: merge_metrics.py
+OK  module body executes: anchor_kernels.py
+OK  import epic_u2o.kernel_driver
+OK  import epic_u2o.safe_harness
+OK  import epic_u2o.queue_state
+OK  import anchor_kernels
+OK  tests/test_anchor_metrics.py
+OK  tests/test_queue_state.py
+OK  tests/test_queue_state.py
+
+safe to submit
+submission gate: PASS
+=== ts job 2026-10-05T21:18:36-07:00 family=memory ===
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'memory'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2407 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "41", "power.draw": "67.05 W", "utilization.gpu": "2 %", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t053729-7b328655", "n_other_active": 2, "n_other_running_at_sample_time": 1}
+overlapping jobs: [{"id": "20261006t041800-5878994f", "state": "running", "description": "u2o.6.6 dose: 124 anchor cells ruling-b"}, {"id": "20261006t041807-f414f28e", "state": "queued", "description": ""}]
+memory: 90 configs x 3 process invocations x 100 trials
+  saxpy n=1024 auto/256        grid=     [4, 1, 1] med=    2.288us iqr=   1.216us cv=0.615 ai_cv=0.068
+  relu n=1024 auto/256         grid=     [4, 1, 1] med=    2.304us iqr=   1.184us cv=0.518 ai_cv=0.1035
+  copy n=1024 auto/256         grid=     [4, 1, 1] med=    2.592us iqr=   0.768us cv=0.433 ai_cv=0.065
+  strided_read n=1024 stride=17 auto/256 grid=     [4, 1, 1] med=    2.176us iqr=   1.024us cv=0.551 ai_cv=0.1466
+  scatter_write n=1024 auto/256 grid=     [4, 1, 1] med=    2.272us iqr=   1.088us cv=0.656 ai_cv=0.1788
+  random_access n=1024 auto/256 grid=     [4, 1, 1] med=    2.768us iqr=   1.184us cv=0.491 ai_cv=0.0721
+  saxpy n=1024 auto/1024       grid=     [1, 1, 1] med=    2.608us iqr=   1.056us cv=0.531 ai_cv=0.086
+  relu n=1024 auto/1024        grid=     [1, 1, 1] med=    2.160us iqr=   0.832us cv=0.589 ai_cv=0.1232
+  copy n=1024 auto/1024        grid=     [1, 1, 1] med=    2.288us iqr=   1.248us cv=0.485 ai_cv=0.1189
+  strided_read n=1024 stride=17 auto/1024 grid=     [1, 1, 1] med=    2.240us iqr=   0.992us cv=0.563 ai_cv=0.0858
+  scatter_write n=1024 auto/1024 grid=     [1, 1, 1] med=    2.288us iqr=   1.472us cv=0.662 ai_cv=0.0867
+  random_access n=1024 auto/1024 grid=     [1, 1, 1] med=    2.624us iqr=   1.664us cv=0.447 ai_cv=0.0713
+  saxpy n=1024 1block/1024     grid=     [1, 1, 1] med=    2.704us iqr=   1.088us cv=0.527 ai_cv=0.2012
+  relu n=1024 1block/1024      grid=     [1, 1, 1] med=    2.656us iqr=   1.024us cv=0.699 ai_cv=0.0092
+  copy n=1024 1block/1024      grid=     [1, 1, 1] med=    2.576us iqr=   1.344us cv=0.603 ai_cv=0.1508
+  strided_read n=1024 stride=17 1block/1024 grid=     [1, 1, 1] med=    2.672us iqr=   0.928us cv=0.600 ai_cv=0.0434
+  scatter_write n=1024 1block/1024 grid=     [1, 1, 1] med=    2.560us iqr=   1.280us cv=0.622 ai_cv=0.013
+  random_access n=1024 1block/1024 grid=     [1, 1, 1] med=    2.800us iqr=   1.696us cv=0.550 ai_cv=0.0995
+  saxpy n=16384 auto/256       grid=    [64, 1, 1] med=    2.592us iqr=   1.088us cv=0.586 ai_cv=0.0722
+  relu n=16384 auto/256        grid=    [64, 1, 1] med=    2.512us iqr=   1.280us cv=0.614 ai_cv=0.0679
+  copy n=16384 auto/256        grid=    [64, 1, 1] med=    2.896us iqr=   1.216us cv=0.573 ai_cv=0.0628
+  strided_read n=16384 stride=17 auto/256 grid=    [64, 1, 1] med=    2.352us iqr=   1.376us cv=0.494 ai_cv=0.0272
+  scatter_write n=16384 auto/256 grid=    [64, 1, 1] med=    2.400us iqr=   0.864us cv=0.403 ai_cv=0.0369
+  random_access n=16384 auto/256 grid=    [64, 1, 1] med=    2.864us iqr=   1.792us cv=0.551 ai_cv=0.0729
+  saxpy n=16384 auto/1024      grid=    [16, 1, 1] med=    2.736us iqr=   1.248us cv=0.539 ai_cv=0.1416
+  relu n=16384 auto/1024       grid=    [16, 1, 1] med=    2.272us iqr=   1.760us cv=0.659 ai_cv=0.0264
+  copy n=16384 auto/1024       grid=    [16, 1, 1] med=    2.480us iqr=   1.440us cv=0.501 ai_cv=0.0878
+  strided_read n=16384 stride=17 auto/1024 grid=    [16, 1, 1] med=    2.352us iqr=   1.376us cv=0.574 ai_cv=0.0141
+  scatter_write n=16384 auto/1024 grid=    [16, 1, 1] med=    2.736us iqr=   1.024us cv=0.484 ai_cv=0.1103
+  random_access n=16384 auto/1024 grid=    [16, 1, 1] med=    2.976us iqr=   1.312us cv=0.451 ai_cv=0.0764
+  saxpy n=16384 1block/1024    grid=     [1, 1, 1] med=    5.264us iqr=   0.960us cv=0.365 ai_cv=0.0746
+  relu n=16384 1block/1024     grid=     [1, 1, 1] med=    5.264us iqr=   0.672us cv=0.394 ai_cv=0.0183
+  copy n=16384 1block/1024     grid=     [1, 1, 1] med=    5.408us iqr=   1.056us cv=0.347 ai_cv=0.0891
+  strided_read n=16384 stride=17 1block/1024 grid=     [1, 1, 1] med=    2.432us iqr=   1.152us cv=0.631 ai_cv=0.0909
+  scatter_write n=16384 1block/1024 grid=     [1, 1, 1] med=    2.640us iqr=   0.768us cv=0.580 ai_cv=0.0285
+  random_access n=16384 1block/1024 grid=     [1, 1, 1] med=    2.448us iqr=   1.856us cv=0.578 ai_cv=0.0861
+  saxpy n=262144 auto/256      grid=  [1024, 1, 1] med=    3.536us iqr=   1.152us cv=0.473 ai_cv=0.0164
+  relu n=262144 auto/256       grid=  [1024, 1, 1] med=    3.200us iqr=   1.344us cv=0.378 ai_cv=0.0581
+  copy n=262144 auto/256       grid=  [1024, 1, 1] med=    2.736us iqr=   0.864us cv=0.480 ai_cv=0.0945
+  strided_read n=262144 stride=17 auto/256 grid=  [1024, 1, 1] med=    3.168us iqr=   0.832us cv=0.376 ai_cv=0.0777
+  scatter_write n=262144 auto/256 grid=  [1024, 1, 1] med=    4.720us iqr=   1.280us cv=0.357 ai_cv=0.0785
+  random_access n=262144 auto/256 grid=  [1024, 1, 1] med=    4.016us iqr=   0.672us cv=0.407 ai_cv=0.0631
+  saxpy n=262144 auto/1024     grid=   [256, 1, 1] med=    3.392us iqr=   0.928us cv=0.384 ai_cv=0.0884
+  relu n=262144 auto/1024      grid=   [256, 1, 1] med=    3.360us iqr=   1.088us cv=0.438 ai_cv=0.1067
+  copy n=262144 auto/1024      grid=   [256, 1, 1] med=    3.136us iqr=   1.056us cv=0.436 ai_cv=0.0985
+  strided_read n=262144 stride=17 auto/1024 grid=   [256, 1, 1] med=    3.136us iqr=   0.896us cv=0.613 ai_cv=0.0889
+  scatter_write n=262144 auto/1024 grid=   [256, 1, 1] med=    3.760us iqr=   1.472us cv=0.443 ai_cv=0.1999
+  random_access n=262144 auto/1024 grid=   [256, 1, 1] med=    3.984us iqr=   1.088us cv=0.394 ai_cv=0.0394
+  saxpy n=262144 1block/1024   grid=     [1, 1, 1] med=   40.336us iqr=   1.184us cv=0.057 ai_cv=0.0088
+  relu n=262144 1block/1024    grid=     [1, 1, 1] med=   38.144us iqr=   1.312us cv=0.073 ai_cv=0.0189
+  copy n=262144 1block/1024    grid=     [1, 1, 1] med=   38.848us iqr=   1.184us cv=0.057 ai_cv=0.0096
+  strided_read n=262144 stride=17 1block/1024 grid=     [1, 1, 1] med=    2.608us iqr=   1.600us cv=0.466 ai_cv=0.136
+  scatter_write n=262144 1block/1024 grid=     [1, 1, 1] med=    2.208us iqr=   1.376us cv=0.511 ai_cv=0.1193
+  random_access n=262144 1block/1024 grid=     [1, 1, 1] med=    2.592us iqr=   1.408us cv=0.489 ai_cv=0.1931
+  saxpy n=4194304 auto/256     grid= [16384, 1, 1] med=   10.656us iqr=   1.184us cv=0.107 ai_cv=0.0091
+  relu n=4194304 auto/256      grid= [16384, 1, 1] med=   10.576us iqr=   1.376us cv=0.162 ai_cv=0.0219
+  copy n=4194304 auto/256      grid= [16384, 1, 1] med=   10.384us iqr=   1.248us cv=0.116 ai_cv=0.0162
+  strided_read n=4194304 stride=17 auto/256 grid= [16384, 1, 1] med=   10.512us iqr=   1.568us cv=0.165 ai_cv=0.0267
+  scatter_write n=4194304 auto/256 grid= [16384, 1, 1] med=   30.048us iqr=   0.992us cv=0.045 ai_cv=0.0051
+  random_access n=4194304 auto/256 grid= [16384, 1, 1] med=   10.624us iqr=   1.280us cv=0.118 ai_cv=0.0518
+  saxpy n=4194304 auto/1024    grid=  [4096, 1, 1] med=   13.296us iqr=   1.472us cv=0.155 ai_cv=0.0301
+  relu n=4194304 auto/1024     grid=  [4096, 1, 1] med=   12.560us iqr=   1.600us cv=0.151 ai_cv=0.0553
+  copy n=4194304 auto/1024     grid=  [4096, 1, 1] med=   11.808us iqr=   1.056us cv=0.172 ai_cv=0.0206
+  strided_read n=4194304 stride=17 auto/1024 grid=  [4096, 1, 1] med=   11.920us iqr=   1.088us cv=0.125 ai_cv=0.0356
+  scatter_write n=4194304 auto/1024 grid=  [4096, 1, 1] med=   14.160us iqr=   0.768us cv=0.143 ai_cv=0.0137
+  random_access n=4194304 auto/1024 grid=  [4096, 1, 1] med=   13.232us iqr=   1.568us cv=0.118 ai_cv=0.009
+  saxpy n=4194304 1block/1024  grid=     [1, 1, 1] med=  605.680us iqr=   5.024us cv=0.008 ai_cv=0.0045
+  relu n=4194304 1block/1024   grid=     [1, 1, 1] med=  572.880us iqr=   1.280us cv=0.005 ai_cv=0.0007
+  copy n=4194304 1block/1024   grid=     [1, 1, 1] med=  575.312us iqr=   2.976us cv=0.008 ai_cv=0.0007
+  strided_read n=4194304 stride=17 1block/1024 grid=     [1, 1, 1] med=    2.496us iqr=   1.568us cv=0.512 ai_cv=0.0534
+  scatter_write n=4194304 1block/1024 grid=     [1, 1, 1] med=    2.544us iqr=   1.696us cv=0.451 ai_cv=0.1045
+  random_access n=4194304 1block/1024 grid=     [1, 1, 1] med=    2.608us iqr=   0.960us cv=0.513 ai_cv=0.0127
+  saxpy n=67108864 auto/256    grid=[262144, 1, 1] med=  510.976us iqr=   6.304us cv=0.009 ai_cv=0.0067
+  relu n=67108864 auto/256     grid=[262144, 1, 1] med=  349.584us iqr=   4.032us cv=0.013 ai_cv=0.0014
+  copy n=67108864 auto/256     grid=[262144, 1, 1] med=  349.136us iqr=   2.912us cv=0.009 ai_cv=0.0012
+  strided_read n=67108864 stride=17 auto/256 grid=[262144, 1, 1] med=  349.056us iqr=   2.048us cv=0.011 ai_cv=0.0015
+  scatter_write n=67108864 auto/256 grid=[262144, 1, 1] med=  886.432us iqr=   6.016us cv=0.007 ai_cv=0.0006
+  random_access n=67108864 auto/256 grid=[262144, 1, 1] med=  349.200us iqr=   3.392us cv=0.012 ai_cv=0.0017
+  saxpy n=67108864 auto/1024   grid= [65536, 1, 1] med=  509.552us iqr=   7.488us cv=0.013 ai_cv=0.0116
+  relu n=67108864 auto/1024    grid= [65536, 1, 1] med=  362.816us iqr=   7.872us cv=0.017 ai_cv=0.0068
+  copy n=67108864 auto/1024    grid= [65536, 1, 1] med=  360.080us iqr=   4.640us cv=0.016 ai_cv=0.0018
+  strided_read n=67108864 stride=17 auto/1024 grid= [65536, 1, 1] med=  358.464us iqr=   1.696us cv=0.007 ai_cv=0.0007
+  scatter_write n=67108864 auto/1024 grid= [65536, 1, 1] med=  584.480us iqr=   5.792us cv=0.008 ai_cv=0.0037
+  random_access n=67108864 auto/1024 grid= [65536, 1, 1] med=  364.960us iqr=   4.288us cv=0.012 ai_cv=0.0041
+  saxpy n=67108864 1block/1024 grid=     [1, 1, 1] med=23030.160us iqr=  19.007us cv=0.004 ai_cv=0.0004
+  relu n=67108864 1block/1024  grid=     [1, 1, 1] med=21972.111us iqr=  29.888us cv=0.009 ai_cv=0.0003
+  copy n=67108864 1block/1024  grid=     [1, 1, 1] med=21996.703us iqr=  25.791us cv=0.010 ai_cv=0.0044
+  strided_read n=67108864 stride=17 1block/1024 grid=     [1, 1, 1] med=    2.288us iqr=   0.960us cv=0.489 ai_cv=0.1012
+  scatter_write n=67108864 1block/1024 grid=     [1, 1, 1] med=    2.576us iqr=   1.152us cv=0.648 ai_cv=0.079
+  random_access n=67108864 1block/1024 grid=     [1, 1, 1] med=    2.976us iqr=   1.504us cv=0.421 ai_cv=0.151
+telemetry after:  {"clocks.sm": "2422 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "45", "power.draw": "66.58 W", "utilization.gpu": "0 %", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim-runs/u66-dose-20261006/family_memory.json
+memory: 90/90 configs measured, 196.8s
+=== family=memory exit=0 ===

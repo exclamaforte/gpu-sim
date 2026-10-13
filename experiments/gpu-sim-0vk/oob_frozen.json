@@ -1,0 +1,82 @@
+{
+  "bead": "gpu-sim-0vk",
+  "n": 4,
+  "rows": [
+    {
+      "kernel_hash": "007e97e800e2a0b9",
+      "op_type": "segmented_read",
+      "n": 131072,
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "dims": {
+        "segment_size": 16384
+      },
+      "guard": "oob-guard: segmented_read: subscript in[segment * n + offset] can reach 409599 (thread range [0,65536)) but the driver allocates 131072 elements; refusing on CPU"
+    },
+    {
+      "kernel_hash": "53c5810e34048ee1",
+      "op_type": "segmented_read",
+      "n": 131072,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "dims": {
+        "segment_size": 16384
+      },
+      "guard": "oob-guard: segmented_read: subscript in[segment * n + offset] can reach 409599 (thread range [0,65536)) but the driver allocates 131072 elements; refusing on CPU"
+    },
+    {
+      "kernel_hash": "8a3894b2ac4bb135",
+      "op_type": "segmented_read",
+      "n": 131072,
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "dims": {
+        "segment_size": 16384
+      },
+      "guard": "oob-guard: segmented_read: subscript in[segment * n + offset] can reach 147455 (thread range [0,32768)) but the driver allocates 131072 elements; refusing on CPU"
+    },
+    {
+      "kernel_hash": "62b7e7ddf8fb1bb1",
+      "op_type": "strided_write",
+      "n": 131072,
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "dims": {
+        "stride": 8
+      },
+      "guard": "oob-guard: strided_write: subscript out[i * stride] can reach 262136 (thread range [0,32768)) but the driver allocates 131072 elements; refusing on CPU"
+    }
+  ]
+}

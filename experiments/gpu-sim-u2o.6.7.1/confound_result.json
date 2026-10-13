@@ -1,0 +1,48 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "experiment": "the confound test the PI named: 7.1's OWN per-kernel binaries from kernel_driver.synthesize(), one translation unit per distinct kernel compiled by its own nvcc -c with its own per-kernel cudaMalloc calls, all LINKED into one executable driven by ONE process with ONE CUDA context. ts 20260928t140221-892ab931.",
+  "arms": [
+    {
+      "arm": "batched warm (MY driver, 1 ctx)",
+      "ex_per_sec": 167.3,
+      "speedup_vs_7_1": 70.0,
+      "reproducing": "206/264",
+      "median_rel_diff": 0.1255,
+      "fraction_faster": 0.7045,
+      "ai_cv_mean": 0.0344,
+      "median_us": 3.056
+    },
+    {
+      "arm": "per-invocation process (MY driver)",
+      "ex_per_sec": 3.78,
+      "speedup_vs_7_1": 1.6,
+      "reproducing": "210/264",
+      "median_rel_diff": 0.1249,
+      "fraction_faster": 0.8447,
+      "ai_cv_mean": 0.0724,
+      "median_us": 2.876
+    },
+    {
+      "arm": "PER-KERNEL binaries, 1 ctx (7.1's own)",
+      "ex_per_sec": 510.8,
+      "speedup_vs_7_1": 213.8,
+      "reproducing": "214/264",
+      "median_rel_diff": 0.0937,
+      "fraction_faster": 0.7273,
+      "ai_cv_mean": 0.0307,
+      "median_us": 2.904
+    }
+  ],
+  "reference": {
+    "single_run_7_1": {
+      "ex_per_sec": 2.389,
+      "ai_cv_mean": 0.112,
+      "median_us": 3.16
+    }
+  },
+  "VERDICT": "PARTIALLY CONFIRMED. The executable is a real contributor and NOT the whole cause. Swapping my single dispatch binary for 7.1's own per-kernel binaries moves the median relative difference from 12.6% to 9.4% and reproduction from 206/264 to 214/264, so roughly a quarter of the offset was the executable and its memory environment. But 9.4% does not collapse to zero and 50 rows still fail to reproduce, so something the executable does not explain remains.",
+  "and_the_surviving_speed_is_not_1_6x": "The PI's framing was that isolation was never worth 70x, and the per-invocation-process arm confirms that at 1.6x. But 7.1's OWN binaries in ONE shared context run at 510.80 ex/s = 214x, not 1.6x. So the speed does not require per-invocation processes; it requires a shared context, and it survives the confound fix. 'The speed IS the offset' is therefore TOO STRONG: the offset drops by a quarter and the speed triples when the executable is fixed.",
+  "what_is_still_unexplained": "A ~9.4% median one-sided offset with 7.1's own kernel bodies, 7.1's own per-kernel allocations, one process and one context. Not process isolation (the perproc arm), not warm state between examples (the cold arm), not the tolerance rule (12.6% under all three), and not now the executable. Four hypotheses eliminated and a fifth unnamed.",
+  "a_result_that_must_not_be_trusted": "The first working run of this arm reported 2/264 reproducing at 87.3% with 100% of rows 'faster'. That was uniform to the point of being a measurement of NOTHING: the hoisting rewrote `const int N = 4096;` as `N = 0;` INSIDE the kernel's main, which runs after the driver sets N, so every spec allocated zero bytes and ran a kernel that computed nothing. The tell was that it was too consistent, and the fix was to DELETE the declaration rather than rewrite it.",
+  "status": "criterion 2 still fails at 9.4%. The dataset disposition stays HELD. Under R1 the single-run path remains authoritative, and the residual 9.4% is a fifth, unnamed cause."
+}

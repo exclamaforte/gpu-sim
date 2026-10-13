@@ -1,0 +1,32 @@
+{
+  "label": "rework-verification",
+  "fields": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "610.57.04",
+    "memory.total": "32607 MiB",
+    "clocks.sm": "2482 MHz",
+    "clocks.max.sm": "3105 MHz",
+    "temperature.gpu": "49",
+    "power.draw": "88.69 W",
+    "power.limit": "575.00 W",
+    "clocks_throttle_reasons.active": "0x0000000000000000",
+    "persistence_mode": "Disabled",
+    "utilization.gpu": "9 %",
+    "memory.used": "4763 MiB"
+  },
+  "n_fields": 12,
+  "expected": [
+    "clocks.max.sm",
+    "clocks.sm",
+    "clocks_throttle_reasons.active",
+    "memory.used",
+    "persistence_mode",
+    "power.draw",
+    "power.limit",
+    "temperature.gpu",
+    "utilization.gpu"
+  ],
+  "throttle_predicate_false_on_empty": true,
+  "failure_recorded": null,
+  "rc": 0
+}

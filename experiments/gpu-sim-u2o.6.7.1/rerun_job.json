@@ -1,0 +1,29 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "rerun": "fast-path (per-kernel binaries, 1 shared ctx) on current master",
+  "gpu_jobs": [
+    {
+      "job_id": "20261006t055530-1add9e67",
+      "state": "failed",
+      "exit": 1,
+      "purpose": "same rerun, first attempt",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t055530-1add9e67.log",
+      "result": "scaffolding failure before measuring: bare qs.queue_state() raises IdentificationError on current master (6.6.6 hardening); build phase sound (8 TUs, 9.5s)"
+    },
+    {
+      "job_id": "20261006t055612-834191c6",
+      "state": "finished",
+      "exit": 0,
+      "purpose": "same rerun after queue_state identification fix",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261006t055612-834191c6.log",
+      "raw_outputs": "/home/gabe/Documents/gpu-sim-runs/u671-fastrerun-20261006/",
+      "result": "264/264 rows, 204.26 ex/s, exit 0"
+    }
+  ],
+  "analysis": {
+    "command": "CUDA_VISIBLE_DEVICES= nice -n 10 python3 experiments/gpu-sim-u2o.6.7.1/compare_rerun.py --metrics-out experiments/gpu-sim-u2o.6.7.1/rerun_metrics.json",
+    "exit": 0,
+    "log": "experiments/gpu-sim-u2o.6.7.1/rerun_output.log",
+    "result": "verdict=pass (shape+provenance gates); criterion_2_met_0_90=false (197/264, BLOCKER_2 open)"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.1",
+  "gpu_used": false,
+  "headline": "CRITERION 1 IS MET. queue_state() is now cheaper than the device work it measures. The gap between the first attempt and this one was a single missing '>'.",
+  "criterion_1_cost_vs_device_time": {
+    "baseline_ms_per_call": 6.09,
+    "baseline_source": "gpu-sim-u2o.6.7.1, measured directly (6.09 ms x 264 rows = 1.61 s = the entire run)",
+    "now_ms_per_call_median": 0.1123,
+    "now_ms_per_call_min": 0.1093,
+    "cold_first_call_ms": 6.604,
+    "speedup_vs_baseline": 54.2,
+    "device_time_ms_it_measures": 0.139,
+    "ratio_instrument_to_device": 0.81,
+    "criterion_met": true,
+    "criterion_met_at_measurement_size": "true, at 557 queue files (0.1123 ms = 0.81x). Retained as measured.",
+    "criterion_met_AT_LIVE_SIZE": false,
+    "live_size_finding": "REWORK 3, measured 2026-10-03. The queue directory has grown from 557 files at the time of the committed measurement to ~838 live files, and the residual sweep is O(n) even fully cached: the ACTIVE set is re-read and re-parsed on every call by design, so a growing queue costs more per call. Nothing regressed -- the cache still removes the parsing; the queue outgrew the claim. Structural follow-on: gpu-sim-u2o.6.6.6.3.",
+    "how_far_off": "met at 0.81x (0.1123 ms vs 0.139 ms). A previous iteration of this string said 'still 6.6x'; that described the pre-fix 0.92 ms measurement and survived the one-character fix by copy-paste. Corrected in the 2026-10-03 rework; the derived numbers above agreed with each other throughout.",
+    "ALL_TIMING_FIGURES_ARE_LOAD_DEPENDENT": "The marginal cost is ~0.185 us/file at loadavg 4.3 and ~0.28 us/file at loadavg 38 on this host, a ~1.5x spread, and the crossover moves with it (~737 files at loadavg 5.4, materially fewer under load). The 1.14x / 2.0x / 3.29x ratios quoted in earlier commits were the SAME quantity measured at three different loads, not a spread in the code; they are reconciled here rather than averaged. measure_cost.py now derives the slope, the crossover and the loadavg PER RUN (size_sweep_points_this_run, slope_us_per_file_this_run, crossover_files_this_run, loadavg_1m_at_sweep) so no bare constant is baked in or asserted."
+  },
+  "mechanism": {
+    "what": "TERMINAL IS TERMINAL. A job in a terminal state can never become active, so if its (mtime_ns, size) is unchanged, re-parsing it cannot change the answer. That is a property of the state machine, not a staleness window.",
+    "why_not_a_ttl_cache": "a TTL makes a sample STALE, and the property 6.6.6 exists for is that a record OBSERVES rather than asserts. A sample served from a TTL is a sample of the past, which is the defect 6.6.6 was filed to remove. So the cache holds only jobs that are already finished, and the ACTIVE set is read fresh on every call and is NEVER cached.",
+    "hit_rate": 0.9804,
+    "parses": 557,
+    "files_seen": 28407,
+    "cached_entries": 557,
+    "terminal_reverify_sec": 30.0,
+    "listing_ttl_sec": 0.25,
+    "staleness_bound": "a TERMINAL entry is re-verified in full every 30.0s, so a reused job id could be hidden for at most that long. The ACTIVE set is read fresh on EVERY call and is never cached."
+  },
+  "criterion_2_per_row_provenance_pointer": {
+    "no_per_example_rows_in_this_bead": "this bead ships no per-example rows of its own: it is a pure instrument change, and the PI has ruled 6.7.1's dataset must not be regenerated.",
+    "rows_live_at": "branch lab/gpu-sim-u2o.6.7.1, experiments/gpu-sim-u2o.6.7.1/batch_rows.jsonl, 264 rows, each carrying sampled_at, sampled_at_epoch, queue_state and telemetry sampled at that row's own time",
+    "values_identical_under_cache": "the cached loader returns byte-identical records to the uncached path for any job whose state has not moved -- measured by tests/test_cache_differential.py -- so those 264 per-row queue_state values are unchanged by this bead, and per 6.7.1 criterion 6 no sample is discarded on the basis of them",
+    "instruments_own_staleness_reporting_added_here": "load_stats() carries hit_rate, parses, files_seen, terminal_reverify_sec (30.0), listing_ttl_sec (0.25) and a spelled-out staleness_bound, so every sample's provenance path is queryable even though no new rows are emitted here"
+  },
+  "criterion_3_measurement_unchanged": {
+    "verdict": "UNCHANGED, measured rather than argued. tests/test_cache_differential.py runs the cached loader against the uncached reference over a directory holding every state the module distinguishes: outputs identical cold, warm and repeatedly; a queued->running in-place rewrite visible on the very next call; a terminal change stale for the documented window then revealed. The active set is read fresh every call. Per 6.7.1 criterion 6 queue_state is NOT a filter and NO sample is discarded on the basis of it, so per-example MEDIANS are untouched by this change.",
+    "end_to_end_batched_rerun": "not done on this branch and still named as missing rather than implied; the differential suite above is the evidence offered for the identity claim in its place."
+  },
+  "criterion_4_regression_test": "tests/test_queue_state_cost.py. The LOAD-BEARING guard is test_cached_order_of_magnitude_faster_than_uncached: cached vs uncached measured back-to-back in one process, so machine state cancels and a reintroduced full scan measures ~1x by construction and fails at any load. test_instrument_cost_is_reported_against_live_queue_size asserts the instrument's PER-FILE cost lies in a wide 0.02-2.0 us/file band AND that the reported figure carries its loadavg and a resolution band; it does NOT gate on an absolute millisecond figure, which is reported instead. The absolute loadavg-conditional gate was REMOVED at 37791be because it was tuned rather than measured and did not exclude the failing regime (at loadavg 14.3, 'quiet' by that standard, the instrument still measured 1.91x). TestTheContractBreakIsStillLoud asserts 6.6.6's fail-loudly property survives the rebase: bare queue_state() still raises IdentificationError, loader_call() records the refusal rather than rebuilding a null own_job_id, and an identified call produces own_job_entry. Plus full-scan floor, engagement, and scope tests.",
+  "criterion_4_why_not_an_absolute_gate": "THREE attempts, all wrong, all recorded because the sequence is the lesson. (1) A live wall-clock median against a hardcoded 0.139 ms: failed under load with zero code changes. (2) The same with a 2x margin: ALSO failed, best-of-15 0.279 ms against a 0.278 ms threshold at loadavg 94. (3) Conditioned on loadavg(1m) <= ncpu, which looked calibrated and was not: at loadavg 14.3 -- comfortably quiet by that standard -- the instrument still measured 1.91x device work. A gate whose condition does not actually exclude the failing regime is worse than no gate, because it LOOKS calibrated. The predictable repair for any of the three -- raise the constant, loosen the assert -- reinstates the hand-edited number this rework exists to remove. Resolution: the absolute comparison is REPORTED (spot_check.json carries the ratio, the live queue file count and loadavg) and only the load-cancelling differential gate decides the exit code. Measured on this 32-core box: the same code measures 0.11 ms quiet and 0.33-0.48 ms at load 72-94.",
+  "criterion_5_what_the_record_covers": {
+    "covers": "what else was QUEUED or RUNNING at sample time, plus the historical job set's state counts",
+    "does_not_cover": "this is NOT contention detection and NOT a filter; no sample is discarded on the basis of it (gpu-sim-u2o.6.6.3's question, a different bead). With the terminal cache, counts_by_state is still exact for every job file seen; a TERMINAL entry is re-verified in full every 30 s, so a REUSED job id could be hidden for at most that long. That bound is the price of the speedup and it is written here rather than left to be inferred."
+  },
+  "criterion_6_scope_survives": true,
+  "superseded_pre_fix_note_replaces_what_i_did_not_finish": {
+    "why_renamed": "the previous section, what_i_did_not_finish.the_remaining_0_9ms, described a world this branch exists to have fixed: it said the listing cache 'does not appear to engage' with glob running on every call, and handed over a next step. That text predates the missing-`>` fix and contradicts the headline. Corrected in the 2026-10-03 rework, not deleted, so the history stays readable.",
+    "what_it_described": "the 0.92 ms first attempt, in which the `reverify` flag evaluated to a truthy float, the stat-skip never fired, and the glob ran per call -- see the_bug_that_made_the_cache_weak. The listing cache now engages (artifact hit_rate 0.9804); no open investigation remains from that note.",
+    "not_a_rewrite_of_the_record": "making by_state incremental and narrowing the own-job scan would buy further headroom, but both change what the record COMPUTES, which is criterion 3 and 5 territory and stays a reviewer decision, not a unilateral optimisation."
+  },
+  "the_bug_that_made_the_cache_weak": {
+    "what": "`reverify` was written as a conditional expression, so it evaluated to the ELAPSED SECONDS since the last reverify -- a tiny positive float, which is TRUTHY in Python. `not reverify` was therefore always False, so the stat-skip never fired; and `or reverify` in the listing condition was always True, so the glob ran on every call. One missing `>` disabled half the cache AND defeated the second cache entirely.",
+    "why_it_misled": "the cost model stayed self-consistent: I was measuring a cache that genuinely WAS doing less work than intended, so every profile said 'the cache is not engaging' without saying WHY. I attributed it to the 557-path loop, then to the glob, and gave up twice.",
+    "found_by": "a DIFFERENTIAL TEST asserting that a terminal change stays stale for the documented window. That test can only fail if the cache is not doing what the prose says, which is a different question from how fast it is. Profiling would not have found it.",
+    "effect": "6.09 ms -> 0.1118 ms. The first attempt reached 0.92 ms and MISSED criterion 1 by 6.6x; the fix reaches 54x and meets it.",
+    "lesson": "a deliberately-red assertion is worth almost nothing if nobody is looking at it. test_reports_its_own_cost was an expectedFailure carrying the number for an hour, and the failure it protected against looked exactly like the work in progress. What found it was a DIFFERENT test asking a different question."
+  },
+  "post_merge_remeasurement": {
+    "why": "6.6.6.1's 0.1123 ms and 54.2x were measured on a base WITHOUT own_job_entry. The PI ruled that criterion 1 and the byte-identical differential (criterion 3) be re-run on the merged result, because own_job_entry changes the record the cache serves. 6.6.2 merged at 566ba0b; this branch is rebased onto master 07f2058 and carries both the terminal cache and 6.6.6's own_job_entry.",
+    "base": "rebased onto master, both the terminal cache and own_job_entry present",
+    "criterion_1_instrument_cheaper_than_device_work": {
+      "met_at_live_size": false,
+      "ratio": 1.859,
+      "live_queue_files": 849,
+      "loadavg_1m": 34.16,
+      "marginal_cost_us_per_file_this_run": 0.1895,
+      "crossover_files_this_run": 733,
+      "verdict": "NOT met, and NOT regressed. The live queue is 849 files against a crossover of ~733 measured THIS run, so the instrument is past the point where it beats 0.139 ms of device work. The cache still removes the parsing: 41.0x same-process differential against the uncached path."
+    },
+    "criterion_3_measurement_unchanged": {
+      "verdict": "HOLDS on the merged result",
+      "evidence": "tests/test_cache_differential.py: 8 tests, 0 failures, on the rebased tree. Cached output == uncached output across every state the module distinguishes; a queued->running in-place rewrite is visible on the very next call; a terminal change is stale for the documented window and then revealed.",
+      "strengthened_by_the_rebase": "the fixture now identifies one of its own jobs, so the differential runs on the REAL audit path including own_job_entry, captured from the ACTIVE set which the cache never serves stale."
+    },
+    "contract_break_fixed": {
+      "what": "6.6.6 makes queue_state() raise IdentificationError with no identifying argument. 18 bare call sites existed across measure_cost.py, tests/test_queue_state_cost.py and tests/test_cache_differential.py.",
+      "how": "they route through loader_call()/benchmark_call(), which let the refusal happen and RECORD it. Catching-and-continuing would have rebuilt the null own_job_id 6.6.6 exists to remove, and inventing a resolving argument would have faked an audit.",
+      "new_guard": "TestTheContractBreakIsStillLoud: bare call still raises, the helper records the refusal with its reason, and an identified call produces own_job_entry."
+    },
+    "silent_failure_found_and_fixed": "After the first rebased run the size sweep printed [] and SPOT CHECK still said PASS: the sweep arm called queue_state() bare inside a temp queue with no own job, every point raised, the arm swallowed it and returned no points. An empty measurement reported as success is the failure this bead exists to prevent. The arm now identifies one of its own synthetic jobs, and size_sweep_produced_points is a GATE, so a sweep that measured nothing is now a failure."
+  }
+}

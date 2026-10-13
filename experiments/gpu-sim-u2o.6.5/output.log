@@ -1,0 +1,17 @@
+=== build_corpus.py ===
+PASS good-0 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-1 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-2 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-3 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-4 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-5 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-6 (0.6s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+PASS good-7 (0.7s): Pre-flight passed (bounds+scan+ptx+smoke: 21 trial lines, exit 0)
+REJECT bad-launch (0.2s): Pre-flight FAILED: threads/block=2048 outside [1, 1024]; block dims [2048, 1, 1] exceed (1024, 1024, 64)
+REJECT bad-symbol (0.1s): Pre-flight FAILED: Multiple __global__ kernels (2) - only one allowed in v1; No kernel launch site (<<< >>>) in this sou
+REJECT bad-syntax (0.1s): Pre-flight FAILED: No __global__ kernel found; No kernel launch site (<<< >>>) in this source; expected for bare kernel 
+REJECT bad-shmem (0.2s): Pre-flight FAILED: shared_mem=524288 exceeds 228KB/SM
+pass=8 reject=4 surprises=[] verdict=pass -> experiments/gpu-sim-u2o.6.5/preflight_results.json
+
+=== pair_results.py ===
+paired=8 rejected_kept_out=4 verdict=pass -> experiments/gpu-sim-u2o.6.5/metrics.json

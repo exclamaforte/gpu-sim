@@ -1,0 +1,60 @@
+/* gpu-sim-u2o.6.7.1 — driver for the scale corpus.
+ *
+ * A real file, not a Python string, for the same reason
+ * perkernel_loop.cu.in is: every build iteration lost to this driver was a
+ * brace-count or escaping bug in a generated string, and the fix for that is
+ * structural rather than another careful edit. The string version shipped one
+ * missing closing brace, which is the third time this class has cost a job.
+ *
+ * %(decls)s   -- one extern per distinct kernel, each its own translation unit
+ * %(switch)s  -- dispatch by kernel index
+ * %(geom)s    -- per spec: N, grid, block, set before each call
+ * %(mapping)s -- spec index -> kernel index; 264 specs share 24 kernels
+ */
+extern "C" {
+int N;
+dim3 grid;
+dim3 block;
+}
+
+#include <cstdio>
+#include <cstdlib>
+
+%(decls)s
+
+static const int SPEC_TO_KERNEL[] = {
+%(mapping)s
+};
+
+static int u2o_dispatch(int kidx)
+{
+    switch (kidx) {
+%(switch)s
+    }
+    return 2;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc < 2) {
+        fprintf(stderr, "usage: %%s <n>\n", argv[0]);
+        return 2;
+    }
+    int n = atoi(argv[1]);
+    for (int i = 0; i < n; i++) {
+        for (int inv = 0; inv < 2; inv++) {
+%(geom)s
+            printf("BEGIN %%d %%d\n", i, inv);
+            fflush(stdout);
+            int rc = u2o_dispatch(SPEC_TO_KERNEL[i]);
+            if (rc != 0) {
+                fprintf(stderr, "DISPATCH_FAIL spec=%%d inv=%%d rc=%%d\n", i, inv, rc);
+                return 3;
+            }
+            printf("END %%d %%d\n", i, inv);
+            fflush(stdout);
+        }
+    }
+    printf("DONE %%d\n", n);
+    return 0;
+}

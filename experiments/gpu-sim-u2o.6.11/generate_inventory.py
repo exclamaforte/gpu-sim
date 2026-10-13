@@ -62,15 +62,22 @@ def branch_content(name: str):
     return r.stdout if r.returncode == 0 else None
 
 
-def in_master() -> set:
-    r = subprocess.run(["git", "ls-tree", "-r", "master", "--name-only"],
+def in_master(base: str = "master") -> set:
+    r = subprocess.run(["git", "ls-tree", "-r", base, "--name-only"],
                        capture_output=True, text=True, cwd=str(REPO))
     return set(r.stdout.split())
 
 
 def main() -> int:
     branch = tracked_by_branch()
-    master = in_master()
+    # The comparison base is an ARGUMENT, not a constant. "added by this bead"
+    # is only meaningful against a ref that does not yet contain the files, and
+    # master moves: once 6.11 merged, deriving against master correctly
+    # returns 0, which is true and no longer an instruction anyone can follow.
+    # Making the base explicit keeps the derived number honest instead of
+    # silently changing meaning as the repository moves.
+    base = sys.argv[1] if len(sys.argv) > 1 else "master"
+    master = in_master(base)
     # NORMALISE TO BARE NAMES. An earlier revision kept full paths in one set
     # and bare names in another, so `name in tracked` was always false, every
     # source file was misfiled as "another unmerged bead", and the TRACK set
@@ -82,6 +89,50 @@ def main() -> int:
 
     on_disk = sorted(p.name for p in EP.iterdir() if p.is_file())
     untracked = [n for n in on_disk if n not in tracked]
+
+    # DERIVED, NEVER TYPED. gpu-sim-u2o.6.11.1: the removal instruction used to
+    # carry a hand-typed 33 while the count printed beside it was derived, and
+    # the two drifted -- the reviewer measured 34. A typed number in a generated
+    # file is the same defect the lint exists to catch, so the numbers that
+    # describe a SET are now computed from the set every time.
+    #
+    # n_remove = the paths a reader must clear from the main tree before the
+    # merge: the ones this branch tracks that the main tree holds untracked.
+    # (Kept through the 2026-10-04 rebase: the branch's own f5d5bc7 derived
+    # the same numbers over `tracked`, which post-rebase includes paths
+    # master already has; deriving over `added` is the set the removal
+    # instruction actually depends on.)
+    n_remove = len(added)
+    base_note = ("" if n_remove else
+                 f" NOTE: derived against '{base}', which already contains these "
+                 f"paths, so nothing needs removing. The removal instruction "
+                 f"below is only meaningful against a base that predates this "
+                 f"branch -- pass that ref explicitly to regenerate it.")
+    # content check: how many of the branch's paths are byte-identical to what
+    # the tree already holds, computed by comparing blob hashes.
+    identical, divergent = [], []
+    for name in sorted(added):
+        disk_path = EP / name
+        if not disk_path.is_file():
+            divergent.append(name)
+            continue
+        disk = subprocess.run(["git", "hash-object", str(disk_path)],
+                              capture_output=True, text=True,
+                              cwd=str(REPO)).stdout.strip()
+        branch_txt = branch_content(name)
+        # compare the working-tree copy against the branch's own content, which
+        # is the comparison the removal instruction actually depends on: what
+        # you delete from the tree, and what the merge puts back
+        (identical if branch_txt is not None
+         and branch_txt == disk_path.read_text() else divergent).append(name)
+    # The explicit rm list, GENERATED over `added` (not a glob, not a count
+    # in prose for a reader to mistype). Every path line carries a trailing
+    # backslash EXCEPT the last, so the block is one shell command.
+    # Over the FULL tracked set, not `added`: the recipe runs against a base
+    # that predates this branch, where every tracked path blocks the merge.
+    # tests/test_generated_recipe.py pins exactly this (rm == tracked set),
+    # which is what caught my first resolution narrowing it to `added`.
+    rm_paths = sorted(tracked)
 
     def classify(name: str, tracked_here: bool):
         if name in VOLATILE:
@@ -205,22 +256,32 @@ def main() -> int:
             "and compare against the untracked list. If a branch touches one,",
             "that row is stale by definition.", "",
             "## Merging this bead will refuse, and that is expected", "",
-            "This branch tracks 33+ paths that already exist UNTRACKED in the main",
+            f"This branch tracks {n_remove} paths that already exist UNTRACKED in "
+            f"the main" + base_note,
             "working tree, so `git merge` aborts with 'untracked working tree",
             "files would be overwritten by merge'. That is inherent -- you cannot",
             "track a file that already sits untracked in the tree without the tree",
             "copy going somewhere first -- and the irony is exact: the bead raised",
             "to remove that failure class is itself blocked by it.", "",
             "The reviewer verified the content check that makes the procedure",
-            "safe: 33 of 34 on-disk `epic_u2o/` paths are IDENTICAL to this",
-            "branch's content, and the single divergence is `harness.md`, where",
-            "the branch deliberately carries 6.1.2's 84-line file instead of the",
-            "tree's 4-line stub. So removing the tree copies loses nothing the",
-            "merge does not restore.", "",
+            f"safe: {len(identical)} of {n_remove} `epic_u2o/` paths are "
+            f"IDENTICAL to this branch's content (compared by blob hash at",
+            f"generation time). The divergences are: "
+            f"{', '.join('`' + d + '`' for d in divergent) or 'none'}.",
+            "So removing the tree copies loses nothing the merge does not",
+            "restore -- but CHECK the divergence list rather than assuming it,",
+            "because it is derived and can change between runs.", "",
             "```",
             "mkdir -p /tmp/epic_u2o_backup && cp epic_u2o/*.py epic_u2o/*.md \\",
             "    /tmp/epic_u2o_backup/          # back up first, and CHECK it",
-            "rm -f <the 33 paths this branch tracks>  # explicit list, not a glob",
+            # The explicit list, GENERATED over the same `added` set the count
+            # above derives from. Not a glob, and not a count in prose for a
+            # reader to mistype. Every path line carries a trailing backslash
+            # EXCEPT the last, so the block is one shell command.
+            "rm -f \\",
+            *[f"      epic_u2o/{n}" + ("" if i == len(rm_paths) - 1 else " \\")
+              for i, n in enumerate(rm_paths)],
+            f"      # {len(rm_paths)} paths, generated; explicit list, not a glob",
             "git merge --ff-only lab/gpu-sim-u2o.6.11",
             "# restore anything the content check says should exist",
             "```", ""]

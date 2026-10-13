@@ -1,0 +1,26 @@
+========================================================================
+gpu-sim-u2o.6.6.2 anchor -- family 'reduce'
+========================================================================
+PREFLIGHT IS BY-PASSED ON PURPOSE: preflight_check() executes on the
+real GPU (PI ruling on 6.1.1); calling it would add a second,
+unaccounted GPU execution to an anchor that exists precisely to be
+diffed against a later run. synthesize -> compile_kernel -> run_kernel
+only. Kernels are hand-written (anchor_kernels.py), not generated:
+gpu-sim-9ti showed stage2-5 kernel_name is untrustworthy.
+No sudo, no clock locking, no persistence-mode change.
+telemetry before: {"clocks.sm": "2415 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "44", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+queue before: {"own_job_id": "20260928t032717-ff2f2da2", "n_other_active": 2, "n_other_running_at_sample_time": 0}
+overlapping jobs: [{"id": "20260928t032717-3f5587a6", "state": "queued", "description": "u2o.6.6.2 anchor v6: gemm"}, {"id": "20260928t032742-7f556080", "state": "queued", "description": ""}]
+reduce: 8 configs x 3 process invocations x 100 trials
+  block_sum n=4096 auto/256    grid=    [16, 1, 1] med=    3.280us iqr=   0.960us cv=0.460 ai_cv=0.0574
+  block_sum n=4096 auto/1024   grid=     [4, 1, 1] med=    2.864us iqr=   0.544us cv=0.481 ai_cv=0.0096
+  block_sum n=65536 auto/256   grid=   [256, 1, 1] med=    3.344us iqr=   0.768us cv=0.452 ai_cv=0.0841
+  block_sum n=65536 auto/1024  grid=    [64, 1, 1] med=    2.944us iqr=   1.248us cv=0.423 ai_cv=0.0336
+  block_sum n=1048576 auto/256 grid=  [4096, 1, 1] med=    6.912us iqr=   0.448us cv=0.190 ai_cv=0.0119
+  block_sum n=1048576 auto/1024 grid=  [1024, 1, 1] med=   10.880us iqr=   0.384us cv=0.043 ai_cv=0.0089
+  block_sum n=16777216 auto/256 grid= [65536, 1, 1] med=   64.864us iqr=   1.408us cv=0.025 ai_cv=0.0032
+  block_sum n=16777216 auto/1024 grid= [16384, 1, 1] med=  116.640us iqr=   1.728us cv=0.007 ai_cv=0.0039
+telemetry after:  {"clocks.sm": "2490 MHz", "clocks.max.sm": "3105 MHz", "temperature.gpu": "45", "clocks_throttle_reasons.active": "0x0000000000000000", "persistence_mode": "Disabled"}
+
+wrote /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.6.6.2-r2/experiments/gpu-sim-u2o.6.6.2/family_reduce.json
+reduce: 8/8 configs measured, 7.2s

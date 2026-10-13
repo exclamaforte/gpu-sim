@@ -1,0 +1,30 @@
+{
+  "daemon": { "pollSeconds": 20 },
+  "gpqueue": {
+    "ts": "~/.local/bin/ts",
+    "gpqueuePy": "~/Documents/gpqueue/gpqueue.py"
+  },
+  "roles": {
+    "pi": {
+      "sessionId": "lab-pi",
+      "name": "Lab PI",
+      "model": "muse-spark-1.3-contributor",
+      "prompt": ".lab/prompts/pi.md",
+      "tools": null
+    },
+    "implementer": {
+      "sessionId": "lab-implementer",
+      "name": "Lab Implementer",
+      "model": "muse-spark-1.3-contributor",
+      "prompt": ".lab/prompts/implementer.md",
+      "tools": null
+    },
+    "reviewer": {
+      "sessionId": "lab-reviewer",
+      "name": "Lab Reviewer",
+      "model": "muse-spark-1.3-contributor",
+      "prompt": ".lab/prompts/reviewer.md",
+      "tools": null
+    }
+  }
+}

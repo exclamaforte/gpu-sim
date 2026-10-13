@@ -1,0 +1,1406 @@
+{
+  "bead": "gpu-sim-u2o.6.7.1",
+  "by_op_faster_slower": {
+    "add": [
+      4,
+      3
+    ],
+    "copy": [
+      10,
+      0
+    ],
+    "div": [
+      2,
+      6
+    ],
+    "mul": [
+      3,
+      7
+    ],
+    "relu": [
+      7,
+      4
+    ],
+    "saxpy": [
+      4,
+      2
+    ],
+    "scale": [
+      5,
+      2
+    ],
+    "triad": [
+      4,
+      4
+    ]
+  },
+  "by_regime_faster_slower": {
+    "over-10us": [
+      0,
+      0
+    ],
+    "sub-10us": [
+      39,
+      28
+    ]
+  },
+  "copy_cross_dataset": [
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.4027,
+      "cid": "67aadb4ae2474be6",
+      "same_sign": true
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": 0.1516,
+      "cid": "47c0d7679524a9e1",
+      "same_sign": false
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.3018,
+      "cid": "56f8346734796325",
+      "same_sign": true
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.3002,
+      "cid": "41c604afeb769078",
+      "same_sign": true
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.341,
+      "cid": "1a186c2aaaa5918d",
+      "same_sign": true
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.1967,
+      "cid": "6ff062d8f90e3346",
+      "same_sign": true
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.2599,
+      "cid": "523d9bb2d85f0490",
+      "same_sign": true
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.2224,
+      "cid": "25923dc793d1640a",
+      "same_sign": true
+    },
+    {
+      "build_mover": false,
+      "build_signed_rel": 0.0073,
+      "cid": "17d3a62332439dc1",
+      "same_sign": false
+    },
+    {
+      "build_mover": true,
+      "build_signed_rel": -0.224,
+      "cid": "931b4d1fd1c5dd27",
+      "same_sign": true
+    }
+  ],
+  "copy_op": {
+    "binomial_p": 0.002,
+    "bonferroni_x8": 0.016,
+    "faster": 10,
+    "movers": 10
+  },
+  "cross_agreement": {
+    "copy_overlap_movers": 10,
+    "same_sign_movers": 8
+  },
+  "faster": 39,
+  "magnitude_quantiles": {
+    "max": 0.4803,
+    "min": 0.1018,
+    "p50": 0.2282,
+    "p90": 0.4052
+  },
+  "movers": [
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "523d9bb2d85f0490",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "copy",
+      "ref_us": 4.864,
+      "rerun_us": 2.528,
+      "signed_rel": -0.4803,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "bf75180876dcc4e0",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "scale",
+      "ref_us": 4.904,
+      "rerun_us": 2.648,
+      "signed_rel": -0.46,
+      "tol": 0.1038
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "bab0a26c88c45ca6",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "relu",
+      "ref_us": 4.56,
+      "rerun_us": 2.48,
+      "signed_rel": -0.4561,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "b413f74408a5262a",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "div",
+      "ref_us": 5.152,
+      "rerun_us": 2.856,
+      "signed_rel": -0.4457,
+      "tol": 0.1186
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "6a6bdd4fc010f5fc",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "relu",
+      "ref_us": 4.624,
+      "rerun_us": 2.616,
+      "signed_rel": -0.4343,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "e12cb266a5783762",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "scale",
+      "ref_us": 3.712,
+      "rerun_us": 2.24,
+      "signed_rel": -0.3966,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "e507e7c777215d8f",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "triad",
+      "ref_us": 4.784,
+      "rerun_us": 2.92,
+      "signed_rel": -0.3896,
+      "tol": 0.2412
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "ce903cbcf597075a",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "add",
+      "ref_us": 4.896,
+      "rerun_us": 3.024,
+      "signed_rel": -0.3824,
+      "tol": 0.1802
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "e8ad5990825b0ea3",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "saxpy",
+      "ref_us": 4.72,
+      "rerun_us": 2.936,
+      "signed_rel": -0.378,
+      "tol": 0.1582
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "ce2da0c006706e94",
+      "grid": [
+        4096,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "mul",
+      "ref_us": 5.224,
+      "rerun_us": 3.272,
+      "signed_rel": -0.3737,
+      "tol": 0.1884
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "2379a93df482b08d",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "scale",
+      "ref_us": 3.88,
+      "rerun_us": 2.472,
+      "signed_rel": -0.3629,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "56f8346734796325",
+      "grid": [
+        512,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "copy",
+      "ref_us": 3.048,
+      "rerun_us": 2.04,
+      "signed_rel": -0.3307,
+      "tol": 0.1002
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "41c604afeb769078",
+      "grid": [
+        512,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "copy",
+      "ref_us": 4.104,
+      "rerun_us": 2.816,
+      "signed_rel": -0.3138,
+      "tol": 0.1737
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "1a186c2aaaa5918d",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "copy",
+      "ref_us": 2.792,
+      "rerun_us": 2.008,
+      "signed_rel": -0.2808,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "002f01a945880240",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "add",
+      "ref_us": 3.928,
+      "rerun_us": 2.84,
+      "signed_rel": -0.277,
+      "tol": 0.1815
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "51aed4779277936c",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "relu",
+      "ref_us": 3.856,
+      "rerun_us": 2.888,
+      "signed_rel": -0.251,
+      "tol": 0.2465
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "42803a0ccfc25a6a",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "div",
+      "ref_us": 4.344,
+      "rerun_us": 3.256,
+      "signed_rel": -0.2505,
+      "tol": 0.2266
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "9b87193cde14df2d",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "scale",
+      "ref_us": 4.04,
+      "rerun_us": 3.04,
+      "signed_rel": -0.2475,
+      "tol": 0.1596
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "2e00019c9f1523c6",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "triad",
+      "ref_us": 3.816,
+      "rerun_us": 2.888,
+      "signed_rel": -0.2432,
+      "tol": 0.2401
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "f150e383dd05a444",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "relu",
+      "ref_us": 3.608,
+      "rerun_us": 2.744,
+      "signed_rel": -0.2395,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "b56222af9b49a98d",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "saxpy",
+      "ref_us": 4.2,
+      "rerun_us": 3.2,
+      "signed_rel": -0.2381,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "3833742cdfeb389a",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "triad",
+      "ref_us": 3.336,
+      "rerun_us": 2.552,
+      "signed_rel": -0.235,
+      "tol": 0.1933
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "8825474238614008",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "mul",
+      "ref_us": 3.944,
+      "rerun_us": 3.032,
+      "signed_rel": -0.2312,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "071454b3d6554d1f",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "scale",
+      "ref_us": 3.592,
+      "rerun_us": 2.768,
+      "signed_rel": -0.2294,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "34237a41c50b3a84",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "relu",
+      "ref_us": 3.472,
+      "rerun_us": 2.688,
+      "signed_rel": -0.2258,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "17d3a62332439dc1",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "copy",
+      "ref_us": 3.296,
+      "rerun_us": 2.552,
+      "signed_rel": -0.2257,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "931b4d1fd1c5dd27",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "copy",
+      "ref_us": 3.0,
+      "rerun_us": 2.376,
+      "signed_rel": -0.208,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "6ff062d8f90e3346",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "copy",
+      "ref_us": 2.888,
+      "rerun_us": 2.352,
+      "signed_rel": -0.1856,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "b63c7f10dd118f8c",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "triad",
+      "ref_us": 3.224,
+      "rerun_us": 2.632,
+      "signed_rel": -0.1836,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "1620c748448a6bf5",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "add",
+      "ref_us": 3.52,
+      "rerun_us": 2.896,
+      "signed_rel": -0.1773,
+      "tol": 0.1157
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "47e8b4ef528799c7",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "saxpy",
+      "ref_us": 3.688,
+      "rerun_us": 3.04,
+      "signed_rel": -0.1757,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "25923dc793d1640a",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "copy",
+      "ref_us": 4.424,
+      "rerun_us": 3.688,
+      "signed_rel": -0.1664,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "91f42672adc39147",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "relu",
+      "ref_us": 3.048,
+      "rerun_us": 2.552,
+      "signed_rel": -0.1627,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "3b5b1eb4cd74277d",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "saxpy",
+      "ref_us": 3.328,
+      "rerun_us": 2.816,
+      "signed_rel": -0.1538,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "d7c05f0e8ee7805d",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "mul",
+      "ref_us": 3.952,
+      "rerun_us": 3.384,
+      "signed_rel": -0.1437,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "47c0d7679524a9e1",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "copy",
+      "ref_us": 3.008,
+      "rerun_us": 2.6,
+      "signed_rel": -0.1356,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "8fc26ae50fca632d",
+      "grid": [
+        2048,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "add",
+      "ref_us": 4.192,
+      "rerun_us": 3.688,
+      "signed_rel": -0.1202,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "67aadb4ae2474be6",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "copy",
+      "ref_us": 3.0,
+      "rerun_us": 2.656,
+      "signed_rel": -0.1147,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "f8c142771175ccfc",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "relu",
+      "ref_us": 3.064,
+      "rerun_us": 2.752,
+      "signed_rel": -0.1018,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "33d2ce9fdcada481",
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "div",
+      "ref_us": 3.336,
+      "rerun_us": 3.688,
+      "signed_rel": 0.1055,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "613cbd1ec24e3bbb",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "mul",
+      "ref_us": 3.112,
+      "rerun_us": 3.448,
+      "signed_rel": 0.108,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "9611f740ad1232ea",
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "relu",
+      "ref_us": 2.76,
+      "rerun_us": 3.096,
+      "signed_rel": 0.1217,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "190706a7eca08248",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "div",
+      "ref_us": 3.472,
+      "rerun_us": 3.904,
+      "signed_rel": 0.1244,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "6d1bf0d5798a4e8f",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "mul",
+      "ref_us": 2.952,
+      "rerun_us": 3.32,
+      "signed_rel": 0.1247,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "0eba9dc43568ba66",
+      "grid": [
+        512,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "mul",
+      "ref_us": 3.096,
+      "rerun_us": 3.496,
+      "signed_rel": 0.1292,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "abf2469a55587399",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "add",
+      "ref_us": 3.16,
+      "rerun_us": 3.584,
+      "signed_rel": 0.1342,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "584f21eb525c0a4a",
+      "grid": [
+        8,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "saxpy",
+      "ref_us": 3.008,
+      "rerun_us": 3.416,
+      "signed_rel": 0.1356,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "e47bbde2a60961f4",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "div",
+      "ref_us": 3.24,
+      "rerun_us": 3.68,
+      "signed_rel": 0.1358,
+      "tol": 0.1152
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "17d8bbcaccc066ee",
+      "grid": [
+        512,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "relu",
+      "ref_us": 3.168,
+      "rerun_us": 3.632,
+      "signed_rel": 0.1465,
+      "tol": 0.1286
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "a34b698daa988f84",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "add",
+      "ref_us": 2.792,
+      "rerun_us": 3.216,
+      "signed_rel": 0.1519,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "c61090f10faca0dc",
+      "grid": [
+        512,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "relu",
+      "ref_us": 2.744,
+      "rerun_us": 3.176,
+      "signed_rel": 0.1574,
+      "tol": 0.1361
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "7115b82463906f77",
+      "grid": [
+        4,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "triad",
+      "ref_us": 2.944,
+      "rerun_us": 3.432,
+      "signed_rel": 0.1658,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "e971ca6d24405198",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "mul",
+      "ref_us": 2.864,
+      "rerun_us": 3.4,
+      "signed_rel": 0.1872,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "cb28d8bb55137598",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "scale",
+      "ref_us": 2.792,
+      "rerun_us": 3.344,
+      "signed_rel": 0.1977,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "03ff0f8a46723432",
+      "grid": [
+        8,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "mul",
+      "ref_us": 2.904,
+      "rerun_us": 3.496,
+      "signed_rel": 0.2039,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "443ec464494321d2",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "mul",
+      "ref_us": 2.816,
+      "rerun_us": 3.448,
+      "signed_rel": 0.2244,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "0fc3ae94dc5784fe",
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "triad",
+      "ref_us": 2.792,
+      "rerun_us": 3.424,
+      "signed_rel": 0.2264,
+      "tol": 0.2067
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "23b3a2a2e7366216",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "add",
+      "ref_us": 2.84,
+      "rerun_us": 3.488,
+      "signed_rel": 0.2282,
+      "tol": 0.2032
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "55444653fc3cacf7",
+      "grid": [
+        8,
+        1,
+        1
+      ],
+      "n": 16384,
+      "op": "triad",
+      "ref_us": 2.8,
+      "rerun_us": 3.448,
+      "signed_rel": 0.2314,
+      "tol": 0.1697
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "10b1f9d2457e5871",
+      "grid": [
+        128,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "div",
+      "ref_us": 3.056,
+      "rerun_us": 3.784,
+      "signed_rel": 0.2382,
+      "tol": 0.1777
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "647609be664b004f",
+      "grid": [
+        256,
+        1,
+        1
+      ],
+      "n": 65536,
+      "op": "triad",
+      "ref_us": 2.656,
+      "rerun_us": 3.344,
+      "signed_rel": 0.259,
+      "tol": 0.2556
+    },
+    {
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "cid": "d517dea0f79c88ee",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "div",
+      "ref_us": 3.176,
+      "rerun_us": 4.024,
+      "signed_rel": 0.267,
+      "tol": 0.203
+    },
+    {
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "cid": "4106732ca1bdb276",
+      "grid": [
+        2,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "relu",
+      "ref_us": 2.592,
+      "rerun_us": 3.296,
+      "signed_rel": 0.2716,
+      "tol": 0.1048
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "20e56bf87467a2ce",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "mul",
+      "ref_us": 2.744,
+      "rerun_us": 3.616,
+      "signed_rel": 0.3178,
+      "tol": 0.1608
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "2a0dc8368185eb67",
+      "grid": [
+        32,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "saxpy",
+      "ref_us": 2.496,
+      "rerun_us": 3.432,
+      "signed_rel": 0.375,
+      "tol": 0.2176
+    },
+    {
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "cid": "9943e055cdab9bb3",
+      "grid": [
+        1024,
+        1,
+        1
+      ],
+      "n": 262144,
+      "op": "scale",
+      "ref_us": 3.376,
+      "rerun_us": 4.744,
+      "signed_rel": 0.4052,
+      "tol": 0.1
+    },
+    {
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "cid": "650a8cce986da575",
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "n": 4096,
+      "op": "div",
+      "ref_us": 2.736,
+      "rerun_us": 4.0,
+      "signed_rel": 0.462,
+      "tol": 0.1489
+    }
+  ],
+  "n_movers": 67,
+  "packet": "blocker2-direction",
+  "reading": "GLOBAL-DIRECTION-INCONCLUSIVE: 39/67 faster, p=0.2215. OP-CONDITIONED FINDING: copy 10/10 faster (p=0.002, Bonferroni x8). Of the 10 copy movers, 9 re-appear as movers in the independent build-protocol dataset and 8 of those 9 move faster there too. The locus is copy; the other 57 movers show no direction (mixed signs across 7 ops). No new GPU was spent: cross-dataset agreement is the confirmation the dose budget held.",
+  "slower": 28,
+  "symmetry_binomial_p": 0.2215
+}

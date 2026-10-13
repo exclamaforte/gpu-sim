@@ -1,0 +1,94 @@
+{
+  "bead": "gpu-sim-edu.2",
+  "kind": "LAB RUNTIME INVENTORY -- read-only, git asked via dry run",
+  "produced_at_utc": "2026-10-03T21:03:48.478498+00:00",
+  "lab_dir": "/home/gabe/Documents/gpu-sim/.lab",
+  "named_files_reported_missing": {
+    "inbox": {
+      "present": true,
+      "kind": "dir"
+    },
+    "prompts": {
+      "present": true,
+      "kind": "dir"
+    },
+    "labd.log": {
+      "present": false,
+      "kind": null
+    },
+    "pid": {
+      "present": false,
+      "kind": null
+    },
+    "queue_check.py": {
+      "present": false,
+      "kind": null
+    }
+  },
+  "git_clean_fd_would_remove_total": 9,
+  "git_clean_fd_would_remove_lab_runtime": [
+    ".lab/tmux.sock",
+    ".lab/labd.sock",
+    ".lab/pi.sock",
+    ".lab/reviewer.sock",
+    ".lab/implementer.sock",
+    ".lab/labd-state.json",
+    ".lab/prompts",
+    ".lab/inbox"
+  ],
+  "risk": "git clean -fd from the repo root would delete every role socket, labd-state.json, the inboxes and the prompts. They are UNTRACKED, so they do not make the tree dirty and no cleanliness check can see them.",
+  "git_evidence": {
+    "lab_ever_tracked_by_git": false,
+    "deleted_tracked_entries": []
+  },
+  "interpretation": "The loose file-based runtime (labd.log, pid, queue_check.py) is absent while the socket + state-file runtime is present, which is the shape of a MIGRATION rather than a deletion. .lab was never tracked by git and no tracked file is deleted, so no git operation can account for it."
+}
+
+wrote inventory.json
+REFUSED. This would delete 8 LAB RUNTIME path(s) under .lab/ -- every role socket, labd-state.json, the inboxes and the prompts: .lab/tmux.sock, .lab/labd.sock, .lab/pi.sock, .lab/reviewer.sock, .lab/implementer.sock, .lab/labd-state.json. They are UNTRACKED, so they do not make the tree dirty and no cleanliness check can see them. If you really mean to delete the lab runtime, delete it by hand and say so.
+test_a_genuine_empty_listing_still_succeeds (__main__.TestEnumerationFailsClosed.test_a_genuine_empty_listing_still_succeeds)
+Can-pass: a repo with no untracked paths enumerates cleanly. ... ok
+test_a_git_error_is_not_an_empty_result (__main__.TestEnumerationFailsClosed.test_a_git_error_is_not_an_empty_result) ... ok
+test_a_timeout_is_not_an_empty_result (__main__.TestEnumerationFailsClosed.test_a_timeout_is_not_an_empty_result) ... ok
+test_an_oserror_is_not_an_empty_result (__main__.TestEnumerationFailsClosed.test_an_oserror_is_not_an_empty_result) ... ok
+test_an_unparseable_command_is_not_an_empty_result (__main__.TestEnumerationFailsClosed.test_an_unparseable_command_is_not_an_empty_result) ... ok
+test_the_guard_refuses_when_the_enumeration_fails (__main__.TestEnumerationFailsClosed.test_the_guard_refuses_when_the_enumeration_fails)
+End to end: the refusal, not just the flag. ... ok
+test_unrecognised_output_is_not_an_empty_result (__main__.TestEnumerationFailsClosed.test_unrecognised_output_is_not_an_empty_result)
+Output we cannot parse must not be read as 'nothing there'. ... ok
+test_a_clean_worktree_still_passes (__main__.TestItChecksTheTreeItWillDiscard.test_a_clean_worktree_still_passes)
+Can-pass: the guard must not block where there is nothing to lose. ... ok
+test_a_dirty_worktree_is_refused_even_though_main_is_clean (__main__.TestItChecksTheTreeItWillDiscard.test_a_dirty_worktree_is_refused_even_though_main_is_clean) ... ok
+test_naming_a_tree_is_not_naming_a_file (__main__.TestItChecksTheTreeItWillDiscard.test_naming_a_tree_is_not_naming_a_file) ... ok
+test_the_guard_reports_which_tree_it_checked (__main__.TestItChecksTheTreeItWillDiscard.test_the_guard_reports_which_tree_it_checked) ... ok
+test_the_recovery_point_comes_from_the_target_tree (__main__.TestItChecksTheTreeItWillDiscard.test_the_recovery_point_comes_from_the_target_tree) ... ok
+test_checkout_dot_is_refused (__main__.TestItRefusesTheIncidentCommand.test_checkout_dot_is_refused)
+`git checkout -- .` in a dirty main tree. This IS the incident. ... ok
+test_dot_looks_named_but_is_cwd_scoped (__main__.TestItRefusesTheIncidentCommand.test_dot_looks_named_but_is_cwd_scoped)
+The subtle one: `-- .` HAS a pathspec, so a naive guard accepts it. ... ok
+test_refusing_leaves_the_edits_intact (__main__.TestItRefusesTheIncidentCommand.test_refusing_leaves_the_edits_intact) ... ok
+test_restore_dot_reset_hard_and_clean_are_refused (__main__.TestItRefusesTheIncidentCommand.test_restore_dot_reset_hard_and_clean_are_refused) ... ok
+test_modified_tracked_files_are_found (__main__.TestItSeesTheDirtyTree.test_modified_tracked_files_are_found) ... ok
+test_a_non_clean_command_is_unaffected (__main__.TestLabRuntimeIsProtected.test_a_non_clean_command_is_unaffected)
+checkout of a named file must not be blocked by this rule. ... ok
+test_a_repo_without_lab_runtime_is_unaffected (__main__.TestLabRuntimeIsProtected.test_a_repo_without_lab_runtime_is_unaffected)
+Can-pass: the rule must not fire where there is nothing to protect. ... ok
+test_clean_is_refused_when_it_would_delete_lab_runtime (__main__.TestLabRuntimeIsProtected.test_clean_is_refused_when_it_would_delete_lab_runtime) ... ok
+test_the_refusal_happens_even_though_the_tree_is_clean (__main__.TestLabRuntimeIsProtected.test_the_refusal_happens_even_though_the_tree_is_clean)
+The specific hole this bead found. ... ok
+test_stash_create_leaves_a_reachable_wip_commit_with_the_edits (__main__.TestRecoveryIsReal.test_stash_create_leaves_a_reachable_wip_commit_with_the_edits) ... ok
+test_the_real_incident_commit_still_exists (__main__.TestRecoveryIsReal.test_the_real_incident_commit_still_exists)
+f73d442 is the actual recovery. Asserted against THIS repository so ... ok
+test_a_clean_tree_permits_a_cwd_scoped_discard (__main__.TestScopedCommandsAreAllowed.test_a_clean_tree_permits_a_cwd_scoped_discard) ... ok
+test_a_real_pathspec_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_a_real_pathspec_is_not_refused) ... ok
+test_equals_form_target_option_names_the_same_tree (__main__.TestScopedCommandsAreAllowed.test_equals_form_target_option_names_the_same_tree)
+It is recognised as a target, but naming a TREE is no longer enough. ... ok
+test_git_dash_C_is_not_refused (__main__.TestScopedCommandsAreAllowed.test_git_dash_C_is_not_refused) ... ok
+test_git_dash_C_parses_the_worktree_not_the_path_as_subcommand (__main__.TestScopedCommandsAreAllowed.test_git_dash_C_parses_the_worktree_not_the_path_as_subcommand)
+The form the rules REQUIRE must be recognised as destructive. ... ok
+test_the_guard_refuses_what_it_cannot_read (__main__.TestUnparseableIsRefused.test_the_guard_refuses_what_it_cannot_read) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 0.193s
+
+OK

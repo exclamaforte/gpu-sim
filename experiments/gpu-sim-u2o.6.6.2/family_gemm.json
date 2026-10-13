@@ -1,0 +1,407 @@
+{
+  "bead": "gpu-sim-u2o.6.6.2",
+  "family": "gemm",
+  "queue_state_before": {
+    "recorded_at": "2026-09-28T03:29:10.727705+00:00",
+    "own_job_id": "20260928t032717-3f5587a6",
+    "own_description_substr": "u2o.6.6.2 anchor: gemm",
+    "own_job_id_resolution": "running",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 293,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "running": 1,
+      "queued": 1
+    },
+    "n_active_including_self": 2,
+    "n_other_active": 1,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032742-7f556080",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-09-28T03:27:42+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "queue_state_after": {
+    "recorded_at": "2026-09-28T03:29:19.710241+00:00",
+    "own_job_id": "20260928t032717-3f5587a6",
+    "own_description_substr": "u2o.6.6.2 anchor: gemm",
+    "own_job_id_resolution": "running",
+    "queue_dir": "/home/gabe/.local/state/gpqueue/jobs",
+    "counts_by_state": {
+      "finished": 293,
+      "failed": 116,
+      "canceled": 32,
+      "timed_out": 6,
+      "running": 1,
+      "queued": 11
+    },
+    "n_active_including_self": 12,
+    "n_other_active": 11,
+    "n_other_running_at_sample_time": 0,
+    "other_active_jobs": [
+      {
+        "id": "20260928t032742-7f556080",
+        "state": "queued",
+        "description": "",
+        "created_at": "2026-09-28T03:27:42+00:00"
+      },
+      {
+        "id": "20260928t032912-08193efb",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 150m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-3e5c4fe8",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 100m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-76272af6",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 200m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-7aad4ccd",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 450m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-7d0054fd",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 350m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-9c24bbdc",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 300m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-9eb31357",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 500m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-b21ed6bf",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 50m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-c5ea721d",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 400m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      },
+      {
+        "id": "20260928t032912-e9459c64",
+        "state": "queued",
+        "description": "cclm-chh.16.10 curve 250m",
+        "created_at": "2026-09-28T03:29:12+00:00"
+      }
+    ],
+    "other_running_jobs": [],
+    "queue_was_empty": false,
+    "scope_note": "Records what else was queued/running at sample time. This is NOT contention detection and NOT a filter: no sample is discarded on the basis of this. Detection and attribution belong to gpu-sim-u2o.6.6.3."
+  },
+  "preflight_bypassed": true,
+  "preflight_bypass_reason": "preflight_check executes on the real GPU (PI ruling 6.1.1); the anchor exists to be diffed against a later run and must not carry an unaccounted extra execution",
+  "telemetry_before": {
+    "label": "before",
+    "at": 1790566150.7090936,
+    "rc": 0,
+    "csv": "2415 MHz, 3105 MHz, 44, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2415 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "44",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "telemetry_after": {
+    "label": "after",
+    "at": 1790566159.692536,
+    "rc": 0,
+    "csv": "2917 MHz, 3105 MHz, 53, 0x0000000000000000, Disabled",
+    "fields": {
+      "clocks.sm": "2917 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "temperature.gpu": "53",
+      "clocks_throttle_reasons.active": "0x0000000000000000",
+      "persistence_mode": "Disabled"
+    }
+  },
+  "throttling_observed": false,
+  "design": {
+    "trials": 100,
+    "invocations": 3,
+    "note": "invocations are independent PROCESSES"
+  },
+  "results": [
+    {
+      "label": "tiled_gemm 512^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.039648,
+      "iqr_ms": 0.00032000000000000084,
+      "mean_ms": 0.039750933333333335,
+      "std_ms": 0.000440817648092787,
+      "cv": 0.011089491771080939,
+      "medians_across_invocations_ms": [
+        0.039648,
+        0.039712,
+        0.039616
+      ],
+      "across_invocation_cv": 0.0012325378415695908,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 512^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 262144,
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.013024,
+      "iqr_ms": 0.00028800000000000006,
+      "mean_ms": 0.013187200000000001,
+      "std_ms": 0.0011839882729607054,
+      "cv": 0.08978314372730416,
+      "medians_across_invocations_ms": [
+        0.01304,
+        0.013024,
+        0.013008
+      ],
+      "across_invocation_cv": 0.0012285012285011916,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 1024^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.257168,
+      "iqr_ms": 0.0008640000000000314,
+      "mean_ms": 0.25756640000000003,
+      "std_ms": 0.0020537497677357345,
+      "cv": 0.007973671129991079,
+      "medians_across_invocations_ms": [
+        0.257168,
+        0.25684799999999997,
+        0.257168
+      ],
+      "across_invocation_cv": 0.0007187081921073496,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 1024^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 1048576,
+      "grid": [
+        32,
+        32,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.062112,
+      "iqr_ms": 0.0002879999999999966,
+      "mean_ms": 0.06233706666666667,
+      "std_ms": 0.0012199751854473704,
+      "cv": 0.01957062227471997,
+      "medians_across_invocations_ms": [
+        0.062112,
+        0.062176,
+        0.06208
+      ],
+      "across_invocation_cv": 0.0007868433542163134,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 2048^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 1.8154080000000001,
+      "iqr_ms": 0.0011520000000000419,
+      "mean_ms": 1.8165616,
+      "std_ms": 0.0032908773092302857,
+      "cv": 0.0018115968702797007,
+      "medians_across_invocations_ms": [
+        1.8154080000000001,
+        1.815328,
+        1.8155839999999999
+      ],
+      "across_invocation_cv": 7.213989134856896e-05,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 2048^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 4194304,
+      "grid": [
+        64,
+        64,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 0.40615999999999997,
+      "iqr_ms": 0.0012159999999999949,
+      "mean_ms": 0.40679893333333333,
+      "std_ms": 0.0026116382926721316,
+      "cv": 0.0064199733054170535,
+      "medians_across_invocations_ms": [
+        0.406208,
+        0.40604799999999996,
+        0.40615999999999997
+      ],
+      "across_invocation_cv": 0.00020216155163221174,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 4096^3 32x32",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        32,
+        32,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 15.00016,
+      "iqr_ms": 0.05487999999999893,
+      "mean_ms": 15.064189866666668,
+      "std_ms": 0.2219387297553216,
+      "cv": 0.014732868592317547,
+      "medians_across_invocations_ms": [
+        14.967504,
+        15.00016,
+        15.023392000000001
+      ],
+      "across_invocation_cv": 0.0018721129549397642,
+      "throttle_active": false
+    },
+    {
+      "label": "tiled_gemm 4096^3 16x16",
+      "kernel": "k_tiled_gemm",
+      "op_type": "gemm",
+      "n_problem_size": 16777216,
+      "grid": [
+        128,
+        128,
+        1
+      ],
+      "block": [
+        16,
+        16,
+        1
+      ],
+      "shared_mem_bytes": 8192,
+      "n_trials": 100,
+      "n_invocations": 3,
+      "median_ms": 3.078672,
+      "iqr_ms": 0.0019839999999997637,
+      "mean_ms": 3.0788165333333333,
+      "std_ms": 0.001978573150210622,
+      "cv": 0.0006426408098011888,
+      "medians_across_invocations_ms": [
+        3.078672,
+        3.078608,
+        3.078704
+      ],
+      "across_invocation_cv": 1.5877292797251875e-05,
+      "throttle_active": false
+    }
+  ],
+  "wall_sec": 8.98244047164917
+}

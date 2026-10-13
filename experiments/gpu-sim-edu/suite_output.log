@@ -1,0 +1,117 @@
+labd stopped
+added reviewer-2
+reviewer-2 deleted
+appended to /home/gabe/Documents/gpu-sim/.lab/tmp/implementer/tmpf9wv8g7s/inbox/implementer-2.md (daemon down: will be seen on next spawn)
+appended to /home/gabe/Documents/gpu-sim/.lab/tmp/implementer/tmp0vjpb6z3/inbox/implementer-1.md (daemon down: will be seen on next spawn)
+steered
+REBASE: already up to date at aaaaaaa
+PASS: worktree on branch lab/x-9
+PASS: worktree HEAD aaaaaaa named in bd comment
+PASS: worktree clean (symlinks aside)
+PASS: artifact present: experiments/x-9/run.sh
+PASS: artifact present: experiments/x-9/metrics.json
+PASS: artifact present: experiments/x-9/output.log
+PASS: artifact present: experiments/x-9/job.json
+PASS: metrics.json parses as JSON
+PASS: run.sh exit 0 CPU-side (CUDA_VISIBLE_DEVICES=)
+PASS: metrics.json bytes match fresh run.sh re-execution
+PASS: unit suite exit 0 CPU-side (234 tests)
+PASS: no assertion deletions in tests/
+FAIL: job.json unreadable: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+pre-submit checks FAILED for x-9; refusing needs-review label
+REBASE: already up to date at aaaaaaa
+PASS: worktree on branch lab/x-9
+PASS: worktree HEAD aaaaaaa named in bd comment
+PASS: worktree clean (symlinks aside)
+PASS: artifact present: experiments/x-9/run.sh
+PASS: artifact present: experiments/x-9/metrics.json
+PASS: artifact present: experiments/x-9/output.log
+PASS: artifact present: experiments/x-9/job.json
+PASS: metrics.json parses as JSON
+PASS: job.json schema ok (1 entries)
+PASS: run.sh exit 0 CPU-side (CUDA_VISIBLE_DEVICES=)
+PASS: metrics.json bytes match fresh run.sh re-execution
+PASS: unit suite exit 0 CPU-side (234 tests)
+PASS: no assertion deletions in tests/
+pre-submit checks passed for x-9
+LABEL: x-9: needs-review set, needs-rework cleared
+WARNING: review_submit refused: labd not running; start the lab with `lab spawn`
+REBASE-FAIL: worktree dirty, refusing:
+M lab.py
+pre-submit rebase FAILED for x-9; resolve the conflicts above and re-request (needs-review refused)
+REBASE: already up to date at aaaaaaa
+PASS: worktree on branch lab/x-9
+PASS: worktree HEAD aaaaaaa named in bd comment
+PASS: worktree clean (symlinks aside)
+PASS: artifact present: experiments/x-9/run.sh
+PASS: artifact present: experiments/x-9/metrics.json
+PASS: artifact present: experiments/x-9/output.log
+PASS: artifact present: experiments/x-9/job.json
+PASS: metrics.json parses as JSON
+PASS: job.json schema ok (1 entries)
+PASS: run.sh exit 0 CPU-side (CUDA_VISIBLE_DEVICES=)
+PASS: metrics.json bytes match fresh run.sh re-execution
+PASS: no assertion deletions in tests/
+FAIL: unit suite exit 1 CPU-side: FAILED
+pre-submit checks FAILED for x-9; refusing needs-review label
+REBASE-FAIL: worktree dirty, refusing:
+?? scratch.txt
+pre-submit rebase FAILED for x-9; resolve the conflicts above and re-request (needs-review refused)
+WARNING: pre-submit checks skipped (--no-verify) for x-9
+LABEL: x-9: needs-review set, needs-rework cleared
+WARNING: review_submit refused: labd not running; start the lab with `lab spawn`
+CLEAN: auto-cleaned untracked: scratch.txt
+REBASE: rebased clean onto main at aaaaaaa
+PASS: worktree on branch lab/x-9
+PASS: worktree HEAD aaaaaaa named in bd comment
+PASS: worktree clean (symlinks aside)
+PASS: artifact present: experiments/x-9/run.sh
+PASS: artifact present: experiments/x-9/metrics.json
+PASS: artifact present: experiments/x-9/output.log
+PASS: artifact present: experiments/x-9/job.json
+PASS: metrics.json parses as JSON
+PASS: job.json schema ok (1 entries)
+PASS: run.sh exit 0 CPU-side (CUDA_VISIBLE_DEVICES=)
+PASS: metrics.json bytes match fresh run.sh re-execution
+PASS: unit suite exit 0 CPU-side (234 tests)
+PASS: no assertion deletions in tests/
+pre-submit checks passed for x-9
+LABEL: x-9: needs-review set, needs-rework cleared
+WARNING: review_submit refused: labd not running; start the lab with `lab spawn`
+REBASE: rebased clean onto main at aaaaaaa
+PASS: worktree on branch lab/x-9
+PASS: worktree HEAD aaaaaaa named in bd comment
+PASS: worktree clean (symlinks aside)
+PASS: artifact present: experiments/x-9/run.sh
+PASS: artifact present: experiments/x-9/metrics.json
+PASS: artifact present: experiments/x-9/output.log
+PASS: artifact present: experiments/x-9/job.json
+PASS: metrics.json parses as JSON
+PASS: job.json schema ok (1 entries)
+PASS: run.sh exit 0 CPU-side (CUDA_VISIBLE_DEVICES=)
+PASS: metrics.json bytes match fresh run.sh re-execution
+PASS: unit suite exit 0 CPU-side (234 tests)
+PASS: no assertion deletions in tests/
+pre-submit checks passed for x-9
+LABEL: x-9: needs-review set, needs-rework cleared
+WARNING: review_submit refused: labd not running; start the lab with `lab spawn`
+REBASE-FAIL: rebase stopped on 2 conflicted file(s): lab.py, tests/test_lab.py
+error: could not apply
+pre-submit rebase FAILED for x-9; resolve the conflicts above and re-request (needs-review refused)
+REBASE-FAIL: worktree dirty, refusing:
+M lab.py
+pre-submit rebase FAILED for x-9; resolve the conflicts above and re-request (needs-review refused)
+appended to /home/gabe/Documents/gpu-sim/.lab/tmp/implementer/tmpqkay9zpf/inbox/pi.md (daemon down: will be seen on next spawn)
+appended to /home/gabe/Documents/gpu-sim/.lab/tmp/implementer/tmpnbyj3r__/inbox/pi.md (daemon down: will be seen on next spawn)
+appended to /home/gabe/Documents/gpu-sim/.lab/tmp/implementer/tmpvc0aj1ao/inbox/pi.md (daemon down: will be seen on next spawn)
+.................................................................................error: can only add implementer/reviewer workers
+.......................................................error: unknown role 'bogus'
+error: unknown role 'bogus'
+..........................................error: 'implementer' names no spawned instance with a pool of 2; message exactly one: implementer-1, implementer-2 (a pooled instance never reads implementer.md)
+..error: 'implementer' names no spawned instance with a pool of 2; steer exactly one: implementer-1, implementer-2
+......................................................................................................................................error: pi cannot message itself; reply to the sender's inbox, and put status in `bd comment`
+.............................................
+----------------------------------------------------------------------
+Ran 359 tests in 29.033s
+
+OK

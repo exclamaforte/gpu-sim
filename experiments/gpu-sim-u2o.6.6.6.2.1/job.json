@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-u2o.6.6.6.2.1",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-u2o.6.6.6.2.1/run.sh",
+      "exit": 0,
+      "log": "experiments/gpu-sim-u2o.6.6.6.2.1/output.log",
+      "what": "re-derives the retro statement from branch + clock; 5 properties pass; 10 tests, 0 failures"
+    }
+  ],
+  "cpu_runs_note": "No device work; run directly per the CPU-work rule.",
+  "design_correction": "The bead's design asserted the rows predate the cache and that the mechanism did not exist when they were taken. BOTH ARE FALSE: cache commit 1ede829 is dated 2026-09-28T11:49:42Z, which is 0.497h (29.8 min) BEFORE the rows were sampled at 2026-09-28T12:19:28Z. The clock therefore cannot prove absence; CONTENT carries the claim. The artifact records the correction rather than asserting a proof that would pass and mean nothing."
+}
