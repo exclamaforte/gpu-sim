@@ -27,6 +27,17 @@ coverage number shows the calibration machinery works before any model
 head is plugged in (39M-head calibration awaits saved GPU predictions --
 flagged for 10.4).
 
-# placeholder gpu-sim-u2o.10.2
+# 10.2 ranking metrics (implemented, verified, run on real data)
+
+`epic_u2o/ranking_metrics.py` (numpy-only): Spearman rho (Pearson on
+average ranks), Kendall tau-b with tie correction, top-k hit rate
+(lower-is-better latency: fraction of true top-k in predicted top-k).
+Verified against scipy.stats on 25 random trials with ties (9 decimals)
+plus hand-computed tie case (tau = rho = 0.5). Real data (family_holdout
+test split, n=57): raw feature-17 ranker reaches spearman 0.886 /
+kendall 0.751 / top5 0.4 -- rank signal exists before any model. The
+single-op test split degenerates op-conditioned predictors to constants;
+the all-tie guards return 0.0 (not NaN), pinned by test. For autotuning
+(J3): order first, absolute error second -- this module is the scoreboard.
 # placeholder gpu-sim-u2o.10.3
 # placeholder gpu-sim-u2o.10.4
