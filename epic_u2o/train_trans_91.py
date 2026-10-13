@@ -125,16 +125,17 @@ def report(rows, errs, biases):
     return out
 
 
-def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
-        resume=None, arm_tag="full", fusion_type="concat"):
-    random.seed(SEED)
-    np.random.seed(SEED)
-    torch.manual_seed(SEED)
-    rows = [json.loads(l) for l in Path(data_path).read_text().splitlines()]
+def family_holdout_split(rows, repo_root):
+    """9.5 family_holdout_v1 (gpu-sim-u2o.9.6: factored for reuse).
+
+    Digest groups sorted by (n_rows, digest); every 5th -> test,
+    offset-1 -> val. Returns (parts, test_g, val_g). Identical to the
+    inline block this replaces (no behavior change).
+    """
     dig = {}
     for f in ("experiments/gpu-sim-u2o.7.1/measured.jsonl",
               "experiments/gpu-sim-e5q/measured.jsonl"):
-        for line in (Path(data_path).parents[2] / f).read_text().splitlines():
+        for line in (repo_root / f).read_text().splitlines():
             r = json.loads(line)
             dig[r["kernel_hash"]] = r["token_digest"]
     gsize = {}
@@ -153,6 +154,17 @@ def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
         da = {dig[r["hash"]] for r in parts[a]}
         db = {dig[r["hash"]] for r in parts[b]}
         assert not (da & db), f"digest straddles {a}/{b}"
+    return parts, test_g, val_g
+
+
+def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
+        resume=None, arm_tag="full", fusion_type="concat"):
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    rows = [json.loads(l) for l in Path(data_path).read_text().splitlines()]
+    parts, test_g, val_g = family_holdout_split(rows,
+                                                Path(data_path).parents[2])
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
