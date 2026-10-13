@@ -358,8 +358,15 @@ class CUDARuntimePredictor(nn.Module):
 
 class GaussianNLLLoss(nn.Module):
     """Gaussian Negative Log-Likelihood loss for noise-aware prediction.
-    
+
     Predicts (mean, log_var) of log-runtime.
+
+    gpu-sim-u2o.9.3 note: this module is UNUSED by every training path
+    (verified 2026-10-13: no imports). It takes TRUE log-variance, which
+    DualHeadPredictor does NOT emit (softplus => variance -- see below).
+    New code must use gaussian_nll_with_floor, which consumes the head's
+    actual emission plus the 6.6 per-cell floor. Kept, not removed, so no
+    external import breaks.
     """
     
     def __init__(self, reduction: str = 'mean'):
@@ -385,8 +392,34 @@ class GaussianNLLLoss(nn.Module):
             return nll
 
 
+def gaussian_nll_with_floor(mean: torch.Tensor, var_pred: torch.Tensor,
+                            target: torch.Tensor,
+                            sigma: torch.Tensor | float = 0.0) -> torch.Tensor:
+    """Shared noise-aware loss (gpu-sim-u2o.9.3). NLL of target under
+    N(mean, var_pred + sigma^2), averaged: the 6.6 per-cell measurement
+    floor is ADDED, never learned away, and model_bias stays out.
+
+    CONTRACT: var_pred is a VARIANCE (positive) -- exactly what
+    DualHeadPredictor emits (softplus). Feeding log-variance here shifts
+    the optimum and is refused by test, not by inspection.
+    sigma is 6.6's sigma_log per cell (tensor) or 0.0 (reduces to plain
+    Gaussian NLL on the predicted variance).
+    """
+    var_t = var_pred + torch.as_tensor(sigma, dtype=var_pred.dtype,
+                                        device=var_pred.device) ** 2
+    return 0.5 * (torch.log(var_t) + (target - mean).pow(2) / var_t).mean()
+
+
 class DualHeadPredictor(nn.Module):
-    """Predictor with dual head for mean and log-variance (for Gaussian NLL)."""
+    """Predictor with dual head for mean and log-variance (for Gaussian NLL).
+
+    gpu-sim-u2o.9.3 CONTRACT: despite the `log_var_head` attribute name, the
+    second head applies softplus and emits a VARIANCE (strictly positive),
+    not log-variance. Feed it to gaussian_nll_with_floor (this module), NOT
+    to GaussianNLLLoss (which takes true log-variance). Renaming the
+    attribute would break committed checkpoint keys, so the contract is
+    pinned by test instead (tests/test_noise_loss.py).
+    """
     
     def __init__(self, config: ModelConfig):
         super().__init__()

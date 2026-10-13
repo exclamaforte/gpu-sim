@@ -19,6 +19,18 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR
 
+from epic_u2o.model import gaussian_nll_with_floor  # noqa: E402
+
+
+def _batch_sigma(batch, device):
+    """Per-cell measurement sigma for the NLL floor (gpu-sim-u2o.9.3).
+
+    Batches carrying 6.6's sigma_log contribute the floor; batches without
+    (e.g. CUDADataset single-trial rows) default to 0.0 = plain NLL.
+    """
+    s = batch.get('sigma', 0.0) if isinstance(batch, dict) else 0.0
+    return s.to(device) if torch.is_tensor(s) else s
+
 
 @dataclass
 class TrainingConfig:
@@ -215,8 +227,9 @@ class TrainingLoop:
                 # Forward
                 if hasattr(self.model, 'forward') and 'log_var' in str(self.model.forward.__code__.co_varnames):
                     # Dual head model
-                    mean, log_var = self.model(input_ids, attention_mask, numeric_features)
-                    loss = self._gaussian_nll_loss(mean, log_var, target)
+                    mean, var_pred = self.model(input_ids, attention_mask, numeric_features)
+                    loss = self._gaussian_nll_loss(mean, var_pred, target,
+                                                _batch_sigma(batch, self.device))
                 else:
                     # Single head model
                     pred = self.model(input_ids, attention_mask, numeric_features)
@@ -231,8 +244,9 @@ class TrainingLoop:
         else:
             # Forward
             if hasattr(self.model, 'forward') and 'log_var' in str(self.model.forward.__code__.co_varnames):
-                mean, log_var = self.model(input_ids, attention_mask, numeric_features)
-                loss = self._gaussian_nll_loss(mean, log_var, target)
+                mean, var_pred = self.model(input_ids, attention_mask, numeric_features)
+                loss = self._gaussian_nll_loss(mean, var_pred, target,
+                                                _batch_sigma(batch, self.device))
             else:
                 pred = self.model(input_ids, attention_mask, numeric_features)
                 loss = nn.functional.mse_loss(pred, target)
@@ -246,11 +260,18 @@ class TrainingLoop:
         
         return {'loss': loss.item(), 'lr': self.scheduler.get_last_lr()[0]}
     
-    def _gaussian_nll_loss(self, mean: torch.Tensor, log_var: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """Gaussian NLL loss."""
-        var = log_var.exp()
-        nll = 0.5 * (log_var + (target - mean).pow(2) / var + math.log(2 * math.pi))
-        return nll.mean()
+    def _gaussian_nll_loss(self, mean: torch.Tensor, var_pred: torch.Tensor,
+                            target: torch.Tensor,
+                            sigma: torch.Tensor | float = 0.0) -> torch.Tensor:
+        """Gaussian NLL loss (gpu-sim-u2o.9.3 CORRECTED).
+
+        Was: treated the DualHeadPredictor second output as log-variance
+        (exp() of an already-positive variance -- wrong optimum). Now the
+        shared variance-consuming gaussian_nll_with_floor with optional
+        per-cell measurement sigma (9.6: pass batch sigma when present).
+        9.6 owns this loop; the correction is loss semantics = 9.3's writ.
+        """
+        return gaussian_nll_with_floor(mean, var_pred, target, sigma)
     
     @torch.no_grad()
     def evaluate(self, loader: DataLoader, max_batches: Optional[int] = None) -> dict:
@@ -272,8 +293,9 @@ class TrainingLoop:
             target = batch['target'].to(self.device)
             
             if hasattr(self.model, 'forward') and 'log_var' in str(self.model.forward.__code__.co_varnames):
-                mean, log_var = self.model(input_ids, attention_mask, numeric_features)
-                loss = self._gaussian_nll_loss(mean, log_var, target)
+                mean, var_pred = self.model(input_ids, attention_mask, numeric_features)
+                loss = self._gaussian_nll_loss(mean, var_pred, target,
+                                                _batch_sigma(batch, self.device))
                 all_preds.extend(mean.cpu().numpy())
             else:
                 pred = self.model(input_ids, attention_mask, numeric_features)

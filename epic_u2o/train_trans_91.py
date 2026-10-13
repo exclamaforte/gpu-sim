@@ -51,9 +51,13 @@ signal.signal(signal.SIGUSR1, _sigusr1_exit)
 
 
 def nll_floor(mu, var_p, y, sigma):
-    """Gaussian NLL with measurement floor added. All tensors [B,1]."""
-    var_t = var_p + sigma * sigma
-    return 0.5 * (torch.log(var_t) + (y - mu).pow(2) / var_t).mean()
+    """Gaussian NLL with measurement floor added. All tensors [B,1].
+
+    gpu-sim-u2o.9.3: thin alias of the shared gaussian_nll_with_floor
+    (single source; equality pinned by tests/test_noise_loss.py).
+    """
+    from epic_u2o.model import gaussian_nll_with_floor
+    return gaussian_nll_with_floor(mu, var_p, y, sigma)
 
 
 class TTDataset(Dataset):
