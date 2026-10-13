@@ -123,7 +123,7 @@ def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
     dig = {}
     for f in ("experiments/gpu-sim-u2o.7.1/measured.jsonl",
               "experiments/gpu-sim-e5q/measured.jsonl"):
-        for line in (Path(data_path).parents[1] / f).read_text().splitlines():
+        for line in (Path(data_path).parents[2] / f).read_text().splitlines():
             r = json.loads(line)
             dig[r["kernel_hash"]] = r["token_digest"]
     gsize = {}
