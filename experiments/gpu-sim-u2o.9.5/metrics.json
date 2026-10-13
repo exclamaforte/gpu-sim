@@ -1,0 +1,391 @@
+{
+  "bead": "gpu-sim-u2o.9.5",
+  "stage": "1+2 (7.7 closed)",
+  "model": "sklearn.HistGradientBoostingRegressor",
+  "hparams": {
+    "max_iter": 300,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "min_samples_leaf": 5,
+    "l2_regularization": 0.0,
+    "random_state": 0
+  },
+  "join": {
+    "n": 456,
+    "shortfall": [],
+    "median_agreement": "features.measured_median_ms == targets.median_runtime_ms"
+  },
+  "transform": "y=ln(ms+1e-6), pred_ms=exp(pred); round-trip bounded by guard (2e-6) on 0.002536",
+  "model_bias": "6.6 model_bias carried BESIDE rows for audit, never a feature (asserted: no bias key in feature rows)",
+  "convention": "8.3 arity counts per row: subscripts + *p derefs + atomics + float scalars, x4B, x covers; loop/branch-resident counted once. Printed beside EVERY figure (item 1).",
+  "roofline_94_frame": {
+    "per_regime_achieved": {
+      "latency->latency": {
+        "max_achieved_GBps": 538.7,
+        "median_achieved_GBps": 46.9,
+        "n": 220,
+        "n_exceeding_read_peak": 0
+      },
+      "latency->memory": {
+        "max_achieved_GBps": 7479.8,
+        "median_achieved_GBps": 1977.5,
+        "n": 204,
+        "n_exceeding_read_peak": 119
+      },
+      "memory->memory": {
+        "max_achieved_GBps": 6050.2,
+        "median_achieved_GBps": 3624.1,
+        "n": 32,
+        "n_exceeding_read_peak": 29
+      }
+    },
+    "residual_A": "memory->memory n=32, abs 1.1209 bias +1.1164, 29 of 32 overpredict (3 underpredict -- visible, not hidden). PRIMARY candidate (evidence in per_regime_achieved): cache-resident traffic. 148/456 rows show EFFECTIVE rates above DRAM read-peak (max 7480 GB/s), all at large n across all ops -- repeated trials on resident buffers serve issued traffic from L2, so a DRAM-ceiling model overpredicts structurally. The read-peak-vs-mixed-write candidate is DEMOTED on sign: slower write bandwidth predicts UNDERprediction, but 29 of 32 rows OVERpredict (3 underpredict -- the demotion holds but is weaker than an all-32 claim would warrant). Scalar overcount (alpha as 4B/thread DRAM) contributes at most ~25% for saxpy-class rows. Carry to a named follow-up with a cache-busting streaming measurement; the memory arm's form does not change in this bead.",
+    "residual_B": "latency->latency n=220, abs 0.5638 bias -0.5638, all underpredict. Candidates: n-local floor (39u ruled it out overall, not for this subset) or a fixed per-launch cost above the floor (39u mechanism (a), named, never tested). Carry, do not fit.",
+    "families": {
+      "add": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "copy": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "div": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "mul": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "relu": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "saxpy": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "scale": {
+        "n_kernels": 1,
+        "n_rows": 57
+      },
+      "triad": {
+        "n_kernels": 1,
+        "n_rows": 57
+      }
+    },
+    "bandwidth_convention": "8.3 arity counts per row: subscripts + *p derefs + atomics + float scalars, x4B, x covers; loop/branch-resident counted once. Printed beside EVERY figure (item 1)."
+  },
+  "stage1_insample": {
+    "label": "IN-SAMPLE: training error only; no generalisation claim",
+    "regime_census": {
+      "launch_bound": 283,
+      "measurable": 173
+    },
+    "triple_census": {
+      "latency->latency": 220,
+      "latency->memory": 204,
+      "memory->memory": 32
+    },
+    "report": {
+      "triple": {
+        "latency->latency": {
+          "n": 220,
+          "mean_abs_err": 0.05137076894856511,
+          "signed_bias": 8.492429558624373e-05
+        },
+        "latency->memory": {
+          "n": 204,
+          "mean_abs_err": 0.019343983453587628,
+          "signed_bias": 6.463977967087176e-05
+        },
+        "memory->memory": {
+          "n": 32,
+          "mean_abs_err": 0.011623372891356717,
+          "signed_bias": -0.0009959329738191552
+        }
+      },
+      "regime": {
+        "launch_bound": {
+          "n": 283,
+          "mean_abs_err": 0.046435566494069117,
+          "signed_bias": 0.0005171206737732271
+        },
+        "measurable": {
+          "n": 173,
+          "mean_abs_err": 0.01432615264692518,
+          "signed_bias": -0.0008459256980243051
+        }
+      },
+      "op": {
+        "add": {
+          "n": 57,
+          "mean_abs_err": 0.03338471181267994,
+          "signed_bias": 0.0005250215272783533
+        },
+        "copy": {
+          "n": 57,
+          "mean_abs_err": 0.038972128376082764,
+          "signed_bias": -1.0299560591563586e-05
+        },
+        "div": {
+          "n": 57,
+          "mean_abs_err": 0.0359017815980784,
+          "signed_bias": -0.0002260852143302559
+        },
+        "mul": {
+          "n": 57,
+          "mean_abs_err": 0.0346089223357948,
+          "signed_bias": 0.0005214381702417367
+        },
+        "relu": {
+          "n": 57,
+          "mean_abs_err": 0.037747771783346956,
+          "signed_bias": -7.403093955888856e-05
+        },
+        "saxpy": {
+          "n": 57,
+          "mean_abs_err": 0.029796125783452497,
+          "signed_bias": -0.0014064412731478921
+        },
+        "scale": {
+          "n": 57,
+          "mean_abs_err": 0.03765771732636926,
+          "signed_bias": 8.596289704550499e-05
+        },
+        "triad": {
+          "n": 57,
+          "mean_abs_err": 0.02596048529541671,
+          "signed_bias": 0.0005844344793721016
+        }
+      }
+    }
+  },
+  "stage2_holdout": {
+    "name": "family_holdout_v1 (7.7 rule, stage-1 subset)",
+    "rule": "digest groups sorted by (n_rows, digest); every 5th to test, offset 1 to val",
+    "test_groups": [
+      "6ae23ce1994bb18a"
+    ],
+    "val_groups": [
+      "2fceff74d3b5840f"
+    ],
+    "sizes": {
+      "train": {
+        "n": 342,
+        "measurable": 130
+      },
+      "val": {
+        "n": 57,
+        "measurable": 22
+      },
+      "test": {
+        "n": 57,
+        "measurable": 21
+      }
+    },
+    "shared_digest_groups_across_sides": 0,
+    "train_report": {
+      "triple": {
+        "latency->latency": {
+          "n": 163,
+          "mean_abs_err": 0.03869961017105709,
+          "signed_bias": -0.0003940214193567695
+        },
+        "latency->memory": {
+          "n": 152,
+          "mean_abs_err": 0.01803058448393419,
+          "signed_bias": 0.00036200289522149215
+        },
+        "memory->memory": {
+          "n": 27,
+          "mean_abs_err": 0.013475358933728856,
+          "signed_bias": 0.0003407796297447038
+        }
+      },
+      "regime": {
+        "launch_bound": {
+          "n": 212,
+          "mean_abs_err": 0.03608248998297881,
+          "signed_bias": 0.00019465562158713142
+        },
+        "measurable": {
+          "n": 130,
+          "mean_abs_err": 0.013561785494303634,
+          "signed_bias": -0.0003174384081142422
+        }
+      },
+      "op": {
+        "add": {
+          "n": 57,
+          "mean_abs_err": 0.029156639502182162,
+          "signed_bias": 0.0005895027299901298
+        },
+        "copy": {
+          "n": 57,
+          "mean_abs_err": 0.026227956123975316,
+          "signed_bias": -0.0005615200919521783
+        },
+        "div": {
+          "n": 57,
+          "mean_abs_err": 0.025774935092140856,
+          "signed_bias": -0.00012509898253397123
+        },
+        "saxpy": {
+          "n": 57,
+          "mean_abs_err": 0.02854476343985546,
+          "signed_bias": -0.0017351184604983572
+        },
+        "scale": {
+          "n": 57,
+          "mean_abs_err": 0.032196465236019774,
+          "signed_bias": 0.0014056119137870087
+        },
+        "triad": {
+          "n": 57,
+          "mean_abs_err": 0.023231170266369956,
+          "signed_bias": 0.00042662286877965573
+        }
+      }
+    },
+    "val_report": {
+      "triple": {
+        "latency->latency": {
+          "n": 28,
+          "mean_abs_err": 0.09352321022076047,
+          "signed_bias": 0.010839342253438744
+        },
+        "latency->memory": {
+          "n": 24,
+          "mean_abs_err": 0.029581146325353913,
+          "signed_bias": -0.000580404237619255
+        },
+        "memory->memory": {
+          "n": 5,
+          "mean_abs_err": 0.016058248681105967,
+          "signed_bias": 0.002442232560878299
+        }
+      },
+      "regime": {
+        "launch_bound": {
+          "n": 35,
+          "mean_abs_err": 0.0855344682384909,
+          "signed_bias": 0.012644121012746723
+        },
+        "measurable": {
+          "n": 22,
+          "mean_abs_err": 0.01887192059309707,
+          "signed_bias": -0.006398235965832777
+        }
+      },
+      "op": {
+        "mul": {
+          "n": 57,
+          "mean_abs_err": 0.059805063884128366,
+          "signed_bias": 0.005294439371891477
+        }
+      }
+    },
+    "test_report": {
+      "triple": {
+        "latency->latency": {
+          "n": 29,
+          "mean_abs_err": 0.10722879783033602,
+          "signed_bias": -0.018493264714636425
+        },
+        "latency->memory": {
+          "n": 28,
+          "mean_abs_err": 0.02740787166939851,
+          "signed_bias": -0.0005914425650579901
+        }
+      },
+      "regime": {
+        "launch_bound": {
+          "n": 36,
+          "mean_abs_err": 0.09688302506420321,
+          "signed_bias": -0.015609486821558704
+        },
+        "measurable": {
+          "n": 21,
+          "mean_abs_err": 0.018536506738647023,
+          "signed_bias": 0.0004322122395253922
+        }
+      },
+      "op": {
+        "relu": {
+          "n": 57,
+          "mean_abs_err": 0.0680185183126825,
+          "signed_bias": -0.00969938716747509
+        }
+      }
+    }
+  },
+  "negative_control": {
+    "setup": "fit on launch_bound (283), eval on measurable (173)",
+    "census_flag": "REGIME-IMBALANCED: train/test triple total-variation 0.78 > 0.25 (train {'latency->latency': 220, 'latency->memory': 61, 'memory->memory': 2} vs test {'latency->memory': 143, 'memory->memory': 30})",
+    "report": {
+      "triple": {
+        "latency->memory": {
+          "n": 143,
+          "mean_abs_err": 1.2723339322567848,
+          "signed_bias": -1.2723339322567848
+        },
+        "memory->memory": {
+          "n": 30,
+          "mean_abs_err": 1.2318620300604188,
+          "signed_bias": -1.2318620300604188
+        }
+      },
+      "regime": {
+        "measurable": {
+          "n": 173,
+          "mean_abs_err": 1.2653156833209989,
+          "signed_bias": -1.2653156833209989
+        }
+      },
+      "op": {
+        "add": {
+          "n": 21,
+          "mean_abs_err": 1.3492944656586217,
+          "signed_bias": -1.3492944656586217
+        },
+        "copy": {
+          "n": 22,
+          "mean_abs_err": 1.21151930615886,
+          "signed_bias": -1.21151930615886
+        },
+        "div": {
+          "n": 22,
+          "mean_abs_err": 1.3147753554901707,
+          "signed_bias": -1.3147753554901707
+        },
+        "mul": {
+          "n": 22,
+          "mean_abs_err": 1.3025058310048037,
+          "signed_bias": -1.3025058310048037
+        },
+        "relu": {
+          "n": 21,
+          "mean_abs_err": 1.1796352538282606,
+          "signed_bias": -1.1796352538282606
+        },
+        "saxpy": {
+          "n": 21,
+          "mean_abs_err": 1.248059405065788,
+          "signed_bias": -1.248059405065788
+        },
+        "scale": {
+          "n": 22,
+          "mean_abs_err": 1.1713625550625322,
+          "signed_bias": -1.1713625550625322
+        },
+        "triad": {
+          "n": 22,
+          "mean_abs_err": 1.3445115704166657,
+          "signed_bias": -1.3445115704166657
+        }
+      }
+    }
+  }
+}
