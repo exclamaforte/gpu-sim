@@ -5,7 +5,7 @@
 set -u
 WT=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.8.4
 DATA=$WT/experiments/gpu-sim-u2o.8.4/ablation_data.jsonl
-OUT=/home/gabe/Documents/gpu-sim/runs/gpu-sim-u2o.8.4
+OUT="${OUT_DIR:-/home/gabe/Documents/gpu-sim/runs/gpu-sim-u2o.8.4}"
 cd "$WT" || exit 1
 mkdir -p "$OUT"
 # Preemptible (arm-granular): SIGUSR1 -> exit 75 for requeue. A finished arm
