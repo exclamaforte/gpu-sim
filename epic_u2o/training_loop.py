@@ -366,6 +366,9 @@ class TrainingLoop:
             f'{prefix}_r2': metrics.get('r2'),
         }
         
+        log_entry = {k: (float(v.item()) if hasattr(v, "item")
+                         else float(v) if isinstance(v, (int, float)) else v)
+                     for k, v in log_entry.items() if v is not None}
         with open(self.log_file, 'a') as f:
             f.write(json.dumps(log_entry) + '\n')
     

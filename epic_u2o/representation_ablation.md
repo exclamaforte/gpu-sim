@@ -84,18 +84,17 @@ Total params:       ~2-3M per variant
 
 ```bash
 # 1. Generate dataset with all representations
-python -m epic_u2o.generate_dataset --output runs/ablation_v1
+python experiments/gpu-sim-u2o.8.4/build_data_84.py  # -> ablation_data.jsonl
 
-# 2. Train all three variants
-python -m epic_u2o.train --repr source --run-id ablation_v1_source
-python -m epic_u2o.train --repr ptx --run-id ablation_v1_ptx
-python -m epic_u2o.train --repr hybrid --run-id ablation_v1_hybrid
+# 2. Train all three variants (gpu-sim-u2o.8.4: epic_u2o.train never
+# existed; epic_u2o/train_ablation.py is the entrypoint)
+python -m epic_u2o.train_ablation --arm source --data experiments/gpu-sim-u2o.8.4/ablation_data.jsonl --out runs/gpu-sim-u2o.8.4/source
+python -m epic_u2o.train_ablation --arm ptx --data experiments/gpu-sim-u2o.8.4/ablation_data.jsonl --out runs/gpu-sim-u2o.8.4/ptx
+python -m epic_u2o.train_ablation --arm hybrid --data experiments/gpu-sim-u2o.8.4/ablation_data.jsonl --out runs/gpu-sim-u2o.8.4/hybrid
 
-# 3. Evaluate on held-out suites
-python -m epic_u2o.eval --run-ids ablation_v1_source,ablation_v1_ptx,ablation_v1_hybrid
-
-# 4. Statistical comparison
-python -m epic_u2o.compare --run-ids ablation_v1_source,ablation_v1_ptx,ablation_v1_hybrid
+# 3. Evaluate on held-out suites + compare (per-arm arm_metrics.json land
+# with the run; compare_84.py renders the verdict vs the >5%/2% criteria)
+python experiments/gpu-sim-u2o.8.4/compare_84.py runs/gpu-sim-u2o.8.4
 ```
 
 ## Expected Outcomes
