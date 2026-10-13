@@ -12,8 +12,11 @@ worst-10 + regime/triple means + err-vs-sigma correlation.
 
 ## Findings (the systematic subfamily this step was filed to catch)
 
-- Worst-10 by abs err: ALL latency->memory, measurable regime, sigma_log
-  0.004-0.05. Mean abs of worst-10: 0.49.
+- Worst-10 by abs err: 9 of 10 latency->memory, measurable regime,
+  sigma_log 0.003-0.046. Rank 10 is the intruder: 9b474b0e,
+  latency->latency / launch_bound, abs_err 0.313, sigma_log 0.165.
+  Mean abs of worst-10: 0.49. (v1 said ALL; reviewer recompute showed
+  9/10 -- corrected, intruder named.)
 - Measurable-regime MAE (0.296) is 2x launch_bound (0.145).
 - err-vs-sigma correlation -0.25: errors are NOT measurement noise --
   the model fails on measurable memory-bound relu specifically

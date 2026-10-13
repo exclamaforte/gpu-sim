@@ -14,7 +14,9 @@ are real measured rows.
 
 Per-row test predictions from 9.1's 39M ckpt (CPU inference, no
 retraining; predictions.json committed, 57 rows). Diagnosis: worst-10
-all latency->memory + measurable regime with tiny sigmas (0.004-0.05)
+9 of 10 latency->memory + measurable regime with tiny sigmas
+(0.003-0.046); rank 10 intruder 9b474b0e (latency->latency /
+launch_bound, 0.313). Corrected from ALL per reviewer recompute.
 -- a systematic subfamily failure (the pattern this step was filed to
 catch), not noise (err-vs-sigma corr -0.25). Measurable-regime MAE 2x
 launch_bound. Head calibration on real outputs: coverage_90 0.965

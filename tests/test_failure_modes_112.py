@@ -39,6 +39,14 @@ class TestFailureAnalysis(unittest.TestCase):
         n = sum(1 for p in worst if p["triple"] == "latency->memory"
                 and p["regime"] == "measurable")
         self.assertGreaterEqual(n, 7)
+        # exact pin (reviewer recompute): 9/10, rank-10 intruder named.
+        # A typed ALL is a typed number -- this fails if prose says ALL.
+        self.assertEqual(n, 9)
+        self.assertTrue(worst[9]["hash"].startswith("9b474b0e"))
+        m = json.loads((EXP / "metrics.json").read_text())
+        self.assertEqual(m["worst10_latmem_measurable"], "9/10")
+        self.assertTrue(m["worst10_rank10_intruder"]["hash"]
+                        .startswith("9b474b0e"))
         # errors anti-correlated with measurement noise: model failure
         self.assertLess(self.ana["err_vs_sigma_corr"], 0.0)
 
