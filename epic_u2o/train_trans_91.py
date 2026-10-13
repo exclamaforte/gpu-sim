@@ -154,8 +154,11 @@ def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
     out.mkdir(parents=True, exist_ok=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = create_model(vocab_size=256, max_seq_len=SEQ, d_model=d_model,
+                         n_heads=n_heads, n_layers=n_layers, d_ff=d_ff,
                          numeric_dim=33, use_numeric=True, dual_head=True,
                          fusion_type=fusion_type)
+    assert len(model.encoder.layers) == n_layers, \
+        f"built {len(model.encoder.layers)} layers, asked {n_layers}"
     n_params = sum(p.numel() for p in model.parameters())
     model.to(device)
     tr_ds = TTDataset(parts["train"])

@@ -27,6 +27,17 @@ class TestFusionWiring(unittest.TestCase):
                          numeric_dim=33, use_numeric=True, dual_head=True,
                          fusion_type="additive")
 
+    def test_full_dims_survive(self):
+        """The dims-clobber: threading fusion once dropped n_heads /
+        n_layers / d_ff, silently building 6-layer 20M models from 12-layer
+        code (caught by param census, not by tests). Never again."""
+        m = create_model(vocab_size=256, max_seq_len=512, d_model=512,
+                         n_heads=8, n_layers=12, d_ff=2048, numeric_dim=33,
+                         use_numeric=True, dual_head=True,
+                         fusion_type="concat")
+        self.assertEqual(len(m.encoder.layers), 12)
+        self.assertEqual(sum(p.numel() for p in m.parameters()), 38950658)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
