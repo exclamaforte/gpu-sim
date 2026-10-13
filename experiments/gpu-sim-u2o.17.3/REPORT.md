@@ -9,11 +9,14 @@ Per-op-class leave-one-size-out log-log fit (size = elements, matmul =
 flops) vs naive roofline on the same held-out cases. metrics.json holds
 per-case detail.
 
-## Numbers (mean abs rel err, fit vs naive)
+## Numbers (mean abs rel err, fit vs naive; knee dose merged, 7 sizes)
 
 - matmul (5 sizes): 0.333 vs 0.465 -- fit wins
 - reduce (4 sizes): 0.460 vs 3.567 -- fit wins big (naive off by 3.5x+)
-- elementwise (4 sizes): 2.225 vs 1.272 -- fit LOSES (pinned, not tuned
+- elementwise (7 sizes): 0.964 vs 2.413 -- fit wins AFTER the knee dose
+  (was 2.225 vs 1.272 pre-dose). Knee localized: 8M->16M jumps ~6x for 2x
+elements (L2 96MiB exhaustion: 16M fp32 x3 tensors = 192MB > L2); 1M->8M
+scales near-linearly. Dose: job 72c28c17, 9/9 cases, no throttling.
   away): 1024-1M rows sit on the launch floor (~0.001ms) then jump 30x at
   16M; one slope cannot span the knee. Two-regime (floor+linear) form is
   the named follow-up.

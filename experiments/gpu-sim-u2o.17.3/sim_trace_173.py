@@ -58,14 +58,19 @@ def loglog_fit(pts):
     return my - b * mx, b
 
 
-def main(out=None) -> int:
+def main(out=None, extra=None) -> int:
     out = Path(out) if out else (REPO / "experiments/gpu-sim-u2o.17.3"
                                  / "metrics.json")
     fix = json.loads(FIX.read_text())
+    cases = list(fix["cases"])
+    if extra:
+        sup = json.loads(Path(extra).read_text())
+        cases += sup["cases"]
+        print(f"merged {sup['n_cases']} supplement cases")
     # size point per (class, shapes): median over same-size cases
     med = {}
     reps = {}
-    for c in fix["cases"]:
+    for c in cases:
         med.setdefault((c["op_class"], str(c["shapes"])), []).append(
             (c["device_ms_median"], c))
     per_cls = {}
@@ -126,4 +131,10 @@ def size_of(cls, sh):
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else None))
+    a = sys.argv[1:] 
+    out = a[0] if a and not a[0].startswith("--") else None
+    extra = None
+    for i, x in enumerate(a):
+        if x == "--extra" and i + 1 < len(a):
+            extra = a[i + 1]
+    raise SystemExit(main(out, extra))

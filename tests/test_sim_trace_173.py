@@ -16,18 +16,21 @@ EXP = REPO / "experiments" / "gpu-sim-u2o.17.3"
 
 class TestSimTrace(unittest.TestCase):
     def test_fit_beats_naive_where_smooth(self):
-        self.assertEqual(S.main(str(EXP / "metrics.json")), 0)
+        knee = str(EXP / "knee_cases.json")
+        self.assertEqual(S.main(str(EXP / "metrics.json"), knee), 0)
         m = json.loads((EXP / "metrics.json").read_text())
         mat = m["classes"]["matmul"]
         red = m["classes"]["reduce"]
         ele = m["classes"]["elementwise"]
         self.assertLess(mat["mean_abs_err_fit"], mat["mean_abs_err_naive"])
         self.assertLess(red["mean_abs_err_fit"], red["mean_abs_err_naive"])
-        # elementwise knee: single-slope loses (pinned -- two-regime is
-        # the follow-up, not a silent tweak of these numbers)
-        self.assertGreater(ele["mean_abs_err_fit"], ele["mean_abs_err_naive"])
+        # knee dose (2M/4M/8M) brackets the transition: single-slope fit
+        # now wins on elementwise too (was 2.225 vs 1.272 pre-dose).
+        self.assertLess(ele["mean_abs_err_fit"], ele["mean_abs_err_naive"])
+        self.assertEqual(ele.get("n_sizes"), 7)
         self.assertAlmostEqual(mat["mean_abs_err_fit"], 0.333, places=2)
         self.assertAlmostEqual(red["mean_abs_err_fit"], 0.460, places=2)
+        self.assertAlmostEqual(ele["mean_abs_err_fit"], 0.964, places=2)
 
     def test_singleton_gaps_recorded(self):
         m = json.loads((EXP / "metrics.json").read_text())

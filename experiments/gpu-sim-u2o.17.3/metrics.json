@@ -4,36 +4,57 @@
   "method": "leave-one-size-out log-log fit per op class; naive roofline on same held-out cases",
   "classes": {
     "elementwise": {
-      "n_sizes": 4,
-      "mean_abs_err_fit": 2.2254536801339184,
-      "mean_abs_err_naive": 1.2718044736696807,
+      "n_sizes": 7,
+      "mean_abs_err_fit": 0.9642573278459714,
+      "mean_abs_err_naive": 2.4128469187737474,
       "held_out": [
         {
           "shapes": "[1024]",
           "measured_ms": 0.000870399999999995,
-          "fit_pred_ms": 2.057422055252153e-05,
-          "fit_rel_err": -0.9763623385196213,
+          "fit_pred_ms": 2.699657257771504e-05,
+          "fit_rel_err": -0.9689837171671472,
           "naive_rel_err": -0.9909963985594237
         },
         {
           "shapes": "[65536]",
           "measured_ms": 0.0008927499999999924,
-          "fit_pred_ms": 0.0029483892643503745,
-          "fit_rel_err": 2.302592287146905,
+          "fit_pred_ms": 0.0022223490966179317,
+          "fit_rel_err": 1.4893297077770378,
           "naive_rel_err": -0.43819544059572385
         },
         {
           "shapes": "[1048576]",
           "measured_ms": 0.0020479499999999976,
-          "fit_pred_ms": 0.011579656111081672,
-          "fit_rel_err": 4.654267004117134,
+          "fit_pred_ms": 0.005990513705489501,
+          "fit_rel_err": 1.9251269344903479,
           "naive_rel_err": 2.918463012539672
+        },
+        {
+          "shapes": "[2097152]",
+          "measured_ms": 0.0037456499999999893,
+          "fit_pred_ms": 0.007418298599267438,
+          "fit_rel_err": 0.9805103518127586,
+          "naive_rel_err": 3.284872492908112
+        },
+        {
+          "shapes": "[4194304]",
+          "measured_ms": 0.006422550000000006,
+          "fit_pred_ms": 0.009239102253483634,
+          "fit_rel_err": 0.43854111738851786,
+          "naive_rel_err": 3.9979004143404753
+        },
+        {
+          "shapes": "[8388608]",
+          "measured_ms": 0.011630299999999988,
+          "fit_pred_ms": 0.011059546056361976,
+          "fit_rel_err": -0.04907473957146525,
+          "naive_rel_err": 4.519937629488918
         },
         {
           "shapes": "[16777216]",
           "measured_ms": 0.07380995000000001,
-          "fit_pred_ms": 0.0023181424012484737,
-          "fit_rel_err": -0.9685930907520128,
+          "fit_pred_ms": 0.007511289732937225,
+          "fit_rel_err": -0.8982347267145252,
           "naive_rel_err": 0.7395630429839035
         }
       ]
