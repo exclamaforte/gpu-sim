@@ -21,7 +21,12 @@ from 10.4's cells by headline_114.py, pinned by test). Axes without a
 headline (ranking, calibration, suites, mem->mem) are listed in the
 artifact, not silently dropped. Per PI ruling, 11.4 consumes 10.4's
 verdict; gap-filling is new-leaf work.
-# placeholder gpu-sim-u2o.11.5
+# 11.5 writeup (real numbers, drift-pinned)
+
+results_writeup.md rewritten from committed artifacts (merged only;
+pending-review branches cited, never numerated). Generated results block
+pinned verbatim by test; synthetic language asserted absent. Negatives
+are the deliverable; conclusion: representation work next, not scale.
 # 11.6 experiment-recording protocol (exists AND used)
 
 scripts/bd-exp.sh (adapted from cclm): start (hypothesis+parent, one-active
@@ -33,3 +38,4 @@ gpu-sim-u2o.10.4.1 (transformer ranking from 11.2 mus: rho 0.886, neutral,
 kept=true, artifact-cited) is the first bead with real metrics metadata.
 Close rule added to AGENTS.md: no gpu-sim-u2o close without a concrete
 artifact cite.
+
