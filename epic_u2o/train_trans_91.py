@@ -57,11 +57,18 @@ def nll_floor(mu, var_p, y, sigma):
 
 
 class TTDataset(Dataset):
-    def __init__(self, rows, mean=None, std=None):
+    def __init__(self, rows, mean=None, std=None, mask=None):
         self.rows = rows
         x = np.array([r["num33"] for r in rows], dtype=np.float64)
         self.mean = mean if mean is not None else x.mean(axis=0)
-        self.std = std if std is not None else x.std(axis=0) + 1e-9
+        raw_std = x.std(axis=0)
+        # Constant features (16/33 have train std exactly 0) carry no
+        # signal; dividing by (0+eps) maps a test-time differing constant
+        # to ~1e9 and detonates the model (caught: test err 1e14). Mask.
+        self.mask = (mask if mask is not None
+                     else (raw_std > 1e-12)).astype(np.float64)
+        safe = np.where(self.mask > 0, raw_std, 1.0)
+        self.std = std if std is not None else safe
 
     def __len__(self):
         return len(self.rows)
@@ -71,7 +78,7 @@ class TTDataset(Dataset):
         ids = r["src_ids"][:SEQ]
         mask = [1] * len(ids)
         pad = SEQ - len(ids)
-        num = (np.array(r["num33"]) - self.mean) / self.std
+        num = self.mask * (np.array(r["num33"]) - self.mean) / self.std
         return {"input_ids": torch.tensor(ids + [0] * pad, dtype=torch.long),
                 "attention_mask": torch.tensor(mask + [0] * pad,
                                                dtype=torch.long),
@@ -81,10 +88,10 @@ class TTDataset(Dataset):
                 "kernel_hash": r["hash"]}
 
 
-def evaluate(model, device, rows, mean, std, batch_size=64):
+def evaluate(model, device, rows, mean, std, batch_size=64, mask=None):
     model.eval()
     errs, biases, preds = [], [], {}
-    loader = DataLoader(TTDataset(rows, mean, std), batch_size=batch_size,
+    loader = DataLoader(TTDataset(rows, mean, std, mask), batch_size=batch_size,
                         shuffle=False)
     with torch.no_grad():
         for b in loader:
@@ -195,12 +202,13 @@ def run(data_path, out_dir, epochs, d_model, n_heads, n_layers, d_ff,
            "d_ff": d_ff, "lr": LR, "batch": BATCH,
            "step_time_s_median_first10": sorted(step_times[:10])[5] if
            len(step_times) >= 10 else None,
-           "num_norm": {"mean": mean, "std": std},
+           "num_norm": {"mean": mean, "std": std,
+                        "mask": tr_ds.mask.tolist()},
            "split": {"test_groups": sorted(test_g), "val_groups": sorted(val_g),
                      "sizes": {k: len(v) for k, v in parts.items()}}}
     for name in ("train", "val", "test"):
         errs, biases, _ = evaluate(model, device, parts[name], tr_ds.mean,
-                                   tr_ds.std)
+                                   tr_ds.std, mask=tr_ds.mask)
         rep[f"{name}_report"] = report(parts[name], errs, biases)
     (out / "run_metrics.json").write_text(json.dumps(rep, indent=2))
     print(f"{arm_tag}: params={n_params} " + " ".join(

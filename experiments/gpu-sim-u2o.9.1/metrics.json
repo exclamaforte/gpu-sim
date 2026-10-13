@@ -1,0 +1,254 @@
+{
+  "n_params": 38950658,
+  "epochs": 20,
+  "seed": 0,
+  "d_model": 512,
+  "n_heads": 8,
+  "n_layers": 12,
+  "d_ff": 2048,
+  "lr": 0.0003,
+  "batch": 32,
+  "step_time_s_median_first10": null,
+  "num_norm": {
+    "mean": [
+      4169656.1403508773,
+      22140.754385964912,
+      1.0,
+      1.0,
+      379.50877192982455,
+      1.0,
+      1.0,
+      0.0,
+      13.0,
+      4.0,
+      2.5,
+      4.0,
+      36.0,
+      6775613.380116959,
+      3127206.1754385964,
+      0.0,
+      0.0,
+      39611278.222222224,
+      17720834.994152047,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      3127206.1754385964,
+      4690809.263157895,
+      4690809.263157895,
+      521201.02923976607,
+      0.0
+    ],
+    "std": [
+      5871533.806534908,
+      45979.162486471105,
+      1e-09,
+      1e-09,
+      391.2043986240223,
+      1e-09,
+      1e-09,
+      1e-09,
+      0.5773502701896257,
+      0.5773502701896257,
+      0.500000001,
+      0.5773502701896257,
+      5.656854250492381,
+      11025365.585218005,
+      4757485.664929961,
+      1e-09,
+      1e-09,
+      62260304.164386205,
+      27488250.60873543,
+      1e-09,
+      1e-09,
+      1e-09,
+      1e-09,
+      1e-09,
+      1e-09,
+      1e-09,
+      1e-09,
+      1e-09,
+      4757485.664929961,
+      7683035.15844881,
+      7683035.15844881,
+      2265067.5206430317,
+      1e-09
+    ]
+  },
+  "split": {
+    "test_groups": [
+      "6ae23ce1994bb18a"
+    ],
+    "val_groups": [
+      "2fceff74d3b5840f"
+    ],
+    "sizes": {
+      "train": 342,
+      "val": 57,
+      "test": 57
+    }
+  },
+  "train_report": {
+    "triple": {
+      "latency->latency": {
+        "n": 163,
+        "mean_abs_err": 0.11642135351957911,
+        "signed_bias": 0.06033929194153018
+      },
+      "latency->memory": {
+        "n": 152,
+        "mean_abs_err": 0.2420699226971638,
+        "signed_bias": -0.041293476472104136
+      },
+      "memory->memory": {
+        "n": 27,
+        "mean_abs_err": 0.20360819516033443,
+        "signed_bias": -0.10380670737910942
+      }
+    },
+    "regime": {
+      "launch_bound": {
+        "n": 212,
+        "mean_abs_err": 0.11975386770324292,
+        "signed_bias": 0.032742884143126594
+      },
+      "measurable": {
+        "n": 130,
+        "mean_abs_err": 0.27600700146078316,
+        "signed_bias": -0.04758135672976309
+      }
+    },
+    "op": {
+      "add": {
+        "n": 57,
+        "mean_abs_err": 0.16775094616160374,
+        "signed_bias": 0.009389031506153458
+      },
+      "copy": {
+        "n": 57,
+        "mean_abs_err": 0.19756810133179778,
+        "signed_bias": -0.025243935911003216
+      },
+      "div": {
+        "n": 57,
+        "mean_abs_err": 0.16336879979504987,
+        "signed_bias": -0.01411407846265886
+      },
+      "saxpy": {
+        "n": 57,
+        "mean_abs_err": 0.1793814460521421,
+        "signed_bias": 0.0293642870626837
+      },
+      "scale": {
+        "n": 57,
+        "mean_abs_err": 0.19503868927015514,
+        "signed_bias": -0.016730189111671904
+      },
+      "triad": {
+        "n": 57,
+        "mean_abs_err": 0.17178201989783584,
+        "signed_bias": 0.030596552696736046
+      }
+    }
+  },
+  "val_report": {
+    "triple": {
+      "latency->latency": {
+        "n": 28,
+        "mean_abs_err": 0.12400555729972705,
+        "signed_bias": 0.10868404885489832
+      },
+      "latency->memory": {
+        "n": 24,
+        "mean_abs_err": 0.2342326766472195,
+        "signed_bias": -0.0721431372888674
+      },
+      "memory->memory": {
+        "n": 5,
+        "mean_abs_err": 0.25320681838845704,
+        "signed_bias": -0.25320681838845704
+      }
+    },
+    "regime": {
+      "launch_bound": {
+        "n": 35,
+        "mean_abs_err": 0.12313707390153582,
+        "signed_bias": 0.08263802065625538
+      },
+      "measurable": {
+        "n": 22,
+        "mean_abs_err": 0.27499892496882533,
+        "signed_bias": -0.12939303372304037
+      }
+    },
+    "op": {
+      "mul": {
+        "n": 57,
+        "mean_abs_err": 0.18175041992750718,
+        "signed_bias": 0.0008014733519657927
+      }
+    }
+  },
+  "test_report": {
+    "triple": {
+      "latency->latency": {
+        "n": 29,
+        "mean_abs_err": 0.14376448623538912,
+        "signed_bias": 0.0745402699025792
+      },
+      "latency->memory": {
+        "n": 28,
+        "mean_abs_err": 0.2599958826330697,
+        "signed_bias": -0.1470627515692853
+      }
+    },
+    "regime": {
+      "launch_bound": {
+        "n": 36,
+        "mean_abs_err": 0.14513557438958555,
+        "signed_bias": 0.030721034721555605
+      },
+      "measurable": {
+        "n": 21,
+        "mean_abs_err": 0.2963892445965313,
+        "signed_bias": -0.14581173651148543
+      }
+    },
+    "op": {
+      "relu": {
+        "n": 57,
+        "mean_abs_err": 0.20086061078161818,
+        "signed_bias": -0.034317354680091096
+      }
+    }
+  },
+  "norm_fix": "constant-feature mask (16/33 zero-var) added post-train; train/val inputs bit-identical (max diff 3e-9, asserted in reeval_91.py), test re-evaluated from ckpt_last.pt WITHOUT retraining. Pre-fix test numbers (1e12-1e15) were a normalization artifact, superseded.",
+  "baselines_loaded": {
+    "roofline_94": "experiments/gpu-sim-u2o.9.4/metrics.json",
+    "gbt_95": "experiments/gpu-sim-u2o.9.5/metrics.json (branch lab/gpu-sim-u2o.9.5, pending review at time of writing)"
+  },
+  "step_time": {
+    "s_per_step": 0.15,
+    "source": "trial 46426b05: 200 steps in 34s wall (10:18:24-10:18:58Z) incl startup+evals",
+    "peak_gpu_mem_mb": 16433.0,
+    "mean_gpu_util_pct": 87.8
+  },
+  "oob_rows": {
+    "known_frozen": [
+      "007e97e800e2a0b9",
+      "53c5810e34048ee1",
+      "8a3894b2ac4bb135",
+      "62b7e7ddf8fb1bb1"
+    ],
+    "source": "experiments/gpu-sim-0vk/oob_frozen.json (LOADED)",
+    "overlap_with_join": 0,
+    "join_inspec": "all 456 sources pass check_subscripts_bounded (build aborts on refusal)"
+  },
+  "stage": "Stage 1 pipeline + Stage 2 generalisation (ruling lapsed 39.4%/538)"
+}
