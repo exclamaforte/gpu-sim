@@ -136,6 +136,10 @@ CUresult cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTable
 
 /* ---- device count / topology -------------------------------------------- */
 
+/* Positive control (PI's item 4): a counter for a call the shim demonstrably
+   serves, so a zero elsewhere means "not called" rather than "counter broken". */
+unsigned long FC_AUDIT_DEVATTR_CALLS = 0;
+
 static fg_topo_t *fc_topo = NULL;
 static int fc_loaded = 0;
 
@@ -206,7 +210,7 @@ CUresult cuDeviceGetCount(int *count) {
     fprintf(stderr,"fakecuda: %s\n", "cuDeviceGetCount");
     if (!count) return CUDA_ERROR_INVALID_VALUE;
     *count = fc_device_count();
-    fprintf(stderr,"fakecuda: cuDeviceGetCount -> %d\n", *count);
+    fprintf(stderr, "fakecuda: AUDIT cuDeviceGetCount served-by=SHIM value=%d\n", *count);
     return CUDA_SUCCESS;
 }
 
@@ -302,7 +306,9 @@ CUresult cuDeviceGetAttribute(int *pi, CUdevice_attribute attrib, CUdevice dev) 
         *pi = 0;
         break;
     }
-    if (getenv("GPUSIM_DEBUG_DRV")) fprintf(stderr, "fakecuda: cuDeviceGetAttribute(%d) -> %d value=%d\n", (int)attrib, 0, *pi);
+    FC_AUDIT_DEVATTR_CALLS++;
+    fprintf(stderr, "fakecuda: AUDIT cuDeviceGetAttribute served-by=SHIM attrib=%d value=%d count=%lu\n",
+            (int)attrib, *pi, FC_AUDIT_DEVATTR_CALLS);
     return CUDA_SUCCESS;
 }
 

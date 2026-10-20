@@ -93,8 +93,17 @@ but every subsequent device call -- `cuDeviceGetAttribute`, `cuDeviceGetPCIBusId
 through that table: the shim's audit log shows 0 calls for each of them, and NCCL
 fails with 'initialization error' because the real driver has no device visible.
 
-So the export table is not an isolated handshake: it carries the whole driver vtable.
-Serving it from the real driver hands the entire device path to the real driver, which
-is exactly the leak acceptance 3 exists to prevent. Evidence: option_a_3alt.log.
+So the discriminating fact is the CHANGED FAILURE MODE, not a per-call attribution:
+with the real table served the handshake succeeds and cudart moves PAST it (the
+'driver version is insufficient' error disappears) and later fails with
+'initialization error'; with forwarding disabled it fails AT the table with
+'named symbol not found'. The earlier mechanism claim -- that the table carries the
+whole driver vtable and therefore hands the entire device path to the real driver --
+is WITHDRAWN: this arm's evidence does not support it (the shim demonstrably serves
+cuDeviceGetCount -> 1 and cuDeviceGet in that same arm, and a zero counter is not
+discriminating on its own). What is established is enough: serving the real table
+moves cudart past the handshake into code paths this seam does not control, so
+option (a) does not work. The counter-liveness control (attr_probe.log) shows the
+audit counter increments N -> N+1 on a direct shim call, so zeros are meaningful.
 3-alt-ii confirms the forwarding is load-bearing: with GPUSIM_REAL_EXPORT_TABLE=0 the
 same binary fails again at the export table ('named symbol not found').

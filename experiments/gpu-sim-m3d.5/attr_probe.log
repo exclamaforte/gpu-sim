@@ -1,0 +1,4 @@
+cmd: gcc attr_probe.c -o attr_probe; LD_PRELOAD=libfakecuda.so ./attr_probe
+fakecuda: cuDeviceGetAttribute
+fakecuda: AUDIT cuDeviceGetAttribute served-by=SHIM attrib=16 value=80 count=1
+direct cuDeviceGetAttribute rc=0 value=80 (shim audit counter increments below)

@@ -15,14 +15,19 @@
   "acceptance": {
     "1_dlopen_real_nccl_single_rank_init": "FAIL (see output.log probes A and B)",
     "2_nccl_debug_device_count_pci_ids": "NOT REACHED",
-    "3_no_real_driver_loaded": "HOLDS (shim interposes dlopen for libcuda.so; /proc maps contain only libfakecuda.so)",
+    "3_no_real_driver_loaded": "HOLDS; evidence: experiments/gpu-sim-m3d.5/proc_maps.log (libfakecuda.so mapped, no libcuda.so.1 mapping)",
     "4_negative_control_no_shim": "PASS (output.log: without the shim and with CUDA_VISIBLE_DEVICES='' the binary fails to init; with the real GPU visible it succeeds with 1 device)"
   },
   "evidence": [
     "experiments/gpu-sim-m3d.5/output.log",
-    "experiments/gpu-sim-m3d.5/README.md",
+    "experiments/gpu-sim-m3d.5/dynamic_cudart_probe.log",
+    "experiments/gpu-sim-m3d.5/option_a_3alt.log",
+    "experiments/gpu-sim-m3d.5/proc_maps.log",
+    "experiments/gpu-sim-m3d.5/attr_probe.log",
+    "experiments/gpu-sim-m3d.5/check_fresh_red.log",
+    "experiments/gpu-sim-m3d.5/check_fresh_green.log",
     "experiments/gpu-sim-m3d.5/growth_list.txt",
-    "experiments/gpu-sim-m3d.5/metrics.json"
+    "experiments/gpu-sim-m3d.5/README.md"
   ],
   "cpu_runs": [
     {
@@ -32,11 +37,14 @@
   ],
   "option_a_3alt": {
     "result": "3-alt-i FAILS at exactly this point",
-    "3-alt-iii": "HOLDS: real handle opened with the real dlopen (dlvsym RTLD_NEXT), interception not recursed (AUDIT real-driver-handle open=OK)",
-    "3-alt-ii": "HOLDS: GPUSIM_REAL_EXPORT_TABLE=0 -> the export-table error returns ('named symbol not found'), so the forwarding is load-bearing",
-    "3-alt-i": "FAILS: after the real handshake, shim audit shows 0 calls for cuDeviceGetAttribute/PCIBusId/Name/Uuid/TotalMem/CtxCreate/MemAlloc*/MemHostRegister/Memcpy*/LaunchKernel -- every device call is served by the REAL driver through the table; NCCL then fails with 'initialization error' (no real device). The export table carries the whole driver vtable, not an isolated handshake.",
+    "3-alt-iii": "HOLDS: real handle opened with the real dlopen (dlvsym RTLD_NEXT); 'AUDIT real-driver-handle open=OK (via real dlopen, bypassing interception)'",
+    "3-alt-ii": "HOLDS: GPUSIM_REAL_EXPORT_TABLE=0 (forwarding disabled) -> the export-table failure returns: 'cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)', NCCL 'named symbol not found' AT the table",
+    "3-alt-i": "FAILS. THE DISCRIMINATING FACT IS THE CHANGED FAILURE MODE, not a per-call attribution: with the real table served the handshake SUCCEEDS and cudart moves PAST it (the 'CUDA driver version is insufficient' error disappears), failing later with 'initialization error'; with forwarding disabled it fails AT the table with 'named symbol not found'. A zero counter in the 3-alt-i arm therefore does not by itself show which symbol served a call, and the earlier 'the export table carries the whole vtable / hands the entire device path to the real driver' mechanism claim is WITHDRAWN as not supported by this evidence (the shim demonstrably serves cuDeviceGetCount -> 1 and cuDeviceGet in that arm). What is established: serving the real table moves cudart past the handshake into code paths this seam does not control, so option (a) does not work.",
+    "counter_liveness_control": "experiments/gpu-sim-m3d.5/attr_probe.log -- a direct shim call prints 'AUDIT cuDeviceGetAttribute served-by=SHIM attrib=16 value=80 count=1', so a zero elsewhere means 'not called', not 'counter broken'",
     "evidence": [
       "experiments/gpu-sim-m3d.5/option_a_3alt.log",
+      "experiments/gpu-sim-m3d.5/proc_maps.log",
+      "experiments/gpu-sim-m3d.5/attr_probe.log",
       "experiments/gpu-sim-m3d.5/README.md"
     ]
   },
@@ -46,5 +54,11 @@
     "evidence": [
       "experiments/gpu-sim-m3d.5/dynamic_cudart_probe.log"
     ]
+  },
+  "freshness": {
+    "check": "experiments/gpu-sim-m3d.5/check_fresh.sh",
+    "red_case": "check_fresh_red.log + stale/ (kept committed negative cases: 4x and 2x 'dlsym fallback', no AUDIT lines) -> exit 1",
+    "green_case": "check_fresh_green.log (fresh output.log + option_a_3alt.log) -> exit 0",
+    "note": "run.sh regenerates output.log, dynamic_cudart_probe.log, option_a_3alt.log, proc_maps.log, attr_probe.log and both freshness arms; no log is hand-copied."
   }
 }

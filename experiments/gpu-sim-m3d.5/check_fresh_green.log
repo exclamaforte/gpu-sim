@@ -1,0 +1,10 @@
+--- stale negative cases (kept as committed RED cases) ---
+STALE: experiments/gpu-sim-m3d.5/stale/output.log contains 'dlsym fallback' (removed from src/fakecuda.c at 7cc9d54)
+STALE: experiments/gpu-sim-m3d.5/stale/output.log has no AUDIT lines (pre-audit revision)
+STALE: experiments/gpu-sim-m3d.5/stale/dynamic_cudart_probe.log contains 'dlsym fallback' (removed from src/fakecuda.c at 7cc9d54)
+STALE: experiments/gpu-sim-m3d.5/stale/dynamic_cudart_probe.log has no AUDIT lines (pre-audit revision)
+exit=1 (expected non-zero)
+
+--- fresh logs produced by this script ---
+FRESH: all logs contain AUDIT lines and none contains 'dlsym fallback'
+exit=0 (expected zero)
