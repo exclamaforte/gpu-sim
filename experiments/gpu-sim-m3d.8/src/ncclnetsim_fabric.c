@@ -1,0 +1,318 @@
+/* gpu-sim-m3d.8: ncclNet plugin over the shm fabric. */
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "fakegpu_fabric.h"
+#include "nccl_net.h"
+
+static fg_fab_t *FAB = NULL;
+static int MY_RANK = 0;
+static int NRANKS = 1;
+static pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
+
+#define CAP (64 * 1024 * 1024)
+
+typedef struct { int done; size_t size; void *data; int peer; int is_send; } req_t;
+
+/* comm handles */
+typedef struct { int peer; int local; } sim_comm_t;
+
+static void trace(const char *m, const char *extra) {
+    const char *p = getenv("GPUSIM_TRACE");
+    if (!p || !*p) return;
+    FILE *f = fopen(p, "a");
+    if (!f) return;
+    fprintf(f, "%s%s%s\n", m, (extra && *extra) ? " " : "", extra ? extra : "");
+    fflush(f);
+    fclose(f);
+}
+
+/* v12 net */
+static void *v12_ctx = NULL;
+
+static ncclResult_t v12_init(void** ctx, uint64_t commId, ncclNetCommConfig_v12_t* config,
+                            ncclDebugLogger_t logFunction, ncclProfilerCallback_t profFunction) {
+    (void)config;(void)logFunction;(void)profFunction;
+    const char *rid = getenv("GPUSIM_RUN_ID");
+    if (!rid) rid = "m3d8";
+    const char *r = getenv("GPUSIM_RANK");
+    const char *n = getenv("GPUSIM_NRANKS");
+    MY_RANK = r ? atoi(r) : 0;
+    NRANKS = n ? atoi(n) : 1;
+    uint64_t to = 5000000ULL; /* 5ms */
+    const char *te = getenv("GPUSIM_TIMEOUT_NS");
+    if (te) to = strtoull(te, NULL, 10);
+    int err = 0;
+    FAB = fg_fab_attach(rid, 1, MY_RANK, NRANKS, to, &err);
+    if (!FAB) {
+        fprintf(stderr, "fabric attach failed: %s\n", fg_fab_errstr(err));
+        return ncclSystemError;
+    }
+    if (ctx) *ctx = &v12_ctx;
+    char buf[128]; snprintf(buf, sizeof(buf), "init commId=%llu rank=%d nranks=%d", (unsigned long long)commId, MY_RANK, NRANKS);
+    trace("v12.init", buf);
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_devices(int* ndev) {
+    if (ndev) *ndev = 1;
+    trace("v12.devices", "");
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_getProperties(int dev, ncclNetProperties_v12_t* props) {
+    if (props) {
+        memset(props, 0, sizeof(*props));
+        props->name = (char*)"sim";
+        props->pciPath = (char*)"";
+        props->guid = 0;
+        props->ptrSupport = NCCL_PTR_HOST;
+        props->regIsGlobal = 1;
+        props->forceFlush = 0;
+        props->speed = 100000;
+        props->port = 0;
+        props->latency = 1.0f;
+        props->maxComms = 1<<20;
+        props->maxRecvs = 1;
+        props->netDeviceType = NCCL_NET_DEVICE_HOST;
+        props->netDeviceVersion = 0;
+        props->vProps.ndevs = 1;
+        props->vProps.devs[0] = dev;
+        props->maxP2pBytes = CAP;
+        props->maxCollBytes = CAP;
+        props->maxMultiRequestSize = 1;
+        props->railId = -1;
+        props->planeId = -1;
+    }
+    trace("v12.getProperties", "");
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_listen(void* ctx, int dev, void* handle, void** listenComm) {
+    (void)ctx;(void)dev;
+    sim_comm_t *lc = (sim_comm_t*)calloc(1, sizeof(*lc));
+    lc->local = MY_RANK;
+    lc->peer = -1;
+    if (handle) {
+        int *h = (int*)handle;
+        h[0] = MY_RANK;
+    }
+    if (listenComm) *listenComm = lc;
+    trace("v12.listen", "");
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_connect(void* ctx, int dev, void* handle, void** sendComm, ncclNetDeviceHandle_v12_t** sendDevComm) {
+    (void)ctx;(void)dev;
+    int peer = handle ? ((int*)handle)[0] : -1;
+    sim_comm_t *sc = (sim_comm_t*)calloc(1, sizeof(*sc));
+    sc->local = MY_RANK;
+    sc->peer = peer;
+    if (sendComm) *sendComm = sc;
+    if (sendDevComm) *sendDevComm = NULL;
+    char buf[64]; snprintf(buf, sizeof(buf), "connect peer=%d", peer);
+    trace("v12.connect", buf);
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_accept(void* listenComm, void** recvComm, ncclNetDeviceHandle_v12_t** recvDevComm) {
+    sim_comm_t *lc = (sim_comm_t*)listenComm;
+    sim_comm_t *rc = (sim_comm_t*)calloc(1, sizeof(*rc));
+    rc->local = MY_RANK;
+    /* for 2-rank, peer is the other rank */
+    rc->peer = (MY_RANK == 0) ? 1 : 0;
+    if (recvComm) *recvComm = rc;
+    if (recvDevComm) *recvDevComm = NULL;
+    trace("v12.accept", "");
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_regMr(void* comm, void* data, size_t size, int type, void** mhandle) {
+    (void)comm;(void)data;(void)size;(void)type;
+    if (mhandle) *mhandle = (void*)0x1;
+    trace("v12.regMr", "");
+    return ncclSuccess;
+}
+static ncclResult_t v12_regMrDmaBuf(void* comm, void* data, size_t size, int type, uint64_t offset, int fd, void** mhandle) {
+    (void)comm;(void)data;(void)size;(void)type;(void)offset;(void)fd;
+    if (mhandle) *mhandle = (void*)0x1;
+    trace("v12.regMrDmaBuf", "");
+    return ncclSuccess;
+}
+static ncclResult_t v12_deregMr(void* comm, void* mhandle) {
+    (void)comm;(void)mhandle;
+    trace("v12.deregMr", "");
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, void* mhandle, void* phandle, void** request) {
+    (void)tag;(void)mhandle;(void)phandle;
+    sim_comm_t *sc = (sim_comm_t*)sendComm;
+    if (size > CAP) return ncclInvalidArgument;
+    pthread_mutex_lock(&LOCK);
+    int rc = fg_fab_send(FAB, sc->peer, data, size);
+    pthread_mutex_unlock(&LOCK);
+    if (rc != FG_FAB_OK) {
+        fprintf(stderr, "isend failed: %s\n", fg_fab_errstr(rc));
+        return ncclSystemError;
+    }
+    req_t *rq = (req_t*)calloc(1, sizeof(*rq));
+    rq->done = 1;
+    rq->size = size;
+    rq->is_send = 1;
+    if (request) *request = rq;
+    const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
+    char buf[96]; snprintf(buf, sizeof(buf), "isend peer=%d size=%zu tag=%d dtype=%s", sc->peer, size, tag, dt);
+    trace("v12.isend", buf);
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_irecv(void* recvComm, int n, void** data, size_t* sizes, int* tags, void** mhandles, void** phandles, void** request) {
+    (void)tags;(void)mhandles;(void)phandles;
+    sim_comm_t *rcv = (sim_comm_t*)recvComm;
+    if (n < 1) return ncclInvalidArgument;
+    /* handle only first buffer */
+    req_t *rq = (req_t*)calloc(1, sizeof(*rq));
+    rq->done = 0;
+    rq->size = sizes[0];
+    rq->data = data[0];
+    rq->peer = rcv->peer;
+    rq->is_send = 0;
+    /* store tag in req via a field? add tag to req_t */
+    if (request) *request = rq;
+    const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
+    char buf[96]; snprintf(buf, sizeof(buf), "irecv peer=%d size=%zu n=%d tags=%d dtype=%s", rcv->peer, sizes[0], n, tags ? tags[0] : -1, dt);
+    trace("v12.irecv", buf);
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_test(void* request, int* done, int* sizes) {
+    req_t *rq = (req_t*)request;
+    if (!rq) return ncclInvalidArgument;
+    if (rq->done) {
+        if (done) *done = 1;
+        if (sizes) *sizes = (int)rq->size;
+        return ncclSuccess;
+    }
+    /* try receive with short timeout */
+    pthread_mutex_lock(&LOCK);
+    size_t got = 0;
+    int rc = fg_fab_recv_max(FAB, rq->peer, rq->data, rq->size, &got);
+    pthread_mutex_unlock(&LOCK);
+    if (rc == FG_FAB_OK) {
+        rq->size = got;
+        rq->done = 1;
+        if (done) *done = 1;
+        if (sizes) *sizes = (int)got;
+        trace("v12.recv", "done");
+        return ncclSuccess;
+    }
+    if (rc == FG_FAB_ESIZE) {
+        fprintf(stderr, "size mismatch in recv\n");
+        return ncclSystemError;
+    }
+    if (rc == FG_FAB_EPEERDEAD) {
+        return ncclSystemError;
+    }
+    /* timeout or other: not done */
+    if (done) *done = 0;
+    if (sizes) *sizes = 0;
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_iflush(void* recvComm, int n, void** data, int* sizes, void** mhandles, void** request) {
+    (void)recvComm;(void)n;(void)data;(void)sizes;(void)mhandles;
+    if (request) {
+        req_t *rq = (req_t*)calloc(1, sizeof(*rq));
+        rq->done = 1;
+        *request = rq;
+    }
+    trace("v12.iflush", "");
+    return ncclSuccess;
+}
+
+static ncclResult_t v12_closeSend(void* sendComm) { free(sendComm); trace("v12.closeSend",""); return ncclSuccess; }
+static ncclResult_t v12_closeRecv(void* recvComm) { free(recvComm); trace("v12.closeRecv",""); return ncclSuccess; }
+static ncclResult_t v12_closeListen(void* listenComm) { free(listenComm); trace("v12.closeListen",""); return ncclSuccess; }
+
+static ncclResult_t v12_listen_wrap(void* ctx, int dev, void* handle, void** listenComm) { return v12_listen(ctx, dev, handle, listenComm); }
+static ncclResult_t v12_connect_wrap(void* ctx, int dev, void* handle, void** sendComm, ncclNetDeviceHandle_v12_t** sendDevComm) { return v12_connect(ctx, dev, handle, sendComm, sendDevComm); }
+static ncclResult_t v12_accept_wrap(void* listenComm, void** recvComm, ncclNetDeviceHandle_v12_t** recvDevComm) { return v12_accept(listenComm, recvComm, recvDevComm); }
+
+/* function pointer wrappers already defined */
+static ncclResult_t v12_init_wrap(void** ctx, uint64_t commId, ncclNetCommConfig_v12_t* config, ncclDebugLogger_t logFunction, ncclProfilerCallback_t profFunction) {
+    return v12_init(ctx, commId, config, logFunction, profFunction);
+}
+static ncclResult_t v12_devices_wrap(int* ndev) { return v12_devices(ndev); }
+static ncclResult_t v12_getProperties_wrap(int dev, ncclNetProperties_v12_t* props) { return v12_getProperties(dev, props); }
+
+static ncclNet_v12_t v12_plugin = {
+    .name = "sim",
+    .init = v12_init_wrap,
+    .devices = v12_devices_wrap,
+    .getProperties = v12_getProperties_wrap,
+    .listen = v12_listen_wrap,
+    .connect = v12_connect_wrap,
+    .accept = v12_accept_wrap,
+    .regMr = v12_regMr,
+    .regMrDmaBuf = v12_regMrDmaBuf,
+    .deregMr = v12_deregMr,
+    .isend = v12_isend,
+    .irecv = v12_irecv,
+    .iflush = v12_iflush,
+    .test = v12_test,
+    .closeSend = v12_closeSend,
+    .closeRecv = v12_closeRecv,
+    .closeListen = v12_closeListen,
+    .getDeviceMr = (ncclResult_t(*)(void*,void*,void**)) (void*)0, /* placeholder */
+    .irecvConsumed = NULL,
+    .makeVDevice = NULL,
+    .finalize = NULL,
+    .setNetAttr = NULL,
+};
+
+/* fix getDeviceMr */
+static ncclResult_t v12_getDeviceMr(void* comm, void* mhandle, void** dptr) {
+    (void)comm;(void)mhandle; if (dptr) *dptr = NULL; return ncclSuccess;
+}
+static ncclResult_t v12_finalize(void* ctx) { (void)ctx; fg_fab_detach(FAB); FAB = NULL; trace("v12.finalize",""); return ncclSuccess; }
+
+/* rebuild struct with correct pointers via constructor? Use manual assignment in init? Instead define after functions. */
+/* We'll use a global initializer function instead. */
+
+__attribute__((visibility("default"))) ncclNet_v12_t ncclNetPlugin_v12;
+
+static ncclResult_t v12_irecvConsumed(void* recvComm, int n, void* request) {
+    (void)recvComm;(void)n;(void)request; return ncclSuccess;
+}
+static ncclResult_t v12_makeVDevice(int* d, ncclNetVDeviceProps_v12_t* props) {
+    (void)d;(void)props; return ncclSuccess;
+}
+static void __attribute__((constructor)) init_plugin() {
+    memset(&ncclNetPlugin_v12, 0, sizeof(ncclNetPlugin_v12));
+    ncclNetPlugin_v12.name = "sim";
+    ncclNetPlugin_v12.init = v12_init_wrap;
+    ncclNetPlugin_v12.devices = v12_devices_wrap;
+    ncclNetPlugin_v12.getProperties = v12_getProperties_wrap;
+    ncclNetPlugin_v12.listen = v12_listen_wrap;
+    ncclNetPlugin_v12.connect = v12_connect_wrap;
+    ncclNetPlugin_v12.accept = v12_accept_wrap;
+    ncclNetPlugin_v12.regMr = v12_regMr;
+    ncclNetPlugin_v12.regMrDmaBuf = v12_regMrDmaBuf;
+    ncclNetPlugin_v12.deregMr = v12_deregMr;
+    ncclNetPlugin_v12.isend = v12_isend;
+    ncclNetPlugin_v12.irecv = v12_irecv;
+    ncclNetPlugin_v12.iflush = v12_iflush;
+    ncclNetPlugin_v12.test = v12_test;
+    ncclNetPlugin_v12.closeSend = v12_closeSend;
+    ncclNetPlugin_v12.closeRecv = v12_closeRecv;
+    ncclNetPlugin_v12.closeListen = v12_closeListen;
+    ncclNetPlugin_v12.getDeviceMr = v12_getDeviceMr;
+    ncclNetPlugin_v12.irecvConsumed = v12_irecvConsumed;
+    ncclNetPlugin_v12.makeVDevice = v12_makeVDevice;
+    ncclNetPlugin_v12.finalize = v12_finalize;
+    ncclNetPlugin_v12.setNetAttr = NULL;
+}

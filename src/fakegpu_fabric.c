@@ -274,12 +274,13 @@ int fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n) {
             usleep(100);
         }
     }
-    fprintf(stderr, "fab send rank=%d peer=%d size=%zu slot=%d\n", f->rank, peer, n, slot);
+    if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab send rank=%d peer=%d size=%zu slot=%d\n", f->rank, peer, n, slot);
     memcpy(m->slots[slot].data, buf, n);
     atomic_store_explicit(&m->slots[slot].len, n, memory_order_release);
     m->slots[slot].tag = 0;
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    const char *ds = getenv("GPUSIM_FAB_DELAY_US"); if (ds && *ds) usleep((useconds_t)atoi(ds));
     return FG_FAB_OK;
 }
 
@@ -311,7 +312,7 @@ int fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got) {
     }
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
     uint32_t mseq = atomic_load_explicit(&m->slots[slot].seq, memory_order_acquire);
-    fprintf(stderr, "fab recv rank=%d from=%d cap=%zu slot=%d head_seq=%u head_size=%zu\n", f->rank, from, cap, slot, mseq, mlen);
+    if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab recv rank=%d from=%d cap=%zu slot=%d head_seq=%u head_size=%zu\n", f->rank, from, cap, slot, mseq, mlen);
     if (mlen > cap) {
         atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
         return FG_FAB_ESIZE;
@@ -320,6 +321,7 @@ int fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got) {
     if (got) *got = mlen;
     atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
     atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
+    const char *dr = getenv("GPUSIM_FAB_DELAY_US"); if (dr && *dr) usleep((useconds_t)atoi(dr));
     return FG_FAB_OK;
 }
 
@@ -348,7 +350,7 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
         }
     }
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
-    fprintf(stderr, "fab recv(exact) rank=%d from=%d expected=%zu slot=%d size=%zu\n", f->rank, from, n, slot, mlen);
+    if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab recv(exact) rank=%d from=%d expected=%zu slot=%d size=%zu\n", f->rank, from, n, slot, mlen);
     if (mlen != n) {
         atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
         return FG_FAB_ESIZE;
@@ -356,6 +358,7 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
     memcpy(buf, m->slots[slot].data, n);
     atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
     atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
+    const char *dr = getenv("GPUSIM_FAB_DELAY_US"); if (dr && *dr) usleep((useconds_t)atoi(dr));
     return FG_FAB_OK;
 }
 

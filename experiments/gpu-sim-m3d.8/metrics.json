@@ -1,9 +1,34 @@
 {
   "bead": "gpu-sim-m3d.8",
   "verdict": "PASS",
-  "summary": "Net plugin over shm fabric: 2-rank real NCCL allreduce numerics pass (sum=3.0 both ranks) via NET/sim/0 with 4 channels. Mailbox relaxed from exact-size to recv_max (accepts mlen<=cap) to handle posted capacity vs actual bytes. Multi-channel (MIN/MAX_NCHANNELS=4) byte-correct. CPU-only (no GPU).",
-  "gpu_used": false,
+  "summary": "Net plugin over shm fabric: 2-rank real NCCL allreduce numerics pass (sum=3.0 both ranks) via NET/sim/0 with 4 channels. Mailbox relaxed to recv_max (accepts mlen<=cap). Multi-channel byte-correct. Kill scenario: rank0 killed (rc137), survivor times out (rc124, hard-timeout path within 30s cap). Oversized isend returns ncclInvalidArgument (GPU-free unit test). GPU used.",
+  "gpu_used": true,
+  "ts_jobs": [
+    "20261020t085628-351d02ad",
+    "20261020t085635-3619b441",
+    "20261020t085711-f3b48668",
+    "20261020t090205-5e478cc7",
+    "20261020t090244-fb61297d",
+    "20261020t090300-092aad31",
+    "20261020t090337-cc3d738f",
+    "20261020t091718-494bc537",
+    "20261020t092135-89a9e9a0",
+    "20261020t191109-7e7ea0f8"
+  ],
   "cpu_runs": [
-    {"command": "timeout 60s bash experiments/gpu-sim-m3d.8/run_forcenet.sh", "result": "PASS (exit0=0 exit1=0, 4 channels, sum=3.0)"}
+    {
+      "command": "make test-fabric",
+      "result": "PASS (basic/barrier8/killpeer/stale/size)"
+    },
+    {
+      "command": "tests/test_oversized",
+      "result": "PASS (ncclInvalidArgument)"
+    }
+  ],
+  "gpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-m3d.8/run_gpu_scenarios.sh",
+      "result": "PASS (ts jobs above)"
+    }
   ]
 }
