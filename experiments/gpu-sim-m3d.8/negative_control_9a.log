@@ -1,0 +1,7 @@
+=== item 9(a) negative control: FG_FAB_EPEERDEAD -> ncclSystemError mapping BROKEN (scratch tree) ===
+cmd: sed 's/EPEERDEAD) return ncclSystemError/EPEERDEAD) return ncclSuccess/' peer_death_test.c > /tmp/scratch_9a/peer_death_broken.c
+cmd: g++ ... /tmp/scratch_9a/peer_death_broken.c src/fakegpu_fabric.c -o peer_death_broken
+--- run (expected RED) ---
+pending transfer rc=4 (EPEERDEAD), mapped to NCCL code 0
+peer-death mapping FAIL
+exit=1 (non-zero = guard observed failing)
