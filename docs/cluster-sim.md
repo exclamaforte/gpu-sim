@@ -130,3 +130,8 @@ inherited error.
 - Unknown: whether the installed `libnccl` v12 layout matches tag `v2.30.7-1`
   exactly. Version detection at runtime is a bead acceptance criterion, not an
   assumption.
+- Unknown: NCCL decides intra-node vs inter-node from its topology graph, not
+  from plugin availability. Two fake devices in one process may both count as
+  intra-node, so the net-plugin seam may never be reached. `gpu-sim-m3d.8`
+  resolves this first (fake PCI domains + `NCCL_TOPO_FILE`, else the P2P seam)
+  and the gate requires one config that provably uses NET.
