@@ -24,11 +24,16 @@ typedef struct {
     atomic_uint consumed_seq;
 } fg_rank_slot_t;
 
+#define FG_FAB_QDEPTH 8
 typedef struct {
     atomic_uint seq;
     atomic_size_t len;
-    atomic_int ready;
+    atomic_int ready; /* 0 free, 1 ready, -1 reserved */
+    int tag;
     char data[FG_FAB_MAX_PAYLOAD];
+} fg_slot_t;
+typedef struct {
+    fg_slot_t slots[FG_FAB_QDEPTH];
 } fg_mailbox_t;
 
 typedef struct {
@@ -252,17 +257,69 @@ int fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n) {
     }
     fg_mailbox_t *m = &f->mailboxes[f->rank * f->nranks + peer];
     uint64_t deadline = now_ns() + f->timeout_ns;
-    while (atomic_load_explicit(&m->ready, memory_order_acquire)) {
-        if (now_ns() > deadline) {
-            if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
-            return FG_FAB_ETIMEDOUT;
+    int slot = -1;
+    while (slot < 0) {
+        for (int i = 0; i < FG_FAB_QDEPTH; i++) {
+            int expected = 0;
+            if (atomic_compare_exchange_strong_explicit(&m->slots[i].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
+                slot = i;
+                break;
+            }
         }
-        usleep(100);
+        if (slot < 0) {
+            if (now_ns() > deadline) {
+                if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
+                return FG_FAB_ETIMEDOUT;
+            }
+            usleep(100);
+        }
     }
-    memcpy(m->data, buf, n);
-    atomic_store_explicit(&m->len, n, memory_order_release);
-    atomic_store_explicit(&m->ready, 1, memory_order_release);
-    atomic_fetch_add_explicit(&m->seq, 1, memory_order_relaxed);
+    fprintf(stderr, "fab send rank=%d peer=%d size=%zu slot=%d\n", f->rank, peer, n, slot);
+    memcpy(m->slots[slot].data, buf, n);
+    atomic_store_explicit(&m->slots[slot].len, n, memory_order_release);
+    m->slots[slot].tag = 0;
+    atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
+    atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    return FG_FAB_OK;
+}
+
+int fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got) {
+    if (!f || !buf || from < 0 || from >= f->nranks || cap == 0 || cap > FG_FAB_MAX_PAYLOAD) {
+        return FG_FAB_EINVAL;
+    }
+    fg_mailbox_t *m = &f->mailboxes[from * f->nranks + f->rank];
+    uint64_t deadline = now_ns() + f->timeout_ns;
+    int slot = -1;
+    while (slot < 0) {
+        for (int i = 0; i < FG_FAB_QDEPTH; i++) {
+            if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) != 1) continue;
+            size_t mlen = atomic_load_explicit(&m->slots[i].len, memory_order_acquire);
+            if (mlen > cap) continue; /* wait for a message that fits */
+            int expected = 1;
+            if (atomic_compare_exchange_strong_explicit(&m->slots[i].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
+                slot = i;
+                break;
+            }
+        }
+        if (slot < 0) {
+            if (now_ns() > deadline) {
+                if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
+                return FG_FAB_ETIMEDOUT;
+            }
+            usleep(100);
+        }
+    }
+    size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
+    uint32_t mseq = atomic_load_explicit(&m->slots[slot].seq, memory_order_acquire);
+    fprintf(stderr, "fab recv rank=%d from=%d cap=%zu slot=%d head_seq=%u head_size=%zu\n", f->rank, from, cap, slot, mseq, mlen);
+    if (mlen > cap) {
+        atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+        return FG_FAB_ESIZE;
+    }
+    memcpy(buf, m->slots[slot].data, mlen);
+    if (got) *got = mlen;
+    atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
+    atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
     return FG_FAB_OK;
 }
 
@@ -272,21 +329,32 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
     }
     fg_mailbox_t *m = &f->mailboxes[from * f->nranks + f->rank];
     uint64_t deadline = now_ns() + f->timeout_ns;
-    while (!atomic_load_explicit(&m->ready, memory_order_acquire)) {
-        if (now_ns() > deadline) {
-            if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
-            return FG_FAB_ETIMEDOUT;
+    int slot = -1;
+    while (slot < 0) {
+        for (int i = 0; i < FG_FAB_QDEPTH; i++) {
+            if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) != 1) continue;
+            int expected = 1;
+            if (atomic_compare_exchange_strong_explicit(&m->slots[i].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
+                slot = i;
+                break;
+            }
         }
-        usleep(100);
+        if (slot < 0) {
+            if (now_ns() > deadline) {
+                if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
+                return FG_FAB_ETIMEDOUT;
+            }
+            usleep(100);
+        }
     }
-    size_t mlen = atomic_load_explicit(&m->len, memory_order_acquire);
+    size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
+    fprintf(stderr, "fab recv(exact) rank=%d from=%d expected=%zu slot=%d size=%zu\n", f->rank, from, n, slot, mlen);
     if (mlen != n) {
-        /* reject mismatched size; leave message? consume to avoid stuck */
-        atomic_store_explicit(&m->ready, 0, memory_order_release);
+        atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
         return FG_FAB_ESIZE;
     }
-    memcpy(buf, m->data, n);
-    atomic_store_explicit(&m->ready, 0, memory_order_release);
+    memcpy(buf, m->slots[slot].data, n);
+    atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
     atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
     return FG_FAB_OK;
 }

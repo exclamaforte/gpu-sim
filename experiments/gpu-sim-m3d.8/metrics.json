@@ -1,0 +1,9 @@
+{
+  "bead": "gpu-sim-m3d.8",
+  "verdict": "PASS",
+  "summary": "Net plugin over shm fabric: 2-rank real NCCL allreduce numerics pass (sum=3.0 both ranks) via NET/sim/0 with 4 channels. Mailbox relaxed from exact-size to recv_max (accepts mlen<=cap) to handle posted capacity vs actual bytes. Multi-channel (MIN/MAX_NCHANNELS=4) byte-correct. CPU-only (no GPU).",
+  "gpu_used": false,
+  "cpu_runs": [
+    {"command": "timeout 60s bash experiments/gpu-sim-m3d.8/run_forcenet.sh", "result": "PASS (exit0=0 exit1=0, 4 channels, sum=3.0)"}
+  ]
+}

@@ -40,6 +40,10 @@ int  fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n);
 /* receive exactly n bytes from `from`; n must match the sent length. */
 int  fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n);
 
+/* receive up to cap bytes; accepts any message with len <= cap and reports
+   actual bytes received in *got. */
+int  fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got);
+
 /* apply a link's bw/latency/jitter to nbytes (best-effort delay). */
 int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
                      double latency_us, double jitter_us);
