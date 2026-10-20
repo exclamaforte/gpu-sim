@@ -1,0 +1,19 @@
+{
+  "bead": "gpu-sim-m3d.2",
+  "verdict": "PASS",
+  "summary": "Cross-process fabric substrate implemented in include/fakegpu_fabric.h + src/fakegpu_fabric.c. Named shm segment (/gpusim-<run-id>), rank registry, generation-based barrier, per-sender/per-receiver mailbox bulk copy, peer-death detection, stale-epoch guard, size-mismatch rejection. Multi-process tests: basic (2 ranks, 1 MiB both directions, byte-exact), barrier8 (8 ranks, straggler -> ETIMEDOUT), killpeer (survivor recv -> EPEERDEAD), stale (epoch mismatch -> ESTALE), size (mismatched recv -> ESIZE). All PASS.",
+  "tests": {
+    "basic": "PASS",
+    "barrier8": "PASS",
+    "killpeer": "PASS",
+    "stale": "PASS",
+    "size": "PASS"
+  },
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "make test-fabric",
+      "result": "all 5 tests PASS"
+    }
+  ]
+}

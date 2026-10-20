@@ -36,6 +36,7 @@ OBJS = $(SRCS:.c=.o)
 TEST_BIN = build/fake_client
 VEC_BIN  = build/vector_add
 RING_BIN = build/ring_allreduce
+FABRIC_TEST_BIN = build/test_fabric
 
 .PHONY: all check clean
 
@@ -91,6 +92,19 @@ guard-build-inputs:
 # No `check-only` (suite without the guard) is offered: a guard-free gate
 # alongside the guarded one is how `make check` silently stops meaning
 # anything the next time someone reaches for the shorter name.
+
+.PHONY: test-fabric
+test-fabric: $(FABRIC_TEST_BIN)
+	@echo "--- fabric multi-process tests ---"
+	@for t in basic barrier8 killpeer stale size; do \
+	  ./$(FABRIC_TEST_BIN) $$t || exit 1; \
+	done
+	@echo "fabric tests PASS"
+
+$(FABRIC_TEST_BIN): tests/test_fabric.c src/fakegpu_fabric.c include/fakegpu_fabric.h
+	@mkdir -p build
+	$(CC) $(CFLAGS) -Iinclude -o $@ tests/test_fabric.c src/fakegpu_fabric.c -lpthread
+
 
 clean:
 	rm -f $(OBJS) $(LIB) src/*.o $(TEST_BIN) $(VEC_BIN) $(RING_BIN)
