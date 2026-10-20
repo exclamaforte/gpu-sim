@@ -1,0 +1,9 @@
+{
+  "bead": "gpu-sim-m3d.3",
+  "verdict": "PASS",
+  "summary": "Link/collective cost model in epic_cluster/link_model.py: datatype sizes, 5 algorithms (ring allreduce/allgather/reducescatter/alltoall, tree bcast), multi-hop paths (min bw, sum latency), shared_group bandwidth division. Returns record with duration_s, algorithm, bottleneck link, per_link_bytes, regime. CLI emits JSON. 8 tests pass.",
+  "gpu_used": false,
+  "cpu_runs": [
+    {"command": "python3 -m pytest tests/test_link_model.py", "result": "8 passed"}
+  ]
+}
