@@ -1,0 +1,33 @@
+{
+  "bead": "gpu-sim-m3d.5",
+  "verdict": "NEGATIVE",
+  "kept": false,
+  "gpu_used": false,
+  "summary": "Fake libcuda driver-API shim (libfakecuda.so) builds and answers cuInit/cuDeviceGetCount/cuDeviceGet/cuDeviceGetAttribute and 60+ other driver calls, but real NCCL cannot complete ncclCommInitRank through it: cudart's initOnceFunc calls cuGetExportTable with two fixed UUIDs and requires a real opaque export table. Static-cudart (pip wheel) and a from-source NCCL v2.32.3-1 built against DYNAMIC cudart (DT_NEEDED libcudart.so.13) both fail identically at that call. Acceptance #3 (no real driver loaded) was never relaxed; no partial PASS claimed.",
+  "nccl_build": {
+    "tag": "v2.32.3-1",
+    "tarball_sha256": "5a0f88526a6f48338a1848199df7868fc5fb929fbd2bbc12e575435e60e3ffc4",
+    "source": "https://github.com/NVIDIA/nccl/archive/refs/tags/v2.32.3-1.tar.gz",
+    "flags": "CUDA_HOME=<cuda-sysroot> CUDARTLIB=cudart NVCC_GENCODE='-gencode=arch=compute_90,code=sm_90' make -j2 src.build",
+    "result": "build/lib/libnccl.so.2.32.3 with DT_NEEDED libcudart.so.13 (dynamic cudart); CPU-only build, no GPU time used",
+    "note": "NCCL's src/Makefile defaults CUDARTLIB=cudart_static; CUDARTLIB=cudart is required for the dynamic path. libcudacxx headers were taken from the pip nvidia/cuda_cccl package via a cccl symlink in the sysroot."
+  },
+  "acceptance": {
+    "1_dlopen_real_nccl_single_rank_init": "FAIL (see output.log probes A and B)",
+    "2_nccl_debug_device_count_pci_ids": "NOT REACHED",
+    "3_no_real_driver_loaded": "HOLDS (shim interposes dlopen for libcuda.so; /proc maps contain only libfakecuda.so)",
+    "4_negative_control_no_shim": "PASS (output.log: without the shim and with CUDA_VISIBLE_DEVICES='' the binary fails to init; with the real GPU visible it succeeds with 1 device)"
+  },
+  "evidence": [
+    "experiments/gpu-sim-m3d.5/output.log",
+    "experiments/gpu-sim-m3d.5/README.md",
+    "experiments/gpu-sim-m3d.5/growth_list.txt",
+    "experiments/gpu-sim-m3d.5/metrics.json"
+  ],
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-m3d.5/run.sh",
+      "result": "probe A FAIL, probe B FAIL, negative controls as expected"
+    }
+  ]
+}

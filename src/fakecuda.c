@@ -87,8 +87,8 @@ CUresult cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTable
         return CUDA_SUCCESS;
     }
     if (ppExportTable) *ppExportTable = NULL;
-    fprintf(stderr, "fakecuda: cuGetExportTable -> 801 (NOT_SUPPORTED)\n");
-    return CUDA_ERROR_NOT_SUPPORTED;
+    fprintf(stderr, "fakecuda: cuGetExportTable -> 500 (NOT_FOUND, dlsym fallback)\n");
+    return CUDA_ERROR_NOT_FOUND;
 }
 
 /* ---- device count / topology -------------------------------------------- */
@@ -529,16 +529,24 @@ CUresult cuOccupancyMaxActiveBlocksPerMultiprocessor(int *numBlocks, CUfunction 
     return CUDA_SUCCESS;
 }
 
+CUresult cudaGetDriverEntryPoint(const char *symbol, void **funcPtr, unsigned long long flags, int *supported);
+CUresult cudaGetDriverEntryPointByVersion(const char *symbol, void **funcPtr, unsigned int cudaVersion, unsigned long long flags, int *supported);
+
 /* ---- cuGetProcAddress ----------------------------------------------------- */
 
 static void *fc_lookup(const char *symbol) {
     if (!symbol) return NULL;
     /* init */
     if (!strcmp(symbol, "cuInit")) return (void *)cuInit;
-    if (!strcmp(symbol, "cudaGetDriverEntryPoint")) return (void *)0;
-    if (!strcmp(symbol, "cudaGetDriverEntryPointByVersion")) return (void *)0;
+    if (!strcmp(symbol, "cudaGetDriverEntryPoint") || !strcmp(symbol, "cudaGetDriverEntryPoint_ptsz") ||
+        !strcmp(symbol, "cudaGetDriverEntryPointFlags"))
+        return (void *)cudaGetDriverEntryPoint;
+    if (!strcmp(symbol, "cudaGetDriverEntryPointByVersion") || !strcmp(symbol, "cudaGetDriverEntryPointByVersion_ptsz"))
+        return (void *)cudaGetDriverEntryPointByVersion;
     if (!strcmp(symbol, "cuGetExportTable")) return (void *)cuGetExportTable;
-    if (!strcmp(symbol, "cuGetProcAddress")) return (void *)cuGetProcAddress;
+    if (!strcmp(symbol, "cuGetProcAddress") || !strcmp(symbol, "cuGetProcAddress_v2") ||
+        !strcmp(symbol, "cuGetProcAddress_ptsz") || !strcmp(symbol, "cuGetProcAddress_v2_ptsz"))
+        return (void *)cuGetProcAddress;
     if (!strcmp(symbol, "cuDriverGetVersion")) return (void *)cuDriverGetVersion;
     if (!strcmp(symbol, "cuDeviceGetCount")) return (void *)cuDeviceGetCount;
     if (!strcmp(symbol, "cuDeviceGet")) return (void *)cuDeviceGet;
