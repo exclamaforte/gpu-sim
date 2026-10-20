@@ -95,9 +95,10 @@ inherited error.
   first for de-risking, because the ABI is now a source-reading task. If the
   plugin fails again, the model route stands alone; if it succeeds, it is the
   oracle.
-- **D2. Real NCCL runs below our `.so`, not above it.** Host the real
-  `libnccl.so.2`; place our code at the two seams. The collective-API fake
-  remains for CI and is not the fidelity path.
+- **D2. Real NCCL is hosted, not reimplemented.** Load the real
+  `libnccl.so.2` and place our code at its two seams (driver API below it,
+  net plugin inside it). The collective-API fake remains for CI and is not the
+  fidelity path.
 - **D3. No kernel module, no root, no real multi-machine.** Device memory is
   host memory in shared segments; links are IPC.
 - **D4. The topology spec is the single source of truth** for device identity,
