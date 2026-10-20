@@ -1,6 +1,6 @@
 {
   "bead": "gpu-sim-m3d.5",
-  "verdict": "NEGATIVE",
+  "verdict": "NO-GO",
   "kept": false,
   "gpu_used": false,
   "summary": "Fake libcuda driver-API shim (libfakecuda.so) builds and answers cuInit/cuDeviceGetCount/cuDeviceGet/cuDeviceGetAttribute and 60+ other driver calls, but real NCCL cannot complete ncclCommInitRank through it: cudart's initOnceFunc calls cuGetExportTable with two fixed UUIDs and requires a real opaque export table. Static-cudart (pip wheel) and a from-source NCCL v2.32.3-1 built against DYNAMIC cudart (DT_NEEDED libcudart.so.13) both fail identically at that call. Acceptance #3 (no real driver loaded) was never relaxed; no partial PASS claimed.",
@@ -29,5 +29,22 @@
       "command": "bash experiments/gpu-sim-m3d.5/run.sh",
       "result": "probe A FAIL, probe B FAIL, negative controls as expected"
     }
-  ]
+  ],
+  "option_a_3alt": {
+    "result": "3-alt-i FAILS at exactly this point",
+    "3-alt-iii": "HOLDS: real handle opened with the real dlopen (dlvsym RTLD_NEXT), interception not recursed (AUDIT real-driver-handle open=OK)",
+    "3-alt-ii": "HOLDS: GPUSIM_REAL_EXPORT_TABLE=0 -> the export-table error returns ('named symbol not found'), so the forwarding is load-bearing",
+    "3-alt-i": "FAILS: after the real handshake, shim audit shows 0 calls for cuDeviceGetAttribute/PCIBusId/Name/Uuid/TotalMem/CtxCreate/MemAlloc*/MemHostRegister/Memcpy*/LaunchKernel -- every device call is served by the REAL driver through the table; NCCL then fails with 'initialization error' (no real device). The export table carries the whole driver vtable, not an isolated handshake.",
+    "evidence": [
+      "experiments/gpu-sim-m3d.5/option_a_3alt.log",
+      "experiments/gpu-sim-m3d.5/README.md"
+    ]
+  },
+  "dynamic_cudart_probe": {
+    "result": "same wall",
+    "detail": "from-source NCCL v2.32.3-1 built with CUDARTLIB=cudart (DT_NEEDED libcudart.so.13, 0 libcudart_static symbols, 72 undefined cuda* symbols) still calls cuGetExportTable and fails identically.",
+    "evidence": [
+      "experiments/gpu-sim-m3d.5/dynamic_cudart_probe.log"
+    ]
+  }
 }
