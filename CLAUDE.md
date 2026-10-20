@@ -46,6 +46,14 @@ Layout: `shim/` (public API decls), `include/fakegpu.h` (internal), `src/`
 
 See `README.md` for env-var config and extension guidance.
 
+### Cluster simulation (direction, 2026-10-20)
+
+The next layer is arbitrary-cluster simulation: N declared devices over a
+declared fabric (NVLink/PCIe/IB/TCP), running unmodified multi-GPU workloads
+on one box. Two fabric routes (topology model + real-NCCL net plugin), with
+real `libnccl` hosted below two interposition seams (driver API, ncclNet).
+Read `docs/cluster-sim.md` first; work lives under epic `gpu-sim-m3d`.
+
 ## Conventions & Patterns
 
 - New symbols: declare in `shim/`, stub in `src/fakegpu_cuda.c` or
