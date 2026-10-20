@@ -1,6 +1,6 @@
 {
   "bead": "gpu-sim-m3d.8",
-  "ts_job_id": "local",
+  "ts_job_id": "20261020t233703-a52e2595",
   "scenarios": {
     "1_normal": {
       "verdict": "PASS",
@@ -61,24 +61,78 @@
     "verdict": {
       "2a_trace_complete": true,
       "2c_bytes": true,
-      "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+      "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
     },
+    "per_op_binding": [
+      {
+        "sender_rank": 0,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "c742551a12510383",
+          "f5de6e4e3f648383"
+        ],
+        "verdict": "two real transfers"
+      },
+      {
+        "sender_rank": 1,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "3356f76bc035a383",
+          "c742551a12510383"
+        ],
+        "verdict": "two real transfers"
+      }
+    ],
+    "payload_digests": {
+      "0:0": [
+        "f5de6e4e3f648383",
+        "c742551a12510383"
+      ],
+      "1:0": [
+        "3356f76bc035a383",
+        "c742551a12510383"
+      ]
+    },
+    "binding_verdict": [
+      {
+        "sender_rank": 0,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "c742551a12510383",
+          "f5de6e4e3f648383"
+        ],
+        "verdict": "two real transfers"
+      },
+      {
+        "sender_rank": 1,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "3356f76bc035a383",
+          "c742551a12510383"
+        ],
+        "verdict": "two real transfers"
+      }
+    ],
     "phase_shape": {
       "channels": {
-        "(1, '0')": [
+        "(0, '0')": [
           4096,
           4096
         ],
-        "(0, '0')": [
+        "(1, '0')": [
           4096,
           4096
         ]
       },
       "full_payload_channel_keys": [
-        "(1, '0')",
-        "(0, '0')"
+        "(0, '0')",
+        "(1, '0')"
       ],
-      "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+      "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
     },
     "bytes": {
       "observed_per_rank": 8192.0,
@@ -102,7 +156,7 @@
     "source:experiments/gpu-sim-m3d.8/allreduce_test.c": "430444ca31b756bf4989975041d2af0abf3da399f928ecd1ff38f8d22360685f",
     "source:experiments/gpu-sim-m3d.8/allreduce_test_large.c": "4ba9b75dcab1a6db2d7bc0a190a20a6f32ffc8e59b11c066093c4a8e5c1d4d35",
     "output:forcenet_trace.log": "ab839fd2845a72da862a3a923c8c1e5d341ffa3aebe944db7fc36796de75f883",
-    "output:trace_normal.log": "81e2d7cdf848e34bc3fedda6b7f786031392b4553beaa1c83eb222b8c7708537"
+    "output:trace_normal.log": "564508ecb30f859f4cb6423b5b6b24436b8eba733674830f26b123a387ca0c62"
   },
   "inputs": {
     "rank0": {

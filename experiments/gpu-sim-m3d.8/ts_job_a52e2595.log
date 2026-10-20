@@ -4,14 +4,14 @@ normal aggregate: exit0=0 exit1=0
 {
   "2a_trace_complete": true,
   "2c_bytes": true,
-  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
 }
 bytes: {"observed_per_rank": 8192.0, "observed_total": 16384, "model_per_rank": 4096.0, "model_total": 8192, "ratio_observed_over_model": 2.0}
 --- item 9(b) negative controls for the ack guard ---
-  ack absent -> non-zero (OK)
-  wrong ratio -> non-zero (OK)
+  ack absent -> non-zero (OK); red case committed as red_noack.log
+  wrong ratio -> non-zero (OK); red case committed as red_wrongack.log
 === SCENARIO 2: kill -9 rank 0's OWN pid AFTER the data path is live ===
-data path live: 1; wrapper=3218889 rank=3218893
+data path live: 1; wrapper=3814893 rank=3814896
 kill: rank0 exit=137 survivor exit=124 after 29s; mechanism=harness-timeout (weakest form; explicitly NOT an NCCL error)
 --- 3b: no-NCCL peer-death test ---
 pending transfer rc=4 (EPEERDEAD), mapped to NCCL code 2
@@ -23,7 +23,7 @@ oversized isend returned 4 (expect 4)
 {
   "2a_trace_complete": true,
   "2c_bytes": true,
-  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
 }
 === RESULT ===
 SCENARIO MATRIX: PASS

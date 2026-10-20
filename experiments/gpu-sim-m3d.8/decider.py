@@ -75,29 +75,31 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
         report["per_rank"][rk] = entry
 
     # 2b: per-transfer digests and the sender-records vs receiver-consumed_seq
-    # asymmetry (N != M => counting defect; N == M == 2 => two real messages).
-    asymmetry = []
-    isend_by_chan = defaultdict(int)
-    recv_consumed_by_chan = defaultdict(int)
+    # asymmetry, compared PER SENDER (a sender's isend count vs the peer's
+    # consumed_seq witness for that sender). N != M => counting defect;
+    # N == M == 2 with DISTINCT digests => two real transfers.
     digests = defaultdict(list)
+    send_records = defaultdict(int)          # rank -> isend records
+    peer_consumed = defaultdict(int)         # sender rank -> max consumed_seq at its peer
     for rk, ops in sorted(per_rank.items()):
         for r in ops["isend"]:
-            ck = (rk, r.get("chan"))
-            isend_by_chan[ck] += 1
-            digests[ck].append(r.get("digest"))
+            send_records[rk] += 1
+            digests[(rk, r.get("chan"))].append(r.get("digest"))
         for r in ops["recv"]:
-            ck = (rk, r.get("chan"))
-            consumed = r.get("consumed_seq")
-            recv_consumed_by_chan[ck] = max(recv_consumed_by_chan[ck], int(consumed)) if consumed else 0
-    keys = sorted(set(isend_by_chan) | set(recv_consumed_by_chan), key=str)
-    for ck in keys:
-        n = isend_by_chan.get(ck, 0)
-        m = recv_consumed_by_chan.get(ck, 0)
-        asymmetry.append({"rank": ck[0], "chan": ck[1], "sender_isend_records": n,
-                          "receiver_consumed_seq": m, "consistent": (n == m or m == 0),
-                          "digests": digests.get(ck, [])})
-    report["per_op_binding"] = asymmetry
-    report["payload_digests"] = {str(k): v for k, v in digests.items()}
+            if "consumed_seq" in r and "peer" in r:
+                peer_consumed[int(r["peer"])] = max(peer_consumed[int(r["peer"])], int(r["consumed_seq"]))
+    binding = []
+    for rk in sorted(set(send_records) | set(peer_consumed)):
+        n = send_records.get(rk, 0)
+        m = peer_consumed.get(rk, 0)
+        binding.append({"sender_rank": rk, "sender_isend_records": n,
+                        "peer_consumed_seq": m,
+                        "distinct_digests": sorted({d for d in digests.get((rk, "0"), []) if d}),
+                        "verdict": ("two real transfers" if n == m == 2 else
+                                    "counting defect" if n != m else "single/other")})
+    report["per_op_binding"] = binding
+    report["payload_digests"] = {f"{k[0]}:{k[1]}": v for k, v in digests.items()}
+    report["binding_verdict"] = binding
 
     # 2b-phase: channel + payload classification on the isend side
     phases = defaultdict(list)

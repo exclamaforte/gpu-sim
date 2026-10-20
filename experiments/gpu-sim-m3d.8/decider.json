@@ -38,24 +38,78 @@
   "verdict": {
     "2a_trace_complete": true,
     "2c_bytes": true,
-    "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+    "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
   },
+  "per_op_binding": [
+    {
+      "sender_rank": 0,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "c742551a12510383",
+        "f5de6e4e3f648383"
+      ],
+      "verdict": "two real transfers"
+    },
+    {
+      "sender_rank": 1,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "3356f76bc035a383",
+        "c742551a12510383"
+      ],
+      "verdict": "two real transfers"
+    }
+  ],
+  "payload_digests": {
+    "0:0": [
+      "f5de6e4e3f648383",
+      "c742551a12510383"
+    ],
+    "1:0": [
+      "3356f76bc035a383",
+      "c742551a12510383"
+    ]
+  },
+  "binding_verdict": [
+    {
+      "sender_rank": 0,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "c742551a12510383",
+        "f5de6e4e3f648383"
+      ],
+      "verdict": "two real transfers"
+    },
+    {
+      "sender_rank": 1,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "3356f76bc035a383",
+        "c742551a12510383"
+      ],
+      "verdict": "two real transfers"
+    }
+  ],
   "phase_shape": {
     "channels": {
-      "(1, '0')": [
+      "(0, '0')": [
         4096,
         4096
       ],
-      "(0, '0')": [
+      "(1, '0')": [
         4096,
         4096
       ]
     },
     "full_payload_channel_keys": [
-      "(1, '0')",
-      "(0, '0')"
+      "(0, '0')",
+      "(1, '0')"
     ],
-    "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+    "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
   },
   "bytes": {
     "observed_per_rank": 8192.0,

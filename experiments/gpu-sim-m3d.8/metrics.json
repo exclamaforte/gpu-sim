@@ -5,16 +5,15 @@
   "summary": "Net plugin over shm fabric. ts job 20261020t211800-5d6c7cec ran the asserted matrix and passed. Scenario 1: 2-rank allreduce, 4 channels via NET/sim/0, sum=3.0 both ranks; trace is rank-tagged and complete (4 connect + 4 accept + 2 isend + 2 irecv per rank). Scenario 2: rank0's OWN pid killed while inside the collective (after 'allreduce enqueued' + rank0 isend in flight); killed rank's log has NO 'allreduce OK' and it was SIGKILLed; survivor never completed ('allreduce enqueued' only) and exited via the declared 30s hard-timeout cap (rc 124). Scenario 3: oversized isend -> ncclInvalidArgument. Script exits non-zero on any assertion miss.",
   "ts_jobs": [
     {
-      "id": "20261020t232735-6073346d",
+      "id": "20261020t233703-a52e2595",
       "result": "PASS (SCENARIO MATRIX: PASS)",
       "evidence": [
-        "normal aggregate: exit0=0 exit1=0",
-        "decider 2a_trace_complete=true",
-        "decider 2c_bytes=true (ratio 2.0 acknowledged in model_mismatch_ack.json)",
-        "kill: rank0 exit=137 survivor exit=124 after 29s; mechanism=harness-timeout (explicitly NOT an NCCL error)",
-        "3b peer-death mapping PASS (EPEERDEAD -> ncclSystemError)",
-        "oversized exit=0",
-        "item 9(b): ack absent -> non-zero; wrong ratio -> non-zero"
+        "2a_trace_complete=true",
+        "2c_bytes=true",
+        "binding: both senders 2 isend records vs peer consumed_seq 2, distinct digests -> two real transfers",
+        "kill: harness-timeout (explicitly NOT an NCCL error)",
+        "3b peer-death mapping PASS",
+        "item 9(b) red twice (red_noack.log, red_wrongack.log)"
       ]
     }
   ],
@@ -48,9 +47,29 @@
   "decider": {
     "2a_trace_complete": true,
     "2c_bytes": true,
-    "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)",
-    "measured_on": "ts 20261020t232735-6073346d (trace_normal.log)",
-    "note": "verdict is the pre-registered 2b-phase reading: two full-payload transfers on one channel id => the 2S branch; the m3d.3 n=2 phase assumption is contradicted and gpu-sim-8sy owns the correction."
+    "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)",
+    "binding": [
+      {
+        "sender_rank": 0,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "c742551a12510383",
+          "f5de6e4e3f648383"
+        ],
+        "verdict": "two real transfers"
+      },
+      {
+        "sender_rank": 1,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "3356f76bc035a383",
+          "c742551a12510383"
+        ],
+        "verdict": "two real transfers"
+      }
+    ]
   },
   "kill_mechanism": "harness-timeout (weakest form; explicitly NOT an NCCL error)"
 }
