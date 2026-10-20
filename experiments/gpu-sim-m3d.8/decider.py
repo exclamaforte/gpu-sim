@@ -74,6 +74,31 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
                 ok_2a = False
         report["per_rank"][rk] = entry
 
+    # 2b: per-transfer digests and the sender-records vs receiver-consumed_seq
+    # asymmetry (N != M => counting defect; N == M == 2 => two real messages).
+    asymmetry = []
+    isend_by_chan = defaultdict(int)
+    recv_consumed_by_chan = defaultdict(int)
+    digests = defaultdict(list)
+    for rk, ops in sorted(per_rank.items()):
+        for r in ops["isend"]:
+            ck = (rk, r.get("chan"))
+            isend_by_chan[ck] += 1
+            digests[ck].append(r.get("digest"))
+        for r in ops["recv"]:
+            ck = (rk, r.get("chan"))
+            consumed = r.get("consumed_seq")
+            recv_consumed_by_chan[ck] = max(recv_consumed_by_chan[ck], int(consumed)) if consumed else 0
+    keys = sorted(set(isend_by_chan) | set(recv_consumed_by_chan), key=str)
+    for ck in keys:
+        n = isend_by_chan.get(ck, 0)
+        m = recv_consumed_by_chan.get(ck, 0)
+        asymmetry.append({"rank": ck[0], "chan": ck[1], "sender_isend_records": n,
+                          "receiver_consumed_seq": m, "consistent": (n == m or m == 0),
+                          "digests": digests.get(ck, [])})
+    report["per_op_binding"] = asymmetry
+    report["payload_digests"] = {str(k): v for k, v in digests.items()}
+
     # 2b-phase: channel + payload classification on the isend side
     phases = defaultdict(list)
     for rk, ops in per_rank.items():
@@ -83,8 +108,15 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
             phases[(rk, r.get("chan"))].append(int(r["bytes"]))
     full_payload_chans = [k for k, v in phases.items() if all(b == payload_bytes for b in v)]
     shape = None
-    if any(len(v) >= 2 for v in phases.values()):
-        shape = "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+    dup = False
+    for ck, ds in digests.items():
+        seen = [d for d in ds if d]
+        if len(seen) != len(set(seen)):
+            dup = True
+    if dup:
+        shape = "duplicate reporting: identical payload digest repeated on one channel id"
+    elif any(len(v) >= 2 for v in phases.values()):
+        shape = "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
     elif len(phases) > 1 and all(len(v) == 1 for v in phases.values()):
         shape = "one phase SPLIT ACROSS channel ids (distinct finding, not 2S)"
     elif sum(len(v) for v in phases.values()) == 1:

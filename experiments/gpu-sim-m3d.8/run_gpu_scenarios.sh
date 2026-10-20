@@ -49,17 +49,21 @@ python3 "$HERE/decider.py" "$TRACE1" "$OUT/model_mismatch_ack.json" "$OUT/decide
 grep -q '"2a_trace_complete": true' "$OUT/decider.json" || fail "2a trace completeness"
 grep -q '"2c_bytes": true' "$OUT/decider.json" || fail "2c byte accounting"
 echo "--- item 9(b) negative controls for the ack guard ---"
-python3 "$HERE/decider.py" "$TRACE1" "$OUT/does_not_exist.json" /tmp/dec_noack.json "$S" 2 "$COUNT" float32 >/dev/null 2>&1 \
-  && fail "decider passed with the ack file ABSENT (guard not load-bearing)"
-echo "  ack absent -> non-zero (OK)"
+if python3 "$HERE/decider.py" "$TRACE1" "$OUT/does_not_exist.json" "$OUT/dec_red_noack.json" "$S" 2 "$COUNT" float32 \
+     > "$OUT/red_noack.log" 2>&1; then
+  fail "decider passed with the ack file ABSENT (guard not load-bearing)"
+fi
+echo "  ack absent -> non-zero (OK); red case committed as red_noack.log"
 python3 - "$OUT/model_mismatch_ack.json" <<'PY'
 import json,sys
 d=json.load(open(sys.argv[1])); d["ratio_observed_over_model"]=1.0
 json.dump(d, open("/tmp/ack_wrong.json","w"))
 PY
-python3 "$HERE/decider.py" "$TRACE1" /tmp/ack_wrong.json /tmp/dec_wrongack.json "$S" 2 "$COUNT" float32 >/dev/null 2>&1 \
-  && fail "decider passed with a WRONG ratio in the ack file"
-echo "  wrong ratio -> non-zero (OK)"
+if python3 "$HERE/decider.py" "$TRACE1" /tmp/ack_wrong.json "$OUT/dec_red_wrongack.json" "$S" 2 "$COUNT" float32 \
+     > "$OUT/red_wrongack.log" 2>&1; then
+  fail "decider passed with a WRONG ratio in the ack file"
+fi
+echo "  wrong ratio -> non-zero (OK); red case committed as red_wrongack.log"
 
 echo "=== SCENARIO 2: kill -9 rank 0's OWN pid AFTER the data path is live ==="
 NCCLINC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"

@@ -13,6 +13,15 @@ static fg_fab_t *FAB = NULL;
    a per-connection channel id. Counters are reported in the structured trace
    and in metrics.json. */
 static unsigned long CNT_ISEND = 0, CNT_IRECV = 0, CNT_RECV_DONE = 0;
+
+/* FNV-1a 64 of the payload: distinguishes genuine distinct transfers from one
+   transfer recorded twice (same digest on the same channel = duplicate row). */
+static unsigned long long fg_digest(const void *p, size_t n) {
+    const unsigned char *b = (const unsigned char *)p;
+    unsigned long long h = 1469598103934665603ULL;
+    for (size_t i = 0; i < n; i++) { h ^= b[i]; h *= 1099511628211ULL; }
+    return h;
+}
 static int CHAN_SEQ = 0;
 static int MY_RANK = 0;
 static int NRANKS = 1;
@@ -185,8 +194,8 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     CNT_ISEND++;
     char buf[192];
     snprintf(buf, sizeof(buf),
-             "isend peer=%d chan=%d slot=%d seq=%u bytes=%zu tag=%d dtype=%s cnt_isend=%lu",
-             sc->peer, sc->chan, slot, seq, size, tag, dt, CNT_ISEND);
+             "isend peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx tag=%d dtype=%s cnt_isend=%lu",
+             sc->peer, sc->chan, slot, seq, size, fg_digest(data, size), tag, dt, CNT_ISEND);
     trace("v12.isend", buf);
     return ncclSuccess;
 }
@@ -241,8 +250,8 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
         CNT_RECV_DONE++;
         char buf[192];
         snprintf(buf, sizeof(buf),
-                 "recv-done peer=%d chan=%d slot=%d seq=%u bytes=%zu consumed_seq=%u cnt_recv_done=%lu",
-                 rq->peer, rq->chan_of_req, slot, seq, got, consumed, CNT_RECV_DONE);
+                 "recv-done peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx consumed_seq=%u cnt_recv_done=%lu",
+                 rq->peer, rq->chan_of_req, slot, seq, got, fg_digest(rq->data, got), consumed, CNT_RECV_DONE);
         trace("v12.recv", buf);
         return ncclSuccess;
     }

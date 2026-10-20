@@ -65,18 +65,18 @@
     },
     "phase_shape": {
       "channels": {
-        "(0, '0')": [
+        "(1, '0')": [
           4096,
           4096
         ],
-        "(1, '0')": [
+        "(0, '0')": [
           4096,
           4096
         ]
       },
       "full_payload_channel_keys": [
-        "(0, '0')",
-        "(1, '0')"
+        "(1, '0')",
+        "(0, '0')"
       ],
       "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
     },
@@ -102,7 +102,7 @@
     "source:experiments/gpu-sim-m3d.8/allreduce_test.c": "430444ca31b756bf4989975041d2af0abf3da399f928ecd1ff38f8d22360685f",
     "source:experiments/gpu-sim-m3d.8/allreduce_test_large.c": "4ba9b75dcab1a6db2d7bc0a190a20a6f32ffc8e59b11c066093c4a8e5c1d4d35",
     "output:forcenet_trace.log": "ab839fd2845a72da862a3a923c8c1e5d341ffa3aebe944db7fc36796de75f883",
-    "output:trace_normal.log": "850d7e06956ca3a88a9c9d29a688287333f449294f228c0aac5456eadc7cab8e"
+    "output:trace_normal.log": "81e2d7cdf848e34bc3fedda6b7f786031392b4553beaa1c83eb222b8c7708537"
   },
   "inputs": {
     "rank0": {
