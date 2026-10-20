@@ -27,7 +27,11 @@ typedef struct fg_fab fg_fab_t;
 /* Attach to (or create) the named segment for run_id.
  * epoch: caller's epoch; a pre-existing segment with a different epoch is
  *        rejected with FG_FAB_ESTALE instead of being reused.
- * timeout_ns: deadline for waits inside this handle (0 -> 1s default).
+ * timeout_ns: deadline for message/barrier waits inside this handle
+ *             (0 -> 1s default). The attach wait itself uses a separate,
+ *             longer deadline (GPUSIM_ATTACH_TIMEOUT_NS, default 5s, never
+ *             below timeout_ns) because the creator must materialize the
+ *             whole segment before state==1 becomes visible.
  * Returns NULL on failure and sets *err. */
 fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks,
                         uint64_t timeout_ns, int *err);

@@ -14,7 +14,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#define FG_FAB_DEFAULT_TIMEOUT_NS (1000000000ULL) /* 1s */
+#define FG_FAB_DEFAULT_TIMEOUT_NS (1000000000ULL) /* 1s message wait */
+#define FG_FAB_DEFAULT_ATTACH_TIMEOUT_NS (5000000000ULL) /* 5s attach wait */
 
 typedef struct {
     int32_t pid;
@@ -163,7 +164,19 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
         f->base = base;
         f->total_size = tsz;
         f->hdr = base;
-        uint64_t deadline = now_ns() + timeout_ns;
+        /* The attach wait is deliberately NOT the message deadline: the
+           creator must ftruncate+mmap+memset the whole segment before it
+           publishes state==1, which can exceed a small message timeout under
+           load. GPUSIM_ATTACH_TIMEOUT_NS overrides; default is 5s, and we
+           never use a value below the caller's message timeout. */
+        uint64_t attach_to = FG_FAB_DEFAULT_ATTACH_TIMEOUT_NS;
+        const char *ate = getenv("GPUSIM_ATTACH_TIMEOUT_NS");
+        if (ate && *ate) {
+            unsigned long long v = strtoull(ate, NULL, 10);
+            if (v > 0) attach_to = v;
+        }
+        if (attach_to < timeout_ns) attach_to = timeout_ns;
+        uint64_t deadline = now_ns() + attach_to;
         while (atomic_load(&f->hdr->state) != 1 || f->hdr->magic != FG_FAB_MAGIC) {
             if (now_ns() > deadline) {
                 munmap(base, tsz);

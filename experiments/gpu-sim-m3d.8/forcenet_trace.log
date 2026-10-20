@@ -1,9 +1,16 @@
-v12.init init commId=14161500467491142921 rank=1 nranks=2
+v12.init init commId=13048451494093951740 rank=0 nranks=2
+v12.devices
+v12.getProperties
+v12.init init commId=13048451494093951740 rank=1 nranks=2
 v12.devices
 v12.getProperties
 v12.getProperties
 v12.getProperties
 v12.devices
+v12.getProperties
+v12.getProperties
+v12.devices
+v12.devices
 v12.devices
 v12.getProperties
 v12.listen
@@ -17,7 +24,20 @@ v12.getProperties
 v12.getProperties
 v12.getProperties
 v12.getProperties
-v12.connect connect peer=-1242824702
+v12.getProperties
+v12.listen
+v12.getProperties
+v12.listen
+v12.getProperties
+v12.listen
+v12.getProperties
+v12.listen
+v12.getProperties
+v12.getProperties
+v12.getProperties
+v12.getProperties
+v12.connect connect peer=0
+v12.connect connect peer=1
 v12.regMr
 v12.regMr
 v12.regMr
@@ -26,7 +46,12 @@ v12.closeListen
 v12.regMr
 v12.regMr
 v12.regMr
-v12.connect connect peer=-104464382
+v12.accept
+v12.closeListen
+v12.regMr
+v12.regMr
+v12.regMr
+v12.connect connect peer=0
 v12.regMr
 v12.regMr
 v12.regMr
@@ -35,7 +60,11 @@ v12.closeListen
 v12.regMr
 v12.regMr
 v12.regMr
-v12.connect connect peer=2139160578
+v12.connect connect peer=0
+v12.regMr
+v12.regMr
+v12.regMr
+v12.connect connect peer=1
 v12.regMr
 v12.regMr
 v12.regMr
@@ -44,7 +73,16 @@ v12.closeListen
 v12.regMr
 v12.regMr
 v12.regMr
-v12.connect connect peer=899284994
+v12.accept
+v12.closeListen
+v12.regMr
+v12.regMr
+v12.regMr
+v12.connect connect peer=0
+v12.regMr
+v12.regMr
+v12.regMr
+v12.connect connect peer=1
 v12.regMr
 v12.regMr
 v12.regMr
@@ -53,3 +91,98 @@ v12.closeListen
 v12.regMr
 v12.regMr
 v12.regMr
+v12.accept
+v12.closeListen
+v12.regMr
+v12.regMr
+v12.regMr
+v12.regMr
+v12.regMr
+v12.regMr
+v12.connect connect peer=1
+v12.regMr
+v12.regMr
+v12.regMr
+v12.accept
+v12.closeListen
+v12.regMr
+v12.regMr
+v12.regMr
+v12.irecv irecv peer=1 size=65536 n=1 tags=1 dtype=float32
+v12.irecv irecv peer=1 size=65536 n=1 tags=1 dtype=float32
+v12.isend isend peer=1 size=4096 tag=0 dtype=float32
+v12.irecv irecv peer=0 size=65536 n=1 tags=0 dtype=float32
+v12.irecv irecv peer=0 size=65536 n=1 tags=0 dtype=float32
+v12.recv done
+v12.isend isend peer=0 size=4096 tag=1 dtype=float32
+v12.recv done
+v12.isend isend peer=1 size=4096 tag=0 dtype=float32
+v12.recv done
+v12.isend isend peer=0 size=4096 tag=1 dtype=float32
+v12.recv done
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeRecv
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.deregMr
+v12.deregMr
+v12.deregMr
+v12.closeSend
+v12.closeSend
+v12.finalize
+v12.finalize

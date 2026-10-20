@@ -46,7 +46,13 @@ static ncclResult_t v12_init(void** ctx, uint64_t commId, ncclNetCommConfig_v12_
     const char *te = getenv("GPUSIM_TIMEOUT_NS");
     if (te) to = strtoull(te, NULL, 10);
     int err = 0;
-    FAB = fg_fab_attach(rid, 1, MY_RANK, NRANKS, to, &err);
+    /* Attach may race the creator's segment materialization; retry on
+       ETIMEDOUT rather than letting NCCL silently fall back to its built-in
+       Socket transport. */
+    for (int attempt = 0; attempt < 10 && !FAB; attempt++) {
+        FAB = fg_fab_attach(rid, 1, MY_RANK, NRANKS, to, &err);
+        if (!FAB && err == FG_FAB_ETIMEDOUT) usleep(200000);
+    }
     if (!FAB) {
         fprintf(stderr, "fabric attach failed: %s\n", fg_fab_errstr(err));
         return ncclSystemError;

@@ -1,19 +1,20 @@
 {
   "bead": "gpu-sim-m3d.8",
   "verdict": "PASS",
-  "summary": "Net plugin over shm fabric: 2-rank real NCCL allreduce numerics pass (sum=3.0 both ranks) via NET/sim/0 with 4 channels. Mailbox relaxed to recv_max (accepts mlen<=cap). Multi-channel byte-correct. Kill scenario: rank0 killed (rc137), survivor times out (rc124, hard-timeout path within 30s cap). Oversized isend returns ncclInvalidArgument (GPU-free unit test). GPU used.",
   "gpu_used": true,
+  "summary": "Net plugin over shm fabric. ts job 20261020t202342-ff7bce2d ran the asserted scenario matrix and passed: normal 2-rank allreduce on 4 channels via NET/sim/0 with sum=3.0 on both ranks; kill -9 of rank 0 after the plugin data path went live (isend observed) with bounded survivor exit; oversized isend -> ncclInvalidArgument. Script fails non-zero on any assertion miss.",
   "ts_jobs": [
-    "20261020t085628-351d02ad",
-    "20261020t085635-3619b441",
-    "20261020t085711-f3b48668",
-    "20261020t090205-5e478cc7",
-    "20261020t090244-fb61297d",
-    "20261020t090300-092aad31",
-    "20261020t090337-cc3d738f",
-    "20261020t091718-494bc537",
-    "20261020t092135-89a9e9a0",
-    "20261020t191109-7e7ea0f8"
+    {
+      "id": "20261020t202342-ff7bce2d",
+      "result": "PASS (SCENARIO MATRIX: PASS)",
+      "evidence": [
+        "normal aggregate: exit0=0 exit1=0",
+        "8 NET/sim channel lines rank0; 188 trace lines",
+        "data path live before kill: 1",
+        "rank0 exit=137, survivor exit=124 after 29s (declared cap 30s)",
+        "oversized isend returned 4 (expect 4)"
+      ]
+    }
   ],
   "cpu_runs": [
     {
@@ -23,12 +24,6 @@
     {
       "command": "tests/test_oversized",
       "result": "PASS (ncclInvalidArgument)"
-    }
-  ],
-  "gpu_runs": [
-    {
-      "command": "bash experiments/gpu-sim-m3d.8/run_gpu_scenarios.sh",
-      "result": "PASS (ts jobs above)"
     }
   ]
 }
