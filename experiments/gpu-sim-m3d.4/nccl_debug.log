@@ -1,0 +1,116 @@
+=== correct plugin run 2026-10-19T22:08:37-07:00 ===
+gabe:1005345:1005345 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+gabe:1005345:1005364 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
+gabe:1005345:1005345 [0] NCCL INFO cudaDriverVersion 13040
+gabe:1005345:1005345 [0] NCCL INFO NCCL version 2.32.3+cuda12.9
+gabe:1005345:1005345 [0] NCCL INFO NCCL git version unknown unknown
+gabe:1005345:1005345 [0] NCCL INFO NCCL_NET_PLUGIN set by environment to /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.4/experiments/gpu-sim-m3d.4/build/libncclNetSim.so
+gabe:1005345:1005345 [0] NCCL INFO NET/Plugin: Loaded net plugin sim (v12)
+gabe:1005345:1005345 [0] NCCL INFO Successfully loaded external network plugin /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.4/experiments/gpu-sim-m3d.4/build/libncclNetSim.so
+gabe:1005345:1005345 [0] NCCL INFO Initialized NET plugin sim
+gabe:1005345:1005345 [0] NCCL INFO Assigned NET plugin sim to comm
+gabe:1005345:1005345 [0] NCCL INFO RMA/Plugin: Could not find: libnccl-rma.so
+gabe:1005345:1005345 [0] NCCL INFO Could not open libibverbs.so
+gabe:1005345:1005345 [0] NCCL INFO Could not open libibverbs.so.1
+gabe:1005345:1005345 [0] NCCL INFO transport/net_ib/gin.cc:91 (ncclGinIbInitType) -> 3
+gabe:1005345:1005345 [0] NCCL INFO RMA/Plugin: Failed to initialize plugin 
+
+[2026-10-19 22:08:38] gabe:1005345:1005345 [0] transport/rma_socket.cc:32 (ncclRmaSocketProxyInit) NCCL WARN RMA/Socket : rma_socket requires GDRCopy; and GDR Copy is not available
+gabe:1005345:1005345 [0] NCCL INFO RMA/Plugin: Failed to initialize plugin 
+gabe:1005345:1005345 [0] NCCL INFO RMA/Plugin: Failed to initialize any plugin
+gabe:1005345:1005345 [0] NCCL INFO GIN/Plugin: Could not find: libnccl-gin.so
+gabe:1005345:1005345 [0] NCCL INFO GIN/Plugin: Failed to initialize any GIN plugin
+gabe:1005345:1005345 [0] NCCL INFO Using network sim
+gabe:1005345:1005345 [0] NCCL INFO Loaded NVML from libnvidia-ml.so.1
+gabe:1005345:1005345 [0] NCCL INFO [Rank 0] ncclCommInitRank comm 0x556a5bb97f70 rank 0 nranks 1 cudaDev 0 nvmlDev 0 busId 1000 commId 0xc6202d086f65831b - Init START
+gabe:1005345:1005345 [0] NCCL INFO RAS client listening socket at ::1<28028>
+gabe:1005345:1005345 [0] NCCL INFO Topology detection: network path (name = sim)  is not a PCI device (). Attaching to first CPU
+gabe:1005345:1005345 [0] NCCL INFO NET/sim : GPU Direct RDMA Disabled for HCA 0 'sim'
+gabe:1005345:1005345 [0] NCCL INFO ncclTopoGetCpuAffinity: Affinity for GPU 0 is empty, ignoring. (GPU affinity =  ; CPU affinity = 0-31).
+gabe:1005345:1005345 [0] NCCL INFO Rank 0: 1 Net devices
+gabe:1005345:1005345 [0] NCCL INFO Rank 0: 0 CollNet devices
+gabe:1005345:1005345 [0] NCCL INFO Local Net device counts across ranks: min 1 max 1
+gabe:1005345:1005345 [0] NCCL INFO Local CollNet device counts across ranks: min 0 max 0
+gabe:1005345:1005345 [0] NCCL INFO comm 0x556a5bb97f70 rank 0 nRanks 1 nNodes 1 localRanks 1 localRank 0 MNNVL 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 00/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 01/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 02/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 03/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 04/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 05/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 06/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 07/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 08/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 09/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 10/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 11/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 12/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 13/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 14/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 15/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 16/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 17/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 18/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 19/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 20/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 21/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 22/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 23/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 24/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 25/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 26/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 27/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 28/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 29/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 30/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 31/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 32/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 33/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 34/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 35/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 36/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 37/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 38/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 39/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 40/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 41/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 42/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 43/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 44/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 45/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 46/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 47/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 48/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 49/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 50/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 51/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 52/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 53/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 54/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 55/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 56/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 57/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 58/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 59/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 60/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 61/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 62/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Channel 63/64 : 0
+gabe:1005345:1005345 [0] NCCL INFO Trees [0] -1/-1/-1->0->-1 [1] -1/-1/-1->0->-1 [2] -1/-1/-1->0->-1 [3] -1/-1/-1->0->-1 [4] -1/-1/-1->0->-1 [5] -1/-1/-1->0->-1 [6] -1/-1/-1->0->-1 [7] -1/-1/-1->0->-1 [8] -1/-1/-1->0->-1 [9] -1/-1/-1->0->-1 [10] -1/-1/-1->0->-1 [11] -1/-1/-1->0->-1 [12] -1/-1/-1->0->-1 [13] -1/-1/-1->0->-1 [14] -1/-1/-1->0->-1 [15] -1/-1/-1->0->-1 [16] -1/-1/-1->0->-1 [17] -1/-1/-1->0->-1 [18] -1/-1/-1->0->-1 [19] -1/-1/-1->0->-1 [20] -1/-1/-1->0->-1 [21] -1/-1/-1->0->-1 [22] -1/-1/-1->0->-1 [23] -1/-1/-1->0->-1 [24] -1/-1/-1->0->-1 [25] -1/-1/-1->0->-1 [26] -1/-1/-1->0->-1 [27] -1/-1/-1->0->-1 [28] -1/-1/-1->0->-1 [29] -1/-1/-1->0->-1 [30] -1/-1/-1->0->-1 [31] -1/-1/-1->0->-1 [32] -1/-1/-1->0->-1 [33] -1/-1/-1->0->-1 [34] -1/-1/-1->0->-1 [35] -1/-1/-1->0->-1 [36] -1/-1/-1->0->-1 [37] -1/-1/-1->0->-1 [38] -1/-1/-1->0->-1 [39] -1/-1/-1->0->-1 [40] -1/-1/-1->0->-1 [41] -1/-1/-1->0->-1 [42] -1/-1/-1->0->-1 [43] -1/-1/-1->0->-1 [44] -1/-1/-1->0->-1 [45] -1/-1/-1->0->-1 [46] -1/-1/-1->0->-1 [47] -1/-1/-1->0->-1 [48] -1/-1/-1->0->-1 [4
+gabe:1005345:1005345 [0] NCCL INFO P2P Chunksize set to 524288
+gabe:1005345:1005345 [0] NCCL INFO PROFILER/Plugin: Could not find: libnccl-profiler.so
+gabe:1005345:1005345 [0] NCCL INFO Check P2P Type isAllDirectP2p 1 directMode 0 isAllCudaP2p 1
+gabe:1005345:1005785 [0] NCCL INFO [Proxy Service] Device 0 CPU core 19
+gabe:1005345:1005786 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 0
+gabe:1005345:1005785 [0] NCCL INFO proxy listening socket at 192.168.0.180<37119>
+gabe:1005345:1005345 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so
+gabe:1005345:1005345 [0] NCCL INFO threadThresholds 8/8/64 | 8/8/64 | 512 | 512
+gabe:1005345:1005345 [0] NCCL INFO 64 coll channels, 64 collnet channels, 0 nvls channels, 64 p2p channels, 64 p2p channels per peer
+gabe:1005345:1005345 [0] NCCL INFO symmetricSupport 1, cuMemEnable 1, globalGinSupport 0, cuMemGdrSupport 0, contiguousRanksPerHost 1, crossNicSupport 1
+gabe:1005345:1005345 [0] NCCL INFO CC Off, workFifoBytes 1048576
+gabe:1005345:1005345 [0] NCCL INFO ncclCommInitRank comm 0x556a5bb97f70 rank 0 nranks 1 cudaDev 0 nvmlDev 0 busId 1000 commId 0xc6202d086f65831b - Init COMPLETE
+gabe:1005345:1005345 [0] NCCL INFO Init timings - ncclCommInitRank: rank 0 nranks 1 total 0.43 (kernels 0.41, alloc 0.01, bootstrap 0.00, allgathers 0.00, topo 0.00, graphs 0.00, connections 0.01, rest 0.00)
+PROBE init ok
+PROBE allreduce sum[0]=1.0 (expect 1.0 for world=1)
+gabe:1005345:1005345 [0] NCCL INFO Unloading plugin /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.4/experiments/gpu-sim-m3d.4/build/libncclNetSim.so
+correct exit=0

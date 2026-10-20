@@ -1,0 +1,46 @@
+{
+  "bead": "gpu-sim-m3d.4",
+  "verdict": "GO",
+  "summary": "Vendored NCCL net ABI headers from NVIDIA/nccl tag v2.32.3-1 and built libncclNetSim.so exporting ncclNetPlugin_v11 + ncclNetPlugin_v12 as DATA symbols. NCCL (2.32.3+cuda12.9) loaded and initialized the plugin: log shows 'Loaded net plugin sim (v12)' and 'Initialized NET plugin sim'; trace shows init/devices/getProperties/finalize. Wrong-symbol control (old ncclNet_vN name) is unsupported and never loaded.",
+  "version_decision": {
+    "dlopened_path": "/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib/libnccl.so.2",
+    "ncclGetVersion": 23203,
+    "decoded": "2.32.3",
+    "strings": "NCCL version 2.32.3+cuda12.9",
+    "tag_chosen": "v2.32.3-1",
+    "note": "Resolved empirically via dlopen + ncclGetVersion + /proc/self/maps. torch.cuda.nccl.version() build constant (2.30.7) is NOT used."
+  },
+  "vendor": {
+    "source_repo": "https://github.com/NVIDIA/nccl",
+    "tag": "v2.32.3-1",
+    "files": [
+      "src/include/plugin/nccl_net.h",
+      "src/include/plugin/net/net_v11.h",
+      "src/include/plugin/net/net_v12.h"
+    ],
+    "sha256": {
+      "nccl_net.h": "c0c48a6c65dcb393fbb15afe972785a5c6c498e123eff34d3130124bfa67541a",
+      "net/net_v11.h": "b54ac289dae7a17e8e5c94e2a4e096bd636ceef8b877b908f7e38549b4adde3d",
+      "net/net_v12.h": "e5b5995bdb2edc0b3a5ba5c6a0da500bc254b2d42f7088f30b240bf79c0bfb33"
+    }
+  },
+  "jobs": {
+    "correct": {
+      "job_id": "20261020t050837-5f88fe68",
+      "log": "experiments/gpu-sim-m3d.4/nccl_debug.log",
+      "trace": "experiments/gpu-sim-m3d.4/trace_correct.log",
+      "result": "Loaded net plugin sim (v12); Initialized NET plugin sim; trace init/devices/getProperties/finalize"
+    },
+    "wrong_symbol_control": {
+      "job_id": "20261020t050846-858a97e7",
+      "log": "experiments/gpu-sim-m3d.4/nccl_debug_wrong.log",
+      "trace": "experiments/gpu-sim-m3d.4/trace_wrong.log",
+      "result": "External network plugin ... is unsupported; no 'Loaded net plugin'; trace empty"
+    }
+  },
+  "installed_untouched": true,
+  "ts_jobs": [
+    "20261020t050837-5f88fe68",
+    "20261020t050846-858a97e7"
+  ]
+}

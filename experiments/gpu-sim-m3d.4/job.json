@@ -1,0 +1,29 @@
+{
+  "bead": "gpu-sim-m3d.4",
+  "mode": "ts-queued GPU jobs (single rank, real GPU)",
+  "gpu_jobs": [
+    {
+      "job_id": "20261020t050837-5f88fe68",
+      "state": "finished",
+      "exit": 0,
+      "purpose": "prove NCCL loads+calls the v12 plugin (correct symbol)",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261020t050837-5f88fe68.log",
+      "result": "Loaded net plugin sim (v12); Initialized NET plugin sim"
+    },
+    {
+      "job_id": "20261020t050846-858a97e7",
+      "state": "finished",
+      "exit": 0,
+      "purpose": "negative control: wrong symbol name (8g6 signature) not selected",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261020t050846-858a97e7.log",
+      "result": "External network plugin ... is unsupported"
+    }
+  ],
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-m3d.4/build.sh",
+      "purpose": "build correct + wrong plugins"
+    }
+  ],
+  "installed_untouched": true
+}
