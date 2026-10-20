@@ -71,23 +71,66 @@ static void *fc_export_table(void) {
     return tbl;
 }
 
+
+/* ---- option (a): real driver ONLY for the cuGetExportTable handshake -------
+ * 3-alt-iii: the handle is opened with the REAL dlopen (dlvsym on RTLD_NEXT),
+ * never through our interposed dlopen, so the interception does not recurse
+ * into itself. Nothing else in the shim forwards to the real driver.
+ */
+static void *fc_real_cuda_handle(void) {
+    static void *h = NULL;
+    static int tried = 0;
+    if (!tried) {
+        tried = 1;
+        void *(*rdlopen)(const char *, int) = dlvsym(RTLD_NEXT, "dlopen", "GLIBC_2.2.5");
+        if (rdlopen) h = rdlopen("libcuda.so.1", RTLD_NOW | RTLD_LOCAL);
+        fprintf(stderr, "fakecuda: AUDIT real-driver-handle open=%s (via real dlopen, bypassing interception)\n",
+                h ? "OK" : "FAILED");
+    }
+    return h;
+}
+
+static int fc_real_export_table(const void *uuid, const void **out) {
+    void *h = fc_real_cuda_handle();
+    if (!h) return 0;
+    void *(*rdsym)(void *, const char *) = dlvsym(RTLD_NEXT, "dlsym", "GLIBC_2.2.5");
+    if (!rdsym) return 0;
+    CUresult (*realGetExportTable)(const void **, const CUuuid *) =
+        (CUresult (*)(const void **, const CUuuid *))rdsym(h, "cuGetExportTable");
+    if (!realGetExportTable) {
+        fprintf(stderr, "fakecuda: AUDIT real cuGetExportTable not resolvable\n");
+        return 0;
+    }
+    CUresult r = realGetExportTable(out, (const CUuuid *)uuid);
+    fprintf(stderr, "fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=%d table=%p uuid=%.8s\n",
+            (int)r, out ? *out : NULL, (const char *)uuid);
+    return (r == CUDA_SUCCESS) ? 1 : 0;
+}
+
 CUresult cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTableId) {
     if (pExportTableId) {
         const unsigned char *b = (const unsigned char *)pExportTableId;
         fprintf(stderr, "fakecuda: cuGetExportTable uuid=%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
                 b[0],b[1],b[2],b[3],b[4],b[5],b[6],b[7],b[8],b[9],b[10],b[11],b[12],b[13],b[14],b[15]);
     }
-    /* Diagnostic: GPUSIM_EXPORT_TABLE=1 returns a synthetic table whose slots
-       all point at a stub returning SUCCESS. That avoids the NULL-fn crash and
-       shows how far cudart gets, but the table layout is opaque, so the value
-       read back for any entry is wrong. Default is the truthful NOT_SUPPORTED. */
+    /* Option (a): the REAL driver serves this ONE handshake. Set
+       GPUSIM_REAL_EXPORT_TABLE=0 for the 3-alt-ii negative control. */
+    const char *rt = getenv("GPUSIM_REAL_EXPORT_TABLE");
+    if (!rt || strcmp(rt, "0") != 0) {
+        const void *tbl = NULL;
+        if (fc_real_export_table(pExportTableId, &tbl)) {
+            if (ppExportTable) *ppExportTable = tbl;
+            fprintf(stderr, "fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)\n");
+            return CUDA_SUCCESS;
+        }
+    }
     if (getenv("GPUSIM_EXPORT_TABLE")) {
         if (ppExportTable) *ppExportTable = fc_export_table();
         fprintf(stderr, "fakecuda: cuGetExportTable -> 0 (SUCCESS, synthetic stub table)\n");
         return CUDA_SUCCESS;
     }
     if (ppExportTable) *ppExportTable = NULL;
-    fprintf(stderr, "fakecuda: cuGetExportTable -> 500 (NOT_FOUND, dlsym fallback)\n");
+    fprintf(stderr, "fakecuda: cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)\n");
     return CUDA_ERROR_NOT_FOUND;
 }
 

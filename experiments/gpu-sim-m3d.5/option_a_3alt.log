@@ -1,0 +1,38 @@
+=== 3-alt-i AUDIT: option (a), real driver ONLY for cuGetExportTable ===
+-- (3-alt-iii) real handle opened via real dlopen, bypassing interception:
+fakecuda: AUDIT real-driver-handle open=OK (via real dlopen, bypassing interception)
+-- handshake served by the real driver:
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7f9330df0370 uuid=øÏùQ!F‹N
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7f9330df2460 uuid=kÕûl[ôçJ
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7f9330df42c0 uuid= ”yŒ.t.t
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+-- shim-served device calls AFTER the handshake (0 = routing went to the real table):
+   cuDeviceGetAttribute   0
+   cuDeviceGetPCIBusId    0
+   cuDeviceGetName        0
+   cuDeviceGetUuid        0
+   cuDeviceTotalMem       0
+   cuCtxCreate            0
+   cuMemAlloc             0
+   cuMemHostRegister      0
+   cuMemcpyHtoD           0
+   cuLaunchKernel         0
+-- shim calls that DID happen:
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+fakecuda: cuDeviceGetCount
+fakecuda: cuDeviceGetCount -> 1
+fakecuda: cuDeviceGet
+-- NCCL verdict:
+[2026-10-20 15:50:21] gabe:379620:379620 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'initialization error'
+[2026-10-20 15:50:21] gabe:379620:379620 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'initialization error'
+ncclCommInitRank=1 (unhandled cuda error (run with NCCL_DEBUG=INFO for details))
+
+=== 3-alt-ii NEGATIVE CONTROL: forwarding disabled (GPUSIM_REAL_EXPORT_TABLE=0) ===
+fakecuda: getProcAddress cuGetExportTable -> 0x7f4028e08180
+fakecuda: cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)
+fakecuda: cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)
+[2026-10-20 15:53:26] gabe:557040:557040 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'named symbol not found'
+[2026-10-20 15:53:26] gabe:557040:557040 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'named symbol not found'
+ncclCommInitRank=1 (unhandled cuda error (run with NCCL_DEBUG=INFO for details))

@@ -65,8 +65,36 @@ Writing 13040 into the slot-2 out-pointer did not satisfy the version check eith
 (still "CUDA driver version is insufficient") and corrupted a caller struct, so the
 process then crashed in `__cxa_finalize`.
 
-Conclusion: satisfying static cudart requires reproducing the real table's
-metadata+pointer layout, which is not observable through the shim and is not the
-narrow shim this bead describes. Per the PI's pre-registered fallback, the
+Conclusion (item 7, precise): the export-table CALL SITES *were* observed with the
+trampoline instrumentation (slot 2 is called twice, once per UUID, with the args
+recorded above). What is NOT reproducible is the slot->name ENUMERATION: the table
+is an opaque, obfuscated ABI structure, so we cannot learn which slot is which
+driver entry point from the shim side. The obfuscation hypothesis is consistent
+with the disassembled static keystream loop around __cudaGetProcAddress
+(/tmp dumps in this directory; see dump_bytes.c for the offline dump program). Per the PI's pre-registered fallback, the
 static-cudart seam is a documented NEGATIVE RESULT (kept=false). Acceptance #3 (no
 real driver loaded) was never relaxed and no partial PASS is claimed.
+
+
+## Option (a) -- 3-alt-i iteration (final, bounded)
+
+Target: load the real driver ONLY for `cuGetExportTable`, and prove enumeration and
+attributes still come from libfakecuda. Implementation: `fc_real_cuda_handle()` opens
+`libcuda.so.1` with the REAL dlopen (`dlvsym(RTLD_NEXT, "dlopen", ...)`), so 3-alt-iii
+holds -- the interception does not recurse (`AUDIT real-driver-handle open=OK ... bypassing interception`).
+`GPUSIM_REAL_EXPORT_TABLE=0` disables the forwarding (3-alt-ii).
+
+Result: **3-alt-i FAILS at exactly this point.** With the real table served, cudart
+gets past the version/ABI handshake (the previous 'driver version is insufficient'
+is gone) and the shim still serves `cuDeviceGetCount` (returns 1) and `cuDeviceGet`,
+but every subsequent device call -- `cuDeviceGetAttribute`, `cuDeviceGetPCIBusId`,
+`cuDeviceGetName`, `cuDeviceGetUuid`, `cuDeviceTotalMem`, `cuCtxCreate`, `cuMemAlloc`,
+`cuMemHostRegister`, `cuMemcpyHtoD`, `cuLaunchKernel` -- is served by the REAL driver
+through that table: the shim's audit log shows 0 calls for each of them, and NCCL
+fails with 'initialization error' because the real driver has no device visible.
+
+So the export table is not an isolated handshake: it carries the whole driver vtable.
+Serving it from the real driver hands the entire device path to the real driver, which
+is exactly the leak acceptance 3 exists to prevent. Evidence: option_a_3alt.log.
+3-alt-ii confirms the forwarding is load-bearing: with GPUSIM_REAL_EXPORT_TABLE=0 the
+same binary fails again at the export table ('named symbol not found').
