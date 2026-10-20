@@ -25,12 +25,13 @@ CFLAGS  = -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default 
 # function is UB the test suite cannot reliably catch (a negative control
 # showed the miss test PASSING on the broken code -- rax residue luck). The
 # flag makes the class a build failure instead. Verified clean on all SRCS.
-LDFLAGS = -shared
+LDFLAGS = -shared -lm
 INCLUDES = -Iinclude -Ishim
 
 LIB = libfakegpu.so
 SRCS = src/fakegpu_config.c src/fakegpu_random.c src/fakegpu_pool.c \
-       src/fakegpu_latency.c src/fakegpu_cuda.c src/fakegpu_nccl.c
+       src/fakegpu_latency.c src/fakegpu_cuda.c src/fakegpu_nccl.c \
+       src/fakegpu_topology.c
 OBJS = $(SRCS:.c=.o)
 
 TEST_BIN = build/fake_client

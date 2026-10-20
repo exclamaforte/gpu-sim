@@ -8,9 +8,13 @@
  */
 #include "fakegpu.h"
 #include "nccl.h"
+#include "fakegpu_topology.h"
+#include <math.h>
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 #include <string.h>
 
 /* ---- world size / rank resolution --------------------------------------- */
@@ -178,6 +182,250 @@ ncclResult_t ncclSendRecv(void *recvbuf, size_t rcount, int rtype, int recvFrom,
     return ncclSuccess;
 }
 
+static fg_topo_t *fg_topo_cache = NULL;
+static char fg_topo_path[4096] = "";
+
+static fg_topo_t *fg_nccl_topo(void) {
+    const char *p = getenv("GPUSIM_TOPOLOGY");
+    if (!p || !*p) return NULL;
+    if (fg_topo_cache && strcmp(p, fg_topo_path) == 0) return fg_topo_cache;
+    char err[256];
+    fg_topo_t *t = fg_topo_load(p, err, sizeof(err));
+    if (!t) {
+        fprintf(stderr, "fakegpu: corrupted topology: %s\n", err);
+        exit(1);
+    }
+    if (fg_topo_cache) fg_topo_free(fg_topo_cache);
+    fg_topo_cache = t;
+    snprintf(fg_topo_path, sizeof(fg_topo_path), "%s", p);
+    return t;
+}
+
+static size_t fg_dtype_size(int datatype) {
+    switch (datatype) {
+    case ncclInt8: return 1;
+    case ncclFloat16: return 2;
+    case ncclInt32: return 4;
+    case ncclFloat32: return 4;
+    case ncclInt64: return 8;
+    case ncclFloat64: return 8;
+    default: return 1;
+    }
+}
+
+static const char *fg_dtype_name(int datatype) {
+    switch (datatype) {
+    case ncclInt8: return "int8";
+    case ncclUint8: return "uint8";
+    case ncclFloat16: return "float16";
+    case ncclInt32: return "int32";
+    case ncclFloat32: return "float32";
+    case ncclInt64: return "int64";
+    case ncclFloat64: return "float64";
+    default: return "int8";
+    }
+}
+
+static int fg_shortest_path(const fg_topo_t *t, int src, int dst, int *out, int *nout) {
+    if (src == dst) { *nout = 0; return 0; }
+    int n = t->n_dev;
+    double *dist = calloc(n, sizeof(double));
+    int *prev = calloc(n, sizeof(int));
+    int *prevlink = calloc(n, sizeof(int));
+    char *seen = calloc(n, 1);
+    for (int i = 0; i < n; i++) { dist[i] = 1e18; prev[i] = -1; prevlink[i] = -1; }
+    dist[src] = 0;
+    int *la = calloc(t->n_links, sizeof(int));
+    int *lb = calloc(t->n_links, sizeof(int));
+    for (int li = 0; li < t->n_links; li++) {
+        la[li] = fg_topo_dev_index(t, t->links[li].a_node, t->links[li].a_dev);
+        lb[li] = fg_topo_dev_index(t, t->links[li].b_node, t->links[li].b_dev);
+    }
+    for (int iter = 0; iter < n; iter++) {
+        int u = -1; double best = 1e18;
+        for (int i = 0; i < n; i++) if (!seen[i] && dist[i] < best) { best = dist[i]; u = i; }
+        if (u == -1) break;
+        seen[u] = 1;
+        if (u == dst) break;
+        for (int li = 0; li < t->n_links; li++) {
+            int v = -1;
+            if (la[li] == u) v = lb[li];
+            else if (lb[li] == u) v = la[li];
+            if (v < 0 || seen[v]) continue;
+            double w = t->links[li].latency_us;
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                prev[v] = u;
+                prevlink[v] = li;
+            }
+        }
+    }
+    int ok = (dist[dst] < 1e17);
+    if (ok) {
+        int cnt = 0;
+        int cur = dst;
+        while (cur != src) {
+            out[cnt++] = prevlink[cur];
+            cur = prev[cur];
+        }
+        for (int i = 0; i < cnt/2; i++) {
+            int tmp = out[i]; out[i] = out[cnt-1-i]; out[cnt-1-i] = tmp;
+        }
+        *nout = cnt;
+    }
+    free(dist); free(prev); free(prevlink); free(seen);
+    free(la); free(lb);
+    return ok ? 0 : -1;
+}
+
+static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int datatype, int nranks, int *bottleneck_link, char *regime, size_t regimesz) {
+    if (nranks <= 1) { *bottleneck_link = -1; snprintf(regime, regimesz, "bandwidth"); return 0.0; }
+    int n = nranks;
+    int *rank_dev = calloc(n, sizeof(int));
+    fg_topo_rank_t *sorted = malloc(t->n_ranks * sizeof(fg_topo_rank_t));
+    memcpy(sorted, t->ranks, t->n_ranks * sizeof(fg_topo_rank_t));
+    for (int i = 0; i < t->n_ranks; i++)
+        for (int j = i+1; j < t->n_ranks; j++)
+            if (sorted[j].rank < sorted[i].rank) {
+                fg_topo_rank_t tmp = sorted[i]; sorted[i] = sorted[j]; sorted[j] = tmp;
+            }
+    for (int i = 0; i < n; i++) {
+        if (i < t->n_ranks) {
+            rank_dev[i] = fg_topo_dev_index(t, sorted[i].node_idx, sorted[i].dev_id);
+        } else {
+            rank_dev[i] = (i < t->n_dev) ? i : 0;
+        }
+        if (rank_dev[i] < 0) rank_dev[i] = 0;
+    }
+    free(sorted);
+
+    double dtype_sz = (double)fg_dtype_size(datatype);
+    double S = (double)count * dtype_sz;
+
+    int maxedges = n * n;
+    int (*edges)[2] = calloc(maxedges, sizeof(*edges));
+    int nedges = 0;
+    int is_tree = (strcmp(algo, "tree_bcast") == 0);
+    if (is_tree) {
+        for (int i = 1; i < n; i++) {
+            edges[nedges][0] = (i-1)/2;
+            edges[nedges][1] = i;
+            nedges++;
+        }
+    } else {
+        for (int i = 0; i < n; i++) {
+            edges[nedges][0] = i;
+            edges[nedges][1] = (i+1) % n;
+            nedges++;
+        }
+    }
+
+    double *edge_bw = calloc(nedges, sizeof(double));
+    double *edge_lat = calloc(nedges, sizeof(double));
+    int (*edge_paths)[64] = calloc(nedges, sizeof(*edge_paths));
+    int *edge_pathlen = calloc(nedges, sizeof(int));
+
+    for (int e = 0; e < nedges; e++) {
+        int u = rank_dev[edges[e][0]];
+        int v = rank_dev[edges[e][1]];
+        int path[64];
+        int plen = 0;
+        if (u == v) { plen = 0; }
+        else {
+            if (fg_shortest_path(t, u, v, path, &plen) != 0) {
+                plen = -1;
+            }
+        }
+        if (plen < 0) {
+            edge_bw[e] = 0;
+            edge_lat[e] = 0;
+            edge_pathlen[e] = 0;
+        } else {
+            edge_pathlen[e] = plen;
+            for (int k = 0; k < plen; k++) edge_paths[e][k] = path[k];
+            if (plen == 0) {
+                edge_bw[e] = 1e9;
+                edge_lat[e] = 0;
+            } else {
+                double bw = 1e9;
+                double lat = 0;
+                for (int k = 0; k < plen; k++) {
+                    int li = path[k];
+                    double ebw = t->links[li].eff_bw_gbs;
+                    if (ebw < bw) bw = ebw;
+                    lat += t->links[li].latency_us;
+                }
+                edge_bw[e] = bw;
+                edge_lat[e] = lat;
+            }
+        }
+    }
+
+    int worst = 0;
+    for (int e = 1; e < nedges; e++) {
+        if (edge_bw[e] < edge_bw[worst] || (edge_bw[e] == edge_bw[worst] && edge_lat[e] > edge_lat[worst])) {
+            worst = e;
+        }
+    }
+
+    double B_gbps = edge_bw[worst];
+    if (B_gbps <= 0 || B_gbps > 1e8) B_gbps = 1e9;
+    double alpha_us = edge_lat[worst];
+    double B_Bps = B_gbps * 1e9 / 8.0;
+    double alpha_s = alpha_us * 1e-6;
+
+    double dur, bw_term, lat_term;
+    if (is_tree) {
+        double logn = log2((double)n);
+        if (n <= 1) logn = 1;
+        bw_term = logn * S / B_Bps;
+        lat_term = logn * alpha_s;
+        dur = logn * (S / B_Bps + alpha_s);
+    } else {
+        double bf, lf;
+        if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*(n-1)/(double)n; lf = 2.0*n; }
+        else if (strcmp(algo, "ring_allgather") == 0 || strcmp(algo, "ring_reduce_scatter") == 0 || strcmp(algo, "ring_alltoall") == 0) { bf = (double)(n-1)/n; lf = (double)n; }
+        else { bf = 1.0; lf = 1.0; }
+        bw_term = bf * S / B_Bps;
+        lat_term = lf * alpha_s;
+        dur = bw_term + lat_term;
+    }
+
+    int b_link = -1;
+    int wpath_len = edge_pathlen[worst];
+    if (wpath_len > 0) {
+        b_link = edge_paths[worst][0];
+        for (int k = 1; k < wpath_len; k++) {
+            int li = edge_paths[worst][k];
+            if (t->links[li].eff_bw_gbs < t->links[b_link].eff_bw_gbs) b_link = li;
+            else if (t->links[li].eff_bw_gbs == t->links[b_link].eff_bw_gbs && t->links[li].latency_us > t->links[b_link].latency_us) b_link = li;
+        }
+    }
+
+    *bottleneck_link = b_link;
+    if (lat_term > bw_term) snprintf(regime, regimesz, "latency");
+    else snprintf(regime, regimesz, "bandwidth");
+
+    free(rank_dev); free(edge_bw); free(edge_lat); free(edge_paths); free(edge_pathlen); free(edges);
+    return dur;
+}
+
+static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, const char *dtype, size_t bytes, const char *algo, double predicted, int bottleneck, const char *regime) {
+    const char *p = getenv("GPUSIM_TRACE");
+    char path[4096];
+    if (p && *p) snprintf(path, sizeof(path), "%s", p);
+    else snprintf(path, sizeof(path), "gpusim_trace.jsonl");
+    FILE *f = fopen(path, "a");
+    if (!f) return;
+    struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
+    long long ts_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+    fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":", ts_ns, rank, nranks, op, count, dtype, bytes, algo, predicted);
+    if (bottleneck >= 0) fprintf(f, "%d", bottleneck); else fprintf(f, "null");
+    fprintf(f, ",\"regime\":\"%s\"}\n", regime);
+    fflush(f);
+    fclose(f);
+}
+
 /* ---- collectives --------------------------------------------------------- */
 
 static void fg_collective_out(void *recvbuff, size_t count, int datatype,
@@ -210,6 +458,18 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                            int datatype, int op, ncclComm_t comm, void *stream)
 {
     (void)sendbuff; (void)op; (void)stream;
+    fg_topo_t *t = fg_nccl_topo();
+    if (t) {
+        int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
+        int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        int bl = -1; char regime[16];
+        double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
+        fg_sleep_ns((long)(pred * 1e9));
+        size_t bytes = count * fg_dtype_size(datatype);
+        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
+        return ncclSuccess;
+    }
     fg_collective_out(recvbuff, count, datatype, comm);
     return ncclSuccess;
 }
@@ -224,6 +484,18 @@ ncclResult_t ncclBroadcast(const void *sendbuff, void *recvbuff, size_t count,
                            int datatype, int root, ncclComm_t comm, void *stream)
 {
     (void)sendbuff; (void)root; (void)stream;
+    fg_topo_t *t = fg_nccl_topo();
+    if (t) {
+        int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
+        int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        int bl = -1; char regime[16];
+        double pred = fg_nccl_predict(t, "tree_bcast", count, datatype, nr, &bl, regime, sizeof(regime));
+        fg_sleep_ns((long)(pred * 1e9));
+        size_t bytes = count * fg_dtype_size(datatype);
+        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_trace("broadcast", rk, nr, count, fg_dtype_name(datatype), bytes, "tree_bcast", pred, bl, regime);
+        return ncclSuccess;
+    }
     fg_collective_out(recvbuff, count, datatype, comm);
     return ncclSuccess;
 }
@@ -247,6 +519,18 @@ ncclResult_t ncclReduce(const void *sendbuff, void *recvbuff, size_t count,
                         void *stream)
 {
     (void)sendbuff; (void)op; (void)root; (void)stream;
+    fg_topo_t *t = fg_nccl_topo();
+    if (t) {
+        int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
+        int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        int bl = -1; char regime[16];
+        double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
+        fg_sleep_ns((long)(pred * 1e9));
+        size_t bytes = count * fg_dtype_size(datatype);
+        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_trace("reduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
+        return ncclSuccess;
+    }
     fg_collective_out(recvbuff, count, datatype, comm);
     return ncclSuccess;
 }
@@ -270,7 +554,18 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
                            int datatype, ncclComm_t comm, void *stream)
 {
     (void)sendbuff; (void)stream;
-    /* all-gather output is nrank * count * elemsize */
+    fg_topo_t *t = fg_nccl_topo();
+    if (t) {
+        int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
+        int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        int bl = -1; char regime[16];
+        double pred = fg_nccl_predict(t, "ring_allgather", count, datatype, nr, &bl, regime, sizeof(regime));
+        fg_sleep_ns((long)(pred * 1e9));
+        size_t bytes = count * (size_t)nr * fg_dtype_size(datatype);
+        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime);
+        return ncclSuccess;
+    }
     int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
     size_t full = count * (size_t)nr;
     fg_collective_out(recvbuff, full, datatype, comm);
@@ -289,6 +584,18 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
 {
     (void)sendbuff; (void)op; (void)stream;
     size_t rc = recvcount ? recvcount[0] : 0;
+    fg_topo_t *t = fg_nccl_topo();
+    if (t) {
+        int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
+        int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        int bl = -1; char regime[16];
+        double pred = fg_nccl_predict(t, "ring_reduce_scatter", rc, datatype, nr, &bl, regime, sizeof(regime));
+        fg_sleep_ns((long)(pred * 1e9));
+        size_t bytes = rc * fg_dtype_size(datatype);
+        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime);
+        return ncclSuccess;
+    }
     fg_collective_out(recvbuff, rc, datatype, comm);
     return ncclSuccess;
 }
@@ -297,6 +604,18 @@ ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
                           int datatype, ncclComm_t comm, void *stream)
 {
     (void)sendbuff; (void)stream;
+    fg_topo_t *t = fg_nccl_topo();
+    if (t) {
+        int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
+        int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        int bl = -1; char regime[16];
+        double pred = fg_nccl_predict(t, "ring_alltoall", count, datatype, nr, &bl, regime, sizeof(regime));
+        fg_sleep_ns((long)(pred * 1e9));
+        size_t bytes = count * fg_dtype_size(datatype);
+        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_trace("alltoall", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_alltoall", pred, bl, regime);
+        return ncclSuccess;
+    }
     fg_collective_out(recvbuff, count, datatype, comm);
     return ncclSuccess;
 }

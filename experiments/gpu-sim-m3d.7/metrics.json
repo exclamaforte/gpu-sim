@@ -1,0 +1,16 @@
+{
+  "bead": "gpu-sim-m3d.7",
+  "verdict": "PASS",
+  "summary": "Topology-aware collectives in fakegpu NCCL interposer: C port of ring/tree formulas matches Python model exactly (2/4/8 ranks monotonic). JSONL trace one record per collective with required fields; committed schema validator passes. Regime sweep shows latency->bandwidth crossover matching model. Legacy path byte-identical when GPUSIM_TOPOLOGY unset. Corrupted topology fails loudly (non-zero exit). CPU-only.",
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "make check",
+      "result": "PASS"
+    },
+    {
+      "command": "bash experiments/gpu-sim-m3d.7/run.sh",
+      "result": "PASS (C/Python agreement + monotonic + negative control)"
+    }
+  ]
+}
