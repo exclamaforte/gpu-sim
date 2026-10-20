@@ -49,21 +49,37 @@ python3 "$HERE/decider.py" "$TRACE1" "$OUT/model_mismatch_ack.json" "$OUT/decide
 grep -q '"2a_trace_complete": true' "$OUT/decider.json" || fail "2a trace completeness"
 grep -q '"2c_bytes": true' "$OUT/decider.json" || fail "2c byte accounting"
 echo "--- item 9(b) negative controls for the ack guard ---"
-if python3 "$HERE/decider.py" "$TRACE1" "$OUT/does_not_exist.json" "$OUT/dec_red_noack.json" "$S" 2 "$COUNT" float32 \
-     > "$OUT/red_noack.log" 2>&1; then
-  fail "decider passed with the ack file ABSENT (guard not load-bearing)"
-fi
-echo "  ack absent -> non-zero (OK); red case committed as red_noack.log"
+{
+  echo "# RED CASE 9(b)-i: acknowledgement file ABSENT"
+  echo "# condition exercised: ack path = $OUT/does_not_exist.json (does not exist)"
+  echo "# cmd: decider.py trace_normal.log <missing ack> dec_red_noack.json $S 2 $COUNT float32"
+  if python3 "$HERE/decider.py" "$TRACE1" "$OUT/does_not_exist.json" "$OUT/dec_red_noack.json" "$S" 2 "$COUNT" float32; then
+    echo "exit=0 (UNEXPECTED: guard did not fail)"
+    fail "decider passed with the ack file ABSENT (guard not load-bearing)"
+  else
+    echo "exit=$? (expected non-zero: 2c must fail when the acknowledgement file is absent)"
+  fi
+} > "$OUT/red_noack.log" 2>&1
+grep -q "NO acknowledgement file is present" "$OUT/red_noack.log" || fail "red case 9(b)-i failed for the wrong reason"
 python3 - "$OUT/model_mismatch_ack.json" <<'PY'
 import json,sys
 d=json.load(open(sys.argv[1])); d["ratio_observed_over_model"]=1.0
 json.dump(d, open("/tmp/ack_wrong.json","w"))
 PY
-if python3 "$HERE/decider.py" "$TRACE1" /tmp/ack_wrong.json "$OUT/dec_red_wrongack.json" "$S" 2 "$COUNT" float32 \
-     > "$OUT/red_wrongack.log" 2>&1; then
-  fail "decider passed with a WRONG ratio in the ack file"
-fi
-echo "  wrong ratio -> non-zero (OK); red case committed as red_wrongack.log"
+{
+  echo "# RED CASE 9(b)-ii: acknowledgement file present but with a WRONG ratio"
+  echo "# condition exercised: ack ratio = 1.0 while the run's observed/model ratio is 2.0"
+  echo "# cmd: decider.py trace_normal.log /tmp/ack_wrong.json dec_red_wrongack.json $S 2 $COUNT float32"
+  if python3 "$HERE/decider.py" "$TRACE1" /tmp/ack_wrong.json "$OUT/dec_red_wrongack.json" "$S" 2 "$COUNT" float32; then
+    echo "exit=0 (UNEXPECTED: guard did not fail)"
+    fail "decider passed with a WRONG ratio in the ack file"
+  else
+    echo "exit=$? (expected non-zero: 2c must fail when the recorded ratio disagrees)"
+  fi
+} > "$OUT/red_wrongack.log" 2>&1
+grep -q "acknowledgement file records ratio" "$OUT/red_wrongack.log" || fail "red case 9(b)-ii failed for the wrong reason"
+cmp -s "$OUT/red_noack.log" "$OUT/red_wrongack.log" && fail "the two 9(b) red cases are identical (not exercising distinct conditions)"
+rm -f "$OUT/dec_red_noack.json" "$OUT/dec_red_wrongack.json"
 
 echo "=== SCENARIO 2: kill -9 rank 0's OWN pid AFTER the data path is live ==="
 NCCLINC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"

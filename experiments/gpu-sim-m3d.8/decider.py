@@ -148,11 +148,21 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
     report["ack"] = ack
 
     ok_2c = False
+    reason = None
     if ratio == 1.0:
         ok_2c = True
-    elif ack and abs(ack.get("ratio_observed_over_model", -1) - ratio) < 1e-9 \
-            and ack.get("tracking_issue") == "gpu-sim-8sy":
+    elif not ack:
+        reason = ("2c FAIL: observed/model byte ratio is %.2f (expected 1.0) and NO "
+                  "acknowledgement file is present at %s" % (ratio, ack_path))
+    elif abs(ack.get("ratio_observed_over_model", -1) - ratio) >= 1e-9:
+        reason = ("2c FAIL: acknowledgement file records ratio %.2f but the run's "
+                  "observed/model ratio is %.2f" % (ack.get("ratio_observed_over_model", -1), ratio))
+    elif ack.get("tracking_issue") != "gpu-sim-8sy":
+        reason = ("2c FAIL: acknowledgement file does not name the tracking issue "
+                  "gpu-sim-8sy (has %r)" % ack.get("tracking_issue"))
+    else:
         ok_2c = True
+    report["failure_reason"] = reason
 
     report["verdict"] = {
         "2a_trace_complete": ok_2a,
@@ -163,6 +173,13 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
         json.dump(report, f, indent=2)
     print(json.dumps(report["verdict"], indent=2))
     print("bytes:", json.dumps(report["bytes"]))
+    if not ok_2a:
+        print("2a FAIL: per-entry counter != trace record count (see per_rank)")
+    if reason:
+        print(reason)
+    else:
+        print("2c OK: ratio %.2f acknowledged by %s (tracking %s)"
+              % (ratio, ack_path, ack.get("tracking_issue") if ack else "n/a"))
     return 0 if (ok_2a and ok_2c) else 1
 
 

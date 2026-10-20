@@ -5,15 +5,15 @@
   "summary": "Net plugin over shm fabric. ts job 20261020t211800-5d6c7cec ran the asserted matrix and passed. Scenario 1: 2-rank allreduce, 4 channels via NET/sim/0, sum=3.0 both ranks; trace is rank-tagged and complete (4 connect + 4 accept + 2 isend + 2 irecv per rank). Scenario 2: rank0's OWN pid killed while inside the collective (after 'allreduce enqueued' + rank0 isend in flight); killed rank's log has NO 'allreduce OK' and it was SIGKILLed; survivor never completed ('allreduce enqueued' only) and exited via the declared 30s hard-timeout cap (rc 124). Scenario 3: oversized isend -> ncclInvalidArgument. Script exits non-zero on any assertion miss.",
   "ts_jobs": [
     {
-      "id": "20261020t233703-a52e2595",
+      "id": "20261020t234851-3428ded7",
       "result": "PASS (SCENARIO MATRIX: PASS)",
       "evidence": [
         "2a_trace_complete=true",
         "2c_bytes=true",
-        "binding: both senders 2 isend records vs peer consumed_seq 2, distinct digests -> two real transfers",
-        "kill: harness-timeout (explicitly NOT an NCCL error)",
+        "binding computed from trace: 2 isend records vs peer consumed_seq=2, distinct digests -> two real transfers",
+        "kill mechanism: harness-timeout (explicitly NOT an NCCL error)",
         "3b peer-death mapping PASS",
-        "item 9(b) red twice (red_noack.log, red_wrongack.log)"
+        "item 9(b): red_noack.log and red_wrongack.log committed, each naming its condition, the decider failure reason and exit=1; the two differ"
       ]
     }
   ],

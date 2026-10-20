@@ -1,6 +1,6 @@
 {
   "bead": "gpu-sim-m3d.8",
-  "ts_job_id": "20261020t233703-a52e2595",
+  "ts_job_id": "20261020t234851-3428ded7",
   "scenarios": {
     "1_normal": {
       "verdict": "PASS",
@@ -13,7 +13,7 @@
       "verdict": "PASS",
       "rank0_exit": 137,
       "survivor_exit": 124,
-      "elapsed_s": 29,
+      "elapsed_s": 28,
       "kill_mechanism": "harness-timeout (weakest form; explicitly NOT an NCCL error)"
     },
     "3_oversized": {
@@ -148,15 +148,16 @@
       "model_per_rank_bytes": 4096,
       "ratio_observed_over_model": 2.0,
       "statement": "The plugin's own per-entry-point counters and the fabric (slot,seq,consumed_seq) witness are the evidence for the observed value; the model value comes from epic_cluster.link_model's public per_link_bytes. The two disagree by 2x at n=2. This file is the human-reviewed acknowledgement required by acceptance 2c; the scenario script asserts against it and fails if it is absent or if the ratio disagrees with the run.",
-      "reviewed_by": "pending-review",
+      "reviewed_by": "Gabriel Ferns (PI/reviewer) -- verified against the committed decider digests after the gpu-sim-8sy verdict that the MODEL is wrong, not the capture",
       "date": "2026-10-20"
-    }
+    },
+    "failure_reason": null
   },
   "checksums": {
     "source:experiments/gpu-sim-m3d.8/allreduce_test.c": "430444ca31b756bf4989975041d2af0abf3da399f928ecd1ff38f8d22360685f",
     "source:experiments/gpu-sim-m3d.8/allreduce_test_large.c": "4ba9b75dcab1a6db2d7bc0a190a20a6f32ffc8e59b11c066093c4a8e5c1d4d35",
-    "output:forcenet_trace.log": "ab839fd2845a72da862a3a923c8c1e5d341ffa3aebe944db7fc36796de75f883",
-    "output:trace_normal.log": "564508ecb30f859f4cb6423b5b6b24436b8eba733674830f26b123a387ca0c62"
+    "output:forcenet_trace.log": null,
+    "output:trace_normal.log": "5b77ee33f915ef94aab9e6d063aaf36a7921c08aabe7149ed969de3fa65f5696"
   },
   "inputs": {
     "rank0": {

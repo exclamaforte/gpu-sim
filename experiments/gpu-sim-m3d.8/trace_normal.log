@@ -1,7 +1,7 @@
-rank=0 v12.init init commId=15277655216846292073 rank=0 nranks=2
+rank=0 v12.init init commId=4494140334702091292 rank=0 nranks=2
 rank=0 v12.devices
 rank=0 v12.getProperties
-rank=1 v12.init init commId=15277655216846292073 rank=1 nranks=2
+rank=1 v12.init init commId=4494140334702091292 rank=1 nranks=2
 rank=1 v12.devices
 rank=1 v12.getProperties
 rank=0 v12.getProperties
@@ -18,44 +18,26 @@ rank=0 v12.getProperties
 rank=0 v12.listen
 rank=0 v12.getProperties
 rank=0 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.listen
 rank=0 v12.getProperties
+rank=1 v12.getProperties
 rank=0 v12.listen
+rank=1 v12.listen
+rank=0 v12.getProperties
+rank=1 v12.getProperties
 rank=0 v12.getProperties
 rank=0 v12.getProperties
 rank=0 v12.getProperties
-rank=0 v12.getProperties
-rank=1 v12.getProperties
-rank=1 v12.listen
-rank=1 v12.getProperties
-rank=1 v12.listen
-rank=1 v12.getProperties
-rank=1 v12.listen
-rank=1 v12.getProperties
-rank=1 v12.listen
 rank=1 v12.getProperties
 rank=1 v12.getProperties
 rank=1 v12.getProperties
-rank=1 v12.getProperties
-rank=1 v12.connect connect peer=0
 rank=0 v12.connect connect peer=1
-rank=1 v12.regMr
-rank=1 v12.regMr
-rank=1 v12.regMr
-rank=1 v12.accept
-rank=1 v12.closeListen
-rank=1 v12.regMr
-rank=1 v12.regMr
-rank=1 v12.regMr
 rank=1 v12.connect connect peer=0
-rank=0 v12.regMr
-rank=0 v12.regMr
-rank=0 v12.regMr
-rank=0 v12.accept
-rank=0 v12.closeListen
-rank=0 v12.regMr
-rank=0 v12.regMr
-rank=0 v12.regMr
-rank=0 v12.connect connect peer=1
 rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.regMr
@@ -70,15 +52,15 @@ rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.connect connect peer=0
-rank=0 v12.regMr
-rank=0 v12.regMr
-rank=0 v12.regMr
-rank=0 v12.connect connect peer=1
 rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.accept
 rank=1 v12.closeListen
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.connect connect peer=1
 rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.regMr
@@ -93,6 +75,27 @@ rank=1 v12.regMr
 rank=1 v12.regMr
 rank=1 v12.accept
 rank=1 v12.closeListen
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.connect connect peer=0
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.connect connect peer=1
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.accept
+rank=1 v12.closeListen
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.accept
+rank=0 v12.closeListen
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
 rank=0 v12.regMr
 rank=0 v12.regMr
 rank=0 v12.regMr
@@ -102,9 +105,6 @@ rank=0 v12.regMr
 rank=0 v12.regMr
 rank=0 v12.accept
 rank=0 v12.closeListen
-rank=1 v12.regMr
-rank=1 v12.regMr
-rank=1 v12.regMr
 rank=0 v12.regMr
 rank=0 v12.regMr
 rank=0 v12.regMr
@@ -116,17 +116,13 @@ rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=1 bytes=4096 digest=f5de6e4e3f64
 rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=1 bytes=4096 digest=f5de6e4e3f648383 consumed_seq=1 cnt_recv_done=1
 rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=1 bytes=4096 digest=3356f76bc035a383 tag=1 dtype=float32 cnt_isend=1
 rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=1 bytes=4096 digest=3356f76bc035a383 consumed_seq=1 cnt_recv_done=1
-rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=2 bytes=4096 digest=c742551a12510383 tag=0 dtype=float32 cnt_isend=2
-rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=2 bytes=4096 digest=c742551a12510383 consumed_seq=2 cnt_recv_done=2
 rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=2 bytes=4096 digest=c742551a12510383 tag=1 dtype=float32 cnt_isend=2
 rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=2 bytes=4096 digest=c742551a12510383 consumed_seq=2 cnt_recv_done=2
-rank=0 v12.deregMr
-rank=0 v12.deregMr
-rank=0 v12.deregMr
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=2 bytes=4096 digest=c742551a12510383 tag=0 dtype=float32 cnt_isend=2
+rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=2 bytes=4096 digest=c742551a12510383 consumed_seq=2 cnt_recv_done=2
 rank=1 v12.deregMr
 rank=1 v12.deregMr
 rank=1 v12.deregMr
-rank=0 v12.closeRecv
 rank=0 v12.deregMr
 rank=0 v12.deregMr
 rank=0 v12.deregMr
@@ -142,6 +138,14 @@ rank=0 v12.closeRecv
 rank=0 v12.deregMr
 rank=0 v12.deregMr
 rank=0 v12.deregMr
+rank=0 v12.closeRecv
+rank=0 v12.deregMr
+rank=0 v12.deregMr
+rank=0 v12.deregMr
+rank=1 v12.closeRecv
+rank=1 v12.deregMr
+rank=1 v12.deregMr
+rank=1 v12.deregMr
 rank=0 v12.closeRecv
 rank=0 v12.deregMr
 rank=0 v12.deregMr
@@ -158,14 +162,6 @@ rank=1 v12.closeRecv
 rank=1 v12.deregMr
 rank=1 v12.deregMr
 rank=1 v12.deregMr
-rank=1 v12.closeRecv
-rank=1 v12.deregMr
-rank=1 v12.deregMr
-rank=1 v12.deregMr
-rank=1 v12.closeSend
-rank=1 v12.deregMr
-rank=1 v12.deregMr
-rank=1 v12.deregMr
 rank=0 v12.closeSend
 rank=0 v12.deregMr
 rank=0 v12.deregMr
@@ -184,5 +180,9 @@ rank=1 v12.deregMr
 rank=1 v12.deregMr
 rank=0 v12.closeSend
 rank=1 v12.closeSend
-rank=0 v12.finalize
+rank=1 v12.deregMr
+rank=1 v12.deregMr
+rank=1 v12.deregMr
+rank=1 v12.closeSend
 rank=1 v12.finalize
+rank=0 v12.finalize
