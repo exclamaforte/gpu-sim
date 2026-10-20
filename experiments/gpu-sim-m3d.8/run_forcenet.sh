@@ -12,14 +12,14 @@ export GPUSIM_ATTACH_TIMEOUT_NS=5000000000
 export GPUSIM_DTYPE=float32
 export NCCL_NET_PLUGIN="$HERE/build/libncclNetSimFab.so"
 export NCCL_DEBUG=INFO
-export GPUSIM_TRACE="$HERE/forcenet_trace.log"
+export GPUSIM_TRACE="${GPUSIM_TRACE:-$HERE/forcenet_trace.log}"
 export NCCL_DEBUG_SUBSYS=INIT,NET,GRAPH
 export NCCL_P2P_DISABLE=1
 export NCCL_SHM_DISABLE=1
 export NCCL_MULTI_RANK_GPU_ENABLE=1
 export NCCL_MIN_NCHANNELS=4
 export NCCL_MAX_NCHANNELS=4
-UIDFILE="/tmp/m3d8-uid-fn"; rm -f "$UIDFILE" "$HERE/forcenet_trace.log"
+UIDFILE="/tmp/m3d8-uid-fn"; rm -f "$UIDFILE" "$GPUSIM_TRACE"
 timeout 30s env NCCL_HOSTID="node0" GPUSIM_RANK=0 "$HERE/build/allreduce_test" 0 2 "$UIDFILE" > "$HERE/forcenet0.log" 2>&1 &
 P0=$!
 timeout 30s env NCCL_HOSTID="node1" GPUSIM_RANK=1 "$HERE/build/allreduce_test" 1 2 "$UIDFILE" > "$HERE/forcenet1.log" 2>&1 &

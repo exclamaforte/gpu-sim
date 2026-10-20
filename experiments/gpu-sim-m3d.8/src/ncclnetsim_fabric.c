@@ -9,16 +9,21 @@
 #include "nccl_net.h"
 
 static fg_fab_t *FAB = NULL;
+/* 2b decider: THREE separate per-entry-point counters (never an aggregate) and
+   a per-connection channel id. Counters are reported in the structured trace
+   and in metrics.json. */
+static unsigned long CNT_ISEND = 0, CNT_IRECV = 0, CNT_RECV_DONE = 0;
+static int CHAN_SEQ = 0;
 static int MY_RANK = 0;
 static int NRANKS = 1;
 static pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
 #define CAP (64 * 1024 * 1024)
 
-typedef struct { int done; size_t size; void *data; int peer; int is_send; } req_t;
+typedef struct { int done; size_t size; void *data; int peer; int is_send; int chan_of_req; } req_t;
 
 /* comm handles */
-typedef struct { int peer; int local; } sim_comm_t;
+typedef struct { int peer; int local; int chan; } sim_comm_t;
 
 static void trace(const char *m, const char *extra) {
     const char *p = getenv("GPUSIM_TRACE");
@@ -119,6 +124,7 @@ static ncclResult_t v12_connect(void* ctx, int dev, void* handle, void** sendCom
     sim_comm_t *sc = (sim_comm_t*)calloc(1, sizeof(*sc));
     sc->local = MY_RANK;
     sc->peer = peer;
+    sc->chan = CHAN_SEQ++;
     if (sendComm) *sendComm = sc;
     if (sendDevComm) *sendDevComm = NULL;
     char buf[64]; snprintf(buf, sizeof(buf), "connect peer=%d", peer);
@@ -132,6 +138,7 @@ static ncclResult_t v12_accept(void* listenComm, void** recvComm, ncclNetDeviceH
     rc->local = MY_RANK;
     /* for 2-rank, peer is the other rank */
     rc->peer = (MY_RANK == 0) ? 1 : 0;
+    rc->chan = CHAN_SEQ++;
     if (recvComm) *recvComm = rc;
     if (recvDevComm) *recvDevComm = NULL;
     trace("v12.accept", "");
@@ -160,8 +167,9 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     (void)tag;(void)mhandle;(void)phandle;
     sim_comm_t *sc = (sim_comm_t*)sendComm;
     if (size > CAP) return ncclInvalidArgument;
+    int slot = -1; unsigned seq = 0;
     pthread_mutex_lock(&LOCK);
-    int rc = fg_fab_send(FAB, sc->peer, data, size);
+    int rc = fg_fab_send_x(FAB, sc->peer, data, size, &slot, &seq);
     pthread_mutex_unlock(&LOCK);
     if (rc != FG_FAB_OK) {
         fprintf(stderr, "isend failed: %s\n", fg_fab_errstr(rc));
@@ -170,10 +178,15 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     req_t *rq = (req_t*)calloc(1, sizeof(*rq));
     rq->done = 1;
     rq->size = size;
+    rq->chan_of_req = sc->chan;
     rq->is_send = 1;
     if (request) *request = rq;
     const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
-    char buf[96]; snprintf(buf, sizeof(buf), "isend peer=%d size=%zu tag=%d dtype=%s", sc->peer, size, tag, dt);
+    CNT_ISEND++;
+    char buf[192];
+    snprintf(buf, sizeof(buf),
+             "isend peer=%d chan=%d slot=%d seq=%u bytes=%zu tag=%d dtype=%s cnt_isend=%lu",
+             sc->peer, sc->chan, slot, seq, size, tag, dt, CNT_ISEND);
     trace("v12.isend", buf);
     return ncclSuccess;
 }
@@ -188,14 +201,18 @@ static ncclResult_t v12_irecv(void* recvComm, int n, void** data, size_t* sizes,
     rq->size = sizes[0];
     rq->data = data[0];
     rq->peer = rcv->peer;
+    rq->chan_of_req = rcv->chan;
     rq->is_send = 0;
     /* store tag in req via a field? add tag to req_t */
     if (request) *request = rq;
     const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
     /* log EVERY posted buffer so the record is complete (n can be > 1) */
+    CNT_IRECV++;
     for (int bi = 0; bi < n; bi++) {
-        char buf[112];
-        snprintf(buf, sizeof(buf), "irecv peer=%d buf=%d/%d size=%zu tags=%d dtype=%s", rcv->peer, bi + 1, n, sizes[bi], tags ? tags[bi] : -1, dt);
+        char buf[192];
+        snprintf(buf, sizeof(buf),
+                 "irecv peer=%d chan=%d buf=%d/%d size=%zu tags=%d dtype=%s cnt_irecv=%lu",
+                 rcv->peer, rcv->chan, bi + 1, n, sizes[bi], tags ? tags[bi] : -1, dt, CNT_IRECV);
         trace("v12.irecv", buf);
     }
     return ncclSuccess;
@@ -212,14 +229,21 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
     /* try receive with short timeout */
     pthread_mutex_lock(&LOCK);
     size_t got = 0;
-    int rc = fg_fab_recv_max(FAB, rq->peer, rq->data, rq->size, &got);
+    int slot = -1; unsigned seq = 0, consumed = 0;
+    int rc = fg_fab_recv_max_ex(FAB, rq->peer, rq->data, rq->size, &got,
+                                &slot, &seq, &consumed);
     pthread_mutex_unlock(&LOCK);
     if (rc == FG_FAB_OK) {
         rq->size = got;
         rq->done = 1;
         if (done) *done = 1;
         if (sizes) *sizes = (int)got;
-        trace("v12.recv", "done");
+        CNT_RECV_DONE++;
+        char buf[192];
+        snprintf(buf, sizeof(buf),
+                 "recv-done peer=%d chan=%d slot=%d seq=%u bytes=%zu consumed_seq=%u cnt_recv_done=%lu",
+                 rq->peer, rq->chan_of_req, slot, seq, got, consumed, CNT_RECV_DONE);
+        trace("v12.recv", buf);
         return ncclSuccess;
     }
     if (rc == FG_FAB_ESIZE) {

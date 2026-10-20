@@ -48,6 +48,13 @@ int  fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n);
    actual bytes received in *got. */
 int  fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got);
 
+/* Decider variants: same contracts, plus (slot, seq) of the fabric slot that
+   carried the payload and the sender's global consumed_seq witness. */
+int  fg_fab_send_x(fg_fab_t *f, int peer, const void *buf, size_t n,
+                   int *slot_out, unsigned *seq_out);
+int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
+                        int *slot_out, unsigned *seq_out, unsigned *consumed_out);
+
 /* apply a link's bw/latency/jitter to nbytes (best-effort delay). */
 int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
                      double latency_us, double jitter_us);

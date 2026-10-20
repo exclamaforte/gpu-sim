@@ -1,0 +1,77 @@
+{
+  "per_rank": {
+    "0": {
+      "isend": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "irecv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "recv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      }
+    },
+    "1": {
+      "isend": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "irecv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "recv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      }
+    }
+  },
+  "verdict": {
+    "2a_trace_complete": true,
+    "2c_bytes": true,
+    "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+  },
+  "phase_shape": {
+    "channels": {
+      "(0, '0')": [
+        4096,
+        4096
+      ],
+      "(1, '0')": [
+        4096,
+        4096
+      ]
+    },
+    "full_payload_channel_keys": [
+      "(0, '0')",
+      "(1, '0')"
+    ],
+    "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases)"
+  },
+  "bytes": {
+    "observed_per_rank": 8192.0,
+    "observed_total": 16384,
+    "model_per_rank": 4096.0,
+    "model_total": 8192,
+    "ratio_observed_over_model": 2.0
+  },
+  "ack": {
+    "bead": "gpu-sim-m3d.8",
+    "tracking_issue": "gpu-sim-8sy",
+    "observed_per_rank_bytes": 8192,
+    "model_per_rank_bytes": 4096,
+    "ratio_observed_over_model": 2.0,
+    "statement": "The plugin's own per-entry-point counters and the fabric (slot,seq,consumed_seq) witness are the evidence for the observed value; the model value comes from epic_cluster.link_model's public per_link_bytes. The two disagree by 2x at n=2. This file is the human-reviewed acknowledgement required by acceptance 2c; the scenario script asserts against it and fails if it is absent or if the ratio disagrees with the run.",
+    "reviewed_by": "pending-review",
+    "date": "2026-10-20"
+  }
+}

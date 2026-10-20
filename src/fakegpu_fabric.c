@@ -276,7 +276,15 @@ static int peer_alive(fg_fab_t *f, int peer) {
     return 1;
 }
 
+static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
+                          int *slot_out, unsigned *seq_out);
+
 int fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n) {
+    return fg_send_common(f, peer, buf, n, NULL, NULL);
+}
+
+static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
+                          int *slot_out, unsigned *seq_out) {
     if (!f || !buf || peer < 0 || peer >= f->nranks || n == 0 || n > FG_FAB_MAX_PAYLOAD) {
         return FG_FAB_EINVAL;
     }
@@ -305,11 +313,28 @@ int fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n) {
     m->slots[slot].tag = 0;
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    if (slot_out) *slot_out = slot;
+    if (seq_out) *seq_out = atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed);
     const char *ds = getenv("GPUSIM_FAB_DELAY_US"); if (ds && *ds) usleep((useconds_t)atoi(ds));
     return FG_FAB_OK;
 }
 
+/* Same as fg_fab_send but reports which slot and seq carried the payload:
+   the decider needs the (slot, seq) PAIR, since seq alone is per-slot. */
+int fg_fab_send_x(fg_fab_t *f, int peer, const void *buf, size_t n,
+                  int *slot_out, unsigned *seq_out) {
+    return fg_send_common(f, peer, buf, n, slot_out, seq_out);
+}
+
+int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
+                       int *slot_out, unsigned *seq_out, unsigned *consumed_out);
+
 int fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got) {
+    return fg_fab_recv_max_ex(f, from, buf, cap, got, NULL, NULL, NULL);
+}
+
+int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
+                       int *slot_out, unsigned *seq_out, unsigned *consumed_out) {
     if (!f || !buf || from < 0 || from >= f->nranks || cap == 0 || cap > FG_FAB_MAX_PAYLOAD) {
         return FG_FAB_EINVAL;
     }
@@ -344,8 +369,11 @@ int fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got) {
     }
     memcpy(buf, m->slots[slot].data, mlen);
     if (got) *got = mlen;
+    if (slot_out) *slot_out = slot;
+    if (seq_out) *seq_out = mseq;
     atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
-    atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
+    unsigned cs = atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed) + 1;
+    if (consumed_out) *consumed_out = cs;
     const char *dr = getenv("GPUSIM_FAB_DELAY_US"); if (dr && *dr) usleep((useconds_t)atoi(dr));
     return FG_FAB_OK;
 }
