@@ -259,9 +259,21 @@ static int peer_alive(fg_fab_t *f, int peer) {
     if (peer < 0 || peer >= f->nranks) return 0;
     pid_t pid = (pid_t)f->slots[peer].pid;
     if (pid <= 0) return 0;
-    if (kill(pid, 0) == 0) return 1;
-    if (errno == EPERM) return 1;
-    return 0;
+    if (kill(pid, 0) != 0) return (errno == EPERM);
+    /* kill(pid,0) succeeds for a zombie too. A SIGKILLed peer that has not yet
+       been reaped must still read as dead, or the survivor waits forever
+       instead of surfacing the peer-death error. */
+    char path[64];
+    snprintf(path, sizeof(path), "/proc/%d/stat", (int)pid);
+    FILE *fp = fopen(path, "r");
+    if (!fp) return 0;               /* gone */
+    char buf[256];
+    size_t n = fread(buf, 1, sizeof(buf) - 1, fp);
+    fclose(fp);
+    buf[n] = '\0';
+    char *rp = strrchr(buf, ')');      /* state follows the comm field */
+    if (rp && rp[1] == ' ') return rp[2] != 'Z';
+    return 1;
 }
 
 int fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n) {

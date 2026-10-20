@@ -2,24 +2,42 @@
   "bead": "gpu-sim-m3d.8",
   "verdict": "PASS",
   "gpu_used": true,
-  "summary": "Net plugin over shm fabric. ts job 20261020t202342-ff7bce2d ran the asserted scenario matrix and passed: normal 2-rank allreduce on 4 channels via NET/sim/0 with sum=3.0 on both ranks; kill -9 of rank 0 after the plugin data path went live (isend observed) with bounded survivor exit; oversized isend -> ncclInvalidArgument. Script fails non-zero on any assertion miss.",
+  "summary": "Net plugin over shm fabric. ts job 20261020t211800-5d6c7cec ran the asserted matrix and passed. Scenario 1: 2-rank allreduce, 4 channels via NET/sim/0, sum=3.0 both ranks; trace is rank-tagged and complete (4 connect + 4 accept + 2 isend + 2 irecv per rank). Scenario 2: rank0's OWN pid killed while inside the collective (after 'allreduce enqueued' + rank0 isend in flight); killed rank's log has NO 'allreduce OK' and it was SIGKILLed; survivor never completed ('allreduce enqueued' only) and exited via the declared 30s hard-timeout cap (rc 124). Scenario 3: oversized isend -> ncclInvalidArgument. Script exits non-zero on any assertion miss.",
   "ts_jobs": [
     {
-      "id": "20261020t202342-ff7bce2d",
+      "id": "20261020t211800-5d6c7cec",
       "result": "PASS (SCENARIO MATRIX: PASS)",
       "evidence": [
         "normal aggregate: exit0=0 exit1=0",
-        "8 NET/sim channel lines rank0; 188 trace lines",
+        "via NET/sim present, no NET/Socket/P2P/SHM",
+        "observed wire bytes: rank0->1=8192 rank1->0=8192 total=16384",
         "data path live before kill: 1",
-        "rank0 exit=137, survivor exit=124 after 29s (declared cap 30s)",
+        "rank0 killed (own pid), survivor exit=124 after 29s (declared cap 30s)",
         "oversized isend returned 4 (expect 4)"
       ]
     }
   ],
+  "wire_bytes": {
+    "observed": {
+      "payload_bytes_S": 4096,
+      "per_rank_bytes": 8192,
+      "total_bytes": 16384,
+      "structure": "2 isend per rank, each the full payload S (two ring phases); rank-tagged trace 20261020t211800-5d6c7cec"
+    },
+    "model_m3d3": {
+      "per_rank_bytes": 4096,
+      "total_bytes": 8192,
+      "factor": "2*(n-1)/n = 1.0 at n=2"
+    },
+    "ratio_observed_over_model": 2.0,
+    "which_we_believe": "the observation: the isend sizes are NCCL's own choice and the trace shows exactly two full-payload sends per rank. The model's per-phase chunk assumption ((n-1)/n*S) is what disagrees at n=2.",
+    "tracking_bead": "gpu-sim-8sy (model-vs-observation reconciliation; blocks m3d.10)"
+  },
+  "kill_scenario_note": "The survivor does NOT surface an NCCL error within the window; it is killed by the declared 30s outer cap (rc 124). Reason: with the peer SIGKILLed, the proxy thread is parked in the CUDA kernel waiting for data the net proxy never delivers; our fabric's peer-death path (EPEERDEAD, now zombie-aware via /proc/<pid>/stat) is only consulted on the irecv/test path, which the proxy stops calling. If this bead requires an NCCL-code exit rather than a bounded kill, the acceptance text must be amended by the PI.",
   "cpu_runs": [
     {
       "command": "make test-fabric",
-      "result": "PASS (basic/barrier8/killpeer/stale/size)"
+      "result": "PASS (basic/barrier8/killpeer/stale/size; size now exercises both recv and recv_max)"
     },
     {
       "command": "tests/test_oversized",

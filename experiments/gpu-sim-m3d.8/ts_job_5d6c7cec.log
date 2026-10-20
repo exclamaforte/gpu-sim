@@ -1,0 +1,25 @@
+=== SCENARIO 1: normal 2-rank allreduce (4 channels) ===
+normal aggregate: exit0=0 exit1=0
+observed wire bytes: rank0->1=8192 rank1->0=8192 total=16384 (payload S=4096, ranks=2)
+model wire bytes (m3d.3): {"model_per_rank": 4096, "model_total": 8192, "model_per_link_sum": 8192, "factor": 1.0}
+model per-rank=4096 model total=8192
+MODEL MISMATCH: observed_total=16384 model_total=8192 (ratio 2.0)
+  observed: 2 isends/rank of S=4096 (two ring phases, full payload each)
+  model:    factor 2*(n-1)/n * S = 4096 per rank at n=2
+  acknowledged via GPUSIM_ACK_MODEL_MISMATCH=1 (reconciliation tracked in gpu-sim-8sy)
+normal: 8 NET/sim channel lines rank0; 188 trace lines
+=== SCENARIO 2: kill -9 rank 0's OWN PID AFTER the plugin data path is live ===
+data path live before kill: 1; wrapper pid=2812982 rank pid=2813001
+kill scenario: rank0 exit=137 (wrapper; rank killed with SIGKILL), rank1 (survivor) exit=124 after 29s (declared cap 30s)
+survivor path: hard timeout (rc 124) within declared 30s cap
+--- survivor tail ---
+gabe:2812986:2812986 [0] NCCL INFO Channel 01/0 : 1[0] -> 0[0] [send] via NET/sim/0
+gabe:2812986:2812986 [0] NCCL INFO Channel 02/0 : 1[0] -> 0[0] [send] via NET/sim/0
+gabe:2812986:2812986 [0] NCCL INFO Channel 03/0 : 1[0] -> 0[0] [send] via NET/sim/0
+gabe:2812986:2812986 [0] NCCL INFO Connected all rings, use ring PXN 0 GDR 0
+rank 1 allreduce enqueued
+=== SCENARIO 3: oversized message (GPU-free plugin API) ===
+oversized exit=0 (expect 0)
+oversized isend returned 4 (expect 4)
+=== RESULT ===
+SCENARIO MATRIX: PASS

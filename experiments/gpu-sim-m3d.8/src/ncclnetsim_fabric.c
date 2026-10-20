@@ -25,7 +25,9 @@ static void trace(const char *m, const char *extra) {
     if (!p || !*p) return;
     FILE *f = fopen(p, "a");
     if (!f) return;
-    fprintf(f, "%s%s%s\n", m, (extra && *extra) ? " " : "", extra ? extra : "");
+    /* rank on every line: both ranks append to one file, so without it the
+       record cannot be split per rank and looks like missing calls. */
+    fprintf(f, "rank=%d %s%s%s\n", MY_RANK, m, (extra && *extra) ? " " : "", extra ? extra : "");
     fflush(f);
     fclose(f);
 }
@@ -190,8 +192,12 @@ static ncclResult_t v12_irecv(void* recvComm, int n, void** data, size_t* sizes,
     /* store tag in req via a field? add tag to req_t */
     if (request) *request = rq;
     const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
-    char buf[96]; snprintf(buf, sizeof(buf), "irecv peer=%d size=%zu n=%d tags=%d dtype=%s", rcv->peer, sizes[0], n, tags ? tags[0] : -1, dt);
-    trace("v12.irecv", buf);
+    /* log EVERY posted buffer so the record is complete (n can be > 1) */
+    for (int bi = 0; bi < n; bi++) {
+        char buf[112];
+        snprintf(buf, sizeof(buf), "irecv peer=%d buf=%d/%d size=%zu tags=%d dtype=%s", rcv->peer, bi + 1, n, sizes[bi], tags ? tags[bi] : -1, dt);
+        trace("v12.irecv", buf);
+    }
     return ncclSuccess;
 }
 
