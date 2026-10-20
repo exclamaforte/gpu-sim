@@ -1,0 +1,9 @@
+{
+  "bead": "gpu-sim-m3d.1",
+  "mode": "CPU-only",
+  "cpu_runs": [
+    {"command": "python3 -m pytest tests/test_cluster_spec.py", "result": "15 passed"},
+    {"command": "bash experiments/gpu-sim-m3d.1/run_negative_controls.sh", "result": "all 5 negative controls fail loud"}
+  ],
+  "gpu_jobs": []
+}

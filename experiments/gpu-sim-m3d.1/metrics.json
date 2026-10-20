@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-m3d.1",
+  "verdict": "PASS",
+  "summary": "Topology + device-model spec: epic_cluster/spec.py (schema+validator), epic_cluster/topology.py (adjacency, shortest path, shared-group eff-bw, flat binary emit/read). Three example specs (nvlink2, pcie4, ib8). 15 tests pass; negative controls (unknown key, dangling endpoint, rank missing device, bw<=0, model without source) all fail loud with offending path. Chained A-B-C path resolves through both links; heterogeneous models preserved end to end.",
+  "examples": ["nvlink2.json", "pcie4.json", "ib8.json"],
+  "gpu_used": false,
+  "cpu_runs": [
+    {"command": "python3 -m pytest tests/test_cluster_spec.py", "result": "15 passed"}
+  ]
+}
