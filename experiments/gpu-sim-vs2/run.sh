@@ -4,7 +4,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$HERE"
 
 # 1. statistic agreement with verdict.py
-python3 check_statistic_agreement.py >/tmp/vs2_agree.log 2>&1
+python3 check_statistic_agreement.py
 echo "statistic agreement: OK"
 
 # 2. recompute each session's spread from its run durations; must match session files
@@ -23,11 +23,10 @@ print("all session spreads recompute OK")
 PY
 
 # 3. regenerate metrics.json into scratch and diff against committed
-python3 build_metrics.py /tmp/vs2_metrics_regen.json >/tmp/vs2_build.log 2>&1
+python3 build_metrics.py /tmp/vs2_metrics_regen.json
 if ! diff -q /tmp/vs2_metrics_regen.json metrics.json >/dev/null; then
     echo "metrics.json mismatch"; diff /tmp/vs2_metrics_regen.json metrics.json | head; exit 1
 fi
 echo "metrics.json recompute matches committed: OK"
 
 echo "DONE"
-chmod +x run.sh && ./run.sh
