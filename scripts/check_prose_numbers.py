@@ -166,7 +166,7 @@ def committed_count(artifacts: list[Path], pattern: str) -> int:
     return total
 
 
-def check_doc(doc: Path) -> list[str]:
+def check_doc(doc: Path, strict: bool = False) -> list[str]:
     findings: list[str] = []
     try:
         rel = str(doc.resolve().relative_to(REPO))
@@ -214,12 +214,29 @@ def check_doc(doc: Path) -> list[str]:
             # A fenced block is a verbatim quotation (e.g. the rejected text this
             # lint was built from). Quotes are not claims.
             continue
+        # Strict proximity: on a table row, only artifacts cited on THAT row count.
+        if strict and line.lstrip().startswith("|"):
+            row_artifacts = []
+            for mm in ARTIFACT_RE.finditer(line):
+                raw = mm.group(0)
+                for base in (doc.parent, REPO):
+                    p = (base / raw).resolve()
+                    if p.is_file() and p not in row_artifacts:
+                        row_artifacts.append(p)
+                        break
+            row_supported = set()
+            for a in row_artifacts:
+                row_supported |= artifact_numbers(a)
+            # if no row citation, fall back to empty -> every claim fires
+            check_supported = row_supported if row_artifacts else set()
+        else:
+            check_supported = supported
         for m in DECIMAL_RE.finditer(line):
             num = m.group(1)
-            if num not in supported:
+            if num not in check_supported:
                 findings.append(
                     f"{rel}:{lineno}: claim {num} does not appear in any cited artifact "
-                    f"({', '.join(str(a.name) for a in artifacts)})"
+                    f"({', '.join(str(a.name) for a in (row_artifacts if (strict and line.lstrip().startswith('|')) else artifacts))})"
                 )
         # Size-aware when the line names a size: '6/6 runs' on a 524288 row must be
         # countable from committed traces FOR THAT SIZE, not from every trace present.
@@ -234,7 +251,10 @@ def check_doc(doc: Path) -> list[str]:
                     f"cannot be checked against committed traces -- state the size"
                 )
                 continue
-            have = sum(committed_count(artifacts, f"trace_S{sz}_*.log") for sz in set(sizes))
+            if strict and line.lstrip().startswith("|"):
+                have = sum(committed_count(row_artifacts, f"trace_S{sz}_*.log") for sz in set(sizes)) if row_artifacts else 0
+            else:
+                have = sum(committed_count(artifacts, f"trace_S{sz}_*.log") for sz in set(sizes))
             if total > have:
                 findings.append(
                     f"{rel}:{lineno}: claims {m.group(0)!r} but only {have} trace file(s) "
@@ -244,12 +264,13 @@ def check_doc(doc: Path) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
+    strict = "--strict" in argv or "--strict-proximity" in argv
     paths = [Path(a) for a in argv if not a.startswith("-")]
     if not paths:
         paths = [p for p in REPO.glob("experiments/*/*.md") if p.name in RESULTS_NAMES]
     findings: list[str] = []
     for p in paths:
-        findings.extend(check_doc(p))
+        findings.extend(check_doc(p, strict=strict))
     for f in findings:
         print(f"FINDING: {f}")
     if findings:

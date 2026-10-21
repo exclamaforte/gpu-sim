@@ -12,16 +12,16 @@ A trace is usable only if it passes the completeness gate **and** both ranks rep
 same byte factor in the same run. There are **2 committed traces per size** (`m1`, `m2`),
 and nothing else is cited.
 
-| S (bytes) | trace | rank0 factor | rank1 factor | gate | usable? |
-|---|---|---|---|---|---|
-| 4096 | m1, m2 | 2.00 | 1.00 | passes | **no — ranks disagree** |
-| 65536 | m1, m2 | — | — | **INVALID** (1.25S) | **no** |
-| 131072 | m1, m2 | — | — | **INVALID** (1.25S) | **no** |
-| 262144 | m1, m2 | — | — | **INVALID** (1.25S) | **no** |
-| 393216 | m1 → 0.83S, m2 → 0.67S | — | — | **INVALID** | **no** |
-| 524288 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
-| 1048576 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
-| 2097152 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
+| S (bytes) | trace | rank0 factor | rank1 factor | gate | usable? | source |
+|---|---|---|---|---|--- | --- |
+| 4096 | m1, m2 | 2.00 | 1.00 | passes | **no — ranks disagree** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S4096_n2_m1.log |
+| 65536 | m1, m2 | — | — | **INVALID** (1.25S) | **no** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S65536_n2_m1.log |
+| 131072 | m1, m2 | — | — | **INVALID** (1.25S) | **no** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S131072_n2_m1.log |
+| 262144 | m1, m2 | — | — | **INVALID** (1.25S) | **no** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S262144_n2_m1.log |
+| 393216 | m1 → 0.83S, m2 → 0.67S | — | — | **INVALID** | **no** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S393216_n2_m1.log |
+| 524288 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S524288_n2_m1.log |
+| 1048576 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S1048576_n2_m1.log |
+| 2097152 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S2097152_n2_m1.log |
 
 **Usable data exists only at 512 KiB and above, and there the per-rank byte factor is
 1.00.** Below 512 KiB there is no usable measurement: 4 KiB passes the gate but the ranks
