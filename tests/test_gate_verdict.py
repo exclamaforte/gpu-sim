@@ -23,6 +23,13 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 VERDICT = os.path.join(HERE, "..", "experiments", "gpu-sim-m3d.10", "verdict.py")
 
+# A committed kill-test log, so the arbiter's "the log must EXIST" check can
+# be exercised in both directions.
+_KILL_LOG = tempfile.NamedTemporaryFile("w", suffix=".log", delete=False)
+_KILL_LOG.write("peer killed mid-collective; bounded error; exit within the deadline\n")
+_KILL_LOG.close()
+KILL_LOG = _KILL_LOG.name
+
 S = 2 << 20
 # Model values from the PI's independent re-admission at 2 MiB
 # (experiments/gpu-sim-m3d.10/admissibility_pi_audit.json).
@@ -35,7 +42,10 @@ M = {
 
 
 def make_metrics(const=5000.0, jitter=0.0, wrong_bytes=False, missing=None,
-                 tracking_ok=True, per_piece=1.5, order=None, runs_per_config=3):
+                 tracking_ok=True, per_piece=1.5, order=None, runs_per_config=3,
+                 no_structural=False, dup_ids=False, no_plugin_line=False,
+                 late_prereg=False, no_compute=False, kill_slow=False,
+                 kill_log_missing=False, kill_unbounded=False, kill_log=None):
     d = {"schema": "m3d.10/gate-metrics/1", "payload_bytes": S,
          "admitted_order": order or ["M1", "M2", "M3", "M4"], "configs": {}}
     for k, v in M.items():
@@ -50,18 +60,44 @@ def make_metrics(const=5000.0, jitter=0.0, wrong_bytes=False, missing=None,
                 "per_rank_bytes": {str(r): (v["bytes"] + 1 if (wrong_bytes and r == 0 and i == 0)
                                             else v["bytes"]) for r in range(v["n"])},
                 "pieces_per_phase_measured": v["P"],
+                "started_at": f"2026-08-22T05:0{i}:00Z",
                 "box_state": {"load_avg": 38.4, "runnable": 21, "processes": ["pi", "python3"]},
             })
-        d["configs"][k] = {
+        cfg = {
             "n": v["n"], "bw_gbps": v["bw"], "latency_us": v["lat"],
             "model": {"duration_s": v["dur"], "pieces_per_phase": v["P"],
                       "bytes_per_rank": v["bytes"], "bw_term_s": v["bwterm"]},
             "runs": runs,
         }
+        if not (no_structural and k == "M3"):
+            ids = {str(r): r for r in range(v["n"])}
+            if dup_ids and k == "M3":
+                ids = {"0": 0, "1": 1, "2": 2, "3": 2}
+            lines = ["NET/Plugin: Loaded net plugin sim", "Assigned NET plugin sim to comm",
+                     "via NET/sim"]
+            if no_plugin_line and k == "M2":
+                lines = ["nothing here"]
+            cfg["structural"] = {"device_count": v["n"], "world_size": v["n"],
+                                 "rank_device_ids": ids, "plugin_log_lines": lines}
+        d["configs"][k] = cfg
     d["artifact"] = {"per_piece_us": per_piece, "per_piece_uncertainty_us": 0.3,
                      "source": "synthetic"}
     d["tracking"] = {"M2": {"measured_diff_us": 804.4 if tracking_ok else 300.0,
                             "model_diff_us": 838.9, "bw_gbps": [100, 25]}}
+    d["preregistration"] = {"timestamp": "2026-08-22T04:00:00Z", "commit": "abc123"}
+    if late_prereg:
+        d["preregistration"]["timestamp"] = "2026-08-22T06:00:00Z"
+    d["compute"] = {"inherited_compute_error": "up to 3.9x on the absolute times",
+                    "cancels_in_difference": True}
+    if no_compute:
+        del d["compute"]
+    d["kill_test"] = {"peer_killed": True, "error_is_bounded": True,
+                      "exit_within_s": 30.0 if kill_slow else 3.2,
+                      "duration_s": 3.2, "log_path": kill_log or KILL_LOG}
+    if kill_log_missing:
+        d["kill_test"]["log_path"] = "/tmp/definitely-not-here-xyz"
+    if kill_unbounded:
+        d["kill_test"]["error_is_bounded"] = False
     return d
 
 
@@ -156,3 +192,43 @@ def test_a_wrong_schema_is_refused():
     d = make_metrics()
     d["schema"] = "something/else"
     assert run_verdict(d).returncode == 2
+
+
+def test_missing_structural_counters_are_refused():
+    # criterion 5: the structural counters are required per config.
+    assert run_verdict(make_metrics(no_structural=True)).returncode == 2
+
+
+def test_duplicate_device_ids_are_refused():
+    # criterion 5: a duplicate rank-to-device id is the 'Duplicate GPU
+    # detected' failure this project has already hit once.
+    assert run_verdict(make_metrics(dup_ids=True)).returncode == 2
+
+
+def test_a_missing_plugin_selection_line_is_refused():
+    # the gate measures the plugin's path, so the artifact must show the plugin
+    # carried it (the gpu-sim-pkb item-10 assertion).
+    assert run_verdict(make_metrics(no_plugin_line=True)).returncode == 2
+
+
+def test_a_run_before_the_preregistration_is_refused():
+    # criterion 3: a protocol written after the runs is not pre-registered.
+    assert run_verdict(make_metrics(late_prereg=True)).returncode == 2
+
+
+def test_a_missing_compute_statement_is_refused():
+    # criterion 8: the inherited compute error must be stated, and marked as
+    # cancelling in the difference.
+    assert run_verdict(make_metrics(no_compute=True)).returncode == 2
+
+
+def test_a_kill_test_outside_the_bound_is_refused():
+    # criterion 6: a killed peer must produce a bounded error and an exit
+    # within 10 s.
+    assert run_verdict(make_metrics(kill_slow=True)).returncode == 2
+    assert run_verdict(make_metrics(kill_unbounded=True)).returncode == 2
+
+
+def test_a_kill_test_log_that_does_not_exist_is_refused():
+    # the log must be COMMITTED, not merely named.
+    assert run_verdict(make_metrics(kill_log_missing=True)).returncode == 2

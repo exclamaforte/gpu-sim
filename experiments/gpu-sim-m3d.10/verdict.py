@@ -69,13 +69,38 @@ refused, not guessed at):
   "artifact": {"per_piece_us": ..., "per_piece_uncertainty_us": ...,
                "source": "..."},
   "tracking": {"M2": {"measured_diff_us": ..., "model_diff_us": ...,
-                      "bw_gbps": [100, 25]}}
+                      "bw_gbps": [100, 25]}},
+  "preregistration": {"timestamp": "2026-08-22T04:00:00Z", "commit": "abc123"},
+  "compute": {"inherited_compute_error": "...", "cancels_in_difference": true},
+  "kill_test": {"peer_killed": true, "error_is_bounded": true,
+                "exit_within_s": 3.2, "duration_s": 3.2, "log_path": "..."}
 }
+
+STRUCTURAL COUNTERS (criterion 5) are required PER CONFIG, in the "structural"
+block: {"device_count": N, "world_size": N, "rank_device_ids": {"0": 0, ...},
+"plugin_log_lines": ["NET/Plugin: Loaded net plugin sim", ...]}. The device count
+and the world size must equal the config's n, the rank-to-device ids must be
+DISTINCT (a duplicate would be the 'Duplicate GPU detected' failure this project
+has already hit once), and the plugin's log lines must contain the three the
+plugin-selection assertion established: "NET/Plugin: Loaded net plugin",
+"Assigned NET plugin" and "via NET/sim" -- the gate measures the plugin's
+path, so the artifact must show the plugin carried it.
+
+THE KILL TEST (criterion 6) is required: a peer killed mid-collective must
+produce a BOUNDED error and an exit within 10 s, with the log committed (the
+arbiver checks the log file EXISTS on disk, not merely that a path was named).
+THE TIMESTAMP CLAUSE (criterion 3) is required: the pre-registration timestamp
+must precede every run's start -- a gate whose protocol was written after the
+runs is not a pre-registered gate, and that is checkable.
+THE COMPUTE STATEMENT (criterion 8) is required: the inherited compute error
+must be stated and must be marked as cancelling in the difference, because the
+absolute durations carry it.
 
 USAGE: verdict.py gate_metrics.json [--json OUT.json]
 EXIT: 0 = PASS, 1 = FAIL (a reported result), 2 = REFUSED (incomplete inputs).
 """
 import json
+import os
 import sys
 
 TOLERANCE_PCT = 35.0
@@ -89,6 +114,9 @@ ARTIFACT_ALLOWANCE_CAP = 0.20
 RUNS_PER_CONFIG = 3
 TRACKING_TOLERANCE_PCT = 10.0
 SCHEMA = "m3d.10/gate-metrics/1"
+KILL_TEST_MAX_EXIT_S = 10.0
+PLUGIN_LOG_REQUIRED = ("NET/Plugin: Loaded net plugin", "Assigned NET plugin",
+                       "via NET/sim")
 
 
 class Refused(Exception):
@@ -153,6 +181,7 @@ def check_config(name, cfg):
         raise Refused(f"{where}.runs must hold exactly {RUNS_PER_CONFIG} runs, "
                       f"got {len(runs) if isinstance(runs, list) else 'a non-list'}")
     durations, pieces, byte_sets, loads = [], [], [], []
+    started = []
     for i, run in enumerate(runs):
         rw = f"{where}.runs[{i}]"
         durations.append(run_duration(run, rw))
@@ -163,6 +192,33 @@ def check_config(name, cfg):
         byte_sets.append({k: int(v) for k, v in prb.items()})
         box = need(run, "box_state", rw)
         loads.append(need_num(box, "load_avg", f"{rw}.box_state"))
+        started.append(need(run, "started_at", rw))
+    # criterion 5: the structural counters, per config.
+    st = need(cfg, "structural", where)
+    st_where = f"{where}.structural"
+    device_count = int(need_num(st, "device_count", st_where))
+    world_size = int(need_num(st, "world_size", st_where))
+    rank_ids = need(st, "rank_device_ids", st_where)
+    if not isinstance(rank_ids, dict) or not rank_ids:
+        raise Refused(f"{st_where}.rank_device_ids is empty")
+    rank_ids = {k: int(v) for k, v in rank_ids.items()}
+    if device_count != world_size:
+        raise Refused(f"{where}: device_count {device_count} != world_size {world_size}")
+    if world_size != n:
+        raise Refused(f"{where}: world_size {world_size} != the config's n {n}")
+    if len(set(rank_ids.values())) != len(rank_ids):
+        raise Refused(f"{st_where}.rank_device_ids has duplicate device ids {rank_ids} "
+                      f"-- that is the 'Duplicate GPU detected' failure")
+    lines = need(st, "plugin_log_lines", st_where)
+    if not isinstance(lines, list) or not lines:
+        raise Refused(f"{st_where}.plugin_log_lines is empty -- the gate measures the "
+                      f"plugin's path, so the artifact must show the plugin carried it")
+    joined = "\n".join(str(x) for x in lines)
+    for needle in PLUGIN_LOG_REQUIRED:
+        if needle not in joined:
+            raise Refused(f"{st_where}.plugin_log_lines does not contain {needle!r} -- "
+                          f"the plugin-selection assertion from gpu-sim-pkb must hold "
+                          f"for every config")
     spread = max(durations) - min(durations)
     median = sorted(durations)[len(durations) // 2]
     # byte factor: EXACT equality per rank, for every run
@@ -180,6 +236,9 @@ def check_config(name, cfg):
         "run_durations_us": durations, "median_us": median, "spread_us": spread,
         "measured_pieces": pieces, "p_agrees": p_ok,
         "byte_agreement": byte_agreement, "load_avg": loads,
+        "started_at": started, "structural": {"device_count": device_count,
+                                              "world_size": world_size,
+                                              "rank_device_ids": rank_ids},
     }
 
 
@@ -221,6 +280,46 @@ def main(argv):
         tracking = need(data, "tracking", "root")
         if not isinstance(tracking, dict) or not tracking:
             raise Refused("tracking must hold at least one two-speed comparison")
+
+        # criterion 3's timestamp clause: the pre-registration must precede
+        # every run. A protocol written after the runs is not pre-registered.
+        prere = need(data, "preregistration", "root")
+        prere_ts = need(prere, "timestamp", "preregistration")
+        need(prere, "commit", "preregistration")
+        for name, r in rows.items():
+            for i, ts in enumerate(r["started_at"]):
+                if str(ts) < str(prere_ts):
+                    raise Refused(f"{name} run {i} started at {ts}, BEFORE the "
+                                  f"pre-registration timestamp {prere_ts}")
+
+        # criterion 8: the inherited compute error must be stated, and marked
+        # as cancelling in the difference, because the absolute durations carry
+        # it while the differences do not.
+        compute = need(data, "compute", "root")
+        need(compute, "inherited_compute_error", "compute")
+        if compute.get("cancels_in_difference") is not True:
+            raise Refused("compute.cancels_in_difference must be true -- the absolute "
+                          "durations carry the inherited compute error and the "
+                          "differences are what the gate compares")
+
+        # criterion 6: the kill test must be present, bounded, and its log
+        # committed (the arbiter checks the file exists, not merely that a path
+        # was named).
+        kill = need(data, "kill_test", "root")
+        if kill.get("peer_killed") is not True:
+            raise Refused("kill_test.peer_killed must be true -- the kill test is "
+                          "part of the gate's definition of done")
+        if kill.get("error_is_bounded") is not True:
+            raise Refused("kill_test.error_is_bounded must be true -- a killed peer "
+                          "must produce a BOUNDED error, not a hang")
+        exit_s = need_num(kill, "exit_within_s", "kill_test")
+        if exit_s > KILL_TEST_MAX_EXIT_S:
+            raise Refused(f"kill_test.exit_within_s {exit_s}s exceeds the "
+                          f"{KILL_TEST_MAX_EXIT_S}s bound")
+        log_path = need(kill, "log_path", "kill_test")
+        if not str(log_path) or not os.path.exists(str(log_path)):
+            raise Refused(f"kill_test.log_path {log_path!r} does not exist -- the "
+                          f"kill test's log must be COMMITTED, not merely named")
 
         # 4a / 4b / 3 / 2, per adjacent pair in the model's order.
         # UNITS: the model speaks SECONDS (predict().duration_s) and the
@@ -379,6 +478,9 @@ def main(argv):
                       "comparable and absolute durations carrying a fixed software-path constant "
                       "that cancels"),
             "failures": failures,
+            "compute": compute,
+            "kill_test": kill,
+            "preregistration": prere,
         }
         if out_path:
             with open(out_path, "w") as f:
