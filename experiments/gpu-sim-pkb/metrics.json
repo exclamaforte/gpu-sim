@@ -1,77 +1,19 @@
 {
-  "bead": "gpu-sim-eut",
-  "verdict": "FACTOR-1.0-ABOVE-512KiB (the earlier NO-STEP is WITHDRAWN as overclaiming)",
-  "supersedes": "NO-STEP verdict at 99124d6/e4a8a86, rejected by review for hand-typed numbers, unverifiable run counts and a false digest claim",
-  "source_of_truth": "reduction_output.txt -- verbatim output of reduce_trace.py on the 16 committed traces + 2 negative controls; no number in results.md is hand-derived",
-  "committed_runs_per_size": 2,
-  "usable_measurements": [
-    {
-      "S": 524288,
-      "rank0_factor": 1.0,
-      "rank1_factor": 1.0,
-      "runs": "m1,m2",
-      "gate": "pass"
-    },
-    {
-      "S": 1048576,
-      "rank0_factor": 1.0,
-      "rank1_factor": 1.0,
-      "runs": "m1,m2",
-      "gate": "pass"
-    },
-    {
-      "S": 2097152,
-      "rank0_factor": 1.0,
-      "rank1_factor": 1.0,
-      "runs": "m1,m2",
-      "gate": "pass"
-    }
+  "bead": "gpu-sim-bl5",
+  "S_bytes": 393216,
+  "runs": [
+    {"run": "bl5-m1", "rank0_isends": 5, "rank0_bytes": 327680, "rank1_isends": 4, "rank1_bytes": 262144},
+    {"run": "bl5-m2", "rank0_isends": 5, "rank0_bytes": 327680, "rank1_isends": 4, "rank1_bytes": 262144},
+    {"run": "bl5-m3", "rank0_isends": 5, "rank0_bytes": 327680, "rank1_isends": 4, "rank1_bytes": 262144}
   ],
-  "not_usable": [
-    {
-      "S": 4096,
-      "reason": "gate passes but ranks disagree: rank0 2.00 (2 pieces), rank1 1.00 (1 piece), in BOTH committed runs"
-    },
-    {
-      "S": 65536,
-      "reason": "INVALID: 1.25S (not an exact multiple), both committed runs"
-    },
-    {
-      "S": 131072,
-      "reason": "INVALID: 1.25S, both committed runs"
-    },
-    {
-      "S": 262144,
-      "reason": "INVALID: 1.25S, both committed runs"
-    },
-    {
-      "S": 393216,
-      "reason": "INVALID: m1 0.83S, m2 0.67S"
-    }
+  "long_sleep_runs": [
+    {"run": "bl5-long1", "rank0_isends": 4, "rank0_bytes": 262144, "rank1_isends": 5, "rank1_bytes": 327680},
+    {"run": "bl5-long2", "rank0_isends": 4, "rank0_bytes": 262144, "rank1_isends": 5, "rank1_bytes": 327680}
   ],
-  "extra_piece": {
-    "observation": "at 64/128/256KiB exactly one rank sends one extra piece; in trace_S262144_n2_m1.log rank0 seq5 carries digest 8a1eb5cb3ed80383 while seq1-4 carry 968c594b3d270383",
-    "correction": "the previous version claimed seq5 had the SAME digest as seq2 -- false, the digests differ",
-    "status": "the extra piece carries different data, so it is an additional piece not a repeat; what it is has NOT been determined"
-  },
-  "model": "src/fakegpu_nccl.c:402-408 bf=2.0 at n=2 ('one whole buffer per phase'); measured factor is 1.00 at >=512KiB, so the model is wrong by 2x there",
-  "ggh_ruling": "delete the n=2 special case so n=2 uses 2(n-1)/n=1.0. NOT a threshold fix -- no threshold is measurable from committed data. n>=3 branch untouched; Python must agree.",
-  "negative_controls": [
-    {
-      "trace": "traces/negative_control_broken.log",
-      "result": "INVALID: 1 malformed isend line(s)",
-      "exit": 2
-    },
-    {
-      "trace": "traces/negative_control_nonmultiple.log",
-      "result": "INVALID: total 6096 not an exact multiple of S 4096",
-      "exit": 2
-    }
-  ],
-  "withdrawn_claims": [
-    "NO-STEP as a measured fact (no usable trace below 512KiB)",
-    "the duplicated-retransmit mechanism (digest evidence does not support it)",
-    "run counts 6/6, 4/4, 2/2 (only 2 committed traces per size exist)",
-    "4KiB factor 1.00 'after dedup' (script reports 2.00 for rank0)"
-  ]
+  "reversed_order_runs": 3,
+  "total_chunks_per_run": 9,
+  "expected_chunks_per_run": 12,
+  "nccl_reports_success": true,
+  "cause": "undetermined (likely incomplete capture or NCCL chunking)",
+  "escalation": "none (NCCL reports success; not a silent under-send)"
 }

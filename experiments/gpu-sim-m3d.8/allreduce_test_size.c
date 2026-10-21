@@ -47,6 +47,6 @@ int main(int argc, char** argv) {
     printf("rank %d allreduce done\n", rank);
     fflush(stdout);
     /* let async isends flush to trace files */
-    usleep(2000000);
+    usleep(5000000);
     _exit(0);
 }
