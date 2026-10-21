@@ -45,9 +45,15 @@ int main(int argc, char** argv) {
     if (r != ncclSuccess) { printf("rank %d allreduce failed: %s\n", rank, ncclGetErrorString(r)); return 2; }
     printf("rank %d allreduce done\n", rank);
     fflush(stdout);
-    /* value correctness check: synchronize so NCCL's async allreduce finishes first */
+    /* value correctness check */
+    fprintf(stderr, "rank %d: about to cudaDeviceSynchronize\n", rank);
+    fflush(stderr);
     cudaDeviceSynchronize();
+    fprintf(stderr, "rank %d: synchronize done, about to copy-back\n", rank);
+    fflush(stderr);
     cudaMemcpy(h, recvbuf, n*sizeof(float), cudaMemcpyDeviceToHost);
+    fprintf(stderr, "rank %d: copy-back done\n", rank);
+    fflush(stderr);
     int bad=0, first=-1; float got=0;
     for (int i=0;i<n;i++){ if (h[i]!=3.0f){ if(first<0){first=i;got=h[i];} bad++; } }
     if (bad==0) printf("rank %d VALUE OK (all %d elements == 3.0)\n", rank, n);

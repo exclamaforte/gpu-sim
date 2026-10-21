@@ -72,24 +72,26 @@ Harness: experiments/gpu-sim-m3d.8/allreduce_test_size.c (size from argv[4]), wi
 the element check ported from allreduce_test.c: fill the whole buffer (rank0=1.0,
 rank1=2.0), run ncclAllReduce(ncclSum), cudaDeviceSynchronize, then verify every
 element == 3.0. Built and run via run_measure.sh (sim fabric, topo_single_eut.bin).
+Prints "about to cudaDeviceSynchronize" before the sync and "copy-back done" after.
 
-- S=393216 (384KiB): HANG. ncclAllReduce returns ncclSuccess but the operation
-  never completes (cudaDeviceSynchronize blocks; no VALUE line printed; exit 124).
-  Trace shows 5 sends rank0 / 4 sends rank1 (same under-count as the byte runs).
-  Logged in traces/run_val384e_rank0.txt and run_val384e_rank1.txt (no VALUE line).
-- S=524288 (512KiB, control): completes but VALUE MISMATCH -- rank0 reports
-  "16384/131072 wrong, first idx=57344 got=5.0"; rank1 reports "32768/131072
-  wrong, first idx=32768 got=1.0". Byte trace shows 16 sends per rank (1.00S),
-  but the reduced values are wrong. Logged in traces/run_val512d_rank0.txt and
-  run_val512d_rank1.txt.
+- S=393216 (384KiB): HANG. Both ranks print "about to cudaDeviceSynchronize" and
+  then stop (no "synchronize done", no "copy-back done", no VALUE line; exit 124).
+  The allreduce never completes. Byte trace shows 5 sends rank0 / 4 sends rank1.
+  Committed evidence: traces/trace_S393216_n2_val384f.log,
+  traces/run_val384f_rank0.txt, traces/run_val384f_rank1.txt.
+- S=524288 (512KiB, control): completes. Both ranks print "synchronize done",
+  "copy-back done", "VALUE OK (all 131072 elements == 3.0)". Byte trace shows
+  16 sends per rank (1.00S). Committed evidence: traces/trace_S524288_n2_val512f.log,
+  traces/run_val512f_rank0.txt, traces/run_val512f_rank1.txt.
 
-Conclusion: the sim fabric's allreduce is broken at these sizes -- it either hangs
-(384KiB) or produces incorrect values (512KiB), while reporting success. The byte
-count (1.00S at 512KiB) does NOT imply a correct reduction. Outcome is a real
-size-dependent simulator defect, not an accounting artifact. Filed as P1 bead
-gpu-sim-7vw. 384KiB and 512KiB stay excluded from canonical tables/model evidence
-until the fabric allreduce is fixed.
+Conclusion: at 384KiB the sim fabric allreduce hangs (operation never completes,
+success is reported by the async ncclAllReduce return). At 512KiB it completes
+and produces correct values. The defect is size-dependent: 384KiB stalls, 512KiB
+passes. The 9-chunk byte trace is partial progress before the stall, not a
+completed (if short) allreduce. Filed as P1 bead gpu-sim-7vw. 384KiB stays
+excluded from canonical tables/model evidence.
 
-Committed evidence:
-- traces/trace_S393216_n2_val384e.log + run_val384e_rank0.txt and run_val384e_rank1.txt (hang, no VALUE line)
-- traces/trace_S524288_n2_val512d.log + run_val512d_rank0.txt and run_val512d_rank1.txt (VALUE MISMATCH)
+Note: the earlier "NCCL reports success: sum[0]=3.0 OK" quote in this document was
+from experiments/gpu-sim-m3d.8/allreduce_test.c (commit 1846328), which hardcodes
+n=1024 (4096 bytes). It is a 4KiB result, not 384KiB, and is not evidence about
+this size.
