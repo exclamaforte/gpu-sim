@@ -448,12 +448,11 @@
     }
   },
   "note": "Admissibility computed from corrected model (8sy). Original ABCD rejected: D->B rel margin 2.3% < 20% (4b).",
-  "gate_verdict": "NO-CLOSE ON RESOLVABILITY",
+  "gate_verdict": "NO-CLOSE: NO CONFIG SET IS ADMISSIBLE ON THIS HARDWARE",
   "gate_grounds": [
-    "G1: resolvability (46ms spread vs 36.2us requirement)",
-    "G2: admissibility (n=4 P unmeasured, refused)"
+    "G1: 4b 10x-spread clause unsatisfiable (36.2 us required, tens of ms available) => set REJECTED pre-run; evidence = ~6.6 ms payload-independent offset, response present but not resolvable",
+    "G2: M3/M4 refused (unmeasured n=4 P, gpu-sim-8ii via 6kp)"
   ],
-  "noise_floor_us": 45985,
   "noise_floor_box": "nproc=2, loadavg ~20-40, ~3274 tasks",
   "max_tolerable_spread_us": 36.2,
   "d_pred_M1M2_us": 362.3,
