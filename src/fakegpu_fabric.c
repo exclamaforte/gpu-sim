@@ -14,6 +14,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sched.h>
+#include <signal.h>
 
 #define FG_FAB_DEFAULT_TIMEOUT_NS (1000000000ULL) /* 1s message wait */
 #define FG_FAB_DEFAULT_ATTACH_TIMEOUT_NS (5000000000ULL) /* 5s attach wait */
@@ -90,6 +91,22 @@ static void fg_atexit_unlink(void) {
     if (fg_atexit_name[0]) shm_unlink(fg_atexit_name);
 }
 
+static void fg_signal_handler(int sig) {
+    if (fg_atexit_name[0]) shm_unlink(fg_atexit_name);
+    _exit(128 + sig);
+}
+
+static void fg_install_signal_handlers(void) {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = fg_signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGHUP, &sa, NULL);
+}
+
 fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks,
                         uint64_t timeout_ns, int *err) {
     if (!run_id || nranks < 1 || rank < 0 || rank >= nranks) {
@@ -127,6 +144,7 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
     if (created) {
         snprintf(fg_atexit_name, sizeof(fg_atexit_name), "%s", f->name);
         atexit(fg_atexit_unlink);
+        fg_install_signal_handlers();
     }
 
     size_t tsz = total_size_for(nranks);
