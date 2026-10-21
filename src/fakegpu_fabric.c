@@ -419,10 +419,11 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
                     double latency_us, double jitter_us) {
     (void)dir;
     if (!f) return FG_FAB_EINVAL;
-    (void)nbytes; (void)bw_gbps; (void)latency_us; (void)jitter_us;
-    /* best-effort: tiny sleep proportional; keep simple */
-    if (latency_us > 0) {
-        usleep((useconds_t)latency_us);
+    if (bw_gbps <= 0.0) return FG_FAB_EINVAL;
+    /* simulated time: n/B + L (+ jitter), applied where bytes cross fabric */
+    double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter_us;
+    if (delay_us > 0) {
+        usleep((useconds_t)delay_us);
     }
     return FG_FAB_OK;
 }

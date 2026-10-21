@@ -6,9 +6,17 @@
 #include <unistd.h>
 
 #include "fakegpu_fabric.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "fakegpu_topology.h"
+#ifdef __cplusplus
+}
+#endif
 #include "nccl_net.h"
 
 static fg_fab_t *FAB = NULL;
+static fg_topo_t *TOPO = NULL;
 /* 2b decider: THREE separate per-entry-point counters (never an aggregate) and
    a per-connection channel id. Counters are reported in the structured trace
    and in metrics.json. */
@@ -33,6 +41,52 @@ typedef struct { int done; size_t size; void *data; int peer; int is_send; int c
 
 /* comm handles */
 typedef struct { int peer; int local; int chan; } sim_comm_t;
+
+
+static fg_topo_t *plugin_topo(void) {
+    if (TOPO) return TOPO;
+    const char *p = getenv("GPUSIM_TOPOLOGY");
+    if (!p || !*p) return NULL;
+    char err[256];
+    fg_topo_t *t = fg_topo_load(p, err, sizeof(err));
+    if (!t) {
+        fprintf(stderr, "plugin: cannot load topology %s: %s\n", p, err);
+        return NULL;
+    }
+    TOPO = t;
+    return TOPO;
+}
+
+/* Resolve the link between src_rank and dst_rank in the loaded topology.
+   Returns 0 on success and fills *link_id, *bw_gbps, *latency_us. */
+static int plugin_resolve_link(int src_rank, int dst_rank, int *link_id,
+                              double *bw_gbps, double *latency_us) {
+    fg_topo_t *t = plugin_topo();
+    if (!t) return -1;
+    fg_topo_rank_t *sr = NULL, *dr = NULL;
+    for (int i = 0; i < t->n_ranks; i++) {
+        if (t->ranks[i].rank == (uint32_t)src_rank) sr = &t->ranks[i];
+        if (t->ranks[i].rank == (uint32_t)dst_rank) dr = &t->ranks[i];
+    }
+    if (!sr || !dr) return -1;
+    int si = fg_topo_dev_index(t, sr->node_idx, sr->dev_id);
+    int di = fg_topo_dev_index(t, dr->node_idx, dr->dev_id);
+    if (si < 0 || di < 0) return -1;
+    for (int i = 0; i < t->n_links; i++) {
+        int a = fg_topo_dev_index(t, t->links[i].a_node, t->links[i].a_dev);
+        int b = fg_topo_dev_index(t, t->links[i].b_node, t->links[i].b_dev);
+        if ((a == si && b == di) || (a == di && b == si)) {
+            if (link_id) *link_id = i;
+            double bw = t->links[i].eff_bw_gbs;
+            if (bw <= 0.0) bw = t->links[i].bw_gbps;
+            if (bw <= 0.0) return -2; /* zero bandwidth -> loud failure */
+            if (bw_gbps) *bw_gbps = bw;
+            if (latency_us) *latency_us = t->links[i].latency_us;
+            return 0;
+        }
+    }
+    return -1; /* missing link */
+}
 
 static void trace(const char *m, const char *extra) {
     const char *p = getenv("GPUSIM_TRACE");
@@ -72,6 +126,15 @@ static ncclResult_t v12_init(void** ctx, uint64_t commId, ncclNetCommConfig_v12_
     if (!FAB) {
         fprintf(stderr, "fabric attach failed: %s\n", fg_fab_errstr(err));
         return ncclSystemError;
+    }
+    /* Per-link timing (gpu-sim-pkb): if a topology spec is supplied it must
+       load and resolve; a missing/bad spec fails loudly here. */
+    const char *tp = getenv("GPUSIM_TOPOLOGY");
+    if (tp && *tp) {
+        if (!plugin_topo()) {
+            fprintf(stderr, "plugin: topology load failed for %s\n", tp);
+            return ncclSystemError;
+        }
     }
     if (ctx) *ctx = &v12_ctx;
     char buf[128]; snprintf(buf, sizeof(buf), "init commId=%llu rank=%d nranks=%d", (unsigned long long)commId, MY_RANK, NRANKS);
@@ -177,6 +240,24 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     sim_comm_t *sc = (sim_comm_t*)sendComm;
     if (size > CAP) return ncclInvalidArgument;
     int slot = -1; unsigned seq = 0;
+    /* Per-link timing (gpu-sim-pkb): resolve the link for this peer. */
+    int link_id = -1;
+    double bw_gbps = 0.0, lat_us = 0.0;
+    int have_link = 0;
+    const char *tp = getenv("GPUSIM_TOPOLOGY");
+    if (tp && *tp) {
+        int rr = plugin_resolve_link(MY_RANK, sc->peer, &link_id, &bw_gbps, &lat_us);
+        if (rr == -2) {
+            fprintf(stderr, "plugin: zero-bandwidth link between rank %d and %d\n", MY_RANK, sc->peer);
+            return ncclSystemError;
+        }
+        if (rr != 0) {
+            fprintf(stderr, "plugin: no link between rank %d and %d\n", MY_RANK, sc->peer);
+            return ncclSystemError;
+        }
+        have_link = 1;
+    }
+
     pthread_mutex_lock(&LOCK);
     int rc = fg_fab_send_x(FAB, sc->peer, data, size, &slot, &seq);
     pthread_mutex_unlock(&LOCK);
@@ -184,6 +265,18 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
         fprintf(stderr, "isend failed: %s\n", fg_fab_errstr(rc));
         return ncclSystemError;
     }
+
+    /* Apply per-link delay where the bytes cross the fabric. */
+    double delay_us = 0.0;
+    if (have_link) {
+        /* per-isend accounting unit: each transfer (isend) pays its own
+           link latency; bandwidth accrues per chunk (per isend). */
+        delay_us = (double)size / (bw_gbps * 125.0) + lat_us;
+        fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, 0.0);
+    }
+    /* no-spec case: no link delay (memcpy speed); GPUSIM_FAB_DELAY_US is NOT
+       applied, so a graph-blind timing cannot creep in (pkb item 3). */
+
     req_t *rq = (req_t*)calloc(1, sizeof(*rq));
     rq->done = 1;
     rq->size = size;
@@ -192,10 +285,16 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     if (request) *request = rq;
     const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
     CNT_ISEND++;
-    char buf[192];
-    snprintf(buf, sizeof(buf),
-             "isend peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx tag=%d dtype=%s cnt_isend=%lu",
-             sc->peer, sc->chan, slot, seq, size, fg_digest(data, size), tag, dt, CNT_ISEND);
+    char buf[256];
+    if (have_link) {
+        snprintf(buf, sizeof(buf),
+                 "isend peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx tag=%d dtype=%s cnt_isend=%lu acct=none link=%d delay_us=%.3f acct=per_isend",
+                 sc->peer, sc->chan, slot, seq, size, fg_digest(data, size), tag, dt, CNT_ISEND, link_id, delay_us);
+    } else {
+        snprintf(buf, sizeof(buf),
+                 "isend peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx tag=%d dtype=%s cnt_isend=%lu acct=none",
+                 sc->peer, sc->chan, slot, seq, size, fg_digest(data, size), tag, dt, CNT_ISEND);
+    }
     trace("v12.isend", buf);
     return ncclSuccess;
 }
@@ -257,10 +356,19 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
         if (done) *done = 1;
         if (sizes) *sizes = (int)got;
         CNT_RECV_DONE++;
-        char buf[192];
-        snprintf(buf, sizeof(buf),
-                 "recv-done peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx consumed_seq=%u cnt_recv_done=%lu",
-                 rq->peer, rq->chan_of_req, slot, seq, got, fg_digest(rq->data, got), consumed, CNT_RECV_DONE);
+        int rlink = -1; double rbw=0, rlat=0;
+        const char *tp = getenv("GPUSIM_TOPOLOGY");
+        if (tp && *tp) plugin_resolve_link(rq->peer, MY_RANK, &rlink, &rbw, &rlat);
+        char buf[256];
+        if (rlink >= 0) {
+            snprintf(buf, sizeof(buf),
+                     "recv-done peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx consumed_seq=%u cnt_recv_done=%lu link=%d",
+                     rq->peer, rq->chan_of_req, slot, seq, got, fg_digest(rq->data, got), consumed, CNT_RECV_DONE, rlink);
+        } else {
+            snprintf(buf, sizeof(buf),
+                     "recv-done peer=%d chan=%d slot=%d seq=%u bytes=%zu digest=%016llx consumed_seq=%u cnt_recv_done=%lu",
+                     rq->peer, rq->chan_of_req, slot, seq, got, fg_digest(rq->data, got), consumed, CNT_RECV_DONE);
+        }
         trace("v12.recv", buf);
         return ncclSuccess;
     }
@@ -332,7 +440,7 @@ static ncclNet_v12_t v12_plugin = {
 static ncclResult_t v12_getDeviceMr(void* comm, void* mhandle, void** dptr) {
     (void)comm;(void)mhandle; if (dptr) *dptr = NULL; return ncclSuccess;
 }
-static ncclResult_t v12_finalize(void* ctx) { (void)ctx; fg_fab_detach(FAB); FAB = NULL; trace("v12.finalize",""); return ncclSuccess; }
+static ncclResult_t v12_finalize(void* ctx) { (void)ctx; fg_fab_detach(FAB); FAB = NULL; if (TOPO) { fg_topo_free(TOPO); TOPO = NULL; } trace("v12.finalize",""); return ncclSuccess; }
 
 /* rebuild struct with correct pointers via constructor? Use manual assignment in init? Instead define after functions. */
 /* We'll use a global initializer function instead. */

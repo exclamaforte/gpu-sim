@@ -1,0 +1,24 @@
+{
+  "plugin_isend_count": 4,
+  "plugin_bytes_per_rank": {
+    "1": 8192,
+    "0": 8192
+  },
+  "plugin_links": [
+    "0"
+  ],
+  "model_bytes_per_link": {
+    "0": 16384
+  },
+  "model_total_bytes": 16384,
+  "model_duration_s": 1.65536e-05,
+  "model_regime": "latency",
+  "accounting_unit": "per_isend",
+  "acct_note": "each isend pays its own link latency (n/B + L per isend); bandwidth accrues per chunk",
+  "candidate_accountings": {
+    "per_isend": "plugin charges n_chunk/B + L per isend; model latency factor scaled by pieces-per-phase",
+    "per_logical_transfer": "plugin charges n_chunk/B per isend plus L once per logical phase; keeps model per-phase alpha"
+  },
+  "distortion_note": "per-isend charge inflates M2->M3 adjacent delta by 22.9% of gate 35% budget (PI analysis); per-logical-transfer keeps model per-phase alpha",
+  "negative_control": "missing/zero-bw link returns -1/-2 and run fails loudly (tested separately)"
+}

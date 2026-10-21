@@ -10,8 +10,10 @@ FABRIC_INC="$REPO/include"
 mkdir -p "$HERE/build"
 # compile fabric as C
 gcc -c -O2 -g -fPIC -I"$FABRIC_INC" "$FABRIC_SRC" -o "$HERE/build/fabric.o"
+# compile topology as C (pkb: plugin resolves per-peer link from the spec)
+gcc -c -O2 -g -fPIC -I"$FABRIC_INC" "$REPO/src/fakegpu_topology.c" -o "$HERE/build/topology.o"
 # compile plugin as C++
 g++ -shared -fPIC -O2 -g -std=c++20 -Wall -I"$VENDOR" -I"$NCCL_INC" -I"$CUDA_INC" -I"$FABRIC_INC" \
-    "$HERE/src/ncclnetsim_fabric.c" "$HERE/build/fabric.o" -o "$HERE/build/libncclNetSimFab.so" -lpthread
+    "$HERE/src/ncclnetsim_fabric.c" "$HERE/build/fabric.o" "$HERE/build/topology.o" -o "$HERE/build/libncclNetSimFab.so" -lpthread
 echo "built libncclNetSimFab.so"
 nm -D "$HERE/build/libncclNetSimFab.so" | grep -i "ncclNetPlugin"
