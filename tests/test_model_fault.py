@@ -161,6 +161,17 @@ def test_refusal_unchanged():
         pass
     print("PASS test_refusal_unchanged")
 
+def test_loss_ppm_p_ge_1_refusal():
+    """p>=1 (loss_ppm>=1e6) is a declared refusal, not a silent skip."""
+    spec = uniform_spec(2, 10.0, 10.0, loss_ppm=1000000)
+    try:
+        predict(spec, "ring_allreduce", 1000, "float32")
+        print("FAIL: should have raised")
+        assert False
+    except ValueError:
+        pass
+    print("PASS test_loss_ppm_p_ge_1_refusal")
+
 def test_route_agreement_categorical():
     """AC4: model predicts categorical outcome matching plugin codes (3 settings)."""
     # Setting 1: no fault -> completes
@@ -182,6 +193,54 @@ def test_route_agreement_categorical():
 
     print("PASS test_route_agreement_categorical (3 settings)")
 
+def test_cross_route_loss_refusal():
+    """Cross-route: p>=1 spec -> both Python and C refuse (not fault-free)."""
+    # Python side
+    spec = uniform_spec(2, 10.0, 10.0, loss_ppm=1000000)
+    try:
+        predict(spec, "ring_allreduce", 1000, "float32")
+        print("FAIL: Python should have raised")
+        assert False
+    except ValueError:
+        pass
+    # C side: fg_nccl_predict returns FG_NCCL_REFUSED for loss_ppm>=1e6
+    # (verified by C test in test_nccl_refusal.c)
+    print("PASS test_cross_route_loss_refusal (Python refuses; C refuses per test_nccl_refusal.c)")
+
+
+
+def test_cross_route_ctypes():
+    """Cross-route via ctypes: C fg_nccl_predict returns FG_NCCL_REFUSED for p>=1 spec."""
+    import ctypes
+    lib = ctypes.CDLL("./libfakegpu.so")
+    lib.fg_nccl_predict.restype = ctypes.c_double
+    lib.fg_nccl_predict.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t,
+        ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int),
+        ctypes.c_char_p, ctypes.c_size_t]
+    # Use fg_topo_load from C
+    lib.fg_topo_load.restype = ctypes.c_void_p
+    lib.fg_topo_load.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_size_t]
+    errbuf = ctypes.create_string_buffer(256)
+    topo = lib.fg_topo_load(b"tests/topo_p1.bin", errbuf, 256)
+    assert topo, errbuf.value
+    bl = ctypes.c_int(-1)
+    regime = ctypes.create_string_buffer(64)
+    pred = lib.fg_nccl_predict(topo, b"ring_allreduce", 1000, 0, 2,
+                               ctypes.byref(bl), regime, 64)
+    assert pred == -1.0, ("C returned %f, expected -1.0 (FG_NCCL_REFUSED)" % pred)
+    print("PASS test_cross_route_ctypes (C returns FG_NCCL_REFUSED=%.1f)" % pred)
+
+    # Python side: same spec raises ValueError
+    spec = uniform_spec(2, 10.0, 10.0, loss_ppm=1000000)
+    try:
+        predict(spec, "ring_allreduce", 1000, "float32")
+        print("FAIL: Python should have raised")
+        assert False
+    except ValueError:
+        pass
+    print("PASS test_cross_route_ctypes (Python raises ValueError)")
+
 if __name__ == "__main__":
     test_loss_factor_closed_form()
     test_loss_factor_derived_not_hardcoded()
@@ -191,5 +250,8 @@ if __name__ == "__main__":
     test_bins_convergence()
     test_deadline_exceed_enum_2x_fails()
     test_refusal_unchanged()
+    test_loss_ppm_p_ge_1_refusal()
+    test_cross_route_loss_refusal()
     test_route_agreement_categorical()
+    test_cross_route_ctypes()
     print("ALL MODEL FAULT TESTS PASS")

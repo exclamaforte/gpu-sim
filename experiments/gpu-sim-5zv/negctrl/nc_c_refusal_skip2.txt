@@ -1,0 +1,48 @@
+bash tests/assert_build_inputs_tracked.sh
+  ok   src/fakecuda.c tracked
+  ok   src/fakegpu_config.c tracked
+  ok   src/fakegpu_cuda.c tracked
+  ok   src/fakegpu_fabric.c tracked
+  ok   src/fakegpu_latency.c tracked
+  ok   src/fakegpu_nccl.c tracked
+  ok   src/fakegpu_pool.c tracked
+  ok   src/fakegpu_random.c tracked
+  ok   src/fakegpu_topology.c tracked
+  ok   include/fakegpu.h tracked
+  ok   shim/cuda_runtime.h tracked
+  ok   shim/nccl.h tracked
+  ok   tests/fake_client.c tracked
+  ok   tests/vector_add.c tracked
+  ok   tests/ring_allreduce.c tracked
+  ok   tests/test_cudart_none.cu tracked
+  ok   tests/test_cudart_none.sh tracked
+  ok   tests/test_device_prop_overlay.cu tracked
+  ok   tests/test_shim_prop_size.c tracked
+  ok   tests/test_resolver_attach.c tracked
+
+BUILD INPUTS GUARD PASSED: all 20 build inputs are tracked.
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -I/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include -c -o src/fakegpu_nccl.o src/fakegpu_nccl.c
+src/fakegpu_nccl.c: In function ‘fg_nccl_predict’:
+src/fakegpu_nccl.c:408:16: warning: unused variable ‘chunk_bytes’ [-Wunused-variable]
+  408 |         double chunk_bytes = chunk * (double)S;
+      |                ^~~~~~~~~~~
+cc -shared -lm -o libfakegpu.so src/fakegpu_config.o src/fakegpu_random.o src/fakegpu_pool.o src/fakegpu_latency.o src/fakegpu_cuda.o src/fakegpu_nccl.o src/fakegpu_topology.o -ldl -lpthread
+PASS test_loss_factor_closed_form
+PASS test_loss_factor_derived_not_hardcoded
+PASS test_jitter_mean_sd
+PASS test_deadline_exceed_prob
+PASS test_deadline_exceed_binned_convolution (model=0.478 brute=0.500)
+PASS test_bins_convergence (drift=0.0000)
+PASS test_deadline_exceed_enum_2x_fails
+PASS test_refusal_unchanged
+PASS test_loss_ppm_p_ge_1_refusal
+PASS test_cross_route_loss_refusal (Python refuses; C refuses per test_nccl_refusal.c)
+PASS test_route_agreement_categorical (3 settings)
+ALL MODEL FAULT TESTS PASS
+src/fakegpu_nccl.c: In function ‘fg_nccl_predict’:
+src/fakegpu_nccl.c:408:16: warning: unused variable ‘chunk_bytes’ [-Wunused-variable]
+  408 |         double chunk_bytes = chunk * (double)S;
+      |                ^~~~~~~~~~~
+fg_nccl_predict (loss_ppm=1e6): pred=0.0 (expect FG_NCCL_REFUSED=-1.0) regime=latency
+FAIL: C model did not refuse
+make: *** [Makefile:65: check] Error 1

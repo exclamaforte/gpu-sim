@@ -7,13 +7,13 @@
  * based on size (via the bandwidth or fixed memcpy model).
  */
 #include "fakegpu.h"
+#include "fakegpu_nccl.h"
 #include "nccl.h"
 #include "fakegpu_topology.h"
 #include "fakegpu_fabric.h"
 #include <math.h>
 
 /* Named refusal: model has no measured P for this (n, S); not a duration. */
-#define FG_NCCL_REFUSED (-1.0)
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -282,7 +282,7 @@ static int fg_shortest_path(const fg_topo_t *t, int src, int dst, int *out, int 
     return ok ? 0 : -1;
 }
 
-static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int datatype, int nranks, int *bottleneck_link, char *regime, size_t regimesz) {
+double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int datatype, int nranks, int *bottleneck_link, char *regime, size_t regimesz) {
     if (nranks <= 1) { *bottleneck_link = -1; snprintf(regime, regimesz, "bandwidth"); return 0.0; }
     int n = nranks;
     int *rank_dev = calloc(n, sizeof(int));
@@ -388,6 +388,11 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
         lat_term = logn * alpha_s * (double)P_tree;
         dur = bw_term + lat_term;
         /* fault: loss factor (gpu-sim-5zv) - use first link's loss_ppm */
+        if (t->n_links > 0 && t->links[0].loss_ppm >= 1000000) {
+            *bottleneck_link = -1;
+            if (regime && regimesz) snprintf(regime, regimesz, "refused");
+            return FG_NCCL_REFUSED;
+        }
         if (t->n_links > 0 && t->links[0].loss_ppm > 0 && t->links[0].loss_ppm < 1000000) {
             double _p = t->links[0].loss_ppm / 1e6;
             dur = bw_term * (1.0 / (1.0 - _p)) + lat_term;
@@ -425,6 +430,11 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
             if (worst < nedges && edge_pathlen[worst] > 0) {
                 int _li = edge_paths[worst][0];
                 if (_li >= 0 && _li < t->n_links) _loss_ppm = (int)t->links[_li].loss_ppm;
+            }
+            if (_loss_ppm >= 1000000) {
+                *bottleneck_link = -1;
+                if (regime && regimesz) snprintf(regime, regimesz, "refused");
+                return FG_NCCL_REFUSED;
             }
             if (_loss_ppm > 0 && _loss_ppm < 1000000) {
                 double _p = _loss_ppm / 1e6;
