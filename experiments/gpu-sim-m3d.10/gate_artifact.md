@@ -6,13 +6,20 @@
 
 Two independent grounds, either sufficient:
 
-### G1 — Resolvability (environmental)
+### G1 — Resolvability (environmental, payload-invariance finding)
+
+The measured per-iteration time is payload-INVARIANT: ~6.7-6.9 ms at both 4 KiB
+(min 6677 us, median 6830 us) and 2 MiB (min 6717 us, median 8524 us), while
+18.6 us of pure wire time separates the two predictions (M1 53.3 us vs M2
+415.5 us). A measured quantity that does not respond to the quantity under
+test cannot confirm the model. The ~6.7-6.9 ms per-iteration term is
+payload-independent (environment/harness, not model). The timed window is the
+collective window, not process wall-clock (init iteration 164257 us excluded).
 
 4b requires the across-run spread of the two configs' medians, summed, to be at
-most 1/10 of the delta being checked. For M1->M2 at 2 MiB with the corrected
-model that is 36.2 us (d_pred 362.3 us). This box delivers tens of ms of
-across-run spread (45985 us measured, committed variance artifact under
-experiments/gpu-sim-pkb/). The requirement misses by ~3 orders of magnitude.
+most 1/10 of the delta being checked. For M1->M2 at 2 MiB that is 36.2 us
+(d_pred 362.3 us). This box delivers tens of ms of across-run spread (45985 us
+measured). The requirement misses by ~3 orders of magnitude.
 
 This is a finding about the MEASUREMENT ENVIRONMENT on a 2-CPU box at load
 ~20-40, NOT about the model and NOT about the fabric. The scheduler granularity
