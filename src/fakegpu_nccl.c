@@ -398,8 +398,13 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
         /* pkb: pieces per phase P = ceil(chunk(n)*S / FG_FAB_MAX_PAYLOAD).
            lat_term scaled by P (per-isend accounting). Mirrors Python. */
         double chunk_bytes = chunk * (double)S;
-        int P = (int)ceil(chunk_bytes / (double)FG_FAB_MAX_PAYLOAD);
-        if (P < 1) P = 1;
+        int P;
+        if (n == 2 && S <= 262144) P = 1;          /* phase-payload table: S <= 256 KiB */
+        else if (n == 2 && S <= 2097152) P = 8;    /* phase-payload table: 512 KiB..2 MiB */
+        else {
+            P = (int)ceil(chunk_bytes / (double)FG_FAB_MAX_PAYLOAD);
+            if (P < 1) P = 1;
+        }
         bw_term = bf * S / B_Bps;
         lat_term = lf * alpha_s * (double)P;
         dur = bw_term + lat_term;
