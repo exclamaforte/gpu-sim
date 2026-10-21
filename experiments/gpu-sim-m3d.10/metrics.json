@@ -503,5 +503,13 @@
   "g1_granularity_ratio": "~200x",
   "noise_floor_note": "PROXY, not 9(a) protocol: max-min over 5 iterations at 2 MiB, one config, one run reached 52702 us. The 4641 s timer artifact (raw/iters_4k.log) is EXCLUDED. 9(a) protocol (3 runs/config, median, max-min) was NOT executed.",
   "noise_floor_proxy_us": 45985,
-  "c_fixed_cancellation": "c_fixed cancels EXACTLY in M1->M2 (both n=2, 16 pieces/rank). Artifact share of admitted delta: 0 us / 0%. 20% cap applies only to cross-class deltas, none admitted."
+  "c_fixed_cancellation": "c_fixed cancels EXACTLY in M1->M2 (both n=2, 16 pieces/rank). Artifact share of admitted delta: 0 us / 0%. 20% cap applies only to cross-class deltas, none admitted.",
+  "schema": "m3d.10/gate-admissibility/1",
+  "what_was_not_done": [
+    "NO GATE RUN",
+    "NO MEASURED DELTAS",
+    "NO 3-RUN PER-CONFIG PROTOCOL",
+    "NO GPU RUN",
+    "NO ORDERING OBSERVED"
+  ]
 }

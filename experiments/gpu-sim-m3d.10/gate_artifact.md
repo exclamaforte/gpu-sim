@@ -52,6 +52,23 @@ four at 2 MiB. That measurement is gpu-sim-8ii, blocked by the 6kp interposer
 increment. The config set is NOT YET ADMITTED, and the refusal appears here as
 a refusal with its reason, never as an estimate.
 
+## Verdict script output (quoted, not restated)
+
+The following is the verbatim output of `verdict.py` (PI-written, landed at f1c3635),
+run against the committed metrics.json:
+
+```
+VERDICT: NO-CLOSE-ADMISSIBILITY -- no config set is admissible here, so the gate was not run. A reported result, not a refusal.
+```
+
+Machine-readable: `experiments/gpu-sim-m3d.10/verdict_out.json`:
+- verdict: NO-CLOSE-ADMISSIBILITY
+- gate_ran: false
+- violation_factor: 1270.3
+- grounds: G1 (4b unsatisfiable), G2 (M3/M4 refused)
+
+Exit code: 1 (failing verdict, a real reported result).
+
 ## Corrected per-pair predictions (P_actual chunk rule, master state)
 
 Config set: mixed (M1, M2, M3, M4) at S = 2 MiB, admitted at 32 MiB and
