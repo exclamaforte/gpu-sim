@@ -222,9 +222,14 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     """Predicted duration for a collective.
 
     pieces_per_phase (P): number of fabric pieces per logical phase per rank.
-    If None (default), P is DERIVED from chunk(n)*S/FG_FAB_MAX_PAYLOAD, matching
-    the C model (src/fakegpu_nccl.c). Pass an int to override (recorded in
-    the result as pieces_per_phase_override=True).
+    If None (default), P is LOOKED UP from the measured phase-payload table
+    (experiments/gpu-sim-pkb/phase_payload_table.md), not derived from the
+    fabric's 1 MiB payload cap. For n=2 the measured entries are: 1 at S<=4 KiB,
+    4 at 64 KiB <= S <= 256 KiB, 8 at 512 KiB <= S <= 2 MiB. For n>=3 the
+    table is unmeasured and _derived_pieces_per_phase raises ValueError (a
+    refusal, not a derived number); callers must pass pieces_per_phase explicitly
+    or the model refuses. Pass an int to override (recorded in the result as
+    pieces_per_phase_override=True).
     With per-isend accounting (pkb candidate A, the operating model), each
     piece pays the link latency, so the latency term scales by P. P depends on
     payload size and the fabric's 1 MiB payload cap (a SIMULATOR constant), so

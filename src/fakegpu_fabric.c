@@ -563,18 +563,17 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
 /* Register a buffer in the shared pool. Returns offset (>0) on success. */
 size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size) {
     if (!f || !buf || size == 0 || size > FG_FAB_MAX_PAYLOAD) return 0;
+    /* round up to 8 so the pool stays aligned without a separate (racy) add */
+    size_t aligned = (size + 7) & ~(size_t)7;
     size_t cur = atomic_load_explicit(&f->hdr->reg_pool_used, memory_order_relaxed);
-    if (cur + size > FG_FAB_REG_POOL_SIZE) return 0; /* out of pool space */
-    size_t off = atomic_fetch_add_explicit(&f->hdr->reg_pool_used, size, memory_order_relaxed);
-    if (off + size > FG_FAB_REG_POOL_SIZE) {
+    if (cur + aligned > FG_FAB_REG_POOL_SIZE) return 0; /* out of pool space */
+    size_t off = atomic_fetch_add_explicit(&f->hdr->reg_pool_used, aligned, memory_order_relaxed);
+    if (off + aligned > FG_FAB_REG_POOL_SIZE) {
         /* overflow: undo the reservation */
-        atomic_fetch_sub_explicit(&f->hdr->reg_pool_used, size, memory_order_relaxed);
+        atomic_fetch_sub_explicit(&f->hdr->reg_pool_used, aligned, memory_order_relaxed);
         return 0;
     }
     memcpy((char *)f->reg_pool + off, buf, size);
-    /* align to 8 bytes (atomic) */
-    size_t used = atomic_load_explicit(&f->hdr->reg_pool_used, memory_order_relaxed);
-    if (used % 8) atomic_fetch_add_explicit(&f->hdr->reg_pool_used, 8 - (used % 8), memory_order_relaxed);
     return off + 1; /* +1 so 0 means "not registered" */
 }
 
