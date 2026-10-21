@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
     if (r != ncclSuccess) { printf("rank %d allreduce failed: %s\n", rank, ncclGetErrorString(r)); return 2; }
     printf("rank %d allreduce done\n", rank);
     fflush(stdout);
-    /* value correctness check */
+    /* value correctness check: synchronize so NCCL's async allreduce finishes first */
+    cudaDeviceSynchronize();
     cudaMemcpy(h, recvbuf, n*sizeof(float), cudaMemcpyDeviceToHost);
     int bad=0, first=-1; float got=0;
     for (int i=0;i<n;i++){ if (h[i]!=3.0f){ if(first<0){first=i;got=h[i];} bad++; } }

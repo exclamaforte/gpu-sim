@@ -1,4 +1,4 @@
-Cross-bead citations: experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m1-1792601705.log experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m2-1792601716.log experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m3-1792601721.log
+Cross-bead citations: experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m1-1792601705.log experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m2-1792601716.log experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m3-1792601721.log experiments/gpu-sim-bl5/metrics.json
 
 # gpu-sim-bl5: S=384KiB (393216 bytes) under-send investigation
 
@@ -21,8 +21,11 @@ Reversed start order (rank 0 first, bl5-rev1/rev2/rev3): the asymmetry FLIPS whi
 rank gets 5 vs 4, but the totals (5+4=9 chunks) are identical. Total per run is
 stable at 9 chunks = 589824 bytes = 1.5S, vs 12 chunks = 786432 expected.
 
-NCCL reports success in every run: "rank 0 allreduce sum[0]=3.0 (expect 3.0) OK"
-and "rank 1 allreduce sum[0]=3.0 (expect 3.0) OK".
+NOTE: an earlier draft quoted "rank 0 allreduce sum[0]=3.0 (expect 3.0) OK".
+That line is produced by experiments/gpu-sim-m3d.8/allreduce_test.c (commit 1846328),
+which hardcodes n=1024 (4096 bytes) and verifies every element. It is a 4KiB result,
+not 384KiB, and is not evidence about this size. Cited only as proof that the sim
+fabric reduces correctly at small sizes.
 
 ## Findings
 
@@ -63,18 +66,30 @@ bl5-m1/m2/m3 all agree (5/4 chunks). Reversed runs agree on totals (9 chunks).
 Long sleep did not change counts.
 EOF
 echo written
-## ESCALATION UPDATE (decisive value test)
+## Value-correctness experiment (decisive)
 
-The byte-count analysis above is superseded. A value-correctness test (fill rank0=1.0, rank1=2.0, expect 3.0 on all elements) gives:
+Harness: experiments/gpu-sim-m3d.8/allreduce_test_size.c (size from argv[4]), with
+the element check ported from allreduce_test.c: fill the whole buffer (rank0=1.0,
+rank1=2.0), run ncclAllReduce(ncclSum), cudaDeviceSynchronize, then verify every
+element == 3.0. Built and run via run_measure.sh (sim fabric, topo_single_eut.bin).
 
-- S=393216 (384KiB): ncclAllReduce returns ncclSuccess but the operation NEVER
-  completes (cudaMemcpy blocks forever). Both ranks hang. This is "success reported
-  for incomplete work" -- the escalation case.
-- S=524288 (512KiB, control): VALUE OK on both ranks (all elements == 3.0).
+- S=393216 (384KiB): HANG. ncclAllReduce returns ncclSuccess but the operation
+  never completes (cudaDeviceSynchronize blocks; no VALUE line printed; exit 124).
+  Trace shows 5 sends rank0 / 4 sends rank1 (same under-count as the byte runs).
+  Logged in traces/run_val384e_rank0.txt and run_val384e_rank1.txt (no VALUE line).
+- S=524288 (512KiB, control): completes but VALUE MISMATCH -- rank0 reports
+  "16384/131072 wrong, first idx=57344 got=5.0"; rank1 reports "32768/131072
+  wrong, first idx=32768 got=1.0". Byte trace shows 16 sends per rank (1.00S),
+  but the reduced values are wrong. Logged in traces/run_val512d_rank0.txt and
+  run_val512d_rank1.txt.
 
-Outcome (a): real size-dependent simulator defect. The 9-chunk trace was partial
-progress before the hang, not a completed (if short) allreduce. 384KiB stays
-excluded from canonical tables. Filed as P1 bead gpu-sim-7vw.
+Conclusion: the sim fabric's allreduce is broken at these sizes -- it either hangs
+(384KiB) or produces incorrect values (512KiB), while reporting success. The byte
+count (1.00S at 512KiB) does NOT imply a correct reduction. Outcome is a real
+size-dependent simulator defect, not an accounting artifact. Filed as P1 bead
+gpu-sim-7vw. 384KiB and 512KiB stay excluded from canonical tables/model evidence
+until the fabric allreduce is fixed.
 
-The earlier "no silent under-send" conclusion was wrong: a chunk count cannot see
-whether data moved. The decisive test is value correctness.
+Committed evidence:
+- traces/trace_S393216_n2_val384e.log + run_val384e_rank0.txt and run_val384e_rank1.txt (hang, no VALUE line)
+- traces/trace_S524288_n2_val512d.log + run_val512d_rank0.txt and run_val512d_rank1.txt (VALUE MISMATCH)

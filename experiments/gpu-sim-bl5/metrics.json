@@ -43,11 +43,14 @@
   "reversed_order_runs": 3,
   "total_chunks_per_run": 9,
   "expected_chunks_per_run": 12,
-  "nccl_reports_success": true,
+  "nccl_reports_success": "misleading: ncclAllReduce returns ncclSuccess but operation fails (hang or wrong data)",
   "cause": "undetermined (likely incomplete capture or NCCL chunking)",
-  "escalation": "YES - silent under-send: S=393216 reports success but never completes (hang). P1 bead gpu-sim-7vw filed.",
+  "escalation": "YES - real size-dependent simulator defect: 384KiB hangs, 512KiB reduces incorrectly, both report success. P1 bead gpu-sim-7vw.",
   "value_test": {
-    "S_393216": "HANG (success reported, never completes)",
-    "S_524288": "VALUE OK both ranks"
+    "harness": "allreduce_test_size.c with element check ported from allreduce_test.c (cudaDeviceSynchronize before cudaMemcpy)",
+    "S_393216": "HANG (ncclAllReduce returns success, cudaDeviceSynchronize blocks, no VALUE line)",
+    "S_524288": "VALUE MISMATCH (rank0 16384/131072 wrong first idx=57344 got=5.0; rank1 32768/131072 wrong first idx=32768 got=1.0)",
+    "byte_trace_384": "5 sends rank0 / 4 sends rank1 (same under-count)",
+    "byte_trace_512": "16 sends per rank (1.00S) but values wrong"
   }
 }
