@@ -1,0 +1,37 @@
+{
+  "source": "experiments/gpu-sim-pkb/phase_payload_table.md (measured)",
+  "n": 2,
+  "rows": [
+    {
+      "S": 4096,
+      "pieces_per_phase": 1,
+      "chunk_bytes": 4096
+    },
+    {
+      "S": 65536,
+      "pieces_per_phase": 4,
+      "chunk_bytes": 16384
+    },
+    {
+      "S": 262144,
+      "pieces_per_phase": 4,
+      "chunk_bytes": 65536
+    },
+    {
+      "S": 524288,
+      "pieces_per_phase": 8,
+      "chunk_bytes": 32768
+    },
+    {
+      "S": 1048576,
+      "pieces_per_phase": 8,
+      "chunk_bytes": 65536
+    },
+    {
+      "S": 2097152,
+      "pieces_per_phase": 8,
+      "chunk_bytes": 131072
+    }
+  ],
+  "note": "P is the number of NCCL chunks (isends) per phase per direction at n=2; the chunk COUNT is constant at 8 for S>=524288 while the chunk SIZE grows with S; the phase payload is S for S<=262144 and S/2 for S>=524288."
+}

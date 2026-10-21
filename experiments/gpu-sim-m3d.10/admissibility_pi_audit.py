@@ -80,18 +80,46 @@ def chunk_fraction(n):
     return 1.0 if n == 2 else (n - 1) / n
 
 
-def derived_p(n, S):
-    """pieces per phase, derived exactly as the C model derives it.
+def load_measured_p():
+    """The MEASURED pieces-per-phase table (n=2), extracted from the
+    implementer's committed phase-payload table.
 
-    The arithmetic is deliberately IDENTICAL to src/fakegpu_nccl.c: the chunk
-    is multiplied by S first and divided by the cap second, and the ceil is
-    taken with NO epsilon. An earlier version subtracted 1e-9 before the ceil
-    to absorb floating-point noise, which the reviewer's audit rightly flagged
-    as a way for this script and the C model to disagree by one piece in an
-    edge case -- and the point of a cross-check is that it agrees exactly.
+    THE MODEL'S P WAS WRONG, and this script used to make the same mistake:
+    it derived P from the FABRIC'S PAYLOAD CAP, while the actual piece count
+    is set by NCCL'S OWN CHUNKING. At 2 MiB the measurement is 8 chunks per
+    phase, not 2 -- a four-fold undercount, so the latency term was four
+    times too small. The reviewer's audit found it, and the table that
+    exposed it is the source of truth here.
     """
-    chunk_bytes = chunk_fraction(n) * float(S)
-    return max(1, int(math.ceil(chunk_bytes / float(CAP))))
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "phase_payload_p.json")
+    with open(path) as f:
+        raw = json.load(f)
+    return {(int(r["S"]), int(raw["n"])): int(r["pieces_per_phase"])
+            for r in raw["rows"]}
+
+
+MEASURED_P = load_measured_p()
+
+
+def derived_p(n, S):
+    """pieces per phase, from the MEASURED table.
+
+    A combination the table does not cover is REFUSED, not guessed: the
+    cap-based derivation this replaced is known to be wrong (it is the
+    four-fold undercount the review found), and an unmeasured combination
+    has no defensible P. The same discipline the gate's arbiter uses on
+    missing inputs, applied here to a model's inputs.
+    """
+    key = (int(S), int(n))
+    if key in MEASURED_P:
+        return MEASURED_P[key]
+    raise SystemExit(
+        f"REFUSED: no MEASURED pieces-per-phase for n={n}, S={S}. The table "
+        f"covers {sorted(set(k[0] for k in MEASURED_P))} at n="
+        f"{sorted(set(k[1] for k in MEASURED_P))}. Measure it (the phase-payload "
+        f"table) rather than deriving it: the cap-based derivation is known "
+        f"to undercount the piece count by four at 2 MiB.")
 
 
 def row(n, bw, lat, S):
@@ -130,7 +158,22 @@ def row(n, bw, lat, S):
 
 
 def evaluate(S):
-    rows = {k: row(*v, S) for k, v in CONFIGS.items()}
+    rows = {}
+    refused = {}
+    for k, v in CONFIGS.items():
+        try:
+            rows[k] = row(*v, S)
+        except SystemExit as e:
+            # A config with no MEASURED pieces-per-phase is REFUSED, not
+            # estimated: the cap-based derivation is known to undercount the
+            # piece count by four at 2 MiB, so an unmeasured config has no
+            # defensible prediction and must not appear as if it had one.
+            refused[k] = str(e)
+    if not rows:
+        return {"payload_bytes": S, "predicted_order": [], "configs": {},
+                "pairs": [], "refused_configs": refused,
+                "all_pairs_admissible": False,
+                "admitted": False}
     order = sorted(rows, key=lambda k: rows[k]["model_duration_s"])
     pairs = []
     for a, b in zip(order, order[1:]):
@@ -151,8 +194,13 @@ def evaluate(S):
             "max_tolerable_spread_us": d_pred * 1e6 / 10.0,
         })
     return {"payload_bytes": S, "predicted_order": order, "configs": rows, "pairs": pairs,
-            "all_pairs_admissible": all(p["passes_4a"] and p["passes_4b_absolute_100us"]
-                                        and p["passes_4b_relative_20pct"] for p in pairs)}
+            "refused_configs": refused,
+            "all_pairs_admissible": bool(pairs) and all(
+                p["passes_4a"] and p["passes_4b_absolute_100us"]
+                and p["passes_4b_relative_20pct"] for p in pairs),
+            "admitted": (not refused) and bool(pairs) and all(
+                p["passes_4a"] and p["passes_4b_absolute_100us"]
+                and p["passes_4b_relative_20pct"] for p in pairs)}
 
 
 def main():
@@ -178,6 +226,9 @@ def main():
             print(f"   {k}: n={c['n']} P={c['pieces_per_phase_P']} pieces/rank={c['pieces_per_rank']} "
                   f"dur={c['model_duration_s']*1e6:9.1f}us bw={c['bw_term_s']*1e6:9.1f} "
                   f"lat={c['lat_term_s']*1e6:7.1f} regime={c['regime']}")
+        if e["refused_configs"]:
+            for k, why in sorted(e["refused_configs"].items()):
+                print(f"   {k}: REFUSED -- {why.splitlines()[0]}")
         for p in e["pairs"]:
             print(f"   {p['pair']}: d_pred={p['d_pred_us']:8.1f}us bw_share={p['bw_share_4a']:.3f} "
                   f"rel={p['relative_margin_4b']*100:5.1f}% 4a={'ok' if p['passes_4a'] else 'FAIL'} "
