@@ -1,21 +1,52 @@
 # gpu-sim-6kp item 0c: real-driver-mapped witness
-#
-# SCOPED CLAIM: "the real driver was not MAPPED in the NCCL probe run"
-#   - NOT "cannot be reached" (the driver IS available and loads for driver-needing probes)
-#   - NOT "no real driver used" (the bead forbids this partial claim)
-#
-# Evidence (LD_DEBUG=files):
-#   1. probe_nccl4 WITH interposer (LD_PRELOAD=libfakegpu.so):
-#      libcuda.so NOT in file list (only libfakegpu.so + libcudart.so.13)
-#      => real driver NOT mapped in NCCL run
-#   2. probe_nccl4 WITHOUT interposer:
-#      libcuda.so.1 IS loaded (maps_without_shim.txt shows /usr/lib/libcuda.so.615.78.08)
-#      => real driver IS available, just not consulted for identity
-#   3. cumemalloc_probe WITH interposer (binary linked -lcuda):
-#      libcuda.so.1 IS loaded (because binary directly links -lcuda)
-#      => real driver loads for driver-needing probes
-#      => cuMemAlloc returns CUDA_ERROR_INVALID_CONTEXT (no context, but driver IS there)
-#
-# Conclusion: device count/identity come from the shim; memory/topology/NVML
-# come from the real driver (loaded when a driver-needing probe runs).
-# The real driver was not mapped in the NCCL probe run, but it IS reachable.
+
+## SCOPED CLAIM
+"the real driver was not MAPPED in the NCCL probe run"
+  - NOT "cannot be reached" (the driver IS available and loads for non-exported runtime APIs)
+  - NOT "no real driver used" (the bead forbids this partial claim)
+
+## Evidence
+
+### (a) Runtime probe through the interposer (non-exported API)
+Probe: /tmp/scratchpad/runtime_probe2 calls cudaDeviceGetAttribute (NOT in shim's
+export set) and cudaPointerGetAttributes (NOT in shim's export set) under
+LD_PRELOAD=libfakegpu.so.
+
+LD_DEBUG=files output shows:
+  file=libcuda.so.1 [0]; dynamically loaded by libcudart.so.13
+  file=libcuda.so.1 [0]; generating link map
+  calling init: /usr/lib/libcuda.so.1
+
+=> The runtime (libcudart) DOES reach the real driver internally via dlopen
+   when a non-exported API is called. libcuda.so.1 is loaded and initialized.
+
+Probe output: cudaDeviceGetAttribute err=0 val=1024, cudaPointerGetAttributes err=0
+=> The real driver serves the call (returns real data through libcudart).
+
+### (b) NCCL probe run (probe_nccl4, 4 ranks)
+LD_DEBUG=files: libcuda.so NOT in file list (only libfakegpu.so + libcudart.so.13).
+=> Real driver NOT mapped in the NCCL run.
+
+### (c) Without interposer (probe_nccl4, no LD_PRELOAD)
+LD_DEBUG=files: libcuda.so.1 IS loaded (maps_without_shim.txt shows
+/usr/lib/libcuda.so.615.78.08).
+=> Real driver IS available, just not consulted for identity in the NCCL run.
+
+### (d) Shim exports exercised by NCCL run
+LD_DEBUG=bindings: only 2 shim exports bound during probe_nccl4:
+  - cudaGetDeviceCount
+  - cudaSetDevice
+=> The question "does the runtime reach the driver?" arises only when a
+   non-exported API is called. In the NCCL run, only 2 exported APIs are used,
+   so the driver is never reached internally. In a broader workload, non-exported
+   APIs (cudaDeviceGetAttribute, cudaMemGetInfo, etc.) would trigger the driver.
+
+## Conclusion (rewritten to match evidence)
+In the NCCL probe run, the real driver (libcuda.so) was NOT mapped because
+only shim-exported APIs were called (cudaGetDeviceCount, cudaSetDevice). The
+runtime DOES reach the real driver internally (via dlopen in libcudart) when a
+non-exported API is called (demonstrated: cudaDeviceGetAttribute loads
+libcuda.so.1). Therefore: device count/identity come from the shim; memory/
+topology/NVML come from the real driver when a non-exported API triggers the
+driver path. A workload that calls only shim-exported APIs never touches the
+real driver; one that calls non-exported APIs does.
