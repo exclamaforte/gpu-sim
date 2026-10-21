@@ -110,8 +110,17 @@ requirement, not a resolvability rescue.
 | 1048576   | 262144 | 16          | 65536          | 2                | 8                | 524288 (S/2)    | 1048576          | 1.0 (S)     |
 | 2097152   | 524288 | 16          | 131072         | 2                | 8                | 1048576 (S/2)   | 2097152          | 1.0 (S)     |
 
+NOTE (gpu-sim-080): byte factor column re-grounded per eut (gpu-sim-eut,
+FACTOR-1.0-ABOVE-512KiB) and ggh (model now 1.0 at n=2):
+- >=512KiB: CONFIRMED 1.00 (eut, 2 runs each, both ranks agreeing).
+- <512KiB: UNDECIDED (4KiB ranks disagree 2.00/1.00; 64-384KiB invalid under
+  exact-multiple gate). Old table claimed 2.0 (2S) here; that is UNVERIFIED.
+- "2.0 total across both directions" was a model assumption (8sy), corrected to
+  1.0 by ggh. The model now uses bf=2*(n-1)/n=1.0 at n=2.
+P values (per-phase pieces) are CONFIRMED by phase_payload_table.md (measured).
+
 At 2 MiB: P=8 (8 pieces per phase, each 128 KiB = S/2), 2 phases, total per
-rank = S (byte factor 1.0 per direction; 2.0 total across both directions).
+rank = S (byte factor 1.0 per direction; 1.0 total per direction per ggh).
 
 ## Per-criterion statement (bead's own acceptance criteria)
 
