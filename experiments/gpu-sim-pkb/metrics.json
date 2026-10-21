@@ -129,5 +129,21 @@
     "achieved_residual_us": 16.76,
     "verdict": "FAILS gate allowance (16.76 > 2.6). Requires regMr to eliminate per-piece copy.",
     "label": "SIMULATOR DEFECT (not model error) if not fixed."
+  },
+  "speed_tracking_precheck": {
+    "payload_bytes": 1048576,
+    "speeds_gbps": [
+      10,
+      25
+    ],
+    "median_total_us": {
+      "10": 7011.1,
+      "25": 5278.3
+    },
+    "measured_diff_us": 1732.8,
+    "model_diff_us": 1010.0,
+    "ratio": 1.72,
+    "verdict": "TRACKS (10 Gbps slower than 25 Gbps) but ratio 1.72, not within 10%. Sync overhead (~5 ms) dominates; wire delay difference (1.01 ms) is 20% of total.",
+    "note": "Speed-tracking check is a falsification test, not a pass. Per-piece copy (16.76 us) and sync overhead prevent 10% precision."
   }
 }
