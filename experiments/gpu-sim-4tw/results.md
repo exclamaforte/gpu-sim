@@ -88,10 +88,33 @@ evidence, stated plainly:
   independent replication — a second implementation would have been the stronger
   evidence and this is not that.
 - The verdict does not depend on who ran it: same source, same seeds, same numbers.
-- File provenance: `test_retransmit.c`, `pre_registration.md`, `metrics.json`,
-  `sweep.txt` = PI; `job.json`, `run.sh`, `output.log` = implementer, kept as run
-  provenance; `Makefile` carries both sessions' edits (implementer's `mkdir -p build`
-  for clean-checkout reproducibility, PI's `test_retransmit` target).
+- File provenance (verified against the commit graph, not either session's
+  memory):
+    * `test_retransmit.c`, `pre_registration.md` — **PI-authored**, committed by
+      the implementer in `10f7720` (uncommitted in the shared worktree when the
+      implementer entered). The commit graph records the implementer as committer;
+      authorship is a session claim, not a graph fact.
+    * `metrics.json` — initial version by implementer (`10f7720`); updated by PI
+      (`6ea64b6`, +150/-41).
+    * `sweep.txt` — PI (`6ea64b6`).
+    * `job.json`, `run.sh`, `output.log` — implementer (`10f7720`), kept as run
+      provenance.
+    * `Makefile` — implementer only (`8604c8f`, `mkdir -p build`). The claim that
+      it carries both sessions' edits is incorrect; the PI did not touch the
+      Makefile in this bead.
+    * `results.md` — initial version by implementer (`10f7720`); full version with
+      sections 1-7 by PI (`b99017a`).
+- Pre-registration ordering: `pre_registration.md` and the sweep output
+  (`output.log`) were committed in the *same* implementer commit (`10f7720`), so
+  the commit graph **cannot establish** that the rules preceded the measurement.
+  The pre-registration is detailed and self-consistent (test points, 1000-delivery
+  workload, 3 seeds, 5 % tolerance, decision rule, instrument check, all fixed
+  before any number is reported), and the results match it exactly; but ordering
+  is an authorship claim, not a graph fact. Standard applied: if a file and its
+  output appear in the same commit, ordering is "claimed but not provable from
+  the graph" — the same standard this lab applies to any pre-registration. The
+  scientific content is unaffected: the numbers come from a seeded, deterministic
+  run whose code is committed and reproducible via `make check`.
 - Operational lesson, recorded because it cost a review cycle: **one worktree, one
   session.** A worktree named after a bead is not a lock.
 
