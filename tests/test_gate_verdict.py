@@ -26,7 +26,7 @@ VERDICT = os.path.join(HERE, "..", "experiments", "gpu-sim-m3d.10", "verdict.py"
 # A committed kill-test log, so the arbiter's "the log must EXIST" check can
 # be exercised in both directions.
 _KILL_LOG = tempfile.NamedTemporaryFile("w", suffix=".log", delete=False)
-_KILL_LOG.write("peer killed mid-collective; bounded error; exit within the deadline\n")
+_KILL_LOG.write("peer killed mid-collective; bounded error: EPEERDEAD; exit within the deadline\n")
 _KILL_LOG.close()
 KILL_LOG = _KILL_LOG.name
 
@@ -275,3 +275,31 @@ def test_a_noisy_pair_elsewhere_cannot_inflate_the_artifact_allowance():
     r = run_verdict(d)
     assert r.returncode == 1
     assert "SIMULATOR defect" in r.stdout
+
+
+def test_a_kill_test_exit_exactly_at_the_bound_is_refused():
+    # A run that exits AT the bound is a run that timed out at it, which is the
+    # failure the kill test exists to catch. The reviewer's audit found that the
+    # comparison allowed equality.
+    d = make_metrics()
+    d["kill_test"]["exit_within_s"] = 10.0
+    r = run_verdict(d)
+    assert r.returncode == 2
+    assert "strictly below" in r.stderr
+
+
+def test_a_kill_test_log_without_the_bounded_error_marker_is_refused():
+    # A log that merely exists is not proof of a bounded exit: for a killed
+    # peer the contract's specific error (EPEERDEAD) must be shown, so that a
+    # timeout is not passed off as a peer death.
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".log", delete=False) as f:
+        f.write("ran for a while and then stopped\n")
+        path = f.name
+    try:
+        d = make_metrics(kill_log=path)
+        r = run_verdict(d)
+        assert r.returncode == 2
+        assert "EPEERDEAD" in r.stderr
+    finally:
+        os.unlink(path)

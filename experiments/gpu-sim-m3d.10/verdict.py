@@ -115,6 +115,7 @@ RUNS_PER_CONFIG = 3
 TRACKING_TOLERANCE_PCT = 10.0
 SCHEMA = "m3d.10/gate-metrics/1"
 KILL_TEST_MAX_EXIT_S = 10.0
+KILL_TEST_ERROR_MARKER = "EPEERDEAD"
 PLUGIN_LOG_REQUIRED = ("NET/Plugin: Loaded net plugin", "Assigned NET plugin",
                        "via NET/sim")
 
@@ -313,13 +314,32 @@ def main(argv):
             raise Refused("kill_test.error_is_bounded must be true -- a killed peer "
                           "must produce a BOUNDED error, not a hang")
         exit_s = need_num(kill, "exit_within_s", "kill_test")
-        if exit_s > KILL_TEST_MAX_EXIT_S:
-            raise Refused(f"kill_test.exit_within_s {exit_s}s exceeds the "
-                          f"{KILL_TEST_MAX_EXIT_S}s bound")
+        # STRICT: a run that exited at exactly the bound is a run that TIMED OUT
+        # at the bound, which is the failure the kill test exists to catch --
+        # so the comparison must exclude it. (An earlier version allowed
+        # exit_within_s == the bound, which let a hang pass.)
+        if not exit_s < KILL_TEST_MAX_EXIT_S:
+            raise Refused(f"kill_test.exit_within_s {exit_s}s is not strictly below "
+                          f"the {KILL_TEST_MAX_EXIT_S}s bound -- a run that exits AT "
+                          f"the bound is a run that timed out at it")
         log_path = need(kill, "log_path", "kill_test")
         if not str(log_path) or not os.path.exists(str(log_path)):
             raise Refused(f"kill_test.log_path {log_path!r} does not exist -- the "
                           f"kill test's log must be COMMITTED, not merely named")
+        # A log that merely EXISTS is not proof of a bounded exit: it must show
+        # the bounded-error marker, and for a KILLED PEER that marker is the
+        # specific error code the fabric's contract promises (EPEERDEAD), so
+        # that a timeout is not passed off as a peer death.
+        try:
+            with open(log_path, errors="replace") as f:
+                log_text = f.read()
+        except OSError as e:
+            raise Refused(f"kill_test.log_path {log_path!r} could not be read: {e}")
+        if KILL_TEST_ERROR_MARKER not in log_text:
+            raise Refused(f"kill_test.log_path {log_path!r} does not contain "
+                          f"{KILL_TEST_ERROR_MARKER!r} -- a log that exists is not "
+                          f"proof of a bounded exit, and for a killed peer the "
+                          f"contract's specific error is what must be shown")
 
         # 4a / 4b / 3 / 2, per adjacent pair in the model's order.
         # UNITS: the model speaks SECONDS (predict().duration_s) and the
