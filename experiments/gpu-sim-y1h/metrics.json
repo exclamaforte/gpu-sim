@@ -1,0 +1,32 @@
+{
+  "bead": "gpu-sim-y1h",
+  "executor": "PI",
+  "pre_registration": "experiments/gpu-sim-y1h/pre_registration.md",
+  "target_cpu": 7,
+  "sibling_cpu": 23,
+  "n_windows": 12,
+  "n_valid": 12,
+  "sibling_util_range": [
+    0.1498,
+    0.4493
+  ],
+  "n_windows_sibling_below_0_25": 6,
+  "n_windows_sibling_above_0_45": 0,
+  "spearman_rho": -0.0035,
+  "rho_threshold": 0.5,
+  "spread_distribution": {
+    "min": 32.3,
+    "median": 701.4,
+    "max": 2063.8,
+    "n_within_36_2us": 1
+  },
+  "verdict": "RANGE-INSUFFICIENT",
+  "invalid_windows": 0,
+  "invalid_reason": null,
+  "no_admission_claimed": "correlational test only; admission requires the conjunctive quiet-pair rule from 99g/52i, which this bead does not attempt",
+  "prior_verdicts_unchanged": {
+    "52i": "NO-BOTH-QUIET-CORE-IN-20-SAMPLES",
+    "99g": "NO-ADMISSION-CORRECTED-INSTRUMENT",
+    "3ba": "NO-ADMISSION-QUIET-CORE"
+  }
+}
