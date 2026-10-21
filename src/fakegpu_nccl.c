@@ -383,7 +383,13 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
         dur = logn * (S / B_Bps + alpha_s);
     } else {
         double bf, lf;
-        if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*(n-1)/(double)n; lf = 2.0*n; }
+        /* gpu-sim-8sy: bytes factor n=2 -> 2.0 (one whole buffer per phase);
+           n>=3 unchanged at 2*(n-1)/n. Latency factor 2*(n-1) for ALL n (ring
+           hop count), so the model's two factors agree at every n. Mirrors
+           epic_cluster/link_model.py; asserted by C/Python agreement test. */
+        double chunk = (n == 2) ? 1.0 : (double)(n-1)/n;
+        double hops  = (double)(n - 1);  /* 2*(n-1) latency: ring hop count, all n */
+        if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*chunk; lf = 2.0*hops; }
         else if (strcmp(algo, "ring_allgather") == 0 || strcmp(algo, "ring_reduce_scatter") == 0 || strcmp(algo, "ring_alltoall") == 0) { bf = (double)(n-1)/n; lf = (double)n; }
         else { bf = 1.0; lf = 1.0; }
         bw_term = bf * S / B_Bps;

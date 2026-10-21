@@ -139,9 +139,29 @@ def _logical_edges(algorithm: str, n: int) -> List[Tuple[int, int]]:
     raise ValueError(f"unknown algorithm {algorithm}")
 
 
+def _ring_chunk_factor(n: int) -> float:
+    """Fraction of S carried by ONE ring transfer in one phase.
+
+    n >= 3: the ring splits the buffer into n chunks, so a phase moves
+    (n-1)/n * S through each rank. n == 2 is degenerate: the "ring" has a single
+    peer, one hop per phase, and the phase carries the WHOLE buffer (chunk = S).
+    This is the 2x that the m3d.8 gpu-sim-8sy evidence measured (per-rank wire
+    bytes 8192 for S=4096, with distinct per-phase digests).
+    """
+    return 1.0 if n == 2 else (n - 1) / n
+
+
+def _ring_hops_per_phase(n: int) -> int:
+    """Hops a phase takes through the ring: (n-1) for all n >= 2 (the classic
+    ring allreduce has n-1 reduce-scatter steps and n-1 allgather steps). At
+    n=2 this is 1, matching the observed 2 transfers per direction."""
+    return n - 1
+
+
 def _factor(algorithm: str, n: int) -> float:
     if algorithm == "ring_allreduce":
-        return 2.0 * (n - 1) / n
+        # two phases (reduce-scatter, allgather)
+        return 2.0 * _ring_chunk_factor(n)
     if algorithm in ("ring_allgather", "ring_reduce_scatter", "ring_alltoall"):
         return (n - 1.0) / n
     if algorithm == "tree_bcast":
@@ -151,7 +171,8 @@ def _factor(algorithm: str, n: int) -> float:
 
 def _latency_factor(algorithm: str, n: int) -> float:
     if algorithm == "ring_allreduce":
-        return 2.0 * n
+        # two phases, each paying hops_per_phase * alpha
+        return 2.0 * _ring_hops_per_phase(n)
     if algorithm in ("ring_allgather", "ring_reduce_scatter", "ring_alltoall"):
         return n
     if algorithm == "tree_bcast":
@@ -161,7 +182,7 @@ def _latency_factor(algorithm: str, n: int) -> float:
 
 def _bw_factor(algorithm: str, n: int) -> float:
     if algorithm == "ring_allreduce":
-        return 2.0 * (n - 1) / n
+        return 2.0 * _ring_chunk_factor(n)
     if algorithm in ("ring_allgather", "ring_reduce_scatter", "ring_alltoall"):
         return (n - 1.0) / n
     if algorithm == "tree_bcast":

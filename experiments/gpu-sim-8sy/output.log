@@ -1,0 +1,279 @@
+=== make check ===
+bash tests/assert_build_inputs_tracked.sh
+  ok   src/fakegpu_config.c tracked
+  ok   src/fakegpu_cuda.c tracked
+  ok   src/fakegpu_fabric.c tracked
+  ok   src/fakegpu_latency.c tracked
+  ok   src/fakegpu_nccl.c tracked
+  ok   src/fakegpu_pool.c tracked
+  ok   src/fakegpu_random.c tracked
+  ok   src/fakegpu_topology.c tracked
+  ok   include/fakegpu.h tracked
+  ok   shim/cuda_runtime.h tracked
+  ok   shim/nccl.h tracked
+  ok   tests/fake_client.c tracked
+  ok   tests/vector_add.c tracked
+  ok   tests/ring_allreduce.c tracked
+  ok   tests/test_cudart_none.cu tracked
+  ok   tests/test_cudart_none.sh tracked
+  ok   tests/test_device_prop_overlay.cu tracked
+  ok   tests/test_shim_prop_size.c tracked
+  ok   tests/test_resolver_attach.c tracked
+
+BUILD INPUTS GUARD PASSED: all 19 build inputs are tracked.
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -o build/fake_client tests/fake_client.c -L. -lfakegpu -Wl,-rpath,/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy
+build/fake_client
+== fakegpu self-test ==
+[device query]
+  cudaGetDeviceCount -> 1
+  cudaGetDevice -> 0
+  cudaGetDeviceProperties[0] name="FakeGPU-0" totalGlobalMem=268435456
+[memory]
+  cudaMalloc -> 0x700000000000
+  memcpy rounds ok; random-data present: yes
+  cudaFree / cudaFreeAsync ok
+[streams/events]
+  streams/events ok
+[kernel launch]
+  cudaLaunchKernel + device sync ok
+[module/driver]
+  cudaModuleLoad/GetFunction -> mod=0x1d fn=0x25
+  driver API (cuDeviceGet/cuCtx/cuModule/cuLaunch) ok
+[nccl]
+  ncclCommInitRank -> comm=0x55693f412240 worldsize=2
+  nccl allreduce/broadcast ok; rank=0
+== all checks passed ==
+--- reference workloads under LD_PRELOAD ---
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -o build/vector_add  tests/vector_add.c     -L. -lfakegpu -Wl,-rpath,/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -o build/ring_allreduce tests/ring_allreduce.c -L. -lfakegpu -Wl,-rpath,/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy
+LD_PRELOAD=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy/libfakegpu.so FAKEGPU_NUM_DEVICES=4 build/vector_add
+vector_add: fake GPUs visible = 4
+vector_add: N=1024  D2H buffer has random data: yes
+LD_PRELOAD=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy/libfakegpu.so FAKEGPU_NUM_DEVICES=4 build/ring_allreduce
+ring_allreduce: fake GPUs visible = 4
+ring_allreduce: ranks=4 count=1024 -> allreduce ok
+--- -cudart=none fake path, no LD_PRELOAD (gpu-sim-u2o.6.1.3) ---
+PASS: links with -cudart=none -lfakegpu
+PASS: ldd matches neither libcudart nor libcuda
+PASS: ldd shows libfakegpu as the provider
+PASS: smoke run exits 0 with CUDA_VISIBLE_DEVICES= (no GPU contact)
+PASS: printed 3 trial JSON lines
+PASS: reported the fake's configured latency (2 ms)
+PASS: invalid launch config is rejected by the fake
+PASS: same compile without -lfakegpu fails to link (no silent fallthrough)
+PASS: all new symbols exported by libfakegpu.so
+--- real-layout device-property overlay (gpu-sim-u2o.19) ---
+  ok   maxThreadsPerMultiProcessor  1536
+  ok   sharedMemPerMultiprocessor   102400
+  ok   l2CacheSize                  100663296
+  ok   multiProcessorCount          170
+  ok   sharedMemPerBlock            49152
+  ok   regsPerBlock                 65536
+  ok   regsPerMultiprocessor        65536
+  ok   major                        12
+  ok   minor                        0
+  ok   attr:maxThreadsPerSM      1536
+  ok   sizeof(cudaDeviceProp)     1008
+  ok   offsetof(l2CacheSize)              596
+  ok   offsetof(maxThreadsPerMultiProcessor) 604
+  ok   offsetof(sharedMemPerMultiprocessor) 624
+  ok   sizeof(l2CacheSize)          4
+  ok   attr shmemPerBlock == struct      49152
+  ok   attr smCount == struct      170
+  WARN attr maxThreadsPerBlock = 1024 but struct says 0 -- OPEN: struct path is wrong, attribute path is right
+  ok   attr smemPerSM == struct      102400
+  ok   attr optinPerBlock      101376
+
+gpu-sim-u2o.19 gate PASSED: the three deeper fields and all three offsets match the real RTX 5090.
+Two further overlay gaps are reported above as WARN, not asserted: maxThreadsPerBlock and warpSize do not arrive, cause undiagnosed.
+--- shim device-property sizeof (gpu-sim-m64) ---
+ok   sizeof(struct cudaDeviceProp) = 696 (shim layout)
+--- resolver attachment (gpu-sim-urr) ---
+  ok   launch by deviceFun succeeds
+  ok   resolver consumed exactly one launch
+  ok   deviceFun key resolves to kernel_alpha
+  ok   grid/block/shmem pass through (8,256,0)
+  ok   launch by hostFun succeeds
+  ok   hostFun key resolves to kernel_alpha
+  ok   second kernel launches
+  ok   same (8,256,0), different name reaches resolver
+  ok   unregistered func still launches
+  ok   unregistered func takes scalar default
+  ok   miss returns NULL, not garbage
+  ok   NULL key returns NULL
+  ok   hit still resolves after the miss-path fix
+  ok   repeat launch succeeds
+  ok   repeat launch consumed once
+  ok   repeat launch delivers identical inputs (no feedback)
+  ok   cost_resolver inside fg_config
+  ok   shim cudaDeviceProp still 696 (resolver NOT there)
+  info fg_config sizeof = 80
+
+resolver attach gate PASSED
+=== pytest test_link_model.py ===
+............                                                             [100%]
+12 passed in 0.11s
+=== m3d.7 run.sh (C/Python agreement) ===
+bash tests/assert_build_inputs_tracked.sh
+  ok   src/fakegpu_config.c tracked
+  ok   src/fakegpu_cuda.c tracked
+  ok   src/fakegpu_fabric.c tracked
+  ok   src/fakegpu_latency.c tracked
+  ok   src/fakegpu_nccl.c tracked
+  ok   src/fakegpu_pool.c tracked
+  ok   src/fakegpu_random.c tracked
+  ok   src/fakegpu_topology.c tracked
+  ok   include/fakegpu.h tracked
+  ok   shim/cuda_runtime.h tracked
+  ok   shim/nccl.h tracked
+  ok   tests/fake_client.c tracked
+  ok   tests/vector_add.c tracked
+  ok   tests/ring_allreduce.c tracked
+  ok   tests/test_cudart_none.cu tracked
+  ok   tests/test_cudart_none.sh tracked
+  ok   tests/test_device_prop_overlay.cu tracked
+  ok   tests/test_shim_prop_size.c tracked
+  ok   tests/test_resolver_attach.c tracked
+
+BUILD INPUTS GUARD PASSED: all 19 build inputs are tracked.
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_config.o src/fakegpu_config.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_random.o src/fakegpu_random.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_pool.o src/fakegpu_pool.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_latency.o src/fakegpu_latency.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_cuda.o src/fakegpu_cuda.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_nccl.o src/fakegpu_nccl.c
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -c -o src/fakegpu_topology.o src/fakegpu_topology.c
+cc -shared -lm -o libfakegpu.so src/fakegpu_config.o src/fakegpu_random.o src/fakegpu_pool.o src/fakegpu_latency.o src/fakegpu_cuda.o src/fakegpu_nccl.o src/fakegpu_topology.o -ldl -lpthread
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -o build/fake_client tests/fake_client.c -L. -lfakegpu -Wl,-rpath,/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy
+build/fake_client
+== fakegpu self-test ==
+[device query]
+  cudaGetDeviceCount -> 1
+  cudaGetDevice -> 0
+  cudaGetDeviceProperties[0] name="FakeGPU-0" totalGlobalMem=268435456
+[memory]
+  cudaMalloc -> 0x700000000000
+  memcpy rounds ok; random-data present: yes
+  cudaFree / cudaFreeAsync ok
+[streams/events]
+  streams/events ok
+[kernel launch]
+  cudaLaunchKernel + device sync ok
+[module/driver]
+  cudaModuleLoad/GetFunction -> mod=0x1d fn=0x25
+  driver API (cuDeviceGet/cuCtx/cuModule/cuLaunch) ok
+[nccl]
+  ncclCommInitRank -> comm=0x558ec3d7f240 worldsize=2
+  nccl allreduce/broadcast ok; rank=0
+== all checks passed ==
+--- reference workloads under LD_PRELOAD ---
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -o build/vector_add  tests/vector_add.c     -L. -lfakegpu -Wl,-rpath,/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy
+cc -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default -Werror=return-type -Iinclude -Ishim -o build/ring_allreduce tests/ring_allreduce.c -L. -lfakegpu -Wl,-rpath,/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy
+LD_PRELOAD=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy/libfakegpu.so FAKEGPU_NUM_DEVICES=4 build/vector_add
+vector_add: fake GPUs visible = 4
+vector_add: N=1024  D2H buffer has random data: yes
+LD_PRELOAD=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-8sy/libfakegpu.so FAKEGPU_NUM_DEVICES=4 build/ring_allreduce
+ring_allreduce: fake GPUs visible = 4
+ring_allreduce: ranks=4 count=1024 -> allreduce ok
+--- -cudart=none fake path, no LD_PRELOAD (gpu-sim-u2o.6.1.3) ---
+PASS: links with -cudart=none -lfakegpu
+PASS: ldd matches neither libcudart nor libcuda
+PASS: ldd shows libfakegpu as the provider
+PASS: smoke run exits 0 with CUDA_VISIBLE_DEVICES= (no GPU contact)
+PASS: printed 3 trial JSON lines
+PASS: reported the fake's configured latency (2 ms)
+PASS: invalid launch config is rejected by the fake
+PASS: same compile without -lfakegpu fails to link (no silent fallthrough)
+PASS: all new symbols exported by libfakegpu.so
+--- real-layout device-property overlay (gpu-sim-u2o.19) ---
+  ok   maxThreadsPerMultiProcessor  1536
+  ok   sharedMemPerMultiprocessor   102400
+  ok   l2CacheSize                  100663296
+  ok   multiProcessorCount          170
+  ok   sharedMemPerBlock            49152
+  ok   regsPerBlock                 65536
+  ok   regsPerMultiprocessor        65536
+  ok   major                        12
+  ok   minor                        0
+  ok   attr:maxThreadsPerSM      1536
+  ok   sizeof(cudaDeviceProp)     1008
+  ok   offsetof(l2CacheSize)              596
+  ok   offsetof(maxThreadsPerMultiProcessor) 604
+  ok   offsetof(sharedMemPerMultiprocessor) 624
+  ok   sizeof(l2CacheSize)          4
+  ok   attr shmemPerBlock == struct      49152
+  ok   attr smCount == struct      170
+  WARN attr maxThreadsPerBlock = 1024 but struct says 0 -- OPEN: struct path is wrong, attribute path is right
+  ok   attr smemPerSM == struct      102400
+  ok   attr optinPerBlock      101376
+
+gpu-sim-u2o.19 gate PASSED: the three deeper fields and all three offsets match the real RTX 5090.
+Two further overlay gaps are reported above as WARN, not asserted: maxThreadsPerBlock and warpSize do not arrive, cause undiagnosed.
+--- shim device-property sizeof (gpu-sim-m64) ---
+ok   sizeof(struct cudaDeviceProp) = 696 (shim layout)
+--- resolver attachment (gpu-sim-urr) ---
+  ok   launch by deviceFun succeeds
+  ok   resolver consumed exactly one launch
+  ok   deviceFun key resolves to kernel_alpha
+  ok   grid/block/shmem pass through (8,256,0)
+  ok   launch by hostFun succeeds
+  ok   hostFun key resolves to kernel_alpha
+  ok   second kernel launches
+  ok   same (8,256,0), different name reaches resolver
+  ok   unregistered func still launches
+  ok   unregistered func takes scalar default
+  ok   miss returns NULL, not garbage
+  ok   NULL key returns NULL
+  ok   hit still resolves after the miss-path fix
+  ok   repeat launch succeeds
+  ok   repeat launch consumed once
+  ok   repeat launch delivers identical inputs (no feedback)
+  ok   cost_resolver inside fg_config
+  ok   shim cudaDeviceProp still 696 (resolver NOT there)
+  info fg_config sizeof = 80
+
+resolver attach gate PASSED
+ring_allreduce: fake GPUs visible = 2
+ring_allreduce: ranks=2 count=1024 -> allreduce ok
+validate_trace: 2 records OK
+ring_allreduce: fake GPUs visible = 4
+ring_allreduce: ranks=4 count=1024 -> allreduce ok
+validate_trace: 4 records OK
+ring_allreduce: fake GPUs visible = 8
+ring_allreduce: ranks=8 count=1024 -> allreduce ok
+validate_trace: 8 records OK
+sweep: count=1 ranks=4 ok
+validate_trace: 4 records OK
+sweep: count=16 ranks=4 ok
+validate_trace: 4 records OK
+sweep: count=256 ranks=4 ok
+validate_trace: 4 records OK
+sweep: count=1024 ranks=4 ok
+validate_trace: 4 records OK
+sweep: count=4096 ranks=4 ok
+validate_trace: 4 records OK
+sweep: count=65536 ranks=4 ok
+validate_trace: 4 records OK
+sweep: count=1000000 ranks=4 ok
+validate_trace: 4 records OK
+fakegpu: corrupted topology: topology file too small
+ring_allreduce: fake GPUs visible = 2
+2 1.065536e-05 1.0655359999999999e-05
+4 3.049152e-05 3.049152e-05
+8 7.057344e-05 7.057344e-05
+C/Python agreement: PASS (n=2 degenerate; n=4<n=8 monotonic)
+count=1 regime=latency (model=latency)
+count=16 regime=latency (model=latency)
+count=256 regime=latency (model=latency)
+count=1024 regime=latency (model=latency)
+count=4096 regime=latency (model=latency)
+count=65536 regime=bandwidth (model=bandwidth)
+count=1000000 regime=bandwidth (model=bandwidth)
+regime sweep: PASS (latency + bandwidth both present)
+negative control (corrupted topology): PASS (non-zero exit)
+=== public-route factor table ===
+2 per_rank_bytes 8192.0 duration_s 1.0655359999999999e-05
+3 per_rank_bytes 5461.333333333333 duration_s 4.043690666666666e-05
+4 per_rank_bytes 6144.0 duration_s 9.049152e-05
+8 per_rank_bytes 7168.0 duration_s 0.00049057344
+=== DONE ===
