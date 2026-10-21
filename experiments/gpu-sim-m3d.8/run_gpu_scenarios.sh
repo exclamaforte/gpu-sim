@@ -131,7 +131,7 @@ echo "kill: rank0 exit=$R0 survivor exit=$R1 after ${ELAPSED}s; mechanism=$KILL_
 echo "--- 3b: no-NCCL peer-death test ---"
 gcc -O2 -g -std=gnu11 -I include -c src/fakegpu_fabric.c -o "$HERE/build/fabric_test.o" || fail "fabric build for 3b"
 g++ -O2 -g -I "$HERE/vendor" -I "$NCCLINC" -I "$CUDAINC" -I include \
-    "$HERE/peer_death_test.c" "$HERE/build/fabric_test.o" -o "$HERE/build/peer_death_test" -lpthread -ldl \
+    "$HERE/peer_death_test.c" "$HERE/build/fabric_test.o" "$HERE/build/libncclNetSimFab.so" -o "$HERE/build/peer_death_test" -lpthread -ldl -Wl,-rpath,"$HERE/build" \
   || fail "3b test build"
 "$HERE/build/peer_death_test" > /dev/null 2>&1 || true
 "$HERE/build/peer_death_test" > "$OUT/peer_death.log" 2>&1 || fail "3b peer-death test"
