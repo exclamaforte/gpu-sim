@@ -350,8 +350,8 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
             }
         }
         if (slot < 0) {
+            if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
             if (now_ns() > deadline) {
-                if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
             /* futex wait: sleep until a slot state changes */
@@ -392,8 +392,8 @@ int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
             }
         }
         if (slot < 0) {
+            if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
             if (now_ns() > deadline) {
-                if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
             /* futex wait: sleep until a slot state changes */
@@ -449,8 +449,8 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
             }
         }
         if (slot < 0) {
+            if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
             if (now_ns() > deadline) {
-                if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
             /* futex wait: sleep until a slot state changes */
@@ -510,8 +510,8 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
             }
         }
         if (slot < 0) {
+            if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
             if (now_ns() > deadline) {
-                if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
             /* futex wait: sleep until a slot state changes */

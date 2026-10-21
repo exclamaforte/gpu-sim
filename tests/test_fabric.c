@@ -88,10 +88,11 @@ static int run_worker(const char *test, int rank, int nranks, const char *runid,
         int rc = fg_fab_recv(f, 1, rbuf, 5);
         fg_fab_detach(f);
         fg_fab_unlink(runid);
-        if (rc == FG_FAB_OK) {
-            fprintf(stderr, "r0 expected error on send to dead peer, got OK\n");
+        if (rc != FG_FAB_EPEERDEAD) {
+            fprintf(stderr, "r0 expected EPEERDEAD on recv from dead peer, got %s\n", fg_fab_errstr(rc));
             return 1;
         }
+        fprintf(stderr, "r0 got EPEERDEAD (expected) on recv from dead peer\n");
         return 0;
     }
 
