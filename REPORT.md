@@ -34,7 +34,9 @@ which aimed to simulate arbitrary N-GPU clusters on a single box.
 5. **gpu-sim-5zv** (Model-route fault semantics): CLOSED
    - predict() reports loss_factor, jitter mean/sd, deadline-exceedance
    - C mirror applies loss factor
-   - 8 tests + 3 negative controls
+   - 8 tests + 4 negative controls
+   - AC3: jitter draws within +/-5% mean, +/-15% sd (N=1000)
+   - AC4: setting 1 MET (two-sided); settings 2-3 REFUSED (one device)
 
 6. **gpu-sim-8ii** (Pieces-per-phase at n>=3): REFUSED
    - No route on this box gives 4 ranks real computation
