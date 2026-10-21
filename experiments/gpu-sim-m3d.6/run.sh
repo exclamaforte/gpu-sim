@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # gpu-sim-m3d.6 acceptance test suite (CPU-only).
-set -uo pipefail
+set -euo pipefail
 cd "$(dirname "$0")/../.."
 OUT="$(pwd)/experiments/gpu-sim-m3d.6"
 G=./scripts/gpusim
@@ -8,15 +8,15 @@ PY=python3
 fail() { echo "FAIL: $*"; exit 1; }
 rm -rf runs exp_out; mkdir -p exp_out
 
-# Case 1: four-rank run, each rank asserts GPUSIM_RANK + GPUSIM_DEVICE_ID
+# Case 1: four-rank run, per-rank logs + run.json 4 exit 0s
 echo "=== CASE 1: four-rank run ===" | tee exp_out/case1.log
-RANKPROG='import os,sys; r=os.environ["GPUSIM_RANK"]; d=os.environ["GPUSIM_DEVICE_ID"]; assert r==d or True; print("rank=%s device=%s"%(r,d),flush=True); sys.exit(0)'
+RANKPROG='import os,sys; r=os.environ["GPUSIM_RANK"]; d=os.environ["GPUSIM_DEVICE_ID"]; print("rank=%s device=%s"%(r,d),flush=True); sys.exit(0)'
 $PY $G run --nodes 1 --gpus-per-node 4 --timeout 30s -- $PY -c "$RANKPROG" > exp_out/case1_run.json 2>&1
 cat exp_out/case1_run.json >> exp_out/case1.log
-RUNDIR=$(python3 -c "import json,sys; print(json.load(open('exp_out/case1_run.json'))['run_dir'])")
+RUNDIR=$(python3 -c "import json; print(json.load(open('exp_out/case1_run.json'))['run_dir'])")
 echo "run_dir=$RUNDIR" >> exp_out/case1.log
 for i in 0 1 2 3; do
-  grep -q "rank=$i device=$i" "$RUNDIR/rank$i.log" || fail "case1 rank$i log missing assertion"
+  grep -q "rank=$i device=$i" "$RUNDIR/rank$i.log" || fail "case1 rank$i log missing line"
 done
 python3 - "$RUNDIR/run.json" <<'PY' >> exp_out/case1.log 2>&1
 import json,sys
@@ -31,13 +31,14 @@ cp "$RUNDIR/run.json" exp_out/case1_runjson.json
 rm -rf "$RUNDIR"
 
 # Case 2: rank exits 3 -> run exits 3, siblings killed, per-rank exit/signal
+CASE2_RC=0
 echo "=== CASE 2: exit-3 propagation ===" | tee exp_out/case2.log
 RANKPROG2='import os,sys,time; r=int(os.environ["GPUSIM_RANK"]); 
 if r==1: sys.exit(3)
 time.sleep(30)'
-$PY $G run --nodes 1 --gpus-per-node 3 --timeout 30s -- $PY -c "$RANKPROG2" > exp_out/case2_run.json 2>&1 || true
+$PY $G run --nodes 1 --gpus-per-node 3 --timeout 30s -- $PY -c "$RANKPROG2" > exp_out/case2_run.json 2>&1 || CASE2_RC=$?; CASE2_RC=${CASE2_RC:-0}
 cat exp_out/case2_run.json >> exp_out/case2.log
-RUNDIR2=$(python3 -c "import json; print(json.load(open('exp_out/case2_run.json'))['run_dir'])" 2>/dev/null || true)
+RUNDIR2=$(python3 -c "import json; print(json.load(open('exp_out/case2_run.json'))['run_dir'])")
 echo "run_dir=$RUNDIR2" >> exp_out/case2.log
 python3 - "$RUNDIR2/run.json" <<'PY' >> exp_out/case2.log 2>&1
 import json,sys
@@ -45,15 +46,31 @@ d=json.load(open(sys.argv[1]))
 assert d["verdict"]=="FAIL"
 r1=[r for r in d["ranks"] if r["rank"]==1][0]
 assert r1["exit"]==3, r1
-print("case2: rank1 exit=3, verdict FAIL, per-rank records present:", [(r["rank"],r["exit"]) for r in d["ranks"]])
+assert len(d["ranks"])==3, d["ranks"]
+print("case2: rank1 exit=3, all 3 ranks recorded, verdict FAIL")
 PY
+echo "run exit code=$CASE2_RC" >> exp_out/case2.log
+[ "$CASE2_RC" = "3" ] || fail "case2 run did not exit 3 (got $CASE2_RC)"
 echo "case2 PASS (run exited 3)" | tee -a exp_out/case2.log
+cp "$RUNDIR2/run.json" exp_out/case2_runjson.json
 rm -rf "$RUNDIR2"
 
-# Case 3: SIGINT -> all ranks gone within 2s, no orphan, shm removed
+# Case 2 negative control: happy path exits 0
+echo "=== CASE 2 negative control: all ranks exit 0 ===" | tee exp_out/case2_neg.log
+$PY $G run --nodes 1 --gpus-per-node 3 --timeout 30s -- $PY -c "import sys; sys.exit(0)" > exp_out/case2_neg_run.json 2>&1
+python3 - "exp_out/case2_neg_run.json" <<'PY' >> exp_out/case2_neg.log 2>&1
+import json,sys
+d=json.load(open(json.load(open(sys.argv[1]))["run_dir"]+"/run.json"))
+assert d["verdict"]=="PASS"
+print("neg control: all exit 0 -> PASS")
+PY
+echo "case2 neg PASS" | tee -a exp_out/case2_neg.log
+rm -rf "$(python3 -c "import json; print(json.load(open('exp_out/case2_neg_run.json'))['run_dir'])")"
+
+# Case 3: SIGINT cleanup
 echo "=== CASE 3: SIGINT cleanup ===" | tee exp_out/case3.log
-RID="case3-sigint-run"
-$PY $G run --run-id $RID --nodes 1 --gpus-per-node 2 --timeout 60s -- $PY -c "import time; time.sleep(60)" > exp_out/case3_run.json 2>&1 &
+RID="case3-sigint-run-$$"
+$PY $G run --run-id "$RID" --nodes 1 --gpus-per-node 2 --timeout 60s -- $PY -c "import time; time.sleep(60)" > exp_out/case3_run.json 2>&1 &
 LPID=$!
 sleep 2
 echo "run_id=$RID" >> exp_out/case3.log
@@ -66,17 +83,19 @@ wait $LPID 2>/dev/null || true
 rm -rf "runs/$RID"
 echo "case3 PASS" | tee -a exp_out/case3.log
 
-# Case 4: --timeout -> timed_out=true
+# Case 4: timeout -> timed_out=true
 echo "=== CASE 4: timeout ===" | tee exp_out/case4.log
 $PY $G run --nodes 1 --gpus-per-node 2 --timeout 1s -- $PY -c "import time; time.sleep(30)" > exp_out/case4_run.json 2>&1 || true
 cat exp_out/case4_run.json >> exp_out/case4.log
-python3 - "exp_out/case4_run.json" <<'PY' >> exp_out/case4.log 2>&1
+RUNDIR4=$(python3 -c "import json; print(json.load(open('exp_out/case4_run.json'))['run_dir'])")
+python3 - "$RUNDIR4/run.json" <<'PY' >> exp_out/case4.log 2>&1
 import json,sys
 d=json.load(open(sys.argv[1]))
 assert d.get("timed_out") is True, d
+assert d["verdict"]=="FAIL"
 print("case4: timed_out=true verified")
 PY
-RUNDIR4=$(python3 -c "import json; print(json.load(open('exp_out/case4_run.json'))['run_dir'])")
+cp "$RUNDIR4/run.json" exp_out/case4_runjson.json
 rm -rf "$RUNDIR4"
 echo "case4 PASS" | tee -a exp_out/case4.log
 
@@ -96,13 +115,10 @@ echo "case5 PASS" | tee -a exp_out/case5.log
 
 # Case 6: rerun refusal + schema validation
 echo "=== CASE 6: rerun refusal + schema ===" | tee exp_out/case6.log
-RID6="rerun-demo-id"
+RID6="rerun-demo-id-$$"
 $PY $G run --run-id $RID6 --nodes 1 --gpus-per-node 1 --timeout 10s -- true > /dev/null 2>&1
-$PY $G run --run-id $RID6 --nodes 1 --gpus-per-node 1 --timeout 10s -- true > exp_out/rerun2.txt 2>&1
-RC=$?
-echo "second run exit code: $RC" >> exp_out/case6.log
+$PY $G run --run-id $RID6 --nodes 1 --gpus-per-node 1 --timeout 10s -- true > exp_out/rerun2.txt 2>&1 || true
 grep -q "already exists" exp_out/rerun2.txt && echo "rerun refusal fired: PASS" >> exp_out/case6.log
-# schema validation of a real run.json
 $PY $G run --nodes 1 --gpus-per-node 1 --timeout 10s -- true > exp_out/schema_run.json 2>&1
 RUNDIR6=$(python3 -c "import json; print(json.load(open('exp_out/schema_run.json'))['run_dir'])")
 $PY - "$RUNDIR6/run.json" <<'PY' >> exp_out/case6.log 2>&1
@@ -113,6 +129,7 @@ for r in d["ranks"]:
     assert set(r.keys())>={"rank","pid","exit","signal","started_ns","ended_ns"}
 print("schema validation: PASS")
 PY
+cp "$RUNDIR6/run.json" exp_out/case6_runjson.json
 rm -rf "runs/$RID6" "$RUNDIR6"
 echo "case6 PASS" | tee -a exp_out/case6.log
 

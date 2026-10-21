@@ -168,10 +168,25 @@ def main():
                                 "ended_ns": entry["ended_ns"]})
                 progressed = True
                 if rc != 0:
-                    # kill remaining
+                    # kill remaining, wait() and record each (exit/signal)
                     for e in remaining:
                         try: os.killpg(e["proc"].pid, signal.SIGKILL)
                         except ProcessLookupError: pass
+                    for e in remaining:
+                        try: e["proc"].wait(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            try: os.killpg(e["proc"].pid, signal.SIGKILL)
+                            except ProcessLookupError: pass
+                            e["proc"].wait()
+                        rcc = e["proc"].returncode
+                        e["exit"] = rcc
+                        e["signal"] = -rcc if rcc < 0 else 0
+                        e["ended_ns"] = int(time.time()*1e9)
+                        try: e["log"].close()
+                        except Exception: pass
+                        results.append({"rank": e["rank"], "pid": e["pid"], "exit": rcc,
+                                        "signal": e["signal"], "started_ns": e["started_ns"],
+                                        "ended_ns": e["ended_ns"]})
                     killed = True
                     remaining = []
                     break
