@@ -61,6 +61,7 @@ tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 # validation of gpu-sim-8dw -- was true here and unreproducible elsewhere.
 check: guard-build-inputs $(LIB)
 	@python3 scripts/gen_growth_list.py --check
+	@python3 experiments/gpu-sim-6kp/test_net_plugin.py
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	$(TEST_BIN)
