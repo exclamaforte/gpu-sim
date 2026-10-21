@@ -11,5 +11,20 @@
   "seam": "runtime interposer (libfakegpu.so), not driver interposer (libfakecuda.so)",
   "driver_loaded": false,
   "acceptance_4": "PASS: device count from topology spec (4 devices with topo_4dev.bin)",
-  "4_rank_init": "PASS: all 4 ranks ncclCommInitRank succeeded"
+  "4_rank_init": "PASS: all 4 ranks ncclCommInitRank succeeded",
+  "negative_control_N1": {
+    "without_shim": {
+      "libcuda_loaded": true,
+      "libcuda_path": "/usr/lib/libcuda.so.615.78.08",
+      "device_count": 1,
+      "note": "Real driver loaded, real device count = 1"
+    },
+    "with_shim": {
+      "libcuda_loaded": false,
+      "device_count": "from spec (2 for topo_10g.bin, 4 for topo_4dev.bin)",
+      "note": "No libcuda.so in /proc/self/maps, device count from GPUSIM_TOPOLOGY"
+    },
+    "verdict": "N1 PASS: shim present -> libcuda absent + spec device count; shim absent -> libcuda present + real device count (1)"
+  },
+  "constraint": "No real driver loaded is a property of the SEAM CHOICE (runtime interposer), not the environment. Loading libfakecuda.so (driver shim) would leak. Any future work adding the driver shim must re-run the driver-side counter."
 }
