@@ -108,7 +108,7 @@ inherited error.
   driver keeps the ABI honest, but arbitrary device counts cannot come from one
   real GPU. It is a validation aid, not a foundation.
 
-## 6. Definition of done (epic gate `gpu-sim-cl1.10`)
+## 6. Definition of done (epic gate `gpu-sim-m3d.10`)
 
 1. Two ranks, real NCCL, our net plugin + fake driver: allreduce numerics equal
    a CPU reference (bytes, not fabricated).

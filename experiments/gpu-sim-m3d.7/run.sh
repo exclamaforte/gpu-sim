@@ -48,8 +48,9 @@ for n in (2,4,8):
     assert abs(c-py)<1e-15, (n,c,py)
     vals.append(c)
     print(n, c, py)
-assert vals[0]<vals[1]<vals[2], vals
-print("C/Python agreement + monotonic: PASS")
+# n=2 is the degenerate single-hop ring (gpu-sim-8sy): not the fastest point.
+assert vals[1] < vals[2], vals
+print("C/Python agreement: PASS (n=2 degenerate; n=4<n=8 monotonic)")
 
 # Regime sweep: latency -> bandwidth crossover
 n=4

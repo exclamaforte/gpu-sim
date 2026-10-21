@@ -139,9 +139,29 @@ def _logical_edges(algorithm: str, n: int) -> List[Tuple[int, int]]:
     raise ValueError(f"unknown algorithm {algorithm}")
 
 
+def _ring_chunk_factor(n: int) -> float:
+    """Fraction of S carried by ONE ring transfer in one phase.
+
+    n >= 3: the ring splits the buffer into n chunks, so a phase moves
+    (n-1)/n * S through each rank. n == 2 is degenerate: the "ring" has a single
+    peer, one hop per phase, and the phase carries the WHOLE buffer (chunk = S).
+    This is the 2x that the m3d.8 gpu-sim-8sy evidence measured (per-rank wire
+    bytes 8192 for S=4096, with distinct per-phase digests).
+    """
+    return 1.0 if n == 2 else (n - 1) / n
+
+
+def _ring_hops_per_phase(n: int) -> int:
+    """Hops a phase takes through the ring: (n-1) for all n >= 2 (the classic
+    ring allreduce has n-1 reduce-scatter steps and n-1 allgather steps). At
+    n=2 this is 1, matching the observed 2 transfers per direction."""
+    return n - 1
+
+
 def _factor(algorithm: str, n: int) -> float:
     if algorithm == "ring_allreduce":
-        return 2.0 * (n - 1) / n
+        # two phases (reduce-scatter, allgather)
+        return 2.0 * _ring_chunk_factor(n)
     if algorithm in ("ring_allgather", "ring_reduce_scatter", "ring_alltoall"):
         return (n - 1.0) / n
     if algorithm == "tree_bcast":
@@ -151,7 +171,8 @@ def _factor(algorithm: str, n: int) -> float:
 
 def _latency_factor(algorithm: str, n: int) -> float:
     if algorithm == "ring_allreduce":
-        return 2.0 * n
+        # two phases, each paying hops_per_phase * alpha
+        return 2.0 * _ring_hops_per_phase(n)
     if algorithm in ("ring_allgather", "ring_reduce_scatter", "ring_alltoall"):
         return n
     if algorithm == "tree_bcast":
@@ -161,7 +182,7 @@ def _latency_factor(algorithm: str, n: int) -> float:
 
 def _bw_factor(algorithm: str, n: int) -> float:
     if algorithm == "ring_allreduce":
-        return 2.0 * (n - 1) / n
+        return 2.0 * _ring_chunk_factor(n)
     if algorithm in ("ring_allgather", "ring_reduce_scatter", "ring_alltoall"):
         return (n - 1.0) / n
     if algorithm == "tree_bcast":
@@ -169,8 +190,59 @@ def _bw_factor(algorithm: str, n: int) -> float:
     raise ValueError(f"unknown algorithm {algorithm}")
 
 
+FG_FAB_MAX_PAYLOAD = 1 << 20  # 1 MiB, matches include/fakegpu_fabric.h
+
+
+def _chunk_factor(n: int) -> float:
+    """chunk(n): S at n=2, (n-1)/n*S at n>=3 (model's formula)."""
+    if n == 2:
+        return 1.0
+    return (n - 1) / n
+
+
+# Measured phase-payload table for n=2 (experiments/gpu-sim-pkb/phase_payload_table.md).
+# S (bytes) -> pieces per phase per direction.
+# Measured: S=4096 -> P=1; S=65536 -> P=4; S=262144 -> P=4; S>=524288 -> P=8.
+_N2_P_TABLE = [(4096, 1), (262144, 4), (2097152, 8)]
+
+
+def _derived_pieces_per_phase(n: int, S: int) -> int:
+    if n == 2:
+        for threshold, P in _N2_P_TABLE:
+            if S <= threshold:
+                return P
+        raise ValueError(f"n=2, S={S} outside measured range; no cap-based fallback")
+    # n>=3: not yet measured; refuse rather than derive from cap
+    raise ValueError(f"n={n} pieces_per_phase not measured; provide explicitly")
+
+
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
-            n_ranks: Optional[int] = None) -> Dict[str, Any]:
+            n_ranks: Optional[int] = None,
+            pieces_per_phase: Optional[int] = None) -> Dict[str, Any]:
+    """Predicted duration for a collective.
+
+    pieces_per_phase (P): number of fabric pieces per logical phase per rank.
+    If None (default), P is LOOKED UP from the measured phase-payload table
+    (experiments/gpu-sim-pkb/phase_payload_table.md), not derived from the
+    fabric's 1 MiB payload cap. For n=2 the measured entries are: 1 at S<=4 KiB,
+    4 at 64 KiB <= S <= 256 KiB, 8 at 512 KiB <= S <= 2 MiB. For n>=3 the
+    table is unmeasured and _derived_pieces_per_phase raises ValueError (a
+    refusal, not a derived number); callers must pass pieces_per_phase explicitly
+    or the model refuses. Pass an int to override (recorded in the result as
+    pieces_per_phase_override=True).
+    With per-isend accounting (pkb candidate A, the operating model), each
+    piece pays the link latency, so the latency term scales by P. P depends on
+    payload size and the fabric's 1 MiB payload cap (a SIMULATOR constant), so
+    alpha (latency_us) is a per-piece charge, not a per-hop network property,
+    when P > 1. See gpu-sim-8nt for the fidelity fix that makes alpha a
+    per-hop property again.
+    """
+    override = pieces_per_phase is not None
+    if pieces_per_phase is None:
+        # derived; n not known yet, placeholder until n resolved below
+        pieces_per_phase = 1  # placeholder, resolved after n is known
+    if pieces_per_phase < 1:
+        pieces_per_phase = 1
     if algorithm not in ALGORITHMS:
         raise ValueError(f"unknown algorithm {algorithm}")
     dtype = dtype.lower()
@@ -184,6 +256,10 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     if not n_ranks or n_ranks < 1:
         raise ValueError("n_ranks must be >= 1")
     n = n_ranks
+    # Derive P if not explicitly provided (override).
+    if not override:
+        S_tmp = count * DTYPE_BYTES[dtype]
+        pieces_per_phase = _derived_pieces_per_phase(n, S_tmp)
     if n == 1:
         # trivial
         return {
@@ -241,15 +317,16 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     B_Bps = B_gbps * 1e9 / 8.0
 
     if algorithm == "tree_bcast":
-        lat_term = math.log2(n) * (S / B_Bps + alpha_s) if n > 1 else (S / B_Bps + alpha_s)
-        bw_term = S / B_Bps
-        dur = math.log2(n) * (S / B_Bps + alpha_s) if n > 1 else (S / B_Bps + alpha_s)
-        lat_factor = math.log2(n) if n > 1 else 1.0
+        lf_t = (math.log2(n) if n > 1 else 1.0)
+        bw_term = lf_t * S / B_Bps
+        lat_term = lf_t * alpha_s * pieces_per_phase
+        dur = bw_term + lat_term
+        lat_factor = lf_t
     else:
         bf = _bw_factor(algorithm, n)
         lf = _latency_factor(algorithm, n)
         bw_term = bf * S / B_Bps
-        lat_term = lf * alpha_s
+        lat_term = lf * alpha_s * pieces_per_phase
         dur = bw_term + lat_term
 
     # per_link_bytes
@@ -288,6 +365,9 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
 
     return {
         "duration_s": dur,
+        "pieces_per_phase": pieces_per_phase,
+        "pieces_per_phase_derived": not override,
+        "pieces_per_phase_override": override,
         "algorithm": algorithm,
         "bottleneck": {"link_id": b_link, "kind": bottleneck_kind},
         "per_link_bytes": per_link_bytes,

@@ -1,0 +1,11 @@
+# RED CASE 9(b)-i: acknowledgement file ABSENT
+# condition exercised: ack path = /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.8/experiments/gpu-sim-m3d.8/does_not_exist.json (does not exist)
+# cmd: decider.py trace_normal.log <missing ack> dec_red_noack.json 4096 2 1024 float32
+{
+  "2a_trace_complete": true,
+  "2c_bytes": false,
+  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+}
+bytes: {"observed_per_rank": 8192.0, "observed_total": 16384, "model_per_rank": 4096.0, "model_total": 8192, "ratio_observed_over_model": 2.0}
+2c FAIL: observed/model byte ratio is 2.00 (expected 1.0) and NO acknowledgement file is present at /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.8/experiments/gpu-sim-m3d.8/does_not_exist.json
+exit=1 (expected non-zero: 2c must fail when the acknowledgement file is absent)

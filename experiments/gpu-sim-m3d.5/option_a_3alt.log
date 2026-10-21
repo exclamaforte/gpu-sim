@@ -1,0 +1,2426 @@
+--- arm 1: 3-alt-i, real driver serves ONLY cuGetExportTable (default) ---
+cmd: LD_PRELOAD=libfakecuda.so CUDA_VISIBLE_DEVICES='' NCCL_DEBUG=INFO nccl_init_probe
+fakecuda: dlsym(fakehandle) cuGetProcAddress_v2 -> 0x7fcdb1135640
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress  -> (nil)
+fakecuda: missing symbol 
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuInit -> 0x7fcdb1133ca0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetProcAddress -> 0x7fcdb1135640
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetProcAddress -> 0x7fcdb1135640
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGet -> 0x7fcdb1134c90
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetCount -> 0x7fcdb11355a0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetName -> 0x7fcdb1133ce0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceTotalMem -> 0x7fcdb1134b80
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetAttribute -> 0x7fcdb1134830
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetP2PAttribute -> (nil)
+fakecuda: missing symbol cuDeviceGetP2PAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDriverGetVersion -> 0x7fcdb11333e0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetByPCIBusId -> (nil)
+fakecuda: missing symbol cuDeviceGetByPCIBusId
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetPCIBusId -> 0x7fcdb1134d20
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetUuid -> 0x7fcdb1134d90
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetTexture1DLinearMaxWidth -> (nil)
+fakecuda: missing symbol cuDeviceGetTexture1DLinearMaxWidth
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetDefaultMemPool -> (nil)
+fakecuda: missing symbol cuDeviceGetDefaultMemPool
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceSetMemPool -> (nil)
+fakecuda: missing symbol cuDeviceSetMemPool
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetMemPool -> (nil)
+fakecuda: missing symbol cuDeviceGetMemPool
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFlushGPUDirectRDMAWrites -> (nil)
+fakecuda: missing symbol cuFlushGPUDirectRDMAWrites
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxRetain -> 0x7fcdb1133670
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxRelease -> 0x7fcdb11336b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxSetFlags -> 0x7fcdb11336e0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxGetState -> 0x7fcdb1133710
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxReset -> 0x7fcdb1133760
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxCreate -> 0x7fcdb1133420
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetFlags -> (nil)
+fakecuda: missing symbol cuCtxGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetCurrent -> 0x7fcdb11334a0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetCurrent -> 0x7fcdb11334d0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxDetach -> (nil)
+fakecuda: missing symbol cuCtxDetach
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetApiVersion -> 0x7fcdb1133630
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetDevice -> 0x7fcdb11335f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetLimit -> (nil)
+fakecuda: missing symbol cuCtxGetLimit
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetLimit -> (nil)
+fakecuda: missing symbol cuCtxSetLimit
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetCacheConfig -> (nil)
+fakecuda: missing symbol cuCtxGetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetCacheConfig -> (nil)
+fakecuda: missing symbol cuCtxSetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetSharedMemConfig -> (nil)
+fakecuda: missing symbol cuCtxGetSharedMemConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetStreamPriorityRange -> (nil)
+fakecuda: missing symbol cuCtxGetStreamPriorityRange
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetSharedMemConfig -> (nil)
+fakecuda: missing symbol cuCtxSetSharedMemConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSynchronize -> 0x7fcdb11335c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxResetPersistingL2Cache -> (nil)
+fakecuda: missing symbol cuCtxResetPersistingL2Cache
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxPopCurrent -> 0x7fcdb1133570
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxPushCurrent -> 0x7fcdb1133540
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleLoad -> 0x7fcdb1133b00
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleLoadData -> 0x7fcdb1133b40
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleLoadFatBinary -> (nil)
+fakecuda: missing symbol cuModuleLoadFatBinary
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleUnload -> 0x7fcdb1133bc0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetFunction -> 0x7fcdb1133bf0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetGlobal -> (nil)
+fakecuda: missing symbol cuModuleGetGlobal
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetTexRef -> (nil)
+fakecuda: missing symbol cuModuleGetTexRef
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetSurfRef -> (nil)
+fakecuda: missing symbol cuModuleGetSurfRef
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetLoadingMode -> (nil)
+fakecuda: missing symbol cuModuleGetLoadingMode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryLoadData -> (nil)
+fakecuda: missing symbol cuLibraryLoadData
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryLoadFromFile -> (nil)
+fakecuda: missing symbol cuLibraryLoadFromFile
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryUnload -> (nil)
+fakecuda: missing symbol cuLibraryUnload
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetKernel -> (nil)
+fakecuda: missing symbol cuLibraryGetKernel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetModule -> (nil)
+fakecuda: missing symbol cuLibraryGetModule
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetFunction -> (nil)
+fakecuda: missing symbol cuKernelGetFunction
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetGlobal -> (nil)
+fakecuda: missing symbol cuLibraryGetGlobal
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetManaged -> (nil)
+fakecuda: missing symbol cuLibraryGetManaged
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetUnifiedFunction -> (nil)
+fakecuda: missing symbol cuLibraryGetUnifiedFunction
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetKernelCount -> (nil)
+fakecuda: missing symbol cuLibraryGetKernelCount
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryEnumerateKernels -> (nil)
+fakecuda: missing symbol cuLibraryEnumerateKernels
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetAttribute -> (nil)
+fakecuda: missing symbol cuKernelGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelSetAttribute -> (nil)
+fakecuda: missing symbol cuKernelSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelSetCacheConfig -> (nil)
+fakecuda: missing symbol cuKernelSetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetName -> (nil)
+fakecuda: missing symbol cuKernelGetName
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetParamInfo -> (nil)
+fakecuda: missing symbol cuKernelGetParamInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkCreate -> (nil)
+fakecuda: missing symbol cuLinkCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkAddData -> (nil)
+fakecuda: missing symbol cuLinkAddData
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkAddFile -> (nil)
+fakecuda: missing symbol cuLinkAddFile
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkComplete -> (nil)
+fakecuda: missing symbol cuLinkComplete
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkDestroy -> (nil)
+fakecuda: missing symbol cuLinkDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemGetInfo -> (nil)
+fakecuda: missing symbol cuMemGetInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocManaged -> (nil)
+fakecuda: missing symbol cuMemAllocManaged
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAlloc -> 0x7fcdb1134e30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocPitch -> (nil)
+fakecuda: missing symbol cuMemAllocPitch
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFree -> 0x7fcdb1133790
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemGetAddressRange -> (nil)
+fakecuda: missing symbol cuMemGetAddressRange
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFreeHost -> 0x7fcdb11337c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostAlloc -> 0x7fcdb1134f10
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostGetDevicePointer -> (nil)
+fakecuda: missing symbol cuMemHostGetDevicePointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostGetFlags -> (nil)
+fakecuda: missing symbol cuMemHostGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostRegister -> 0x7fcdb11337f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostUnregister -> 0x7fcdb1133820
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuPointerGetAttribute -> 0x7fcdb1134df0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuPointerGetAttributes -> (nil)
+fakecuda: missing symbol cuPointerGetAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocAsync -> (nil)
+fakecuda: missing symbol cuMemAllocAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocAsync -> (nil)
+fakecuda: missing symbol cuMemAllocAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocFromPoolAsync -> (nil)
+fakecuda: missing symbol cuMemAllocFromPoolAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocFromPoolAsync -> (nil)
+fakecuda: missing symbol cuMemAllocFromPoolAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFreeAsync -> (nil)
+fakecuda: missing symbol cuMemFreeAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFreeAsync -> (nil)
+fakecuda: missing symbol cuMemFreeAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolTrimTo -> (nil)
+fakecuda: missing symbol cuMemPoolTrimTo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolSetAttribute -> (nil)
+fakecuda: missing symbol cuMemPoolSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolGetAttribute -> (nil)
+fakecuda: missing symbol cuMemPoolGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolSetAccess -> (nil)
+fakecuda: missing symbol cuMemPoolSetAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolGetAccess -> (nil)
+fakecuda: missing symbol cuMemPoolGetAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolCreate -> (nil)
+fakecuda: missing symbol cuMemPoolCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolDestroy -> (nil)
+fakecuda: missing symbol cuMemPoolDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolExportToShareableHandle -> (nil)
+fakecuda: missing symbol cuMemPoolExportToShareableHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolImportFromShareableHandle -> (nil)
+fakecuda: missing symbol cuMemPoolImportFromShareableHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolExportPointer -> (nil)
+fakecuda: missing symbol cuMemPoolExportPointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolImportPointer -> (nil)
+fakecuda: missing symbol cuMemPoolImportPointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy -> (nil)
+fakecuda: missing symbol cuMemcpy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy -> (nil)
+fakecuda: missing symbol cuMemcpy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyAsync -> (nil)
+fakecuda: missing symbol cuMemcpyAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyAsync -> (nil)
+fakecuda: missing symbol cuMemcpyAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7fcdb11350b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7fcdb11350b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7fcdb1135120
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7fcdb1135120
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7fcdb1134f50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7fcdb1134f50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7fcdb1134fc0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7fcdb1134fc0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7fcdb1135000
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7fcdb1135000
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7fcdb1135070
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7fcdb1135070
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7fcdb1135530
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7fcdb1135530
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoDAsync -> (nil)
+fakecuda: missing symbol cuMemcpyDtoDAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoDAsync -> (nil)
+fakecuda: missing symbol cuMemcpyDtoDAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DUnaligned -> (nil)
+fakecuda: missing symbol cuMemcpy2DUnaligned
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DUnaligned -> (nil)
+fakecuda: missing symbol cuMemcpy2DUnaligned
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy2DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy2DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3D -> (nil)
+fakecuda: missing symbol cuMemcpy3D
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3D -> (nil)
+fakecuda: missing symbol cuMemcpy3D
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeer -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeer -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeerAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeerAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeerAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeerAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpyBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpyBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8 -> 0x7fcdb1133d50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8 -> 0x7fcdb1133d50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8Async -> (nil)
+fakecuda: missing symbol cuMemsetD8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8Async -> (nil)
+fakecuda: missing symbol cuMemsetD8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8 -> (nil)
+fakecuda: missing symbol cuMemsetD2D8
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8 -> (nil)
+fakecuda: missing symbol cuMemsetD2D8
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8Async -> (nil)
+fakecuda: missing symbol cuMemsetD2D8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8Async -> (nil)
+fakecuda: missing symbol cuMemsetD2D8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncSetCacheConfig -> (nil)
+fakecuda: missing symbol cuFuncSetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncSetSharedMemConfig -> (nil)
+fakecuda: missing symbol cuFuncSetSharedMemConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncGetAttribute -> (nil)
+fakecuda: missing symbol cuFuncGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncSetAttribute -> (nil)
+fakecuda: missing symbol cuFuncSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncGetName -> (nil)
+fakecuda: missing symbol cuFuncGetName
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncGetParamInfo -> (nil)
+fakecuda: missing symbol cuFuncGetParamInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayCreate -> (nil)
+fakecuda: missing symbol cuArrayCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetDescriptor -> (nil)
+fakecuda: missing symbol cuArrayGetDescriptor
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetSparseProperties -> (nil)
+fakecuda: missing symbol cuArrayGetSparseProperties
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetPlane -> (nil)
+fakecuda: missing symbol cuArrayGetPlane
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArray3DCreate -> (nil)
+fakecuda: missing symbol cuArray3DCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArray3DGetDescriptor -> (nil)
+fakecuda: missing symbol cuArray3DGetDescriptor
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayDestroy -> (nil)
+fakecuda: missing symbol cuArrayDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayCreate -> (nil)
+fakecuda: missing symbol cuMipmappedArrayCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayGetLevel -> (nil)
+fakecuda: missing symbol cuMipmappedArrayGetLevel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayGetSparseProperties -> (nil)
+fakecuda: missing symbol cuMipmappedArrayGetSparseProperties
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayDestroy -> (nil)
+fakecuda: missing symbol cuMipmappedArrayDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetMemoryRequirements -> (nil)
+fakecuda: missing symbol cuArrayGetMemoryRequirements
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayGetMemoryRequirements -> (nil)
+fakecuda: missing symbol cuMipmappedArrayGetMemoryRequirements
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectCreate -> (nil)
+fakecuda: missing symbol cuTexObjectCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectDestroy -> (nil)
+fakecuda: missing symbol cuTexObjectDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectGetResourceDesc -> (nil)
+fakecuda: missing symbol cuTexObjectGetResourceDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectGetTextureDesc -> (nil)
+fakecuda: missing symbol cuTexObjectGetTextureDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectGetResourceViewDesc -> (nil)
+fakecuda: missing symbol cuTexObjectGetResourceViewDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSurfObjectCreate -> (nil)
+fakecuda: missing symbol cuSurfObjectCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSurfObjectDestroy -> (nil)
+fakecuda: missing symbol cuSurfObjectDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSurfObjectGetResourceDesc -> (nil)
+fakecuda: missing symbol cuSurfObjectGetResourceDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuImportExternalMemory -> (nil)
+fakecuda: missing symbol cuImportExternalMemory
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuExternalMemoryGetMappedBuffer -> (nil)
+fakecuda: missing symbol cuExternalMemoryGetMappedBuffer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuExternalMemoryGetMappedMipmappedArray -> (nil)
+fakecuda: missing symbol cuExternalMemoryGetMappedMipmappedArray
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDestroyExternalMemory -> (nil)
+fakecuda: missing symbol cuDestroyExternalMemory
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuImportExternalSemaphore -> (nil)
+fakecuda: missing symbol cuImportExternalSemaphore
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSignalExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuSignalExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSignalExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuSignalExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuWaitExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuWaitExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuWaitExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuWaitExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDestroyExternalSemaphore -> (nil)
+fakecuda: missing symbol cuDestroyExternalSemaphore
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetNvSciSyncAttributes -> (nil)
+fakecuda: missing symbol cuDeviceGetNvSciSyncAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernel -> 0x7fcdb1133c30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernel -> 0x7fcdb1133c30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchCooperativeKernel -> (nil)
+fakecuda: missing symbol cuLaunchCooperativeKernel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchCooperativeKernel -> (nil)
+fakecuda: missing symbol cuLaunchCooperativeKernel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchCooperativeKernelMultiDevice -> (nil)
+fakecuda: missing symbol cuLaunchCooperativeKernelMultiDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchHostFunc -> (nil)
+fakecuda: missing symbol cuLaunchHostFunc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchHostFunc -> (nil)
+fakecuda: missing symbol cuLaunchHostFunc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernelEx -> (nil)
+fakecuda: missing symbol cuLaunchKernelEx
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernelEx -> (nil)
+fakecuda: missing symbol cuLaunchKernelEx
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventCreate -> 0x7fcdb11339f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecord -> 0x7fcdb1133a60
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecord -> 0x7fcdb1133a60
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecordWithFlags -> (nil)
+fakecuda: missing symbol cuEventRecordWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecordWithFlags -> (nil)
+fakecuda: missing symbol cuEventRecordWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventQuery -> (nil)
+fakecuda: missing symbol cuEventQuery
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventSynchronize -> 0x7fcdb1133a90
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventDestroy -> 0x7fcdb1133a30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7fcdb1133ac0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7fcdb1133ac0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue32 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue32 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue32 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue32 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue64 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue64 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue64 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue64 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBatchMemOp -> (nil)
+fakecuda: missing symbol cuStreamBatchMemOp
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBatchMemOp -> (nil)
+fakecuda: missing symbol cuStreamBatchMemOp
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCreate -> 0x7fcdb11338b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCreateWithPriority -> 0x7fcdb11338f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetPriority -> (nil)
+fakecuda: missing symbol cuStreamGetPriority
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetPriority -> (nil)
+fakecuda: missing symbol cuStreamGetPriority
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetFlags -> (nil)
+fakecuda: missing symbol cuStreamGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetDevice -> (nil)
+fakecuda: missing symbol cuStreamGetDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetDevice -> (nil)
+fakecuda: missing symbol cuStreamGetDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCtx -> (nil)
+fakecuda: missing symbol cuStreamGetCtx
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetFlags -> (nil)
+fakecuda: missing symbol cuStreamGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetId -> (nil)
+fakecuda: missing symbol cuStreamGetId
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetId -> (nil)
+fakecuda: missing symbol cuStreamGetId
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamDestroy -> 0x7fcdb1133930
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7fcdb11339c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7fcdb11339c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAddCallback -> (nil)
+fakecuda: missing symbol cuStreamAddCallback
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAddCallback -> (nil)
+fakecuda: missing symbol cuStreamAddCallback
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7fcdb1133960
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7fcdb1133960
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamQuery -> 0x7fcdb1133990
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamQuery -> 0x7fcdb1133990
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAttachMemAsync -> (nil)
+fakecuda: missing symbol cuStreamAttachMemAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAttachMemAsync -> (nil)
+fakecuda: missing symbol cuStreamAttachMemAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCopyAttributes -> (nil)
+fakecuda: missing symbol cuStreamCopyAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCopyAttributes -> (nil)
+fakecuda: missing symbol cuStreamCopyAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetAttribute -> (nil)
+fakecuda: missing symbol cuStreamGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetAttribute -> (nil)
+fakecuda: missing symbol cuStreamGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSetAttribute -> (nil)
+fakecuda: missing symbol cuStreamSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSetAttribute -> (nil)
+fakecuda: missing symbol cuStreamSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceCanAccessPeer -> (nil)
+fakecuda: missing symbol cuDeviceCanAccessPeer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxEnablePeerAccess -> (nil)
+fakecuda: missing symbol cuCtxEnablePeerAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxDisablePeerAccess -> (nil)
+fakecuda: missing symbol cuCtxDisablePeerAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcGetEventHandle -> (nil)
+fakecuda: missing symbol cuIpcGetEventHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcOpenEventHandle -> (nil)
+fakecuda: missing symbol cuIpcOpenEventHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcGetMemHandle -> (nil)
+fakecuda: missing symbol cuIpcGetMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcOpenMemHandle -> (nil)
+fakecuda: missing symbol cuIpcOpenMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcOpenMemHandle -> (nil)
+fakecuda: missing symbol cuIpcOpenMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcCloseMemHandle -> (nil)
+fakecuda: missing symbol cuIpcCloseMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLCtxCreate -> (nil)
+fakecuda: missing symbol cuGLCtxCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLInit -> (nil)
+fakecuda: missing symbol cuGLInit
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLGetDevices -> (nil)
+fakecuda: missing symbol cuGLGetDevices
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLRegisterBufferObject -> (nil)
+fakecuda: missing symbol cuGLRegisterBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObject -> (nil)
+fakecuda: missing symbol cuGLMapBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObject -> (nil)
+fakecuda: missing symbol cuGLMapBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObjectAsync -> (nil)
+fakecuda: missing symbol cuGLMapBufferObjectAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObjectAsync -> (nil)
+fakecuda: missing symbol cuGLMapBufferObjectAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLUnmapBufferObject -> (nil)
+fakecuda: missing symbol cuGLUnmapBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLUnmapBufferObjectAsync -> (nil)
+fakecuda: missing symbol cuGLUnmapBufferObjectAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLUnregisterBufferObject -> (nil)
+fakecuda: missing symbol cuGLUnregisterBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLSetBufferObjectMapFlags -> (nil)
+fakecuda: missing symbol cuGLSetBufferObjectMapFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsGLRegisterImage -> (nil)
+fakecuda: missing symbol cuGraphicsGLRegisterImage
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsGLRegisterBuffer -> (nil)
+fakecuda: missing symbol cuGraphicsGLRegisterBuffer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsEGLRegisterImage -> (nil)
+fakecuda: missing symbol cuGraphicsEGLRegisterImage
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerConnect -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerConnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerDisconnect -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerDisconnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerAcquireFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerAcquireFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerReleaseFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerReleaseFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerConnect -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerConnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerDisconnect -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerDisconnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerPresentFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerPresentFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerReturnFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerReturnFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceGetMappedEglFrame -> (nil)
+fakecuda: missing symbol cuGraphicsResourceGetMappedEglFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerConnectWithFlags -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerConnectWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsUnregisterResource -> (nil)
+fakecuda: missing symbol cuGraphicsUnregisterResource
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsMapResources -> (nil)
+fakecuda: missing symbol cuGraphicsMapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsMapResources -> (nil)
+fakecuda: missing symbol cuGraphicsMapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsUnmapResources -> (nil)
+fakecuda: missing symbol cuGraphicsUnmapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsUnmapResources -> (nil)
+fakecuda: missing symbol cuGraphicsUnmapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceSetMapFlags -> (nil)
+fakecuda: missing symbol cuGraphicsResourceSetMapFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsSubResourceGetMappedArray -> (nil)
+fakecuda: missing symbol cuGraphicsSubResourceGetMappedArray
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceGetMappedMipmappedArray -> (nil)
+fakecuda: missing symbol cuGraphicsResourceGetMappedMipmappedArray
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceGetMappedPointer -> (nil)
+fakecuda: missing symbol cuGraphicsResourceGetMappedPointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuProfilerInitialize -> (nil)
+fakecuda: missing symbol cuProfilerInitialize
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuProfilerStart -> (nil)
+fakecuda: missing symbol cuProfilerStart
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuProfilerStop -> (nil)
+fakecuda: missing symbol cuProfilerStop
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuVDPAUGetDevice -> (nil)
+fakecuda: missing symbol cuVDPAUGetDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuVDPAUCtxCreate -> (nil)
+fakecuda: missing symbol cuVDPAUCtxCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsVDPAURegisterVideoSurface -> (nil)
+fakecuda: missing symbol cuGraphicsVDPAURegisterVideoSurface
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsVDPAURegisterOutputSurface -> (nil)
+fakecuda: missing symbol cuGraphicsVDPAURegisterOutputSurface
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetExportTable -> 0x7fcdb1135180
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags -> (nil)
+fakecuda: missing symbol cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyAvailableDynamicSMemPerBlock -> (nil)
+fakecuda: missing symbol cuOccupancyAvailableDynamicSMemPerBlock
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyMaxPotentialClusterSize -> (nil)
+fakecuda: missing symbol cuOccupancyMaxPotentialClusterSize
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyMaxActiveClusters -> (nil)
+fakecuda: missing symbol cuOccupancyMaxActiveClusters
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAdvise -> (nil)
+fakecuda: missing symbol cuMemAdvise
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAdvise -> (nil)
+fakecuda: missing symbol cuMemAdvise
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemRangeGetAttribute -> (nil)
+fakecuda: missing symbol cuMemRangeGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemRangeGetAttributes -> (nil)
+fakecuda: missing symbol cuMemRangeGetAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetErrorString -> (nil)
+fakecuda: missing symbol cuGetErrorString
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetErrorName -> (nil)
+fakecuda: missing symbol cuGetErrorName
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphCreate -> (nil)
+fakecuda: missing symbol cuGraphCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddKernelNode -> (nil)
+fakecuda: missing symbol cuGraphAddKernelNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemcpyNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemcpyNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemcpyNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemcpyNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemcpyNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphMemcpyNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemsetNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemsetNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemsetNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemsetNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemsetNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphMemsetNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddHostNode -> (nil)
+fakecuda: missing symbol cuGraphAddHostNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphHostNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphHostNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphHostNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphHostNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddChildGraphNode -> (nil)
+fakecuda: missing symbol cuGraphAddChildGraphNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphChildGraphNodeGetGraph -> (nil)
+fakecuda: missing symbol cuGraphChildGraphNodeGetGraph
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddEmptyNode -> (nil)
+fakecuda: missing symbol cuGraphAddEmptyNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddEventRecordNode -> (nil)
+fakecuda: missing symbol cuGraphAddEventRecordNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventRecordNodeGetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventRecordNodeGetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventRecordNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventRecordNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddEventWaitNode -> (nil)
+fakecuda: missing symbol cuGraphAddEventWaitNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventWaitNodeGetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventWaitNodeGetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventWaitNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventWaitNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddExternalSemaphoresSignalNode -> (nil)
+fakecuda: missing symbol cuGraphAddExternalSemaphoresSignalNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresSignalNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresSignalNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresSignalNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresSignalNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddExternalSemaphoresWaitNode -> (nil)
+fakecuda: missing symbol cuGraphAddExternalSemaphoresWaitNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresWaitNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresWaitNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresWaitNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresWaitNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecExternalSemaphoresSignalNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecExternalSemaphoresSignalNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecExternalSemaphoresWaitNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecExternalSemaphoresWaitNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemAllocNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemAllocNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemAllocNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemAllocNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemFreeNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemFreeNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemFreeNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemFreeNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGraphMemTrim -> (nil)
+fakecuda: missing symbol cuDeviceGraphMemTrim
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetGraphMemAttribute -> (nil)
+fakecuda: missing symbol cuDeviceGetGraphMemAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceSetGraphMemAttribute -> (nil)
+fakecuda: missing symbol cuDeviceSetGraphMemAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphClone -> (nil)
+fakecuda: missing symbol cuGraphClone
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeFindInClone -> (nil)
+fakecuda: missing symbol cuGraphNodeFindInClone
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetType -> (nil)
+fakecuda: missing symbol cuGraphNodeGetType
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetNodes -> (nil)
+fakecuda: missing symbol cuGraphGetNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetRootNodes -> (nil)
+fakecuda: missing symbol cuGraphGetRootNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetEdges -> (nil)
+fakecuda: missing symbol cuGraphGetEdges
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetEdges -> (nil)
+fakecuda: missing symbol cuGraphGetEdges
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependencies -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependencies -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependentNodes -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependentNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependentNodes -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependentNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddDependencies -> (nil)
+fakecuda: missing symbol cuGraphAddDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddDependencies -> (nil)
+fakecuda: missing symbol cuGraphAddDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphRemoveDependencies -> (nil)
+fakecuda: missing symbol cuGraphRemoveDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphRemoveDependencies -> (nil)
+fakecuda: missing symbol cuGraphRemoveDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphDestroyNode -> (nil)
+fakecuda: missing symbol cuGraphDestroyNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiate -> (nil)
+fakecuda: missing symbol cuGraphInstantiate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiate -> (nil)
+fakecuda: missing symbol cuGraphInstantiate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiateWithFlags -> (nil)
+fakecuda: missing symbol cuGraphInstantiateWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphUpload -> (nil)
+fakecuda: missing symbol cuGraphUpload
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphUpload -> (nil)
+fakecuda: missing symbol cuGraphUpload
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphLaunch -> (nil)
+fakecuda: missing symbol cuGraphLaunch
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphLaunch -> (nil)
+fakecuda: missing symbol cuGraphLaunch
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecDestroy -> (nil)
+fakecuda: missing symbol cuGraphExecDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphDestroy -> (nil)
+fakecuda: missing symbol cuGraphDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCaptureToGraph -> (nil)
+fakecuda: missing symbol cuStreamBeginCaptureToGraph
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCaptureToGraph -> (nil)
+fakecuda: missing symbol cuStreamBeginCaptureToGraph
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamEndCapture -> (nil)
+fakecuda: missing symbol cuStreamEndCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamEndCapture -> (nil)
+fakecuda: missing symbol cuStreamEndCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamIsCapturing -> (nil)
+fakecuda: missing symbol cuStreamIsCapturing
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamIsCapturing -> (nil)
+fakecuda: missing symbol cuStreamIsCapturing
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecKernelNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecKernelNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecMemcpyNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecMemcpyNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecMemsetNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecMemsetNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecHostNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecHostNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecChildGraphNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecChildGraphNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecEventRecordNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphExecEventRecordNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecEventWaitNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphExecEventWaitNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuThreadExchangeStreamCaptureMode -> (nil)
+fakecuda: missing symbol cuThreadExchangeStreamCaptureMode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecUpdate -> (nil)
+fakecuda: missing symbol cuGraphExecUpdate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeCopyAttributes -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeCopyAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeGetAttribute -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeSetAttribute -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphDebugDotPrint -> (nil)
+fakecuda: missing symbol cuGraphDebugDotPrint
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuUserObjectCreate -> (nil)
+fakecuda: missing symbol cuUserObjectCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuUserObjectRetain -> (nil)
+fakecuda: missing symbol cuUserObjectRetain
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuUserObjectRelease -> (nil)
+fakecuda: missing symbol cuUserObjectRelease
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphRetainUserObject -> (nil)
+fakecuda: missing symbol cuGraphRetainUserObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphReleaseUserObject -> (nil)
+fakecuda: missing symbol cuGraphReleaseUserObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeSetEnabled -> (nil)
+fakecuda: missing symbol cuGraphNodeSetEnabled
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetEnabled -> (nil)
+fakecuda: missing symbol cuGraphNodeGetEnabled
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiateWithParams -> (nil)
+fakecuda: missing symbol cuGraphInstantiateWithParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiateWithParams -> (nil)
+fakecuda: missing symbol cuGraphInstantiateWithParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecGetFlags -> (nil)
+fakecuda: missing symbol cuGraphExecGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddNode -> (nil)
+fakecuda: missing symbol cuGraphAddNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddNode -> (nil)
+fakecuda: missing symbol cuGraphAddNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphConditionalHandleCreate -> (nil)
+fakecuda: missing symbol cuGraphConditionalHandleCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceRegisterAsyncNotification -> (nil)
+fakecuda: missing symbol cuDeviceRegisterAsyncNotification
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceUnregisterAsyncNotification -> (nil)
+fakecuda: missing symbol cuDeviceUnregisterAsyncNotification
+fakecuda: cuGetExportTable uuid=f8cff951-2146-8b4e-b9e2-fb469e7c0dd9
+fakecuda: AUDIT real-driver-handle open=OK (via real dlopen, bypassing interception)
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fcd973f0370 uuid=øÏùQ!F‹N
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+fakecuda: cuDriverGetVersion
+fakecuda: cuInit
+fakecuda: cuInit
+fakecuda: cuGetExportTable uuid=6bd5fb6c-5bf4-e74a-8987-d93912fd9df9
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fcd973f2460 uuid=kÕûl[ôçJ
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+fakecuda: cuGetExportTable uuid=a094798c-2e74-2e74-93f2-0800200c0a66
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fcd973f42c0 uuid= ”yŒ.t.t
+fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
+fakecuda: cuDeviceGetCount
+fakecuda: AUDIT cuDeviceGetCount served-by=SHIM value=1
+fakecuda: cuDeviceGet
+nccl version=23203
+gabe:3020341:3020341 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+gabe:3020341:3020341 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
+
+[2026-10-20 18:23:57] gabe:3020341:3020341 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'initialization error'
+gabe:3020341:3020344 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
+
+[2026-10-20 18:23:57] gabe:3020341:3020341 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'initialization error'
+ncclCommInitRank=1 (unhandled cuda error (run with NCCL_DEBUG=INFO for details))
+FAIL
+exit=1
+
+--- arm 2: 3-alt-ii, forwarding DISABLED (GPUSIM_REAL_EXPORT_TABLE=0) ---
+cmd: LD_PRELOAD=libfakecuda.so GPUSIM_REAL_EXPORT_TABLE=0 CUDA_VISIBLE_DEVICES='' NCCL_DEBUG=INFO nccl_init_probe
+fakecuda: dlsym(fakehandle) cuGetProcAddress_v2 -> 0x7f96c52da640
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress  -> (nil)
+fakecuda: missing symbol 
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuInit -> 0x7f96c52d8ca0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetProcAddress -> 0x7f96c52da640
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetProcAddress -> 0x7f96c52da640
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGet -> 0x7f96c52d9c90
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetCount -> 0x7f96c52da5a0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetName -> 0x7f96c52d8ce0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceTotalMem -> 0x7f96c52d9b80
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetAttribute -> 0x7f96c52d9830
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetP2PAttribute -> (nil)
+fakecuda: missing symbol cuDeviceGetP2PAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDriverGetVersion -> 0x7f96c52d83e0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetByPCIBusId -> (nil)
+fakecuda: missing symbol cuDeviceGetByPCIBusId
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetPCIBusId -> 0x7f96c52d9d20
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetUuid -> 0x7f96c52d9d90
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetTexture1DLinearMaxWidth -> (nil)
+fakecuda: missing symbol cuDeviceGetTexture1DLinearMaxWidth
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetDefaultMemPool -> (nil)
+fakecuda: missing symbol cuDeviceGetDefaultMemPool
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceSetMemPool -> (nil)
+fakecuda: missing symbol cuDeviceSetMemPool
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetMemPool -> (nil)
+fakecuda: missing symbol cuDeviceGetMemPool
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFlushGPUDirectRDMAWrites -> (nil)
+fakecuda: missing symbol cuFlushGPUDirectRDMAWrites
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxRetain -> 0x7f96c52d8670
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxRelease -> 0x7f96c52d86b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxSetFlags -> 0x7f96c52d86e0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxGetState -> 0x7f96c52d8710
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDevicePrimaryCtxReset -> 0x7f96c52d8760
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxCreate -> 0x7f96c52d8420
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetFlags -> (nil)
+fakecuda: missing symbol cuCtxGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetCurrent -> 0x7f96c52d84a0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetCurrent -> 0x7f96c52d84d0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxDetach -> (nil)
+fakecuda: missing symbol cuCtxDetach
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetApiVersion -> 0x7f96c52d8630
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetDevice -> 0x7f96c52d85f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetLimit -> (nil)
+fakecuda: missing symbol cuCtxGetLimit
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetLimit -> (nil)
+fakecuda: missing symbol cuCtxSetLimit
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetCacheConfig -> (nil)
+fakecuda: missing symbol cuCtxGetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetCacheConfig -> (nil)
+fakecuda: missing symbol cuCtxSetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetSharedMemConfig -> (nil)
+fakecuda: missing symbol cuCtxGetSharedMemConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxGetStreamPriorityRange -> (nil)
+fakecuda: missing symbol cuCtxGetStreamPriorityRange
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSetSharedMemConfig -> (nil)
+fakecuda: missing symbol cuCtxSetSharedMemConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxSynchronize -> 0x7f96c52d85c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxResetPersistingL2Cache -> (nil)
+fakecuda: missing symbol cuCtxResetPersistingL2Cache
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxPopCurrent -> 0x7f96c52d8570
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxPushCurrent -> 0x7f96c52d8540
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleLoad -> 0x7f96c52d8b00
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleLoadData -> 0x7f96c52d8b40
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleLoadFatBinary -> (nil)
+fakecuda: missing symbol cuModuleLoadFatBinary
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleUnload -> 0x7f96c52d8bc0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetFunction -> 0x7f96c52d8bf0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetGlobal -> (nil)
+fakecuda: missing symbol cuModuleGetGlobal
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetTexRef -> (nil)
+fakecuda: missing symbol cuModuleGetTexRef
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetSurfRef -> (nil)
+fakecuda: missing symbol cuModuleGetSurfRef
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuModuleGetLoadingMode -> (nil)
+fakecuda: missing symbol cuModuleGetLoadingMode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryLoadData -> (nil)
+fakecuda: missing symbol cuLibraryLoadData
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryLoadFromFile -> (nil)
+fakecuda: missing symbol cuLibraryLoadFromFile
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryUnload -> (nil)
+fakecuda: missing symbol cuLibraryUnload
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetKernel -> (nil)
+fakecuda: missing symbol cuLibraryGetKernel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetModule -> (nil)
+fakecuda: missing symbol cuLibraryGetModule
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetFunction -> (nil)
+fakecuda: missing symbol cuKernelGetFunction
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetGlobal -> (nil)
+fakecuda: missing symbol cuLibraryGetGlobal
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetManaged -> (nil)
+fakecuda: missing symbol cuLibraryGetManaged
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetUnifiedFunction -> (nil)
+fakecuda: missing symbol cuLibraryGetUnifiedFunction
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryGetKernelCount -> (nil)
+fakecuda: missing symbol cuLibraryGetKernelCount
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLibraryEnumerateKernels -> (nil)
+fakecuda: missing symbol cuLibraryEnumerateKernels
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetAttribute -> (nil)
+fakecuda: missing symbol cuKernelGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelSetAttribute -> (nil)
+fakecuda: missing symbol cuKernelSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelSetCacheConfig -> (nil)
+fakecuda: missing symbol cuKernelSetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetName -> (nil)
+fakecuda: missing symbol cuKernelGetName
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuKernelGetParamInfo -> (nil)
+fakecuda: missing symbol cuKernelGetParamInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkCreate -> (nil)
+fakecuda: missing symbol cuLinkCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkAddData -> (nil)
+fakecuda: missing symbol cuLinkAddData
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkAddFile -> (nil)
+fakecuda: missing symbol cuLinkAddFile
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkComplete -> (nil)
+fakecuda: missing symbol cuLinkComplete
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLinkDestroy -> (nil)
+fakecuda: missing symbol cuLinkDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemGetInfo -> (nil)
+fakecuda: missing symbol cuMemGetInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocManaged -> (nil)
+fakecuda: missing symbol cuMemAllocManaged
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAlloc -> 0x7f96c52d9e30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocPitch -> (nil)
+fakecuda: missing symbol cuMemAllocPitch
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFree -> 0x7f96c52d8790
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemGetAddressRange -> (nil)
+fakecuda: missing symbol cuMemGetAddressRange
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFreeHost -> 0x7f96c52d87c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostAlloc -> 0x7f96c52d9f10
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostGetDevicePointer -> (nil)
+fakecuda: missing symbol cuMemHostGetDevicePointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostGetFlags -> (nil)
+fakecuda: missing symbol cuMemHostGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostRegister -> 0x7f96c52d87f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemHostUnregister -> 0x7f96c52d8820
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuPointerGetAttribute -> 0x7f96c52d9df0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuPointerGetAttributes -> (nil)
+fakecuda: missing symbol cuPointerGetAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocAsync -> (nil)
+fakecuda: missing symbol cuMemAllocAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocAsync -> (nil)
+fakecuda: missing symbol cuMemAllocAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocFromPoolAsync -> (nil)
+fakecuda: missing symbol cuMemAllocFromPoolAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAllocFromPoolAsync -> (nil)
+fakecuda: missing symbol cuMemAllocFromPoolAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFreeAsync -> (nil)
+fakecuda: missing symbol cuMemFreeAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemFreeAsync -> (nil)
+fakecuda: missing symbol cuMemFreeAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolTrimTo -> (nil)
+fakecuda: missing symbol cuMemPoolTrimTo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolSetAttribute -> (nil)
+fakecuda: missing symbol cuMemPoolSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolGetAttribute -> (nil)
+fakecuda: missing symbol cuMemPoolGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolSetAccess -> (nil)
+fakecuda: missing symbol cuMemPoolSetAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolGetAccess -> (nil)
+fakecuda: missing symbol cuMemPoolGetAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolCreate -> (nil)
+fakecuda: missing symbol cuMemPoolCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolDestroy -> (nil)
+fakecuda: missing symbol cuMemPoolDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolExportToShareableHandle -> (nil)
+fakecuda: missing symbol cuMemPoolExportToShareableHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolImportFromShareableHandle -> (nil)
+fakecuda: missing symbol cuMemPoolImportFromShareableHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolExportPointer -> (nil)
+fakecuda: missing symbol cuMemPoolExportPointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPoolImportPointer -> (nil)
+fakecuda: missing symbol cuMemPoolImportPointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy -> (nil)
+fakecuda: missing symbol cuMemcpy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy -> (nil)
+fakecuda: missing symbol cuMemcpy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyAsync -> (nil)
+fakecuda: missing symbol cuMemcpyAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyAsync -> (nil)
+fakecuda: missing symbol cuMemcpyAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7f96c52da0b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7f96c52da0b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7f96c52da120
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7f96c52da120
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7f96c52d9f50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7f96c52d9f50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7f96c52d9fc0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7f96c52d9fc0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7f96c52da000
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7f96c52da000
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7f96c52da070
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7f96c52da070
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7f96c52da530
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7f96c52da530
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoDAsync -> (nil)
+fakecuda: missing symbol cuMemcpyDtoDAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyDtoDAsync -> (nil)
+fakecuda: missing symbol cuMemcpyDtoDAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DUnaligned -> (nil)
+fakecuda: missing symbol cuMemcpy2DUnaligned
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DUnaligned -> (nil)
+fakecuda: missing symbol cuMemcpy2DUnaligned
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy2DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy2DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy2DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3D -> (nil)
+fakecuda: missing symbol cuMemcpy3D
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3D -> (nil)
+fakecuda: missing symbol cuMemcpy3D
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeer -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeer -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeerAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeerAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DPeerAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DPeerAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpyBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpyBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpyBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemcpy3DBatchAsync -> (nil)
+fakecuda: missing symbol cuMemcpy3DBatchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8 -> 0x7f96c52d8d50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8 -> 0x7f96c52d8d50
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8Async -> (nil)
+fakecuda: missing symbol cuMemsetD8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD8Async -> (nil)
+fakecuda: missing symbol cuMemsetD8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8 -> (nil)
+fakecuda: missing symbol cuMemsetD2D8
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8 -> (nil)
+fakecuda: missing symbol cuMemsetD2D8
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8Async -> (nil)
+fakecuda: missing symbol cuMemsetD2D8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemsetD2D8Async -> (nil)
+fakecuda: missing symbol cuMemsetD2D8Async
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncSetCacheConfig -> (nil)
+fakecuda: missing symbol cuFuncSetCacheConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncSetSharedMemConfig -> (nil)
+fakecuda: missing symbol cuFuncSetSharedMemConfig
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncGetAttribute -> (nil)
+fakecuda: missing symbol cuFuncGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncSetAttribute -> (nil)
+fakecuda: missing symbol cuFuncSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncGetName -> (nil)
+fakecuda: missing symbol cuFuncGetName
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuFuncGetParamInfo -> (nil)
+fakecuda: missing symbol cuFuncGetParamInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayCreate -> (nil)
+fakecuda: missing symbol cuArrayCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetDescriptor -> (nil)
+fakecuda: missing symbol cuArrayGetDescriptor
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetSparseProperties -> (nil)
+fakecuda: missing symbol cuArrayGetSparseProperties
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetPlane -> (nil)
+fakecuda: missing symbol cuArrayGetPlane
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArray3DCreate -> (nil)
+fakecuda: missing symbol cuArray3DCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArray3DGetDescriptor -> (nil)
+fakecuda: missing symbol cuArray3DGetDescriptor
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayDestroy -> (nil)
+fakecuda: missing symbol cuArrayDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayCreate -> (nil)
+fakecuda: missing symbol cuMipmappedArrayCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayGetLevel -> (nil)
+fakecuda: missing symbol cuMipmappedArrayGetLevel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayGetSparseProperties -> (nil)
+fakecuda: missing symbol cuMipmappedArrayGetSparseProperties
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayDestroy -> (nil)
+fakecuda: missing symbol cuMipmappedArrayDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuArrayGetMemoryRequirements -> (nil)
+fakecuda: missing symbol cuArrayGetMemoryRequirements
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMipmappedArrayGetMemoryRequirements -> (nil)
+fakecuda: missing symbol cuMipmappedArrayGetMemoryRequirements
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectCreate -> (nil)
+fakecuda: missing symbol cuTexObjectCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectDestroy -> (nil)
+fakecuda: missing symbol cuTexObjectDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectGetResourceDesc -> (nil)
+fakecuda: missing symbol cuTexObjectGetResourceDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectGetTextureDesc -> (nil)
+fakecuda: missing symbol cuTexObjectGetTextureDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuTexObjectGetResourceViewDesc -> (nil)
+fakecuda: missing symbol cuTexObjectGetResourceViewDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSurfObjectCreate -> (nil)
+fakecuda: missing symbol cuSurfObjectCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSurfObjectDestroy -> (nil)
+fakecuda: missing symbol cuSurfObjectDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSurfObjectGetResourceDesc -> (nil)
+fakecuda: missing symbol cuSurfObjectGetResourceDesc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuImportExternalMemory -> (nil)
+fakecuda: missing symbol cuImportExternalMemory
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuExternalMemoryGetMappedBuffer -> (nil)
+fakecuda: missing symbol cuExternalMemoryGetMappedBuffer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuExternalMemoryGetMappedMipmappedArray -> (nil)
+fakecuda: missing symbol cuExternalMemoryGetMappedMipmappedArray
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDestroyExternalMemory -> (nil)
+fakecuda: missing symbol cuDestroyExternalMemory
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuImportExternalSemaphore -> (nil)
+fakecuda: missing symbol cuImportExternalSemaphore
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSignalExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuSignalExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuSignalExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuSignalExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuWaitExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuWaitExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuWaitExternalSemaphoresAsync -> (nil)
+fakecuda: missing symbol cuWaitExternalSemaphoresAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDestroyExternalSemaphore -> (nil)
+fakecuda: missing symbol cuDestroyExternalSemaphore
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetNvSciSyncAttributes -> (nil)
+fakecuda: missing symbol cuDeviceGetNvSciSyncAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernel -> 0x7f96c52d8c30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernel -> 0x7f96c52d8c30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchCooperativeKernel -> (nil)
+fakecuda: missing symbol cuLaunchCooperativeKernel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchCooperativeKernel -> (nil)
+fakecuda: missing symbol cuLaunchCooperativeKernel
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchCooperativeKernelMultiDevice -> (nil)
+fakecuda: missing symbol cuLaunchCooperativeKernelMultiDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchHostFunc -> (nil)
+fakecuda: missing symbol cuLaunchHostFunc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchHostFunc -> (nil)
+fakecuda: missing symbol cuLaunchHostFunc
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernelEx -> (nil)
+fakecuda: missing symbol cuLaunchKernelEx
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuLaunchKernelEx -> (nil)
+fakecuda: missing symbol cuLaunchKernelEx
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventCreate -> 0x7f96c52d89f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecord -> 0x7f96c52d8a60
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecord -> 0x7f96c52d8a60
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecordWithFlags -> (nil)
+fakecuda: missing symbol cuEventRecordWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventRecordWithFlags -> (nil)
+fakecuda: missing symbol cuEventRecordWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventQuery -> (nil)
+fakecuda: missing symbol cuEventQuery
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventSynchronize -> 0x7f96c52d8a90
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventDestroy -> 0x7f96c52d8a30
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7f96c52d8ac0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7f96c52d8ac0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue32 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue32 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue32 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue32 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue32
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue64 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitValue64 -> (nil)
+fakecuda: missing symbol cuStreamWaitValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue64 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWriteValue64 -> (nil)
+fakecuda: missing symbol cuStreamWriteValue64
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBatchMemOp -> (nil)
+fakecuda: missing symbol cuStreamBatchMemOp
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBatchMemOp -> (nil)
+fakecuda: missing symbol cuStreamBatchMemOp
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCreate -> 0x7f96c52d88b0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCreateWithPriority -> 0x7f96c52d88f0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetPriority -> (nil)
+fakecuda: missing symbol cuStreamGetPriority
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetPriority -> (nil)
+fakecuda: missing symbol cuStreamGetPriority
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetFlags -> (nil)
+fakecuda: missing symbol cuStreamGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetDevice -> (nil)
+fakecuda: missing symbol cuStreamGetDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetDevice -> (nil)
+fakecuda: missing symbol cuStreamGetDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCtx -> (nil)
+fakecuda: missing symbol cuStreamGetCtx
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetFlags -> (nil)
+fakecuda: missing symbol cuStreamGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetId -> (nil)
+fakecuda: missing symbol cuStreamGetId
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetId -> (nil)
+fakecuda: missing symbol cuStreamGetId
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamDestroy -> 0x7f96c52d8930
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7f96c52d89c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7f96c52d89c0
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAddCallback -> (nil)
+fakecuda: missing symbol cuStreamAddCallback
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAddCallback -> (nil)
+fakecuda: missing symbol cuStreamAddCallback
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7f96c52d8960
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7f96c52d8960
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamQuery -> 0x7f96c52d8990
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamQuery -> 0x7f96c52d8990
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAttachMemAsync -> (nil)
+fakecuda: missing symbol cuStreamAttachMemAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamAttachMemAsync -> (nil)
+fakecuda: missing symbol cuStreamAttachMemAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCopyAttributes -> (nil)
+fakecuda: missing symbol cuStreamCopyAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamCopyAttributes -> (nil)
+fakecuda: missing symbol cuStreamCopyAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetAttribute -> (nil)
+fakecuda: missing symbol cuStreamGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetAttribute -> (nil)
+fakecuda: missing symbol cuStreamGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSetAttribute -> (nil)
+fakecuda: missing symbol cuStreamSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamSetAttribute -> (nil)
+fakecuda: missing symbol cuStreamSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceCanAccessPeer -> (nil)
+fakecuda: missing symbol cuDeviceCanAccessPeer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxEnablePeerAccess -> (nil)
+fakecuda: missing symbol cuCtxEnablePeerAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuCtxDisablePeerAccess -> (nil)
+fakecuda: missing symbol cuCtxDisablePeerAccess
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcGetEventHandle -> (nil)
+fakecuda: missing symbol cuIpcGetEventHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcOpenEventHandle -> (nil)
+fakecuda: missing symbol cuIpcOpenEventHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcGetMemHandle -> (nil)
+fakecuda: missing symbol cuIpcGetMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcOpenMemHandle -> (nil)
+fakecuda: missing symbol cuIpcOpenMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcOpenMemHandle -> (nil)
+fakecuda: missing symbol cuIpcOpenMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuIpcCloseMemHandle -> (nil)
+fakecuda: missing symbol cuIpcCloseMemHandle
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLCtxCreate -> (nil)
+fakecuda: missing symbol cuGLCtxCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLInit -> (nil)
+fakecuda: missing symbol cuGLInit
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLGetDevices -> (nil)
+fakecuda: missing symbol cuGLGetDevices
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLRegisterBufferObject -> (nil)
+fakecuda: missing symbol cuGLRegisterBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObject -> (nil)
+fakecuda: missing symbol cuGLMapBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObject -> (nil)
+fakecuda: missing symbol cuGLMapBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObjectAsync -> (nil)
+fakecuda: missing symbol cuGLMapBufferObjectAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLMapBufferObjectAsync -> (nil)
+fakecuda: missing symbol cuGLMapBufferObjectAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLUnmapBufferObject -> (nil)
+fakecuda: missing symbol cuGLUnmapBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLUnmapBufferObjectAsync -> (nil)
+fakecuda: missing symbol cuGLUnmapBufferObjectAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLUnregisterBufferObject -> (nil)
+fakecuda: missing symbol cuGLUnregisterBufferObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGLSetBufferObjectMapFlags -> (nil)
+fakecuda: missing symbol cuGLSetBufferObjectMapFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsGLRegisterImage -> (nil)
+fakecuda: missing symbol cuGraphicsGLRegisterImage
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsGLRegisterBuffer -> (nil)
+fakecuda: missing symbol cuGraphicsGLRegisterBuffer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsEGLRegisterImage -> (nil)
+fakecuda: missing symbol cuGraphicsEGLRegisterImage
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerConnect -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerConnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerDisconnect -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerDisconnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerAcquireFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerAcquireFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerReleaseFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerReleaseFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerConnect -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerConnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerDisconnect -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerDisconnect
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerPresentFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerPresentFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamProducerReturnFrame -> (nil)
+fakecuda: missing symbol cuEGLStreamProducerReturnFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceGetMappedEglFrame -> (nil)
+fakecuda: missing symbol cuGraphicsResourceGetMappedEglFrame
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuEGLStreamConsumerConnectWithFlags -> (nil)
+fakecuda: missing symbol cuEGLStreamConsumerConnectWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsUnregisterResource -> (nil)
+fakecuda: missing symbol cuGraphicsUnregisterResource
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsMapResources -> (nil)
+fakecuda: missing symbol cuGraphicsMapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsMapResources -> (nil)
+fakecuda: missing symbol cuGraphicsMapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsUnmapResources -> (nil)
+fakecuda: missing symbol cuGraphicsUnmapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsUnmapResources -> (nil)
+fakecuda: missing symbol cuGraphicsUnmapResources
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceSetMapFlags -> (nil)
+fakecuda: missing symbol cuGraphicsResourceSetMapFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsSubResourceGetMappedArray -> (nil)
+fakecuda: missing symbol cuGraphicsSubResourceGetMappedArray
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceGetMappedMipmappedArray -> (nil)
+fakecuda: missing symbol cuGraphicsResourceGetMappedMipmappedArray
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsResourceGetMappedPointer -> (nil)
+fakecuda: missing symbol cuGraphicsResourceGetMappedPointer
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuProfilerInitialize -> (nil)
+fakecuda: missing symbol cuProfilerInitialize
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuProfilerStart -> (nil)
+fakecuda: missing symbol cuProfilerStart
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuProfilerStop -> (nil)
+fakecuda: missing symbol cuProfilerStop
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuVDPAUGetDevice -> (nil)
+fakecuda: missing symbol cuVDPAUGetDevice
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuVDPAUCtxCreate -> (nil)
+fakecuda: missing symbol cuVDPAUCtxCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsVDPAURegisterVideoSurface -> (nil)
+fakecuda: missing symbol cuGraphicsVDPAURegisterVideoSurface
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphicsVDPAURegisterOutputSurface -> (nil)
+fakecuda: missing symbol cuGraphicsVDPAURegisterOutputSurface
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetExportTable -> 0x7f96c52da180
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags -> (nil)
+fakecuda: missing symbol cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyAvailableDynamicSMemPerBlock -> (nil)
+fakecuda: missing symbol cuOccupancyAvailableDynamicSMemPerBlock
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyMaxPotentialClusterSize -> (nil)
+fakecuda: missing symbol cuOccupancyMaxPotentialClusterSize
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuOccupancyMaxActiveClusters -> (nil)
+fakecuda: missing symbol cuOccupancyMaxActiveClusters
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAdvise -> (nil)
+fakecuda: missing symbol cuMemAdvise
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemAdvise -> (nil)
+fakecuda: missing symbol cuMemAdvise
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemPrefetchAsync -> (nil)
+fakecuda: missing symbol cuMemPrefetchAsync
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemRangeGetAttribute -> (nil)
+fakecuda: missing symbol cuMemRangeGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuMemRangeGetAttributes -> (nil)
+fakecuda: missing symbol cuMemRangeGetAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetErrorString -> (nil)
+fakecuda: missing symbol cuGetErrorString
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGetErrorName -> (nil)
+fakecuda: missing symbol cuGetErrorName
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphCreate -> (nil)
+fakecuda: missing symbol cuGraphCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddKernelNode -> (nil)
+fakecuda: missing symbol cuGraphAddKernelNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemcpyNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemcpyNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemcpyNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemcpyNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemcpyNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphMemcpyNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemsetNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemsetNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemsetNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemsetNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemsetNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphMemsetNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddHostNode -> (nil)
+fakecuda: missing symbol cuGraphAddHostNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphHostNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphHostNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphHostNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphHostNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddChildGraphNode -> (nil)
+fakecuda: missing symbol cuGraphAddChildGraphNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphChildGraphNodeGetGraph -> (nil)
+fakecuda: missing symbol cuGraphChildGraphNodeGetGraph
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddEmptyNode -> (nil)
+fakecuda: missing symbol cuGraphAddEmptyNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddEventRecordNode -> (nil)
+fakecuda: missing symbol cuGraphAddEventRecordNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventRecordNodeGetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventRecordNodeGetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventRecordNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventRecordNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddEventWaitNode -> (nil)
+fakecuda: missing symbol cuGraphAddEventWaitNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventWaitNodeGetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventWaitNodeGetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphEventWaitNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphEventWaitNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddExternalSemaphoresSignalNode -> (nil)
+fakecuda: missing symbol cuGraphAddExternalSemaphoresSignalNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresSignalNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresSignalNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresSignalNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresSignalNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddExternalSemaphoresWaitNode -> (nil)
+fakecuda: missing symbol cuGraphAddExternalSemaphoresWaitNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresWaitNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresWaitNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExternalSemaphoresWaitNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExternalSemaphoresWaitNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecExternalSemaphoresSignalNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecExternalSemaphoresSignalNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecExternalSemaphoresWaitNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecExternalSemaphoresWaitNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemAllocNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemAllocNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemAllocNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemAllocNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddMemFreeNode -> (nil)
+fakecuda: missing symbol cuGraphAddMemFreeNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphMemFreeNodeGetParams -> (nil)
+fakecuda: missing symbol cuGraphMemFreeNodeGetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGraphMemTrim -> (nil)
+fakecuda: missing symbol cuDeviceGraphMemTrim
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceGetGraphMemAttribute -> (nil)
+fakecuda: missing symbol cuDeviceGetGraphMemAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceSetGraphMemAttribute -> (nil)
+fakecuda: missing symbol cuDeviceSetGraphMemAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphClone -> (nil)
+fakecuda: missing symbol cuGraphClone
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeFindInClone -> (nil)
+fakecuda: missing symbol cuGraphNodeFindInClone
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetType -> (nil)
+fakecuda: missing symbol cuGraphNodeGetType
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetNodes -> (nil)
+fakecuda: missing symbol cuGraphGetNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetRootNodes -> (nil)
+fakecuda: missing symbol cuGraphGetRootNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetEdges -> (nil)
+fakecuda: missing symbol cuGraphGetEdges
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphGetEdges -> (nil)
+fakecuda: missing symbol cuGraphGetEdges
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependencies -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependencies -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependentNodes -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependentNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetDependentNodes -> (nil)
+fakecuda: missing symbol cuGraphNodeGetDependentNodes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddDependencies -> (nil)
+fakecuda: missing symbol cuGraphAddDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddDependencies -> (nil)
+fakecuda: missing symbol cuGraphAddDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphRemoveDependencies -> (nil)
+fakecuda: missing symbol cuGraphRemoveDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphRemoveDependencies -> (nil)
+fakecuda: missing symbol cuGraphRemoveDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphDestroyNode -> (nil)
+fakecuda: missing symbol cuGraphDestroyNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiate -> (nil)
+fakecuda: missing symbol cuGraphInstantiate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiate -> (nil)
+fakecuda: missing symbol cuGraphInstantiate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiateWithFlags -> (nil)
+fakecuda: missing symbol cuGraphInstantiateWithFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphUpload -> (nil)
+fakecuda: missing symbol cuGraphUpload
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphUpload -> (nil)
+fakecuda: missing symbol cuGraphUpload
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphLaunch -> (nil)
+fakecuda: missing symbol cuGraphLaunch
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphLaunch -> (nil)
+fakecuda: missing symbol cuGraphLaunch
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecDestroy -> (nil)
+fakecuda: missing symbol cuGraphExecDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphDestroy -> (nil)
+fakecuda: missing symbol cuGraphDestroy
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCapture -> (nil)
+fakecuda: missing symbol cuStreamBeginCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCaptureToGraph -> (nil)
+fakecuda: missing symbol cuStreamBeginCaptureToGraph
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamBeginCaptureToGraph -> (nil)
+fakecuda: missing symbol cuStreamBeginCaptureToGraph
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamEndCapture -> (nil)
+fakecuda: missing symbol cuStreamEndCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamEndCapture -> (nil)
+fakecuda: missing symbol cuStreamEndCapture
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamIsCapturing -> (nil)
+fakecuda: missing symbol cuStreamIsCapturing
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamIsCapturing -> (nil)
+fakecuda: missing symbol cuStreamIsCapturing
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamGetCaptureInfo -> (nil)
+fakecuda: missing symbol cuStreamGetCaptureInfo
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamUpdateCaptureDependencies -> (nil)
+fakecuda: missing symbol cuStreamUpdateCaptureDependencies
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecKernelNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecKernelNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecMemcpyNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecMemcpyNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecMemsetNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecMemsetNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecHostNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecHostNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecChildGraphNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecChildGraphNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecEventRecordNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphExecEventRecordNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecEventWaitNodeSetEvent -> (nil)
+fakecuda: missing symbol cuGraphExecEventWaitNodeSetEvent
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuThreadExchangeStreamCaptureMode -> (nil)
+fakecuda: missing symbol cuThreadExchangeStreamCaptureMode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecUpdate -> (nil)
+fakecuda: missing symbol cuGraphExecUpdate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeCopyAttributes -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeCopyAttributes
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeGetAttribute -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeGetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphKernelNodeSetAttribute -> (nil)
+fakecuda: missing symbol cuGraphKernelNodeSetAttribute
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphDebugDotPrint -> (nil)
+fakecuda: missing symbol cuGraphDebugDotPrint
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuUserObjectCreate -> (nil)
+fakecuda: missing symbol cuUserObjectCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuUserObjectRetain -> (nil)
+fakecuda: missing symbol cuUserObjectRetain
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuUserObjectRelease -> (nil)
+fakecuda: missing symbol cuUserObjectRelease
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphRetainUserObject -> (nil)
+fakecuda: missing symbol cuGraphRetainUserObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphReleaseUserObject -> (nil)
+fakecuda: missing symbol cuGraphReleaseUserObject
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeSetEnabled -> (nil)
+fakecuda: missing symbol cuGraphNodeSetEnabled
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeGetEnabled -> (nil)
+fakecuda: missing symbol cuGraphNodeGetEnabled
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiateWithParams -> (nil)
+fakecuda: missing symbol cuGraphInstantiateWithParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphInstantiateWithParams -> (nil)
+fakecuda: missing symbol cuGraphInstantiateWithParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecGetFlags -> (nil)
+fakecuda: missing symbol cuGraphExecGetFlags
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddNode -> (nil)
+fakecuda: missing symbol cuGraphAddNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphAddNode -> (nil)
+fakecuda: missing symbol cuGraphAddNode
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphExecNodeSetParams -> (nil)
+fakecuda: missing symbol cuGraphExecNodeSetParams
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuGraphConditionalHandleCreate -> (nil)
+fakecuda: missing symbol cuGraphConditionalHandleCreate
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceRegisterAsyncNotification -> (nil)
+fakecuda: missing symbol cuDeviceRegisterAsyncNotification
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuDeviceUnregisterAsyncNotification -> (nil)
+fakecuda: missing symbol cuDeviceUnregisterAsyncNotification
+fakecuda: cuGetExportTable uuid=f8cff951-2146-8b4e-b9e2-fb469e7c0dd9
+fakecuda: cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)
+fakecuda: cuDriverGetVersion
+fakecuda: cuInit
+fakecuda: cuInit
+fakecuda: cuGetExportTable uuid=6bd5fb6c-5bf4-e74a-8987-d93912fd9df9
+fakecuda: cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)
+nccl version=23203
+gabe:3020350:3020350 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+gabe:3020350:3020350 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
+
+[2026-10-20 18:23:57] gabe:3020350:3020350 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'named symbol not found'
+
+[2026-10-20 18:23:57] gabe:3020350:3020350 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'named symbol not found'
+ncclCommInitRank=1 (unhandled cuda error (run with NCCL_DEBUG=INFO for details))
+FAIL
+gabe:3020350:3020364 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
+exit=1

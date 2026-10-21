@@ -9,7 +9,11 @@
 #include "fakegpu.h"
 #include "nccl.h"
 #include "fakegpu_topology.h"
+#include "fakegpu_fabric.h"
 #include <math.h>
+
+/* Named refusal: model has no measured P for this (n, S); not a duration. */
+#define FG_NCCL_REFUSED (-1.0)
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -378,16 +382,37 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
     if (is_tree) {
         double logn = log2((double)n);
         if (n <= 1) logn = 1;
+        int P_tree = (int)ceil((double)S / (double)FG_FAB_MAX_PAYLOAD);
+        if (P_tree < 1) P_tree = 1;
         bw_term = logn * S / B_Bps;
-        lat_term = logn * alpha_s;
-        dur = logn * (S / B_Bps + alpha_s);
+        lat_term = logn * alpha_s * (double)P_tree;
+        dur = bw_term + lat_term;
     } else {
         double bf, lf;
-        if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*(n-1)/(double)n; lf = 2.0*n; }
+        /* gpu-sim-8sy: bytes factor n=2 -> 2.0 (one whole buffer per phase);
+           n>=3 unchanged at 2*(n-1)/n. Latency factor 2*(n-1) for ALL n (ring
+           hop count), so the model's two factors agree at every n. Mirrors
+           epic_cluster/link_model.py; asserted by C/Python agreement test. */
+        double chunk = (n == 2) ? 1.0 : (double)(n-1)/n;
+        double hops  = (double)(n - 1);  /* 2*(n-1) latency: ring hop count, all n */
+        if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*chunk; lf = 2.0*hops; }
         else if (strcmp(algo, "ring_allgather") == 0 || strcmp(algo, "ring_reduce_scatter") == 0 || strcmp(algo, "ring_alltoall") == 0) { bf = (double)(n-1)/n; lf = (double)n; }
         else { bf = 1.0; lf = 1.0; }
+        /* pkb: pieces per phase P = ceil(chunk(n)*S / FG_FAB_MAX_PAYLOAD).
+           lat_term scaled by P (per-isend accounting). Mirrors Python. */
+        double chunk_bytes = chunk * (double)S;
+        int P;
+        if (n == 2 && S <= 4096) P = 1;           /* phase-payload table */
+        else if (n == 2 && S <= 262144) P = 4;    /* phase-payload table */
+        else if (n == 2 && S <= 2097152) P = 8;   /* phase-payload table */
+        else {
+            /* outside measured range: refuse rather than derive from cap */
+            *bottleneck_link = -1;
+            if (regime && regimesz) snprintf(regime, regimesz, "refused");
+            return FG_NCCL_REFUSED;
+        }
         bw_term = bf * S / B_Bps;
-        lat_term = lf * alpha_s;
+        lat_term = lf * alpha_s * (double)P;
         dur = bw_term + lat_term;
     }
 
@@ -419,7 +444,11 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
     if (!f) return;
     struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
     long long ts_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
-    fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":", ts_ns, rank, nranks, op, count, dtype, bytes, algo, predicted);
+    if (predicted == FG_NCCL_REFUSED) {
+        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":", ts_ns, rank, nranks, op, count, dtype, bytes, algo);
+    } else {
+        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":", ts_ns, rank, nranks, op, count, dtype, bytes, algo, predicted);
+    }
     if (bottleneck >= 0) fprintf(f, "%d", bottleneck); else fprintf(f, "null");
     fprintf(f, ",\"regime\":\"%s\"}\n", regime);
     fflush(f);
@@ -464,7 +493,7 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[16];
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
-        fg_sleep_ns((long)(pred * 1e9));
+        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
         if (recvbuff && bytes) fg_fill(recvbuff, bytes);
         fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
@@ -490,7 +519,7 @@ ncclResult_t ncclBroadcast(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[16];
         double pred = fg_nccl_predict(t, "tree_bcast", count, datatype, nr, &bl, regime, sizeof(regime));
-        fg_sleep_ns((long)(pred * 1e9));
+        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
         if (recvbuff && bytes) fg_fill(recvbuff, bytes);
         fg_nccl_trace("broadcast", rk, nr, count, fg_dtype_name(datatype), bytes, "tree_bcast", pred, bl, regime);
@@ -525,7 +554,7 @@ ncclResult_t ncclReduce(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[16];
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
-        fg_sleep_ns((long)(pred * 1e9));
+        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
         if (recvbuff && bytes) fg_fill(recvbuff, bytes);
         fg_nccl_trace("reduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
@@ -560,7 +589,7 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[16];
         double pred = fg_nccl_predict(t, "ring_allgather", count, datatype, nr, &bl, regime, sizeof(regime));
-        fg_sleep_ns((long)(pred * 1e9));
+        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * (size_t)nr * fg_dtype_size(datatype);
         if (recvbuff && bytes) fg_fill(recvbuff, bytes);
         fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime);
@@ -590,7 +619,7 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[16];
         double pred = fg_nccl_predict(t, "ring_reduce_scatter", rc, datatype, nr, &bl, regime, sizeof(regime));
-        fg_sleep_ns((long)(pred * 1e9));
+        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = rc * fg_dtype_size(datatype);
         if (recvbuff && bytes) fg_fill(recvbuff, bytes);
         fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime);
@@ -610,7 +639,7 @@ ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[16];
         double pred = fg_nccl_predict(t, "ring_alltoall", count, datatype, nr, &bl, regime, sizeof(regime));
-        fg_sleep_ns((long)(pred * 1e9));
+        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
         if (recvbuff && bytes) fg_fill(recvbuff, bytes);
         fg_nccl_trace("alltoall", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_alltoall", pred, bl, regime);

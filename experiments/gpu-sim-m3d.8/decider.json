@@ -1,0 +1,133 @@
+{
+  "per_rank": {
+    "0": {
+      "isend": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "irecv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "recv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      }
+    },
+    "1": {
+      "isend": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "irecv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      },
+      "recv": {
+        "records": 2,
+        "counter": 2,
+        "consistent": true
+      }
+    }
+  },
+  "verdict": {
+    "2a_trace_complete": true,
+    "2c_bytes": true,
+    "phase_shape": "2xS: two transfers of one payload unit per direction (2S per rank across two records)"
+  },
+  "witness_note": "Witness roles (m3d.8 acceptance 2): per-transfer bytes + per-entry-point counters discriminate a single 2S transfer (1 record, bytes=2S) from two S transfers (2 records, bytes=S each); digests are needed only for the duplicate-reporting rival (identical digests on one channel); the byte TOTAL is 2S per direction in BOTH cases, so the ratio alone cannot discriminate them. The (slot,seq) pair and consumed_seq are the anti-double-count binding.",
+  "per_op_binding": [
+    {
+      "sender_rank": 0,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "c742551a12510383",
+        "f5de6e4e3f648383"
+      ],
+      "verdict": "two real transfers"
+    },
+    {
+      "sender_rank": 1,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "3356f76bc035a383",
+        "c742551a12510383"
+      ],
+      "verdict": "two real transfers"
+    }
+  ],
+  "payload_digests": {
+    "0:0": [
+      "f5de6e4e3f648383",
+      "c742551a12510383"
+    ],
+    "1:0": [
+      "3356f76bc035a383",
+      "c742551a12510383"
+    ]
+  },
+  "binding_verdict": [
+    {
+      "sender_rank": 0,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "c742551a12510383",
+        "f5de6e4e3f648383"
+      ],
+      "verdict": "two real transfers"
+    },
+    {
+      "sender_rank": 1,
+      "sender_isend_records": 2,
+      "peer_consumed_seq": 2,
+      "distinct_digests": [
+        "3356f76bc035a383",
+        "c742551a12510383"
+      ],
+      "verdict": "two real transfers"
+    }
+  ],
+  "phase_shape": {
+    "channels": {
+      "(0, '0')": [
+        4096,
+        4096
+      ],
+      "(1, '0')": [
+        4096,
+        4096
+      ]
+    },
+    "full_payload_channel_keys": [
+      "(0, '0')",
+      "(1, '0')"
+    ],
+    "shape": "2xS: two transfers of one payload unit per direction (2S per rank across two records)"
+  },
+  "bytes": {
+    "observed_per_rank": 8192.0,
+    "observed_total": 16384,
+    "model_per_rank": 4096.0,
+    "model_total": 8192,
+    "ratio_observed_over_model": 2.0
+  },
+  "ack": {
+    "bead": "gpu-sim-m3d.8",
+    "tracking_issue": "gpu-sim-8sy",
+    "observed_per_rank_bytes": 8192,
+    "model_per_rank_bytes": 4096,
+    "ratio_observed_over_model": 2.0,
+    "statement": "The plugin's own per-entry-point counters and the fabric (slot,seq,consumed_seq) witness are the evidence for the observed value; the model value comes from epic_cluster.link_model's public per_link_bytes. The two disagree by 2x at n=2. This file is the human-reviewed acknowledgement required by acceptance 2c; the scenario script asserts against it and fails if it is absent or if the ratio disagrees with the run.",
+    "reviewed_by": "Gabriel Ferns (PI/reviewer) -- verified against the committed decider digests after the gpu-sim-8sy verdict that the MODEL is wrong, not the capture",
+    "date": "2026-10-20"
+  },
+  "failure_reason": null
+}

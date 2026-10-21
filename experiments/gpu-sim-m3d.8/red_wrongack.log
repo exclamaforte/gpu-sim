@@ -1,0 +1,11 @@
+# RED CASE 9(b)-ii: acknowledgement file present but with a WRONG ratio
+# condition exercised: ack ratio = 1.0 while the run's observed/model ratio is 2.0
+# cmd: decider.py trace_normal.log /tmp/ack_wrong.json dec_red_wrongack.json 4096 2 1024 float32
+{
+  "2a_trace_complete": true,
+  "2c_bytes": false,
+  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+}
+bytes: {"observed_per_rank": 8192.0, "observed_total": 16384, "model_per_rank": 4096.0, "model_total": 8192, "ratio_observed_over_model": 2.0}
+2c FAIL: acknowledgement file records ratio 1.00 but the run's observed/model ratio is 2.00
+exit=1 (expected non-zero: 2c must fail when the recorded ratio disagrees)

@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-8sy",
+  "make_check": "green",
+  "cpu_only": true,
+  "factors": {
+    "bytes_n2_per_rank": 8192,
+    "bytes_n2_old": 4096,
+    "latency_coeff_n2": 2,
+    "latency_coeff_n2_old": 4,
+    "latency_coeff_general": "2*(n-1)",
+    "latency_coeff_old_general": "2*n"
+  },
+  "c_python_agreement": "pass (n=2,4,8)",
+  "tests": "12 passed"
+}

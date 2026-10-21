@@ -1,0 +1,175 @@
+{
+  "bead": "gpu-sim-m3d.8",
+  "ts_job_id": "20261020t234851-3428ded7",
+  "scenarios": {
+    "1_normal": {
+      "verdict": "PASS",
+      "exit0": 0,
+      "exit1": 0,
+      "payload_bytes": 4096,
+      "count": 1024
+    },
+    "2_kill": {
+      "verdict": "PASS",
+      "rank0_exit": 137,
+      "survivor_exit": 124,
+      "elapsed_s": 28,
+      "kill_mechanism": "harness-timeout (weakest form; explicitly NOT an NCCL error)"
+    },
+    "3_oversized": {
+      "verdict": "PASS",
+      "error": "ncclInvalidArgument"
+    }
+  },
+  "decider": {
+    "per_rank": {
+      "0": {
+        "isend": {
+          "records": 2,
+          "counter": 2,
+          "consistent": true
+        },
+        "irecv": {
+          "records": 2,
+          "counter": 2,
+          "consistent": true
+        },
+        "recv": {
+          "records": 2,
+          "counter": 2,
+          "consistent": true
+        }
+      },
+      "1": {
+        "isend": {
+          "records": 2,
+          "counter": 2,
+          "consistent": true
+        },
+        "irecv": {
+          "records": 2,
+          "counter": 2,
+          "consistent": true
+        },
+        "recv": {
+          "records": 2,
+          "counter": 2,
+          "consistent": true
+        }
+      }
+    },
+    "verdict": {
+      "2a_trace_complete": true,
+      "2c_bytes": true,
+      "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+    },
+    "per_op_binding": [
+      {
+        "sender_rank": 0,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "c742551a12510383",
+          "f5de6e4e3f648383"
+        ],
+        "verdict": "two real transfers"
+      },
+      {
+        "sender_rank": 1,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "3356f76bc035a383",
+          "c742551a12510383"
+        ],
+        "verdict": "two real transfers"
+      }
+    ],
+    "payload_digests": {
+      "0:0": [
+        "f5de6e4e3f648383",
+        "c742551a12510383"
+      ],
+      "1:0": [
+        "3356f76bc035a383",
+        "c742551a12510383"
+      ]
+    },
+    "binding_verdict": [
+      {
+        "sender_rank": 0,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "c742551a12510383",
+          "f5de6e4e3f648383"
+        ],
+        "verdict": "two real transfers"
+      },
+      {
+        "sender_rank": 1,
+        "sender_isend_records": 2,
+        "peer_consumed_seq": 2,
+        "distinct_digests": [
+          "3356f76bc035a383",
+          "c742551a12510383"
+        ],
+        "verdict": "two real transfers"
+      }
+    ],
+    "phase_shape": {
+      "channels": {
+        "(0, '0')": [
+          4096,
+          4096
+        ],
+        "(1, '0')": [
+          4096,
+          4096
+        ]
+      },
+      "full_payload_channel_keys": [
+        "(0, '0')",
+        "(1, '0')"
+      ],
+      "shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+    },
+    "bytes": {
+      "observed_per_rank": 8192.0,
+      "observed_total": 16384,
+      "model_per_rank": 4096.0,
+      "model_total": 8192,
+      "ratio_observed_over_model": 2.0
+    },
+    "ack": {
+      "bead": "gpu-sim-m3d.8",
+      "tracking_issue": "gpu-sim-8sy",
+      "observed_per_rank_bytes": 8192,
+      "model_per_rank_bytes": 4096,
+      "ratio_observed_over_model": 2.0,
+      "statement": "The plugin's own per-entry-point counters and the fabric (slot,seq,consumed_seq) witness are the evidence for the observed value; the model value comes from epic_cluster.link_model's public per_link_bytes. The two disagree by 2x at n=2. This file is the human-reviewed acknowledgement required by acceptance 2c; the scenario script asserts against it and fails if it is absent or if the ratio disagrees with the run.",
+      "reviewed_by": "Gabriel Ferns (PI/reviewer) -- verified against the committed decider digests after the gpu-sim-8sy verdict that the MODEL is wrong, not the capture",
+      "date": "2026-10-20"
+    },
+    "failure_reason": null
+  },
+  "checksums": {
+    "source:experiments/gpu-sim-m3d.8/allreduce_test.c": "430444ca31b756bf4989975041d2af0abf3da399f928ecd1ff38f8d22360685f",
+    "source:experiments/gpu-sim-m3d.8/allreduce_test_large.c": "4ba9b75dcab1a6db2d7bc0a190a20a6f32ffc8e59b11c066093c4a8e5c1d4d35",
+    "output:trace_normal.log": "5b77ee33f915ef94aab9e6d063aaf36a7921c08aabe7149ed969de3fa65f5696"
+  },
+  "inputs": {
+    "rank0": {
+      "value": 1.0,
+      "count": 1024,
+      "buffer_sha256": "e9bac255f4adc7cb4ada9298e193a5ff66b434d15afabd458505325f29c398c7"
+    },
+    "rank1": {
+      "value": 2.0,
+      "count": 1024,
+      "buffer_sha256": "8dbe6bea5b329593e33668434e9ff515f49215dd88d1e923ef3e04d9b25fa2f1"
+    },
+    "expected_output_value": 3.0,
+    "output_buffer_sha256": "45093cb6f6dff00c75e445da1d04e0f382711bf7253a09b6a9d6a14362adc6c0"
+  }
+}

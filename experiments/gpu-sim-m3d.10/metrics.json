@@ -1,0 +1,515 @@
+{
+  "bead": "gpu-sim-m3d.10",
+  "admissibility_script": "experiments/gpu-sim-m3d.10/admissibility.py",
+  "corrected_model": "gpu-sim-8sy (commit 70a40cf8)",
+  "size_bytes": 33554432,
+  "admitted_set": "mixed",
+  "candidate_sets": {
+    "original_ABCD": {
+      "admitted": false,
+      "order": [
+        "C",
+        "A",
+        "D",
+        "B"
+      ],
+      "pairs": [
+        {
+          "pair": "C->A",
+          "d_pred_us": 145.13080888888902,
+          "d_bw_us": 149.1308088888889,
+          "bw_ratio": 1.0275613429748212,
+          "rel_margin": 0.2424814948983176,
+          "admissible": true
+        },
+        {
+          "pair": "A->D",
+          "d_pred_us": 15807.604124444448,
+          "d_bw_us": 15509.604124444444,
+          "bw_ratio": 0.9811483133273066,
+          "rel_margin": 0.9635183110296448,
+          "admissible": true
+        },
+        {
+          "pair": "D->B",
+          "d_pred_us": 381.0886399999991,
+          "d_bw_us": 671.0886400000046,
+          "bw_ratio": 1.7609778134556995,
+          "rel_margin": 0.022701122091953727,
+          "admissible": false,
+          "reason": "; resolvability (4b) fails"
+        }
+      ]
+    },
+    "link_class_ladder_n2": {
+      "admitted": true,
+      "order": [
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "pairs": [
+        {
+          "pair": "L1->L2",
+          "d_pred_us": 747.6540444444444,
+          "d_bw_us": 745.6540444444444,
+          "bw_ratio": 0.9973249659854563,
+          "rel_margin": 0.5553904790641276,
+          "admissible": true
+        },
+        {
+          "pair": "L2->L3",
+          "d_pred_us": 4032.531839999999,
+          "d_bw_us": 4026.53184,
+          "bw_ratio": 0.9985121010228654,
+          "rel_margin": 0.749721122677108,
+          "admissible": true
+        },
+        {
+          "pair": "L3->L4",
+          "d_pred_us": 16116.127359999999,
+          "d_bw_us": 16106.12736,
+          "bw_ratio": 0.9993795035384978,
+          "rel_margin": 0.7497673859950202,
+          "admissible": true
+        }
+      ]
+    },
+    "mixed": {
+      "admitted": true,
+      "order": [
+        "M1",
+        "M2",
+        "M3",
+        "M4"
+      ],
+      "pairs": [
+        {
+          "pair": "M1->M2",
+          "d_pred_us": 4780.185884444444,
+          "d_bw_us": 4772.185884444444,
+          "bw_ratio": 0.9983264249145554,
+          "rel_margin": 0.8887236282531011,
+          "admissible": true
+        },
+        {
+          "pair": "M2->M3",
+          "d_pred_us": 2704.354560000001,
+          "d_bw_us": 2684.3545599999984,
+          "bw_ratio": 0.992604520022699,
+          "rel_margin": 0.33457048800585487,
+          "admissible": true
+        },
+        {
+          "pair": "M3->M4",
+          "d_pred_us": 8083.06368,
+          "d_bw_us": 8053.063679999998,
+          "bw_ratio": 0.9962885359824355,
+          "rel_margin": 0.5,
+          "admissible": true
+        }
+      ]
+    },
+    "drop_C_ABC?_ABD": {
+      "admitted": false,
+      "order": [
+        "A",
+        "D",
+        "B"
+      ],
+      "pairs": [
+        {
+          "pair": "A->D",
+          "d_pred_us": 15807.604124444448,
+          "d_bw_us": 15509.604124444444,
+          "bw_ratio": 0.9811483133273066,
+          "rel_margin": 0.9635183110296448,
+          "admissible": true
+        },
+        {
+          "pair": "D->B",
+          "d_pred_us": 381.0886399999991,
+          "d_bw_us": 671.0886400000046,
+          "bw_ratio": 1.7609778134556995,
+          "rel_margin": 0.022701122091953727,
+          "admissible": false,
+          "reason": "; resolvability (4b) fails"
+        }
+      ]
+    },
+    "drop_B_ACD": {
+      "admitted": true,
+      "order": [
+        "C",
+        "A",
+        "D"
+      ],
+      "pairs": [
+        {
+          "pair": "C->A",
+          "d_pred_us": 145.13080888888902,
+          "d_bw_us": 149.1308088888889,
+          "bw_ratio": 1.0275613429748212,
+          "rel_margin": 0.2424814948983176,
+          "admissible": true
+        },
+        {
+          "pair": "A->D",
+          "d_pred_us": 15807.604124444448,
+          "d_bw_us": 15509.604124444444,
+          "bw_ratio": 0.9811483133273066,
+          "rel_margin": 0.9635183110296448,
+          "admissible": true
+        }
+      ]
+    }
+  },
+  "rejected_alternatives": {
+    "original_ABCD": {
+      "configs": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "order": [
+        "C",
+        "A",
+        "D",
+        "B"
+      ],
+      "rows": {
+        "A": {
+          "n": 2,
+          "bw_gbps": 900.0,
+          "latency_us": 1.0,
+          "predicted_s": 0.0005985232355555556,
+          "regime": "bandwidth",
+          "bw_term": 0.0005965232355555556,
+          "latency_term": 2.0000000000000486e-06
+        },
+        "B": {
+          "n": 2,
+          "bw_gbps": 32.0,
+          "latency_us": 5.0,
+          "predicted_s": 0.016787216,
+          "regime": "bandwidth",
+          "bw_term": 0.016777216000000005,
+          "latency_term": 9.999999999996123e-06
+        },
+        "C": {
+          "n": 4,
+          "bw_gbps": 900.0,
+          "latency_us": 1.0,
+          "predicted_s": 0.0004533924266666666,
+          "regime": "bandwidth",
+          "bw_term": 0.0004473924266666667,
+          "latency_term": 5.999999999999929e-06
+        },
+        "D": {
+          "n": 4,
+          "bw_gbps": 25.0,
+          "latency_us": 50.0,
+          "predicted_s": 0.01640612736,
+          "regime": "bandwidth",
+          "bw_term": 0.01610612736,
+          "latency_term": 0.00030000000000000165
+        }
+      },
+      "pairs": [
+        {
+          "pair": "C->A",
+          "d_pred_us": 145.13080888888902,
+          "d_bw_us": 149.1308088888889,
+          "bw_ratio": 1.0275613429748212,
+          "rel_margin": 0.2424814948983176,
+          "admissible": true
+        },
+        {
+          "pair": "A->D",
+          "d_pred_us": 15807.604124444448,
+          "d_bw_us": 15509.604124444444,
+          "bw_ratio": 0.9811483133273066,
+          "rel_margin": 0.9635183110296448,
+          "admissible": true
+        },
+        {
+          "pair": "D->B",
+          "d_pred_us": 381.0886399999991,
+          "d_bw_us": 671.0886400000046,
+          "bw_ratio": 1.7609778134556995,
+          "rel_margin": 0.022701122091953727,
+          "admissible": false,
+          "reason": "; resolvability (4b) fails"
+        }
+      ],
+      "admitted": false
+    },
+    "link_class_ladder_n2": {
+      "configs": [
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "order": [
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "rows": {
+        "L1": {
+          "n": 2,
+          "bw_gbps": 900.0,
+          "latency_us": 1.0,
+          "predicted_s": 0.0005985232355555556,
+          "regime": "bandwidth",
+          "bw_term": 0.0005965232355555556,
+          "latency_term": 2.0000000000000486e-06
+        },
+        "L2": {
+          "n": 2,
+          "bw_gbps": 400.0,
+          "latency_us": 2.0,
+          "predicted_s": 0.00134617728,
+          "regime": "bandwidth",
+          "bw_term": 0.00134217728,
+          "latency_term": 4.000000000000097e-06
+        },
+        "L3": {
+          "n": 2,
+          "bw_gbps": 100.0,
+          "latency_us": 5.0,
+          "predicted_s": 0.005378709119999999,
+          "regime": "bandwidth",
+          "bw_term": 0.00536870912,
+          "latency_term": 9.999999999999593e-06
+        },
+        "L4": {
+          "n": 2,
+          "bw_gbps": 25.0,
+          "latency_us": 10.0,
+          "predicted_s": 0.021494836479999998,
+          "regime": "bandwidth",
+          "bw_term": 0.02147483648,
+          "latency_term": 1.9999999999999185e-05
+        }
+      },
+      "pairs": [
+        {
+          "pair": "L1->L2",
+          "d_pred_us": 747.6540444444444,
+          "d_bw_us": 745.6540444444444,
+          "bw_ratio": 0.9973249659854563,
+          "rel_margin": 0.5553904790641276,
+          "admissible": true
+        },
+        {
+          "pair": "L2->L3",
+          "d_pred_us": 4032.531839999999,
+          "d_bw_us": 4026.53184,
+          "bw_ratio": 0.9985121010228654,
+          "rel_margin": 0.749721122677108,
+          "admissible": true
+        },
+        {
+          "pair": "L3->L4",
+          "d_pred_us": 16116.127359999999,
+          "d_bw_us": 16106.12736,
+          "bw_ratio": 0.9993795035384978,
+          "rel_margin": 0.7497673859950202,
+          "admissible": true
+        }
+      ],
+      "admitted": true
+    },
+    "drop_C_ABC?_ABD": {
+      "configs": [
+        "A",
+        "B",
+        "D"
+      ],
+      "order": [
+        "A",
+        "D",
+        "B"
+      ],
+      "rows": {
+        "A": {
+          "n": 2,
+          "bw_gbps": 900.0,
+          "latency_us": 1.0,
+          "predicted_s": 0.0005985232355555556,
+          "regime": "bandwidth",
+          "bw_term": 0.0005965232355555556,
+          "latency_term": 2.0000000000000486e-06
+        },
+        "B": {
+          "n": 2,
+          "bw_gbps": 32.0,
+          "latency_us": 5.0,
+          "predicted_s": 0.016787216,
+          "regime": "bandwidth",
+          "bw_term": 0.016777216000000005,
+          "latency_term": 9.999999999996123e-06
+        },
+        "D": {
+          "n": 4,
+          "bw_gbps": 25.0,
+          "latency_us": 50.0,
+          "predicted_s": 0.01640612736,
+          "regime": "bandwidth",
+          "bw_term": 0.01610612736,
+          "latency_term": 0.00030000000000000165
+        }
+      },
+      "pairs": [
+        {
+          "pair": "A->D",
+          "d_pred_us": 15807.604124444448,
+          "d_bw_us": 15509.604124444444,
+          "bw_ratio": 0.9811483133273066,
+          "rel_margin": 0.9635183110296448,
+          "admissible": true
+        },
+        {
+          "pair": "D->B",
+          "d_pred_us": 381.0886399999991,
+          "d_bw_us": 671.0886400000046,
+          "bw_ratio": 1.7609778134556995,
+          "rel_margin": 0.022701122091953727,
+          "admissible": false,
+          "reason": "; resolvability (4b) fails"
+        }
+      ],
+      "admitted": false
+    },
+    "drop_B_ACD": {
+      "configs": [
+        "A",
+        "C",
+        "D"
+      ],
+      "order": [
+        "C",
+        "A",
+        "D"
+      ],
+      "rows": {
+        "A": {
+          "n": 2,
+          "bw_gbps": 900.0,
+          "latency_us": 1.0,
+          "predicted_s": 0.0005985232355555556,
+          "regime": "bandwidth",
+          "bw_term": 0.0005965232355555556,
+          "latency_term": 2.0000000000000486e-06
+        },
+        "C": {
+          "n": 4,
+          "bw_gbps": 900.0,
+          "latency_us": 1.0,
+          "predicted_s": 0.0004533924266666666,
+          "regime": "bandwidth",
+          "bw_term": 0.0004473924266666667,
+          "latency_term": 5.999999999999929e-06
+        },
+        "D": {
+          "n": 4,
+          "bw_gbps": 25.0,
+          "latency_us": 50.0,
+          "predicted_s": 0.01640612736,
+          "regime": "bandwidth",
+          "bw_term": 0.01610612736,
+          "latency_term": 0.00030000000000000165
+        }
+      },
+      "pairs": [
+        {
+          "pair": "C->A",
+          "d_pred_us": 145.13080888888902,
+          "d_bw_us": 149.1308088888889,
+          "bw_ratio": 1.0275613429748212,
+          "rel_margin": 0.2424814948983176,
+          "admissible": true
+        },
+        {
+          "pair": "A->D",
+          "d_pred_us": 15807.604124444448,
+          "d_bw_us": 15509.604124444444,
+          "bw_ratio": 0.9811483133273066,
+          "rel_margin": 0.9635183110296448,
+          "admissible": true
+        }
+      ],
+      "admitted": true
+    }
+  },
+  "note": "Admissibility computed from corrected model (8sy). Original ABCD rejected: D->B rel margin 2.3% < 20% (4b).",
+  "gate_verdict": "NO-CLOSE: NO CONFIG SET IS ADMISSIBLE ON THIS HARDWARE",
+  "gate_grounds": [
+    "G1: 4b 10x-spread clause unsatisfiable (36.2 us required, tens of ms available) => set REJECTED pre-run; evidence = ~6.6 ms payload-independent offset, response present but not resolvable",
+    "G2: M3/M4 refused (unmeasured n=4 P, gpu-sim-8ii via 6kp)"
+  ],
+  "noise_floor_box": "nproc=2, loadavg ~20-40, ~3274 tasks",
+  "max_tolerable_spread_us": 36.2,
+  "d_pred_M1M2_us": 362.3,
+  "bw_share_4a": 0.823,
+  "rel_margin_4b": 0.872,
+  "payload_bytes": 2097152,
+  "per_criterion": {
+    "1_metrics_and_verdict_script": "MET",
+    "2_ordering": "NOT-APPLICABLE (no admitted config set)",
+    "3_delta_error_vs_35pct": "NOT-APPLICABLE (no admitted config set)",
+    "4a_bw_share": "MET (0.823 at 2 MiB)",
+    "4b_100us_floor": "MET (362.3 us)",
+    "4b_20pct_margin": "MET (0.872)",
+    "4b_10x_spread": "UNMET (environment: 36.2 us needed, tens of ms available)",
+    "4c_cancellation": "MET",
+    "4d_config_set_vs_corrected_model": "MET",
+    "5_structural_counters": "MET (M1/M2); NOT-APPLICABLE beyond (n=4 refused)",
+    "6_kill_test": "MET",
+    "7_no_gpu_lane": "MET",
+    "8_explicit_close_noclose": "MET",
+    "9a_3runs_median_spread": "NOT-APPLICABLE (no GPU run)",
+    "9b_delta_measured": "NOT-APPLICABLE (no GPU run)",
+    "9c_ordering_on_medians": "NOT-APPLICABLE (no GPU run)",
+    "9d_wire_bytes_from_trace": "MET (M1/M2 via test_bytes_present in pkb/test_pkb.py: trace-parsed bytes vs link_model.predict exact equality 16384==16384, negative controls RED); NOT-APPLICABLE (M3/M4, n=4 refused, gpu-sim-8ii)",
+    "9e_ts_job_id": "NOT-APPLICABLE (CPU-only)",
+    "9f_verdict_by_script": "MET"
+  },
+  "c_fixed_bound_us": "1-2",
+  "8nt_post_gate": true,
+  "forbidden": [
+    "quieter box",
+    "repeated runs",
+    "re-rolled median",
+    "widened 4b",
+    "payload chosen for larger delta"
+  ],
+  "ptr_variance": "experiments/gpu-sim-pkb/variance_measurement.md",
+  "ptr_raw_logs": "experiments/gpu-sim-pkb/raw/",
+  "ptr_phase_payload": "experiments/gpu-sim-pkb/canonical_byte_table.md",
+  "ptr_pkb_metrics": "experiments/gpu-sim-pkb/metrics.json",
+  "ptr_8ii": "gpu-sim-8ii",
+  "g1_wording": "present but not resolvable",
+  "g1_minima": {
+    "4KiB": 6677,
+    "2MiB": 6717
+  },
+  "g1_offset_us": 6600,
+  "g1_granularity_ratio": "~200x",
+  "noise_floor_note": "PROXY, not 9(a) protocol: max-min over 5 iterations at 2 MiB, one config, one run reached 52702 us. The 4641 s timer artifact (raw/iters_4k.log) is EXCLUDED. 9(a) protocol (3 runs/config, median, max-min) was NOT executed.",
+  "noise_floor_proxy_us": 45985,
+  "c_fixed_cancellation": "c_fixed cancels EXACTLY in M1->M2 (both n=2, 16 pieces/rank). Artifact share of admitted delta: 0 us / 0%. 20% cap applies only to cross-class deltas, none admitted.",
+  "schema": "m3d.10/gate-admissibility/1",
+  "what_was_not_done": [
+    "NO GATE RUN",
+    "NO MEASURED DELTAS",
+    "NO 3-RUN PER-CONFIG PROTOCOL",
+    "NO GPU RUN",
+    "NO ORDERING OBSERVED"
+  ]
+}

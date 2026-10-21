@@ -1,0 +1,9 @@
+=== item 9(a) negative control: FG_FAB_EPEERDEAD -> ncclSystemError mapping BROKEN (scratch tree, plugin source) ===
+cmd: sed 's/if (rc == FG_FAB_EPEERDEAD) return ncclSystemError;/if (rc == FG_FAB_EPEERDEAD) return ncclSuccess;/' src/ncclnetsim_fabric.c  (plugin's real mapping)
+cmd: rebuild libncclNetSimFab.so + peer_death_test, run
+--- run (expected RED) ---
+nccl.h resolved: ncclSystemError = 2 (plugin uses the real header, value 2)
+mapping function called: ncclnetsim_map_fab_error (plugin's real code)
+pending transfer rc=4 (EPEERDEAD), mapped to NCCL code 0
+peer-death mapping FAIL
+exit=1 (non-zero = guard observed failing)

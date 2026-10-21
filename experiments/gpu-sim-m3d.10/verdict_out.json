@@ -1,0 +1,39 @@
+{
+  "arithmetic": {
+    "d_pred_M1M2_us": 362.3,
+    "implied_d_pred_over_10": 36.23,
+    "max_tolerable_spread_us": 36.2,
+    "noise_floor_proxy_us": 45985.0,
+    "proxy_iterations_kept": 4,
+    "proxy_raw_log": "experiments/gpu-sim-pkb/raw/iters_2m.log",
+    "proxy_spread_derived_us": 45985.0,
+    "proxy_timer_artifacts_dropped": 0,
+    "violation_factor": 1270.3
+  },
+  "claim": "no config set is admissible on this hardware, so the gate does not run: a finding about the measurement environment and an unmeasured input, not about the model or the simulator",
+  "criteria_not_applicable": [
+    "2",
+    "3",
+    "9a",
+    "9b",
+    "9c"
+  ],
+  "gate_ran": false,
+  "grounds": [
+    "G1: 4b's pre-run spread clause cannot be satisfied by any spread this box delivers -- 36.2us required, proxy spread 45985us (1270x larger), so the config set is REJECTED BEFORE THE RUN",
+    "G2: 4 config(s) refused for want of a MEASURED n=4 pieces-per-phase; the model refuses rather than deriving P from the fabric's cap, which undercounts the piece count by four at 2 MiB"
+  ],
+  "schema": "m3d.10/gate-admissibility/1",
+  "stated_verdict_in_artifact": "NO-CLOSE: NO CONFIG SET IS ADMISSIBLE ON THIS HARDWARE",
+  "tolerances": {
+    "resolvability_spread_multiple": 10.0
+  },
+  "verdict": "NO-CLOSE-ADMISSIBILITY",
+  "what_was_not_done": [
+    "NO GATE RUN",
+    "NO MEASURED DELTAS",
+    "NO 3-RUN PER-CONFIG PROTOCOL",
+    "NO GPU RUN",
+    "NO ORDERING OBSERVED"
+  ]
+}

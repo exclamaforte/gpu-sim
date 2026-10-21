@@ -26,7 +26,7 @@ CFLAGS  = -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default 
 # showed the miss test PASSING on the broken code -- rax residue luck). The
 # flag makes the class a build failure instead. Verified clean on all SRCS.
 LDFLAGS = -shared -lm
-INCLUDES = -Iinclude -Ishim
+INCLUDES = -Iinclude -Ishim -I/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include
 
 LIB = libfakegpu.so
 SRCS = src/fakegpu_config.c src/fakegpu_random.c src/fakegpu_pool.c \
@@ -41,7 +41,7 @@ FABRIC_TEST_BIN = build/test_fabric
 
 .PHONY: all check clean
 
-all: $(LIB)
+all: $(LIB) libfakecuda.so
 
 $(LIB): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) -ldl -lpthread
@@ -107,5 +107,11 @@ $(FABRIC_TEST_BIN): tests/test_fabric.c src/fakegpu_fabric.c include/fakegpu_fab
 	$(CC) $(CFLAGS) -Iinclude -o $@ tests/test_fabric.c src/fakegpu_fabric.c -lpthread
 
 
+libfakecuda.so: src/fakecuda.o src/fakegpu_config.o src/fakegpu_random.o src/fakegpu_pool.o src/fakegpu_latency.o src/fakegpu_topology.o
+	$(CC) $(LDFLAGS) -o $@ $^ -ldl -lpthread -lm
+
+src/fakecuda.o: src/fakecuda.c include/fakegpu.h include/fakegpu_topology.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
+
 clean:
-	rm -f $(OBJS) $(LIB) src/*.o $(TEST_BIN) $(VEC_BIN) $(RING_BIN)
+	rm -f $(OBJS) $(LIB) src/*.o $(TEST_BIN) $(VEC_BIN) $(RING_BIN) libfakecuda.so
