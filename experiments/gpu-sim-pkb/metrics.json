@@ -70,5 +70,18 @@
     "queue_wait_us_at_8_pieces": 6400,
     "wait_deadline_us": 5000,
     "conclusion": "queue wait (6.4ms) exceeds deadline (5ms) at 10 Gbps -> timeout. Confirmed: 2 MiB (1 piece) succeeds, 8 MiB+ times out."
+  },
+  "item9_agreement_check": {
+    "payload_bytes": 2097152,
+    "pieces_per_phase_P": 2,
+    "model_duration_us": 3375.4432,
+    "plugin_duration_us": 3375.4432,
+    "relative_error": 0.0,
+    "within_10pct": true,
+    "bytes_exact": true,
+    "model_bytes_per_rank": 4194304,
+    "plugin_bytes_per_rank": 4194304,
+    "regime": "bandwidth",
+    "verdict": "PASS"
   }
 }

@@ -191,7 +191,15 @@ def _bw_factor(algorithm: str, n: int) -> float:
 
 
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
-            n_ranks: Optional[int] = None) -> Dict[str, Any]:
+            n_ranks: Optional[int] = None,
+            pieces_per_phase: int = 1) -> Dict[str, Any]:
+    # pieces_per_phase (P): number of fabric pieces per logical phase per rank.
+    # With per-isend accounting (pkb candidate A), each piece pays the link
+    # latency, so the latency term scales by P. P depends on payload size and
+    # the fabric's 1 MiB payload cap (a SIMULATOR constant), so alpha is a
+    # per-piece charge, not a per-hop network property, when P > 1.
+    if pieces_per_phase < 1:
+        pieces_per_phase = 1
     if algorithm not in ALGORITHMS:
         raise ValueError(f"unknown algorithm {algorithm}")
     dtype = dtype.lower()
@@ -262,15 +270,16 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     B_Bps = B_gbps * 1e9 / 8.0
 
     if algorithm == "tree_bcast":
-        lat_term = math.log2(n) * (S / B_Bps + alpha_s) if n > 1 else (S / B_Bps + alpha_s)
-        bw_term = S / B_Bps
-        dur = math.log2(n) * (S / B_Bps + alpha_s) if n > 1 else (S / B_Bps + alpha_s)
-        lat_factor = math.log2(n) if n > 1 else 1.0
+        lf_t = (math.log2(n) if n > 1 else 1.0)
+        bw_term = lf_t * S / B_Bps
+        lat_term = lf_t * alpha_s * pieces_per_phase
+        dur = bw_term + lat_term
+        lat_factor = lf_t
     else:
         bf = _bw_factor(algorithm, n)
         lf = _latency_factor(algorithm, n)
         bw_term = bf * S / B_Bps
-        lat_term = lf * alpha_s
+        lat_term = lf * alpha_s * pieces_per_phase
         dur = bw_term + lat_term
 
     # per_link_bytes
@@ -309,6 +318,7 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
 
     return {
         "duration_s": dur,
+        "pieces_per_phase": pieces_per_phase,
         "algorithm": algorithm,
         "bottleneck": {"link_id": b_link, "kind": bottleneck_kind},
         "per_link_bytes": per_link_bytes,
