@@ -34,8 +34,45 @@ This matches hypothesis (A): a simple threshold rule, not an erratic function.
 The threshold sits between 256KiB and 512KiB. The gate's payload (2MiB) is on the
 known (S/2) side of the threshold, so the n=2 factor is predictable there.
 
-n>=3 robustness: not collected here (n=4 rows pending; segfaults above 2MiB
-blocked the 4MiB/8MiB n=2 points too). The n=4 at 1/2/8 MiB remains to be run.
+n>=3 robustness: NOT MEASURABLE with the current runtime interposer. The 4-rank run
+fails with "named symbol not found" in ncclLaunchKernel because all ranks map to real
+device 0 (the runtime interposer (libfakegpu) does not control NCCL's device enumeration
+at the versioned cuda* boundary; see 6kp bead). The n=4 pieces-per-phase is therefore
+unmeasured and the model refuses (ValueError) for n>=3 rather than deriving from the cap.
+
+Segfault diagnosis: earlier 4MiB/8MiB segfaults were environmental (transient), not a
+registration leak -- 4MiB runs now succeed. The reg_pool leak (fetch_add before bounds
+check) was real and is fixed (rollback on overflow). The registration failure path now
+returns 0 (error) loudly; no silent use of a failed offset.
 
 Raw traces: /tmp/scratchpad/trace_*.log (not committed; regenerable via run_forcenet.sh
 with GPUSIM_COUNT set).
+
+
+## Chunk rule (from measurement)
+
+pieces_per_phase (P) per direction, n=2:
+  S <= 256 KiB: P = 1 (phase payload = S, single chunk)
+  S >= 512 KiB: P = 8 (phase payload = S/8, 8 chunks of S/8)
+
+The chunk SIZE is not constant; it grows with S (4KB, 16KB, 64KB, 128KB, 256KB)
+while the count steps at 256/512 KiB. This is NCCL's internal chunking heuristic
+(buffer size, channel count, min chunk), not a simple function of S and n.
+
+## Judgement: modelled vs input
+
+The chunk rule should be an INPUT to the model, not a modelled function. Rationale:
+the chunking is a property of the PROTOCOL (NCCL), not of the NETWORK. The network
+model already takes link bandwidth and latency as inputs; the piece count is the
+same kind of thing -- a property of what the protocol will do, which the model
+is told rather than predicts. The per-isend accounting then charges the simulator's
+per-piece cost P times, which is the artifact being measured. Modelling the chunk
+rule would make the model claim to predict NCCL's internal heuristic, which it
+has no basis for, and would hide the protocol dependency behind a formula that
+only fits the measured points. The table is the evidence; the model takes P from it.
+
+Accordingly, `_derived_pieces_per_phase` in epic_cluster/link_model.py and the C
+model in src/fakegpu_nccl.c should default to the measured table when available,
+and accept an explicit override (pieces_per_phase) otherwise. The fabric cap
+(FG_FAB_MAX_PAYLOAD) remains an upper bound on what the fabric accepts, not the
+unit in which NCCL sends.
