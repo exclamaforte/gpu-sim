@@ -1,0 +1,62 @@
+=== traces/trace_S1048576_n2_m1.log
+S=1048576 rank=0: isends=16 total_bytes=1048576 byte_factor=1.00 distinct_digests=3
+S=1048576 rank=1: isends=16 total_bytes=1048576 byte_factor=1.00 distinct_digests=2
+exit=0
+=== traces/trace_S1048576_n2_m2.log
+S=1048576 rank=0: isends=16 total_bytes=1048576 byte_factor=1.00 distinct_digests=2
+S=1048576 rank=1: isends=16 total_bytes=1048576 byte_factor=1.00 distinct_digests=2
+exit=0
+=== traces/trace_S131072_n2_m1.log
+INVALID: INVALID: rank 0: total_bytes 163840 is not an exact multiple of S 131072 (factor 1.2500)
+exit=2
+=== traces/trace_S131072_n2_m2.log
+INVALID: INVALID: rank 0: total_bytes 163840 is not an exact multiple of S 131072 (factor 1.2500)
+exit=2
+=== traces/trace_S2097152_n2_m1.log
+S=2097152 rank=0: isends=16 total_bytes=2097152 byte_factor=1.00 distinct_digests=2
+S=2097152 rank=1: isends=16 total_bytes=2097152 byte_factor=1.00 distinct_digests=2
+exit=0
+=== traces/trace_S2097152_n2_m2.log
+S=2097152 rank=0: isends=16 total_bytes=2097152 byte_factor=1.00 distinct_digests=3
+S=2097152 rank=1: isends=16 total_bytes=2097152 byte_factor=1.00 distinct_digests=2
+exit=0
+=== traces/trace_S262144_n2_m1.log
+INVALID: INVALID: rank 0: total_bytes 327680 is not an exact multiple of S 262144 (factor 1.2500)
+exit=2
+=== traces/trace_S262144_n2_m2.log
+INVALID: INVALID: rank 1: total_bytes 327680 is not an exact multiple of S 262144 (factor 1.2500)
+exit=2
+=== traces/trace_S393216_n2_m1.log
+INVALID: INVALID: rank 0: total_bytes 327680 is not an exact multiple of S 393216 (factor 0.8333)
+exit=2
+=== traces/trace_S393216_n2_m2.log
+INVALID: INVALID: rank 0: total_bytes 262144 is not an exact multiple of S 393216 (factor 0.6667)
+exit=2
+=== traces/trace_S4096_n2_m1.log
+S=4096 rank=0: isends=2 total_bytes=8192 byte_factor=2.00 distinct_digests=2
+S=4096 rank=1: isends=1 total_bytes=4096 byte_factor=1.00 distinct_digests=1
+exit=0
+=== traces/trace_S4096_n2_m2.log
+S=4096 rank=0: isends=2 total_bytes=8192 byte_factor=2.00 distinct_digests=2
+S=4096 rank=1: isends=1 total_bytes=4096 byte_factor=1.00 distinct_digests=1
+exit=0
+=== traces/trace_S524288_n2_m1.log
+S=524288 rank=0: isends=16 total_bytes=524288 byte_factor=1.00 distinct_digests=2
+S=524288 rank=1: isends=16 total_bytes=524288 byte_factor=1.00 distinct_digests=2
+exit=0
+=== traces/trace_S524288_n2_m2.log
+S=524288 rank=0: isends=16 total_bytes=524288 byte_factor=1.00 distinct_digests=2
+S=524288 rank=1: isends=16 total_bytes=524288 byte_factor=1.00 distinct_digests=2
+exit=0
+=== traces/trace_S65536_n2_m1.log
+INVALID: INVALID: rank 1: total_bytes 81920 is not an exact multiple of S 65536 (factor 1.2500)
+exit=2
+=== traces/trace_S65536_n2_m2.log
+INVALID: INVALID: rank 0: total_bytes 81920 is not an exact multiple of S 65536 (factor 1.2500)
+exit=2
+=== traces/negative_control_broken.log
+INVALID: INVALID: 1 malformed isend line(s)
+exit=2
+=== traces/negative_control_nonmultiple.log
+INVALID: INVALID: rank 0: total_bytes 6096 is not an exact multiple of S 4096 (factor 1.4883)
+exit=2
