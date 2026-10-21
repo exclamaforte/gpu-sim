@@ -42,6 +42,7 @@ def main():
     run.add_argument("--gpus-per-node", type=int, dest="gpus_per_node", help="gpus per node")
     run.add_argument("--dry-run", action="store_true")
     run.add_argument("--timeout", default="60s")
+    run.add_argument("--run-id", dest="run_id_arg", help="explicit run id (fails if already exists)")
     run.add_argument("rest", nargs=argparse.REMAINDER)
     args = ap.parse_args()
 
@@ -71,9 +72,15 @@ def main():
     world = len(ranks)
     node_by_name = {n["name"]: n for n in spec["nodes"]}
 
-    run_id = "run-" + uuid.uuid4().hex[:12]
+    if args.run_id_arg:
+        run_id = args.run_id_arg
+    else:
+        run_id = "run-" + uuid.uuid4().hex[:12]
     base = os.getcwd()
     run_dir = os.path.join(base, "runs", run_id)
+    if os.path.exists(run_dir):
+        print(f"ERROR: run id {run_id} already exists at {run_dir}; refusing to clobber", file=sys.stderr)
+        return 2
     os.makedirs(run_dir, exist_ok=True)
 
     # build plan
@@ -109,6 +116,20 @@ def main():
         env["GPUSIM_TOPOLOGY"] = os.path.join(run_dir, "topology.json")
         return env
 
+    # process group tracking for signal handling
+    _spawned = []
+    _shm_path = [shm]
+    def _kill_all(signum=None, frame=None):
+        for e in list(_spawned):
+            try: os.killpg(e["proc"].pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+        try:
+            if os.path.exists(_shm_path[0]): os.unlink(_shm_path[0])
+        except OSError: pass
+        sys.exit(128 + (signum if signum else 0))
+    signal.signal(signal.SIGINT, _kill_all)
+    signal.signal(signal.SIGTERM, _kill_all)
+
     # spawn
     procs = []
     started = time.time()
@@ -119,6 +140,7 @@ def main():
         env = make_env(p)
         pr = subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, env=env,
                               start_new_session=True, cwd=base)
+        _spawned.append({"proc": pr})
         procs.append({"rank": p["rank"], "pid": pr.pid, "proc": pr, "log": lf,
                       "started_ns": int(time.time()*1e9)})
 
@@ -176,6 +198,13 @@ def main():
     # if any non-zero, kill remaining (already reaped)
     verdict = "PASS" if all(r["exit"] == 0 for r in results) else "FAIL"
 
+    # shm cleanup (launcher-owned; .2 owns refcount but unlink is safe after detach)
+    try:
+        if os.path.exists(shm):
+            os.unlink(shm)
+    except OSError:
+        pass
+
     run_record = {
         "run_id": run_id,
         "topology_sha256": topo_sha,
@@ -187,7 +216,13 @@ def main():
     with open(os.path.join(run_dir, "run.json"), "w") as f:
         json.dump(run_record, f, indent=2)
     print(json.dumps({"run_id": run_id, "verdict": verdict, "run_dir": run_dir}, indent=2))
-    return 0 if verdict == "PASS" else 1
+    if verdict == "PASS":
+        return 0
+    # exit with the first non-zero rank's exit code (or 1)
+    for r in results:
+        if r["exit"] != 0:
+            return r["exit"] if r["exit"] > 0 else 1
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())
