@@ -139,9 +139,9 @@ def test_multihop():
     bw = 10.0 * 1e9 / 8.0
     alpha = 5e-6
     S = 1000 * 4
-    # n=2 ring is degenerate (gpu-sim-8sy): ONE hop per phase carrying the WHOLE
-    # buffer, two phases => 2*S bytes and 2*alpha of latency per rank.
-    expected = 2.0 * S / bw + 2 * alpha
+    # ggh: n=2 byte factor is 1.0 (was 2.0; corrected per eut committed traces).
+    # latency factor unchanged (2*alpha).
+    expected = 1.0 * S / bw + 2 * alpha
     assert abs(rec["duration_s"] - expected) < 1e-9
     assert rec["bottleneck"]["link_id"] == 1
 
@@ -163,11 +163,11 @@ def test_shared_group():
     assert counts["g"] == 2
     # each link eff bw = 50
     rec = predict(spec, "ring_allreduce", 1000, "float32", n_ranks=2)
-    # n=2 degenerate ring (gpu-sim-8sy): 2*S bytes, 2*alpha, B=50 Gbps
+    # ggh: n=2 byte factor is 1.0 (was 2.0; corrected per eut committed traces).
     B = 50.0 * 1e9 / 8.0
     alpha = 1e-6
     S = 1000 * 4
-    expected = 2.0 * S / B + 2 * alpha
+    expected = 1.0 * S / B + 2 * alpha
     assert abs(rec["duration_s"] - expected) < 1e-9
 
 
@@ -198,13 +198,13 @@ def test_cli_valid():
 
 
 def test_ring_n2_derivation():
-    """gpu-sim-8sy: the n=2 ring factors are DERIVED, not hardcoded.
+    """gpu-sim-ggh: n=2 ring byte factor corrected to 1.0 (was 2.0).
 
-    A 2-rank ring has exactly one peer: each of the two phases (reduce-scatter,
-    allgather) is one hop carrying the whole buffer, so per-rank wire bytes are
-    2*S and per-rank latency is 2*alpha. Checked against the public per_link_bytes
-    route and against an explicit B/alpha computation, plus a NEGATIVE CONTROL
-    that the old factors (S bytes, 4*alpha) fail the same assertion.
+    eut committed traces (experiments/gpu-sim-pkb/traces/) show per-rank byte
+    factor 1.00 at every clean size (4KiB..2MiB), matching the standard ring
+    formula 2*(n-1)/n = 1.0 at n=2. Per-rank wire bytes are now S (not 2*S).
+    Latency factor unchanged (2*alpha). NEGATIVE CONTROL: the old 2*S factor
+    must NOT satisfy the corrected check.
     """
     n, count = 2, 1024
     S = count * 4
@@ -212,20 +212,20 @@ def test_ring_n2_derivation():
     spec = uniform_spec(n, B_gbps, alpha_us)
     rec = predict(spec, "ring_allreduce", count, "float32", n_ranks=n)
     per_rank = sum(rec["per_link_bytes"].values()) / n
-    assert per_rank == 2 * S, (per_rank, 2 * S)
+    assert per_rank == 1 * S, (per_rank, 1 * S)
 
     B = B_gbps * 1e9 / 8.0
     alpha = alpha_us * 1e-6
-    assert abs(rec["duration_s"] - (2 * S / B + 2 * alpha)) < 1e-15
+    assert abs(rec["duration_s"] - (1 * S / B + 2 * alpha)) < 1e-15
 
-    # negative control: the pre-8sy factors must NOT satisfy the corrected check
-    old_duration = 1 * S / B + 4 * alpha
-    assert abs(rec["duration_s"] - old_duration) > 1e-9, "old n=2 factors still fit"
+    # negative control: the old 2*S byte factor must NOT satisfy the corrected check
+    old_duration = 2 * S / B + 2 * alpha
+    assert abs(rec["duration_s"] - old_duration) > 1e-9, "old 2*S byte factor still fits"
 
     # and n>=3 must keep the closed form the existing tests pin
     for n2 in (3, 4, 8):
         spec2 = uniform_spec(n2, B_gbps, alpha_us)
-        rec2 = predict(spec2, "ring_allreduce", count, "float32", n_ranks=n2)
+        rec2 = predict(spec2, "ring_allreduce", count, "float32", n_ranks=n2, pieces_per_phase=1)
         assert abs(rec2["duration_s"] - (2 * (n2 - 1) / n2 * S / B + 2 * (n2 - 1) * alpha)) < 1e-15
 
 
@@ -238,8 +238,8 @@ def test_negative_control_old_byte_factor():
     rec = predict(spec, "ring_allreduce", count, "float32", n_ranks=n)
     B = B_gbps * 1e9 / 8.0
     alpha = alpha_us * 1e-6
-    corrected = 2 * S / B + 2 * alpha
-    old_byte = 1 * S / B + 2 * alpha   # only the byte factor reverts
+    corrected = 1 * S / B + 2 * alpha
+    old_byte = 2 * S / B + 2 * alpha   # old 2*S byte factor must fail
     assert abs(rec["duration_s"] - corrected) < 1e-15
     assert abs(rec["duration_s"] - old_byte) > 1e-9
 
@@ -253,8 +253,8 @@ def test_negative_control_old_latency_coefficient():
     rec = predict(spec, "ring_allreduce", count, "float32", n_ranks=n)
     B = B_gbps * 1e9 / 8.0
     alpha = alpha_us * 1e-6
-    corrected = 2 * S / B + 2 * alpha
-    old_latency = 2 * S / B + 4 * alpha  # only the latency coeff reverts
+    corrected = 1 * S / B + 2 * alpha
+    old_latency = 1 * S / B + 4 * alpha  # only the latency coeff reverts
     assert abs(rec["duration_s"] - corrected) < 1e-15
     assert abs(rec["duration_s"] - old_latency) > 1e-9
 
@@ -267,6 +267,6 @@ def test_factors_mutually_consistent():
         lf = _latency_factor("ring_allreduce", n)
         # ring hop count is 2*(n-1) total (two phases, n-1 hops each).
         assert lf == 2 * (n - 1), (n, lf)
-        # byte factor: 2.0 at the degenerate n=2 ring, else 2*(n-1)/n.
-        expected_bf = 2.0 if n == 2 else 2.0 * (n - 1) / n
+        # ggh: no n=2 special case; bf = 2*(n-1)/n for all n.
+        expected_bf = 2.0 * (n - 1) / n
         assert bf == expected_bf, (n, bf, expected_bf)
