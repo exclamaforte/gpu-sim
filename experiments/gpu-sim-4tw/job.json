@@ -1,0 +1,13 @@
+{
+  "bead": "gpu-sim-4tw",
+  "gpu_jobs": [],
+  "cpu_runs": [
+    {
+      "description": "test_retransmit (loss retransmit measurement)",
+      "command": "cc -O2 -Iinclude -o build/test_retransmit experiments/gpu-sim-4tw/test_retransmit.c src/fakegpu_fabric.c -lpthread && ./build/test_retransmit",
+      "start_utc": "2026-10-21T14:30:00Z",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-4tw/output.log"
+    }
+  ]
+}

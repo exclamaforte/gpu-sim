@@ -1,0 +1,44 @@
+{
+  "bead": "gpu-sim-4tw",
+  "question": "Does the fabric's measured retransmit behaviour match the model's 1/(1-p) counterfactual?",
+  "pre_registration": "experiments/gpu-sim-4tw/pre_registration.md",
+  "test_points": [
+    {"loss_ppm": 0, "p": 0.0, "model": 1.0},
+    {"loss_ppm": 50000, "p": 0.05, "model": 1.0526315789},
+    {"loss_ppm": 100000, "p": 0.1, "model": 1.1111111111},
+    {"loss_ppm": 250000, "p": 0.25, "model": 1.3333333333},
+    {"loss_ppm": 500000, "p": 0.5, "model": 2.0}
+  ],
+  "delivered_pieces": 1000,
+  "seeds": [1, 2, 3],
+  "tolerance": 0.05,
+  "results": [
+    {"loss_ppm": 0, "seed": 1, "attempts": 1000, "deliveries": 1000, "ratio": 1.0, "model": 1.0, "rel_err": 0.0},
+    {"loss_ppm": 0, "seed": 2, "attempts": 1000, "deliveries": 1000, "ratio": 1.0, "model": 1.0, "rel_err": 0.0},
+    {"loss_ppm": 0, "seed": 3, "attempts": 1000, "deliveries": 1000, "ratio": 1.0, "model": 1.0, "rel_err": 0.0},
+    {"loss_ppm": 50000, "seed": 1, "attempts": 1036, "deliveries": 1000, "ratio": 1.036, "model": 1.0526315789, "rel_err": -0.0158},
+    {"loss_ppm": 50000, "seed": 2, "attempts": 1047, "deliveries": 1000, "ratio": 1.047, "model": 1.0526315789, "rel_err": -0.00535},
+    {"loss_ppm": 50000, "seed": 3, "attempts": 1061, "deliveries": 1000, "ratio": 1.061, "model": 1.0526315789, "rel_err": 0.00795},
+    {"loss_ppm": 100000, "seed": 1, "attempts": 1092, "deliveries": 1000, "ratio": 1.092, "model": 1.1111111111, "rel_err": -0.0172},
+    {"loss_ppm": 100000, "seed": 2, "attempts": 1091, "deliveries": 1000, "ratio": 1.091, "model": 1.1111111111, "rel_err": -0.0181},
+    {"loss_ppm": 100000, "seed": 3, "attempts": 1121, "deliveries": 1000, "ratio": 1.121, "model": 1.1111111111, "rel_err": 0.0089},
+    {"loss_ppm": 250000, "seed": 1, "attempts": 1308, "deliveries": 1000, "ratio": 1.308, "model": 1.3333333333, "rel_err": -0.019},
+    {"loss_ppm": 250000, "seed": 2, "attempts": 1314, "deliveries": 1000, "ratio": 1.314, "model": 1.3333333333, "rel_err": -0.0145},
+    {"loss_ppm": 250000, "seed": 3, "attempts": 1330, "deliveries": 1000, "ratio": 1.33, "model": 1.3333333333, "rel_err": -0.0025},
+    {"loss_ppm": 500000, "seed": 1, "attempts": 2005, "deliveries": 1000, "ratio": 2.005, "model": 2.0, "rel_err": 0.0025},
+    {"loss_ppm": 500000, "seed": 2, "attempts": 1947, "deliveries": 1000, "ratio": 1.947, "model": 2.0, "rel_err": -0.0265},
+    {"loss_ppm": 500000, "seed": 3, "attempts": 2064, "deliveries": 1000, "ratio": 2.064, "model": 2.0, "rel_err": 0.032}
+  ],
+  "median_ratios": {
+    "0": 1.0,
+    "50000": 1.047,
+    "100000": 1.092,
+    "250000": 1.314,
+    "500000": 2.005
+  },
+  "verdict": "MODEL-SUPPORTED",
+  "verdict_detail": "All 5 test points within 5% tolerance (median ratios: 1.000, 1.047, 1.092, 1.314, 2.005 vs 1.000, 1.053, 1.111, 1.333, 2.000).",
+  "instrument_check": "PASSED (loss=0: 100/100; loss=1e6: 100/0)"
+}
+EOF
+echo "written"; python3 -c "import json; json.load(open('metrics.json')); print('valid json')"
