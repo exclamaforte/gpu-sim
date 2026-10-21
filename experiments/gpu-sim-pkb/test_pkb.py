@@ -95,7 +95,64 @@ def test_build_no_undef():
     print("PASS build_no_undef")
 
 def test_negative_control_missing_link():
-    print("PASS negative_control_missing_link (documented: -1/-2 -> ncclSystemError)")
+    import subprocess, os, time
+    EXP = os.path.dirname(os.path.abspath(__file__))
+    REPO = os.path.abspath(os.path.join(EXP, "..", ".."))
+    M8 = os.path.join(REPO, "experiments", "gpu-sim-m3d.8")
+    NCCL_LIB = "/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib"
+    CUDALIB = "/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
+    env_base = {
+        "LD_LIBRARY_PATH": NCCL_LIB + ":" + CUDALIB,
+        "NCCL_NET_PLUGIN": os.path.join(M8, "build", "libncclNetSimFab.so"),
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_SHM_DISABLE": "1",
+        "NCCL_DEBUG": "WARN",
+    }
+    for topo_name, expected_msg in [("topo_missing.bin", "no link"),
+                                     ("topo_zerobw.bin", "zero-bandwidth link")]:
+        topo_path = os.path.join(EXP, topo_name)
+        assert os.path.exists(topo_path), topo_path
+        uidfile = "/tmp/pkb-neg-uid"
+        for f in [uidfile]:
+            try: os.remove(f)
+            except FileNotFoundError: pass
+        env = dict(env_base)
+        env["GPUSIM_TOPOLOGY"] = topo_path
+        env["GPUSIM_NRANKS"] = "2"
+        env["GPUSIM_RUN_ID"] = "pkb-negtest"
+        procs = []
+        for i in [0, 1]:
+            e = dict(env)
+            e["NCCL_HOSTID"] = "node%d" % i
+            e["GPUSIM_RANK"] = str(i)
+            p = subprocess.Popen(
+                [os.path.join(M8, "build", "allreduce_test"), str(i), "2", uidfile],
+                env=e, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            procs.append(p)
+        # wait for both
+        outs = []
+        for p in procs:
+            try:
+                o, _ = p.communicate(timeout=30)
+            except subprocess.TimeoutExpired:
+                p.kill()
+                o, _ = p.communicate()
+            outs.append(o)
+        combined = "\n".join(outs)
+        # The plugin must fail loudly: named error string present, no silent OK.
+        assert expected_msg in combined, (
+            "%s: expected '%s' in output. Got: %s" % (topo_name, expected_msg, combined[:300]))
+        assert "allreduce OK" not in combined, (
+            "%s: unexpected 'allreduce OK' (silent fallback)" % topo_name)
+        # assert named error string visible
+        assert expected_msg in combined, (
+            "%s: expected '%s' in output, got: %s" % (topo_name, expected_msg, combined[:500]))
+        # assert no 'allreduce OK' (no silent fallback)
+        assert "allreduce OK" not in combined, (
+            "%s: unexpected 'allreduce OK' (silent fallback)" % topo_name)
+        print("PASS negative_control_%s (exit=%s, msg='%s' present, no OK)" % (
+            topo_name, [p.returncode for p in procs], expected_msg))
+    print("PASS negative_control_missing_link (executable)")
 
 if __name__ == "__main__":
     test_fabric_transfer_timing()
