@@ -78,10 +78,6 @@ def main():
         run_id = "run-" + uuid.uuid4().hex[:12]
     base = os.getcwd()
     run_dir = os.path.join(base, "runs", run_id)
-    if os.path.exists(run_dir):
-        print(f"ERROR: run id {run_id} already exists at {run_dir}; refusing to clobber", file=sys.stderr)
-        return 2
-    os.makedirs(run_dir, exist_ok=True)
 
     # build plan
     plan = []
@@ -93,8 +89,13 @@ def main():
     if args.dry_run:
         for p in plan:
             print(f"rank={p['rank']} node={p['node']} device={p['device']} cmd={' '.join(cmd)}")
-        print(f"run_id={run_id} world={world}")
+        print(f"run_id=dry-run world={world}")
         return 0
+
+    if os.path.exists(run_dir):
+        print(f"ERROR: run id {run_id} already exists at {run_dir}; refusing to clobber", file=sys.stderr)
+        return 2
+    os.makedirs(run_dir, exist_ok=True)
 
     # write topology binary? optional; just store spec
     with open(os.path.join(run_dir, "topology.json"), "w") as f:
@@ -148,6 +149,7 @@ def main():
     deadline = time.time() + timeout
     results = []
     killed = False
+    timed_out = False
     remaining = list(procs)
     while remaining:
         progressed = False
@@ -191,6 +193,7 @@ def main():
                                 "ended_ns": e["ended_ns"]})
             remaining = []
             killed = True
+            timed_out = True
             break
         if not progressed:
             time.sleep(0.05)
@@ -212,6 +215,7 @@ def main():
         "ended_ns": int(time.time()*1e9),
         "ranks": results,
         "verdict": verdict,
+        "timed_out": timed_out,
     }
     with open(os.path.join(run_dir, "run.json"), "w") as f:
         json.dump(run_record, f, indent=2)
