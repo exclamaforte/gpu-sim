@@ -142,13 +142,12 @@ def _logical_edges(algorithm: str, n: int) -> List[Tuple[int, int]]:
 def _ring_chunk_factor(n: int) -> float:
     """Fraction of S carried by ONE ring transfer in one phase.
 
-    n >= 3: the ring splits the buffer into n chunks, so a phase moves
-    (n-1)/n * S through each rank. n == 2 is degenerate: the "ring" has a single
-    peer, one hop per phase, and the phase carries the WHOLE buffer (chunk = S).
-    This is the 2x that the m3d.8 gpu-sim-8sy evidence measured (per-rank wire
-    bytes 8192 for S=4096, with distinct per-phase digests).
+    gpu-sim-ggh: drop the n==2 special case. The standard ring formula
+    (n-1)/n applies at every n, including n=2 (where it gives 1/2 and
+    bf=2*(n-1)/n=1.0). eut committed traces (1.00 at every clean size)
+    confirm this. Cited: experiments/gpu-sim-pkb/traces/.
     """
-    return 1.0 if n == 2 else (n - 1) / n
+    return (n - 1) / n
 
 
 def _ring_hops_per_phase(n: int) -> int:
@@ -194,9 +193,7 @@ FG_FAB_MAX_PAYLOAD = 1 << 20  # 1 MiB, matches include/fakegpu_fabric.h
 
 
 def _chunk_factor(n: int) -> float:
-    """chunk(n): S at n=2, (n-1)/n*S at n>=3 (model's formula)."""
-    if n == 2:
-        return 1.0
+    """chunk(n): (n-1)/n*S for all n (ggh: no n=2 special case)."""
     return (n - 1) / n
 
 
