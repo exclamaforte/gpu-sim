@@ -1,0 +1,322 @@
+{
+  "artifact": "PI's independent re-admission (cross-check; the implementer's committed script remains authoritative)",
+  "method": {
+    "P": "derived: ceil(chunk(n)*S / 1 MiB), chunk(2)=S, chunk(n>=3)=(n-1)/n*S",
+    "bw_term": "predict(2S) - predict(S) from the public API",
+    "criteria": "4a bw_share >= 0.5; 4b |d_pred| >= 100us and >= 20% of the larger duration; spread clause needs the measured spread"
+  },
+  "sizes": {
+    "2097152": {
+      "all_pairs_admissible": true,
+      "configs": {
+        "M1": {
+          "bw_gbps": 900.0,
+          "bw_term_s": 3.728270222222222e-05,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 4.000000000000016e-06,
+          "lat_term_s_p1": 2.000000000000008e-06,
+          "latency_us": 1.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 4.1282702222222234e-05,
+          "model_duration_s_p1": 3.9282702222222226e-05,
+          "n": 2,
+          "pieces_per_phase_P": 2,
+          "pieces_per_rank": 4,
+          "regime": "bandwidth"
+        },
+        "M2": {
+          "bw_gbps": 100.0,
+          "bw_term_s": 0.00033554432000000003,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 1.9999999999999836e-05,
+          "lat_term_s_p1": 9.999999999999918e-06,
+          "latency_us": 5.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 0.00035554431999999987,
+          "model_duration_s_p1": 0.00034554431999999995,
+          "n": 2,
+          "pieces_per_phase_P": 2,
+          "pieces_per_rank": 4,
+          "regime": "bandwidth"
+        },
+        "M3": {
+          "bw_gbps": 50.0,
+          "bw_term_s": 0.0005033164800000001,
+          "bytes_evidence_supported": "2(n-1)/n (robust: splitting the chunk across channels does not change the total moved)",
+          "lat_term_s": 5.9999999999999724e-05,
+          "lat_term_s_p1": 2.9999999999999862e-05,
+          "latency_us": 5.0,
+          "model_byte_factor": 1.5,
+          "model_duration_s": 0.0005633164799999998,
+          "model_duration_s_p1": 0.00053331648,
+          "n": 4,
+          "pieces_per_phase_P": 2,
+          "pieces_per_rank": 12,
+          "regime": "bandwidth"
+        },
+        "M4": {
+          "bw_gbps": 25.0,
+          "bw_term_s": 0.0010066329600000002,
+          "bytes_evidence_supported": "2(n-1)/n (robust: splitting the chunk across channels does not change the total moved)",
+          "lat_term_s": 0.00011999999999999945,
+          "lat_term_s_p1": 5.9999999999999724e-05,
+          "latency_us": 10.0,
+          "model_byte_factor": 1.5,
+          "model_duration_s": 0.0011266329599999997,
+          "model_duration_s_p1": 0.00106663296,
+          "n": 4,
+          "pieces_per_phase_P": 2,
+          "pieces_per_rank": 12,
+          "regime": "bandwidth"
+        }
+      },
+      "pairs": [
+        {
+          "bw_share_4a": 0.9490870055556264,
+          "d_pred_us": 314.26161777777764,
+          "max_tolerable_spread_us": 31.426161777777764,
+          "pair": "M1->M2",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.8838887308838959
+        },
+        {
+          "bw_share_4a": 0.8074814258079624,
+          "d_pred_us": 207.77215999999996,
+          "max_tolerable_spread_us": 20.777215999999996,
+          "pair": "M2->M3",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.3688373540926763
+        },
+        {
+          "bw_share_4a": 0.8934879377219715,
+          "d_pred_us": 563.3164799999998,
+          "max_tolerable_spread_us": 56.33164799999999,
+          "pair": "M3->M4",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.5
+        }
+      ],
+      "payload_bytes": 2097152,
+      "predicted_order": [
+        "M1",
+        "M2",
+        "M3",
+        "M4"
+      ]
+    },
+    "33554432": {
+      "all_pairs_admissible": true,
+      "configs": {
+        "M1": {
+          "bw_gbps": 900.0,
+          "bw_term_s": 0.0005965232355555556,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 6.400000000000156e-05,
+          "lat_term_s_p1": 2.0000000000000486e-06,
+          "latency_us": 1.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 0.0006605232355555571,
+          "model_duration_s_p1": 0.0005985232355555556,
+          "n": 2,
+          "pieces_per_phase_P": 32,
+          "pieces_per_rank": 64,
+          "regime": "bandwidth"
+        },
+        "M2": {
+          "bw_gbps": 100.0,
+          "bw_term_s": 0.00536870912,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 0.00031999999999998696,
+          "lat_term_s_p1": 9.999999999999593e-06,
+          "latency_us": 5.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 0.005688709119999987,
+          "model_duration_s_p1": 0.005378709119999999,
+          "n": 2,
+          "pieces_per_phase_P": 32,
+          "pieces_per_rank": 64,
+          "regime": "bandwidth"
+        },
+        "M3": {
+          "bw_gbps": 50.0,
+          "bw_term_s": 0.008053063679999998,
+          "bytes_evidence_supported": "2(n-1)/n (robust: splitting the chunk across channels does not change the total moved)",
+          "lat_term_s": 0.0007200000000000539,
+          "lat_term_s_p1": 3.0000000000002247e-05,
+          "latency_us": 5.0,
+          "model_byte_factor": 1.5,
+          "model_duration_s": 0.008773063680000052,
+          "model_duration_s_p1": 0.00808306368,
+          "n": 4,
+          "pieces_per_phase_P": 24,
+          "pieces_per_rank": 144,
+          "regime": "bandwidth"
+        },
+        "M4": {
+          "bw_gbps": 25.0,
+          "bw_term_s": 0.016106127359999996,
+          "bytes_evidence_supported": "2(n-1)/n (robust: splitting the chunk across channels does not change the total moved)",
+          "lat_term_s": 0.0014400000000001079,
+          "lat_term_s_p1": 6.0000000000004494e-05,
+          "latency_us": 10.0,
+          "model_byte_factor": 1.5,
+          "model_duration_s": 0.017546127360000104,
+          "model_duration_s_p1": 0.01616612736,
+          "n": 4,
+          "pieces_per_phase_P": 24,
+          "pieces_per_rank": 144,
+          "regime": "bandwidth"
+        }
+      },
+      "pairs": [
+        {
+          "bw_share_4a": 0.9490870055556287,
+          "d_pred_us": 5028.18588444443,
+          "max_tolerable_spread_us": 502.818588444443,
+          "pair": "M1->M2",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.8838887308838953
+        },
+        {
+          "bw_share_4a": 0.8703132236521931,
+          "d_pred_us": 3084.3545600000657,
+          "max_tolerable_spread_us": 308.4354560000066,
+          "pair": "M2->M3",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.3515709759444089
+        },
+        {
+          "bw_share_4a": 0.9179306082501786,
+          "d_pred_us": 8773.063680000052,
+          "max_tolerable_spread_us": 877.3063680000052,
+          "pair": "M3->M4",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.5
+        }
+      ],
+      "payload_bytes": 33554432,
+      "predicted_order": [
+        "M1",
+        "M2",
+        "M3",
+        "M4"
+      ]
+    },
+    "8388608": {
+      "all_pairs_admissible": true,
+      "configs": {
+        "M1": {
+          "bw_gbps": 900.0,
+          "bw_term_s": 0.0001491308088888889,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 1.5999999999999955e-05,
+          "lat_term_s_p1": 1.9999999999999944e-06,
+          "latency_us": 1.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 0.00016513080888888885,
+          "model_duration_s_p1": 0.0001511308088888889,
+          "n": 2,
+          "pieces_per_phase_P": 8,
+          "pieces_per_rank": 16,
+          "regime": "bandwidth"
+        },
+        "M2": {
+          "bw_gbps": 100.0,
+          "bw_term_s": 0.00134217728,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 8.000000000000021e-05,
+          "lat_term_s_p1": 1.0000000000000026e-05,
+          "latency_us": 5.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 0.0014221772800000001,
+          "model_duration_s_p1": 0.00135217728,
+          "n": 2,
+          "pieces_per_phase_P": 8,
+          "pieces_per_rank": 16,
+          "regime": "bandwidth"
+        },
+        "M3": {
+          "bw_gbps": 50.0,
+          "bw_term_s": 0.0020132659199999996,
+          "bytes_evidence_supported": "2(n-1)/n (robust: splitting the chunk across channels does not change the total moved)",
+          "lat_term_s": 0.00018000000000000307,
+          "lat_term_s_p1": 3.0000000000000512e-05,
+          "latency_us": 5.0,
+          "model_byte_factor": 1.5,
+          "model_duration_s": 0.0021932659200000026,
+          "model_duration_s_p1": 0.00204326592,
+          "n": 4,
+          "pieces_per_phase_P": 6,
+          "pieces_per_rank": 36,
+          "regime": "bandwidth"
+        },
+        "M4": {
+          "bw_gbps": 25.0,
+          "bw_term_s": 0.004026531839999999,
+          "bytes_evidence_supported": "2(n-1)/n (robust: splitting the chunk across channels does not change the total moved)",
+          "lat_term_s": 0.00036000000000000615,
+          "lat_term_s_p1": 6.0000000000001025e-05,
+          "latency_us": 10.0,
+          "model_byte_factor": 1.5,
+          "model_duration_s": 0.004386531840000005,
+          "model_duration_s_p1": 0.00408653184,
+          "n": 4,
+          "pieces_per_phase_P": 6,
+          "pieces_per_rank": 36,
+          "regime": "bandwidth"
+        }
+      },
+      "pairs": [
+        {
+          "bw_share_4a": 0.9490870055556258,
+          "d_pred_us": 1257.0464711111113,
+          "max_tolerable_spread_us": 125.70464711111113,
+          "pair": "M1->M2",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.883888730883896
+        },
+        {
+          "bw_share_4a": 0.8703132236522088,
+          "d_pred_us": 771.0886400000024,
+          "max_tolerable_spread_us": 77.10886400000024,
+          "pair": "M2->M3",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.35157097594440423
+        },
+        {
+          "bw_share_4a": 0.917930608250183,
+          "d_pred_us": 2193.2659200000026,
+          "max_tolerable_spread_us": 219.32659200000026,
+          "pair": "M3->M4",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.5
+        }
+      ],
+      "payload_bytes": 8388608,
+      "predicted_order": [
+        "M1",
+        "M2",
+        "M3",
+        "M4"
+      ]
+    }
+  }
+}
