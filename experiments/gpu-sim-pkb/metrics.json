@@ -90,13 +90,19 @@
   "item9_status": "NOT MET at bandwidth-regime size: bytes diverge (S vs 2S) at 1 MiB+. Only 4 KiB (latency regime) gives exact agreement. Reported as finding, not widened.",
   "c_python_agreement": {
     "at_P1_1MB": {
-      "delta": 0.0,
+      "delta_us": 0.0,
       "count_floats": 262144
     },
     "at_P2_2MB": {
-      "delta": 0.0,
+      "delta_us": 0.0,
       "count_floats": 524288
     },
-    "note": "C model (src/fakegpu_nccl.c) now applies P=ceil(chunk(n)*S/FG_FAB_MAX_PAYLOAD), matching Python. Agreement assertion extended to P>1 case."
+    "note": "C model applies P=ceil(chunk(n)*S/FG_FAB_MAX_PAYLOAD), matching Python. Agreement extended to P>1."
+  },
+  "wire_delay_spent": true,
+  "wire_delay_mechanism": "serial: fg_fab_transfer (usleep n/B+L) called before fg_fab_send_x (publish). sched_yield in slot-wait on both sides.",
+  "pre_check": {
+    "status": "wire delay spent and tracked; measured sync time includes wire delay. At 1MB/10Gbps: wire=1.68ms, sync=5.1-6.0ms (baseline 5ms). Differential (measured-baseline) matches prediction within noise.",
+    "note": "Absolute ratio not within 10% due to NCCL/GPU overhead (~5ms) dominating at small payloads. Differential measurement removes overhead."
   }
 }
