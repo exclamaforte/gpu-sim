@@ -314,6 +314,7 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
                 if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
+            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
             sched_yield();
         }
     }
@@ -367,6 +368,7 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
                 if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
+            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
             sched_yield();
         }
     }
@@ -409,6 +411,7 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
                 if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
+            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
             sched_yield();
         }
     }
