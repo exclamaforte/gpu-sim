@@ -110,10 +110,13 @@ metrics = {
         "cgroup_nr_throttled": 64,
         "cgroup_throttled_usec": 11820592,
         "finding": "The measuring process runs in a scope cgroup with a 2-CPU quota "
-                   "(cpu.max=200000/100000) and IS throttled (nr_throttled=64, "
-                   "throttled_usec=11.8s). The PI amendment's premise that no quota exists "
-                   "holds at the app.slice level but not at the process scope. Recorded as a "
-                   "finding per the amendment's instruction.",
+                   "(cpu.max=200000/100000). Cumulative scope: nr_periods=3578, nr_throttled=64 "
+                   "(1.8%%), throttled_usec=11.8s. Representative 12s sustained-workload sample: "
+                   "120 periods, 0 throttled. The PI amendment's premise (no quota) holds at the "
+                   "app.slice level but NOT at the process scope; the scope IS quota-limited. "
+                   "Throttling of this process is intermittent (1.8%% of periods), not the 98%% seen "
+                   "in other live scopes. Recorded as a finding; the PI's original 'no quota' claim "
+                   "was wrong for the process scope.",
         "loadavg_context_only": True,
     },
     "phases": {
@@ -125,27 +128,54 @@ metrics = {
         {
             "original": "w01", "original_spread_us": 53.4,
             "repeat": "w01r", "repeat_spread_us": 1044.0,
+            "original_loadavg_1": 19.76, "repeat_loadavg_1": 45.98,
             "original_admitted": False, "repeat_admitted": False,
             "fluky": False,
-            "note": "closest point to threshold; repeat shows instability (not an admission either way)",
+            "label": "INCONCLUSIVE-BAND-CHANGED",
+            "note": "20x swing (53.4 -> 1044.0 us) AND load band changed (loadavg 19.76 -> 45.98), "
+                    "so rule (ii)'s same-band condition was never met. Not a fluky admission "
+                    "(neither sample admitted), but the pair cannot certify repeatability.",
         },
         {
             "original": "w04", "original_spread_us": 123.6,
             "repeat": "w04r", "repeat_spread_us": 800.3,
+            "original_loadavg_1": 20.24, "repeat_loadavg_1": 44.22,
             "original_admitted": False, "repeat_admitted": False,
             "fluky": False,
+            "label": "INCONCLUSIVE-BAND-CHANGED",
+            "note": "band changed (20.24 -> 44.22 loadavg); no repeatability certified.",
         },
     ],
+    "mechanism_analysis": {
+        "hypothesis_tested": "involuntary context-switch count predicts spread",
+        "result": "REFUTED by the data: w03 has 1 ctx switch and 1733.8 us spread; "
+                  "w08 has 0 switches and 141.4 us; w02 has 8 switches and 1986.6 us. "
+                  "Switch count does NOT predict spread.",
+        "survivor_tested": "per-window cgroup throttle delta vs spread",
+        "throttle_sample": json.load(open(os.path.join(HERE, "cgroup_delta_sample.json"))),
+        "throttle_interpretation": "Representative 12s sustained-workload sample: 120 periods, "
+                                   "0 throttled, 0 throttled_usec. This process's own 2-CPU quota "
+                                   "is not throttling during sustained CPU work (cumulative scope "
+                                   "shows 64/3578 = 1.8%%, 11.8s total). The spread is therefore "
+                                   "more consistent with neighbour contention / scheduler noise on "
+                                   "shared cores than with this process's own quota throttling. "
+                                   "The quota still caps us at 2 CPUs.",
+        "ctx_switch_vs_spread_pairs": [
+            {"window": r["window_id"], "ctx_switches": r["nonvoluntary_ctx_switches_delta"],
+             "spread_us": r["spread_us"]} for r in rows if not r.get("repeat_of")
+        ],
+    },
     "verdict": verdict,
     "min_observed_spread_us": min_spread,
     "min_observed_spread_window": min_row["window_id"],
     "min_spread_ratio_to_requirement": round(min_spread / REQUIREMENT_US, 3),
     "distance_from_requirement_us": round(min_spread - REQUIREMENT_US, 1),
-    "conclusion": "NO-ADMISSIBLE-OPERATING-POINT: minimum observed spread is %.1f us "
-                  "(window %s), %.1f us (%.2fx) above the 36.2 us requirement. "
-                  "No window satisfies rule (i); no fluky admissions. "
-                  "The spread is unstable across repeats (53.4 -> 1044 us), so even the "
-                  "best single sample cannot be treated as an admission." % (min_spread, min_row["window_id"],
+    "conclusion": "NO-ADMISSIBLE-OPERATING-POINT AT A 2-CPU QUOTA WITH THIS NEIGHBOUR LOAD: "
+                  "minimum observed spread is %.1f us (window %s), %.1f us (%.2fx) above the "
+                  "36.2 us requirement. No window satisfies rule (i). Whether a larger quota admits "
+                  "is UNTESTED here (see gpu-sim-vs2). The spread is unstable across repeats "
+                  "(53.4 -> 1044 us) and rule (ii) could not be certified (band changed), so even "
+                  "the best single sample cannot be treated as an admission." % (min_spread, min_row["window_id"],
                   min_spread - REQUIREMENT_US, min_spread / REQUIREMENT_US),
 }
 

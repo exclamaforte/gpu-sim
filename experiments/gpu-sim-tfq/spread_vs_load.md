@@ -37,16 +37,22 @@ From experiments/gpu-sim-m3d.10/verdict.py: drop first value (init), drop >1e9 u
 
 ## Repeatability checks
 
-- w01: 53.4 us -> repeat w01r: 1044.0 us (fluky=False)
-- w04: 123.6 us -> repeat w04r: 800.3 us (fluky=False)
+- w01: 53.4 us -> repeat w01r: 1044.0 us — **INCONCLUSIVE-BAND-CHANGED** (loadavg 19.76 -> 45.98; band changed, rule (ii) not certifiable)
+- w04: 123.6 us -> repeat w04r: 800.3 us — **INCONCLUSIVE-BAND-CHANGED** (loadavg 20.24 -> 44.22; band changed, rule (ii) not certifiable)
+
+## Mechanism analysis
+
+- Hypothesis (ctx-switch count predicts spread): **REFUTED**. w03: 1 switch, 1733.8 us; w08: 0 switches, 141.4 us; w02: 8 switches, 1986.6 us.
+- Survivor (cgroup throttle delta vs spread): representative 12s sample = 120 periods, 0 throttled. This process's own quota is not throttling during sustained work (cumulative 64/3578 = 1.8%%). Spread is more consistent with neighbour contention / scheduler noise on shared cores.
 
 ## Verdict
 
-**NO-ADMISSIBLE-OPERATING-POINT** — minimum observed spread 53.4 us (window w01), 17.2 us (1.48x) above the 36.2 us requirement.
+**NO-ADMISSIBLE-OPERATING-POINT** — NO-ADMISSIBLE-OPERATING-POINT AT A 2-CPU QUOTA WITH THIS NEIGHBOUR LOAD: minimum observed spread is 53.4 us (window w01), 17.2 us (1.48x) above the 36.2 us requirement. No window satisfies rule (i). Whether a larger quota admits is UNTESTED here (see gpu-sim-vs2). The spread is unstable across repeats (53.4 -> 1044 us) and rule (ii) could not be certified (band changed), so even the best single sample cannot be treated as an admission.
+
 
 ## Environment finding
 
-The measuring process runs in a scope cgroup with a 2-CPU quota (cpu.max=200000/100000) and IS throttled (nr_throttled=64, throttled_usec=11.8s). The PI amendment's premise that no quota exists holds at the app.slice level but not at the process scope. Recorded as a finding per the amendment's instruction.
+The measuring process runs in a scope cgroup with a 2-CPU quota (cpu.max=200000/100000). Cumulative scope: nr_periods=3578, nr_throttled=64 (1.8%%), throttled_usec=11.8s. Representative 12s sustained-workload sample: 120 periods, 0 throttled. The PI amendment's premise (no quota) holds at the app.slice level but NOT at the process scope; the scope IS quota-limited. Throttling of this process is intermittent (1.8%% of periods), not the 98%% seen in other live scopes. Recorded as a finding; the PI's original 'no quota' claim was wrong for the process scope.
 
 ## Per-window raw logs
 
