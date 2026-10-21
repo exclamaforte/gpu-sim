@@ -2,7 +2,15 @@
 
 ## Verdict (pre-registered, fixed before this artifact)
 
-**NO-CLOSE ON RESOLVABILITY.**
+**NO-CLOSE: NO CONFIG SET IS ADMISSIBLE ON THIS HARDWARE.**
+
+The verdict WORD is NO-CLOSE (pre-registered at 07:51 before the artifact existed).
+The GROUND is refined from "resolvability" to "admissibility" because 4b is a
+pre-run constraint: its 10x-spread clause cannot be satisfied by any spread this
+box delivers (36.2 us required, tens of ms available), so no config set is
+admissible here and the gate does not run. OUTCOME UNCHANGED. EVIDENCE UNCHANGED.
+Refinement stated because it is more conservative: a pre-run rejection is
+stronger than a post-run failure.
 
 This is an ADMISSIBILITY REJECTION, not a measured outcome. 4b is a pre-run
 constraint ("or the config set is REJECTED before the run"). Its 10x-spread
@@ -12,7 +20,7 @@ are NOT APPLICABLE (not UNMET).
 
 Two independent grounds, either sufficient:
 
-### G1 — Resolvability (environmental: present but not resolvable)
+### G1 — Admissibility (pre-run: no config set is admissible)
 
 The reading is present but not resolvable: ~6.6 ms offset (minima 6677 us @4 KiB
 vs 6717 us @2 MiB) against model predictions of 53.3 us (M1) and 415.5 us (M2),
@@ -25,6 +33,15 @@ excluded).
 
 This ~6.6 ms payload-independent term is the EVIDENCE FOR THE REJECTION, not a
 failed gate measurement.
+
+### Timeline note (refinement recorded)
+
+Pre-registered at 07:51 as "NO-CLOSE on resolvability" (outcome fixed before the
+artifact existed). Refined to the admissibility form on discovering that 4b is a
+pre-run constraint, not a post-run test. OUTCOME UNCHANGED (NO-CLOSE). EVIDENCE
+UNCHANGED (same spread numbers, same box state, same raw logs). Refinement stated
+because it is more conservative: a pre-run rejection is stronger than a post-run
+failure, and a reader must see both what we changed and why.
 
 ### G2 — Admissibility (unmeasured input)
 
@@ -131,6 +148,19 @@ ONE of the epic's criteria (the gate's timing comparison), not to the direction.
 No quieter box was used. No repeated runs to find a tight cluster. No re-rolled
 median. No widening of 4b. No switching to a payload chosen because it made the
 delta bigger. The variance measurement stands as the evidence.
+
+## What was NOT done (a negative artifact states its own negatives)
+
+- NO GATE RUN was performed.
+- NO MEASURED DELTAS were produced.
+- NO 3-RUN-PER-CONFIG PROTOCOL was executed.
+- NO GPU RUN was performed (CPU-only).
+- NO ORDERING was OBSERVED (measured or otherwise).
+
+This artifact reports a pre-run admissibility rejection. It does not contain
+measured data, observed orderings, or run results. Any language in this artifact
+implying otherwise ("measured delta", "measured ordering", "we ran", "observed")
+would be incorrect.
 
 ## Pointers
 
