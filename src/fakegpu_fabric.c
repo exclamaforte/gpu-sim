@@ -75,7 +75,8 @@ struct fg_fab {
     int is_creator;
     /* fault injection state (D1/D3: persistent across calls) */
     uint64_t rng_state;
-    uint64_t transfer_count;
+    uint64_t attempt_count;
+    uint64_t success_count;
     uint64_t partition_after;
 };
 
@@ -140,7 +141,8 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
     uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
     f->rng_state = seed ^ ((uint64_t)rank * 0x9e3779b97f4a7c15ULL);
     if (f->rng_state == 0) f->rng_state = 1;
-    f->transfer_count = 0;
+    f->attempt_count = 0;
+    f->success_count = 0;
     f->partition_after = 0;
     shm_name(f->name, sizeof(f->name), run_id);
 
@@ -586,13 +588,13 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     if (partition_after > 0) {
         f->partition_after = partition_after;
     }
-    if (f->partition_after > 0 && f->transfer_count >= f->partition_after) {
-        f->transfer_count++;
+    if (f->partition_after > 0 && f->success_count >= f->partition_after) {
+        f->attempt_count++;
         const char *trace = getenv("GPUSIM_TRACE");
         if (trace && *trace) {
             FILE *tf = fopen(trace, "a");
-            if (tf) { fprintf(tf, "fault=partition class=partition code=ETIMEDOUT k=%lu transfer_count=%lu\n",
-                    (unsigned long)f->partition_after, (unsigned long)f->transfer_count); fclose(tf); }
+            if (tf) { fprintf(tf, "fault=partition class=partition code=ETIMEDOUT k=%lu success_count=%lu\n",
+                    (unsigned long)f->partition_after, (unsigned long)f->success_count); fclose(tf); }
         }
         return FG_FAB_ETIMEDOUT;
     }
@@ -601,7 +603,7 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     if (loss_ppm > 0) {
         uint64_t r = fg_xorshift64(&f->rng_state) % 1000000;
         if ((int)r < loss_ppm) {
-            f->transfer_count++;
+            f->attempt_count++;
             const char *trace = getenv("GPUSIM_TRACE");
             if (trace && *trace) {
                 FILE *tf = fopen(trace, "a");
@@ -625,18 +627,19 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
         }
     }
 
-    f->transfer_count++;
+    f->attempt_count++;
+    f->success_count++;
 
     /* simulated time */
     double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter;
 
     /* per-transfer timeout check (C3) */
     if (timeout_us > 0.0 && delay_us > timeout_us) {
-        f->transfer_count++;
+        f->attempt_count++;
         const char *trace = getenv("GPUSIM_TRACE");
         if (trace && *trace) {
             FILE *tf = fopen(trace, "a");
-            if (tf) { fprintf(tf, "fault=timeout class=timeout code=ETIMEDOUT elapsed_us=%.1f deadline_us=%.1f\n",
+            if (tf) { fprintf(tf, "fault=timeout class=timeout code=ETIMEDOUT modelled_delay_us=%.1f deadline_us=%.1f\n",
                     delay_us, timeout_us); fclose(tf); }
         }
         return FG_FAB_ETIMEDOUT;

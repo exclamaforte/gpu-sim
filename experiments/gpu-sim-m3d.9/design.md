@@ -25,8 +25,9 @@
 - Injection point: fabric (fg_fab_transfer, shared_group check)
 - Mechanism: links in a shared_group declared partitioned after k transfers (deterministic k) -> subsequent transfers fail
 - Expected CODE: ETIMEDOUT
-- Trace field: fault=timeout elapsed_us=<value> deadline_us=<value> (slow/partitioned), NOT EPEERDEAD (dead peer)
-- Trace field: fault=partition transfer_count=<k>
+- Trace field: fault=timeout modelled_delay_us=<value> deadline_us=<value> (slow/partitioned), NOT EPEERDEAD (dead peer)
+- Trace field: fault=partition class=partition code=ETIMEDOUT k=<k> success_count=<n>
+- Partition gates on SUCCESS count, not attempt count (loss drops do not count toward k)
 - Negative control: declare k, make the counter ineffective (never increment), show partition never triggers, test RED
 - Refusal: "network partition" cannot be a real packet filter on this box (one shm fabric). The stand-in is: shared_group partition after k transfers. Named as stand-in.
 
@@ -34,7 +35,7 @@
 - Injection point: fabric (fg_fab_transfer, deadline check)
 - Mechanism: exceed deadline -> ETIMEDOUT -> NCCL error
 - Expected CODE: ETIMEDOUT
-- Trace field: fault=timeout elapsed_us=<value> deadline_us=<value>
+- Trace field: fault=timeout modelled_delay_us=<value> deadline_us=<value>
 - No unbounded sleep or spin (wpw contract: bounded FUTEX_WAIT)
 - Negative control: make the deadline check a no-op (always pass), show timeout never fires, test RED
 - Refusal: none (reachable on this box)
