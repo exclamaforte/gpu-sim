@@ -587,27 +587,24 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
         f->partition_after = partition_after;
     }
     if (f->partition_after > 0 && f->transfer_count >= f->partition_after) {
-        /* partitioned: return ETIMEDOUT */
         f->transfer_count++;
         return FG_FAB_ETIMEDOUT;
     }
 
-    /* D2: loss: probabilistic drop, returns ELOSS (not EINVAL) */
+    /* D2: loss: probabilistic drop, returns ELOSS */
     if (loss_ppm > 0) {
         uint64_t r = fg_xorshift64(&f->rng_state) % 1000000;
         if ((int)r < loss_ppm) {
             f->transfer_count++;
-            /* D4: record drawn value (loss decision) in trace via env */
             const char *trace = getenv("GPUSIM_TRACE");
             if (trace && *trace) {
-                fprintf(stderr, "fault=loss decision=drop rng=%lu
-", (unsigned long)r);
+                fprintf(stderr, "fault=loss decision=drop rng=%lu\n", (unsigned long)r);
             }
             return FG_FAB_ELOSS;
         }
     }
 
-    /* jitter: uniform draw (D4: record drawn value) */
+    /* jitter: uniform draw */
     double jitter = 0.0;
     if (jitter_us > 0.0) {
         uint64_t r = fg_xorshift64(&f->rng_state);
@@ -616,14 +613,13 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
         jitter = (double)(r % range) / 1000.0;
         const char *trace = getenv("GPUSIM_TRACE");
         if (trace && *trace) {
-            fprintf(stderr, "fault=jitter drawn_us=%.3f
-", jitter);
+            fprintf(stderr, "fault=jitter drawn_us=%.3f\n", jitter);
         }
     }
 
     f->transfer_count++;
 
-    /* simulated time: n/B + L + jitter */
+    /* simulated time */
     double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter;
     if (delay_us > 0) {
         usleep((useconds_t)delay_us);
