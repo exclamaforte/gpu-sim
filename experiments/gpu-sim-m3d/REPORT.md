@@ -9,7 +9,7 @@ by measurement whether a proposed timing criterion (m3d.10) is achievable.
 
 | # | Bead | What | Proving artifact |
 |---|------|------|-----------------|
-| 1 | 6kp | Real libnccl over a modelled shm fabric via CUDA runtime interposer | experiments/gpu-sim-6kp/probe_nccl4_output.txt (4-rank init PASS) |
+| 1 | 6kp | Real libnccl over a modelled shm fabric via CUDA runtime interposer | experiments/gpu-sim-6kp/probe_nccl4_output.txt (4-rank init only; kernel launch does not follow -- see Limit 2) |
 | 2 | wpw | Fabric spends modelled wire time (bw + latency); futex wakeup; EPEERDEAD/ETIMEDOUT | src/fakegpu_fabric.c (bounded FUTEX_WAIT; wake on slot publish/release) |
 | 3 | pkb | Per-link bw/latency in plugin data path; measured phase-payload table | experiments/gpu-sim-pkb/phase_payload_table.md |
 | 4 | m3d.7 | Topology-aware collectives in NCCL interposer + JSONL trace | src/fakegpu_nccl.c (fg_nccl_predict) |
@@ -43,8 +43,12 @@ The gate does NOT run. Criteria 2, 3, 9(a)-(c) are NOT APPLICABLE.
 ## 4. The Three Limits
 
 1. **Timing resolvability** (environmental): scheduler granularity 1-4 ms is 50-200x
-   larger than the 36.2 us requirement. No quieter box, no repeated runs, no re-rolled
-   medians. Artifact: experiments/gpu-sim-pkb/variance_measurement.md (45985 us spread).
+   larger than the 36.2 us requirement. The cause is not an unavailable quiet box: the
+   per-run scope carries a 2-CPU cgroup quota (cpu.max 200000/100000) and is throttled
+   (nr_throttled 64 of 2826 periods in one sampled scope; live scopes showed ~98% of
+   periods throttled). Whether a larger quota admits is UNTESTED here.
+   Artifact: experiments/gpu-sim-pkb/variance_measurement.md (45985 us spread);
+   experiments/gpu-sim-tfq/windows.jsonl + cgroup finding.
 2. **n>=3 pieces-per-phase**: the interposer gives device IDENTITY, not per-rank
    COMPUTATION (nvidia-smi shows 1 device). 8ii closed as REFUSED.
    Artifact: experiments/gpu-sim-6kp/real_driver_witness.txt.
@@ -64,23 +68,23 @@ The gate does NOT run. Criteria 2, 3, 9(a)-(c) are NOT APPLICABLE.
 
 ```bash
 # Growth list enforcement
-cd .lab/wt/gpu-sim-6kp && make check
+make check
 # Expected: "PASS: growth list matches (A-B) exactly (30 entries)"
 
 # Net-plugin assertion
-cd .lab/wt/gpu-sim-6kp && python3 experiments/gpu-sim-6kp/test_net_plugin.py
+python3 experiments/gpu-sim-6kp/test_net_plugin.py
 # Expected: "PASS net_plugin_loaded"
 
 # Model fault tests
-cd .lab/wt/gpu-sim-5zv && python3 tests/test_model_fault.py
+python3 tests/test_model_fault.py
 # Expected: "ALL MODEL FAULT TESTS PASS"
 
 # Fabric tests
-cd .lab/wt/gpu-sim-pkb && make test-fabric
+make test-fabric
 # Expected: "fabric tests PASS"
 
 # Gate verdict (PI-written judge; exit 1 = failing verdict, a reported result)
-cd .lab/wt/gpu-sim-m3d.10 && python3 experiments/gpu-sim-m3d.10/verdict.py experiments/gpu-sim-m3d.10/metrics.json
+python3 experiments/gpu-sim-m3d.10/verdict.py experiments/gpu-sim-m3d.10/metrics.json
 # Expected: VERDICT: NO-CLOSE-ADMISSIBILITY ...; JSON has violation_factor=1270.3; exit code 1
 ```
 
