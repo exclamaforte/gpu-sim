@@ -100,7 +100,26 @@ and is filed as an open question rather than smoothed away.
    overwrote the committed pkb logs; it now writes per-run logs under `traces/`.
    (The committed logs were restored twice during this bead.)
 
-## 6. Reproduce
+## 6. Negative controls — the gate is proven to reject, not assumed to
+
+Two deliberately broken traces are committed and both are rejected by
+`reduce_trace.py` with **exit 2** and an `INVALID:` line (a warning on stderr would not
+be enough — the failure the old table suffered was silent):
+
+| control | what is wrong | script says |
+|---|---|---|
+| `traces/negative_control_broken.log` | one isend line has no `digest=` field (truncated write) | `INVALID: 1 malformed isend line(s)` |
+| `traces/negative_control_nonmultiple.log` | totals 6096 bytes for a 4096-byte buffer (1.49S) | `INVALID: rank 0: total_bytes 6096 is not an exact multiple of S 4096 (factor 1.4883)` |
+
+The first control is the important one: the old `parse_trace` **silently skipped**
+malformed lines, so a truncated send vanished from the totals and the trace still
+looked valid. Malformed lines are now counted and make the trace `INVALID`.
+
+The completeness gate is *exact multiple of S*, not a `[S, 4S]` range: a range would
+have admitted the 1.25S duplicate-send traces as valid, which is precisely how the
+1.25 rows entered the first submission's "valid" list.
+
+## 7. Reproduce
 
 ```bash
 cd experiments/gpu-sim-pkb
