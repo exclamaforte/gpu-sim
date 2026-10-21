@@ -1,0 +1,95 @@
+{
+  "artifact": "PI's independent re-admission (cross-check; the implementer's committed script remains authoritative)",
+  "method": {
+    "P": "derived: ceil(chunk(n)*S / 1 MiB), chunk(2)=S, chunk(n>=3)=(n-1)/n*S",
+    "bw_term": "predict(2S) - predict(S) from the public API",
+    "criteria": "4a bw_share >= 0.5; 4b |d_pred| >= 100us and >= 20% of the larger duration; spread clause needs the measured spread"
+  },
+  "sizes": {
+    "2097152": {
+      "admitted": false,
+      "all_pairs_admissible": true,
+      "configs": {
+        "M1": {
+          "bw_gbps": 900.0,
+          "bw_term_s": 3.728270222222222e-05,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 1.6000000000000064e-05,
+          "lat_term_s_p1": 2.000000000000008e-06,
+          "latency_us": 1.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 5.328270222222228e-05,
+          "model_duration_s_p1": 3.9282702222222226e-05,
+          "n": 2,
+          "pieces_per_phase_P": 8,
+          "pieces_per_rank": 16,
+          "regime": "bandwidth"
+        },
+        "M2": {
+          "bw_gbps": 100.0,
+          "bw_term_s": 0.00033554432000000003,
+          "bytes_evidence_supported": "2S at 4 KiB and 2 MiB, S at 1 MiB (size-dependent)",
+          "lat_term_s": 7.999999999999934e-05,
+          "lat_term_s_p1": 9.999999999999918e-06,
+          "latency_us": 5.0,
+          "model_byte_factor": 2.0,
+          "model_duration_s": 0.0004155443199999994,
+          "model_duration_s_p1": 0.00034554431999999995,
+          "n": 2,
+          "pieces_per_phase_P": 8,
+          "pieces_per_rank": 16,
+          "regime": "bandwidth"
+        }
+      },
+      "pairs": [
+        {
+          "bw_share_4a": 0.8233320979666718,
+          "d_pred_us": 362.2616177777771,
+          "max_tolerable_spread_us": 36.226161777777705,
+          "pair": "M1->M2",
+          "passes_4a": true,
+          "passes_4b_absolute_100us": true,
+          "passes_4b_relative_20pct": true,
+          "relative_margin_4b": 0.8717761267384851
+        }
+      ],
+      "payload_bytes": 2097152,
+      "predicted_order": [
+        "M1",
+        "M2"
+      ],
+      "refused_configs": {
+        "M3": "REFUSED: no MEASURED pieces-per-phase for n=4, S=2097152. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M4": "REFUSED: no MEASURED pieces-per-phase for n=4, S=2097152. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB."
+      }
+    },
+    "33554432": {
+      "admitted": false,
+      "all_pairs_admissible": false,
+      "configs": {},
+      "pairs": [],
+      "payload_bytes": 33554432,
+      "predicted_order": [],
+      "refused_configs": {
+        "M1": "REFUSED: no MEASURED pieces-per-phase for n=2, S=33554432. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M2": "REFUSED: no MEASURED pieces-per-phase for n=2, S=33554432. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M3": "REFUSED: no MEASURED pieces-per-phase for n=4, S=33554432. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M4": "REFUSED: no MEASURED pieces-per-phase for n=4, S=33554432. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB."
+      }
+    },
+    "8388608": {
+      "admitted": false,
+      "all_pairs_admissible": false,
+      "configs": {},
+      "pairs": [],
+      "payload_bytes": 8388608,
+      "predicted_order": [],
+      "refused_configs": {
+        "M1": "REFUSED: no MEASURED pieces-per-phase for n=2, S=8388608. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M2": "REFUSED: no MEASURED pieces-per-phase for n=2, S=8388608. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M3": "REFUSED: no MEASURED pieces-per-phase for n=4, S=8388608. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB.",
+        "M4": "REFUSED: no MEASURED pieces-per-phase for n=4, S=8388608. The table covers [4096, 65536, 262144, 524288, 1048576, 2097152] at n=[2]. Measure it (the phase-payload table) rather than deriving it: the cap-based derivation is known to undercount the piece count by four at 2 MiB."
+      }
+    }
+  }
+}

@@ -14,19 +14,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define COUNT 1024
+#define COUNT_DEFAULT 1024
 
-static int run(int nranks)
+static int run(int nranks, int count)
 {
     /* Allocate a fake device buffer per "rank" (just one contiguous region is
        fine since there is no real device memory). */
     float *sendbuff = NULL;
     float *recvbuff = NULL;
-    if (cudaMalloc((void **)&sendbuff, sizeof(float) * COUNT) != cudaSuccess) {
+    if (cudaMalloc((void **)&sendbuff, sizeof(float) * count) != cudaSuccess) {
         fprintf(stderr, "ring_allreduce: cudaMalloc send failed\n");
         return 1;
     }
-    if (cudaMalloc((void **)&recvbuff, sizeof(float) * COUNT * (size_t)nranks)
+    if (cudaMalloc((void **)&recvbuff, sizeof(float) * count * (size_t)nranks)
         != cudaSuccess) {
         fprintf(stderr, "ring_allreduce: cudaMalloc recv failed\n");
         return 1;
@@ -42,25 +42,26 @@ static int run(int nranks)
         }
 
         ncclGroupStart();
-        ncclAllReduce(sendbuff, recvbuff, COUNT, ncclFloat32, ncclSum, comm, NULL);
+        ncclAllReduce(sendbuff, recvbuff, count, ncclFloat32, ncclSum, comm, NULL);
         ncclGroupEnd();
 
         ncclCommDestroy(comm);
     }
 
-    printf("ring_allreduce: ranks=%d count=%d -> allreduce ok\n", nranks, COUNT);
+    printf("ring_allreduce: ranks=%d count=%d -> allreduce ok\n", nranks, count);
     cudaFree(sendbuff);
     cudaFree(recvbuff);
     return 0;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
     int nr = 1;
     if (cudaGetDeviceCount(&nr) != cudaSuccess) {
         fprintf(stderr, "ring_allreduce: cudaGetDeviceCount failed\n");
         return 1;
     }
-    printf("ring_allreduce: fake GPUs visible = %d\n", nr);
-    return run(nr);
+    int count = (argc > 1) ? atoi(argv[1]) : 1024;
+    printf("ring_allreduce: fake GPUs visible = %d count=%d\n", nr, count);
+    return run(nr, count);
 }

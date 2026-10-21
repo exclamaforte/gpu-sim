@@ -1,0 +1,64 @@
+{
+  "bead": "gpu-sim-m3d.5",
+  "verdict": "NO-GO",
+  "kept": false,
+  "gpu_used": false,
+  "summary": "Fake libcuda driver-API shim (libfakecuda.so) builds and answers cuInit/cuDeviceGetCount/cuDeviceGet/cuDeviceGetAttribute and 60+ other driver calls, but real NCCL cannot complete ncclCommInitRank through it: cudart's initOnceFunc calls cuGetExportTable with two fixed UUIDs and requires a real opaque export table. Static-cudart (pip wheel) and a from-source NCCL v2.32.3-1 built against DYNAMIC cudart (DT_NEEDED libcudart.so.13) both fail identically at that call. Acceptance #3 (no real driver loaded) was never relaxed; no partial PASS claimed.",
+  "nccl_build": {
+    "tag": "v2.32.3-1",
+    "tarball_sha256": "5a0f88526a6f48338a1848199df7868fc5fb929fbd2bbc12e575435e60e3ffc4",
+    "source": "https://github.com/NVIDIA/nccl/archive/refs/tags/v2.32.3-1.tar.gz",
+    "flags": "CUDA_HOME=<cuda-sysroot> CUDARTLIB=cudart NVCC_GENCODE='-gencode=arch=compute_90,code=sm_90' make -j2 src.build",
+    "result": "build/lib/libnccl.so.2.32.3 with DT_NEEDED libcudart.so.13 (dynamic cudart); CPU-only build, no GPU time used",
+    "note": "NCCL's src/Makefile defaults CUDARTLIB=cudart_static; CUDARTLIB=cudart is required for the dynamic path. libcudacxx headers were taken from the pip nvidia/cuda_cccl package via a cccl symlink in the sysroot."
+  },
+  "acceptance": {
+    "1_dlopen_real_nccl_single_rank_init": "FAIL (see output.log probes A and B)",
+    "2_nccl_debug_device_count_pci_ids": "NOT REACHED",
+    "3_no_real_driver_loaded": "HOLDS; evidence: experiments/gpu-sim-m3d.5/proc_maps.log (libfakecuda.so mapped, no libcuda.so.1 mapping)",
+    "4_negative_control_no_shim": "PASS (output.log: without the shim and with CUDA_VISIBLE_DEVICES='' the binary fails to init; with the real GPU visible it succeeds with 1 device)"
+  },
+  "evidence": [
+    "experiments/gpu-sim-m3d.5/output.log",
+    "experiments/gpu-sim-m3d.5/dynamic_cudart_probe.log",
+    "experiments/gpu-sim-m3d.5/option_a_3alt.log",
+    "experiments/gpu-sim-m3d.5/proc_maps.log",
+    "experiments/gpu-sim-m3d.5/attr_probe.log",
+    "experiments/gpu-sim-m3d.5/check_fresh_red.log",
+    "experiments/gpu-sim-m3d.5/check_fresh_green.log",
+    "experiments/gpu-sim-m3d.5/growth_list.txt",
+    "experiments/gpu-sim-m3d.5/README.md"
+  ],
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-m3d.5/run.sh",
+      "result": "probe A FAIL, probe B FAIL, negative controls as expected"
+    }
+  ],
+  "option_a_3alt": {
+    "result": "3-alt-i FAILS at exactly this point",
+    "3-alt-iii": "HOLDS: real handle opened with the real dlopen (dlvsym RTLD_NEXT); 'AUDIT real-driver-handle open=OK (via real dlopen, bypassing interception)'",
+    "3-alt-ii": "HOLDS: GPUSIM_REAL_EXPORT_TABLE=0 (forwarding disabled) -> the export-table failure returns: 'cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)', NCCL 'named symbol not found' AT the table",
+    "3-alt-i": "FAILS. THE DISCRIMINATING FACT IS THE CHANGED FAILURE MODE, not a per-call attribution: with the real table served the handshake SUCCEEDS and cudart moves PAST it (the 'CUDA driver version is insufficient' error disappears), failing later with 'initialization error'; with forwarding disabled it fails AT the table with 'named symbol not found'. A zero counter in the 3-alt-i arm therefore does not by itself show which symbol served a call, and the earlier 'the export table carries the whole vtable / hands the entire device path to the real driver' mechanism claim is WITHDRAWN as not supported by this evidence (the shim demonstrably serves cuDeviceGetCount -> 1 and cuDeviceGet in that arm). What is established: serving the real table moves cudart past the handshake into code paths this seam does not control, so option (a) does not work.",
+    "counter_liveness_control": "experiments/gpu-sim-m3d.5/attr_probe.log -- a direct shim call prints 'AUDIT cuDeviceGetAttribute served-by=SHIM attrib=16 value=80 count=1', so a zero elsewhere means 'not called', not 'counter broken'",
+    "evidence": [
+      "experiments/gpu-sim-m3d.5/option_a_3alt.log",
+      "experiments/gpu-sim-m3d.5/proc_maps.log",
+      "experiments/gpu-sim-m3d.5/attr_probe.log",
+      "experiments/gpu-sim-m3d.5/README.md"
+    ]
+  },
+  "dynamic_cudart_probe": {
+    "result": "same wall",
+    "detail": "from-source NCCL v2.32.3-1 built with CUDARTLIB=cudart (DT_NEEDED libcudart.so.13, 0 libcudart_static symbols, 72 undefined cuda* symbols) still calls cuGetExportTable and fails identically.",
+    "evidence": [
+      "experiments/gpu-sim-m3d.5/dynamic_cudart_probe.log"
+    ]
+  },
+  "freshness": {
+    "check": "experiments/gpu-sim-m3d.5/check_fresh.sh",
+    "red_case": "check_fresh_red.log + stale/ (kept committed negative cases: 4x and 2x 'dlsym fallback', no AUDIT lines) -> exit 1",
+    "green_case": "check_fresh_green.log (fresh output.log + option_a_3alt.log) -> exit 0",
+    "note": "run.sh regenerates output.log, dynamic_cudart_probe.log, option_a_3alt.log, proc_maps.log, attr_probe.log and both freshness arms; no log is hand-copied."
+  }
+}

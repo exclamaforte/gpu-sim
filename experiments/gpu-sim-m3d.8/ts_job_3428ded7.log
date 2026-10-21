@@ -1,0 +1,28 @@
+=== SCENARIO 1: normal 2-rank allreduce (4 channels) ===
+normal aggregate: exit0=0 exit1=0
+--- 2a/2b/2c decider ---
+{
+  "2a_trace_complete": true,
+  "2c_bytes": true,
+  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+}
+bytes: {"observed_per_rank": 8192.0, "observed_total": 16384, "model_per_rank": 4096.0, "model_total": 8192, "ratio_observed_over_model": 2.0}
+2c OK: ratio 2.00 acknowledged by /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.8/experiments/gpu-sim-m3d.8/model_mismatch_ack.json (tracking gpu-sim-8sy)
+--- item 9(b) negative controls for the ack guard ---
+=== SCENARIO 2: kill -9 rank 0's OWN pid AFTER the data path is live ===
+data path live: 1; wrapper=630056 rank=630060
+kill: rank0 exit=137 survivor exit=124 after 28s; mechanism=harness-timeout (weakest form; explicitly NOT an NCCL error)
+--- 3b: no-NCCL peer-death test ---
+pending transfer rc=4 (EPEERDEAD), mapped to NCCL code 2
+peer-death mapping PASS
+=== SCENARIO 3: oversized message (plugin API, GPU-free) ===
+oversized exit=0
+oversized isend returned 4 (expect 4)
+=== run.json ===
+{
+  "2a_trace_complete": true,
+  "2c_bytes": true,
+  "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+}
+=== RESULT ===
+SCENARIO MATRIX: PASS

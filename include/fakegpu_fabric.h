@@ -27,7 +27,11 @@ typedef struct fg_fab fg_fab_t;
 /* Attach to (or create) the named segment for run_id.
  * epoch: caller's epoch; a pre-existing segment with a different epoch is
  *        rejected with FG_FAB_ESTALE instead of being reused.
- * timeout_ns: deadline for waits inside this handle (0 -> 1s default).
+ * timeout_ns: deadline for message/barrier waits inside this handle
+ *             (0 -> 1s default). The attach wait itself uses a separate,
+ *             longer deadline (GPUSIM_ATTACH_TIMEOUT_NS, default 5s, never
+ *             below timeout_ns) because the creator must materialize the
+ *             whole segment before state==1 becomes visible.
  * Returns NULL on failure and sets *err. */
 fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks,
                         uint64_t timeout_ns, int *err);
@@ -39,6 +43,20 @@ int  fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n);
 
 /* receive exactly n bytes from `from`; n must match the sent length. */
 int  fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n);
+
+/* receive up to cap bytes; accepts any message with len <= cap and reports
+   actual bytes received in *got. */
+int  fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got);
+
+/* Decider variants: same contracts, plus (slot, seq) of the fabric slot that
+   carried the payload and the sender's global consumed_seq witness. */
+int  fg_fab_send_x(fg_fab_t *f, int peer, const void *buf, size_t n,
+                   int *slot_out, unsigned *seq_out);
+int  fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
+                     int *slot_out, unsigned *seq_out);
+size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size);
+int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
+                        int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 
 /* apply a link's bw/latency/jitter to nbytes (best-effort delay). */
 int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,

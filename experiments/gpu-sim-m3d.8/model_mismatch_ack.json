@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-m3d.8",
+  "tracking_issue": "gpu-sim-8sy",
+  "observed_per_rank_bytes": 8192,
+  "model_per_rank_bytes": 4096,
+  "ratio_observed_over_model": 2.0,
+  "statement": "The plugin's own per-entry-point counters and the fabric (slot,seq,consumed_seq) witness are the evidence for the observed value; the model value comes from epic_cluster.link_model's public per_link_bytes. The two disagree by 2x at n=2. This file is the human-reviewed acknowledgement required by acceptance 2c; the scenario script asserts against it and fails if it is absent or if the ratio disagrees with the run.",
+  "reviewed_by": "Gabriel Ferns (PI/reviewer) -- verified against the committed decider digests after the gpu-sim-8sy verdict that the MODEL is wrong, not the capture",
+  "date": "2026-10-20"
+}
