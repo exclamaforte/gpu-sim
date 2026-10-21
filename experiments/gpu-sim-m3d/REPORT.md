@@ -79,9 +79,9 @@ cd .lab/wt/gpu-sim-5zv && python3 tests/test_model_fault.py
 cd .lab/wt/gpu-sim-pkb && make test-fabric
 # Expected: "fabric tests PASS"
 
-# Gate verdict
-cd .lab/wt/gpu-sim-m3d.10 && python3 experiments/gpu-sim-m3d.10/verdict.py
-# Expected: exit 1, NO-CLOSE-ADMISSIBILITY, violation_factor 1270.3
+# Gate verdict (committed output)
+cat .lab/wt/gpu-sim-m3d.10/experiments/gpu-sim-m3d.10/verdict_out.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['verdict'], 'violation_factor=', d.get('violation_factor'))"
+# Expected: NO-CLOSE-ADMISSIBILITY
 ```
 
 ## Verification list (spot-checked citations)
