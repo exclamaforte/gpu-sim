@@ -1,0 +1,52 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/gabe/Documents/gpu-sim
+plugins: anyio-4.15.1
+collected 8 items
+
+tests/test_model_fault.py FF......                                       [100%]
+
+=================================== FAILURES ===================================
+_________________________ test_loss_factor_closed_form _________________________
+
+    def test_loss_factor_closed_form():
+        """AC1: expected duration factor 1/(1-p) applied to wire term."""
+        n = 2
+        bw = 10.0
+        lat = 10.0
+        count = 100000
+        loss_ppm = 100000  # p = 0.1
+        p = loss_ppm / 1e6
+        spec = uniform_spec(n, bw, lat, loss_ppm=loss_ppm)
+        rec = predict(spec, "ring_allreduce", count, "float32")
+        # wire term should be scaled by 1/(1-p)
+        S = count * 4
+        B = bw * 1e9 / 8.0
+        alpha = lat * 1e-6
+        base_bw = 2.0 * S / B  # n=2 chunk=1.0, factor=2.0
+        expected_dur = base_bw * (1.0/(1.0-p)) + 2.0 * 1 * alpha  # 2*(n-1)=2, P=8 for 2MiB? no, 100000*4=400000 bytes
+        # Just check loss_factor field
+>       assert abs(rec["loss_factor"] - 1.0/(1.0-p)) < 1e-9
+E       assert 0.13888888888888884 < 1e-09
+E        +  where 0.13888888888888884 = abs((1.25 - (1.0 / (1.0 - 0.1))))
+
+tests/test_model_fault.py:52: AssertionError
+____________________ test_loss_factor_derived_not_hardcoded ____________________
+
+    def test_loss_factor_derived_not_hardcoded():
+        """Derive 1/(1-p) in the test, not hardcode."""
+        for ppm in [0, 50000, 100000, 200000]:
+            p = ppm / 1e6
+            expected = 1.0/(1.0-p) if ppm > 0 else 1.0
+            spec = uniform_spec(2, 10.0, 10.0, loss_ppm=ppm)
+            rec = predict(spec, "ring_allreduce", 1000, "float32")
+>           assert abs(rec["loss_factor"] - expected) < 1e-9, (ppm, rec["loss_factor"], expected)
+E           AssertionError: (50000, 1.1111111111111112, 1.0526315789473684)
+E           assert 0.0584795321637428 < 1e-09
+E            +  where 0.0584795321637428 = abs((1.1111111111111112 - 1.0526315789473684))
+
+tests/test_model_fault.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_fault.py::test_loss_factor_closed_form - assert 0.138...
+FAILED tests/test_model_fault.py::test_loss_factor_derived_not_hardcoded - As...
+========================= 2 failed, 6 passed in 0.24s ==========================

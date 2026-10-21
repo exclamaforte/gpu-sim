@@ -218,7 +218,8 @@ def _derived_pieces_per_phase(n: int, S: int) -> int:
 
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
             n_ranks: Optional[int] = None,
-            pieces_per_phase: Optional[int] = None) -> Dict[str, Any]:
+            pieces_per_phase: Optional[int] = None,
+            timeout_us: Optional[float] = None) -> Dict[str, Any]:
     """Predicted duration for a collective.
 
     pieces_per_phase (P): number of fabric pieces per logical phase per rank.
@@ -268,6 +269,13 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
             "bottleneck": {"link_id": None, "kind": None},
             "per_link_bytes": {},
             "regime": "bandwidth",
+            "loss_ppm": 0,
+            "loss_factor": 1.0,
+            "jitter_us": 0.0,
+            "jitter_mean_us": 0.0,
+            "jitter_sd_us": 0.0,
+            "timeout_us": None,
+            "deadline_exceed_prob": 0.0,
         }
 
     dev_idx = _dev_index(spec)
@@ -313,6 +321,10 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     B_gbps = edge_bw[worst_idx]
     alpha_s = edge_lat_us[worst_idx] * 1e-6
 
+    _worst_link_spec = links_spec[worst_idx] if worst_idx < len(links_spec) else (links_spec[0] if links_spec else {})
+    loss_ppm = int(_worst_link_spec.get("loss_ppm", 0) or 0)
+    jitter_us_val = float(_worst_link_spec.get("jitter_us", 0.0) or 0.0)
+
     # bytes per second
     B_Bps = B_gbps * 1e9 / 8.0
 
@@ -328,6 +340,42 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
         bw_term = bf * S / B_Bps
         lat_term = lf * alpha_s * pieces_per_phase
         dur = bw_term + lat_term
+
+    p_loss = loss_ppm / 1e6 if loss_ppm > 0 else 0.0
+    if p_loss >= 1.0:
+        loss_factor = float("inf")
+    elif p_loss > 0:
+        loss_factor = 1.0 / (1.0 - p_loss)
+    else:
+        loss_factor = 1.0
+    if loss_ppm > 0:
+        dur = bw_term * loss_factor + lat_term
+
+    jitter_mean_us = jitter_us_val / 2.0 if jitter_us_val > 0 else 0.0
+    jitter_sd_us = jitter_us_val / (12.0 ** 0.5) if jitter_us_val > 0 else 0.0
+
+    deadline_exceed_prob = 0.0
+    if timeout_us is not None and timeout_us > 0 and jitter_us_val > 0:
+        base_us = dur * 1e6
+        P = pieces_per_phase if pieces_per_phase and pieces_per_phase >= 1 else 1
+        bins = 100
+        step = jitter_us_val / bins
+        dist = [1.0 / bins] * bins
+        for _ in range(P - 1):
+            new_dist = [0.0] * (bins * (_ + 2))
+            for i in range(len(dist)):
+                if dist[i] == 0:
+                    continue
+                for j in range(bins):
+                    if i + j < len(new_dist):
+                        new_dist[i + j] += dist[i] * (1.0 / bins)
+            dist = new_dist
+        total_prob = 0.0
+        for idx in range(len(dist)):
+            jitter_sum_us = idx * step
+            if base_us + jitter_sum_us > timeout_us:
+                total_prob += dist[idx]
+        deadline_exceed_prob = min(1.0, max(0.0, total_prob))
 
     # per_link_bytes
     per_link_bytes: Dict[int, int] = {}
@@ -372,6 +420,13 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
         "bottleneck": {"link_id": b_link, "kind": bottleneck_kind},
         "per_link_bytes": per_link_bytes,
         "regime": regime,
+        "loss_ppm": loss_ppm,
+        "loss_factor": loss_factor,
+        "jitter_us": jitter_us_val,
+        "jitter_mean_us": jitter_mean_us,
+        "jitter_sd_us": jitter_sd_us,
+        "timeout_us": timeout_us,
+        "deadline_exceed_prob": deadline_exceed_prob,
         "_debug": {"bw_term": bw_term, "lat_term": lat_term, "worst_bw_gbps": B_gbps, "worst_lat_us": edge_lat_us[worst_idx]},
     }
 

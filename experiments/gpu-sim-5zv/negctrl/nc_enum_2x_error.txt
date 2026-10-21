@@ -1,0 +1,12 @@
+PASS test_loss_factor_closed_form
+PASS test_loss_factor_derived_not_hardcoded
+PASS test_jitter_mean_sd
+PASS test_deadline_exceed_prob
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/tests/test_model_fault.py", line 149, in <module>
+    test_deadline_exceed_exact()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/gabe/Documents/gpu-sim/tests/test_model_fault.py", line 109, in test_deadline_exceed_exact
+    assert abs(model_prob - brute_prob) < 0.05, (model_prob, brute_prob)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (0.9926991999146577, 0.499895)

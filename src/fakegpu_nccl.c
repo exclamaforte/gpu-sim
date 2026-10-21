@@ -387,6 +387,11 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
         bw_term = logn * S / B_Bps;
         lat_term = logn * alpha_s * (double)P_tree;
         dur = bw_term + lat_term;
+        /* fault: loss factor (gpu-sim-5zv) - use first link's loss_ppm */
+        if (t->n_links > 0 && t->links[0].loss_ppm > 0 && t->links[0].loss_ppm < 1000000) {
+            double _p = t->links[0].loss_ppm / 1e6;
+            dur = bw_term * (1.0 / (1.0 - _p)) + lat_term;
+        }
     } else {
         double bf, lf;
         /* gpu-sim-8sy: bytes factor n=2 -> 2.0 (one whole buffer per phase);
@@ -414,6 +419,18 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
         bw_term = bf * S / B_Bps;
         lat_term = lf * alpha_s * (double)P;
         dur = bw_term + lat_term;
+        /* fault: expected retransmit factor under loss (gpu-sim-5zv) */
+        {
+            int _loss_ppm = 0;
+            if (worst < nedges && edge_pathlen[worst] > 0) {
+                int _li = edge_paths[worst][0];
+                if (_li >= 0 && _li < t->n_links) _loss_ppm = (int)t->links[_li].loss_ppm;
+            }
+            if (_loss_ppm > 0 && _loss_ppm < 1000000) {
+                double _p = _loss_ppm / 1e6;
+                dur = bw_term * (1.0 / (1.0 - _p)) + lat_term;
+            }
+        }
     }
 
     int b_link = -1;
