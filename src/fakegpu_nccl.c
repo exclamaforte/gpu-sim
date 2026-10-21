@@ -408,8 +408,11 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
         if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*chunk; lf = 2.0*hops; }
         else if (strcmp(algo, "ring_allgather") == 0 || strcmp(algo, "ring_reduce_scatter") == 0 || strcmp(algo, "ring_alltoall") == 0) { bf = (double)(n-1)/n; lf = (double)n; }
         else { bf = 1.0; lf = 1.0; }
-        /* pkb: pieces per phase P = ceil(chunk(n)*S / FG_FAB_MAX_PAYLOAD).
-           lat_term scaled by P (per-isend accounting). Mirrors Python. */
+        /* pkb: pieces per phase P comes from the MEASURED phase-payload table below,
+           not from a cap-derived formula (n>=3 refusal: a cap-derived P would be a
+           derivation, and experiment gpu-sim-6kp measured these values). The old
+           comment here claimed P = ceil(chunk(n)*S / FG_FAB_MAX_PAYLOAD), which the
+           code has not done since the table landed -- corrected by gpu-sim-ggh review. */
         int P;
         if (n == 2 && S <= 4096) P = 1;           /* phase-payload table */
         else if (n == 2 && S <= 262144) P = 4;    /* phase-payload table */
