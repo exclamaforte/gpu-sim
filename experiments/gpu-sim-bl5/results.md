@@ -1,3 +1,5 @@
+Cross-bead citations: experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m1-1792601705.log experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m2-1792601716.log experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m3-1792601721.log
+
 # gpu-sim-bl5: S=384KiB (393216 bytes) under-send investigation
 
 ## Status: cause undetermined; see "What would decide it"
@@ -8,9 +10,9 @@ Race-fixed start order (rank 1 first), 2 s sleep (bl5-m1/m2/m3):
 
 | run | rank0 isends | rank0 bytes | rank1 isends | rank1 bytes | trace |
 |-----|-------------:|------------:|-------------:|------------:|
-| bl5-m1 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | traces/trace_S393216_n2_bl5-m1-1792601705.log |
-| bl5-m2 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | traces/trace_S393216_n2_bl5-m2-1792601716.log |
-| bl5-m3 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | traces/trace_S393216_n2_bl5-m3-1792601721.log |
+| bl5-m1 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m1-1792601705.log |
+| bl5-m2 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m2-1792601716.log |
+| bl5-m3 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m3-1792601721.log |
 
 Long sleep (5 s, bl5-long1/long2): identical (5/4, 0.833/0.667). More sleep did not
 capture additional sends.
@@ -61,3 +63,18 @@ bl5-m1/m2/m3 all agree (5/4 chunks). Reversed runs agree on totals (9 chunks).
 Long sleep did not change counts.
 EOF
 echo written
+## ESCALATION UPDATE (decisive value test)
+
+The byte-count analysis above is superseded. A value-correctness test (fill rank0=1.0, rank1=2.0, expect 3.0 on all elements) gives:
+
+- S=393216 (384KiB): ncclAllReduce returns ncclSuccess but the operation NEVER
+  completes (cudaMemcpy blocks forever). Both ranks hang. This is "success reported
+  for incomplete work" -- the escalation case.
+- S=524288 (512KiB, control): VALUE OK on both ranks (all elements == 3.0).
+
+Outcome (a): real size-dependent simulator defect. The 9-chunk trace was partial
+progress before the hang, not a completed (if short) allreduce. 384KiB stays
+excluded from canonical tables. Filed as P1 bead gpu-sim-7vw.
+
+The earlier "no silent under-send" conclusion was wrong: a chunk count cannot see
+whether data moved. The decisive test is value correctness.

@@ -36,15 +36,21 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&sendbuf, n*sizeof(float));
     cudaMalloc((void**)&recvbuf, n*sizeof(float));
     float val = (rank == 0) ? 1.0f : 2.0f;
-    /* fill a small prefix; NCCL reads the full buffer but content doesn't affect isend bytes */
-    int fill = n < 1024 ? n : 1024;
-    float h[1024];
-    for (int i = 0; i < fill; i++) h[i] = val;
-    cudaMemcpy(sendbuf, h, fill*sizeof(float), cudaMemcpyHostToDevice);
+    /* fill the ENTIRE buffer so value correctness can be checked */
+    float *h = (float*)malloc(n*sizeof(float));
+    for (int i = 0; i < n; i++) h[i] = val;
+    cudaMemcpy(sendbuf, h, n*sizeof(float), cudaMemcpyHostToDevice);
 
     r = ncclAllReduce(sendbuf, recvbuf, n, ncclFloat, ncclSum, comm, 0);
     if (r != ncclSuccess) { printf("rank %d allreduce failed: %s\n", rank, ncclGetErrorString(r)); return 2; }
     printf("rank %d allreduce done\n", rank);
+    fflush(stdout);
+    /* value correctness check */
+    cudaMemcpy(h, recvbuf, n*sizeof(float), cudaMemcpyDeviceToHost);
+    int bad=0, first=-1; float got=0;
+    for (int i=0;i<n;i++){ if (h[i]!=3.0f){ if(first<0){first=i;got=h[i];} bad++; } }
+    if (bad==0) printf("rank %d VALUE OK (all %d elements == 3.0)\n", rank, n);
+    else printf("rank %d VALUE MISMATCH: %d/%d wrong, first idx=%d got=%f (expect 3.0)\n", rank, bad, n, first, got);
     fflush(stdout);
     /* let async isends flush to trace files */
     usleep(5000000);
