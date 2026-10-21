@@ -193,7 +193,16 @@ def _bw_factor(algorithm: str, n: int) -> float:
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
             n_ranks: Optional[int] = None,
             pieces_per_phase: int = 1) -> Dict[str, Any]:
-    # pieces_per_phase (P): number of fabric pieces per logical phase per rank.
+    """Predicted duration for a collective.
+
+    pieces_per_phase (P): number of fabric pieces per logical phase per rank.
+    With per-isend accounting (pkb candidate A, the operating model), each
+    piece pays the link latency, so the latency term scales by P. P depends on
+    payload size and the fabric's 1 MiB payload cap (a SIMULATOR constant), so
+    alpha (latency_us) is a per-piece charge, not a per-hop network property,
+    when P > 1. See gpu-sim-8nt for the fidelity fix that makes alpha a
+    per-hop property again.
+    """
     # With per-isend accounting (pkb candidate A), each piece pays the link
     # latency, so the latency term scales by P. P depends on payload size and
     # the fabric's 1 MiB payload cap (a SIMULATOR constant), so alpha is a
