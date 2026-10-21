@@ -68,6 +68,10 @@ check: guard-build-inputs $(LIB)
 	@python3 scripts/gen_growth_list.py --check
 	@python3 experiments/gpu-sim-6kp/test_net_plugin.py
 	@mkdir -p build
+	@$(CC) $(CFLAGS) -Iinclude -o build/test_retransmit \
+	    experiments/gpu-sim-4tw/test_retransmit.c src/fakegpu_fabric.c -lpthread
+	@build/test_retransmit
+	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	$(TEST_BIN)
 	@echo "--- reference workloads under LD_PRELOAD ---"
