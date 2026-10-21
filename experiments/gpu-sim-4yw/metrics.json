@@ -2,28 +2,85 @@
   "bead": "gpu-sim-4yw",
   "leg1": {
     "verdict": "MODEL-DOES-NOT-REPRODUCE",
-    "tolerance": 0.10,
+    "tolerance": 0.1,
     "tolerance_basis": "10% relative on per-phase wire bytes",
     "n_phases": 6,
     "n_failures": 3,
-    "failing_phases_S_bytes": [524288, 1048576, 2097152],
+    "failing_phases_S_bytes": [
+      524288,
+      1048576,
+      2097152
+    ],
     "rows": [
-      {"S_bytes": 4096, "measured_P": 1, "meas_per_phase_bytes": 4096, "model_per_phase_bytes": 4096, "rel_err": 0.0, "within": true},
-      {"S_bytes": 65536, "measured_P": 4, "meas_per_phase_bytes": 65536, "model_per_phase_bytes": 65536, "rel_err": 0.0, "within": true},
-      {"S_bytes": 262144, "measured_P": 4, "meas_per_phase_bytes": 262144, "model_per_phase_bytes": 262144, "rel_err": 0.0, "within": true},
-      {"S_bytes": 524288, "measured_P": 8, "meas_per_phase_bytes": 262144, "model_per_phase_bytes": 524288, "rel_err": 1.0, "within": false},
-      {"S_bytes": 1048576, "measured_P": 8, "meas_per_phase_bytes": 524288, "model_per_phase_bytes": 1048576, "rel_err": 1.0, "within": false},
-      {"S_bytes": 2097152, "measured_P": 8, "meas_per_phase_bytes": 1048576, "model_per_phase_bytes": 2097152, "rel_err": 1.0, "within": false}
+      {
+        "S_bytes": 4096,
+        "measured_P": 1,
+        "meas_per_phase_bytes": 4096,
+        "model_per_phase_bytes": 4096,
+        "rel_err": 0.0,
+        "within": true
+      },
+      {
+        "S_bytes": 65536,
+        "measured_P": 4,
+        "meas_per_phase_bytes": 65536,
+        "model_per_phase_bytes": 65536,
+        "rel_err": 0.0,
+        "within": true
+      },
+      {
+        "S_bytes": 262144,
+        "measured_P": 4,
+        "meas_per_phase_bytes": 262144,
+        "model_per_phase_bytes": 262144,
+        "rel_err": 0.0,
+        "within": true
+      },
+      {
+        "S_bytes": 524288,
+        "measured_P": 8,
+        "meas_per_phase_bytes": 262144,
+        "model_per_phase_bytes": 524288,
+        "rel_err": 1.0,
+        "within": false
+      },
+      {
+        "S_bytes": 1048576,
+        "measured_P": 8,
+        "meas_per_phase_bytes": 524288,
+        "model_per_phase_bytes": 1048576,
+        "rel_err": 1.0,
+        "within": false
+      },
+      {
+        "S_bytes": 2097152,
+        "measured_P": 8,
+        "meas_per_phase_bytes": 1048576,
+        "model_per_phase_bytes": 2097152,
+        "rel_err": 1.0,
+        "within": false
+      }
     ]
   },
   "leg2": {
     "label": "DESCRIPTIVE (model extrapolation; inherits Leg 1 failure)",
     "n_points": 60,
-    "dominant_counts": {"bandwidth": 51, "latency": 9, "loss": 0},
+    "dominant_counts": {
+      "bandwidth": 51,
+      "latency": 9,
+      "loss": 0
+    },
     "loss_never_dominates": true
   },
   "missing_term": "size-dependent phase-fusion / byte-factor step (constant 2.0 vs measured 1.0 at >=512 KiB)",
-  "validity": "Leg 1 failed; Leg 2 ungrounded; model not grounded on wire axis"
+  "validity": "REFERENCE-UNVERIFIED: Leg 1 compares against a table that disagrees with its own traces. Leg 2 inherits a broken reference, not a broken model. Model must NOT be corrected to fit this table. Re-measurement bead gpu-sim-eut filed.",
+  "pi_review": {
+    "verdict": "REFERENCE-UNVERIFIED",
+    "commit": "7bb3764",
+    "reason": "canonical_byte_table.md disagrees with its own cited traces on every row; the 2.0->1.0 byte-factor step at >=512KiB is absent from raw data (256KiB and 512KiB have identical shape: 16 sends, S/4 bytes/send, 4S total)",
+    "leg1_original_verdict": "MODEL-DOES-NOT-REPRODUCE (superseded)",
+    "ordering_verified": "pre-reg 65cb113 (08:42:02) committed 51s before results 463d6cb (08:42:53); verifiable from commit graph",
+    "preserved_traces_byte_identical": true,
+    "reference_unreproducible": true
+  }
 }
-EOF
-python3 -c "import json; json.load(open('metrics.json')); print('valid')"

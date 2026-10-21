@@ -1,5 +1,33 @@
 # gpu-sim-4yw: Validate model against measured pieces-per-phase table
 
+## RULING UPDATE (PI review, commit 7bb3764): REFERENCE-UNVERIFIED
+
+The Leg 1 verdict below (`MODEL-DOES-NOT-REPRODUCE`) is **superseded**. The PI
+reviewed the reference table (`canonical_byte_table.md`) against its own cited
+traces and found that the table disagrees with its traces on every row. The
+specific claim Leg 1 rests on — a 2.0→1.0 byte-factor step at ≥512 KiB — is
+absent from the raw data: at 256 KiB and 512 KiB the trace shape is identical
+(16 sends/rank, S/4 bytes/send, 4S total). The correct verdict is
+`REFERENCE-UNVERIFIED`, not `MODEL-DOES-NOT-REPRODUCE`.
+
+The comparison *method* is sound and the pre-registration was fixed in advance
+(verifiable from the commit graph: pre-reg 65cb113 at 08:42:02, results
+463d6cb at 08:42:53, 51 seconds apart). The *reference* is unusable.
+
+Consequences:
+- `gpu-sim-ggh` (model correction) must NOT proceed until the reference is
+  re-measured.
+- The model must NOT be corrected to fit a table that its own evidence
+  contradicts.
+- Leg 2 remains DESCRIPTIVE and inherits a broken reference, not a broken model.
+- The independence claim (trichotomy and n≥3 refusal are structural) is
+  unaffected.
+
+Full analysis: `PI_check_reference_table.md` (preserved traces in
+`stale_traces_from_tmp/`, byte-identical to `/tmp/scratchpad/` originals).
+
+---
+
 ## Leg 1 — FALSIFIABLE: MODEL-DOES-NOT-REPRODUCE
 
 Verdict (fixed rule, 10% relative on per-phase wire bytes): **MODEL-DOES-NOT-REPRODUCE**
