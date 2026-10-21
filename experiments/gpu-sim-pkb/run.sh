@@ -77,22 +77,37 @@ export NCCL_MIN_NCHANNELS=4
 export NCCL_MAX_NCHANNELS=4
 export GPUSIM_DTYPE="float32"
 export GPUSIM_TOPOLOGY="$EXP/topo_single.bin"
-TRACE="$EXP/trace_single.log"
-: > "$TRACE"
-export GPUSIM_TRACE="$TRACE"
+# Per-rank trace files (item 10 + pointer 3)
+T0="$EXP/trace_single_rank0.log"
+T1="$EXP/trace_single_rank1.log"
+: > "$T0"; : > "$T1"
 UIDFILE="/tmp/pkb-uid-$$"; rm -f "$UIDFILE"
-timeout 60s env NCCL_HOSTID="node0" GPUSIM_RANK=0 "$M8/build/allreduce_test" 0 2 "$UIDFILE" > "$EXP/run0.log" 2>&1 &
+timeout 60s env NCCL_HOSTID="node0" NCCL_DEBUG=INFO GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$M8/build/allreduce_test" 0 2 "$UIDFILE" > "$EXP/run0.log" 2>&1 &
 P0=$!
 sleep 1
-timeout 60s env NCCL_HOSTID="node1" GPUSIM_RANK=1 "$M8/build/allreduce_test" 1 2 "$UIDFILE" > "$EXP/run1.log" 2>&1 &
+timeout 60s env NCCL_HOSTID="node1" NCCL_DEBUG=INFO GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$M8/build/allreduce_test" 1 2 "$UIDFILE" > "$EXP/run1.log" 2>&1 &
 P1=$!
 wait $P0; R0=$?
 wait $P1; R1=$?
 echo "single-link run: R0=$R0 R1=$R1"
 [ "$R0" = "0" ] && [ "$R1" = "0" ] || { echo "run failed"; exit 1; }
+
+# item 10: assert plugin loaded/selected from the run's OWN NCCL log
+for f in "$EXP/run0.log" "$EXP/run1.log"; do
+  grep -q "NET/Plugin: Loaded net plugin sim" "$f" || { echo "item10 FAIL: no 'Loaded net plugin sim' in $f"; exit 1; }
+  grep -q "Assigned NET plugin sim to comm" "$f" || { echo "item10 FAIL: no 'Assigned NET plugin sim' in $f"; exit 1; }
+  if grep -q "via P2P\|via SHM\|NET/Socket" "$f"; then echo "item10 FAIL: P2P/SHM/Socket in $f"; exit 1; fi
+  grep -q "via NET/sim" "$f" || { echo "item10 FAIL: no 'via NET/sim' in $f"; exit 1; }
+done
+# plugin trace non-empty
+[ -s "$T0" ] && [ -s "$T1" ] || { echo "item10 FAIL: empty plugin trace"; exit 1; }
+# combine traces for artifact
+cat "$T0" "$T1" > "$EXP/trace_single.log"
+TRACE="$EXP/trace_single.log"
 grep -q "isend" "$TRACE" || { echo "no isend in trace"; exit 1; }
 grep -q "acct=per_isend" "$TRACE" || { echo "no acct field"; exit 1; }
 grep -q "link=0" "$TRACE" || { echo "no link id"; exit 1; }
+echo "item10 PASS: plugin selected, all channels via NET/sim"
 
 # Verify bytes exact: sum of isend bytes per rank.
 python3 - "$TRACE" "$EXP/metrics.json" <<'PY'
