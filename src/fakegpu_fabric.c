@@ -84,6 +84,11 @@ static size_t total_size_for(int nranks) {
     return s;
 }
 
+static char fg_atexit_name[256] = "";
+static void fg_atexit_unlink(void) {
+    if (fg_atexit_name[0]) shm_unlink(fg_atexit_name);
+}
+
 fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks,
                         uint64_t timeout_ns, int *err) {
     if (!run_id || nranks < 1 || rank < 0 || rank >= nranks) {
@@ -118,6 +123,10 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
     }
     f->shm_fd = fd;
     f->is_creator = created;
+    if (created) {
+        snprintf(fg_atexit_name, sizeof(fg_atexit_name), "%s", f->name);
+        atexit(fg_atexit_unlink);
+    }
 
     size_t tsz = total_size_for(nranks);
 
@@ -434,6 +443,7 @@ void fg_fab_detach(fg_fab_t *f) {
         atomic_store(&f->slots[f->rank].attached, 0);
         f->slots[f->rank].pid = 0;
     }
+    if (f->is_creator) shm_unlink(f->name);
     if (f->base && f->base != MAP_FAILED) munmap(f->base, f->total_size);
     if (f->shm_fd >= 0) close(f->shm_fd);
     free(f);

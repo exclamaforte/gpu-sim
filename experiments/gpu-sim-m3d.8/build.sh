@@ -17,3 +17,10 @@ g++ -shared -fPIC -O2 -g -std=c++20 -Wall -I"$VENDOR" -I"$NCCL_INC" -I"$CUDA_INC
     "$HERE/src/ncclnetsim_fabric.c" "$HERE/build/fabric.o" "$HERE/build/topology.o" -o "$HERE/build/libncclNetSimFab.so" -lpthread
 echo "built libncclNetSimFab.so"
 nm -D "$HERE/build/libncclNetSimFab.so" | grep -i "ncclNetPlugin"
+# item 11: fail loudly on unresolved symbols of ours
+if nm -u "$HERE/build/libncclNetSimFab.so" | grep -q "fg_topo_load\|fg_fab_"; then
+    echo "BUILD FAIL: unresolved symbols in plugin:" >&2
+    nm -u "$HERE/build/libncclNetSimFab.so" | grep "fg_topo_load\|fg_fab_" >&2
+    exit 1
+fi
+echo "plugin loads cleanly (no unresolved symbols)"

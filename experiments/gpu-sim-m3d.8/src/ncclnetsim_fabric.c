@@ -6,13 +6,7 @@
 #include <unistd.h>
 
 #include "fakegpu_fabric.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "fakegpu_topology.h"
-#ifdef __cplusplus
-}
-#endif
 #include "nccl_net.h"
 
 static fg_fab_t *FAB = NULL;
