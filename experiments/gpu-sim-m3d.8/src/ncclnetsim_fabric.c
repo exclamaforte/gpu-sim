@@ -252,21 +252,20 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
         have_link = 1;
     }
 
+    /* Apply per-link delay where the bytes cross the fabric, BEFORE publishing
+       the bytes, so the wire delay is actually spent (serial wire). */
+    double delay_us = 0.0;
+    if (have_link) {
+        delay_us = (double)size / (bw_gbps * 125.0) + lat_us;
+        fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, 0.0);
+    }
+
     pthread_mutex_lock(&LOCK);
     int rc = fg_fab_send_x(FAB, sc->peer, data, size, &slot, &seq);
     pthread_mutex_unlock(&LOCK);
     if (rc != FG_FAB_OK) {
         fprintf(stderr, "isend failed: %s\n", fg_fab_errstr(rc));
         return ncclSystemError;
-    }
-
-    /* Apply per-link delay where the bytes cross the fabric. */
-    double delay_us = 0.0;
-    if (have_link) {
-        /* per-isend accounting unit: each transfer (isend) pays its own
-           link latency; bandwidth accrues per chunk (per isend). */
-        delay_us = (double)size / (bw_gbps * 125.0) + lat_us;
-        fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, 0.0);
     }
     /* no-spec case: no link delay (memcpy speed); GPUSIM_FAB_DELAY_US is NOT
        applied, so a graph-blind timing cannot creep in (pkb item 3). */

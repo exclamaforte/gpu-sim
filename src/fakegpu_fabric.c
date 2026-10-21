@@ -247,7 +247,7 @@ int fg_fab_barrier(fg_fab_t *f) {
         if (now_ns() > deadline) {
             return FG_FAB_ETIMEDOUT;
         }
-        usleep(100);
+        usleep(10);
     }
     if (atomic_load_explicit(&h->barrier_gen, memory_order_acquire) == my_gen) {
         unsigned int expected = my_gen;
@@ -259,7 +259,7 @@ int fg_fab_barrier(fg_fab_t *f) {
     deadline = now_ns() + f->timeout_ns;
     while (atomic_load_explicit(&h->barrier_gen, memory_order_acquire) == my_gen) {
         if (now_ns() > deadline) return FG_FAB_ETIMEDOUT;
-        usleep(100);
+        usleep(10);
     }
     return FG_FAB_OK;
 }
@@ -313,7 +313,7 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
                 if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            usleep(100);
+            usleep(10);
         }
     }
     if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab send rank=%d peer=%d size=%zu slot=%d\n", f->rank, peer, n, slot);
@@ -366,7 +366,7 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
                 if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            usleep(100);
+            usleep(10);
         }
     }
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
@@ -408,7 +408,7 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
                 if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            usleep(100);
+            usleep(10);
         }
     }
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
