@@ -164,5 +164,21 @@
     "1_MiB": "S (per rank)",
     "2_MiB": "2S (per rank, verified)",
     "conclusion": "Byte factor at n=2 is SIZE-DEPENDENT. Not a single constant. n>=3 factor (2(n-1)/n) is robust (total independent of chunking). n=2 total depends on protocol/channel structure selected at that payload size."
+  },
+  "in_situ_cross_check": {
+    "sizes_bytes": [
+      524288,
+      1048576
+    ],
+    "speed_gbps": 10,
+    "median_total_us": {
+      "524288": 5015.6,
+      "1048576": 5820.0
+    },
+    "measured_diff_us": 804.4,
+    "model_diff_us": 838.9,
+    "ratio": 0.96,
+    "verdict": "PASS (within 10%): measured difference 804.4 us vs model 838.9 us. Wire delay IS spent and measured difference matches model prediction.",
+    "note": "In-situ c computation not possible: P=1 for all sizes <=1MB (fabric cap). Piece count does not vary, so c cannot be isolated. Per-piece c = 16.76 us from benchmark only."
   }
 }
