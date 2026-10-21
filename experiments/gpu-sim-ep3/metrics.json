@@ -1,0 +1,31 @@
+{
+  "bead": "gpu-sim-ep3",
+  "executor": "PI (implementer session wedged twice; reviewer reviewed independently)",
+  "requirement_us": 36.2,
+  "requirement_source": "experiments/gpu-sim-m3d.10/verdict_out.json arithmetic.max_tolerable_spread_us",
+  "verdict": "NO-QUIET-CORE",
+  "windows_run": 0,
+  "why_no_windows": "selection rule (pre-registered 0.25 threshold) stopped the pass before any window: least-busy of 32 CPUs was above threshold",
+  "selection": {
+    "sample_s": 5.0,
+    "timestamp_utc": "2026-10-21T13:56:00Z",
+    "n_cpus": 32,
+    "target_cpu": 0,
+    "target_util": 0.3584,
+    "min_util": 0.3584,
+    "median_util": 0.5288,
+    "max_util": 0.8984,
+    "n_cpus_below_0_25": 0,
+    "loadavg": [
+      "19.68",
+      "25.55",
+      "29.34"
+    ],
+    "vector_file": "experiments/gpu-sim-ep3/selection.json"
+  },
+  "does_not_change": "gpu-sim-m3d.10 NO-CLOSE-ADMISSIBILITY stands; tightest spread observed in this direction remains vs2 S2_2 at 47.9us (1.32x over requirement)",
+  "changes": "attribution of the timing limit: not ambient, not our cgroup's parallelism, but that this shared 32-core box has no uncontended execution resource at core granularity",
+  "statistic_agreement": "check_statistic_agreement.py -> AGREEMENT OK (spread.py vs verdict.py on iters_2k.iters_4k raw logs)",
+  "pre_registration": "experiments/gpu-sim-ep3/pre_registration.md",
+  "clarification_flagged": "utilisation span 200ms (ep3 pre-reg \u00a75), because /proc/stat granularity is 10ms and a ~20ms window cannot support a finer estimate; threshold and decision rule unchanged"
+}
