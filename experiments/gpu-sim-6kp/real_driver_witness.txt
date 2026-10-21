@@ -27,12 +27,16 @@ LD_DEBUG=files output:
   routes to the real driver through libcudart's own dlopen/dlsym/dlvsym path)
 
 ## NCCL run exercised set
-LD_DEBUG=bindings on probe_nccl4: only 2 shim exports bound:
+Evidence: experiments/gpu-sim-6kp/nccl4_bindings.log (LD_DEBUG=bindings, interposer).
+Only 2 runtime shim exports bound:
   - cudaGetDeviceCount
   - cudaSetDevice
-Both are in the shim's covered 51. The NCCL run never calls a non-covered API, so the
-real driver is never reached internally. "not mapped in the NCCL run" is
-EXPLAINED, not merely observed: the exercised set stays inside the covered 51.
+(Plus __cudaRegisterFatBinary/Function/Var/FatBinaryEnd from libnccl via libcudart,
+which are registration stubs, not runtime entry points.)
+Both runtime exports are in the shim's covered 51. The NCCL run never calls a
+non-covered API, so the real driver is never reached internally. "not mapped in
+the NCCL run" is EXPLAINED, not merely observed: the exercised set stays inside
+the covered 51.
 
 ## Conclusion (verbatim from PI)
 The shim covers 51 of cudart's 442 runtime entry points (391 uncovered; 16 of

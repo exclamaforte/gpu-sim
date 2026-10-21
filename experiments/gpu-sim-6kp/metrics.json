@@ -1,45 +1,49 @@
 {
-  "bead": "gpu-sim-6kp",
-  "verdict": "PASS (probe, with documented partial seam)",
-  "probe_0a": "PASS: cudaGetDeviceCount/cudaSetDevice/cudaMalloc resolve to libfakegpu.so (interposer reaches runtime calls); compile requires _GNU_SOURCE before dlfcn.h",
-  "probe_0a_compile_fix": "experiments/gpu-sim-6kp/probe_0a.c: #define _GNU_SOURCE added before #include <dlfcn.h>",
-  "probe_0b": "PASS (1-rank + 4-rank init): 4-rank ncclCommInitRank succeeds with FAKEGPU_NUM_DEVICES=4 / GPUSIM_TOPOLOGY=topo_4dev.bin; no 'Duplicate GPU detected' in unversioned run. NCCL uses real device 0 internally (real cudart), but init succeeds.",
-  "probe_0c": "Real driver IS loaded and used for memory/topology (option (i)): maps_with_shim shows libfakegpu.so + libcudart.so.13; maps_without_shim shows libcuda.so.615.78.08 + libcudart.so.13. Runtime interposer supplies device COUNT/IDENTITY at the cuda* API boundary; allocation, memset, memcpy and NVML topology use the real driver. 'no real driver is used' is FALSE for this route.",
-  "nccl_build": "v2.32.3-1 dynamic cudart (libcudart.so.13, 72 undefined cuda* symbols), tag v2.32.3-1, /tmp/ncclsrc/nccl-2.32.3-1",
-  "device_count_source": "GPUSIM_TOPOLOGY spec (topo_4dev.bin -> 4 devices), not env const; spec-driven count verified by probe (4)",
-  "seam": "runtime interposer (libfakegpu.so) for device identity/count; real driver (libcuda.so.615.78.08) for memory + topology + NVML",
-  "driver_loaded": true,
-  "driver_used_for": "memory allocation, memset/memcpy, NVML device handles by PCI bus id, topology",
-  "4_rank_init": "PASS: all 4 ranks ncclCommInitRank succeeded (experiments/gpu-sim-6kp/probe_nccl4_output.txt)",
-  "negative_control_N1": {
-    "without_shim": {
-      "libcuda_loaded": true,
-      "libcuda_path": "/usr/lib/libcuda.so.615.78.08",
-      "device_count": 1,
-      "note": "Real driver loaded, real device count = 1"
+    "bead": "gpu-sim-6kp",
+    "verdict": "PASS (probe, with documented partial seam)",
+    "probe_0a": "PASS: cudaGetDeviceCount/cudaSetDevice/cudaMalloc resolve to libfakegpu.so (interposer reaches runtime calls); compile requires _GNU_SOURCE before dlfcn.h",
+    "probe_0a_compile_fix": "experiments/gpu-sim-6kp/probe_0a.c: #define _GNU_SOURCE added before #include <dlfcn.h>",
+    "probe_0b": "PASS (1-rank + 4-rank init): 4-rank ncclCommInitRank succeeds with FAKEGPU_NUM_DEVICES=4 / GPUSIM_TOPOLOGY=topo_4dev.bin; no 'Duplicate GPU detected' in unversioned run. NCCL uses real device 0 internally (real cudart), but init succeeds.",
+    "probe_0c": "Real driver IS loaded and used for memory/topology (option (i)): maps_with_shim shows libfakegpu.so + libcudart.so.13; maps_without_shim shows libcuda.so.615.78.08 + libcudart.so.13. Runtime interposer supplies device COUNT/IDENTITY at the cuda* API boundary; allocation, memset, memcpy and NVML topology use the real driver. 'no real driver is used' is FALSE for this route.",
+    "nccl_build": "v2.32.3-1 dynamic cudart (libcudart.so.13, 72 undefined cuda* symbols), tag v2.32.3-1, /tmp/ncclsrc/nccl-2.32.3-1",
+    "device_count_source": "GPUSIM_TOPOLOGY spec (topo_4dev.bin -> 4 devices), not env const; spec-driven count verified by probe (4)",
+    "seam": "runtime interposer (libfakegpu.so) for device identity/count; real driver (libcuda.so.615.78.08) for memory + topology + NVML",
+    "driver_loaded": true,
+    "driver_used_for": "memory allocation, memset/memcpy, NVML device handles by PCI bus id, topology",
+    "4_rank_init": "PASS: all 4 ranks ncclCommInitRank succeeded (experiments/gpu-sim-6kp/probe_nccl4_output.txt)",
+    "negative_control_N1": {
+        "without_shim": {
+            "libcuda_loaded": true,
+            "libcuda_path": "/usr/lib/libcuda.so.615.78.08",
+            "device_count": 1,
+            "note": "Real driver loaded, real device count = 1"
+        },
+        "with_shim": {
+            "libcuda_loaded": "not in maps_with_shim.txt (libfakegpu.so + libcudart.so.13 only)",
+            "device_count": "from spec (4 for topo_4dev.bin)",
+            "note": "probe_0a shows cuda* resolve to libfakegpu.so; device count from spec"
+        },
+        "verdict": "N1 PASS: shim present -> libcuda absent from this process's maps + spec device count; shim absent -> libcuda present + real device count (1)"
     },
-    "with_shim": {
-      "libcuda_loaded": "not in maps_with_shim.txt (libfakegpu.so + libcudart.so.13 only)",
-      "device_count": "from spec (4 for topo_4dev.bin)",
-      "note": "probe_0a shows cuda* resolve to libfakegpu.so; device count from spec"
+    "artifacts": {
+        "run_sh": "experiments/gpu-sim-6kp/run.sh",
+        "probe_0a": "experiments/gpu-sim-6kp/probe_0a.c",
+        "probe_0a_output": "experiments/gpu-sim-6kp/probe_0a_output.txt",
+        "probe_nccl4": "experiments/gpu-sim-6kp/probe_nccl4.c",
+        "probe_nccl4_output": "experiments/gpu-sim-6kp/probe_nccl4_output.txt",
+        "maps_with_shim": "experiments/gpu-sim-6kp/maps_with_shim.txt",
+        "maps_without_shim": "experiments/gpu-sim-6kp/maps_without_shim.txt",
+        "box_state": "experiments/gpu-sim-6kp/box_state.txt",
+        "nccl_debug_log": "not captured (NCCL_DEBUG output non-deterministic in this env; probe logs suffice)",
+        "nccl4_bindings": "experiments/gpu-sim-6kp/nccl4_bindings.log",
+        "net_plugin_over_interposed": "experiments/gpu-sim-6kp/net_plugin_over_interposed.log",
+        "real_driver_witness": "experiments/gpu-sim-6kp/real_driver_witness.txt"
     },
-    "verdict": "N1 PASS: shim present -> libcuda absent from this process's maps + spec device count; shim absent -> libcuda present + real device count (1)"
-  },
-  "artifacts": {
-    "run_sh": "experiments/gpu-sim-6kp/run.sh",
-    "probe_0a": "experiments/gpu-sim-6kp/probe_0a.c",
-    "probe_0a_output": "experiments/gpu-sim-6kp/probe_0a_output.txt",
-    "probe_nccl4": "experiments/gpu-sim-6kp/probe_nccl4.c",
-    "probe_nccl4_output": "experiments/gpu-sim-6kp/probe_nccl4_output.txt",
-    "maps_with_shim": "experiments/gpu-sim-6kp/maps_with_shim.txt",
-    "maps_without_shim": "experiments/gpu-sim-6kp/maps_without_shim.txt",
-    "box_state": "experiments/gpu-sim-6kp/box_state.txt",
-    "nccl_debug_log": "not captured (NCCL_DEBUG output non-deterministic in this env; probe logs suffice)"
-  },
-  "box_state": "nproc=2, loadavg ~20.7, 2-CPU cgroup quota; see box_state.txt",
-  "gpu_used": false,
-  "reap": "probes run via timeout (scripts/gpu_run.sh style bound); no orphan ranks left running",
-  "growth_list": "experiments/gpu-sim-6kp/growth_list.txt",
-  "net_plugin_over_interposed": "experiments/gpu-sim-6kp/net_plugin_over_interposed.txt",
-  "one_rank_cuda_visible_empty": "experiments/gpu-sim-6kp/one_rank_cuda_visible_empty.txt"
+    "box_state": "nproc=2, loadavg ~20.7, 2-CPU cgroup quota; see box_state.txt",
+    "gpu_used": false,
+    "reap": "probes run via timeout (scripts/gpu_run.sh style bound); no orphan ranks left running",
+    "growth_list": "experiments/gpu-sim-6kp/growth_list.txt",
+    "net_plugin_over_interposed": "experiments/gpu-sim-6kp/net_plugin_over_interposed.log",
+    "one_rank_cuda_visible_empty": "experiments/gpu-sim-6kp/one_rank_cuda_visible_empty.txt",
+    "probe_0b_waiver": "WAIVED (recorded as gap, not met): item 0b/1 asked for a committed NCCL_DEBUG=INFO transcript proving the shim's device count reaches NCCL's enumeration with 'Duplicate GPU detected' absent. Committed substitutes exist (without_shim_device_count.txt, spec_count_variation.txt 2->2/4->4, one_rank_cuda_visible_empty.txt, maps pair), but the NCCL_DEBUG transcript and bus-id distinctness in NCCL's own INFO are NOT verified. This is a waived requirement, not a met one."
 }
