@@ -1,0 +1,99 @@
+{
+  "bead": "gpu-sim-r27",
+  "executor": "PI",
+  "pre_registration": "experiments/gpu-sim-r27/pre_registration.md",
+  "target_cpu": 7,
+  "sibling_cpu": 23,
+  "n_windows": 12,
+  "n_valid": 12,
+  "n_runs_analysed": 36,
+  "spearman_rho_per_run": 0.5158,
+  "rho_threshold": 0.5,
+  "n_runs_sibling_util_below_0_25": 31,
+  "n_runs_sibling_util_above_0_45": 5,
+  "mean_duration_low_group_us": 3570.1,
+  "mean_duration_high_group_us": 5066.6,
+  "occupants": {
+    "n_snapshots": 36,
+    "n_our_lab": 0,
+    "n_external": 36,
+    "top": [
+      {
+        "pid": 3608236,
+        "pcpu": 99.2,
+        "comm": "ca",
+        "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p2129942-i165650687.scope",
+        "class": "EXTERNAL"
+      },
+      {
+        "pid": 4168698,
+        "pcpu": 97.6,
+        "comm": "python3",
+        "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p3208253-i112222996.scope",
+        "class": "EXTERNAL"
+      },
+      {
+        "pid": 1550018,
+        "pcpu": 71.8,
+        "comm": "yes",
+        "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p565760-i155714442.scope",
+        "class": "EXTERNAL"
+      },
+      {
+        "pid": 3608236,
+        "pcpu": 99.2,
+        "comm": "ca",
+        "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p2129942-i165650687.scope",
+        "class": "EXTERNAL"
+      },
+      {
+        "pid": 4168698,
+        "pcpu": 97.6,
+        "comm": "python3",
+        "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p3208253-i112222996.scope",
+        "class": "EXTERNAL"
+      },
+      {
+        "pid": 1550018,
+        "pcpu": 71.8,
+        "comm": "yes",
+        "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p565760-i155714442.scope",
+        "class": "EXTERNAL"
+      }
+    ]
+  },
+  "verdict": "ASSOCIATION-SUPPORTED",
+  "no_admission_claimed": true,
+  "prior_verdicts_unchanged": {
+    "y1h": "RANGE-INSUFFICIENT",
+    "52i": "NO-BOTH-QUIET-CORE-IN-20-SAMPLES",
+    "99g": "NO-ADMISSION-CORRECTED-INSTRUMENT",
+    "3ba": "NO-ADMISSION-QUIET-CORE"
+  },
+  "occupant_verification": {
+    "classifier_used": "cgroup path contains 'gpu-sim' -> OUR-LAB",
+    "classifier_weakness": "every session on this machine runs in run-p<pid>-i<id>.scope with no project marker, so the path-based classifier cannot separate our lab from other labs",
+    "independent_check_by_cmdline_and_cwd": {
+      "3608236": {
+        "cmd": "ca --simulate ...",
+        "cwd": "/home/gabe/Documents/codds-ca/.lab/wt/codds-ca-acx.1",
+        "project": "codds-ca",
+        "pcpu": 99.2
+      },
+      "4168698": {
+        "cmd": "python3 src/audit_farfield.py ...",
+        "cwd": "/home/gabe/Documents/constlaw/.lab/wt/constlaw-9re",
+        "project": "constlaw",
+        "pcpu": 97.6
+      },
+      "1550018": {
+        "cmd": "yes",
+        "cwd": "/home/gabe/Documents/cclm/.lab/wt/cclm-x02",
+        "project": "cclm",
+        "pcpu": 71.8
+      }
+    },
+    "conclusion": "all three top offenders are OTHER research labs on this box; 0 our-lab. The interpretation is ENVIRONMENTAL, not operational: nothing this lab can quiesce removes the interference."
+  },
+  "mechanistic_finding": "36.2us criterion requires an exclusively-owned physical core; with a sibling running another tenant's work a single run is inflated 42% (3570.1us -> 5066.6us), two orders of magnitude beyond the requirement. m3d.10 NO-CLOSE stands with a named mechanism: unobtainable here, not unachievable in principle."
+}
