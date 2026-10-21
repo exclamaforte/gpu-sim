@@ -43,12 +43,20 @@ The gate does NOT run. Criteria 2, 3, 9(a)-(c) are NOT APPLICABLE.
 ## 4. The Three Limits
 
 1. **Timing resolvability** (environmental): scheduler granularity 1-4 ms is 50-200x
-   larger than the 36.2 us requirement. The cause is not an unavailable quiet box: the
-   per-run scope carries a 2-CPU cgroup quota (cpu.max 200000/100000) and is throttled
-   (nr_throttled 64 of 2826 periods in one sampled scope; live scopes showed ~98% of
-   periods throttled). Whether a larger quota admits is UNTESTED here.
-   Artifact: experiments/gpu-sim-pkb/variance_measurement.md (45985 us spread);
-   experiments/gpu-sim-tfq/windows.jsonl + cgroup finding.
+   larger than the 36.2 us requirement. The attribution is layered, not single-cause:
+   (a) tfq: no admissible operating point across 16 windows at a 2-CPU quota (min spread
+   53.4 us vs the 36.2 us requirement; experiments/gpu-sim-tfq/windows.jsonl +
+   spread_vs_load.md).
+   (b) vs2: the quota IS a real determinant of the spread -- raising it from 2 to 8 CPUs
+   cut the median spread 7.7x (1072.2 -> 139.9 us) and the best window 16x (782.4 ->
+   47.9 us) with zero throttle deltas throughout, so the mechanism is the cgroup's own
+   parallelism, not throttling (experiments/gpu-sim-vs2/metrics.json + session_*.json).
+   (c) ep3: at core granularity there is no quiet core -- the least-busy of 32 cores was
+   0.3584 utilisation (0/32 below 0.25), and by pre-registration no window was run
+   (NO-QUIET-CORE; experiments/gpu-sim-ep3/selection.json + metrics.json).
+   The criterion is not disproved; it is unmeasurable on this box. What would answer it is
+   an exclusive core, an isolated cpuset, or a dedicated machine.
+   Artifact: experiments/gpu-sim-pkb/variance_measurement.md (45985 us spread).
 2. **n>=3 pieces-per-phase**: the interposer gives device IDENTITY, not per-rank
    COMPUTATION (nvidia-smi shows 1 device). 8ii closed as REFUSED.
    Artifact: experiments/gpu-sim-6kp/real_driver_witness.txt.
@@ -63,6 +71,9 @@ The gate does NOT run. Criteria 2, 3, 9(a)-(c) are NOT APPLICABLE.
 - **Environmental findings**: timing variance, gate verdict. Not fixable by code.
 - **The model refuses n>=3 rather than estimating it.** No cap-derived fallback exists.
 - **Categorical results are insensitive to scheduler noise** (m3d.9 scope note).
+- **Pre-registration discipline** produced three corrections in this direction: the
+  98%-throttle misattribution to the wrong lab's scope, the vs2 mechanism refutation,
+  and the ep3 n=1 limitation. That discipline is why the numbers above can be trusted.
 
 ## 6. Reproduction (verified from clean checkout)
 
