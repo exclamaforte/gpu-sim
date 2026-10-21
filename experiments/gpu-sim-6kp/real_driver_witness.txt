@@ -1,0 +1,21 @@
+# gpu-sim-6kp item 0c: real-driver-mapped witness
+#
+# SCOPED CLAIM: "the real driver was not MAPPED in the NCCL probe run"
+#   - NOT "cannot be reached" (the driver IS available and loads for driver-needing probes)
+#   - NOT "no real driver used" (the bead forbids this partial claim)
+#
+# Evidence (LD_DEBUG=files):
+#   1. probe_nccl4 WITH interposer (LD_PRELOAD=libfakegpu.so):
+#      libcuda.so NOT in file list (only libfakegpu.so + libcudart.so.13)
+#      => real driver NOT mapped in NCCL run
+#   2. probe_nccl4 WITHOUT interposer:
+#      libcuda.so.1 IS loaded (maps_without_shim.txt shows /usr/lib/libcuda.so.615.78.08)
+#      => real driver IS available, just not consulted for identity
+#   3. cumemalloc_probe WITH interposer (binary linked -lcuda):
+#      libcuda.so.1 IS loaded (because binary directly links -lcuda)
+#      => real driver loads for driver-needing probes
+#      => cuMemAlloc returns CUDA_ERROR_INVALID_CONTEXT (no context, but driver IS there)
+#
+# Conclusion: device count/identity come from the shim; memory/topology/NVML
+# come from the real driver (loaded when a driver-needing probe runs).
+# The real driver was not mapped in the NCCL probe run, but it IS reachable.
