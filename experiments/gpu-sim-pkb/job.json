@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-eut",
+  "gpu_jobs": [],
+  "cpu_runs": [
+    {
+      "description": "re-measured byte table (6 sizes, 2 ranks)",
+      "command": "bash run_measure.sh <S> <run_id> <trace_out>",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-pkb/traces/"
+    },
+    {
+      "description": "reduce_trace + build_table",
+      "command": "python3 build_table.py",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-pkb/table_results.json"
+    }
+  ]
+}

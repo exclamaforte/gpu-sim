@@ -1,71 +1,19 @@
 {
-  "bead": "gpu-sim-pkb",
-  "verdict": "PASS at n=2 (fabric work + model correction); NO-CLOSE on resolvability of gate timing comparison (environmental)",
-  "payload": "2 MiB (524288 floats), largest size with measured phase-payload table; piece count measured not extrapolated",
-  "phase_payload_table": {
-    "n2": {
-      "S<=4096": "P=1",
-      "65536<=S<=262144": "P=4",
-      "524288<=S<=2097152": "P=8"
-    },
-    "n3_plus": "REFUSED (not measured; gpu-sim-8ii filed, blocked by 6kp)"
-  },
-  "chunk_rule": "measured table, not fabric cap; no cap-based fallback outside measured range",
-  "canonical_byte_table": "experiments/gpu-sim-pkb/canonical_byte_table.md",
-  "items_hold": [
-    "fabric spends modelled wire time (bandwidth + latency)",
-    "futex wakeup (bounded 100 us, peer_alive re-check)",
-    "phase-payload table (1/4/4/8 at n=2)",
-    "canonical byte table (piece count/size per phase per direction, total per direction, total per rank)",
-    "killpeer asserts EPEERDEAD specifically",
-    "reg_pool leak fixed (rollback on overflow, atomic alignment)",
-    "model P from measured table (C + Python agree)",
-    "harness cleanup trap (TERM 0.2s KILL)",
-    "variance measurement committed (46 ms spread, negative result)",
-    "item 7b measured: FAIL with numbers (payload-invariant, 16-160x miss)",
-    "item 7c: canonical byte table == trace byte counts (exact, document comparison)"
+  "bead": "gpu-sim-eut",
+  "verdict": "NO-STEP",
+  "pre_registration": "experiments/gpu-sim-pkb/pre_registration.md",
+  "reduction_script": "experiments/gpu-sim-pkb/reduce_trace.py",
+  "table_script": "experiments/gpu-sim-pkb/build_table.py",
+  "table_results": "experiments/gpu-sim-pkb/table_results.json",
+  "sizes": [
+    {"S_bytes": 4096, "rank0_factor": 2.0, "rank1_factor": 1.0, "valid": false, "reason": "rank1 distinct_digests=1 (not 2)"},
+    {"S_bytes": 65536, "rank0_factor": 1.25, "rank1_factor": 1.0, "valid": true},
+    {"S_bytes": 262144, "rank0_factor": 1.25, "rank1_factor": 1.0, "valid": true},
+    {"S_bytes": 524288, "rank0_factor": 1.0, "rank1_factor": 1.0, "valid": true},
+    {"S_bytes": 1048576, "rank0_factor": 1.0, "rank1_factor": 1.0, "valid": true},
+    {"S_bytes": 2097152, "rank0_factor": 1.0, "rank1_factor": 1.0, "valid": true}
   ],
-  "items_refused": [
-    "n>=3 pieces-per-phase (gpu-sim-8ii, blocked by 6kp; model raises ValueError)",
-    "c_fixed measured (recorded as bound 1-2 us, not measurement)"
-  ],
-  "c_fixed_bound_us": "1-2 (bound from arithmetic, not measurement)",
-  "per_piece_term_us_at_P8": "16-32",
-  "fraction_of_4a_floor_pct": "16",
-  "edge_of_10pct_target": true,
-  "binding_constraint": "noise floor (1-4 ms scheduler granularity), not c_fixed",
-  "variance_spread_us": 45985,
-  "tolerance_us": 36.2,
-  "spread_exceeds_tolerance_by": "1270x",
-  "noise_floor_us": "1000-4000",
-  "noise_floor_vs_allowance": "50-200x",
-  "gate_outcome": "NO-CLOSE ON RESOLVABILITY (environmental; two independent grounds)",
-  "gate_pointer": "gpu-sim-m3d.10",
-  "ptr_to_8ii": "gpu-sim-8ii (n=4 pieces-per-phase measurement, blocked by 6kp)",
-  "final_commit": "dd56fc9",
-  "needs_review": true,
-  "M1M2_delta_cancellation": "c_fixed CANCELS EXACTLY in M1->M2: both configs are n=2 with 16 pieces/rank (8 per phase x 2 phases), chunk count is speed-independent, so the per-piece term is identical on both sides and contributes 0 us / 0% to the admitted delta. The 20% artifact cap applies only to cross-class deltas, none of which are admitted, so inside_artifact_cap and artifact_cap_pct are dropped for M1->M2.",
-  "absolute_10pct_band": "16-32 us per-piece term is 30-60% of M1 own modelled 53.3 us (absolute per-config 10% band), and 3.9-7.7% of M2 own 415.5 us. So an absolute 10% band at the fast config is unreachable with this c_fixed even on a quiet box.",
-  "item_7b": "item 7b = FAIL WITH NUMBERS: measured per-iteration at 2 MiB = 6717/6729/10319/52702 us (median 8524, n=5, after 164257 us init) vs model 415.5 us (M2) and 53.3 us (M1) -- 16-160x miss. Measured time is unresolvable-through-6.7ms-term (4 KiB min 6677 us, median 6830 us; 2 MiB min 6717 us) while 18.6 us of pure wire time separates the predictions. Item 7 did NOT validate the model on this box.",
-  "item_7c": "item 7c = canonical byte table vs trace byte counts (exact equality). This is a DOCUMENT COMPARISON, not an executable assertion in test_pkb: the byte counts are compared by hand against the committed canonical_byte_table.md and phase_payload_table.md, not asserted in code.",
-  "timer_artifact_note": "raw/iters_4k.log contains 4641746337 us entry: TIMER ARTIFACT, not a measurement (implies 4641 s iteration). Kept in raw log, excluded from spread. Doc \"spread ~4.6e9 us\" is not a statistic.",
-  "plugin_bytes_per_rank": {
-    "0": 8192,
-    "1": 8192
-  },
-  "model_total_bytes": 16384,
-  "accounting_unit": "per_isend",
-  "trace_bytes_provenance": {
-    "source_file": "experiments/gpu-sim-pkb/trace_single.log",
-    "field": "bytes=N in each 'v12.isend' line",
-    "summed_by": "rank (rank=0 / rank=1), summing bytes per rank",
-    "result": "8192 per rank, 16384 total"
-  },
-  "model_bytes_provenance": {
-    "source": "epic_cluster/link_model.py predict() public API",
-    "call": "predict(spec, 'ring_allreduce', 1024, 'float32', n_ranks=2)",
-    "field": "per_link_bytes (sum of values)",
-    "formula": "2*(n-1)/n * S per link = S per link at n=2; 2 links = 2S total",
-    "result": "16384 total"
-  }
+  "regenerability": "2 MiB re-run reproduces 32 isends/rank (factor 1.0); digest grouping varies by rank across runs",
+  "digest_stability": "non-deterministic across runs (which rank gets the extra digest swaps); distinct_digests is not a stable completeness criterion",
+  "implication": "gpu-sim-ggh closes as NOT-A-DEFECT; 4yw verdict needs re-evaluation against this table"
 }

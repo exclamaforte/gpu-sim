@@ -1,0 +1,157 @@
+{
+  "bead": "gpu-sim-eut",
+  "canonical_traces": {
+    "4096": "traces/trace_S4096_n2_eut4-4096-1792598352.log",
+    "65536": "traces/trace_S65536_n2_CLEAN.log",
+    "262144": "traces/trace_S262144_n2_CLEAN.log",
+    "524288": "traces/trace_S524288_n2_CLEAN.log",
+    "1048576": "traces/trace_S1048576_n2_CLEAN.log",
+    "2097152": "traces/trace_S2097152_n2_CLEAN.log"
+  },
+  "rows": [
+    {
+      "S_bytes": 4096,
+      "trace": "traces/trace_S4096_n2_eut4-4096-1792598352.log",
+      "valid": false,
+      "validity_note": "rank 1: distinct digests 1 != 2 (INVALID)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 2,
+          "total_bytes": 8192,
+          "byte_factor": 2.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 1,
+          "total_bytes": 4096,
+          "byte_factor": 1.0,
+          "distinct_digests": 1,
+          "valid": false
+        }
+      ]
+    },
+    {
+      "S_bytes": 65536,
+      "trace": "traces/trace_S65536_n2_CLEAN.log",
+      "valid": true,
+      "validity_note": "valid (both ranks dd==2)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 5,
+          "total_bytes": 81920,
+          "byte_factor": 1.25,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 4,
+          "total_bytes": 65536,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 262144,
+      "trace": "traces/trace_S262144_n2_CLEAN.log",
+      "valid": true,
+      "validity_note": "valid (both ranks dd==2)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 5,
+          "total_bytes": 327680,
+          "byte_factor": 1.25,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 4,
+          "total_bytes": 262144,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 524288,
+      "trace": "traces/trace_S524288_n2_CLEAN.log",
+      "valid": true,
+      "validity_note": "valid (both ranks dd==2)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 16,
+          "total_bytes": 524288,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 16,
+          "total_bytes": 524288,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 1048576,
+      "trace": "traces/trace_S1048576_n2_CLEAN.log",
+      "valid": true,
+      "validity_note": "valid (both ranks dd==2)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 16,
+          "total_bytes": 1048576,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 16,
+          "total_bytes": 1048576,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 2097152,
+      "trace": "traces/trace_S2097152_n2_CLEAN.log",
+      "valid": true,
+      "validity_note": "valid (both ranks dd==2)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 16,
+          "total_bytes": 2097152,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 16,
+          "total_bytes": 2097152,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    }
+  ]
+}
