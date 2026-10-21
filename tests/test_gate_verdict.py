@@ -232,3 +232,46 @@ def test_a_kill_test_outside_the_bound_is_refused():
 def test_a_kill_test_log_that_does_not_exist_is_refused():
     # the log must be COMMITTED, not merely named.
     assert run_verdict(make_metrics(kill_log_missing=True)).returncode == 2
+
+
+def test_a_sign_crossing_is_a_fail_not_a_tolerance_case():
+    # criterion 2: a sign crossing between the measured and the predicted
+    # difference is a FAIL. This case exists because an earlier version of the
+    # arbiter compared two ABSOLUTE differences, whose product is always
+    # positive, so a crossing could never be caught -- the reviewer's audit
+    # found it.
+    d = make_metrics()
+    # make M1's measured median LOWER than M2's, while the model says the
+    # other way round: the pair's sign crosses.
+    for run in d["configs"]["M1"]["runs"]:
+        run["iteration_durations_us"] = [100.0, 100.0, 100.0]
+    for run in d["configs"]["M2"]["runs"]:
+        run["iteration_durations_us"] = [9000.0, 9000.0, 9000.0]
+    r = run_verdict(d)
+    assert r.returncode == 1
+    assert "sign not preserved" in r.stdout
+
+
+def test_a_noisy_pair_elsewhere_cannot_inflate_the_artifact_allowance():
+    # The allowance's noise term is the TIGHTEST pair's spread sum. An earlier
+    # version used the max spread across all pairs, so a noisy pair elsewhere
+    # in the set would license an artifact on the tight pair. This case is
+    # built to DISCRIMINATE the two behaviours: the artifact's share (15% of
+    # the tightest delta) sits ABOVE the allowance computed from the tight
+    # pair's spread (10%) and BELOW the one computed from the noisiest pair's
+    # spread (3 x 56 us = 168 us), so the tight-pair reading FAILS and the
+    # max-spread reading PASSES. The noisiest pair stays resolvable (its
+    # |d_pred| = 563 us exceeds 10 x its 56 us spread) so the verdict turns on
+    # the allowance and not on the resolvability clause.
+    d = make_metrics(per_piece=3.9)
+    # The noise must be in a config OUTSIDE the tight pair (M2->M3), or it
+    # would inflate the tight pair's own spread and the two readings would
+    # coincide. M1 is in the M1->M2 pair only, and that pair stays resolvable
+    # (|d_pred| 314 us >= 10 x its 28 us spread_sum), so the verdict turns on
+    # the allowance and not on the resolvability clause.
+    for i, run in enumerate(d["configs"]["M1"]["runs"]):
+        med = 5041.3 - 14.0 + i * 14.0
+        run["iteration_durations_us"] = [med - 0.4, med, med + 0.5, med + 0.1, med - 0.2]
+    r = run_verdict(d)
+    assert r.returncode == 1
+    assert "SIMULATOR defect" in r.stdout

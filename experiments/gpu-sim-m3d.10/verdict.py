@@ -331,19 +331,29 @@ def main(argv):
         pairs = []
         for a, b in zip(order, order[1:]):
             ra, rb = rows[a], rows[b]
+            # SIGNED differences: the sign check compares the SIGNED measured and
+            # predicted differences. An earlier version compared two absolute
+            # values, whose product is always positive, so a sign crossing --
+            # which criterion 2 calls a FAIL and not a tolerance case -- could
+            # never be caught. The signed values are kept in the report so a
+            # reader can see the crossing rather than take the flag's word.
+            d_pred_signed_us = (ra["model_duration_s"] - rb["model_duration_s"]) * 1e6
+            d_meas_signed = ra["median_us"] - rb["median_us"]
             d_pred_s = abs(ra["model_duration_s"] - rb["model_duration_s"])
             d_pred_us = d_pred_s * 1e6
             d_bw_us = abs(ra["model_bw_term_s"] - rb["model_bw_term_s"]) * 1e6
-            d_meas = abs(ra["median_us"] - rb["median_us"])
+            d_meas = abs(d_meas_signed)
             spread_sum = ra["spread_us"] + rb["spread_us"]
             rel = d_pred_s / max(ra["model_duration_s"], rb["model_duration_s"])
             err = (d_meas - d_pred_us) / d_pred_us if d_pred_us else None
             unresolved = d_meas <= spread_sum
             within_tol = err is not None and abs(err) <= TOLERANCE_PCT / 100.0
-            sign_ok = (d_meas * d_pred_us) >= 0 if d_meas and d_pred_us else True
+            sign_ok = (d_meas_signed * d_pred_signed_us) >= 0
             pairs.append({
                 "pair": f"{a}->{b}", "a": a, "b": b,
                 "d_pred_us": d_pred_us, "d_measured_us": d_meas,
+                "d_pred_signed_us": d_pred_signed_us,
+                "d_measured_signed_us": d_meas_signed,
                 "d_bw_us": d_bw_us,
                 "bw_share_4a": (d_bw_us / d_pred_us) if d_pred_us else None,
                 "relative_margin_4b": rel,
@@ -358,17 +368,23 @@ def main(argv):
                 "sign_preserved": sign_ok,
             })
 
-        # The artifact's share of the tightest adjacent delta.
-        tightest = min((p["d_pred_us"] for p in pairs), default=0.0)
-        measured_spread = max((p["spread_sum_us"] for p in pairs), default=0.0)
+        # The artifact's share of the TIGHTEST adjacent delta. The allowance's
+        # noise term is the TIGHTEST PAIR's spread sum, NOT the noisiest pair's:
+        # the allowance bounds what the artifact may consume of the delta being
+        # checked, so borrowing a different pair's spread would inflate it --
+        # a noisy pair elsewhere in the set would license an artifact on the
+        # tight pair. (An earlier version used the max across pairs, which is
+        # exactly the leniency this arbiter exists to avoid.)
+        tight_pair = min(pairs, key=lambda p: p["d_pred_us"]) if pairs else None
+        tightest = tight_pair["d_pred_us"] if tight_pair else 0.0
+        tight_spread = tight_pair["spread_sum_us"] if tight_pair else 0.0
         allowance = min(max(ARTIFACT_ALLOWANCE_FLOOR * tightest,
-                            ARTIFACT_ALLOWANCE_SPREAD_MULTIPLE * measured_spread),
+                            ARTIFACT_ALLOWANCE_SPREAD_MULTIPLE * tight_spread),
                         ARTIFACT_ALLOWANCE_CAP * tightest)
         # The artifact itself: the per-piece fixed cost times the piece-count
         # differential across the tightest pair, plus the per-byte copy
         # differential (which is NEGATIVE for a pair where the slower config
         # moves fewer bytes). The per-piece count comes from the measured P.
-        tight_pair = min(pairs, key=lambda p: p["d_pred_us"]) if pairs else None
         artifact_share = None
         artifact_detail = {}
         if tight_pair:
@@ -391,6 +407,13 @@ def main(argv):
                 "allowance_us": allowance,
                 "allowance_pct_of_delta": (allowance / tight_pair["d_pred_us"] * 100.0)
                     if tight_pair["d_pred_us"] else None,
+                "allowance_spread_basis_us": tight_spread,
+                "note": ("the allowance's noise term is the TIGHTEST PAIR's spread "
+                         "sum, not the noisiest pair's; the artifact share counts the "
+                         "per-piece fixed cost only, which OVERSTATES the true effect "
+                         "because the copy's per-byte differential is negative for a "
+                         "pair whose slower config moves fewer bytes -- a deliberate "
+                         "conservatism"),
             }
             artifact_share = artifact_detail["per_piece_bias_pct_of_delta"]
 
