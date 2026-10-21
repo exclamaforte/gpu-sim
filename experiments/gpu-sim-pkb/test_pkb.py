@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """CPU-only tests for gpu-sim-pkb."""
-import os, sys, json
+import os, sys, json, re
 
 EXP = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(EXP, "..", ".."))
@@ -94,6 +94,111 @@ def test_build_no_undef():
     assert not undef, undef
     print("PASS build_no_undef")
 
+def _parse_phase_table_p():
+    """Parse canonical_byte_table.md to get {S: pieces_per_phase}."""
+    path = os.path.join(EXP, "canonical_byte_table.md")
+    result = {}
+    for line in open(path):
+        line = line.strip()
+        if not line.startswith("|") or "---" in line or "S (bytes)" in line:
+            continue
+        cols = [c.strip() for c in line.strip("|").split("|")]
+        if len(cols) < 6:
+            continue
+        try:
+            S = int(cols[0])
+            P = int(cols[5])
+            result[S] = P
+        except ValueError:
+            continue
+    return result
+
+def test_chunk_rule_from_phase_table():
+    table = _parse_phase_table_p()
+    assert 2097152 in table, "2 MiB not in phase table"
+    expected_p = table[2097152]
+    assert expected_p == 8, "expected P=8 at 2 MiB, got %d" % expected_p
+    # model must agree with table
+    sys.path.insert(0, os.path.join(REPO, "epic_cluster"))
+    from link_model import _derived_pieces_per_phase
+    model_p = _derived_pieces_per_phase(2, 2097152)
+    assert model_p == expected_p, (
+        "model P=%d != table P=%d at 2 MiB" % (model_p, expected_p))
+    print("PASS chunk_rule_from_phase_table (table P=%d == model P=%d)" % (expected_p, model_p))
+
+def test_chunk_rule_refusal():
+    sys.path.insert(0, os.path.join(REPO, "epic_cluster"))
+    from link_model import _derived_pieces_per_phase
+    # n>=3 must raise (not measured)
+    try:
+        _derived_pieces_per_phase(3, 2097152)
+        assert False, "n=3 should raise"
+    except ValueError:
+        pass
+    try:
+        _derived_pieces_per_phase(4, 2097152)
+        assert False, "n=4 should raise"
+    except ValueError:
+        pass
+    # uncovered (n=2, S) must raise
+    try:
+        _derived_pieces_per_phase(2, 4194304)
+        assert False, "uncovered S should raise"
+    except ValueError:
+        pass
+    print("PASS chunk_rule_refusal (n>=3 and uncovered S raise)")
+
+def test_c_python_p_agreement_2mib():
+    import subprocess
+    NCCL_LIB = "/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib"
+    CUDALIB = "/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
+    env = {
+        "LD_LIBRARY_PATH": NCCL_LIB + ":" + CUDALIB,
+        "LD_PRELOAD": os.path.join(REPO, "libfakegpu.so"),
+        "GPUSIM_TOPOLOGY": "/tmp/topo_2.bin",
+        "GPUSIM_TRACE": "/tmp/trace_2m_c_test.jsonl",
+        "FAKEGPU_NUM_DEVICES": "2",
+    }
+    # ensure topo exists
+    if not os.path.exists("/tmp/topo_2.bin"):
+        import subprocess as sp
+        sp.run([sys.executable, "-c",
+            "import sys; sys.path.insert(0,'%s/epic_cluster'); "
+            "from topology import emit; "
+            "spec={'version':1,'models':{'m':{'sm_count':80,'clock_mhz':1000,'mem_bytes':1073741824,'mem_bw_gbs':1000.0,'arch':'x','source':'t'}},"
+            "'nodes':[{'name':'n0','devices':[{'id':0,'model':'m'}]},{'name':'n1','devices':[{'id':0,'model':'m'}]}],"
+            "'links':[{'a':{'node':'n0','device':0},'b':{'node':'n1','device':0},'bw_gbps':10.0,'latency_us':5.0,'mtu':4096,'loss_ppm':0,'jitter_us':0.0,'shared_group':None,'kind':'ethernet'}],"
+            "'ranks':[{'rank':0,'node':'n0','device':0},{'rank':1,'node':'n1','device':0}]}; "
+            "open('/tmp/topo_2.bin','wb').write(emit(spec))" % REPO],
+            check=True)
+    tf = env["GPUSIM_TRACE"]
+    if os.path.exists(tf):
+        os.remove(tf)
+    r = subprocess.run([os.path.join(REPO, "build", "ring_allreduce"), "524288"],
+                       env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    # parse trace
+    import json as _j
+    recs = [_j.loads(l) for l in open(tf) if l.strip()]
+    assert recs, "no trace records"
+    c_pred = recs[0]["predicted_s"]
+    # Python model
+    sys.path.insert(0, os.path.join(REPO, "epic_cluster"))
+    from link_model import predict
+    spec = {
+      "version": 1,
+      "models": {"m": {"sm_count": 80, "clock_mhz": 1000, "mem_bytes": 1073741824, "mem_bw_gbs": 1000.0, "arch": "x", "source": "t"}},
+      "nodes": [{"name": "n0", "devices": [{"id": 0, "model": "m"}]}, {"name": "n1", "devices": [{"id": 0, "model": "m"}]}],
+      "links": [{"a": {"node": "n0", "device": 0}, "b": {"node": "n1", "device": 0}, "bw_gbps": 10.0, "latency_us": 5.0, "mtu": 4096, "loss_ppm": 0, "jitter_us": 0.0, "shared_group": None, "kind": "ethernet"}],
+      "ranks": [{"rank": 0, "node": "n0", "device": 0}, {"rank": 1, "node": "n1", "device": 0}],
+    }
+    py_pred = predict(spec, "ring_allreduce", 524288, "float32", n_ranks=2)
+    py_p = py_pred["pieces_per_phase"]
+    assert py_p == 8, "Python P=%d, expected 8" % py_p
+    assert abs(c_pred - py_pred["duration_s"]) < 1e-12, (
+        "C/Python mismatch: C=%s Python=%s" % (c_pred, py_pred["duration_s"]))
+    print("PASS c_python_p_agreement_2mib (C=%.10f == Python=%.10f, P=8)" % (c_pred, py_pred["duration_s"]))
+
 def test_negative_control_missing_link():
     import subprocess, os, time
     EXP = os.path.dirname(os.path.abspath(__file__))
@@ -159,6 +264,9 @@ if __name__ == "__main__":
     test_trace_has_acct_field()
     test_item10_plugin_loaded()
     test_bytes_present()
+    test_chunk_rule_from_phase_table()
+    test_chunk_rule_refusal()
+    test_c_python_p_agreement_2mib()
     test_header_guard()
     test_build_no_undef()
     test_negative_control_missing_link()
