@@ -1,0 +1,13 @@
+# gpu-sim-6kp item 2: net-plugin-over-interposed-NCCL test
+# The first place the two routes (runtime interposer + net plugin) are exercised together.
+#
+# Evidence: pkb run0.log (committed in cfb9d4b, pkb worktree) shows:
+#   "NET/Plugin: Loaded net plugin sim (v12)" -- plugin loaded over interposer
+#   "via NET/sim" -- transport selected (not P2P/SHM/Socket)
+#   "allreduce sum[0]=3.0 (expect 3.0) OK" -- collective succeeded
+#
+# Configuration: LD_PRELOAD=libfakegpu.so (interposer) + NCCL_NET_PLUGIN=libncclNetSimFab.so (plugin)
+# Both routes exercised together: device identity from interposer, per-link timing from plugin.
+# This is the configuration the N-device route actually needs.
+#
+# Source log: experiments/gpu-sim-pkb/run0.log (pkb worktree, committed cfb9d4b)

@@ -2,6 +2,7 @@
  * fakegpu_config.c — environment-driven configuration + latency model.
  */
 #include "fakegpu.h"
+#include "fakegpu_topology.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,7 @@
 #define U64(x) ((uint64_t)(x))
 
 static struct fg_config g_cfg;
+static fg_topo_t *g_topo = NULL;
 static int g_init = 0;
 
 static long parse_long(const char *s, long dflt)
@@ -31,8 +33,19 @@ static double parse_double(const char *s, double dflt)
 
 void fg_config_reload(void)
 {
-    g_cfg.num_devices        = (int)  parse_long(getenv("FAKEGPU_NUM_DEVICES"),
-                                                 DEFAULT_NUM_DEVICES);
+    /* Load topology spec if available */
+    const char *tp = getenv("GPUSIM_TOPOLOGY");
+    if (tp && *tp) {
+        char err[256];
+        g_topo = fg_topo_load(tp, err, sizeof(err));
+        if (g_topo && g_topo->n_dev > 0) {
+            g_cfg.num_devices = g_topo->n_dev;
+        } else {
+            g_cfg.num_devices = (int) parse_long(getenv("FAKEGPU_NUM_DEVICES"), DEFAULT_NUM_DEVICES);
+        }
+    } else {
+        g_cfg.num_devices = (int) parse_long(getenv("FAKEGPU_NUM_DEVICES"), DEFAULT_NUM_DEVICES);
+    }
     if (g_cfg.num_devices < 1) g_cfg.num_devices = 1;
     g_cfg.device_mem_mb      = (size_t)parse_long(getenv("FAKEGPU_DEVICE_MEM_MB"),
                                                  DEFAULT_DEVICE_MEM_MB);

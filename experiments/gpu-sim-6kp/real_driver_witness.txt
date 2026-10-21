@@ -1,0 +1,49 @@
+# gpu-sim-6kp item 0c: real-driver-mapped witness
+
+## Differential probe (specified by PI)
+Probe: cudaDeviceCanAccessPeer (single call, no allocation, driver topology query,
+       on the committed growth list as an unimplemented dependency) under
+       LD_PRELOAD=libfakegpu.so with LD_DEBUG=files, then /proc/self/maps dump.
+
+LD_DEBUG=files output:
+  file=libcuda.so.1 [0]; dynamically loaded by libcudart.so.13
+  file=libcuda.so.1 [0]; generating link map
+  calling init: /usr/lib/libcuda.so.1
+
+/proc/self/maps (post-call):
+  /usr/lib/libcuda.so.615.78.08 mapped (r--p, r-xp, r--p segments)
+
+=> OUTCOME (b): libcuda.so.1 APPEARS. The runtime DOES reach the real driver
+   internally when a non-covered API is called. 0c option (i) applies plainly:
+   real driver for memory/topology/NVML, identity from the shim.
+
+## Counts
+- cudart exports 442 cuda* runtime symbols
+- shim provides 67 (of which 51 overlap with cudart; 16 are shim-only names
+  that cudart does not export: cudaMemcpyDtoH/HtoD/DtoD, cudaModuleLoad*,
+  cudaThreadExit, cudaGetDeviceProperties_v2, cudaGetSymbolInfo,
+  cudaGraphicsMappingResource, cudaDeviceProp_)
+- 51 of 442 covered; 391 uncovered (any call to an uncovered entry point
+  routes to the real driver through libcudart's own dlopen/dlsym/dlvsym path)
+
+## NCCL run exercised set
+Evidence: experiments/gpu-sim-6kp/nccl4_bindings.log (LD_DEBUG=bindings, interposer).
+Only 2 runtime shim exports bound:
+  - cudaGetDeviceCount
+  - cudaSetDevice
+(Plus __cudaRegisterFatBinary/Function/Var/FatBinaryEnd from libnccl via libcudart,
+which are registration stubs, not runtime entry points.)
+Both runtime exports are in the shim's covered 51. The NCCL run never calls a
+non-covered API, so the real driver is never reached internally. "not mapped in
+the NCCL run" is EXPLAINED, not merely observed: the exercised set stays inside
+the covered 51.
+
+## Conclusion (verbatim from PI)
+The shim covers 51 of cudart's 442 runtime entry points (391 uncovered; 16 of
+the shim's 67 exports are legacy names cudart does not export). Identity is
+served by the shim; any entry point outside the covered 51 routes to the real
+driver through libcudart's own dlopen path -- demonstrated by
+cudaDeviceCanAccessPeer, whose call maps libcuda.so.615.78.08. The 2-rank NCCL
+probe binds only cudaGetDeviceCount and cudaSetDevice, both covered, which is
+why the real driver is NOT mapped in that run.
+
