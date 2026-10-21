@@ -79,7 +79,7 @@ def classify_shape(phases, digests, payload_bytes):
     #    'full-payload' predicate actually compares each size to the payload.
     for ck, sizes in phases.items():
         if len(sizes) >= 2 and all(b == payload_bytes for b in sizes):
-            return "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+            return "2xS: two transfers of one payload unit per direction (2S per rank across two records)"
 
     # 3. single transfer of multiple payload units per direction (e.g. 1x2S):
     #    decided on PER-DIRECTION structure, not a global record count. Every
@@ -92,7 +92,7 @@ def classify_shape(phases, digests, payload_bytes):
             and all(s != payload_bytes and s % payload_bytes == 0 and s > payload_bytes
                     for s in multi_sizes)
             and len(set(multi_sizes)) == 1):
-        return "single transfer of multiple payload units per direction (not 2S)"
+        return "1x2S: one transfer of 2 payload units per direction (2S per rank in a single record, versus the 2xS shape's two records)"
 
     # 4. one phase SPLIT ACROSS channel ids: one transfer per channel, each
     #    carrying the full payload, on two or more distinct channels.

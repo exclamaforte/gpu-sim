@@ -56,13 +56,13 @@ def test_2xS_on_committed_production_trace():
     # The classifier must label the committed production trace as 2S.
     assert os.path.exists(TRACE_NORMAL), "trace_normal.log missing"
     shape = decider.classify_trace(TRACE_NORMAL, PAYLOAD)
-    assert shape.startswith("2S:"), shape
+    assert shape.startswith("2xS:"), shape
 
 
 def test_1x2S_derived_from_production_trace():
     path = _transform_to_1x2s(TRACE_NORMAL)
     shape = decider.classify_trace(path, PAYLOAD)
-    assert "single transfer of multiple payload units per direction" in shape, shape
+    assert "1x2S: one transfer of 2 payload units per direction" in shape, shape
     os.remove(path)
 
 
@@ -76,7 +76,7 @@ def test_2xS_one_channel_synthetic():
     fd, p = tempfile.mkstemp(suffix=".log")
     with os.fdopen(fd, "w") as f:
         f.write("\n".join(lines) + "\n")
-    assert decider.classify_trace(p, PAYLOAD).startswith("2S:"), decider.classify_trace(p, PAYLOAD)
+    assert decider.classify_trace(p, PAYLOAD).startswith("2xS:"), decider.classify_trace(p, PAYLOAD)
     os.remove(p)
 
 
@@ -133,7 +133,7 @@ def test_full_payload_predicate_rejects_fractional():
     phases = {(0, "0"): [PAYLOAD // 2, PAYLOAD // 2]}
     digests = {(0, "0"): ["x", "y"]}
     shape = decider.classify_shape(phases, digests, PAYLOAD)
-    assert shape != "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)", shape
+    assert shape != "2xS: two transfers of one payload unit per direction (2S per rank across two records)", shape
 
 
 if __name__ == "__main__":
