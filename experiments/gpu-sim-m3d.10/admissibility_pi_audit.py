@@ -81,8 +81,17 @@ def chunk_fraction(n):
 
 
 def derived_p(n, S):
-    """pieces per phase, derived exactly as the C model derives it."""
-    return max(1, int(math.ceil(chunk_fraction(n) * S / CAP - 1e-9)))
+    """pieces per phase, derived exactly as the C model derives it.
+
+    The arithmetic is deliberately IDENTICAL to src/fakegpu_nccl.c: the chunk
+    is multiplied by S first and divided by the cap second, and the ceil is
+    taken with NO epsilon. An earlier version subtracted 1e-9 before the ceil
+    to absorb floating-point noise, which the reviewer's audit rightly flagged
+    as a way for this script and the C model to disagree by one piece in an
+    edge case -- and the point of a cross-check is that it agrees exactly.
+    """
+    chunk_bytes = chunk_fraction(n) * float(S)
+    return max(1, int(math.ceil(chunk_bytes / float(CAP))))
 
 
 def row(n, bw, lat, S):
