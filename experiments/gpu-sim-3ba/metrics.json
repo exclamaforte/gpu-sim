@@ -1,0 +1,101 @@
+{
+  "bead": "gpu-sim-3ba",
+  "run": 2,
+  "executor": "PI (implementer wedged three times; its concurrent write to this worktree aborted run 1 -- see pre_registration.md \u00a70)",
+  "pre_registration": "experiments/gpu-sim-3ba/pre_registration.md",
+  "nsamples": 1,
+  "samples_planned": 20,
+  "spacing_s": 30.0,
+  "sample_s": 5.0,
+  "threshold": 0.25,
+  "requirement_us": 36.2,
+  "minima_of_per_sample_least_busy": [
+    0.2194
+  ],
+  "min_minimum": 0.2194,
+  "median_minimum": 0.2194,
+  "max_minimum": 0.2194,
+  "n_samples_below_threshold": 1,
+  "quiet_core_observed": true,
+  "excluded_run1_samples": "/home/gabe/aborted-3ba-run1/samples_run1.jsonl (3 samples, files replaced mid-run)",
+  "verdict": "QUIET-CORE-OBSERVED",
+  "hit": {
+    "sample": 1,
+    "timestamp_utc": "2026-10-21T14:21:13Z",
+    "least_busy_cpu": 8,
+    "least_busy_util": 0.2194
+  },
+  "ep3_windows": [
+    {
+      "window": 1,
+      "invalid": true,
+      "error": ""
+    },
+    {
+      "window": 2,
+      "invalid": true,
+      "error": ""
+    },
+    {
+      "window": 3,
+      "invalid": true,
+      "error": ""
+    }
+  ],
+  "ep3_windows_clean_count": 0,
+  "ep3_median_spread_us_of_clean": null,
+  "ep3_verdict": "NO-ADMISSION-QUIET-CORE",
+  "pi_analysis": {
+    "windows": [
+      {
+        "window": 1,
+        "target_cpu": 8,
+        "mask_valid_pinned": true,
+        "util_span_including_own_cpu": 0.35,
+        "below_25pct_as_specified": false,
+        "spread_us": 15.2,
+        "spread_within_requirement": true,
+        "run_durations_us": [
+          6204.9,
+          6207.8,
+          6218.9,
+          6223.1
+        ]
+      },
+      {
+        "window": 2,
+        "target_cpu": 8,
+        "mask_valid_pinned": true,
+        "util_span_including_own_cpu": 0.35,
+        "below_25pct_as_specified": false,
+        "spread_us": 915.4,
+        "spread_within_requirement": false,
+        "run_durations_us": [
+          7321.4,
+          6443.0,
+          6428.6,
+          7344.0
+        ]
+      },
+      {
+        "window": 3,
+        "target_cpu": 8,
+        "mask_valid_pinned": true,
+        "util_span_including_own_cpu": 0.2632,
+        "below_25pct_as_specified": false,
+        "spread_us": 25.3,
+        "spread_within_requirement": true,
+        "run_durations_us": [
+          6243.5,
+          6282.0,
+          6262.6,
+          6287.8
+        ]
+      }
+    ],
+    "windows_meeting_spread_requirement": 2,
+    "sub_finding": "2 of 3 windows met the 36.2us SPREAD requirement (15.2us and 25.3us) -- the first sub-requirement spreads recorded anywhere in this direction -- but both were excluded by the utilisation criterion, whose measured span CONTAINS the measurement's own CPU time.",
+    "instrument_flaw_is_pi_owned": "the util<0.25 window criterion was specified over a 200ms span containing the window (ep3 pre-reg \u00a75), so the measurement's own ~19ms of CPU (~10% of the span) counts against its own admission; a workload cannot pass a gate that charges it for its own execution.",
+    "verdict_note": "pre-registered verdict stands as NO-ADMISSION-QUIET-CORE; it may NOT be reinterpreted as ADMITTED after the fact. Resolving the tension requires a NEW pre-registration with a corrected instrument (utilisation excluding this cgroup's own CPU), stated in advance, and whose result cannot retroactively change this one."
+  }
+}
