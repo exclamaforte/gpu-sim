@@ -180,5 +180,13 @@
     "ratio": 0.96,
     "verdict": "PASS (within 10%): measured difference 804.4 us vs model 838.9 us. Wire delay IS spent and measured difference matches model prediction.",
     "note": "In-situ c computation not possible: P=1 for all sizes <=1MB (fabric cap). Piece count does not vary, so c cannot be isolated. Per-piece c = 16.76 us from benchmark only."
+  },
+  "two_mb_case_current_code": {
+    "status": "completed (R0=R1=0)",
+    "isends_per_rank": 4,
+    "bytes_per_rank": 2097152,
+    "distinct_digests_per_rank": 2,
+    "bytes_exact": true,
+    "note": "Re-run with current code (cap=1MB advertised). Confirms 2S per rank at 2 MiB."
   }
 }
