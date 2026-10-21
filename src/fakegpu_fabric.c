@@ -566,9 +566,13 @@ size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size) {
     size_t cur = atomic_load_explicit(&f->hdr->reg_pool_used, memory_order_relaxed);
     if (cur + size > FG_FAB_REG_POOL_SIZE) return 0; /* out of pool space */
     size_t off = atomic_fetch_add_explicit(&f->hdr->reg_pool_used, size, memory_order_relaxed);
-    if (off + size > FG_FAB_REG_POOL_SIZE) return 0;
+    if (off + size > FG_FAB_REG_POOL_SIZE) {
+        /* overflow: undo the reservation */
+        atomic_fetch_sub_explicit(&f->hdr->reg_pool_used, size, memory_order_relaxed);
+        return 0;
+    }
     memcpy((char *)f->reg_pool + off, buf, size);
-    /* align to 8 bytes */
+    /* align to 8 bytes (atomic) */
     size_t used = atomic_load_explicit(&f->hdr->reg_pool_used, memory_order_relaxed);
     if (used % 8) atomic_fetch_add_explicit(&f->hdr->reg_pool_used, 8 - (used % 8), memory_order_relaxed);
     return off + 1; /* +1 so 0 means "not registered" */

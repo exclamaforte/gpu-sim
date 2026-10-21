@@ -201,22 +201,19 @@ def _chunk_factor(n: int) -> float:
 
 
 # Measured phase-payload table for n=2 (experiments/gpu-sim-pkb/phase_payload_table.md).
-# S (bytes) -> pieces per phase per direction. S <= 256 KiB: P=1; S >= 512 KiB: P=8.
-_N2_P_TABLE = [(262144, 1), (2097152, 8)]
+# S (bytes) -> pieces per phase per direction.
+# Measured: S=4096 -> P=1; S=65536 -> P=4; S=262144 -> P=4; S>=524288 -> P=8.
+_N2_P_TABLE = [(4096, 1), (262144, 4), (2097152, 8)]
 
 
 def _derived_pieces_per_phase(n: int, S: int) -> int:
-    import math
     if n == 2:
         for threshold, P in _N2_P_TABLE:
             if S <= threshold:
                 return P
-        # beyond measured range: fall back to cap-based
-    chunk_bytes = _chunk_factor(n) * S
-    P = int(math.ceil(chunk_bytes / FG_FAB_MAX_PAYLOAD))
-    if P < 1:
-        P = 1
-    return P
+        raise ValueError(f"n=2, S={S} outside measured range; no cap-based fallback")
+    # n>=3: not yet measured; refuse rather than derive from cap
+    raise ValueError(f"n={n} pieces_per_phase not measured; provide explicitly")
 
 
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
