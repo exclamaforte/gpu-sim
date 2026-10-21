@@ -51,7 +51,8 @@ def main():
             f.write("# Source A: nm -D --undefined-only libnccl.so (cuda*/cu* symbols NCCL needs)\n")
             f.write("# Source B: nm -D --defined-only libfakegpu.so (cuda*/cu* symbols shim provides)\n")
             f.write("# Growth list = A - B (symbols NCCL needs but shim does not provide)\n")
-            f.write("# All entries are link-time undefined (nm-visible); no dlsym-only entries.\n")
+            f.write("# All entries are link-time undefined (nm-visible). dlsym/versioned-boundary\n")
+            f.write("# paths would not appear here; no runtime witness this increment (recorded gap).\n")
             f.write("#\n")
             for sym in growth:
                 f.write(sym + "\n")

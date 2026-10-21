@@ -2,7 +2,8 @@
 # Source A: nm -D --undefined-only libnccl.so (cuda*/cu* symbols NCCL needs)
 # Source B: nm -D --defined-only libfakegpu.so (cuda*/cu* symbols shim provides)
 # Growth list = A - B (symbols NCCL needs but shim does not provide)
-# All entries are link-time undefined (nm-visible); no dlsym-only entries.
+# All entries are link-time undefined (nm-visible). dlsym/versioned-boundary
+# paths would not appear here; no runtime witness this increment (recorded gap).
 #
 cudaDeviceCanAccessPeer
 cudaDeviceDisablePeerAccess
