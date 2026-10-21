@@ -4,6 +4,12 @@
 
 **NO-CLOSE ON RESOLVABILITY.**
 
+This is an ADMISSIBILITY REJECTION, not a measured outcome. 4b is a pre-run
+constraint ("or the config set is REJECTED before the run"). Its 10x-spread
+clause cannot hold here (36.2 us needed, tens of ms available), so NO CONFIG
+SET IS ADMISSIBLE HERE. The gate does NOT RUN. Criteria 2, 3, and 9(a)-(c)
+are NOT APPLICABLE (not UNMET).
+
 Two independent grounds, either sufficient:
 
 ### G1 — Resolvability (environmental: present but not resolvable)
@@ -17,14 +23,8 @@ within the ~6.6 ms per-iteration term (environment/harness, not model). The time
 window is the collective window, not process wall-clock (init iteration 164257 us
 excluded).
 
-4b requires the across-run spread of the two configs' medians, summed, to be at
-most 1/10 of the delta being checked. For M1->M2 at 2 MiB that is 36.2 us
-(d_pred 362.3 us). This box delivers tens of ms of across-run spread (45985 us
-measured). The requirement misses by ~3 orders of magnitude.
-
-This is a finding about the MEASUREMENT ENVIRONMENT on a 2-CPU box at load
-~20-40, NOT about the model and NOT about the fabric. The scheduler granularity
-(1-4 ms) is 50-200x larger than the tightest pair's 4b allowance.
+This ~6.6 ms payload-independent term is the EVIDENCE FOR THE REJECTION, not a
+failed gate measurement.
 
 ### G2 — Admissibility (unmeasured input)
 
@@ -32,11 +32,10 @@ The 4-device configs M3 and M4 are REFUSED for want of a MEASURED
 pieces-per-phase at n=4. The model refuses rather than deriving P from the
 fabric's cap, because the cap-based derivation undercounts the piece count by
 four at 2 MiB. That measurement is gpu-sim-8ii, blocked by the 6kp interposer
-increment (4 ranks on one GPU dies in ncclLaunchKernel; the interposer gives
-device identity but not computation). The config set is NOT YET ADMITTED, and
-the refusal appears here as a refusal with its reason, never as an estimate.
+increment. The config set is NOT YET ADMITTED, and the refusal appears here as
+a refusal with its reason, never as an estimate.
 
-## Corrected per-pair predictions (P_actual chunk rule, master 273086b state)
+## Corrected per-pair predictions (P_actual chunk rule, master state)
 
 Config set: mixed (M1, M2, M3, M4) at S = 2 MiB, admitted at 32 MiB and
 re-admitted at 2 MiB.
@@ -50,23 +49,21 @@ re-admitted at 2 MiB.
 Predicted order: M1 < M2 < M3 < M4 (at 2 MiB with corrected P).
 
 The model's P is four times too small at 2 MiB (old P=2, corrected P=8). The
-corrected latency term makes deltas LARGER (M2->M3 grows from 207.8 us to
-~268 us), which does NOT rescue resolvability (still 50-200x below this box's
-noise floor). The model fix is a CORRECTNESS requirement, not a resolvability
-rescue.
+corrected latency term makes deltas LARGER, which does NOT rescue resolvability
+(still 50-200x below this box's noise floor). The model fix is a CORRECTNESS
+requirement, not a resolvability rescue.
 
-## Noise floor (with evidence)
+## Noise floor (proxy, not protocol measurement)
 
-- Spread: 45985 us (max-min across 5 iterations at 2 MiB, excluding init).
+- Proxy spread: 45985 us (max-min across 5 iterations at 2 MiB, excluding init).
+  Sample: n=5, one config (2 MiB), one run reached 52702 us. This is a PROXY
+  for 9(a)'s protocol (max-min over exactly 3 runs/config), which was NOT
+  executed. The 4641 s timer artifact (raw/iters_4k.log) is EXCLUDED from this.
 - Box state: nproc=2 (cgroup CPU quota ~2 cores), loadavg ~20-40, ~3274 tasks.
 - Scheduler granularity: 1-4 ms on this box.
 - Raw per-iteration logs: experiments/gpu-sim-pkb/raw/iters_2m.log,
   experiments/gpu-sim-pkb/raw/iters_4k.log (committed, not /tmp).
 - Full variance artifact: experiments/gpu-sim-pkb/variance_measurement.md.
-
-The 46 ms spread stands as the evidence. No quieter box, no repeated runs to
-find a tight cluster, no re-rolled median. The variance measurement is the
-finding, not a problem to be solved.
 
 ## Phase-payload table (canonical form, 2 MiB payload)
 
@@ -80,42 +77,45 @@ finding, not a problem to be solved.
 | 2097152   | 524288 | 16          | 131072         | 2                | 8                | 1048576 (S/2)   | 2097152          | 1.0 (S)     |
 
 At 2 MiB: P=8 (8 pieces per phase, each 128 KiB = S/2), 2 phases, total per
-rank = S (1 * S, byte factor 1.0 at this size for the per-direction figure;
-2.0 total across both directions). The model's byte factor (2.0 at n=2) counts
-both directions. The per-phase payload is S/2 at 2 MiB.
+rank = S (byte factor 1.0 per direction; 2.0 total across both directions).
 
-Full table: experiments/gpu-sim-pkb/canonical_byte_table.md and
-experiments/gpu-sim-pkb/phase_payload_table.md.
+## Per-criterion statement (bead's own acceptance criteria)
 
-## Artifact share (c_fixed bound)
+| # | Criterion | Status | Cause if not met |
+|---|-----------|--------|------------------|
+| 1 | metrics.json + committed verdict script | MET | committed, runs, fails loudly on missing input |
+| 2 | Ordering (measured = predicted order) | NOT-APPLICABLE | no admitted config set (4b rejected) |
+| 3 | Delta error vs 35% | NOT-APPLICABLE | no admitted config set |
+| 4a | bw_share (\|d_bw\| >= 0.5*\|d_pred\|) | MET (at 2 MiB: 0.823) | pre-run admissibility, computed from model |
+| 4b | 100 us floor | MET (362.3 us > 100) | pre-run admissibility |
+| 4b | 20% relative margin | MET (0.872) | pre-run admissibility |
+| 4b | 10x spread | UNMET (environment) | 36.2 us needed, tens of ms available |
+| 4c | Cancellation statement | MET | compute identical across configs, cancels in difference |
+| 4d | Config set re-established vs corrected model | MET | admitted 'mixed' set at 2/8/32 MiB |
+| 5 | Structural counters | MET (on M1/M2) | NOT-APPLICABLE beyond M1/M2 (n=4 refused) |
+| 6 | Kill test (EPEERDEAD) | MET | m3d.8 evidence, bounded survivor exit |
+| 7 | No-GPU lane (clean clone) | MET | make check passes |
+| 8 | Explicit CLOSE/NO-CLOSE | MET | this artifact |
+| 9a | 3 runs/config, median, spread | NOT-APPLICABLE | no GPU run (CPU-only, no admitted set) |
+| 9b | delta_measured = median_i - median_j | NOT-APPLICABLE | no GPU run |
+| 9c | ordering on medians, unresolved pairs | NOT-APPLICABLE | no GPU run |
+| 9d | measured wire bytes re-derived from trace | MET (M1/M2), NOT-APPLICABLE (M3/M4) | n=4 refused (gpu-sim-8ii) |
+| 9e | real-GPU runs through ts with job id | NOT-APPLICABLE | CPU-only, no GPU run |
+| 9f | verdict by committed script, loud failure on missing input | MET | verdict.py exists, refuses exit 2 on missing input |
 
-- c_fixed (bound, not measurement): 1-2 us.
-- Per-piece term at P=8, n=2: 8 x 2 = 16 us.
-- Fraction of M1->M2 delta (362.3 us): 4-8%.
-- Fraction of 100 us 4a floor: 16%.
-- Inside the 20% artifact cap; at the edge of the 10% target.
+### Arbiter's criteria (separate section)
+
+The arbiter's criteria 1-9 (per the review) are tracked separately. The bead's
+own acceptance criteria above are the authoritative list for this gate.
+
+## c_fixed (bound, not measurement)
+
+- c_fixed (bound): 1-2 us.
+- Per-piece term at P=8, n=2: 16-32 us (16 pieces/rank).
+- Cancels EXACTLY in M1->M2 (both n=2, 16 pieces/rank, chunk count speed-independent).
+  Artifact share of the admitted delta: 0 us / 0%.
+- Absolute 10% band: 16-32 us is 30-60% of M1's own 53.3 us.
 - NOT the binding constraint (the variance is).
-
-8nt stays POST-gate: the per-piece term does not by itself prevent a pass on a
-box that could resolve the delta.
-
-## Per-criterion statement
-
-| # | Criterion | Status | Cause if unmet |
-|---|-----------|--------|----------------|
-| 1 | Per-link timing (plugin spends wire time) | MET | pkb: fabric honors per-link bw+latency, fg_fab_transfer spends n/B+L |
-| 2 | Difference-based deltas (predicted vs measured) | UNMET | Environment: 46 ms spread vs 36.2 us requirement |
-| 3 | Ordering preserved (measured = predicted order) | UNMET | Environment: cannot resolve deltas |
-| 4 | Bounded failure on killed peer | MET | m3d.8: EPEERDEAD asserted (tests/test_fabric.c) |
-| 5 | Structural counters | MET | trace records per-transfer link id/bytes/delay |
-| 6 | No-GPU CI green | MET | make check passes |
-| 7 | Wire bytes match model (per-rank) | UNMET | Unmeasured input: n=4 P refused (gpu-sim-8ii) |
-| 8 | Timestamp clause | MET | model predictions timestamped pre-run |
-| 9 | Compute statement (identical compute cancels) | MET | stated explicitly; see R3 |
-
-Criteria 1, 4, 5, 6, 8, 9 are categorical outcomes measurable on this box.
-Criteria 2, 3 are unmet due to the environment (noise floor).
-Criterion 7 is unmet due to an unmeasured input (n=4 P).
 
 ## Explicit statement
 
@@ -129,9 +129,8 @@ ONE of the epic's criteria (the gate's timing comparison), not to the direction.
 ## Forbidden (recorded for auditability)
 
 No quieter box was used. No repeated runs to find a tight cluster. No re-rolled
-median. No widening of 4b. No payload chosen to enlarge the delta. The variance
-measurement stands as the evidence. A gate that passes because its noise was
-sampled until it looked good proves nothing.
+median. No widening of 4b. No switching to a payload chosen because it made the
+delta bigger. The variance measurement stands as the evidence.
 
 ## Pointers
 

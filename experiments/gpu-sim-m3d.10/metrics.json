@@ -461,18 +461,27 @@
   "rel_margin_4b": 0.872,
   "payload_bytes": 2097152,
   "per_criterion": {
-    "1_per_link_timing": "MET",
-    "2_difference_deltas": "UNMET (environment)",
-    "3_ordering": "UNMET (environment)",
-    "4_kill_peer": "MET",
-    "5_structural_counters": "MET",
-    "6_no_gpu_ci": "MET",
-    "7_wire_bytes_match": "UNMET (unmeasured input: n=4 P)",
-    "8_timestamp_clause": "MET",
-    "9_compute_statement": "MET"
+    "1_metrics_and_verdict_script": "MET",
+    "2_ordering": "NOT-APPLICABLE (no admitted config set)",
+    "3_delta_error_vs_35pct": "NOT-APPLICABLE (no admitted config set)",
+    "4a_bw_share": "MET (0.823 at 2 MiB)",
+    "4b_100us_floor": "MET (362.3 us)",
+    "4b_20pct_margin": "MET (0.872)",
+    "4b_10x_spread": "UNMET (environment: 36.2 us needed, tens of ms available)",
+    "4c_cancellation": "MET",
+    "4d_config_set_vs_corrected_model": "MET",
+    "5_structural_counters": "MET (M1/M2); NOT-APPLICABLE beyond (n=4 refused)",
+    "6_kill_test": "MET",
+    "7_no_gpu_lane": "MET",
+    "8_explicit_close_noclose": "MET",
+    "9a_3runs_median_spread": "NOT-APPLICABLE (no GPU run)",
+    "9b_delta_measured": "NOT-APPLICABLE (no GPU run)",
+    "9c_ordering_on_medians": "NOT-APPLICABLE (no GPU run)",
+    "9d_wire_bytes_from_trace": "MET (M1/M2); NOT-APPLICABLE (M3/M4, n=4 refused)",
+    "9e_ts_job_id": "NOT-APPLICABLE (CPU-only)",
+    "9f_verdict_by_script": "MET"
   },
   "c_fixed_bound_us": "1-2",
-  "artifact_share_pct": "4-8",
   "8nt_post_gate": true,
   "forbidden": [
     "quieter box",
@@ -492,5 +501,8 @@
     "2MiB": 6717
   },
   "g1_offset_us": 6600,
-  "g1_granularity_ratio": "~200x"
+  "g1_granularity_ratio": "~200x",
+  "noise_floor_note": "PROXY, not 9(a) protocol: max-min over 5 iterations at 2 MiB, one config, one run reached 52702 us. The 4641 s timer artifact (raw/iters_4k.log) is EXCLUDED. 9(a) protocol (3 runs/config, median, max-min) was NOT executed.",
+  "noise_floor_proxy_us": 45985,
+  "c_fixed_cancellation": "c_fixed cancels EXACTLY in M1->M2 (both n=2, 16 pieces/rank). Artifact share of admitted delta: 0 us / 0%. 20% cap applies only to cross-class deltas, none admitted."
 }
