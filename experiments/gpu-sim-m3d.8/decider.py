@@ -51,6 +51,89 @@ def model_per_rank(spec_count, dtype, nranks):
     return total / nranks, total
 
 
+WITNESS_NOTE = (
+    "Witness roles (m3d.8 acceptance 2): per-transfer bytes + per-entry-point "
+    "counters discriminate a single 2S transfer (1 record, bytes=2S) from two S "
+    "transfers (2 records, bytes=S each); digests are needed only for the "
+    "duplicate-reporting rival (identical digests on one channel); the byte TOTAL "
+    "is 2S per direction in BOTH cases, so the ratio alone cannot discriminate "
+    "them. The (slot,seq) pair and consumed_seq are the anti-double-count "
+    "binding."
+)
+
+
+def classify_shape(phases, digests, payload_bytes):
+    """Exhaustive shape classification on (count, size) per (rank, channel).
+
+    phases: dict (rank, chan) -> list of per-transfer byte sizes
+    digests: dict (rank, chan) -> list of per-transfer digests
+    Returns a shape label; never falls through silently (UNCLASSIFIED otherwise).
+    """
+    # 1. duplicate reporting: repeated digest within a (rank,chan) group
+    for ck, ds in digests.items():
+        seen = [d for d in ds if d]
+        if len(seen) >= 2 and len(seen) != len(set(seen)):
+            return "duplicate reporting: identical payload digest repeated on one channel id"
+
+    # 2. multiple FULL-PAYLOAD transfers on one channel id (2S branch): the
+    #    'full-payload' predicate actually compares each size to the payload.
+    for ck, sizes in phases.items():
+        if len(sizes) >= 2 and all(b == payload_bytes for b in sizes):
+            return "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
+
+    # 3. single transfer carrying multiple payload units on one channel id
+    #    (e.g. 1x2S): one record whose size is a multiple of the payload but
+    #    not equal to it.
+    single_multi = False
+    for ck, sizes in phases.items():
+        if len(sizes) == 1 and sizes[0] != payload_bytes and sizes[0] % payload_bytes == 0 and sizes[0] > payload_bytes:
+            single_multi = True
+    if single_multi and sum(len(v) for v in phases.values()) == 1:
+        return "single transfer of multiple payload units on one channel id (not 2S)"
+
+    # 4. one phase SPLIT ACROSS channel ids: one transfer per channel, each
+    #    carrying the full payload, on two or more distinct channels.
+    if (len(phases) >= 2 and all(len(v) == 1 for v in phases.values())
+            and all(all(b == payload_bytes for b in v) for v in phases.values())):
+        return "one phase SPLIT ACROSS channel ids (distinct finding, not 2S)"
+
+    # 5. single transfer of exactly one payload
+    if sum(len(v) for v in phases.values()) == 1:
+        all_single = all(len(v) == 1 for v in phases.values())
+        if all_single:
+            sizes = [v[0] for v in phases.values()]
+            if all(b == payload_bytes for b in sizes):
+                return "single transfer of one payload on one channel id"
+
+    # 6. fractional-payload or anything else -> UNCLASSIFIED (never fall through)
+    return "UNCLASSIFIED"
+
+
+def build_phases_digests(recs):
+    """Extract (phases, digests) from parsed trace records."""
+    per_rank = defaultdict(lambda: {"isend": [], "irecv": [], "recv": []})
+    for r in recs:
+        if r["_op"] == "other":
+            continue
+        rk = int(r.get("rank", -1))
+        per_rank[rk][r["_op"]].append(r)
+    phases = defaultdict(list)
+    digests = defaultdict(list)
+    for rk, ops in per_rank.items():
+        for r in ops["isend"]:
+            if int(r.get("bytes", 0)) == 0:
+                continue
+            phases[(rk, r.get("chan"))].append(int(r["bytes"]))
+            digests[(rk, r.get("chan"))].append(r.get("digest"))
+    return phases, digests
+
+
+def classify_trace(trace_path, payload_bytes):
+    recs = parse(trace_path)
+    phases, digests = build_phases_digests(recs)
+    return classify_shape(phases, digests, payload_bytes)
+
+
 def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
     recs = parse(trace)
     per_rank = defaultdict(lambda: {"isend": [], "irecv": [], "recv": []})
@@ -60,7 +143,7 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
         rk = int(r.get("rank", -1))
         per_rank[rk][r["_op"]].append(r)
 
-    report = {"per_rank": {}, "verdict": None}
+    report = {"per_rank": {}, "verdict": None, "witness_note": WITNESS_NOTE}
 
     # 2a: entry counts == record counts, per entry point, per rank
     ok_2a = True
@@ -109,20 +192,7 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
                 continue
             phases[(rk, r.get("chan"))].append(int(r["bytes"]))
     full_payload_chans = [k for k, v in phases.items() if all(b == payload_bytes for b in v)]
-    shape = None
-    dup = False
-    for ck, ds in digests.items():
-        seen = [d for d in ds if d]
-        if len(seen) != len(set(seen)):
-            dup = True
-    if dup:
-        shape = "duplicate reporting: identical payload digest repeated on one channel id"
-    elif any(len(v) >= 2 for v in phases.values()):
-        shape = "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
-    elif len(phases) > 1 and all(len(v) == 1 for v in phases.values()):
-        shape = "one phase SPLIT ACROSS channel ids (distinct finding, not 2S)"
-    elif sum(len(v) for v in phases.values()) == 1:
-        shape = "single transfer"
+    shape = classify_shape(phases, digests, payload_bytes)
     report["phase_shape"] = {"channels": {str(k): v for k, v in phases.items()},
                              "full_payload_channel_keys": [str(k) for k in full_payload_chans],
                              "shape": shape}

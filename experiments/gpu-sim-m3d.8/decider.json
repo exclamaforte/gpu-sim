@@ -40,6 +40,7 @@
     "2c_bytes": true,
     "phase_shape": "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
   },
+  "witness_note": "Witness roles (m3d.8 acceptance 2): per-transfer bytes + per-entry-point counters discriminate a single 2S transfer (1 record, bytes=2S) from two S transfers (2 records, bytes=S each); digests are needed only for the duplicate-reporting rival (identical digests on one channel); the byte TOTAL is 2S per direction in BOTH cases, so the ratio alone cannot discriminate them. The (slot,seq) pair and consumed_seq are the anti-double-count binding.",
   "per_op_binding": [
     {
       "sender_rank": 0,
