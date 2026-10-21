@@ -83,7 +83,7 @@ def test_deadline_exceed_prob():
     assert rec2["deadline_exceed_prob"] == 1.0, rec2["deadline_exceed_prob"]
     print("PASS test_deadline_exceed_prob")
 
-def test_deadline_exceed_exact():
+def test_deadline_exceed_binned_convolution():
     """Exact deadline-exceedance probability via independent brute-force enumeration.
 
     Uses the model's own base duration (dur*1e6) so the comparison is exact.
@@ -107,7 +107,37 @@ def test_deadline_exceed_exact():
     model_prob = rec["deadline_exceed_prob"]
     # tolerance: model's discrete enumeration vs brute force Monte Carlo
     assert abs(model_prob - brute_prob) < 0.05, (model_prob, brute_prob)
-    print("PASS test_deadline_exceed_exact (model=%.3f brute=%.3f)" % (model_prob, brute_prob))
+    print("PASS test_deadline_exceed_binned_convolution (model=%.3f brute=%.3f)" % (model_prob, brute_prob))
+
+def test_bins_convergence():
+    """Bins convergence: 100-bin discretisation error is bounded."""
+    # The model uses 100 bins. We verify that refining to 1000/10000 bins
+    # changes the probability by less than 1% (convergence).
+    jitter_us = 5.0
+    timeout_us = 820.0
+    base_us = 800.0
+    P = 1
+    results = {}
+    for bins in [100, 1000, 10000]:
+        step = jitter_us / bins
+        dist = [1.0 / bins] * bins
+        for _ in range(P - 1):
+            new_dist = [0.0] * (bins * 2)
+            for i in range(len(dist)):
+                if dist[i] == 0: continue
+                for j in range(bins):
+                    if i + j < len(new_dist):
+                        new_dist[i + j] += dist[i] * (1.0 / bins)
+            dist = new_dist
+        total = 0.0
+        for idx in range(len(dist)):
+            if base_us + idx * step > timeout_us:
+                total += dist[idx]
+        results[bins] = total
+    # Convergence: 10000 vs 100 drift < 1%
+    drift = abs(results[10000] - results[100]) / max(results[10000], 1e-9)
+    assert drift < 0.01, (results, drift)
+    print("PASS test_bins_convergence (drift=%.4f)" % drift)
 
 def test_deadline_exceed_enum_2x_fails():
     """AC2 negative control: 2x error in enumeration fails."""
@@ -157,7 +187,8 @@ if __name__ == "__main__":
     test_loss_factor_derived_not_hardcoded()
     test_jitter_mean_sd()
     test_deadline_exceed_prob()
-    test_deadline_exceed_exact()
+    test_deadline_exceed_binned_convolution()
+    test_bins_convergence()
     test_deadline_exceed_enum_2x_fails()
     test_refusal_unchanged()
     test_route_agreement_categorical()

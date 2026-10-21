@@ -60,6 +60,7 @@ tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 # "make check passes" claim made before that -- including the reviewer's own
 # validation of gpu-sim-8dw -- was true here and unreproducible elsewhere.
 check: guard-build-inputs $(LIB)
+	@python3 tests/test_model_fault.py
 	@python3 scripts/gen_growth_list.py --check
 	@python3 experiments/gpu-sim-6kp/test_net_plugin.py
 	@mkdir -p build

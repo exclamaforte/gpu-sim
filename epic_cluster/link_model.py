@@ -324,6 +324,8 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     _worst_link_spec = links_spec[worst_idx] if worst_idx < len(links_spec) else (links_spec[0] if links_spec else {})
     loss_ppm = int(_worst_link_spec.get("loss_ppm", 0) or 0)
     jitter_us_val = float(_worst_link_spec.get("jitter_us", 0.0) or 0.0)
+    if loss_ppm >= 1000000:
+        raise ValueError("loss_ppm>=1e6 (p>=1): every transfer dropped; refused (no finite expectation)")
 
     # bytes per second
     B_Bps = B_gbps * 1e9 / 8.0
@@ -349,6 +351,11 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     else:
         loss_factor = 1.0
     if loss_ppm > 0:
+        # Loss scales the wire (bandwidth) term only: a retransmitted piece
+        # re-traverses the link (paying bandwidth again) but the per-send
+        # latency alpha is charged once per attempt, not per retransmit, because
+        # the fabric's per-isend accounting (pkb) charges latency per piece
+        # regardless of retry. See gpu-sim-5zv AC1.
         dur = bw_term * loss_factor + lat_term
 
     jitter_mean_us = jitter_us_val / 2.0 if jitter_us_val > 0 else 0.0
