@@ -389,7 +389,9 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
         CNT_RECV_DONE++;
         int rlink = -1; double rbw=0, rlat=0;
         const char *tp = getenv("GPUSIM_TOPOLOGY");
-        if (tp && *tp) plugin_resolve_link(rq->peer, MY_RANK, &rlink, &rbw, &rlat);
+        double rjit=0; int rloss=0; uint64_t rpart=0; double rto=0;
+        if (tp && *tp) plugin_resolve_link(rq->peer, MY_RANK, &rlink, &rbw, &rlat,
+                                          &rjit, &rloss, &rpart, &rto);
         char buf[256];
         if (rlink >= 0) {
             snprintf(buf, sizeof(buf),

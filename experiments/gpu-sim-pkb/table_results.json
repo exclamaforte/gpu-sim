@@ -1,0 +1,199 @@
+{
+  "bead": "gpu-sim-eut",
+  "canonical_runs": "m1",
+  "regenerability_runs": "m2",
+  "rows": [
+    {
+      "S_bytes": 4096,
+      "trace": "traces/trace_S4096_n2_m1.log",
+      "valid": true,
+      "validity_note": "valid",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 2,
+          "total_bytes": 8192,
+          "byte_factor": 2.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 1,
+          "total_bytes": 4096,
+          "byte_factor": 1.0,
+          "distinct_digests": 1,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 65536,
+      "trace": "traces/trace_S65536_n2_m1.log",
+      "valid": false,
+      "validity_note": "INVALID: rank 1: total_bytes 81920 is not an exact multiple of S 65536 (factor 1.2500)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 4,
+          "total_bytes": 65536,
+          "byte_factor": 1.0,
+          "distinct_digests": 1,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 5,
+          "total_bytes": 81920,
+          "byte_factor": 1.25,
+          "distinct_digests": 3,
+          "valid": false
+        }
+      ]
+    },
+    {
+      "S_bytes": 131072,
+      "trace": "traces/trace_S131072_n2_m1.log",
+      "valid": false,
+      "validity_note": "INVALID: rank 0: total_bytes 163840 is not an exact multiple of S 131072 (factor 1.2500)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 5,
+          "total_bytes": 163840,
+          "byte_factor": 1.25,
+          "distinct_digests": 2,
+          "valid": false
+        },
+        {
+          "rank": 1,
+          "isends": 4,
+          "total_bytes": 131072,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 262144,
+      "trace": "traces/trace_S262144_n2_m1.log",
+      "valid": false,
+      "validity_note": "INVALID: rank 0: total_bytes 327680 is not an exact multiple of S 262144 (factor 1.2500)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 5,
+          "total_bytes": 327680,
+          "byte_factor": 1.25,
+          "distinct_digests": 2,
+          "valid": false
+        },
+        {
+          "rank": 1,
+          "isends": 4,
+          "total_bytes": 262144,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 393216,
+      "trace": "traces/trace_S393216_n2_m1.log",
+      "valid": false,
+      "validity_note": "INVALID: rank 0: total_bytes 327680 is not an exact multiple of S 393216 (factor 0.8333)",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 5,
+          "total_bytes": 327680,
+          "byte_factor": 0.8333333333333334,
+          "distinct_digests": 2,
+          "valid": false
+        },
+        {
+          "rank": 1,
+          "isends": 4,
+          "total_bytes": 262144,
+          "byte_factor": 0.6666666666666666,
+          "distinct_digests": 2,
+          "valid": false
+        }
+      ]
+    },
+    {
+      "S_bytes": 524288,
+      "trace": "traces/trace_S524288_n2_m1.log",
+      "valid": true,
+      "validity_note": "valid",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 16,
+          "total_bytes": 524288,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 16,
+          "total_bytes": 524288,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 1048576,
+      "trace": "traces/trace_S1048576_n2_m1.log",
+      "valid": true,
+      "validity_note": "valid",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 16,
+          "total_bytes": 1048576,
+          "byte_factor": 1.0,
+          "distinct_digests": 3,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 16,
+          "total_bytes": 1048576,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    },
+    {
+      "S_bytes": 2097152,
+      "trace": "traces/trace_S2097152_n2_m1.log",
+      "valid": true,
+      "validity_note": "valid",
+      "ranks": [
+        {
+          "rank": 0,
+          "isends": 16,
+          "total_bytes": 2097152,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        },
+        {
+          "rank": 1,
+          "isends": 16,
+          "total_bytes": 2097152,
+          "byte_factor": 1.0,
+          "distinct_digests": 2,
+          "valid": true
+        }
+      ]
+    }
+  ]
+}
