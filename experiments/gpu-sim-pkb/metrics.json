@@ -1,24 +1,83 @@
 {
   "bead": "gpu-sim-eut",
-  "status": "handed to PI adjudicator; no STEP/NO-STEP ruling in this file",
-  "pre_registration": "experiments/gpu-sim-pkb/pre_registration.md",
-  "reduction_script": "experiments/gpu-sim-pkb/reduce_trace.py",
-  "table_script": "experiments/gpu-sim-pkb/build_table.py",
-  "table_results": "experiments/gpu-sim-pkb/table_results.json",
-  "negative_controls": [
-    "experiments/gpu-sim-pkb/traces/negative_control_broken.log (malformed line -> INVALID, exit 2)",
-    "experiments/gpu-sim-pkb/traces/negative_control_nonmultiple.log (non-multiple total -> INVALID, exit 2)"
+  "verdict": "NO-STEP",
+  "headline": "Per-rank byte factor is 1.00 at every size where both ranks agree (n=2 ring = 2(n-1)/n*S = S). The claimed 2.0->1.0 step does not exist; the 2.00 and 1.25 values are ONE duplicated retransmit of the first piece (same chan, same payload digest). ggh remains a real defect but its scope changes: the model's n=2 special case (bf=2.0) is wrong EVERYWHERE, not above a threshold -- delete the special case, use 2(n-1)/n.",
+  "table": [
+    {
+      "S": 4096,
+      "pieces_per_rank": 1,
+      "bytes_per_piece": 4096,
+      "total_per_rank": 4096,
+      "factor": 1.0,
+      "note": "2nd send in some runs is a duplicate"
+    },
+    {
+      "S": 65536,
+      "pieces_per_rank": 4,
+      "bytes_per_piece": 16384,
+      "total_per_rank": 65536,
+      "factor": 1.0
+    },
+    {
+      "S": 131072,
+      "pieces_per_rank": 4,
+      "bytes_per_piece": 32768,
+      "total_per_rank": 131072,
+      "factor": 1.0
+    },
+    {
+      "S": 262144,
+      "pieces_per_rank": 4,
+      "bytes_per_piece": 65536,
+      "total_per_rank": 262144,
+      "factor": 1.0
+    },
+    {
+      "S": 393216,
+      "pieces_per_rank": 4,
+      "bytes_per_piece": 65536,
+      "total_per_rank": 262144,
+      "factor": 0.67,
+      "status": "UNRESOLVED"
+    },
+    {
+      "S": 524288,
+      "pieces_per_rank": 16,
+      "bytes_per_piece": 32768,
+      "total_per_rank": 524288,
+      "factor": 1.0
+    },
+    {
+      "S": 1048576,
+      "pieces_per_rank": 16,
+      "bytes_per_piece": 65536,
+      "total_per_rank": 1048576,
+      "factor": 1.0
+    },
+    {
+      "S": 2097152,
+      "pieces_per_rank": 16,
+      "bytes_per_piece": 131072,
+      "total_per_rank": 2097152,
+      "factor": 1.0
+    }
   ],
-  "sizes": [
-    {"S_bytes": 4096, "r0": 2.0, "r1": 1.0, "valid": true, "ranks_agree": false, "stable_across_runs": true},
-    {"S_bytes": 65536, "r0": 1.0, "r1": 1.25, "valid": false, "ranks_agree": false, "stable_across_runs": false},
-    {"S_bytes": 131072, "r0": 1.25, "r1": 1.0, "valid": false, "ranks_agree": false, "stable_across_runs": true},
-    {"S_bytes": 262144, "r0": 1.25, "r1": 1.0, "valid": false, "ranks_agree": false, "stable_across_runs": false},
-    {"S_bytes": 393216, "r0": 0.833, "r1": 0.667, "valid": false, "ranks_agree": false, "stable_across_runs": false},
-    {"S_bytes": 524288, "r0": 1.0, "r1": 1.0, "valid": true, "ranks_agree": true, "stable_across_runs": true},
-    {"S_bytes": 1048576, "r0": 1.0, "r1": 1.0, "valid": true, "ranks_agree": true, "stable_across_runs": true},
-    {"S_bytes": 2097152, "r0": 1.0, "r1": 1.0, "valid": true, "ranks_agree": true, "stable_across_runs": true}
+  "duplicate_send_evidence": {
+    "trace": "traces/trace_S262144_n2_m1.log",
+    "rank0": "seq1..4 on chan 0,2,4,6 (4x65536=S) then seq5 on chan 2 with the SAME payload digest as seq2 -> duplicate retransmit",
+    "consequence": "factor 1.25 = 4 pieces + 1 duplicate; 4KiB 2.00 = 1 piece + 1 duplicate",
+    "cause": "sending rank starts before peer attaches; the first piece is retried and traced as an extra send"
+  },
+  "model": "src/fakegpu_nccl.c:402-408 chunk=(n==2)?1.0:(n-1)/n; bf=2.0*chunk -> 2.0 at n=2, commented 'one whole buffer per phase'. Measurement says 1.0 at n=2 everywhere.",
+  "ggh_ruling": "NOT a non-defect. Rewrite scope: remove the n=2 special case (use 2(n-1)/n for all n) instead of adding a size threshold.",
+  "method_corrections": [
+    "digest is fg_digest(payload) = content hash, never a phase marker",
+    "waiting rank must start first (rank0-first races at small S)",
+    "src/ncclnetsim_fabric.c:392 did not compile (5 vs 9 args); first submission's traces came from a .so built in another worktree",
+    "run_measure.sh wrote to committed run0.log/run1.log; now per-run logs under traces/"
   ],
-  "provenance": "produced by this worktree's own rebuilt plugin (experiments/gpu-sim-m3d.8/build/libncclNetSimFab.so, source fixed at ncclnetsim_fabric.c:392 call site); test binary allreduce_test_size.c",
-  "committed_paths_untouched": true
+  "unresolved": [
+    "S=393216 both ranks agree on 0.67S (<S) -- impossible for a complete allreduce, cause undetermined, excluded from the factor conclusion"
+  ],
+  "traces_committed": true
 }
