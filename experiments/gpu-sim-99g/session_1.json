@@ -1,0 +1,44 @@
+{
+  "window": 1,
+  "target_cpu": 8,
+  "mask_before": [
+    8
+  ],
+  "mask_after": [
+    8
+  ],
+  "mask_valid_pinned": true,
+  "tick_us": 10000.0,
+  "span_s": 0.2003,
+  "core_ticks_delta": 20,
+  "core_idle_ticks_delta": 14,
+  "core_busy_us": 60000.0,
+  "our_scope_usage_us": 23616,
+  "other_cpu_us": 36384.0,
+  "other_utilisation": 0.1817,
+  "other_util_below_threshold": true,
+  "threshold": 0.25,
+  "run_durations_us": [
+    5858.8,
+    5896.2,
+    5892.8,
+    5861.1
+  ],
+  "spread_us": 35.1,
+  "spread_within_requirement": true,
+  "requirement_us": 36.2,
+  "workload_iters": 100000,
+  "runs": 4,
+  "timestamp_start_utc": "2026-10-21T14:43:56Z",
+  "timestamp_end_utc": "2026-10-21T14:43:56Z",
+  "scope": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/run-p658046-i206111169.scope",
+  "throttled_fraction_delta": 0.0,
+  "context_nondecisional": {
+    "loadavg": [
+      "19.94",
+      "22.85",
+      "24.72"
+    ],
+    "note": "context only; may NOT admit or exclude a window"
+  }
+}
