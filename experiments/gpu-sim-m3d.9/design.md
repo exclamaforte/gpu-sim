@@ -64,3 +64,10 @@
 | dead peer | fabric (peer_alive) | EPEERDEAD | swap codes in assertion |
 
 ## CPU-only, <=2 cores. No ts job.
+
+## Trace interleaving (multi-rank)
+
+Several ranks append to one GPUSIM_TRACE file concurrently.
+Lines from different ranks can interleave. Tests MUST parse by
+regex/key (fault=..., class=..., code=...), never by line position or
+ordinal. A test that assumes "line N is the loss record" is invalid.
