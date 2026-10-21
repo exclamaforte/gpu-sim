@@ -79,17 +79,24 @@ Prints "about to cudaDeviceSynchronize" before the sync and "copy-back done" aft
   The allreduce never completes. Byte trace shows 5 sends rank0 / 4 sends rank1.
   Committed evidence: traces/trace_S393216_n2_val384f.log,
   traces/run_val384f_rank0.txt, traces/run_val384f_rank1.txt.
-- S=524288 (512KiB, control): completes. Both ranks print "synchronize done",
-  "copy-back done", "VALUE OK (all 131072 elements == 3.0)". Byte trace shows
-  16 sends per rank (1.00S). Committed evidence: traces/trace_S524288_n2_val512f.log,
-  traces/run_val512f_rank0.txt, traces/run_val512f_rank1.txt.
+- S=524288 (512KiB, control): NONDETERMINISTIC. val512d (commit 2b88120): MISMATCH
+  (16384/131072 wrong, first idx=57344 got=5.0). val512f (commit b384116): VALUE OK
+  (all 131072 elements == 3.0). Same fabric code; only stderr fprintf timing differed.
+  Uniform fill is structurally blind to misdelivery (identical payloads make swaps
+  invisible). Committed evidence: traces/trace_S524288_n2_val512d.log (MISMATCH),
+  traces/trace_S524288_n2_val512f.log (OK), traces/run_val512d_rank*.txt,
+  traces/run_val512f_rank*.txt.
 
 Conclusion: at 384KiB the sim fabric allreduce hangs (operation never completes,
 success is reported by the async ncclAllReduce return). At 512KiB it completes
-and produces correct values. The defect is size-dependent: 384KiB stalls, 512KiB
-passes. The 9-chunk byte trace is partial progress before the stall, not a
-completed (if short) allreduce. Filed as P1 bead gpu-sim-7vw. 384KiB stays
-excluded from canonical tables/model evidence.
+but produces NONDETERMINISTIC values (val512d MISMATCH, val512f OK). The uniform
+fill used in val512f is structurally blind to misdelivery (identical payloads make
+swaps invisible); the non-uniform fill in val512d exposes it. The defect is NOT
+size-dependent in the way previously concluded: 384KiB always stalls, 512KiB
+sometimes produces wrong values. The "512KiB passes" conclusion is WITHDRAWN.
+Filed as P1 bead gpu-sim-7vw. 384KiB stays excluded from canonical tables/model
+evidence. 512KiB value-correctness is nondeterministic and must not be cited as
+passing until the non-uniform fill test (gpu-sim-7vw) is clean.
 
 Note: the earlier "NCCL reports success: sum[0]=3.0 OK" quote in this document was
 from experiments/gpu-sim-m3d.8/allreduce_test.c (commit 1846328), which hardcodes

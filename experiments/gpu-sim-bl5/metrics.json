@@ -45,12 +45,16 @@
   "expected_chunks_per_run": 12,
   "nccl_reports_success": "misleading: ncclAllReduce returns ncclSuccess asynchronously even when the operation hangs",
   "cause": "undetermined (likely incomplete capture or NCCL chunking)",
-  "escalation": "YES - real size-dependent simulator defect: 384KiB hangs (never completes), 512KiB passes. P1 bead gpu-sim-7vw.",
+  "escalation": "YES - real size-dependent simulator defect: 384KiB hangs (never completes). 512KiB nondeterministic (val512d MISMATCH 16384/131072 wrong first idx=57344 got=5.0 in 2b88120; val512f VALUE OK). P1 bead gpu-sim-7vw.",
   "value_test": {
     "harness": "allreduce_test_size.c with element check ported from allreduce_test.c (cudaDeviceSynchronize before cudaMemcpy); run via run_measure.sh (sim fabric)",
     "S_393216": "HANG (about to synchronize then stops; no VALUE line; exit 124)",
-    "S_524288": "VALUE OK (all 131072 elements == 3.0) on both ranks",
+    "S_524288": "NONDETERMINISTIC: val512d MISMATCH (16384/131072 wrong, first idx=57344 got=5.0) in 2b88120; val512f VALUE OK in b384116. Same fabric code; only stderr fprintf timing differed. Uniform fill is blind to misdelivery (identical payloads).",
     "byte_trace_384": "5 sends rank0 / 4 sends rank1 (partial progress before stall)",
-    "byte_trace_512": "16 sends per rank (1.00S), correct reduction"
+    "byte_trace_512": "16 sends per rank (1.00S), correct reduction",
+    "S_524288_runs": {
+      "val512d": "MISMATCH (16384/131072 wrong, first idx=57344 got=5.0)",
+      "val512f": "VALUE OK (all 131072 == 3.0)"
+    }
   }
 }
