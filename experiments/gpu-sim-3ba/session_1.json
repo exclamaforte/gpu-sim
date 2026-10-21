@@ -1,0 +1,46 @@
+{
+  "window": 1,
+  "target_cpu": 8,
+  "quota": "800000 100000",
+  "quota_cpus": 8.0,
+  "cgroup_scope": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p3489635-i204644056.scope",
+  "affinity_mask_before": [
+    8
+  ],
+  "affinity_mask_after": [
+    8
+  ],
+  "mask_valid_pinned": true,
+  "util_span_s": 0.2,
+  "target_cpu_util_window_span": 0.35,
+  "target_cpu_util_below_25pct": false,
+  "run_durations_us": [
+    6204.9,
+    6207.8,
+    6218.9,
+    6223.1
+  ],
+  "spread_us": 15.2,
+  "spread_within_requirement": true,
+  "requirement_us": 36.2,
+  "workload_iters": 100000,
+  "runs": 4,
+  "timestamp_start_utc": "2026-10-21T14:21:13Z",
+  "timestamp_end_utc": "2026-10-21T14:21:13Z",
+  "duration_s": 0.0249,
+  "cpu_stat_delta": {
+    "usage_usec": 25779,
+    "nr_periods": 2,
+    "nr_throttled": 0,
+    "throttled_usec": 0
+  },
+  "throttled_fraction_delta": 0.0,
+  "context_nondecisional": {
+    "loadavg": [
+      "14.52",
+      "19.52",
+      "24.94"
+    ],
+    "note": "context only; MAY NOT admit or exclude a window (ep3 \u00a77)"
+  }
+}
