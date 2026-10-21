@@ -1,0 +1,19 @@
+{
+  "bead": "gpu-sim-bl5",
+  "S_bytes": 393216,
+  "runs": [
+    {"run": "bl5-m1", "rank0_isends": 5, "rank0_bytes": 327680, "rank1_isends": 4, "rank1_bytes": 262144},
+    {"run": "bl5-m2", "rank0_isends": 5, "rank0_bytes": 327680, "rank1_isends": 4, "rank1_bytes": 262144},
+    {"run": "bl5-m3", "rank0_isends": 5, "rank0_bytes": 327680, "rank1_isends": 4, "rank1_bytes": 262144}
+  ],
+  "long_sleep_runs": [
+    {"run": "bl5-long1", "rank0_isends": 4, "rank0_bytes": 262144, "rank1_isends": 5, "rank1_bytes": 327680},
+    {"run": "bl5-long2", "rank0_isends": 4, "rank0_bytes": 262144, "rank1_isends": 5, "rank1_bytes": 327680}
+  ],
+  "reversed_order_runs": 3,
+  "total_chunks_per_run": 9,
+  "expected_chunks_per_run": 12,
+  "nccl_reports_success": true,
+  "cause": "undetermined (likely incomplete capture or NCCL chunking)",
+  "escalation": "none (NCCL reports success; not a silent under-send)"
+}
