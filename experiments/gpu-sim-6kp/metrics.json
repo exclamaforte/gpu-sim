@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-6kp",
+  "verdict": "PASS (probe)",
+  "probe_0a": "PASS: cudaGetDeviceCount resolves to libfakegpu.so (interposer reaches runtime calls)",
+  "probe_0b": "PASS: 4-rank ncclCommInitRank succeeds with FAKEGPU_NUM_DEVICES=4, no 'Duplicate GPU detected'",
+  "probe_0c": "PASS: no libcuda.so.1 in /proc/self/maps (no real driver loaded)",
+  "nccl_build": "v2.32.3-1 dynamic cudart (libcudart.so.13, 72 undefined cuda* symbols)",
+  "device_count_source": "FAKEGPU_NUM_DEVICES env (needs update to read from GPUSIM_TOPOLOGY spec)",
+  "gpu_used": false
+}
