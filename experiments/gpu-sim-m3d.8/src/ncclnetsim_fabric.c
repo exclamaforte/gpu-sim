@@ -57,7 +57,8 @@ static fg_topo_t *plugin_topo(void) {
 /* Resolve the link between src_rank and dst_rank in the loaded topology.
    Returns 0 on success and fills *link_id, *bw_gbps, *latency_us. */
 static int plugin_resolve_link(int src_rank, int dst_rank, int *link_id,
-                              double *bw_gbps, double *latency_us) {
+                              double *bw_gbps, double *latency_us,
+                              double *jitter_us, int *loss_ppm) {
     fg_topo_t *t = plugin_topo();
     if (!t) return -1;
     fg_topo_rank_t *sr = NULL, *dr = NULL;
@@ -79,6 +80,8 @@ static int plugin_resolve_link(int src_rank, int dst_rank, int *link_id,
             if (bw <= 0.0) return -2; /* zero bandwidth -> loud failure */
             if (bw_gbps) *bw_gbps = bw;
             if (latency_us) *latency_us = t->links[i].latency_us;
+            if (jitter_us) *jitter_us = t->links[i].jitter_us;
+            if (loss_ppm) *loss_ppm = t->links[i].loss_ppm;
             return 0;
         }
     }
@@ -245,11 +248,12 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     int slot = -1; unsigned seq = 0;
     /* Per-link timing (gpu-sim-pkb): resolve the link for this peer. */
     int link_id = -1;
-    double bw_gbps = 0.0, lat_us = 0.0;
+    double bw_gbps = 0.0, lat_us = 0.0, jit_us = 0.0;
+    int loss_ppm = 0;
     int have_link = 0;
     const char *tp = getenv("GPUSIM_TOPOLOGY");
     if (tp && *tp) {
-        int rr = plugin_resolve_link(MY_RANK, sc->peer, &link_id, &bw_gbps, &lat_us);
+        int rr = plugin_resolve_link(MY_RANK, sc->peer, &link_id, &bw_gbps, &lat_us, &jit_us, &loss_ppm);
         if (rr == -2) {
             fprintf(stderr, "plugin: zero-bandwidth link between rank %d and %d\n", MY_RANK, sc->peer);
             return ncclSystemError;
@@ -265,8 +269,12 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
        the bytes, so the wire delay is actually spent (serial wire). */
     double delay_us = 0.0;
     if (have_link) {
-        delay_us = (double)size / (bw_gbps * 125.0) + lat_us;
-        fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, 0.0);
+        delay_us = (double)size / (bw_gbps * 125.0) + lat_us + jit_us;
+        int rc = fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, jit_us, loss_ppm, 0, link_id);
+        if (rc != FG_FAB_OK) {
+            fprintf(stderr, "plugin: transfer failed: %s\n", fg_fab_errstr(rc));
+            return ncclSystemError;
+        }
     }
 
     pthread_mutex_lock(&LOCK);

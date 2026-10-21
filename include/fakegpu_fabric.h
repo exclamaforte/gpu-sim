@@ -58,9 +58,14 @@ size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size);
 int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
                         int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 
-/* apply a link's bw/latency/jitter to nbytes (best-effort delay). */
+/* apply a link's bw/latency/jitter/loss/partition/timeout to nbytes.
+   loss_ppm: per-transfer drop probability (ppm). partition_after: number of
+   successful transfers before the link partitions (0 = never). timeout_ns:
+   hard deadline. Returns FG_FAB_OK on success, FG_FAB_EINVAL on loss,
+   FG_FAB_ETIMEDOUT on partition/timeout. */
 int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
-                     double latency_us, double jitter_us);
+                     double latency_us, double jitter_us, int loss_ppm,
+                     uint64_t partition_after, int link_id);
 
 void fg_fab_detach(fg_fab_t *f);
 

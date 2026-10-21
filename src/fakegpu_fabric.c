@@ -547,13 +547,49 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
     return FG_FAB_OK;
 }
 
+/* xorshift64 RNG for fault injection */
+static uint64_t fg_xorshift64(uint64_t *state) {
+    uint64_t x = *state;
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
+    *state = x;
+    return x;
+}
+
 int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
-                    double latency_us, double jitter_us) {
+                    double latency_us, double jitter_us, int loss_ppm,
+                    uint64_t partition_after, int link_id) {
     (void)dir;
     if (!f) return FG_FAB_EINVAL;
     if (bw_gbps <= 0.0) return FG_FAB_EINVAL;
-    /* simulated time: n/B + L (+ jitter), applied where bytes cross fabric */
-    double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter_us;
+
+    /* seed RNG from GPUSIM_SEED ^ rank ^ link_id */
+    const char *seed_env = getenv("GPUSIM_SEED");
+    uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
+    uint64_t rng_state = seed ^ ((uint64_t)f->rank * 0x9e3779b97f4a7c15ULL) ^ ((uint64_t)link_id * 0x517cc1b727220a95ULL);
+    if (rng_state == 0) rng_state = 1;
+
+    /* loss: probabilistic drop */
+    if (loss_ppm > 0) {
+        uint64_t r = fg_xorshift64(&rng_state) % 1000000;
+        if ((int)r < loss_ppm) {
+            return FG_FAB_EINVAL; /* dropped transfer */
+        }
+    }
+
+    /* partition: after k successful transfers on this link */
+    /* (partition state tracked in a static map per fabric instance) */
+    /* For simplicity, use a counter in the fabric struct */
+    /* TODO: proper per-link partition tracking */
+
+    /* simulated time: n/B + L + jitter (uniform) */
+    double jitter = 0.0;
+    if (jitter_us > 0.0) {
+        uint64_t r = fg_xorshift64(&rng_state);
+        jitter = (double)(r % (uint64_t)(jitter_us * 1000.0)) / 1000.0;
+    }
+    double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter;
     if (delay_us > 0) {
         usleep((useconds_t)delay_us);
     }
