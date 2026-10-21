@@ -9,6 +9,7 @@
 #include "fakegpu.h"
 #include "nccl.h"
 #include "fakegpu_topology.h"
+#include "fakegpu_fabric.h"
 #include <math.h>
 
 #include <stddef.h>
@@ -378,9 +379,11 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
     if (is_tree) {
         double logn = log2((double)n);
         if (n <= 1) logn = 1;
+        int P_tree = (int)ceil((double)S / (double)FG_FAB_MAX_PAYLOAD);
+        if (P_tree < 1) P_tree = 1;
         bw_term = logn * S / B_Bps;
-        lat_term = logn * alpha_s;
-        dur = logn * (S / B_Bps + alpha_s);
+        lat_term = logn * alpha_s * (double)P_tree;
+        dur = bw_term + lat_term;
     } else {
         double bf, lf;
         /* gpu-sim-8sy: bytes factor n=2 -> 2.0 (one whole buffer per phase);
@@ -392,8 +395,13 @@ static double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count
         if (strcmp(algo, "ring_allreduce") == 0) { bf = 2.0*chunk; lf = 2.0*hops; }
         else if (strcmp(algo, "ring_allgather") == 0 || strcmp(algo, "ring_reduce_scatter") == 0 || strcmp(algo, "ring_alltoall") == 0) { bf = (double)(n-1)/n; lf = (double)n; }
         else { bf = 1.0; lf = 1.0; }
+        /* pkb: pieces per phase P = ceil(chunk(n)*S / FG_FAB_MAX_PAYLOAD).
+           lat_term scaled by P (per-isend accounting). Mirrors Python. */
+        double chunk_bytes = chunk * (double)S;
+        int P = (int)ceil(chunk_bytes / (double)FG_FAB_MAX_PAYLOAD);
+        if (P < 1) P = 1;
         bw_term = bf * S / B_Bps;
-        lat_term = lf * alpha_s;
+        lat_term = lf * alpha_s * (double)P;
         dur = bw_term + lat_term;
     }
 

@@ -87,5 +87,16 @@
   "bytes_exact": false,
   "bytes_finding": "At 1 MiB, plugin sends S per rank (1048576 B) but model predicts 2S per rank (2097152 B). NCCL's byte count changes with size: 2S at 4 KiB, S at 1 MiB+. Model byte factor (2.0 at n=2) only matches at small sizes. This is a model error to be addressed by 8sy/gate, not a pkb defect.",
   "time_finding": "Time agreement at 1 MiB: plugin 899 us vs model 1718 us (48% error) due to byte count mismatch (S vs 2S). At 4 KiB: 0% error, exact bytes (latency regime).",
-  "item9_status": "NOT MET at bandwidth-regime size: bytes diverge (S vs 2S) at 1 MiB+. Only 4 KiB (latency regime) gives exact agreement. Reported as finding, not widened."
+  "item9_status": "NOT MET at bandwidth-regime size: bytes diverge (S vs 2S) at 1 MiB+. Only 4 KiB (latency regime) gives exact agreement. Reported as finding, not widened.",
+  "c_python_agreement": {
+    "at_P1_1MB": {
+      "delta": 0.0,
+      "count_floats": 262144
+    },
+    "at_P2_2MB": {
+      "delta": 0.0,
+      "count_floats": 524288
+    },
+    "note": "C model (src/fakegpu_nccl.c) now applies P=ceil(chunk(n)*S/FG_FAB_MAX_PAYLOAD), matching Python. Agreement assertion extended to P>1 case."
+  }
 }
