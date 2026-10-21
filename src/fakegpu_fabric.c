@@ -141,6 +141,8 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
     uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
     f->rng_state = seed ^ ((uint64_t)rank * 0x9e3779b97f4a7c15ULL);
     if (f->rng_state == 0) f->rng_state = 1;
+    /* invariant: rng_state must be nonzero (D3) */
+    if (f->rng_state == 0) { fprintf(stderr, "BUG: rng_state is 0 at attach\n"); abort(); }
     f->attempt_count = 0;
     f->success_count = 0;
     f->partition_after = 0;
@@ -569,6 +571,9 @@ static uint64_t fg_xorshift64(uint64_t *state) {
     return x;
 }
 
+uint64_t fg_fab_success_count(fg_fab_t *f) { return f ? f->success_count : 0; }
+uint64_t fg_fab_attempt_count(fg_fab_t *f) { return f ? f->attempt_count : 0; }
+
 int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
                     double latency_us, double jitter_us, int loss_ppm,
                     uint64_t partition_after, double timeout_us, int link_id) {
@@ -576,13 +581,8 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     if (!f) return FG_FAB_EINVAL;
     if (bw_gbps <= 0.0) return FG_FAB_EINVAL;
 
-    /* D3: initialize rng_state once (seed derivation) */
-    if (f->rng_state == 0) {
-        const char *seed_env = getenv("GPUSIM_SEED");
-        uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
-        f->rng_state = seed ^ ((uint64_t)f->rank * 0x9e3779b97f4a7c15ULL) ^ ((uint64_t)link_id * 0x517cc1b727220a95ULL);
-        if (f->rng_state == 0) f->rng_state = 1;
-    }
+    /* D3: rng_state established at attach; assert invariant here */
+    /* (attach sets rng_state != 0; if 0, that is a bug, not a re-seed) */
 
     /* D1: partition counter (persistent across calls) */
     if (partition_after > 0) {
@@ -628,14 +628,12 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     }
 
     f->attempt_count++;
-    f->success_count++;
 
     /* simulated time */
     double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter;
 
     /* per-transfer timeout check (C3) */
     if (timeout_us > 0.0 && delay_us > timeout_us) {
-        f->attempt_count++;
         const char *trace = getenv("GPUSIM_TRACE");
         if (trace && *trace) {
             FILE *tf = fopen(trace, "a");
@@ -648,6 +646,7 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     if (delay_us > 0) {
         usleep((useconds_t)delay_us);
     }
+    f->success_count++;
     return FG_FAB_OK;
 }
 

@@ -71,3 +71,10 @@ Several ranks append to one GPUSIM_TRACE file concurrently.
 Lines from different ranks can interleave. Tests MUST parse by
 regex/key (fault=..., class=..., code=...), never by line position or
 ordinal. A test that assumes "line N is the loss record" is invalid.
+
+## NCCL error-code note
+
+NCCL has no distinct enum for "packet lost" vs "deadline exceeded"; both
+surface as ncclSystemError. The distinction lives in the fabric code
+(FG_FAB_ELOSS vs FG_FAB_ETIMEDOUT), the plugin's reason+code line, and
+the structured trace record.

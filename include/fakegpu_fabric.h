@@ -59,6 +59,10 @@ size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size);
 int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
                         int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 
+/* query fault-injection counters (for invariant tests) */
+uint64_t fg_fab_success_count(fg_fab_t *f);
+uint64_t fg_fab_attempt_count(fg_fab_t *f);
+
 /* apply a link's bw/latency/jitter/loss/partition/timeout to nbytes.
    loss_ppm: per-transfer drop probability (ppm). partition_after: number of
    successful transfers before the link partitions (0 = never). timeout_ns:

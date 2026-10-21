@@ -77,6 +77,25 @@ int main(int argc, char**argv) {
         if (rc != FG_FAB_ETIMEDOUT) { printf("FAIL timeout\n"); return 1; }
     }
 
+    /* Test 6: timeout does not count as success (invariant pin) */
+    {
+        fg_fab_detach(f);
+        f = fg_fab_attach("testfault6", 1, 0, nranks, 1000000000ULL, NULL);
+        uint64_t before = fg_fab_success_count(f);
+        /* delay = 5.08 us, timeout = 1 us -> should fail */
+        int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 0, 1.0, 0);
+        uint64_t after_fail = fg_fab_success_count(f);
+        printf("invariant: rc=%d (expect ETIMEDOUT), success before=%lu after_fail=%lu (expect equal)\n",
+               rc, (unsigned long)before, (unsigned long)after_fail);
+        if (rc != FG_FAB_ETIMEDOUT || before != after_fail) { printf("FAIL invariant_timeout_success\n"); return 1; }
+        /* a completed transfer (no timeout) should advance success */
+        rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 0, 0.0, 0);
+        uint64_t after_ok = fg_fab_success_count(f);
+        printf("invariant: rc=%d (expect OK), success after_ok=%lu (expect %lu)\n",
+               rc, (unsigned long)after_ok, (unsigned long)(before + 1));
+        if (rc != FG_FAB_OK || after_ok != before + 1) { printf("FAIL invariant_success_increment\n"); return 1; }
+    }
+
     fg_fab_detach(f);
     printf("ALL FAULT TESTS PASS\n");
     return 0;
