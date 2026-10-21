@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-4yw",
+  "gpu_jobs": [],
+  "cpu_runs": [
+    {
+      "description": "leg1 model vs measured wire bytes",
+      "command": "python3 leg1.py",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-4yw/leg1_results.json"
+    },
+    {
+      "description": "leg2 fabric regime sweep (descriptive)",
+      "command": "python3 leg2.py",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-4yw/leg2_results.json"
+    }
+  ]
+}
