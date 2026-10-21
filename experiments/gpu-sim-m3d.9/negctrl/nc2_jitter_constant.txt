@@ -1,1 +1,9 @@
-NC2: jitter constant -> variance 0 (would fail variance assertion)
+loss_1e6: drops=10/10 (expect 10)
+loss_0: drops=0/10 (expect 0)
+partition_k3: ok=3 timeout=2 (expect ok=3, timeout=2)
+jitter: ok=5/5
+timeout: rc=1 (expect ETIMEDOUT=1)
+invariant: rc=1 (expect ETIMEDOUT), success before=0 after_fail=0 (expect equal)
+invariant: rc=0 (expect OK), success after_ok=1 (expect 1)
+jitter_variance: n=20 drawn values
+FAIL jitter_variance (all draws identical or too few)

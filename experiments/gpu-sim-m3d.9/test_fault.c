@@ -96,6 +96,40 @@ int main(int argc, char**argv) {
         if (rc != FG_FAB_OK || after_ok != before + 1) { printf("FAIL invariant_success_increment\n"); return 1; }
     }
 
+    /* Test 7: jitter draws vary (not constant) */
+    {
+        const char *tracepath = "/tmp/scratchpad/jitter_trace.txt";
+        setenv("GPUSIM_TRACE", tracepath, 1);
+        /* remove old trace */
+        remove(tracepath);
+        fg_fab_detach(f);
+        f = fg_fab_attach("testfault7", 1, 0, nranks, 1000000000ULL, NULL);
+        for (int i = 0; i < 20; i++) {
+            fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 10.0, 0, 0, 0.0, 0);
+        }
+        /* parse trace for drawn_us values */
+        FILE *tf = fopen(tracepath, "r");
+        char line[256];
+        double vals[20]; int nvals = 0;
+        if (tf) {
+            while (fgets(line, sizeof(line), tf) && nvals < 20) {
+                char *p = strstr(line, "drawn_us=");
+                if (p) { vals[nvals++] = atof(p + 9); }
+            }
+            fclose(tf);
+        }
+        printf("jitter_variance: n=%d drawn values\n", nvals);
+        int all_same = 1;
+        for (int i = 1; i < nvals; i++) {
+            if (vals[i] != vals[0]) { all_same = 0; break; }
+        }
+        if (nvals < 2 || all_same) {
+            printf("FAIL jitter_variance (all draws identical or too few)\n");
+            return 1;
+        }
+        printf("PASS jitter_variance (draws vary)\n");
+    }
+
     fg_fab_detach(f);
     printf("ALL FAULT TESTS PASS\n");
     return 0;
