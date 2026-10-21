@@ -410,7 +410,6 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
         else { bf = 1.0; lf = 1.0; }
         /* pkb: pieces per phase P = ceil(chunk(n)*S / FG_FAB_MAX_PAYLOAD).
            lat_term scaled by P (per-isend accounting). Mirrors Python. */
-        double chunk_bytes = chunk * (double)S;
         int P;
         if (n == 2 && S <= 4096) P = 1;           /* phase-payload table */
         else if (n == 2 && S <= 262144) P = 4;    /* phase-payload table */

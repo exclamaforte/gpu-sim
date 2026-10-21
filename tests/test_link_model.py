@@ -200,11 +200,13 @@ def test_cli_valid():
 def test_ring_n2_derivation():
     """gpu-sim-ggh: n=2 ring byte factor corrected to 1.0 (was 2.0).
 
-    eut committed traces (experiments/gpu-sim-pkb/traces/) show per-rank byte
-    factor 1.00 at every clean size (4KiB..2MiB), matching the standard ring
-    formula 2*(n-1)/n = 1.0 at n=2. Per-rank wire bytes are now S (not 2*S).
+    eut committed traces show per-rank byte factor 1.00 at the clean sizes
+    (512KiB, 1MiB, 2MiB, two runs each); 4KiB ranks disagree and 64-384KiB
+    are INVALID under eut's exact-multiple gate. Standard ring formula
+    2*(n-1)/n = 1.0 at n=2. Per-rank wire bytes are now S (not 2*S).
     Latency factor unchanged (2*alpha). NEGATIVE CONTROL: the old 2*S factor
     must NOT satisfy the corrected check.
+    Cite: experiments/gpu-sim-pkb/traces/ (eut, commit 3a96591).
     """
     n, count = 2, 1024
     S = count * 4
@@ -230,7 +232,7 @@ def test_ring_n2_derivation():
 
 
 def test_negative_control_old_byte_factor():
-    """gpu-sim-8sy item 4: old byte factor (S) must FAIL against corrected (2*S)."""
+    """gpu-sim-ggh: old 2*S byte factor must FAIL against corrected 1*S (eut)."""
     n, count = 2, 1024
     S = count * 4
     B_gbps, alpha_us = 100.0, 5.0
