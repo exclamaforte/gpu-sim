@@ -6,5 +6,8 @@
   "probe_0c": "PASS: no libcuda.so.1 in /proc/self/maps (no real driver loaded)",
   "nccl_build": "v2.32.3-1 dynamic cudart (libcudart.so.13, 72 undefined cuda* symbols)",
   "device_count_source": "FAKEGPU_NUM_DEVICES env (needs update to read from GPUSIM_TOPOLOGY spec)",
-  "gpu_used": false
+  "gpu_used": false,
+  "probe_0c_detail": "No libcuda.so.1 in /proc/self/maps. Runtime interposer (libfakegpu.so) handles all cuda* calls; driver API (cu*) not needed by dynamic-cudart NCCL. cuGetProcAddress leak is in fakecuda (driver shim), not relevant to 6kp.",
+  "seam": "runtime interposer (libfakegpu.so), not driver interposer (libfakecuda.so)",
+  "driver_loaded": false
 }
