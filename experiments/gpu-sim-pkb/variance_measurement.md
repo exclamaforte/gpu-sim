@@ -18,8 +18,11 @@ Values (us): 283575, 6826, 4641746337, 10365, 6954, 10334, 6764, 6771,
 
 - First iter 283575 us (init overhead, excluded from spread).
 - Median of remaining: ~6830 us.
-- Outlier kept in record: 4641746337 us (single 4.6 s spike).
-- Spread (max-min, excluding init): ~4.6e9 us, dominated by the one outlier.
+- Entry 4641746337 us is a TIMER ARTIFACT, not a measurement: it implies a 4641 s
+  iteration, which the run's own duration cannot contain. Kept in raw/iters_4k.log,
+  excluded from all spread computations. It is NOT a statistic.
+- Spread (max-min, excluding init and the timer artifact): 52980 - 6677 = 46303 us
+  (still dominated by scheduler noise, not the artifact).
 
 ## 2 MiB (524288 floats, 5 iterations)
 
