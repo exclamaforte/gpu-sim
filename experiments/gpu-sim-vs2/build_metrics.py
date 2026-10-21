@@ -46,6 +46,8 @@ metrics = {
         "S2_sessions_total": len(s2),
     },
     "decision_rule": "S2 ADMITS iff spread <= 36.2 us in >=2 of 3 sessions AND median spread <= 36.2 us.",
+    "prediction_correct": (verdict == "NOT-A-QUOTA-EFFECT"),
+    "s2_admits": s2_admits,
     "verdict": verdict,
     "verdict_detail": "%s: S2 spreads %s us, median %.1f us; %d/%d sessions <= 36.2 us." % (
         verdict, s2_spreads, s2_median, s2_admit_count, len(s2)),
