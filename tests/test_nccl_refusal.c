@@ -6,7 +6,7 @@
 
 int main() {
     char err[256];
-    fg_topo_t *t = fg_topo_load("/tmp/topo_p1.bin", err, sizeof(err));
+    fg_topo_t *t = fg_topo_load("tests/topo_p1.bin", err, sizeof(err));
     if (!t) { printf("load failed: %s\n", err); return 1; }
     int bl = -1;
     char regime[64];

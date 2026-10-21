@@ -61,7 +61,8 @@ tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 # validation of gpu-sim-8dw -- was true here and unreproducible elsewhere.
 check: guard-build-inputs $(LIB)
 	@python3 tests/test_model_fault.py
-	@$(CC) $(CFLAGS) -Iinclude -Ishim -o build/test_nccl_refusal tests/test_nccl_refusal.c src/fakegpu_nccl.c src/fakegpu_topology.c src/fakegpu_config.c src/fakegpu_random.c src/fakegpu_latency.c -lpthread -lrt -ldl -lm
+	@python3 scripts/check_guard_uniqueness.py
+	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_nccl_refusal tests/test_nccl_refusal.c -L. -lfakegpu -Wl,-rpath,$(CURDIR) -lpthread -lrt -ldl -lm
 	@build/test_nccl_refusal
 	@python3 scripts/gen_growth_list.py --check
 	@python3 experiments/gpu-sim-6kp/test_net_plugin.py
