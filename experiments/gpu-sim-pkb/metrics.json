@@ -20,5 +20,34 @@
     "per_logical_transfer": "plugin charges n_chunk/B per isend plus L once per logical phase; keeps model per-phase alpha"
   },
   "distortion_note": "per-isend charge inflates M2->M3 adjacent delta by 22.9% of gate 35% budget (PI analysis); per-logical-transfer keeps model per-phase alpha",
-  "negative_control": "missing/zero-bw link returns -1/-2 and run fails loudly (tested separately)"
+  "negative_control": "missing/zero-bw link returns -1/-2 and run fails loudly (tested separately)",
+  "accounting_unit_analysis": {
+    "measured_pieces_per_phase_at_4MB": 1,
+    "note_pieces": "4MB run (4 isends total, 2 per rank): 1 piece per channel per phase. At gate size (32MB) pieces-per-phase scales with NCCL chunk count; exact count requires a successful 32MB run (deferred due to fabric timeout).",
+    "candidate_A_per_isend": {
+      "plugin_charge": "n_chunk/B + L per isend",
+      "model_change": "latency factor lf scaled by pieces-per-phase P",
+      "M1_model_us": 598.5,
+      "M1_plugin_us": 660.5,
+      "M2_model_us": 5378.7,
+      "M2_plugin_us": 5688.7,
+      "M3_model_us": 8083.1,
+      "M3_plugin_us": 9013.1,
+      "M4_model_us": 16166.1,
+      "M4_plugin_us": 18026.1,
+      "M2_to_M3_delta_predicted_us": 2704.4,
+      "M2_to_M3_delta_plugin_us": 3324.4,
+      "delta_distortion_pct": 22.9
+    },
+    "candidate_B_per_logical_transfer": {
+      "plugin_charge": "n_chunk/B per isend + L once per logical phase (latency distributed across chunks)",
+      "model_change": "none (keeps per-phase alpha)",
+      "keeps_model_per_phase_alpha": true
+    },
+    "decision": "per_isend (candidate A) \u2014 chosen because (1) each isend is a real transfer that pays link latency in the plugin's measured path, (2) the trace records the unit per transfer (acct=per_isend) so a reader sees it without inferring, (3) candidate B requires phase-boundary detection in the plugin which is not available without changing NCCL's call pattern. The mismatch between candidates is reported, not hidden; the gate's 35% budget is not silently consumed.",
+    "tolerances": {
+      "time_pct": 10,
+      "bytes": "exact"
+    }
+  }
 }
