@@ -17,7 +17,23 @@ does not spend the modelled time produces a constant-factor error that the
 per-config comparison would quietly absorb). So this script EXITS 2 with a
 precise reason rather than emitting a verdict it cannot support, and it exits 1
 for a FAILING verdict (which is a real, reported result) and 0 for a passing
-one. It also refuses to compare quantities whose provenance it cannot check:
+one.
+
+TWO SHAPES OF INPUT, because the gate has two possible outcomes and they are NOT
+the same statement. (a) A measured artifact (schema m3d.10/gate-metrics/1) goes
+through the full comparison below. (b) A PRE-RUN REJECTION artifact (schema
+m3d.10/gate-admissibility/1) records that no config set was admissible because
+4b's spread clause cannot be met on this hardware; criterion 4b is a PRE-RUN
+constraint, so the correct computed verdict there is NO-CLOSE-ADMISSIBILITY
+(exit 1, a reported result) and NOT a refusal. Conflating the two would be a
+false statement in either direction: a refusal says 'the inputs cannot support
+any verdict', while NO-CLOSE-ADMISSIBILITY says 'the inputs support exactly this
+one'. The admissibility path is guarded so that it can never be used to avoid a
+run: it refuses (exit 2) if the recorded proxy spread would actually SATISFY 4b.
+In both shapes the verdict is COMPUTED from numbers and the artifact's own
+stated verdict is only ever CROSS-CHECKED against the computation -- never
+echoed, because a judge that reads its verdict from the file it is judging is a
+formula compared with itself. It also refuses to compare quantities whose provenance it cannot check:
 the model durations must come from the model, the measured durations from the
 runs, and the two are never derived from one another.
 
@@ -114,6 +130,7 @@ ARTIFACT_ALLOWANCE_CAP = 0.20
 RUNS_PER_CONFIG = 3
 TRACKING_TOLERANCE_PCT = 10.0
 SCHEMA = "m3d.10/gate-metrics/1"
+ADMISSIBILITY_SCHEMA = "m3d.10/gate-admissibility/1"
 KILL_TEST_MAX_EXIT_S = 10.0
 KILL_TEST_ERROR_MARKER = "EPEERDEAD"
 PLUGIN_LOG_REQUIRED = ("NET/Plugin: Loaded net plugin", "Assigned NET plugin",
@@ -160,8 +177,9 @@ def load(path):
         raise Refused(f"cannot read metrics file {path}: {e}")
     if not isinstance(data, dict):
         raise Refused("metrics file is not a JSON object")
-    if data.get("schema") != SCHEMA:
-        raise Refused(f"schema mismatch: expected '{SCHEMA}', got {data.get('schema')!r}")
+    if data.get("schema") not in (SCHEMA, ADMISSIBILITY_SCHEMA):
+        raise Refused(f"schema mismatch: expected '{SCHEMA}' or "
+                      f"'{ADMISSIBILITY_SCHEMA}', got {data.get('schema')!r}")
     return data
 
 
@@ -243,6 +261,112 @@ def check_config(name, cfg):
     }
 
 
+def emit_admissibility(data, out_path):
+    """The PRE-RUN path: no config set was admissible, so the gate never ran.
+
+    This is a POSITIVE finding about the measurement environment, not a refusal.
+    Criterion 4b is a pre-run constraint, so when its spread clause cannot be met
+    the config set is rejected BEFORE any run, and the honest outcome is
+    NO-CLOSE-ADMISSIBILITY rather than 'the inputs cannot support a verdict'.
+
+    The verdict is computed from the artifact's own NUMBERS. The artifact's stated
+    verdict is cross-checked against that computation and refused if they disagree
+    -- it is never used AS the verdict, because a judge that reads its answer from
+    the file it judges is a formula compared with itself.
+
+    The guard that keeps this path honest: if the recorded proxy spread would
+    actually SATISFY 4b, an admissible set may exist and the gate must RUN, so the
+    script refuses instead of reporting NO-CLOSE. The path can therefore never be
+    used to avoid a run, only to document that a run was impossible.
+    """
+    where = "admissibility"
+    d_pred = need_num(data, "d_pred_M1M2_us", where)
+    if d_pred <= 0:
+        raise Refused("d_pred_M1M2_us must be positive")
+    max_spread = need_num(data, "max_tolerable_spread_us", where)
+    proxy = need_num(data, "noise_floor_proxy_us", where)
+
+    pc = need(data, "per_criterion", where)
+    if not isinstance(pc, dict):
+        raise Refused("per_criterion is not an object")
+    status = pc.get("4b_10x_spread")
+    if not isinstance(status, str) or not status.upper().startswith("UNMET"):
+        raise Refused("per_criterion.4b_10x_spread is not recorded UNMET, so this "
+                      "artifact is not a pre-run rejection and must not take the "
+                      "admissibility path")
+
+    refused = need(data, "rejected_alternatives", where)
+    if not refused:
+        raise Refused("rejected_alternatives is empty: the second ground -- the "
+                      "unmeasured n=4 pieces-per-phase -- has no record to cite")
+
+    negatives = need(data, "what_was_not_done", where)
+    if not isinstance(negatives, list) or not negatives:
+        raise Refused("what_was_not_done is empty: a negative artifact must state "
+                      "its own negatives, and this path is unauditable without them")
+
+    # The 4b relation must hold in the artifact's OWN numbers: the tolerable
+    # spread is d_pred/10 and no wider. Numbers implying a wider bound have
+    # widened the pre-registered clause, and that is refused, not accepted.
+    implied = d_pred / RESOLVABILITY_SPREAD_MULTIPLE
+    if abs(max_spread - implied) / implied > 0.01:
+        raise Refused(f"max_tolerable_spread_us {max_spread} is not d_pred/10 "
+                      f"({implied:.1f}) within 1% -- the pre-registered 4b clause "
+                      f"has been widened or miscomputed in the artifact")
+
+    # THE GUARD: a proxy spread that satisfies 4b means a set may be admissible.
+    if proxy <= max_spread:
+        raise Refused(f"proxy spread {proxy}us does not violate 4b's {max_spread}us "
+                      f"bound, so a config set may be admissible and the gate must "
+                      f"run; no measured rows are present, so no verdict is supported")
+
+    ratio = proxy / max_spread
+    verdict = "NO-CLOSE-ADMISSIBILITY"
+
+    stated = data.get("gate_verdict")
+    if stated is not None and not str(stated).startswith("NO-CLOSE"):
+        raise Refused(f"the artifact states verdict {stated!r}, which its own numbers "
+                      f"do not support (computed: {verdict})")
+
+    grounds = [
+        (f"G1: 4b's pre-run spread clause cannot be satisfied by any spread this box "
+         f"delivers -- {max_spread:.1f}us required, proxy spread {proxy:.0f}us "
+         f"({ratio:.0f}x larger), so the config set is REJECTED BEFORE THE RUN"),
+        (f"G2: {len(refused)} config(s) refused for want of a MEASURED n=4 "
+         f"pieces-per-phase; the model refuses rather than deriving P from the "
+         f"fabric's cap, which undercounts the piece count by four at 2 MiB"),
+    ]
+    report = {
+        "verdict": verdict,
+        "schema": ADMISSIBILITY_SCHEMA,
+        "gate_ran": False,
+        "grounds": grounds,
+        "arithmetic": {
+            "d_pred_M1M2_us": d_pred,
+            "max_tolerable_spread_us": max_spread,
+            "implied_d_pred_over_10": round(implied, 3),
+            "noise_floor_proxy_us": proxy,
+            "violation_factor": round(ratio, 1),
+        },
+        "what_was_not_done": negatives,
+        "criteria_not_applicable": ["2", "3", "9a", "9b", "9c"],
+        "claim": ("no config set is admissible on this hardware, so the gate does not "
+                  "run: a finding about the measurement environment and an unmeasured "
+                  "input, not about the model or the simulator"),
+        "tolerances": {"resolvability_spread_multiple": RESOLVABILITY_SPREAD_MULTIPLE},
+        "stated_verdict_in_artifact": stated,
+    }
+    if out_path:
+        with open(out_path, "w") as f:
+            json.dump(report, f, indent=2, sort_keys=True)
+    print(json.dumps({"verdict": verdict, "gate_ran": False,
+                      "violation_factor": round(ratio, 1),
+                      "grounds": grounds}, indent=2))
+    print("\nVERDICT: NO-CLOSE-ADMISSIBILITY -- no config set is admissible here, so "
+          "the gate was not run. A reported result, not a refusal.", file=sys.stderr)
+    return 1
+
+
 def main(argv):
     if len(argv) < 2:
         print("usage: verdict.py gate_metrics.json [--json OUT.json]", file=sys.stderr)
@@ -258,6 +382,8 @@ def main(argv):
 
     try:
         data = load(path)
+        if data.get("schema") == ADMISSIBILITY_SCHEMA:
+            return emit_admissibility(data, out_path)
         payload = int(need_num(data, "payload_bytes", "root"))
         configs_raw = need(data, "configs", "root")
         if not isinstance(configs_raw, dict) or len(configs_raw) < 2:
