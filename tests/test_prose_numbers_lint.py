@@ -95,6 +95,58 @@ class TestProseNumbers(unittest.TestCase):
         finally:
             tmp.unlink(missing_ok=True)
 
+    def test_cross_bead_citation_is_a_finding(self):
+        """Review (b): borrowing another bead's artifact must be declared."""
+        tmp = PKB / "CROSSBEAD_tmp_results.md"
+        try:
+            tmp.write_text(
+                "# cross-bead\n\nCite: experiments/gpu-sim-4tw/sweep.txt\n\n"
+                "| S | factor |\n|---|---|\n| 524288 | 1.00 |\n"
+            )
+            code, out = run(tmp)
+            self.assertEqual(code, 1, out)
+            self.assertIn("from ANOTHER bead without declaring it", out)
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_wildcard_citation_is_a_finding(self):
+        """Review (c): a citation that names no file proves nothing."""
+        tmp = PKB / "WILDCARD_tmp_results.md"
+        try:
+            tmp.write_text("# wild\n\nCite: traces/*.log\n\n| S | factor |\n|---|---|\n| 524288 | 1.00 |\n")
+            code, out = run(tmp)
+            self.assertEqual(code, 1, out)
+            self.assertIn("is a wildcard", out)
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_run_count_without_a_size_is_a_finding(self):
+        """Review (3): '6/6 runs' with no size is unverifiable, not passing."""
+        tmp = PKB / "NOSIZECOUNT_tmp_results.md"
+        try:
+            tmp.write_text(
+                "# nosize\n\nCite: reduction_output.txt\n\nWe ran it 6/6 runs cleanly.\n"
+            )
+            code, out = run(tmp)
+            self.assertEqual(code, 1, out)
+            self.assertIn("names no size", out)
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_fenced_quotation_is_not_a_claim(self):
+        """A verbatim quote of rejected text in a fence must not count as a claim."""
+        tmp = PKB / "FENCE_tmp_results.md"
+        try:
+            tmp.write_text(
+                "# fence\n\nCite: reduction_output.txt\n\n"
+                "The rejected version said:\n\n```\nfactor 9.99 after dedup\n```\n"
+                "| S | factor |\n|---|---|\n| 524288 | 1.00 |\n"
+            )
+            code, out = run(tmp)
+            self.assertEqual(code, 0, out)
+        finally:
+            tmp.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
