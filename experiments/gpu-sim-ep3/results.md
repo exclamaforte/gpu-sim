@@ -56,6 +56,22 @@ has no idle capacity at any granularity: not the box (`s9j`), not the core
   appears would be noise-mining; the pre-registration fixes one sample per pass,
   and the pass was taken.
 
+## Limitation of this pass — stated so the finding is not over-claimed
+
+This is **one** 5 s sample (n=1 pass), taken at the low end of the load range
+this direction has observed (`tfq` saw load 19–59 across its windows; this
+sample's loadavg was 19.68/25.55/29.34). A quiet core could in principle exist at
+another moment. What the sample supports is exactly the claim made — **at sample
+time the least busy of 32 cores was 35.8 % occupied** — plus the inference that a
+core below 25 % is unlikely on a box whose cores run 36–90 % busy.
+
+What it does **not** support is "no quiet core ever exists here". Testing that
+needs a pre-registered **multi-sample** pass (N samples over T minutes, take the
+best core observed, same 0.25 threshold and decision rule) — a different
+protocol, and therefore a different bead. Re-sampling now, after seeing this
+result, would be sampling until it looks good, which is what this direction
+pre-registered as forbidden; it was not done.
+
 ## What would answer the timing question
 
 An execution resource with no neighbours: an exclusive core (cpu pinning plus an

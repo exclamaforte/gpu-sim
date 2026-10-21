@@ -27,5 +27,6 @@
   "changes": "attribution of the timing limit: not ambient, not our cgroup's parallelism, but that this shared 32-core box has no uncontended execution resource at core granularity",
   "statistic_agreement": "check_statistic_agreement.py -> AGREEMENT OK (spread.py vs verdict.py on iters_2k.iters_4k raw logs)",
   "pre_registration": "experiments/gpu-sim-ep3/pre_registration.md",
-  "clarification_flagged": "utilisation span 200ms (ep3 pre-reg \u00a75), because /proc/stat granularity is 10ms and a ~20ms window cannot support a finer estimate; threshold and decision rule unchanged"
+  "clarification_flagged": "utilisation span 200ms (ep3 pre-reg \u00a75), because /proc/stat granularity is 10ms and a ~20ms window cannot support a finer estimate; threshold and decision rule unchanged",
+  "limitation": "single 5s sample (n=1 pass) at loadavg 19.68/25.55/29.34 (low end of the 19-59 range observed in tfq). Supports 'least-busy of 32 cores was 35.8% at sample time'; does NOT support 'no quiet core ever exists'. A pre-registered multi-sample pass would test that and is a different protocol."
 }
