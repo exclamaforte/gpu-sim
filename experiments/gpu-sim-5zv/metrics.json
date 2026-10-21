@@ -1,0 +1,19 @@
+{
+    "bead": "gpu-sim-5zv",
+    "acceptance": {
+        "AC1_loss_factor": "MET - 1/(1-p) derived in test, not hardcoded",
+        "AC2_deadline_exceedance": "MET - binned convolution (100 bins), convergence checked",
+        "AC3_jitter_mean_sd": "MET - model predicts mean/sd; fabric draws within +/-5%/+/-15% (artifact committed)",
+        "AC4_route_agreement": "PARTIAL - model side MET (3 settings); plugin side REFUSED for settings 2-3 (no multi-rank compute route)",
+        "AC5_refusal_unchanged": "MET - n>=3 raises, test_chunk_rule_refusal passes",
+        "AC6_demonstrated_red": "MET - 4 RED outputs committed (closed form, enumeration, mean formula, make check)",
+        "AC7_cpu_only": "MET - no GPU, no ts job"
+    },
+    "artifacts": {
+        "jitter_draws_comparison": "experiments/gpu-sim-5zv/jitter_draws_comparison.md",
+        "route_agreement": "experiments/gpu-sim-5zv/route_agreement.md",
+        "negctrl": "experiments/gpu-sim-5zv/negctrl/"
+    },
+    "tests": "tests/test_model_fault.py (8 tests, all PASS)",
+    "make_check": "wired, green normally, RED with closed form broken"
+}

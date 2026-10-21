@@ -1,0 +1,32 @@
+bash tests/assert_build_inputs_tracked.sh
+  ok   src/fakecuda.c tracked
+  ok   src/fakegpu_config.c tracked
+  ok   src/fakegpu_cuda.c tracked
+  ok   src/fakegpu_fabric.c tracked
+  ok   src/fakegpu_latency.c tracked
+  ok   src/fakegpu_nccl.c tracked
+  ok   src/fakegpu_pool.c tracked
+  ok   src/fakegpu_random.c tracked
+  ok   src/fakegpu_topology.c tracked
+  ok   include/fakegpu.h tracked
+  ok   shim/cuda_runtime.h tracked
+  ok   shim/nccl.h tracked
+  ok   tests/fake_client.c tracked
+  ok   tests/vector_add.c tracked
+  ok   tests/ring_allreduce.c tracked
+  ok   tests/test_cudart_none.cu tracked
+  ok   tests/test_cudart_none.sh tracked
+  ok   tests/test_device_prop_overlay.cu tracked
+  ok   tests/test_shim_prop_size.c tracked
+  ok   tests/test_resolver_attach.c tracked
+
+BUILD INPUTS GUARD PASSED: all 20 build inputs are tracked.
+Traceback (most recent call last):
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-5zv/tests/test_model_fault.py", line 186, in <module>
+    test_loss_factor_closed_form()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-5zv/tests/test_model_fault.py", line 52, in test_loss_factor_closed_form
+    assert abs(rec["loss_factor"] - 1.0/(1.0-p)) < 1e-9
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+make: *** [Makefile:63: check] Error 1
