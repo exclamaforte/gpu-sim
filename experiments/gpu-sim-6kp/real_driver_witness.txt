@@ -30,9 +30,9 @@ LD_DEBUG=files output:
 LD_DEBUG=bindings on probe_nccl4: only 2 shim exports bound:
   - cudaGetDeviceCount
   - cudaSetDevice
-Both are in the shim's 67. The NCCL run never calls a non-covered API, so the
+Both are in the shim's covered 51. The NCCL run never calls a non-covered API, so the
 real driver is never reached internally. "not mapped in the NCCL run" is
-EXPLAINED, not merely observed: the exercised set stays inside the shim's 67.
+EXPLAINED, not merely observed: the exercised set stays inside the covered 51.
 
 ## Conclusion (verbatim from PI)
 The shim covers 51 of cudart's 442 runtime entry points (391 uncovered; 16 of
@@ -43,9 +43,3 @@ cudaDeviceCanAccessPeer, whose call maps libcuda.so.615.78.08. The 2-rank NCCL
 probe binds only cudaGetDeviceCount and cudaSetDevice, both covered, which is
 why the real driver is NOT mapped in that run.
 
-## Conclusion
-Device count/identity come from the shim. Memory/topology/NVML come from the
-real driver when a non-covered API is called (demonstrated: cudaDeviceCanAccessPeer
-loads libcuda.so.615.78.08). The NCCL run exercises only covered APIs, so the
-real driver is not mapped in that run. A broader workload calling non-covered
-APIs would load the real driver.
