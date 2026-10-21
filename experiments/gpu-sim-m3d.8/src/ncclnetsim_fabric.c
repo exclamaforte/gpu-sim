@@ -59,7 +59,7 @@ static fg_topo_t *plugin_topo(void) {
 static int plugin_resolve_link(int src_rank, int dst_rank, int *link_id,
                               double *bw_gbps, double *latency_us,
                               double *jitter_us, int *loss_ppm,
-                              uint64_t *partition_after) {
+                              uint64_t *partition_after, double *timeout_us) {
     fg_topo_t *t = plugin_topo();
     if (!t) return -1;
     fg_topo_rank_t *sr = NULL, *dr = NULL;
@@ -84,6 +84,7 @@ static int plugin_resolve_link(int src_rank, int dst_rank, int *link_id,
             if (jitter_us) *jitter_us = t->links[i].jitter_us;
             if (loss_ppm) *loss_ppm = t->links[i].loss_ppm;
             if (partition_after) *partition_after = t->links[i].partition_after;
+            if (timeout_us) *timeout_us = t->links[i].timeout_us;
             return 0;
         }
     }
@@ -253,10 +254,11 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     double bw_gbps = 0.0, lat_us = 0.0, jit_us = 0.0;
     int loss_ppm = 0;
     uint64_t partition_after = 0;
+    double timeout_us = 0.0;
     int have_link = 0;
     const char *tp = getenv("GPUSIM_TOPOLOGY");
     if (tp && *tp) {
-        int rr = plugin_resolve_link(MY_RANK, sc->peer, &link_id, &bw_gbps, &lat_us, &jit_us, &loss_ppm, &partition_after);
+        int rr = plugin_resolve_link(MY_RANK, sc->peer, &link_id, &bw_gbps, &lat_us, &jit_us, &loss_ppm, &partition_after, &timeout_us);
         if (rr == -2) {
             fprintf(stderr, "plugin: zero-bandwidth link between rank %d and %d\n", MY_RANK, sc->peer);
             return ncclSystemError;
@@ -273,7 +275,7 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     double delay_us = 0.0;
     if (have_link) {
         delay_us = (double)size / (bw_gbps * 125.0) + lat_us + jit_us;
-        int rc = fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, jit_us, loss_ppm, partition_after, link_id);
+        int rc = fg_fab_transfer(FAB, 0, size, bw_gbps, lat_us, jit_us, loss_ppm, partition_after, timeout_us, link_id);
         if (rc != FG_FAB_OK) {
             const char *reason = "unknown";
             if (rc == FG_FAB_ELOSS) reason = "loss";

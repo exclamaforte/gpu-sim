@@ -18,7 +18,7 @@ int main(int argc, char**argv) {
     {
         int drops = 0;
         for (int i = 0; i < 10; i++) {
-            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 1000000, 0, 0);
+            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 1000000, 0, 0.0, 0);
             if (rc == FG_FAB_ELOSS) drops++;
         }
         printf("loss_1e6: drops=%d/10 (expect 10)\n", drops);
@@ -32,7 +32,7 @@ int main(int argc, char**argv) {
         f = fg_fab_attach("testfault2", 1, 0, nranks, 1000000000ULL, NULL);
         int drops = 0;
         for (int i = 0; i < 10; i++) {
-            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 0, 0);
+            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 0, 0.0, 0);
             if (rc == FG_FAB_ELOSS) drops++;
         }
         printf("loss_0: drops=%d/10 (expect 0)\n", drops);
@@ -45,7 +45,7 @@ int main(int argc, char**argv) {
         f = fg_fab_attach("testfault3", 1, 0, nranks, 1000000000ULL, NULL);
         int ok = 0, to = 0;
         for (int i = 0; i < 5; i++) {
-            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 3, 0);
+            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 3, 0.0, 0);
             if (rc == FG_FAB_OK) ok++;
             else if (rc == FG_FAB_ETIMEDOUT) to++;
         }
@@ -60,11 +60,21 @@ int main(int argc, char**argv) {
         /* Just verify it doesn't crash and returns OK */
         int ok = 0;
         for (int i = 0; i < 5; i++) {
-            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 10.0, 0, 0, 0);
+            int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 10.0, 0, 0, 0.0, 0);
             if (rc == FG_FAB_OK) ok++;
         }
         printf("jitter: ok=%d/5\n", ok);
         if (ok != 5) { printf("FAIL jitter\n"); return 1; }
+    }
+
+    /* Test 5: timeout (deadline smaller than delay) */
+    {
+        fg_fab_detach(f);
+        f = fg_fab_attach("testfault5", 1, 0, nranks, 1000000000ULL, NULL);
+        /* delay = 1024/(100*125) + 5 = 5.08 us; set timeout to 1 us */
+        int rc = fg_fab_transfer(f, 0, 1024, 100.0, 5.0, 0.0, 0, 0, 1.0, 0);
+        printf("timeout: rc=%d (expect ETIMEDOUT=%d)\n", rc, FG_FAB_ETIMEDOUT);
+        if (rc != FG_FAB_ETIMEDOUT) { printf("FAIL timeout\n"); return 1; }
     }
 
     fg_fab_detach(f);

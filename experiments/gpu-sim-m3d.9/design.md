@@ -8,7 +8,7 @@
 - Expected CODE: FG_FAB_ELOSS (or ncclSystemError via plugin) on dropped transfer
 - Trace field: fault=loss decision=drop rng=<value>
 - Not a delay: loss means failure, not slower
-- Negative control: break the RNG seed (use 0), show loss rate becomes deterministic/uniform (not seeded), test RED
+- Negative control: declare p, implement a different rate (e.g. p/2), show binomial bound fails, test RED
 - Statistical test: loss bound computed from declared p and n (binomial), not observed rate
 - Refusal: none (reachable on this box)
 
@@ -18,7 +18,7 @@
 - Expected CODE: FG_FAB_OK (jitter is a delay variation, not an error)
 - Tolerance: pre-registered, may not be widened after seeing numbers
 - Trace field: fault=jitter drawn_us=<value>
-- Negative control: set jitter=0, show no variance in duration, test RED
+- Negative control: declare J, draw 0 for every transfer (constant), show variance check fails, test RED
 - Refusal: none (reachable on this box)
 
 ### 3. Partition (shared_group declared partitioned)
@@ -27,7 +27,7 @@
 - Expected CODE: ETIMEDOUT
 - Trace field: fault=timeout elapsed_us=<value> deadline_us=<value> (slow/partitioned), NOT EPEERDEAD (dead peer)
 - Trace field: fault=partition transfer_count=<k>
-- Negative control: remove the partition declaration, show transfers succeed, test RED
+- Negative control: declare k, make the counter ineffective (never increment), show partition never triggers, test RED
 - Refusal: "network partition" cannot be a real packet filter on this box (one shm fabric). The stand-in is: shared_group partition after k transfers. Named as stand-in.
 
 ### 4. Timeout (hard deadline per transfer)
@@ -36,7 +36,7 @@
 - Expected CODE: ETIMEDOUT
 - Trace field: fault=timeout elapsed_us=<value> deadline_us=<value>
 - No unbounded sleep or spin (wpw contract: bounded FUTEX_WAIT)
-- Negative control: set deadline to 0, show every transfer times out, test RED
+- Negative control: make the deadline check a no-op (always pass), show timeout never fires, test RED
 - Refusal: none (reachable on this box)
 
 ### 5. Loss bound (statistical)
@@ -56,10 +56,10 @@
 ## Injection point summary
 | Fault | Injection point | Expected CODE | Negative control |
 |-------|----------------|---------------|------------------|
-| loss | fabric (fg_fab_transfer) | FG_FAB_EINVAL/ncclSystemError | break RNG seed |
-| jitter | fabric + model | FG_FAB_OK (delay variation) | jitter=0 -> no variance |
-| partition | fabric (shared_group) | ETIMEDOUT | remove partition decl |
-| timeout | fabric (deadline) | ETIMEDOUT | deadline=0 -> all timeout |
+| loss | fabric (fg_fab_transfer) | FG_FAB_ELOSS/ncclSystemError | declare p, implement different rate |
+| jitter | fabric + model | FG_FAB_OK (delay variation) | declare J, draw 0 -> no variance |
+| partition | fabric (shared_group) | ETIMEDOUT | declare k, counter ineffective |
+| timeout | fabric (deadline) | ETIMEDOUT | deadline check no-op |
 | dead peer | fabric (peer_alive) | EPEERDEAD | swap codes in assertion |
 
 ## CPU-only, <=2 cores. No ts job.
