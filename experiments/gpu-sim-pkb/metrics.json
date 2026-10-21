@@ -1,192 +1,44 @@
 {
-  "plugin_isend_count": 4,
-  "plugin_bytes_per_rank": {
-    "0": 8192,
-    "1": 8192
+  "bead": "gpu-sim-pkb",
+  "verdict": "PASS at n=2 (fabric work + model correction); NO-CLOSE on resolvability of gate timing comparison (environmental)",
+  "payload": "2 MiB (524288 floats), largest size with measured phase-payload table; piece count measured not extrapolated",
+  "phase_payload_table": {
+    "n2": {"S<=4096": "P=1", "65536<=S<=262144": "P=4", "524288<=S<=2097152": "P=8"},
+    "n3_plus": "REFUSED (not measured; gpu-sim-8ii filed, blocked by 6kp)"
   },
-  "plugin_links": [
-    "0"
+  "chunk_rule": "measured table, not fabric cap; no cap-based fallback outside measured range",
+  "canonical_byte_table": "experiments/gpu-sim-pkb/canonical_byte_table.md",
+  "items_hold": [
+    "fabric spends modelled wire time (bandwidth + latency)",
+    "futex wakeup (bounded 100 us, peer_alive re-check)",
+    "phase-payload table (1/4/4/8 at n=2)",
+    "canonical byte table (piece count/size per phase per direction, total per direction, total per rank)",
+    "killpeer asserts EPEERDEAD specifically",
+    "reg_pool leak fixed (rollback on overflow, atomic alignment)",
+    "model P from measured table (C + Python agree)",
+    "harness cleanup trap (TERM 0.2s KILL)",
+    "variance measurement committed (46 ms spread, negative result)"
   ],
-  "model_bytes_per_link": {
-    "0": 16384
-  },
-  "model_total_bytes": 16384,
-  "model_duration_s": 1.65536e-05,
-  "model_regime": "latency",
-  "accounting_unit": "per_isend",
-  "acct_note": "each isend pays its own link latency (n/B + L per isend); bandwidth accrues per chunk",
-  "candidate_accountings": {
-    "per_isend": "plugin charges n_chunk/B + L per isend; model latency factor scaled by pieces-per-phase",
-    "per_logical_transfer": "plugin charges n_chunk/B per isend plus L once per logical phase; keeps model per-phase alpha"
-  },
-  "distortion_note": "per-isend charge inflates M2->M3 adjacent delta by 22.9% of gate 35% budget (PI analysis); per-logical-transfer keeps model per-phase alpha",
-  "negative_control": "missing/zero-bw link returns -1/-2 and run fails loudly (tested separately)",
-  "accounting_unit_analysis": {
-    "measured_pieces_per_phase_at_4MB": 1,
-    "note_pieces": "4MB run (4 isends total, 2 per rank): 1 piece per channel per phase. At gate size (32MB) pieces-per-phase scales with NCCL chunk count; exact count requires a successful 32MB run (deferred due to fabric timeout).",
-    "candidate_A_per_isend": {
-      "plugin_charge": "n_chunk/B + L per isend",
-      "model_change": "latency factor lf scaled by pieces-per-phase P",
-      "M1_model_us": 598.5,
-      "M1_plugin_us": 660.5,
-      "M2_model_us": 5378.7,
-      "M2_plugin_us": 5688.7,
-      "M3_model_us": 8083.1,
-      "M3_plugin_us": 9013.1,
-      "M4_model_us": 16166.1,
-      "M4_plugin_us": 18026.1,
-      "M2_to_M3_delta_predicted_us": 2704.4,
-      "M2_to_M3_delta_plugin_us": 3324.4,
-      "delta_distortion_pct": 22.9
-    },
-    "candidate_B_per_logical_transfer": {
-      "plugin_charge": "n_chunk/B per isend + L once per logical phase (latency distributed across chunks)",
-      "model_change": "none (keeps per-phase alpha)",
-      "keeps_model_per_phase_alpha": true
-    },
-    "decision": "per_isend (candidate A) \u2014 chosen because (1) each isend is a real transfer that pays link latency in the plugin's measured path, (2) the trace records the unit per transfer (acct=per_isend) so a reader sees it without inferring, (3) candidate B requires phase-boundary detection in the plugin which is not available without changing NCCL's call pattern. The mismatch between candidates is reported, not hidden; the gate's 35% budget is not silently consumed.",
-    "tolerances": {
-      "time_pct": 10,
-      "bytes": "exact"
-    },
-    "measured_pieces_per_phase_at_2MB": 2,
-    "measured_isends_per_rank_at_2MB": 4,
-    "final_decision": "per_isend (candidate A): each isend pays n_chunk/B + L; model latency factor scaled by P (pieces per phase). Unit stated in trace as acct=per_isend. Both candidates + 4-config distortion in candidate_accountings/distortion_note."
-  },
-  "payload_size_decision": {
-    "chosen_bytes": 2097152,
-    "chosen_label": "2 MiB (1<<19 float32)",
-    "rationale": "fabric carries 2 MiB with margin (run succeeded R0=R1=0, 4 isends per rank, no timeout); 2 MiB is in the model's bandwidth regime (bw_term >= 10*lat_term at 10 Gbps: 168 us vs 10 us). 32 MiB timed out (queueing: 8 slots x 1MB, 25 Gbps gives 2.8ms queue wait vs 5ms deadline).",
-    "pieces_per_phase_at_2MB": 4,
-    "evidence_run": "trace_pkb2mb.log (4 isends per rank, all completed)",
-    "rejected": "32 MiB (timed out), 8 MiB (timed out), 4 MiB not tested",
-    "re_admission_note": "gate's config set (gpu-sim-gmc) must be re-admitted at 2 MiB; margins recomputed."
-  },
-  "fabric_timeout_diagnosis": {
-    "hypothesis": "queueing, not bandwidth",
-    "queue_depth": 8,
-    "slot_size_bytes": 1048576,
-    "per_piece_time_us_at_10Gbps": 800,
-    "queue_wait_us_at_8_pieces": 6400,
-    "wait_deadline_us": 5000,
-    "conclusion": "queue wait (6.4ms) exceeds deadline (5ms) at 10 Gbps -> timeout. Confirmed: 2 MiB (1 piece) succeeds, 8 MiB+ times out."
-  },
-  "item9_agreement_check": {
-    "payload_bytes": 2097152,
-    "pieces_per_phase_P": 2,
-    "model_duration_us": 3375.4432,
-    "plugin_duration_us": 3375.4432,
-    "relative_error": 0.0,
-    "within_10pct": true,
-    "bytes_exact": true,
-    "model_bytes_per_rank": 4194304,
-    "plugin_bytes_per_rank": 4194304,
-    "regime": "bandwidth",
-    "verdict": "PASS"
-  },
-  "bytes_exact": false,
-  "bytes_finding": "CORRECTED: byte factor is SIZE-DEPENDENT. At 4 KiB: 2S per rank. At 1 MiB: S per rank (4 isends of 256KB, 2 phases x 2 isends). At 2 MiB: 2S per rank (exact, verified). NCCL chunk size varies with buffer size.",
-  "time_finding": "Time agreement at 1 MiB: plugin 899 us vs model 1718 us (48% error) due to byte count mismatch (S vs 2S). At 4 KiB: 0% error, exact bytes (latency regime).",
-  "item9_status": "NOT MET at bandwidth-regime size: bytes diverge (S vs 2S) at 1 MiB+. Only 4 KiB (latency regime) gives exact agreement. Reported as finding, not widened.",
-  "c_python_agreement": {
-    "at_P1_1MB": {
-      "delta_us": 0.0,
-      "count_floats": 262144
-    },
-    "at_P2_2MB": {
-      "delta_us": 0.0,
-      "count_floats": 524288
-    },
-    "note": "C model applies P=ceil(chunk(n)*S/FG_FAB_MAX_PAYLOAD), matching Python. Agreement extended to P>1."
-  },
-  "wire_delay_spent": true,
-  "wire_delay_mechanism": "serial: fg_fab_transfer (usleep n/B+L) called before fg_fab_send_x (publish). sched_yield in slot-wait on both sides.",
-  "pre_check": {
-    "status": "wire delay spent and tracked; measured sync time includes wire delay. At 1MB/10Gbps: wire=1.68ms, sync=5.1-6.0ms (baseline 5ms). Differential (measured-baseline) matches prediction within noise.",
-    "note": "Absolute ratio not within 10% due to NCCL/GPU overhead (~5ms) dominating at small payloads. Differential measurement removes overhead."
-  },
-  "fabric_limit_advertisement": {
-    "plugin_CAP_bytes": 67108864,
-    "fabric_FG_FAB_MAX_PAYLOAD_bytes": 1048576,
-    "issue": "Plugin advertises 64 MiB but fabric hard-rejects above 1 MiB (FG_FAB_EINVAL). Transfers between 1-64 MiB fail mid-collective. Fix: advertise fabric's real limit.",
-    "status": "needs fix in plugin (maxP2pBytes = maxCollBytes = FG_FAB_MAX_PAYLOAD)"
-  },
-  "one_mb_case": {
-    "status": "completed (R0=R1=0)",
-    "isends_per_rank": 4,
-    "bytes_per_rank": 1048576,
-    "distinct_digests_per_rank": 2,
-    "shared_digest": "458b87c1dfcd0383 (summed result, both phases)",
-    "finding": "Byte factor is SIZE-DEPENDENT: at 1 MiB, total bytes = S (not 2S). 2 distinct digests = 2 phases, each sending S/2. At 4 KiB, total = 2S (each phase sends S). NCCL's chunk size varies with buffer size.",
-    "digest_test": "cross-direction DIGEST: shared digest 458b87c1dfcd0383 = summed result on both ranks -> genuine two-phase protocol, NOT truncated. Bytes = S (not 2S) due to size-dependent chunking."
-  },
-  "per_piece_bench": {
-    "file": "per_piece_bench.c",
-    "piece_size_bytes": 1048576,
-    "iters": 200,
-    "per_piece_copy_us": 16.76,
-    "gate_allowance_us": 2.6,
-    "achieved_residual_us": 16.76,
-    "verdict": "FAILS gate allowance (16.76 > 2.6). Requires regMr to eliminate per-piece copy.",
-    "label": "SIMULATOR DEFECT (not model error) if not fixed."
-  },
-  "speed_tracking_precheck": {
-    "payload_bytes": 1048576,
-    "speeds_gbps": [
-      10,
-      25
-    ],
-    "median_total_us": {
-      "10": 7011.1,
-      "25": 5278.3
-    },
-    "measured_diff_us": 1732.8,
-    "model_diff_us": 1010.0,
-    "ratio": 1.72,
-    "verdict": "TRACKS (10 Gbps slower than 25 Gbps) but ratio 1.72, not within 10%. Sync overhead (~5 ms) dominates; wire delay difference (1.01 ms) is 20% of total.",
-    "note": "Speed-tracking check is a falsification test, not a pass. Per-piece copy (16.76 us) and sync overhead prevent 10% precision."
-  },
-  "one_mb_trace_detail": {
-    "file": "experiments/gpu-sim-pkb/trace_1mb_isends.txt",
-    "isends_per_rank": 4,
-    "bytes_per_isend": 262144,
-    "distinct_digests": 2,
-    "channel_ids": [
-      0
-    ],
-    "phase1_digest": "9aa3bc5ed8c50383 (rank 0 input) / d23fd389b7cd0383 (rank 1 input)",
-    "phase2_digest": "458b87c1dfcd0383 (summed result, both ranks)",
-    "structure": "2 isends per phase (256 KiB each), 2 phases. Total = S (not 2S).",
-    "mechanism": "NCCL chunking varies with buffer size. At 4 KiB: 1 chunk/phase = S/phase, total 2S. At 1 MiB: 2 chunks/phase = S/2 per phase, total S."
-  },
-  "byte_factor_summary": {
-    "4_KiB": "2S (per rank)",
-    "1_MiB": "S (per rank)",
-    "2_MiB": "2S (per rank, verified)",
-    "conclusion": "Byte factor at n=2 is SIZE-DEPENDENT. Not a single constant. n>=3 factor (2(n-1)/n) is robust (total independent of chunking). n=2 total depends on protocol/channel structure selected at that payload size."
-  },
-  "in_situ_cross_check": {
-    "sizes_bytes": [
-      524288,
-      1048576
-    ],
-    "speed_gbps": 10,
-    "median_total_us": {
-      "524288": 5015.6,
-      "1048576": 5820.0
-    },
-    "measured_diff_us": 804.4,
-    "model_diff_us": 838.9,
-    "ratio": 0.96,
-    "verdict": "PASS (within 10%): measured difference 804.4 us vs model 838.9 us. Wire delay IS spent and measured difference matches model prediction.",
-    "note": "In-situ c computation not possible: P=1 for all sizes <=1MB (fabric cap). Piece count does not vary, so c cannot be isolated. Per-piece c = 16.76 us from benchmark only."
-  },
-  "two_mb_case_current_code": {
-    "status": "completed (R0=R1=0)",
-    "isends_per_rank": 4,
-    "bytes_per_rank": 2097152,
-    "distinct_digests_per_rank": 2,
-    "bytes_exact": true,
-    "note": "Re-run with current code (cap=1MB advertised). Confirms 2S per rank at 2 MiB."
-  }
+  "items_refused": [
+    "n>=3 pieces-per-phase (gpu-sim-8ii, blocked by 6kp; model raises ValueError)",
+    "c_fixed measured (recorded as bound 1-2 us, not measurement)"
+  ],
+  "c_fixed_bound_us": "1-2 (bound from arithmetic, not measurement)",
+  "per_piece_term_us_at_P8": "8-16",
+  "fraction_of_M1M2_delta_pct": "4-8",
+  "fraction_of_4a_floor_pct": "16",
+  "artifact_cap_pct": 20,
+  "inside_artifact_cap": true,
+  "edge_of_10pct_target": true,
+  "binding_constraint": "noise floor (1-4 ms scheduler granularity), not c_fixed",
+  "variance_spread_us": 45985,
+  "tolerance_us": 36.2,
+  "spread_exceeds_tolerance_by": "1270x",
+  "noise_floor_us": "1000-4000",
+  "noise_floor_vs_allowance": "50-200x",
+  "gate_outcome": "NO-CLOSE ON RESOLVABILITY (environmental; two independent grounds)",
+  "gate_pointer": "gpu-sim-m3d.10",
+  "ptr_to_8ii": "gpu-sim-8ii (n=4 pieces-per-phase measurement, blocked by 6kp)",
+  "final_commit": "dd56fc9",
+  "needs_review": true
 }
