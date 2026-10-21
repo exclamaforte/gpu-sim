@@ -23,6 +23,7 @@ typedef struct {
     uint32_t mtu;
     uint32_t loss_ppm;
     double jitter_us;
+    uint64_t partition_after;  /* 0 = never partition */
     char shared_group[32];
     double eff_bw_gbs;
 } fg_topo_link_t;

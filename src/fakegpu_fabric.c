@@ -73,6 +73,10 @@ struct fg_fab {
     uint64_t epoch;
     uint64_t timeout_ns;
     int is_creator;
+    /* fault injection state (D1/D3: persistent across calls) */
+    uint64_t rng_state;
+    uint64_t transfer_count;
+    uint64_t partition_after;
 };
 
 static uint64_t now_ns(void) {
@@ -132,6 +136,12 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
     f->nranks = nranks;
     f->epoch = epoch;
     f->timeout_ns = timeout_ns;
+    const char *seed_env = getenv("GPUSIM_SEED");
+    uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
+    f->rng_state = seed ^ ((uint64_t)rank * 0x9e3779b97f4a7c15ULL);
+    if (f->rng_state == 0) f->rng_state = 1;
+    f->transfer_count = 0;
+    f->partition_after = 0;
     shm_name(f->name, sizeof(f->name), run_id);
 
     /* try create */
@@ -547,7 +557,7 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
     return FG_FAB_OK;
 }
 
-/* xorshift64 RNG for fault injection */
+/* xorshift64 RNG for fault injection (D3: persistent state in f) */
 static uint64_t fg_xorshift64(uint64_t *state) {
     uint64_t x = *state;
     x ^= x << 13;
@@ -564,31 +574,56 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     if (!f) return FG_FAB_EINVAL;
     if (bw_gbps <= 0.0) return FG_FAB_EINVAL;
 
-    /* seed RNG from GPUSIM_SEED ^ rank ^ link_id */
-    const char *seed_env = getenv("GPUSIM_SEED");
-    uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
-    uint64_t rng_state = seed ^ ((uint64_t)f->rank * 0x9e3779b97f4a7c15ULL) ^ ((uint64_t)link_id * 0x517cc1b727220a95ULL);
-    if (rng_state == 0) rng_state = 1;
+    /* D3: initialize rng_state once (seed derivation) */
+    if (f->rng_state == 0) {
+        const char *seed_env = getenv("GPUSIM_SEED");
+        uint64_t seed = seed_env ? (uint64_t)strtoull(seed_env, NULL, 10) : 12345ULL;
+        f->rng_state = seed ^ ((uint64_t)f->rank * 0x9e3779b97f4a7c15ULL) ^ ((uint64_t)link_id * 0x517cc1b727220a95ULL);
+        if (f->rng_state == 0) f->rng_state = 1;
+    }
 
-    /* loss: probabilistic drop */
+    /* D1: partition counter (persistent across calls) */
+    if (partition_after > 0) {
+        f->partition_after = partition_after;
+    }
+    if (f->partition_after > 0 && f->transfer_count >= f->partition_after) {
+        /* partitioned: return ETIMEDOUT */
+        f->transfer_count++;
+        return FG_FAB_ETIMEDOUT;
+    }
+
+    /* D2: loss: probabilistic drop, returns ELOSS (not EINVAL) */
     if (loss_ppm > 0) {
-        uint64_t r = fg_xorshift64(&rng_state) % 1000000;
+        uint64_t r = fg_xorshift64(&f->rng_state) % 1000000;
         if ((int)r < loss_ppm) {
-            return FG_FAB_EINVAL; /* dropped transfer */
+            f->transfer_count++;
+            /* D4: record drawn value (loss decision) in trace via env */
+            const char *trace = getenv("GPUSIM_TRACE");
+            if (trace && *trace) {
+                fprintf(stderr, "fault=loss decision=drop rng=%lu
+", (unsigned long)r);
+            }
+            return FG_FAB_ELOSS;
         }
     }
 
-    /* partition: after k successful transfers on this link */
-    /* (partition state tracked in a static map per fabric instance) */
-    /* For simplicity, use a counter in the fabric struct */
-    /* TODO: proper per-link partition tracking */
-
-    /* simulated time: n/B + L + jitter (uniform) */
+    /* jitter: uniform draw (D4: record drawn value) */
     double jitter = 0.0;
     if (jitter_us > 0.0) {
-        uint64_t r = fg_xorshift64(&rng_state);
-        jitter = (double)(r % (uint64_t)(jitter_us * 1000.0)) / 1000.0;
+        uint64_t r = fg_xorshift64(&f->rng_state);
+        uint64_t range = (uint64_t)(jitter_us * 1000.0);
+        if (range == 0) range = 1;
+        jitter = (double)(r % range) / 1000.0;
+        const char *trace = getenv("GPUSIM_TRACE");
+        if (trace && *trace) {
+            fprintf(stderr, "fault=jitter drawn_us=%.3f
+", jitter);
+        }
     }
+
+    f->transfer_count++;
+
+    /* simulated time: n/B + L + jitter */
     double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter;
     if (delay_us > 0) {
         usleep((useconds_t)delay_us);
@@ -641,6 +676,7 @@ const char *fg_fab_errstr(int err) {
         case FG_FAB_EINVAL: return "EINVAL";
         case FG_FAB_ESIZE: return "ESIZE";
         case FG_FAB_EPEERDEAD: return "EPEERDEAD";
+        case FG_FAB_ELOSS: return "ELOSS";
         case FG_FAB_ESTALE: return "ESTALE";
         case FG_FAB_ENOMEM: return "ENOMEM";
         case FG_FAB_EBUSY: return "EBUSY";
