@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/syscall.h>
+#include <linux/futex.h>
 #include <stdatomic.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -15,6 +17,8 @@
 #include <unistd.h>
 #include <sched.h>
 #include <signal.h>
+#include <sys/syscall.h>
+#include <linux/futex.h>
 
 #define FG_FAB_DEFAULT_TIMEOUT_NS (1000000000ULL) /* 1s message wait */
 #define FG_FAB_REG_POOL_SIZE (64 * 1024 * 1024)  /* 64 MiB registered buffer pool */
@@ -38,6 +42,7 @@ typedef struct {
 } fg_slot_t;
 typedef struct {
     fg_slot_t slots[FG_FAB_QDEPTH];
+    atomic_uint futex_word; /* for cross-process wakeup */
 } fg_mailbox_t;
 
 typedef struct {
@@ -49,6 +54,7 @@ typedef struct {
     uint64_t deadline_ns;
     atomic_uint barrier_arrived;
     atomic_uint barrier_gen;
+    atomic_uint reg_pool_used; /* shared across ranks (fetch_add) */
     /* rank slots follow in memory, then mailboxes */
 } fg_header_t;
 
@@ -188,7 +194,6 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
         size_t _page = 4096;
         if (_po % _page) _po += _page - (_po % _page);
         f->reg_pool = (char *)base + _po;
-        f->reg_pool_used = 0;
         /* zero slots/mailboxes already via memset */
     } else {
         /* wait for ready */
@@ -249,7 +254,6 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
         size_t _page2 = 4096;
         if (_po2 % _page2) _po2 += _page2 - (_po2 % _page2);
         f->reg_pool = (char *)base + _po2;
-        f->reg_pool_used = 0;
     }
 
     /* register slot */
@@ -350,8 +354,10 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
                 if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
-            sched_yield();
+            /* futex wait: sleep until a slot state changes */
+            unsigned _fw = atomic_load_explicit(&m->futex_word, memory_order_acquire);
+            struct timespec _fts = {0, 100000}; /* 100 us bounded wait */
+            syscall(SYS_futex, &m->futex_word, FUTEX_WAIT, _fw, &_fts, NULL, 0);
         }
     }
     if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab send rank=%d peer=%d size=%zu slot=%d\n", f->rank, peer, n, slot);
@@ -360,6 +366,8 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
     m->slots[slot].tag = 0;
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
+    syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
     if (slot_out) *slot_out = slot;
     if (seq_out) *seq_out = atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed);
     const char *ds = getenv("GPUSIM_FAB_DELAY_US"); if (ds && *ds) usleep((useconds_t)atoi(ds));
@@ -388,8 +396,10 @@ int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
                 if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
-            sched_yield();
+            /* futex wait: sleep until a slot state changes */
+            unsigned _fw = atomic_load_explicit(&m->futex_word, memory_order_acquire);
+            struct timespec _fts = {0, 100000}; /* 100 us bounded wait */
+            syscall(SYS_futex, &m->futex_word, FUTEX_WAIT, _fw, &_fts, NULL, 0);
         }
     }
     /* store offset in the slot's data field (first 8 bytes) */
@@ -398,6 +408,8 @@ int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
     m->slots[slot].tag = 1; /* 1 = registered buffer */
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
+    syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
     if (slot_out) *slot_out = slot;
     if (seq_out) *seq_out = atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed);
     return FG_FAB_OK;
@@ -441,8 +453,10 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
                 if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
-            sched_yield();
+            /* futex wait: sleep until a slot state changes */
+            unsigned _fw = atomic_load_explicit(&m->futex_word, memory_order_acquire);
+            struct timespec _fts = {0, 100000}; /* 100 us bounded wait */
+            syscall(SYS_futex, &m->futex_word, FUTEX_WAIT, _fw, &_fts, NULL, 0);
         }
     }
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
@@ -450,6 +464,8 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
     if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab recv rank=%d from=%d cap=%zu slot=%d head_seq=%u head_size=%zu\n", f->rank, from, cap, slot, mseq, mlen);
     if (mlen > cap) {
         atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
+    syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
         return FG_FAB_ESIZE;
     }
     /* For registered buffers (tag==1), data is in the pool at offset stored
@@ -469,6 +485,8 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
     if (slot_out) *slot_out = slot;
     if (seq_out) *seq_out = mseq;
     atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
+    atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
+    syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
     unsigned cs = atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed) + 1;
     if (consumed_out) *consumed_out = cs;
     const char *dr = getenv("GPUSIM_FAB_DELAY_US"); if (dr && *dr) usleep((useconds_t)atoi(dr));
@@ -496,14 +514,18 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
                 if (!peer_alive(f, from)) return FG_FAB_EPEERDEAD;
                 return FG_FAB_ETIMEDOUT;
             }
-            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
-            sched_yield();
+            /* futex wait: sleep until a slot state changes */
+            unsigned _fw = atomic_load_explicit(&m->futex_word, memory_order_acquire);
+            struct timespec _fts = {0, 100000}; /* 100 us bounded wait */
+            syscall(SYS_futex, &m->futex_word, FUTEX_WAIT, _fw, &_fts, NULL, 0);
         }
     }
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
     if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab recv(exact) rank=%d from=%d expected=%zu slot=%d size=%zu\n", f->rank, from, n, slot, mlen);
     if (mlen != n) {
         atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
+        atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
+        syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
         return FG_FAB_ESIZE;
     }
     if (m->slots[slot].tag == 1) {
@@ -518,6 +540,8 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
         memcpy(buf, m->slots[slot].data, n);
     }
     atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
+    atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
+    syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
     atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
     const char *dr = getenv("GPUSIM_FAB_DELAY_US"); if (dr && *dr) usleep((useconds_t)atoi(dr));
     return FG_FAB_OK;
@@ -539,12 +563,14 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
 /* Register a buffer in the shared pool. Returns offset (>0) on success. */
 size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size) {
     if (!f || !buf || size == 0 || size > FG_FAB_MAX_PAYLOAD) return 0;
-    if (f->reg_pool_used + size > FG_FAB_REG_POOL_SIZE) return 0; /* out of pool space */
-    size_t off = f->reg_pool_used;
+    size_t cur = atomic_load_explicit(&f->hdr->reg_pool_used, memory_order_relaxed);
+    if (cur + size > FG_FAB_REG_POOL_SIZE) return 0; /* out of pool space */
+    size_t off = atomic_fetch_add_explicit(&f->hdr->reg_pool_used, size, memory_order_relaxed);
+    if (off + size > FG_FAB_REG_POOL_SIZE) return 0;
     memcpy((char *)f->reg_pool + off, buf, size);
-    f->reg_pool_used += size;
     /* align to 8 bytes */
-    if (f->reg_pool_used % 8) f->reg_pool_used += 8 - (f->reg_pool_used % 8);
+    size_t used = atomic_load_explicit(&f->hdr->reg_pool_used, memory_order_relaxed);
+    if (used % 8) atomic_fetch_add_explicit(&f->hdr->reg_pool_used, 8 - (used % 8), memory_order_relaxed);
     return off + 1; /* +1 so 0 means "not registered" */
 }
 

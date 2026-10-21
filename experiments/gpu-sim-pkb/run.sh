@@ -87,6 +87,8 @@ P0=$!
 sleep 1
 timeout 60s env NCCL_HOSTID="node1" NCCL_DEBUG=INFO GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$M8/build/allreduce_test" 1 2 "$UIDFILE" > "$EXP/run1.log" 2>&1 &
 P1=$!
+cleanup() { kill $P0 $P1 2>/dev/null; sleep 0.2; kill -9 $P0 $P1 2>/dev/null; wait $P0 $P1 2>/dev/null; }
+trap cleanup EXIT INT TERM
 wait $P0; R0=$?
 wait $P1; R1=$?
 echo "single-link run: R0=$R0 R1=$R1"
