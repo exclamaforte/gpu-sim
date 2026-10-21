@@ -29,7 +29,10 @@ static int MY_RANK = 0;
 static int NRANKS = 1;
 static pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 
-#define CAP (64 * 1024 * 1024)
+#define CAP FG_FAB_MAX_PAYLOAD  /* must agree with fabric hard cap */
+#if CAP != FG_FAB_MAX_PAYLOAD
+#error "plugin CAP and fabric FG_FAB_MAX_PAYLOAD disagree"
+#endif
 
 typedef struct { int done; size_t size; void *data; int peer; int is_send; int chan_of_req; } req_t;
 

@@ -190,12 +190,34 @@ def _bw_factor(algorithm: str, n: int) -> float:
     raise ValueError(f"unknown algorithm {algorithm}")
 
 
+FG_FAB_MAX_PAYLOAD = 1 << 20  # 1 MiB, matches include/fakegpu_fabric.h
+
+
+def _chunk_factor(n: int) -> float:
+    """chunk(n): S at n=2, (n-1)/n*S at n>=3 (model's formula)."""
+    if n == 2:
+        return 1.0
+    return (n - 1) / n
+
+
+def _derived_pieces_per_phase(n: int, S: int) -> int:
+    import math
+    chunk_bytes = _chunk_factor(n) * S
+    P = int(math.ceil(chunk_bytes / FG_FAB_MAX_PAYLOAD))
+    if P < 1:
+        P = 1
+    return P
+
+
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
             n_ranks: Optional[int] = None,
-            pieces_per_phase: int = 1) -> Dict[str, Any]:
+            pieces_per_phase: Optional[int] = None) -> Dict[str, Any]:
     """Predicted duration for a collective.
 
     pieces_per_phase (P): number of fabric pieces per logical phase per rank.
+    If None (default), P is DERIVED from chunk(n)*S/FG_FAB_MAX_PAYLOAD, matching
+    the C model (src/fakegpu_nccl.c). Pass an int to override (recorded in
+    the result as pieces_per_phase_override=True).
     With per-isend accounting (pkb candidate A, the operating model), each
     piece pays the link latency, so the latency term scales by P. P depends on
     payload size and the fabric's 1 MiB payload cap (a SIMULATOR constant), so
@@ -203,10 +225,10 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     when P > 1. See gpu-sim-8nt for the fidelity fix that makes alpha a
     per-hop property again.
     """
-    # With per-isend accounting (pkb candidate A), each piece pays the link
-    # latency, so the latency term scales by P. P depends on payload size and
-    # the fabric's 1 MiB payload cap (a SIMULATOR constant), so alpha is a
-    # per-piece charge, not a per-hop network property, when P > 1.
+    override = pieces_per_phase is not None
+    if pieces_per_phase is None:
+        # derived; n not known yet, placeholder until n resolved below
+        pieces_per_phase = 1  # placeholder, resolved after n is known
     if pieces_per_phase < 1:
         pieces_per_phase = 1
     if algorithm not in ALGORITHMS:
@@ -222,6 +244,10 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     if not n_ranks or n_ranks < 1:
         raise ValueError("n_ranks must be >= 1")
     n = n_ranks
+    # Derive P if not explicitly provided (override).
+    if not override:
+        S_tmp = count * DTYPE_BYTES[dtype]
+        pieces_per_phase = _derived_pieces_per_phase(n, S_tmp)
     if n == 1:
         # trivial
         return {
@@ -328,6 +354,8 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
     return {
         "duration_s": dur,
         "pieces_per_phase": pieces_per_phase,
+        "pieces_per_phase_derived": not override,
+        "pieces_per_phase_override": override,
         "algorithm": algorithm,
         "bottleneck": {"link_id": b_link, "kind": bottleneck_kind},
         "per_link_bytes": per_link_bytes,

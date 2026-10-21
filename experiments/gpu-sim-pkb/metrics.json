@@ -104,5 +104,11 @@
   "pre_check": {
     "status": "wire delay spent and tracked; measured sync time includes wire delay. At 1MB/10Gbps: wire=1.68ms, sync=5.1-6.0ms (baseline 5ms). Differential (measured-baseline) matches prediction within noise.",
     "note": "Absolute ratio not within 10% due to NCCL/GPU overhead (~5ms) dominating at small payloads. Differential measurement removes overhead."
+  },
+  "fabric_limit_advertisement": {
+    "plugin_CAP_bytes": 67108864,
+    "fabric_FG_FAB_MAX_PAYLOAD_bytes": 1048576,
+    "issue": "Plugin advertises 64 MiB but fabric hard-rejects above 1 MiB (FG_FAB_EINVAL). Transfers between 1-64 MiB fail mid-collective. Fix: advertise fabric's real limit.",
+    "status": "needs fix in plugin (maxP2pBytes = maxCollBytes = FG_FAB_MAX_PAYLOAD)"
   }
 }
