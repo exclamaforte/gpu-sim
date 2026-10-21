@@ -23,7 +23,7 @@ Return codes observed:
   "CUDA driver version is insufficient for CUDA runtime version".
 
 The tables are **opaque structs**, not flat function-pointer arrays: dumping the
-real driver's tables (`/tmp/dump_table.c`) shows entries at offsets 0x10, 0x18,
+real driver's tables (`dump_table.c`, output in `dump_table_output.txt`) shows entries at offsets 0x10, 0x18,
 0x28, 0x38 followed by pointers into libcuda — i.e. a versioned internal layout.
 The static cudart resolves its driver entry points through this table, not through
 dlsym, so a fake driver cannot satisfy it without reproducing that layout.
@@ -55,7 +55,7 @@ opaque table becomes observable (`GPUSIM_EXPORT_TABLE=1`). Running with it:
     fakecuda: table slot 2 args=(<ptr>,<ptr>,16,79,64)
 
 i.e. cudart calls slot 2 (offset +0x10) as a function. But offset +0x10 in the REAL
-table (dumped offline with /tmp/dump_bytes.c) is a plain libcuda code pointer, while
+table (dumped offline with `dump_bytes.c`, output in `annotated_hexdump_tables.txt`) is a plain libcuda code pointer, while
 offset +0x00 holds the value 0x18 (24) -- a count/size, NOT a function pointer.
 Our all-pointers table therefore has the wrong shape: cudart is not indexing a flat
 function array; the real table interleaves metadata (counts at +0x00, +0x20, +0x30,
@@ -69,9 +69,8 @@ Conclusion (item 7, precise): the export-table CALL SITES *were* observed with t
 trampoline instrumentation (slot 2 is called twice, once per UUID, with the args
 recorded above). What is NOT reproducible is the slot->name ENUMERATION: the table
 is an opaque, obfuscated ABI structure, so we cannot learn which slot is which
-driver entry point from the shim side. The obfuscation hypothesis is consistent
-with the disassembled static keystream loop around __cudaGetProcAddress
-(/tmp dumps in this directory; see dump_bytes.c for the offline dump program). Per the PI's pre-registered fallback, the
+driver entry point from the shim side. The obfuscation hypothesis is CONSISTENT with the disassembled static keystream loop around __cudaGetProcAddress
+(see `dump_bytes.c` for the offline dump program and `disassembly_cudaGetProcAddress.txt` for the region around `__cudaGetProcAddress`). Per the PI's pre-registered fallback, the
 static-cudart seam is a documented NEGATIVE RESULT (kept=false). Acceptance #3 (no
 real driver loaded) was never relaxed and no partial PASS is claimed.
 

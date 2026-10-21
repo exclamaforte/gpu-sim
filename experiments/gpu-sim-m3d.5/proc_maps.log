@@ -1,6 +1,6 @@
 # cmd: LD_PRELOAD=libfakecuda.so CUDA_VISIBLE_DEVICES='' nccl_init_probe & sleep 1; grep -E 'libcuda|libfakecuda' /proc/<pid>/maps
-7fdd44117000-7fdd4411a000 r--p 00000000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
-7fdd4411a000-7fdd4411e000 r-xp 00003000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
-7fdd4411e000-7fdd44120000 r--p 00007000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
-7fdd44120000-7fdd44122000 rw-p 00009000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
+7f0144b92000-7f0144b95000 r--p 00000000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
+7f0144b95000-7f0144b99000 r-xp 00003000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
+7f0144b99000-7f0144b9b000 r--p 00007000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
+7f0144b9b000-7f0144b9d000 rw-p 00009000 00:1d 239098487                  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m3d.5/libfakecuda.so
 # conclusion: libfakecuda.so mapped, no libcuda.so.1 mapping (real driver not loaded)

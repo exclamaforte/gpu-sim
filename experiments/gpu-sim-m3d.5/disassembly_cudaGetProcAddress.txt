@@ -1,0 +1,153 @@
+
+/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib/libcudart.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000027900 <__cudaGetProcAddress@@libcudart.so.13+0x1fb0>:
+   27900:	b8 24 00 00 00       	mov    $0x24,%eax
+   27905:	c3                   	ret
+   27906:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   2790d:	00 00 00 
+   27910:	b8 24 00 00 00       	mov    $0x24,%eax
+   27915:	c3                   	ret
+   27916:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   2791d:	00 00 00 
+   27920:	b8 24 00 00 00       	mov    $0x24,%eax
+   27925:	c3                   	ret
+   27926:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   2792d:	00 00 00 
+   27930:	b8 24 00 00 00       	mov    $0x24,%eax
+   27935:	c3                   	ret
+   27936:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   2793d:	00 00 00 
+   27940:	b8 24 00 00 00       	mov    $0x24,%eax
+   27945:	c3                   	ret
+   27946:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   2794d:	00 00 00 
+   27950:	b8 24 00 00 00       	mov    $0x24,%eax
+   27955:	c3                   	ret
+   27956:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   2795d:	00 00 00 
+   27960:	44 0f b6 47 40       	movzbl 0x40(%rdi),%r8d
+   27965:	41 bb 10 00 00 00    	mov    $0x10,%r11d
+   2796b:	0f b6 4f 41          	movzbl 0x41(%rdi),%ecx
+   2796f:	55                   	push   %rbp
+   27970:	45 29 c3             	sub    %r8d,%r11d
+   27973:	48 89 e5             	mov    %rsp,%rbp
+   27976:	41 57                	push   %r15
+   27978:	41 56                	push   %r14
+   2797a:	41 55                	push   %r13
+   2797c:	41 54                	push   %r12
+   2797e:	53                   	push   %rbx
+   2797f:	45 84 db             	test   %r11b,%r11b
+   27982:	0f 84 28 04 00 00    	je     27db0 <__cudaGetProcAddress@@libcudart.so.13+0x2460>
+   27988:	45 0f b6 f3          	movzbl %r11b,%r14d
+   2798c:	4c 8d 4f 30          	lea    0x30(%rdi),%r9
+   27990:	48 8d 5f 01          	lea    0x1(%rdi),%rbx
+   27994:	45 31 ed             	xor    %r13d,%r13d
+   27997:	48 8d 15 42 1c 07 00 	lea    0x71c42(%rip),%rdx        # 995e0 <cudaGraphicsVDPAURegisterOutputSurface@@libcudart.so.13+0xdf80>
+   2799e:	66 90                	xchg   %ax,%ax
+   279a0:	41 0f b6 c0          	movzbl %r8b,%eax
+   279a4:	44 31 d9             	xor    %r11d,%ecx
+   279a7:	41 83 c0 01          	add    $0x1,%r8d
+   279ab:	44 8d 50 10          	lea    0x10(%rax),%r10d
+   279af:	44 8d 78 20          	lea    0x20(%rax),%r15d
+   279b3:	0f b6 c9             	movzbl %cl,%ecx
+   279b6:	4d 63 e2             	movslq %r10d,%r12
+   279b9:	4d 63 d7             	movslq %r15d,%r10
+   279bc:	0f b6 0c 0a          	movzbl (%rdx,%rcx,1),%ecx
+   279c0:	46 88 1c 27          	mov    %r11b,(%rdi,%r12,1)
+   279c4:	44 0f b6 24 07       	movzbl (%rdi,%rax,1),%r12d
+   279c9:	45 31 dc             	xor    %r11d,%r12d
+   279cc:	46 88 24 17          	mov    %r12b,(%rdi,%r10,1)
+   279d0:	32 4c 07 30          	xor    0x30(%rdi,%rax,1),%cl
+   279d4:	88 4c 07 30          	mov    %cl,0x30(%rdi,%rax,1)
+   279d8:	41 83 e0 0f          	and    $0xf,%r8d
+   279dc:	0f 85 f9 00 00 00    	jne    27adb <__cudaGetProcAddress@@libcudart.so.13+0x218b>
+   279e2:	45 31 e4             	xor    %r12d,%r12d
+   279e5:	b8 29 00 00 00       	mov    $0x29,%eax
+   279ea:	eb 0d                	jmp    279f9 <__cudaGetProcAddress@@libcudart.so.13+0x20a9>
+   279ec:	0f 1f 40 00          	nopl   0x0(%rax)
+   279f0:	44 0f b6 d0          	movzbl %al,%r10d
+   279f4:	42 0f b6 04 12       	movzbl (%rdx,%r10,1),%eax
+   279f9:	4d 89 cf             	mov    %r9,%r15
+   279fc:	32 07                	xor    (%rdi),%al
+   279fe:	49 89 da             	mov    %rbx,%r10
+   27a01:	49 29 df             	sub    %rbx,%r15
+   27a04:	88 07                	mov    %al,(%rdi)
+   27a06:	41 83 e7 07          	and    $0x7,%r15d
+   27a0a:	0f 84 60 02 00 00    	je     27c70 <__cudaGetProcAddress@@libcudart.so.13+0x2320>
+   27a10:	49 83 ff 01          	cmp    $0x1,%r15
+   27a14:	0f 84 93 00 00 00    	je     27aad <__cudaGetProcAddress@@libcudart.so.13+0x215d>
+   27a1a:	49 83 ff 02          	cmp    $0x2,%r15
+   27a1e:	74 79                	je     27a99 <__cudaGetProcAddress@@libcudart.so.13+0x2149>
+   27a20:	49 83 ff 03          	cmp    $0x3,%r15
+   27a24:	74 5f                	je     27a85 <__cudaGetProcAddress@@libcudart.so.13+0x2135>
+   27a26:	49 83 ff 04          	cmp    $0x4,%r15
+   27a2a:	74 45                	je     27a71 <__cudaGetProcAddress@@libcudart.so.13+0x2121>
+   27a2c:	49 83 ff 05          	cmp    $0x5,%r15
+   27a30:	74 2b                	je     27a5d <__cudaGetProcAddress@@libcudart.so.13+0x210d>
+   27a32:	49 83 ff 06          	cmp    $0x6,%r15
+   27a36:	74 11                	je     27a49 <__cudaGetProcAddress@@libcudart.so.13+0x20f9>
+   27a38:	44 0f b6 d0          	movzbl %al,%r10d
+   27a3c:	0f b6 03             	movzbl (%rbx),%eax
+   27a3f:	42 32 04 12          	xor    (%rdx,%r10,1),%al
+   27a43:	4c 8d 53 01          	lea    0x1(%rbx),%r10
+   27a47:	88 03                	mov    %al,(%rbx)
+   27a49:	44 0f b6 f8          	movzbl %al,%r15d
+   27a4d:	41 0f b6 02          	movzbl (%r10),%eax
+   27a51:	49 83 c2 01          	add    $0x1,%r10
+   27a55:	42 32 04 3a          	xor    (%rdx,%r15,1),%al
+   27a59:	41 88 42 ff          	mov    %al,-0x1(%r10)
+   27a5d:	44 0f b6 f8          	movzbl %al,%r15d
+   27a61:	41 0f b6 02          	movzbl (%r10),%eax
+   27a65:	49 83 c2 01          	add    $0x1,%r10
+   27a69:	42 32 04 3a          	xor    (%rdx,%r15,1),%al
+   27a6d:	41 88 42 ff          	mov    %al,-0x1(%r10)
+   27a71:	44 0f b6 f8          	movzbl %al,%r15d
+   27a75:	41 0f b6 02          	movzbl (%r10),%eax
+   27a79:	49 83 c2 01          	add    $0x1,%r10
+   27a7d:	42 32 04 3a          	xor    (%rdx,%r15,1),%al
+   27a81:	41 88 42 ff          	mov    %al,-0x1(%r10)
+   27a85:	44 0f b6 f8          	movzbl %al,%r15d
+   27a89:	41 0f b6 02          	movzbl (%r10),%eax
+   27a8d:	49 83 c2 01          	add    $0x1,%r10
+   27a91:	42 32 04 3a          	xor    (%rdx,%r15,1),%al
+   27a95:	41 88 42 ff          	mov    %al,-0x1(%r10)
+   27a99:	44 0f b6 f8          	movzbl %al,%r15d
+   27a9d:	41 0f b6 02          	movzbl (%r10),%eax
+   27aa1:	49 83 c2 01          	add    $0x1,%r10
+   27aa5:	42 32 04 3a          	xor    (%rdx,%r15,1),%al
+   27aa9:	41 88 42 ff          	mov    %al,-0x1(%r10)
+   27aad:	44 0f b6 f8          	movzbl %al,%r15d
+   27ab1:	41 0f b6 02          	movzbl (%r10),%eax
+   27ab5:	49 83 c2 01          	add    $0x1,%r10
+   27ab9:	42 32 04 3a          	xor    (%rdx,%r15,1),%al
+   27abd:	41 88 42 ff          	mov    %al,-0x1(%r10)
+   27ac1:	4d 39 d1             	cmp    %r10,%r9
+   27ac4:	0f 85 a6 01 00 00    	jne    27c70 <__cudaGetProcAddress@@libcudart.so.13+0x2320>
+   27aca:	44 01 e0             	add    %r12d,%eax
+   27acd:	41 83 c4 01          	add    $0x1,%r12d
+   27ad1:	41 80 fc 12          	cmp    $0x12,%r12b
+   27ad5:	0f 85 15 ff ff ff    	jne    279f0 <__cudaGetProcAddress@@libcudart.so.13+0x20a0>
+   27adb:	49 83 c5 01          	add    $0x1,%r13
+   27adf:	4d 39 f5             	cmp    %r14,%r13
+   27ae2:	0f 85 b8 fe ff ff    	jne    279a0 <__cudaGetProcAddress@@libcudart.so.13+0x2050>
+   27ae8:	44 88 47 40          	mov    %r8b,0x40(%rdi)
+   27aec:	88 4f 41             	mov    %cl,0x41(%rdi)
+   27aef:	4d 89 cb             	mov    %r9,%r11
+   27af2:	4c 8d 67 40          	lea    0x40(%rdi),%r12
+   27af6:	4c 8d 7f 01          	lea    0x1(%rdi),%r15
+   27afa:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+   27b00:	41 0f b6 c0          	movzbl %r8b,%eax
+   27b04:	41 0f b6 1b          	movzbl (%r11),%ebx
+   27b08:	41 83 c0 01          	add    $0x1,%r8d
+   27b0c:	44 8d 70 10          	lea    0x10(%rax),%r14d
+   27b10:	44 8d 50 20          	lea    0x20(%rax),%r10d
+   27b14:	41 83 e0 0f          	and    $0xf,%r8d
+   27b18:	4d 63 ee             	movslq %r14d,%r13
+   27b1b:	31 d9                	xor    %ebx,%ecx
+   27b1d:	42                   	rex.X
+   27b1e:	88                   	.byte 0x88
+   27b1f:	1c                   	.byte 0x1c

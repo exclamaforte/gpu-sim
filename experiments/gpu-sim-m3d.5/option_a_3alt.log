@@ -1,37 +1,37 @@
 --- arm 1: 3-alt-i, real driver serves ONLY cuGetExportTable (default) ---
 cmd: LD_PRELOAD=libfakecuda.so CUDA_VISIBLE_DEVICES='' NCCL_DEBUG=INFO nccl_init_probe
-fakecuda: dlsym(fakehandle) cuGetProcAddress_v2 -> 0x7fb31ac67640
+fakecuda: dlsym(fakehandle) cuGetProcAddress_v2 -> 0x7fcdb1135640
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress  -> (nil)
 fakecuda: missing symbol 
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuInit -> 0x7fb31ac65ca0
+fakecuda: getProcAddress cuInit -> 0x7fcdb1133ca0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuGetProcAddress -> 0x7fb31ac67640
+fakecuda: getProcAddress cuGetProcAddress -> 0x7fcdb1135640
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuGetProcAddress -> 0x7fb31ac67640
+fakecuda: getProcAddress cuGetProcAddress -> 0x7fcdb1135640
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGet -> 0x7fb31ac66c90
+fakecuda: getProcAddress cuDeviceGet -> 0x7fcdb1134c90
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetCount -> 0x7fb31ac675a0
+fakecuda: getProcAddress cuDeviceGetCount -> 0x7fcdb11355a0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetName -> 0x7fb31ac65ce0
+fakecuda: getProcAddress cuDeviceGetName -> 0x7fcdb1133ce0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceTotalMem -> 0x7fb31ac66b80
+fakecuda: getProcAddress cuDeviceTotalMem -> 0x7fcdb1134b80
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetAttribute -> 0x7fb31ac66830
+fakecuda: getProcAddress cuDeviceGetAttribute -> 0x7fcdb1134830
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetP2PAttribute -> (nil)
 fakecuda: missing symbol cuDeviceGetP2PAttribute
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDriverGetVersion -> 0x7fb31ac653e0
+fakecuda: getProcAddress cuDriverGetVersion -> 0x7fcdb11333e0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetByPCIBusId -> (nil)
 fakecuda: missing symbol cuDeviceGetByPCIBusId
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetPCIBusId -> 0x7fb31ac66d20
+fakecuda: getProcAddress cuDeviceGetPCIBusId -> 0x7fcdb1134d20
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetUuid -> 0x7fb31ac66d90
+fakecuda: getProcAddress cuDeviceGetUuid -> 0x7fcdb1134d90
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetTexture1DLinearMaxWidth -> (nil)
 fakecuda: missing symbol cuDeviceGetTexture1DLinearMaxWidth
@@ -48,31 +48,31 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuFlushGPUDirectRDMAWrites -> (nil)
 fakecuda: missing symbol cuFlushGPUDirectRDMAWrites
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxRetain -> 0x7fb31ac65670
+fakecuda: getProcAddress cuDevicePrimaryCtxRetain -> 0x7fcdb1133670
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxRelease -> 0x7fb31ac656b0
+fakecuda: getProcAddress cuDevicePrimaryCtxRelease -> 0x7fcdb11336b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxSetFlags -> 0x7fb31ac656e0
+fakecuda: getProcAddress cuDevicePrimaryCtxSetFlags -> 0x7fcdb11336e0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxGetState -> 0x7fb31ac65710
+fakecuda: getProcAddress cuDevicePrimaryCtxGetState -> 0x7fcdb1133710
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxReset -> 0x7fb31ac65760
+fakecuda: getProcAddress cuDevicePrimaryCtxReset -> 0x7fcdb1133760
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxCreate -> 0x7fb31ac65420
+fakecuda: getProcAddress cuCtxCreate -> 0x7fcdb1133420
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxGetFlags -> (nil)
 fakecuda: missing symbol cuCtxGetFlags
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxSetCurrent -> 0x7fb31ac654a0
+fakecuda: getProcAddress cuCtxSetCurrent -> 0x7fcdb11334a0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxGetCurrent -> 0x7fb31ac654d0
+fakecuda: getProcAddress cuCtxGetCurrent -> 0x7fcdb11334d0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxDetach -> (nil)
 fakecuda: missing symbol cuCtxDetach
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxGetApiVersion -> 0x7fb31ac65630
+fakecuda: getProcAddress cuCtxGetApiVersion -> 0x7fcdb1133630
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxGetDevice -> 0x7fb31ac655f0
+fakecuda: getProcAddress cuCtxGetDevice -> 0x7fcdb11335f0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxGetLimit -> (nil)
 fakecuda: missing symbol cuCtxGetLimit
@@ -95,25 +95,25 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxSetSharedMemConfig -> (nil)
 fakecuda: missing symbol cuCtxSetSharedMemConfig
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxSynchronize -> 0x7fb31ac655c0
+fakecuda: getProcAddress cuCtxSynchronize -> 0x7fcdb11335c0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxResetPersistingL2Cache -> (nil)
 fakecuda: missing symbol cuCtxResetPersistingL2Cache
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxPopCurrent -> 0x7fb31ac65570
+fakecuda: getProcAddress cuCtxPopCurrent -> 0x7fcdb1133570
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxPushCurrent -> 0x7fb31ac65540
+fakecuda: getProcAddress cuCtxPushCurrent -> 0x7fcdb1133540
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleLoad -> 0x7fb31ac65b00
+fakecuda: getProcAddress cuModuleLoad -> 0x7fcdb1133b00
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleLoadData -> 0x7fb31ac65b40
+fakecuda: getProcAddress cuModuleLoadData -> 0x7fcdb1133b40
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuModuleLoadFatBinary -> (nil)
 fakecuda: missing symbol cuModuleLoadFatBinary
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleUnload -> 0x7fb31ac65bc0
+fakecuda: getProcAddress cuModuleUnload -> 0x7fcdb1133bc0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleGetFunction -> 0x7fb31ac65bf0
+fakecuda: getProcAddress cuModuleGetFunction -> 0x7fcdb1133bf0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuModuleGetGlobal -> (nil)
 fakecuda: missing symbol cuModuleGetGlobal
@@ -196,19 +196,19 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemAllocManaged -> (nil)
 fakecuda: missing symbol cuMemAllocManaged
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemAlloc -> 0x7fb31ac66e30
+fakecuda: getProcAddress cuMemAlloc -> 0x7fcdb1134e30
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemAllocPitch -> (nil)
 fakecuda: missing symbol cuMemAllocPitch
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemFree -> 0x7fb31ac65790
+fakecuda: getProcAddress cuMemFree -> 0x7fcdb1133790
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemGetAddressRange -> (nil)
 fakecuda: missing symbol cuMemGetAddressRange
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemFreeHost -> 0x7fb31ac657c0
+fakecuda: getProcAddress cuMemFreeHost -> 0x7fcdb11337c0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemHostAlloc -> 0x7fb31ac66f10
+fakecuda: getProcAddress cuMemHostAlloc -> 0x7fcdb1134f10
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemHostGetDevicePointer -> (nil)
 fakecuda: missing symbol cuMemHostGetDevicePointer
@@ -216,11 +216,11 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemHostGetFlags -> (nil)
 fakecuda: missing symbol cuMemHostGetFlags
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemHostRegister -> 0x7fb31ac657f0
+fakecuda: getProcAddress cuMemHostRegister -> 0x7fcdb11337f0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemHostUnregister -> 0x7fb31ac65820
+fakecuda: getProcAddress cuMemHostUnregister -> 0x7fcdb1133820
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuPointerGetAttribute -> 0x7fb31ac66df0
+fakecuda: getProcAddress cuPointerGetAttribute -> 0x7fcdb1134df0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuPointerGetAttributes -> (nil)
 fakecuda: missing symbol cuPointerGetAttributes
@@ -288,33 +288,33 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemcpyAsync -> (nil)
 fakecuda: missing symbol cuMemcpyAsync
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeer -> 0x7fb31ac670b0
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7fcdb11350b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeer -> 0x7fb31ac670b0
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7fcdb11350b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7fb31ac67120
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7fcdb1135120
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7fb31ac67120
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7fcdb1135120
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoD -> 0x7fb31ac66f50
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7fcdb1134f50
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoD -> 0x7fb31ac66f50
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7fcdb1134f50
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7fb31ac66fc0
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7fcdb1134fc0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7fb31ac66fc0
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7fcdb1134fc0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoH -> 0x7fb31ac67000
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7fcdb1135000
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoH -> 0x7fb31ac67000
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7fcdb1135000
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7fb31ac67070
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7fcdb1135070
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7fb31ac67070
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7fcdb1135070
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoD -> 0x7fb31ac67530
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7fcdb1135530
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoD -> 0x7fb31ac67530
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7fcdb1135530
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemcpyDtoDAsync -> (nil)
 fakecuda: missing symbol cuMemcpyDtoDAsync
@@ -370,9 +370,9 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemcpy3DBatchAsync -> (nil)
 fakecuda: missing symbol cuMemcpy3DBatchAsync
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemsetD8 -> 0x7fb31ac65d50
+fakecuda: getProcAddress cuMemsetD8 -> 0x7fcdb1133d50
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemsetD8 -> 0x7fb31ac65d50
+fakecuda: getProcAddress cuMemsetD8 -> 0x7fcdb1133d50
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemsetD8Async -> (nil)
 fakecuda: missing symbol cuMemsetD8Async
@@ -506,9 +506,9 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetNvSciSyncAttributes -> (nil)
 fakecuda: missing symbol cuDeviceGetNvSciSyncAttributes
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuLaunchKernel -> 0x7fb31ac65c30
+fakecuda: getProcAddress cuLaunchKernel -> 0x7fcdb1133c30
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuLaunchKernel -> 0x7fb31ac65c30
+fakecuda: getProcAddress cuLaunchKernel -> 0x7fcdb1133c30
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuLaunchCooperativeKernel -> (nil)
 fakecuda: missing symbol cuLaunchCooperativeKernel
@@ -531,11 +531,11 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuLaunchKernelEx -> (nil)
 fakecuda: missing symbol cuLaunchKernelEx
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventCreate -> 0x7fb31ac659f0
+fakecuda: getProcAddress cuEventCreate -> 0x7fcdb11339f0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventRecord -> 0x7fb31ac65a60
+fakecuda: getProcAddress cuEventRecord -> 0x7fcdb1133a60
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventRecord -> 0x7fb31ac65a60
+fakecuda: getProcAddress cuEventRecord -> 0x7fcdb1133a60
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuEventRecordWithFlags -> (nil)
 fakecuda: missing symbol cuEventRecordWithFlags
@@ -546,13 +546,13 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuEventQuery -> (nil)
 fakecuda: missing symbol cuEventQuery
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventSynchronize -> 0x7fb31ac65a90
+fakecuda: getProcAddress cuEventSynchronize -> 0x7fcdb1133a90
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventDestroy -> 0x7fb31ac65a30
+fakecuda: getProcAddress cuEventDestroy -> 0x7fcdb1133a30
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventElapsedTime -> 0x7fb31ac65ac0
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7fcdb1133ac0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventElapsedTime -> 0x7fb31ac65ac0
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7fcdb1133ac0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamWaitValue32 -> (nil)
 fakecuda: missing symbol cuStreamWaitValue32
@@ -584,9 +584,9 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamBatchMemOp -> (nil)
 fakecuda: missing symbol cuStreamBatchMemOp
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamCreate -> 0x7fb31ac658b0
+fakecuda: getProcAddress cuStreamCreate -> 0x7fcdb11338b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamCreateWithPriority -> 0x7fb31ac658f0
+fakecuda: getProcAddress cuStreamCreateWithPriority -> 0x7fcdb11338f0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamGetPriority -> (nil)
 fakecuda: missing symbol cuStreamGetPriority
@@ -615,25 +615,25 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamGetId -> (nil)
 fakecuda: missing symbol cuStreamGetId
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamDestroy -> 0x7fb31ac65930
+fakecuda: getProcAddress cuStreamDestroy -> 0x7fcdb1133930
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamWaitEvent -> 0x7fb31ac659c0
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7fcdb11339c0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamWaitEvent -> 0x7fb31ac659c0
-fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamAddCallback -> (nil)
-fakecuda: missing symbol cuStreamAddCallback
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7fcdb11339c0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamAddCallback -> (nil)
 fakecuda: missing symbol cuStreamAddCallback
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamSynchronize -> 0x7fb31ac65960
+fakecuda: getProcAddress cuStreamAddCallback -> (nil)
+fakecuda: missing symbol cuStreamAddCallback
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamSynchronize -> 0x7fb31ac65960
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7fcdb1133960
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamQuery -> 0x7fb31ac65990
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7fcdb1133960
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamQuery -> 0x7fb31ac65990
+fakecuda: getProcAddress cuStreamQuery -> 0x7fcdb1133990
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamQuery -> 0x7fcdb1133990
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamAttachMemAsync -> (nil)
 fakecuda: missing symbol cuStreamAttachMemAsync
@@ -809,7 +809,7 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuGraphicsVDPAURegisterOutputSurface -> (nil)
 fakecuda: missing symbol cuGraphicsVDPAURegisterOutputSurface
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuGetExportTable -> 0x7fb31ac67180
+fakecuda: getProcAddress cuGetExportTable -> 0x7fcdb1135180
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags -> (nil)
 fakecuda: missing symbol cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
@@ -1190,66 +1190,66 @@ fakecuda: getProcAddress cuDeviceUnregisterAsyncNotification -> (nil)
 fakecuda: missing symbol cuDeviceUnregisterAsyncNotification
 fakecuda: cuGetExportTable uuid=f8cff951-2146-8b4e-b9e2-fb469e7c0dd9
 fakecuda: AUDIT real-driver-handle open=OK (via real dlopen, bypassing interception)
-fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fb300ff0370 uuid=øÏùQ!F‹N
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fcd973f0370 uuid=øÏùQ!F‹N
 fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
 fakecuda: cuDriverGetVersion
 fakecuda: cuInit
 fakecuda: cuInit
 fakecuda: cuGetExportTable uuid=6bd5fb6c-5bf4-e74a-8987-d93912fd9df9
-fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fb300ff2460 uuid=kÕûl[ôçJ
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fcd973f2460 uuid=kÕûl[ôçJ
 fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
 fakecuda: cuGetExportTable uuid=a094798c-2e74-2e74-93f2-0800200c0a66
-fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fb300ff42c0 uuid= ”yŒ.t.t
+fakecuda: AUDIT export-table served-by=REAL-DRIVER rc=0 table=0x7fcd973f42c0 uuid= ”yŒ.t.t
 fakecuda: cuGetExportTable -> 0 (SUCCESS, served-by=REAL-DRIVER handshake only)
 fakecuda: cuDeviceGetCount
 fakecuda: AUDIT cuDeviceGetCount served-by=SHIM value=1
 fakecuda: cuDeviceGet
 nccl version=23203
-gabe:872338:872338 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
-gabe:872338:872338 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
+gabe:3020341:3020341 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+gabe:3020341:3020341 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
 
-[2026-10-20 16:53:58] gabe:872338:872338 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'initialization error'
+[2026-10-20 18:23:57] gabe:3020341:3020341 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'initialization error'
+gabe:3020341:3020344 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
 
-[2026-10-20 16:53:58] gabe:872338:872338 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'initialization error'
+[2026-10-20 18:23:57] gabe:3020341:3020341 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'initialization error'
 ncclCommInitRank=1 (unhandled cuda error (run with NCCL_DEBUG=INFO for details))
 FAIL
-gabe:872338:872342 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
 exit=1
 
 --- arm 2: 3-alt-ii, forwarding DISABLED (GPUSIM_REAL_EXPORT_TABLE=0) ---
 cmd: LD_PRELOAD=libfakecuda.so GPUSIM_REAL_EXPORT_TABLE=0 CUDA_VISIBLE_DEVICES='' NCCL_DEBUG=INFO nccl_init_probe
-fakecuda: dlsym(fakehandle) cuGetProcAddress_v2 -> 0x7f38fdd21640
+fakecuda: dlsym(fakehandle) cuGetProcAddress_v2 -> 0x7f96c52da640
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress  -> (nil)
 fakecuda: missing symbol 
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuInit -> 0x7f38fdd1fca0
+fakecuda: getProcAddress cuInit -> 0x7f96c52d8ca0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuGetProcAddress -> 0x7f38fdd21640
+fakecuda: getProcAddress cuGetProcAddress -> 0x7f96c52da640
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuGetProcAddress -> 0x7f38fdd21640
+fakecuda: getProcAddress cuGetProcAddress -> 0x7f96c52da640
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGet -> 0x7f38fdd20c90
+fakecuda: getProcAddress cuDeviceGet -> 0x7f96c52d9c90
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetCount -> 0x7f38fdd215a0
+fakecuda: getProcAddress cuDeviceGetCount -> 0x7f96c52da5a0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetName -> 0x7f38fdd1fce0
+fakecuda: getProcAddress cuDeviceGetName -> 0x7f96c52d8ce0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceTotalMem -> 0x7f38fdd20b80
+fakecuda: getProcAddress cuDeviceTotalMem -> 0x7f96c52d9b80
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetAttribute -> 0x7f38fdd20830
+fakecuda: getProcAddress cuDeviceGetAttribute -> 0x7f96c52d9830
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetP2PAttribute -> (nil)
 fakecuda: missing symbol cuDeviceGetP2PAttribute
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDriverGetVersion -> 0x7f38fdd1f3e0
+fakecuda: getProcAddress cuDriverGetVersion -> 0x7f96c52d83e0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetByPCIBusId -> (nil)
 fakecuda: missing symbol cuDeviceGetByPCIBusId
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetPCIBusId -> 0x7f38fdd20d20
+fakecuda: getProcAddress cuDeviceGetPCIBusId -> 0x7f96c52d9d20
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDeviceGetUuid -> 0x7f38fdd20d90
+fakecuda: getProcAddress cuDeviceGetUuid -> 0x7f96c52d9d90
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetTexture1DLinearMaxWidth -> (nil)
 fakecuda: missing symbol cuDeviceGetTexture1DLinearMaxWidth
@@ -1266,31 +1266,31 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuFlushGPUDirectRDMAWrites -> (nil)
 fakecuda: missing symbol cuFlushGPUDirectRDMAWrites
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxRetain -> 0x7f38fdd1f670
+fakecuda: getProcAddress cuDevicePrimaryCtxRetain -> 0x7f96c52d8670
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxRelease -> 0x7f38fdd1f6b0
+fakecuda: getProcAddress cuDevicePrimaryCtxRelease -> 0x7f96c52d86b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxSetFlags -> 0x7f38fdd1f6e0
+fakecuda: getProcAddress cuDevicePrimaryCtxSetFlags -> 0x7f96c52d86e0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxGetState -> 0x7f38fdd1f710
+fakecuda: getProcAddress cuDevicePrimaryCtxGetState -> 0x7f96c52d8710
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuDevicePrimaryCtxReset -> 0x7f38fdd1f760
+fakecuda: getProcAddress cuDevicePrimaryCtxReset -> 0x7f96c52d8760
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxCreate -> 0x7f38fdd1f420
+fakecuda: getProcAddress cuCtxCreate -> 0x7f96c52d8420
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxGetFlags -> (nil)
 fakecuda: missing symbol cuCtxGetFlags
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxSetCurrent -> 0x7f38fdd1f4a0
+fakecuda: getProcAddress cuCtxSetCurrent -> 0x7f96c52d84a0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxGetCurrent -> 0x7f38fdd1f4d0
+fakecuda: getProcAddress cuCtxGetCurrent -> 0x7f96c52d84d0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxDetach -> (nil)
 fakecuda: missing symbol cuCtxDetach
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxGetApiVersion -> 0x7f38fdd1f630
+fakecuda: getProcAddress cuCtxGetApiVersion -> 0x7f96c52d8630
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxGetDevice -> 0x7f38fdd1f5f0
+fakecuda: getProcAddress cuCtxGetDevice -> 0x7f96c52d85f0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxGetLimit -> (nil)
 fakecuda: missing symbol cuCtxGetLimit
@@ -1313,25 +1313,25 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxSetSharedMemConfig -> (nil)
 fakecuda: missing symbol cuCtxSetSharedMemConfig
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxSynchronize -> 0x7f38fdd1f5c0
+fakecuda: getProcAddress cuCtxSynchronize -> 0x7f96c52d85c0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuCtxResetPersistingL2Cache -> (nil)
 fakecuda: missing symbol cuCtxResetPersistingL2Cache
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxPopCurrent -> 0x7f38fdd1f570
+fakecuda: getProcAddress cuCtxPopCurrent -> 0x7f96c52d8570
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuCtxPushCurrent -> 0x7f38fdd1f540
+fakecuda: getProcAddress cuCtxPushCurrent -> 0x7f96c52d8540
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleLoad -> 0x7f38fdd1fb00
+fakecuda: getProcAddress cuModuleLoad -> 0x7f96c52d8b00
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleLoadData -> 0x7f38fdd1fb40
+fakecuda: getProcAddress cuModuleLoadData -> 0x7f96c52d8b40
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuModuleLoadFatBinary -> (nil)
 fakecuda: missing symbol cuModuleLoadFatBinary
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleUnload -> 0x7f38fdd1fbc0
+fakecuda: getProcAddress cuModuleUnload -> 0x7f96c52d8bc0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuModuleGetFunction -> 0x7f38fdd1fbf0
+fakecuda: getProcAddress cuModuleGetFunction -> 0x7f96c52d8bf0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuModuleGetGlobal -> (nil)
 fakecuda: missing symbol cuModuleGetGlobal
@@ -1414,19 +1414,19 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemAllocManaged -> (nil)
 fakecuda: missing symbol cuMemAllocManaged
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemAlloc -> 0x7f38fdd20e30
+fakecuda: getProcAddress cuMemAlloc -> 0x7f96c52d9e30
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemAllocPitch -> (nil)
 fakecuda: missing symbol cuMemAllocPitch
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemFree -> 0x7f38fdd1f790
+fakecuda: getProcAddress cuMemFree -> 0x7f96c52d8790
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemGetAddressRange -> (nil)
 fakecuda: missing symbol cuMemGetAddressRange
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemFreeHost -> 0x7f38fdd1f7c0
+fakecuda: getProcAddress cuMemFreeHost -> 0x7f96c52d87c0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemHostAlloc -> 0x7f38fdd20f10
+fakecuda: getProcAddress cuMemHostAlloc -> 0x7f96c52d9f10
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemHostGetDevicePointer -> (nil)
 fakecuda: missing symbol cuMemHostGetDevicePointer
@@ -1434,11 +1434,11 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemHostGetFlags -> (nil)
 fakecuda: missing symbol cuMemHostGetFlags
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemHostRegister -> 0x7f38fdd1f7f0
+fakecuda: getProcAddress cuMemHostRegister -> 0x7f96c52d87f0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemHostUnregister -> 0x7f38fdd1f820
+fakecuda: getProcAddress cuMemHostUnregister -> 0x7f96c52d8820
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuPointerGetAttribute -> 0x7f38fdd20df0
+fakecuda: getProcAddress cuPointerGetAttribute -> 0x7f96c52d9df0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuPointerGetAttributes -> (nil)
 fakecuda: missing symbol cuPointerGetAttributes
@@ -1506,33 +1506,33 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemcpyAsync -> (nil)
 fakecuda: missing symbol cuMemcpyAsync
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeer -> 0x7f38fdd210b0
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7f96c52da0b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeer -> 0x7f38fdd210b0
+fakecuda: getProcAddress cuMemcpyPeer -> 0x7f96c52da0b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7f38fdd21120
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7f96c52da120
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7f38fdd21120
+fakecuda: getProcAddress cuMemcpyPeerAsync -> 0x7f96c52da120
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoD -> 0x7f38fdd20f50
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7f96c52d9f50
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoD -> 0x7f38fdd20f50
+fakecuda: getProcAddress cuMemcpyHtoD -> 0x7f96c52d9f50
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7f38fdd20fc0
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7f96c52d9fc0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7f38fdd20fc0
+fakecuda: getProcAddress cuMemcpyHtoDAsync -> 0x7f96c52d9fc0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoH -> 0x7f38fdd21000
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7f96c52da000
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoH -> 0x7f38fdd21000
+fakecuda: getProcAddress cuMemcpyDtoH -> 0x7f96c52da000
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7f38fdd21070
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7f96c52da070
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7f38fdd21070
+fakecuda: getProcAddress cuMemcpyDtoHAsync -> 0x7f96c52da070
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoD -> 0x7f38fdd21530
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7f96c52da530
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemcpyDtoD -> 0x7f38fdd21530
+fakecuda: getProcAddress cuMemcpyDtoD -> 0x7f96c52da530
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemcpyDtoDAsync -> (nil)
 fakecuda: missing symbol cuMemcpyDtoDAsync
@@ -1588,9 +1588,9 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemcpy3DBatchAsync -> (nil)
 fakecuda: missing symbol cuMemcpy3DBatchAsync
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemsetD8 -> 0x7f38fdd1fd50
+fakecuda: getProcAddress cuMemsetD8 -> 0x7f96c52d8d50
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuMemsetD8 -> 0x7f38fdd1fd50
+fakecuda: getProcAddress cuMemsetD8 -> 0x7f96c52d8d50
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuMemsetD8Async -> (nil)
 fakecuda: missing symbol cuMemsetD8Async
@@ -1724,9 +1724,9 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuDeviceGetNvSciSyncAttributes -> (nil)
 fakecuda: missing symbol cuDeviceGetNvSciSyncAttributes
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuLaunchKernel -> 0x7f38fdd1fc30
+fakecuda: getProcAddress cuLaunchKernel -> 0x7f96c52d8c30
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuLaunchKernel -> 0x7f38fdd1fc30
+fakecuda: getProcAddress cuLaunchKernel -> 0x7f96c52d8c30
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuLaunchCooperativeKernel -> (nil)
 fakecuda: missing symbol cuLaunchCooperativeKernel
@@ -1749,11 +1749,11 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuLaunchKernelEx -> (nil)
 fakecuda: missing symbol cuLaunchKernelEx
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventCreate -> 0x7f38fdd1f9f0
+fakecuda: getProcAddress cuEventCreate -> 0x7f96c52d89f0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventRecord -> 0x7f38fdd1fa60
+fakecuda: getProcAddress cuEventRecord -> 0x7f96c52d8a60
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventRecord -> 0x7f38fdd1fa60
+fakecuda: getProcAddress cuEventRecord -> 0x7f96c52d8a60
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuEventRecordWithFlags -> (nil)
 fakecuda: missing symbol cuEventRecordWithFlags
@@ -1764,13 +1764,13 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuEventQuery -> (nil)
 fakecuda: missing symbol cuEventQuery
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventSynchronize -> 0x7f38fdd1fa90
+fakecuda: getProcAddress cuEventSynchronize -> 0x7f96c52d8a90
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventDestroy -> 0x7f38fdd1fa30
+fakecuda: getProcAddress cuEventDestroy -> 0x7f96c52d8a30
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventElapsedTime -> 0x7f38fdd1fac0
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7f96c52d8ac0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuEventElapsedTime -> 0x7f38fdd1fac0
+fakecuda: getProcAddress cuEventElapsedTime -> 0x7f96c52d8ac0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamWaitValue32 -> (nil)
 fakecuda: missing symbol cuStreamWaitValue32
@@ -1802,9 +1802,9 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamBatchMemOp -> (nil)
 fakecuda: missing symbol cuStreamBatchMemOp
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamCreate -> 0x7f38fdd1f8b0
+fakecuda: getProcAddress cuStreamCreate -> 0x7f96c52d88b0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamCreateWithPriority -> 0x7f38fdd1f8f0
+fakecuda: getProcAddress cuStreamCreateWithPriority -> 0x7f96c52d88f0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamGetPriority -> (nil)
 fakecuda: missing symbol cuStreamGetPriority
@@ -1833,25 +1833,25 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamGetId -> (nil)
 fakecuda: missing symbol cuStreamGetId
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamDestroy -> 0x7f38fdd1f930
+fakecuda: getProcAddress cuStreamDestroy -> 0x7f96c52d8930
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamWaitEvent -> 0x7f38fdd1f9c0
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7f96c52d89c0
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamWaitEvent -> 0x7f38fdd1f9c0
-fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamAddCallback -> (nil)
-fakecuda: missing symbol cuStreamAddCallback
+fakecuda: getProcAddress cuStreamWaitEvent -> 0x7f96c52d89c0
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamAddCallback -> (nil)
 fakecuda: missing symbol cuStreamAddCallback
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamSynchronize -> 0x7f38fdd1f960
+fakecuda: getProcAddress cuStreamAddCallback -> (nil)
+fakecuda: missing symbol cuStreamAddCallback
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamSynchronize -> 0x7f38fdd1f960
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7f96c52d8960
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamQuery -> 0x7f38fdd1f990
+fakecuda: getProcAddress cuStreamSynchronize -> 0x7f96c52d8960
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuStreamQuery -> 0x7f38fdd1f990
+fakecuda: getProcAddress cuStreamQuery -> 0x7f96c52d8990
+fakecuda: cuGetProcAddress
+fakecuda: getProcAddress cuStreamQuery -> 0x7f96c52d8990
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuStreamAttachMemAsync -> (nil)
 fakecuda: missing symbol cuStreamAttachMemAsync
@@ -2027,7 +2027,7 @@ fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuGraphicsVDPAURegisterOutputSurface -> (nil)
 fakecuda: missing symbol cuGraphicsVDPAURegisterOutputSurface
 fakecuda: cuGetProcAddress
-fakecuda: getProcAddress cuGetExportTable -> 0x7f38fdd21180
+fakecuda: getProcAddress cuGetExportTable -> 0x7f96c52da180
 fakecuda: cuGetProcAddress
 fakecuda: getProcAddress cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags -> (nil)
 fakecuda: missing symbol cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
@@ -2414,13 +2414,13 @@ fakecuda: cuInit
 fakecuda: cuGetExportTable uuid=6bd5fb6c-5bf4-e74a-8987-d93912fd9df9
 fakecuda: cuGetExportTable -> 500 (NOT_FOUND, real driver disabled)
 nccl version=23203
-gabe:872346:872346 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
-gabe:872346:872346 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
+gabe:3020350:3020350 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+gabe:3020350:3020350 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
 
-[2026-10-20 16:53:58] gabe:872346:872346 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'named symbol not found'
+[2026-10-20 18:23:57] gabe:3020350:3020350 [0] misc/cudawrap.cc:329 (initOnceFunc) NCCL WARN Cuda failure 'named symbol not found'
 
-[2026-10-20 16:53:58] gabe:872346:872346 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'named symbol not found'
+[2026-10-20 18:23:57] gabe:3020350:3020350 [0] init.cc:2955 (ncclCommInitRank) NCCL WARN Cuda failure 'named symbol not found'
 ncclCommInitRank=1 (unhandled cuda error (run with NCCL_DEBUG=INFO for details))
 FAIL
-gabe:872346:872351 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
+gabe:3020350:3020364 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
 exit=1
