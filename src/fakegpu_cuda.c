@@ -1009,3 +1009,12 @@ int fg_module_load(void **out, const char *name)
     *out = h ? fg_handle_ptr(h) : NULL;
     return *out != NULL ? cudaSuccess : (int)cudaErrorInvalidDevice;
 }
+
+cudaError_t cudaDeviceGetPCIBusId(char *pciBusId, int len, int device)
+{
+    if (!pciBusId || len <= 0) return cudaErrorInvalidValue;
+    struct fg_config *c = fg_cfg();
+    if (device < 0 || device >= c->num_devices) return (cudaError_t)cudaErrorInvalidDevice;
+    snprintf(pciBusId, len, "0000:%02x:00.0", device & 0xff);
+    return cudaSuccess;
+}
