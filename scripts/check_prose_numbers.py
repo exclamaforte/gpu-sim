@@ -63,6 +63,15 @@ ARTIFACT_RE = re.compile(r"[A-Za-z0-9_./-]+\.(?:txt|json|jsonl|log)")
 DECIMAL_RE = re.compile(r"(?<![\d.])(\d+\.\d{2})(?![\d])")
 RUNCOUNT_RE = re.compile(r"\b(\d+)\s*/\s*(\d+)\s*runs?\b")
 
+# Grammar extension (gpu-sim-7vh): units that make an integer a *count* rather than
+# an id/date/size. Deliberately small: false positives on honest prose are worse
+# than missed claims.
+COUNT_UNITS = ("phases", "pieces", "sends", "runs", "chunks", "ranks", "channels",
+               "measurements", "traces", "factors", "samples")
+COUNT_UNIT_RE = re.compile(r"\b(\d+)\s+(" + "|".join(COUNT_UNITS) + r")\b")
+RATIO_RE = re.compile(r"\b(\d+)\s*(?:/|of|-of-)\s*(\d+)(?:\s*(" + "|".join(COUNT_UNITS) + r"))?\b")
+PERCENT_RE = re.compile(r"\b(\d+)\s*(?:%|percent)\b")
+
 # A results document is a markdown file whose name marks it as one.
 RESULTS_NAMES = {"results.md", "report.md", "REPORT.md"}
 
@@ -166,7 +175,7 @@ def committed_count(artifacts: list[Path], pattern: str) -> int:
     return total
 
 
-def check_doc(doc: Path, strict: bool = False) -> list[str]:
+def check_doc(doc: Path, strict: bool = False, grammar: bool = False) -> list[str]:
     findings: list[str] = []
     try:
         rel = str(doc.resolve().relative_to(REPO))
@@ -260,17 +269,62 @@ def check_doc(doc: Path, strict: bool = False) -> list[str]:
                     f"{rel}:{lineno}: claims {m.group(0)!r} but only {have} trace file(s) "
                     f"are committed next to the cited artifacts"
                 )
+
+        # Grammar extension (gpu-sim-7vh): ratios, integer-with-unit counts, percentages.
+        if grammar:
+            # determine relevant artifacts (row-level in strict mode for table rows)
+            if strict and line.lstrip().startswith("|"):
+                g_artifacts = []
+                for mm in ARTIFACT_RE.finditer(line):
+                    raw = mm.group(0)
+                    for base in (doc.parent, REPO):
+                        p = (base / raw).resolve()
+                        if p.is_file() and p not in g_artifacts:
+                            g_artifacts.append(p); break
+                if not g_artifacts:
+                    g_artifacts = artifacts
+            else:
+                g_artifacts = artifacts
+            g_text = "\n".join(a.read_text(errors="replace") for a in g_artifacts).lower() if g_artifacts else ""
+            # ratio
+            for m in RATIO_RE.finditer(line):
+                phrase = m.group(0).lower()
+                art_text = "\n".join(a.read_text(errors="replace") for a in g_artifacts).lower() if g_artifacts else ""
+                if phrase not in art_text:
+                    findings.append(
+                        f"{rel}:{lineno}: ratio {m.group(0)!r} is not supported by cited artifacts"
+                    )
+            ratio_spans = [m.span() for m in RATIO_RE.finditer(line)]
+            # integer-with-unit
+            for m in COUNT_UNIT_RE.finditer(line):
+                if any(rs[0] <= m.start() and m.end() <= rs[1] for rs in ratio_spans):
+                    continue
+                phrase = m.group(0).lower()
+                art_text = "\n".join(a.read_text(errors="replace") for a in g_artifacts).lower() if g_artifacts else ""
+                if phrase not in art_text:
+                    findings.append(
+                        f"{rel}:{lineno}: count {m.group(0)!r} is not supported by cited artifacts"
+                    )
+            # percentage
+            for m in PERCENT_RE.finditer(line):
+                phrase = m.group(0).lower()
+                art_text = "\n".join(a.read_text(errors="replace") for a in g_artifacts).lower() if g_artifacts else ""
+                if phrase not in art_text:
+                    findings.append(
+                        f"{rel}:{lineno}: percentage {m.group(0)!r} is not supported by cited artifacts"
+                    )
     return findings
 
 
 def main(argv: list[str]) -> int:
     strict = "--strict" in argv or "--strict-proximity" in argv
+    grammar = "--grammar" in argv
     paths = [Path(a) for a in argv if not a.startswith("-")]
     if not paths:
         paths = [p for p in REPO.glob("experiments/*/*.md") if p.name in RESULTS_NAMES]
     findings: list[str] = []
     for p in paths:
-        findings.extend(check_doc(p, strict=strict))
+        findings.extend(check_doc(p, strict=strict, grammar=grammar))
     for f in findings:
         print(f"FINDING: {f}")
     if findings:

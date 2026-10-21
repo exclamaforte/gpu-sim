@@ -75,6 +75,7 @@ check: guard-build-inputs $(LIB)
 	@python3 tests/test_prose_numbers_lint.py
 	@python3 tests/test_bead_prose_numbers_lint.py
 	@python3 tests/test_prose_numbers_strict.py
+	@python3 tests/test_prose_numbers_grammar.py
 	@python3 scripts/check_prose_numbers.py
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
