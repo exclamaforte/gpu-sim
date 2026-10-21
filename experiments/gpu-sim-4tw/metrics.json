@@ -1,44 +1,112 @@
 {
   "bead": "gpu-sim-4tw",
-  "question": "Does the fabric's measured retransmit behaviour match the model's 1/(1-p) counterfactual?",
-  "pre_registration": "experiments/gpu-sim-4tw/pre_registration.md",
-  "test_points": [
-    {"loss_ppm": 0, "p": 0.0, "model": 1.0},
-    {"loss_ppm": 50000, "p": 0.05, "model": 1.0526315789},
-    {"loss_ppm": 100000, "p": 0.1, "model": 1.1111111111},
-    {"loss_ppm": 250000, "p": 0.25, "model": 1.3333333333},
-    {"loss_ppm": 500000, "p": 0.5, "model": 2.0}
-  ],
-  "delivered_pieces": 1000,
-  "seeds": [1, 2, 3],
-  "tolerance": 0.05,
-  "results": [
-    {"loss_ppm": 0, "seed": 1, "attempts": 1000, "deliveries": 1000, "ratio": 1.0, "model": 1.0, "rel_err": 0.0},
-    {"loss_ppm": 0, "seed": 2, "attempts": 1000, "deliveries": 1000, "ratio": 1.0, "model": 1.0, "rel_err": 0.0},
-    {"loss_ppm": 0, "seed": 3, "attempts": 1000, "deliveries": 1000, "ratio": 1.0, "model": 1.0, "rel_err": 0.0},
-    {"loss_ppm": 50000, "seed": 1, "attempts": 1036, "deliveries": 1000, "ratio": 1.036, "model": 1.0526315789, "rel_err": -0.0158},
-    {"loss_ppm": 50000, "seed": 2, "attempts": 1047, "deliveries": 1000, "ratio": 1.047, "model": 1.0526315789, "rel_err": -0.00535},
-    {"loss_ppm": 50000, "seed": 3, "attempts": 1061, "deliveries": 1000, "ratio": 1.061, "model": 1.0526315789, "rel_err": 0.00795},
-    {"loss_ppm": 100000, "seed": 1, "attempts": 1092, "deliveries": 1000, "ratio": 1.092, "model": 1.1111111111, "rel_err": -0.0172},
-    {"loss_ppm": 100000, "seed": 2, "attempts": 1091, "deliveries": 1000, "ratio": 1.091, "model": 1.1111111111, "rel_err": -0.0181},
-    {"loss_ppm": 100000, "seed": 3, "attempts": 1121, "deliveries": 1000, "ratio": 1.121, "model": 1.1111111111, "rel_err": 0.0089},
-    {"loss_ppm": 250000, "seed": 1, "attempts": 1308, "deliveries": 1000, "ratio": 1.308, "model": 1.3333333333, "rel_err": -0.019},
-    {"loss_ppm": 250000, "seed": 2, "attempts": 1314, "deliveries": 1000, "ratio": 1.314, "model": 1.3333333333, "rel_err": -0.0145},
-    {"loss_ppm": 250000, "seed": 3, "attempts": 1330, "deliveries": 1000, "ratio": 1.33, "model": 1.3333333333, "rel_err": -0.0025},
-    {"loss_ppm": 500000, "seed": 1, "attempts": 2005, "deliveries": 1000, "ratio": 2.005, "model": 2.0, "rel_err": 0.0025},
-    {"loss_ppm": 500000, "seed": 2, "attempts": 1947, "deliveries": 1000, "ratio": 1.947, "model": 2.0, "rel_err": -0.0265},
-    {"loss_ppm": 500000, "seed": 3, "attempts": 2064, "deliveries": 1000, "ratio": 2.064, "model": 2.0, "rel_err": 0.032}
-  ],
-  "median_ratios": {
-    "0": 1.0,
-    "50000": 1.047,
-    "100000": 1.092,
-    "250000": 1.314,
-    "500000": 2.005
-  },
   "verdict": "MODEL-SUPPORTED",
-  "verdict_detail": "All 5 test points within 5% tolerance (median ratios: 1.000, 1.047, 1.092, 1.314, 2.005 vs 1.000, 1.053, 1.111, 1.333, 2.000).",
-  "instrument_check": "PASSED (loss=0: 100/100; loss=1e6: 100/0)"
+  "question": "does the fabric's measured attempts/deliveries match 5zv's 1/(1-p) counterfactual?",
+  "pre_registration": {
+    "tolerance_rel": 0.05,
+    "deliveries_per_point": 1000,
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "loss_ppm": [
+      0,
+      50000,
+      100000,
+      250000,
+      500000
+    ],
+    "rule": "median ratio per point within 5% of 1/(1-p); no widening after results"
+  },
+  "instrument_check": {
+    "loss_0": {
+      "attempts": 100,
+      "successes": 100,
+      "expected": "100/100"
+    },
+    "loss_1e6": {
+      "attempts": 100,
+      "successes": 0,
+      "expected": "100/0"
+    },
+    "passed": true
+  },
+  "points": [
+    {
+      "loss_ppm": 0,
+      "p": 0.0,
+      "seed_ratios": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "median_ratio": 1.0,
+      "model_1_over_1_minus_p": 1.0,
+      "rel_err": 0.0,
+      "within": true
+    },
+    {
+      "loss_ppm": 50000,
+      "p": 0.05,
+      "seed_ratios": [
+        1.036,
+        1.047,
+        1.061
+      ],
+      "median_ratio": 1.047,
+      "model_1_over_1_minus_p": 1.052632,
+      "rel_err": -0.00535,
+      "within": true
+    },
+    {
+      "loss_ppm": 100000,
+      "p": 0.1,
+      "seed_ratios": [
+        1.092,
+        1.091,
+        1.121
+      ],
+      "median_ratio": 1.092,
+      "model_1_over_1_minus_p": 1.111111,
+      "rel_err": -0.0172,
+      "within": true
+    },
+    {
+      "loss_ppm": 250000,
+      "p": 0.25,
+      "seed_ratios": [
+        1.308,
+        1.314,
+        1.33
+      ],
+      "median_ratio": 1.314,
+      "model_1_over_1_minus_p": 1.333333,
+      "rel_err": -0.0145,
+      "within": true
+    },
+    {
+      "loss_ppm": 500000,
+      "p": 0.5,
+      "seed_ratios": [
+        2.005,
+        1.947,
+        2.064
+      ],
+      "median_ratio": 2.005,
+      "model_1_over_1_minus_p": 2.0,
+      "rel_err": 0.0025,
+      "within": true
+    }
+  ],
+  "max_abs_rel_err": 0.0172,
+  "interpretation": "5zv's loss counterfactual is validated against the simulator's own fault implementation. The model route's fault predictions can be trusted for reasoning about specs unmeasurable on this box; the measurement route was closed by r27. This validates model vs OUR fabric, not model vs hardware loss.",
+  "not_claimed": [
+    "no admission",
+    "no timing claim",
+    "no validation against hardware loss",
+    "n>=3 refusal untouched",
+    "categorical trichotomy untouched"
+  ],
+  "build_note": "fabric is not exported from libfakegpu.so; src/fakegpu_fabric.c is linked directly as tests/test_fabric.c does. Test wired into make check."
 }
-EOF
-echo "written"; python3 -c "import json; json.load(open('metrics.json')); print('valid json')"
