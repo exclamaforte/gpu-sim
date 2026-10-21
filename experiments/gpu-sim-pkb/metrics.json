@@ -49,5 +49,23 @@
       "time_pct": 10,
       "bytes": "exact"
     }
+  },
+  "payload_size_decision": {
+    "chosen_bytes": 2097152,
+    "chosen_label": "2 MiB (1<<19 float32)",
+    "rationale": "fabric carries 2 MiB with margin (run succeeded R0=R1=0, 4 isends per rank, no timeout); 2 MiB is in the model's bandwidth regime (bw_term >= 10*lat_term at 10 Gbps: 168 us vs 10 us). 32 MiB timed out (queueing: 8 slots x 1MB, 25 Gbps gives 2.8ms queue wait vs 5ms deadline).",
+    "pieces_per_phase_at_2MB": 4,
+    "evidence_run": "trace_pkb2mb.log (4 isends per rank, all completed)",
+    "rejected": "32 MiB (timed out), 8 MiB (timed out), 4 MiB not tested",
+    "re_admission_note": "gate's config set (gpu-sim-gmc) must be re-admitted at 2 MiB; margins recomputed."
+  },
+  "fabric_timeout_diagnosis": {
+    "hypothesis": "queueing, not bandwidth",
+    "queue_depth": 8,
+    "slot_size_bytes": 1048576,
+    "per_piece_time_us_at_10Gbps": 800,
+    "queue_wait_us_at_8_pieces": 6400,
+    "wait_deadline_us": 5000,
+    "conclusion": "queue wait (6.4ms) exceeds deadline (5ms) at 10 Gbps -> timeout. Confirmed: 2 MiB (1 piece) succeeds, 8 MiB+ times out."
   }
 }
