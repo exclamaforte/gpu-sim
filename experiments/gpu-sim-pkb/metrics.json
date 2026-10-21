@@ -119,5 +119,15 @@
     "shared_digest": "458b87c1dfcd0383 (summed result, both phases)",
     "finding": "Byte factor is SIZE-DEPENDENT: at 1 MiB, total bytes = S (not 2S). 2 distinct digests = 2 phases, each sending S/2. At 4 KiB, total = 2S (each phase sends S). NCCL's chunk size varies with buffer size.",
     "digest_test": "cross-direction DIGEST: shared digest 458b87c1dfcd0383 = summed result on both ranks -> genuine two-phase protocol, NOT truncated. Bytes = S (not 2S) due to size-dependent chunking."
+  },
+  "per_piece_bench": {
+    "file": "per_piece_bench.c",
+    "piece_size_bytes": 1048576,
+    "iters": 200,
+    "per_piece_copy_us": 16.76,
+    "gate_allowance_us": 2.6,
+    "achieved_residual_us": 16.76,
+    "verdict": "FAILS gate allowance (16.76 > 2.6). Requires regMr to eliminate per-piece copy.",
+    "label": "SIMULATOR DEFECT (not model error) if not fixed."
   }
 }
