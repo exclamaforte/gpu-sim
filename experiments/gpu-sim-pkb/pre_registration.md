@@ -54,3 +54,17 @@ explained. Counts (pieces) are deterministic; durations are not compared.
 - NO-STEP otherwise; then gpu-sim-ggh closes as NOT-A-DEFECT citing this bead.
 EOF
 echo written
+## 8. Evidence-integrity rules (added per PI review)
+
+- No committed file may be modified by this bead. All measurement outputs are new
+  paths under experiments/gpu-sim-pkb/traces/ with the naming pattern
+  trace_S<S>_n<nranks>_<runid>.log, each carrying its own S, nranks and run id
+  in a self-describing header. Per-run stdout/stderr go to
+  traces/run_<RUN_ID>_rank{0,1}.txt. Committed paths (run0.log, run1.log) are
+  never written.
+- Measuring harness: experiments/gpu-sim-m3d.8/allreduce_test_size.c (new code
+  in this bead). It takes per-rank element count as argv[4], allocates
+  n*sizeof(float) per rank, calls ncclAllReduce, and writes only to the trace
+  path given by GPUSIM_TRACE. It does not modify the model or timing code.
+- Completeness gate: total bytes per rank must be an exact multiple of S with
+  factor in [1,4]. Non-integer factors (e.g. 1.25) are INVALID, not rounded.

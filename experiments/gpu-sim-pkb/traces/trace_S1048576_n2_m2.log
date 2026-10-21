@@ -1,5 +1,5 @@
-# S_BYTES=1048576 NRANKS=2 RUN_ID=eut4-1048576-1792598720
-rank=0 v12.init init commId=1078819473256162334 rank=0 nranks=2
+# S_BYTES=1048576 NRANKS=2 RUN_ID=m2-1048576-1792600542
+rank=0 v12.init init commId=11100651787885556062 rank=0 nranks=2
 rank=0 v12.devices
 rank=0 v12.getProperties
 rank=0 v12.getProperties
@@ -86,23 +86,23 @@ rank=0 v12.recv recv-done peer=1 chan=5 slot=0 seq=7 bytes=65536 digest=fe728145
 rank=0 v12.isend isend peer=1 chan=4 slot=0 seq=7 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=7 acct=none link=0 delay_us=57.429 acct=per_isend
 rank=0 v12.recv recv-done peer=1 chan=7 slot=0 seq=8 bytes=65536 digest=fe72814514a90383 consumed_seq=8 cnt_recv_done=8 link=0
 rank=0 v12.isend isend peer=1 chan=6 slot=0 seq=8 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=8 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=9 bytes=65536 digest=fe72814514a90383 consumed_seq=9 cnt_recv_done=9 link=0
 rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=9 bytes=65536 digest=3f595d9390490383 tag=0 dtype=float32 cnt_isend=9 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=9 bytes=65536 digest=fe72814514a90383 consumed_seq=9 cnt_recv_done=9 link=0
+rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=10 bytes=65536 digest=fe72814514a90383 consumed_seq=10 cnt_recv_done=10 link=0
 rank=0 v12.isend isend peer=1 chan=2 slot=0 seq=10 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=10 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=0 v12.recv recv-done peer=1 chan=5 slot=0 seq=10 bytes=65536 digest=fe72814514a90383 consumed_seq=10 cnt_recv_done=10 link=0
+rank=0 v12.recv recv-done peer=1 chan=5 slot=0 seq=11 bytes=65536 digest=fe72814514a90383 consumed_seq=11 cnt_recv_done=11 link=0
 rank=0 v12.isend isend peer=1 chan=4 slot=0 seq=11 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=11 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=0 v12.recv recv-done peer=1 chan=7 slot=0 seq=11 bytes=65536 digest=fe72814514a90383 consumed_seq=11 cnt_recv_done=11 link=0
+rank=0 v12.recv recv-done peer=1 chan=7 slot=0 seq=12 bytes=65536 digest=fe72814514a90383 consumed_seq=12 cnt_recv_done=12 link=0
 rank=0 v12.isend isend peer=1 chan=6 slot=0 seq=12 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=12 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=12 bytes=65536 digest=fe72814514a90383 consumed_seq=12 cnt_recv_done=12 link=0
-rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=13 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 consumed_seq=13 cnt_recv_done=13 link=0
-rank=0 v12.isend isend peer=1 chan=2 slot=0 seq=14 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=14 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 consumed_seq=13 cnt_recv_done=13 link=0
+rank=0 v12.isend isend peer=1 chan=2 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=13 acct=none link=0 delay_us=57.429 acct=per_isend
 rank=0 v12.recv recv-done peer=1 chan=5 slot=0 seq=14 bytes=65536 digest=fe72814514a90383 consumed_seq=14 cnt_recv_done=14 link=0
-rank=0 v12.isend isend peer=1 chan=4 slot=0 seq=15 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=15 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=0 v12.isend isend peer=1 chan=4 slot=0 seq=14 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=14 acct=none link=0 delay_us=57.429 acct=per_isend
 rank=0 v12.recv recv-done peer=1 chan=7 slot=0 seq=15 bytes=65536 digest=fe72814514a90383 consumed_seq=15 cnt_recv_done=15 link=0
-rank=0 v12.isend isend peer=1 chan=6 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=16 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 consumed_seq=16 cnt_recv_done=16 link=0
-rank=1 v12.init init commId=1078819473256162334 rank=1 nranks=2
+rank=0 v12.isend isend peer=1 chan=6 slot=0 seq=15 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=15 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 tag=0 dtype=float32 cnt_isend=16 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 consumed_seq=16 cnt_recv_done=16 link=0
+rank=1 v12.init init commId=11100651787885556062 rank=1 nranks=2
 rank=1 v12.devices
 rank=1 v12.getProperties
 rank=1 v12.getProperties
@@ -189,19 +189,19 @@ rank=1 v12.isend isend peer=0 chan=4 slot=0 seq=7 bytes=65536 digest=fe72814514a
 rank=1 v12.recv recv-done peer=0 chan=7 slot=0 seq=7 bytes=65536 digest=fe72814514a90383 consumed_seq=7 cnt_recv_done=7 link=0
 rank=1 v12.isend isend peer=0 chan=6 slot=0 seq=8 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=8 acct=none link=0 delay_us=57.429 acct=per_isend
 rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=8 bytes=65536 digest=fe72814514a90383 consumed_seq=8 cnt_recv_done=8 link=0
-rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=9 bytes=65536 digest=3f595d9390490383 consumed_seq=9 cnt_recv_done=9 link=0
 rank=1 v12.isend isend peer=0 chan=2 slot=0 seq=9 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=9 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=1 v12.recv recv-done peer=0 chan=5 slot=0 seq=10 bytes=65536 digest=fe72814514a90383 consumed_seq=10 cnt_recv_done=10 link=0
+rank=1 v12.recv recv-done peer=0 chan=5 slot=0 seq=9 bytes=65536 digest=3f595d9390490383 consumed_seq=9 cnt_recv_done=9 link=0
 rank=1 v12.isend isend peer=0 chan=4 slot=0 seq=10 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=10 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=1 v12.recv recv-done peer=0 chan=7 slot=0 seq=11 bytes=65536 digest=fe72814514a90383 consumed_seq=11 cnt_recv_done=11 link=0
+rank=1 v12.recv recv-done peer=0 chan=7 slot=0 seq=10 bytes=65536 digest=fe72814514a90383 consumed_seq=10 cnt_recv_done=10 link=0
 rank=1 v12.isend isend peer=0 chan=6 slot=0 seq=11 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=11 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=12 bytes=65536 digest=fe72814514a90383 consumed_seq=12 cnt_recv_done=12 link=0
+rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=11 bytes=65536 digest=fe72814514a90383 consumed_seq=11 cnt_recv_done=11 link=0
 rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=12 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=12 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 consumed_seq=13 cnt_recv_done=13 link=0
-rank=1 v12.isend isend peer=0 chan=4 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=13 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=12 bytes=65536 digest=fe72814514a90383 consumed_seq=12 cnt_recv_done=12 link=0
+rank=1 v12.isend isend peer=0 chan=2 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=13 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=5 slot=0 seq=13 bytes=65536 digest=fe72814514a90383 consumed_seq=13 cnt_recv_done=13 link=0
+rank=1 v12.isend isend peer=0 chan=4 slot=0 seq=14 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=14 acct=none link=0 delay_us=57.429 acct=per_isend
 rank=1 v12.recv recv-done peer=0 chan=7 slot=0 seq=14 bytes=65536 digest=fe72814514a90383 consumed_seq=14 cnt_recv_done=14 link=0
-rank=1 v12.isend isend peer=0 chan=6 slot=0 seq=14 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=14 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=1 v12.isend isend peer=0 chan=6 slot=0 seq=15 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=15 acct=none link=0 delay_us=57.429 acct=per_isend
 rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=15 bytes=65536 digest=fe72814514a90383 consumed_seq=15 cnt_recv_done=15 link=0
-rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=15 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=15 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=1 v12.isend isend peer=0 chan=2 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=16 acct=none link=0 delay_us=57.429 acct=per_isend
-rank=1 v12.recv recv-done peer=0 chan=5 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 consumed_seq=16 cnt_recv_done=16 link=0
+rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 tag=1 dtype=float32 cnt_isend=16 acct=none link=0 delay_us=57.429 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=16 bytes=65536 digest=fe72814514a90383 consumed_seq=16 cnt_recv_done=16 link=0

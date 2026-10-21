@@ -3,23 +3,18 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$HERE"
 export PYTHONPATH="$HERE:${PYTHONPATH:-}"
-# Verify all canonical traces exist
-for f in traces/trace_S4096_n2_eut4-4096-1792598352.log traces/trace_S65536_n2_CLEAN.log traces/trace_S262144_n2_CLEAN.log traces/trace_S524288_n2_CLEAN.log traces/trace_S1048576_n2_CLEAN.log traces/trace_S2097152_n2_CLEAN.log; do
-  test -s "$f" || { echo "missing trace: $f"; exit 1; }
+# verify all m1 traces exist
+for S in 4096 65536 131072 262144 393216 524288 1048576 2097152; do
+  test -s "traces/trace_S${S}_n2_m1.log" || { echo "missing m1 trace for $S"; exit 1; }
 done
-# Rebuild table
+# rebuild table
 python3 build_table.py > /tmp/scratchpad/eut_table.log 2>&1
 test -s table_results.json
-echo "Table rebuilt; see table_results.json"
-# Verify completeness: no valid trace shows factor 2.0
-python3 -c "
-import json
-d=json.load(open('table_results.json'))
-for r in d['rows']:
-    if r['valid']:
-        for rk in r['ranks']:
-            assert rk['byte_factor'] < 2.0, f\"unexpected 2.0 factor at {r['S_bytes']}\"
-print('NO-STEP verified: no valid trace has byte factor 2.0')
-"
-chmod +x /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-eut/experiments/gpu-sim-pkb/run.sh
-cd /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-eut/experiments/gpu-sim-pkb && ./run.sh
+# negative controls must be rejected (exit 2)
+if python3 reduce_trace.py traces/negative_control_broken.log >/dev/null 2>&1; then
+  echo "FAIL: broken trace was accepted"; exit 1
+fi
+if python3 reduce_trace.py traces/negative_control_nonmultiple.log >/dev/null 2>&1; then
+  echo "FAIL: nonmultiple trace was accepted"; exit 1
+fi
+echo "run.sh OK: table rebuilt, negative controls rejected"

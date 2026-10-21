@@ -1,19 +1,24 @@
 {
   "bead": "gpu-sim-eut",
-  "verdict": "NO-STEP",
+  "status": "handed to PI adjudicator; no STEP/NO-STEP ruling in this file",
   "pre_registration": "experiments/gpu-sim-pkb/pre_registration.md",
   "reduction_script": "experiments/gpu-sim-pkb/reduce_trace.py",
   "table_script": "experiments/gpu-sim-pkb/build_table.py",
   "table_results": "experiments/gpu-sim-pkb/table_results.json",
-  "sizes": [
-    {"S_bytes": 4096, "rank0_factor": 2.0, "rank1_factor": 1.0, "valid": false, "reason": "rank1 distinct_digests=1 (not 2)"},
-    {"S_bytes": 65536, "rank0_factor": 1.25, "rank1_factor": 1.0, "valid": true},
-    {"S_bytes": 262144, "rank0_factor": 1.25, "rank1_factor": 1.0, "valid": true},
-    {"S_bytes": 524288, "rank0_factor": 1.0, "rank1_factor": 1.0, "valid": true},
-    {"S_bytes": 1048576, "rank0_factor": 1.0, "rank1_factor": 1.0, "valid": true},
-    {"S_bytes": 2097152, "rank0_factor": 1.0, "rank1_factor": 1.0, "valid": true}
+  "negative_controls": [
+    "experiments/gpu-sim-pkb/traces/negative_control_broken.log (malformed line -> INVALID, exit 2)",
+    "experiments/gpu-sim-pkb/traces/negative_control_nonmultiple.log (non-multiple total -> INVALID, exit 2)"
   ],
-  "regenerability": "2 MiB re-run reproduces 32 isends/rank (factor 1.0); digest grouping varies by rank across runs",
-  "digest_stability": "non-deterministic across runs (which rank gets the extra digest swaps); distinct_digests is not a stable completeness criterion",
-  "implication": "gpu-sim-ggh closes as NOT-A-DEFECT; 4yw verdict needs re-evaluation against this table"
+  "sizes": [
+    {"S_bytes": 4096, "r0": 2.0, "r1": 1.0, "valid": true, "ranks_agree": false, "stable_across_runs": true},
+    {"S_bytes": 65536, "r0": 1.0, "r1": 1.25, "valid": false, "ranks_agree": false, "stable_across_runs": false},
+    {"S_bytes": 131072, "r0": 1.25, "r1": 1.0, "valid": false, "ranks_agree": false, "stable_across_runs": true},
+    {"S_bytes": 262144, "r0": 1.25, "r1": 1.0, "valid": false, "ranks_agree": false, "stable_across_runs": false},
+    {"S_bytes": 393216, "r0": 0.833, "r1": 0.667, "valid": false, "ranks_agree": false, "stable_across_runs": false},
+    {"S_bytes": 524288, "r0": 1.0, "r1": 1.0, "valid": true, "ranks_agree": true, "stable_across_runs": true},
+    {"S_bytes": 1048576, "r0": 1.0, "r1": 1.0, "valid": true, "ranks_agree": true, "stable_across_runs": true},
+    {"S_bytes": 2097152, "r0": 1.0, "r1": 1.0, "valid": true, "ranks_agree": true, "stable_across_runs": true}
+  ],
+  "provenance": "produced by this worktree's own rebuilt plugin (experiments/gpu-sim-m3d.8/build/libncclNetSimFab.so, source fixed at ncclnetsim_fabric.c:392 call site); test binary allreduce_test_size.c",
+  "committed_paths_untouched": true
 }

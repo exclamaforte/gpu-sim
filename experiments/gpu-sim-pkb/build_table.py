@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Build the re-measured byte table from committed traces."""
-import json, re, sys, glob, os
+"""Build the re-measured byte table from committed traces (m1 runs)."""
+import json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
-from reduce_trace import parse_trace, reduce
+from reduce_trace import reduce
 
-# canonical trace per size (chosen for validity: both ranks dd==2 where possible)
+# one representative run per size (m1); m2 is the regenerability check
 canonical = {
-    4096:   "traces/trace_S4096_n2_eut4-4096-1792598352.log",   # INVALID (rank1 dd=1)
-    65536:  "traces/trace_S65536_n2_CLEAN.log",
-    262144: "traces/trace_S262144_n2_CLEAN.log",
-    524288: "traces/trace_S524288_n2_CLEAN.log",
-    1048576:"traces/trace_S1048576_n2_CLEAN.log",
-    2097152:"traces/trace_S2097152_n2_CLEAN.log",
+    4096:   "traces/trace_S4096_n2_m1.log",
+    65536:  "traces/trace_S65536_n2_m1.log",
+    131072: "traces/trace_S131072_n2_m1.log",
+    262144: "traces/trace_S262144_n2_m1.log",
+    393216: "traces/trace_S393216_n2_m1.log",
+    524288: "traces/trace_S524288_n2_m1.log",
+    1048576:"traces/trace_S1048576_n2_m1.log",
+    2097152:"traces/trace_S2097152_n2_m1.log",
 }
 
 rows = []
@@ -20,25 +22,27 @@ for S in sorted(canonical):
     try:
         res = reduce(path)
         valid = True
-        validity_note = "valid"
-    except AssertionError as e:
+        note = "valid"
+    except (AssertionError, ValueError) as e:
         res = None
         valid = False
-        validity_note = str(e)
-        # still parse for reporting
-        S2, nranks, run_id, isends = parse_trace(path)
+        note = str(e)
+        # parse raw for reporting
+        import re
+        text = open(path).read()
+        S2, nranks, run_id, isends, mal = __import__("reduce_trace").parse_trace(path)
         by_rank = {}
         for isd in isends:
             by_rank.setdefault(isd["rank"], []).append(isd)
         rank_info = []
         for rank, lst in sorted(by_rank.items()):
             total = sum(x["bytes"] for x in lst)
-            dd = len({x["digest"] for x in lst})
-            rank_info.append({"rank": rank, "isends": len(lst), "total_bytes": total,
-                              "byte_factor": total / S, "distinct_digests": dd,
-                              "valid": (S <= total <= 4*S and dd == 2)})
+            rank_info.append({"rank": rank, "isends": len(lst),
+                              "total_bytes": total, "byte_factor": total / S,
+                              "distinct_digests": len({x["digest"] for x in lst}),
+                              "valid": (total % S == 0 and 1 <= total // S <= 4)})
         rows.append({"S_bytes": S, "trace": path, "valid": False,
-                     "validity_note": validity_note, "ranks": rank_info})
+                     "validity_note": note, "ranks": rank_info})
         continue
     rank_info = []
     for rank in res["ranks"]:
@@ -49,14 +53,8 @@ for S in sorted(canonical):
                           "distinct_digests": pr["distinct_digests"],
                           "valid": True})
     rows.append({"S_bytes": S, "trace": path, "valid": True,
-                 "validity_note": "valid (both ranks dd==2)", "ranks": rank_info})
+                 "validity_note": "valid", "ranks": rank_info})
 
-json.dump({"bead": "gpu-sim-eut", "canonical_traces": canonical, "rows": rows},
-          open("table_results.json", "w"), indent=2)
-
-# print
-print(f"{'S':>8} {'rank0 factor':>13} {'rank1 factor':>13} {'valid':>6}")
-for r in rows:
-    f0 = r["ranks"][0]["byte_factor"] if len(r["ranks"])>0 else float('nan')
-    f1 = r["ranks"][1]["byte_factor"] if len(r["ranks"])>1 else float('nan')
-    print(f"{r['S_bytes']:>8} {f0:>13.2f} {f1:>13.2f} {str(r['valid']):>6}  {r['trace']}")
+json.dump({"bead": "gpu-sim-eut", "canonical_runs": "m1", "regenerability_runs": "m2",
+           "rows": rows}, open("table_results.json", "w"), indent=2)
+print("rebuilt table_results.json")

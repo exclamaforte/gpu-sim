@@ -1,5 +1,5 @@
-# S_BYTES=4096 NRANKS=2 RUN_ID=eut4-4096-1792598352
-rank=0 v12.init init commId=13853065437017975648 rank=0 nranks=2
+# S_BYTES=4096 NRANKS=2 RUN_ID=m2-4096-1792600474
+rank=0 v12.init init commId=15469757933383680442 rank=0 nranks=2
 rank=0 v12.devices
 rank=0 v12.getProperties
 rank=0 v12.getProperties
@@ -59,7 +59,7 @@ rank=0 v12.irecv irecv peer=1 chan=1 buf=1/1 size=65536 tags=1 dtype=float32 cnt
 rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=1 bytes=4096 digest=f5de6e4e3f648383 tag=0 dtype=float32 cnt_isend=1 acct=none link=0 delay_us=8.277 acct=per_isend
 rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=1 bytes=4096 digest=3356f76bc035a383 consumed_seq=1 cnt_recv_done=1 link=0
 rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=2 bytes=4096 digest=c742551a12510383 tag=0 dtype=float32 cnt_isend=2 acct=none link=0 delay_us=8.277 acct=per_isend
-rank=1 v12.init init commId=13853065437017975648 rank=1 nranks=2
+rank=1 v12.init init commId=15469757933383680442 rank=1 nranks=2
 rank=1 v12.devices
 rank=1 v12.getProperties
 rank=1 v12.getProperties

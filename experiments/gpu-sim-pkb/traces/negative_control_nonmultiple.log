@@ -1,0 +1,4 @@
+# S_BYTES=4096 NRANKS=2 RUN_ID=negative-control-nonmultiple
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=1 bytes=4096 digest=abcd1234 tag=0 dtype=float32 cnt_isend=1 acct=none link=0 delay_us=8.277 acct=per_isend
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=2 bytes=2000 digest=abcd1234 tag=0 dtype=float32 cnt_isend=2 acct=none link=0 delay_us=8.277 acct=per_isend
+rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=1 bytes=4096 digest=ef567890 tag=1 dtype=float32 cnt_isend=1 acct=none link=0 delay_us=8.277 acct=per_isend

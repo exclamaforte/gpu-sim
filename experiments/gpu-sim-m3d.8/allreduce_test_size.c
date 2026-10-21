@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     if (r != ncclSuccess) { printf("rank %d allreduce failed: %s\n", rank, ncclGetErrorString(r)); return 2; }
     printf("rank %d allreduce done\n", rank);
     fflush(stdout);
-    cudaDeviceSynchronize();
-    /* skip ncclCommDestroy (hangs); sync ensures isends are traced */
-    return 0;
+    /* let async isends flush to trace files */
+    usleep(2000000);
+    _exit(0);
 }

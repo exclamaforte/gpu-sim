@@ -25,7 +25,7 @@ export GPUSIM_NRANKS=2
 export GPUSIM_TIMEOUT_NS=5000000
 export GPUSIM_ATTACH_TIMEOUT_NS=5000000000
 export GPUSIM_FAB_DELAY_US=0
-export NCCL_NET_PLUGIN="/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-pkb/experiments/gpu-sim-m3d.8/build/libncclNetSimFab.so"
+export NCCL_NET_PLUGIN="/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-eut/experiments/gpu-sim-m3d.8/build/libncclNetSimFab.so"
 export NCCL_DEBUG=INFO
 export NCCL_DEBUG_SUBSYS=INIT,NET,GRAPH
 export NCCL_P2P_DISABLE=1
@@ -56,13 +56,18 @@ UIDFILE="/tmp/eut-uid-$$"; rm -f "$UIDFILE" "$TRACE_OUT"
 export GPUSIM_TRACE="$TRACE_OUT"
 T0="${TRACE_OUT}.rank0"; T1="${TRACE_OUT}.rank1"
 : > "$T0"; : > "$T1"
-timeout 120s env NCCL_HOSTID="node0" GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$M8/build/allreduce_test_size" 0 2 "$UIDFILE" "$FLOATS" > "$HERE/run0.log" 2>&1 &
-P0=$!
-sleep 1
-timeout 120s env NCCL_HOSTID="node1" GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$M8/build/allreduce_test_size" 1 2 "$UIDFILE" "$FLOATS" > "$HERE/run1.log" 2>&1 &
+# PI fix (gpu-sim-eut): the WAITING rank is started first. With rank 0 first, a
+# small allreduce can complete before rank 1 attaches -- the plugin does not block
+# a rank that finishes early -- so 4KiB/64KiB/256KiB either hung (exit 124) or
+# captured partial, rank-asymmetric traffic. Also: no committed path is written;
+# per-run logs live under traces/ so the committed pkb run0.log/run1.log survive.
+LOGDIR="$HERE/traces"; mkdir -p "$LOGDIR"
+LOG1="$LOGDIR/run_${RUN_ID}_rank1.txt"; LOG0="$LOGDIR/run_${RUN_ID}_rank0.txt"
+timeout 120s env NCCL_HOSTID="node1" GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$M8/build/allreduce_test_size" 1 2 "$UIDFILE" "$FLOATS" > "$LOG1" 2>&1 &
 P1=$!
-cleanup() { kill $P0 $P1 2>/dev/null; sleep 0.2; kill -9 $P0 $P1 2>/dev/null; wait $P0 $P1 2>/dev/null; }
-trap cleanup EXIT INT TERM
+sleep 1
+timeout 120s env NCCL_HOSTID="node0" GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$M8/build/allreduce_test_size" 0 2 "$UIDFILE" "$FLOATS" > "$LOG0" 2>&1 &
+P0=$!
 wait $P0; R0=$?
 wait $P1; R1=$?
 echo "size=$S_BYTES run=$RUN_ID exit0=$R0 exit1=$R1"

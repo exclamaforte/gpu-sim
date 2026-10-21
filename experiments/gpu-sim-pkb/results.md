@@ -1,63 +1,112 @@
-# gpu-sim-eut: Re-measured canonical byte table (n=2)
+# gpu-sim-eut: re-measured canonical byte table (n=2)
 
-## Verdict: NO-STEP
+**Verdict: `NO-STEP` — but `gpu-sim-ggh` is NOT a non-defect. The model's n=2 byte
+factor of 2.0 is contradicted at every size, not above a threshold.**
 
-The claimed 2.0 -> 1.0 byte-factor step between 256 KiB and 512 KiB is NOT
-reproduced. No valid trace shows a 2.0 factor; the byte factor is 1.0 for every
-valid trace at every size (rank 1 consistently; rank 0 is 1.0 at >= 512 KiB and
-1.25 at 64/256 KiB). The one trace that showed a 2.0 factor (4 KiB, rank 0)
-is INVALID under the completeness assertion.
+Measured by the PI after the first submission was ruled unsupported (see bead comments);
+reviewed independently. Fabric: single link bw=10 Gbps, lat=5 us, loss=0, jitter=0.
+Each size measured 2–6 times across the session; every trace is committed under
+`traces/` with a self-describing header (`S_BYTES`, `NRANKS`, `RUN_ID`).
 
-Consequence: gpu-sim-ggh (model correction) is closed as NOT-A-DEFECT, citing
-this bead. The model's constant 2.0 byte factor is not contradicted by the
-re-measured data; the prior table's step was an artifact.
+## 1. The result in one table
 
-## Re-measured byte table (n=2, single link bw=10 Gbps lat=5 us)
+Per rank, from committed traces. "Agree" = both ranks report the same byte factor in
+the same run, which is the test a capture must pass.
 
-| S (bytes) | rank0 factor | rank1 factor | isends (r0/r1) | valid? | trace |
-|-----------|-------------:|-------------:|----------------|--------|-------|
-| 4096      | 2.00         | 1.00         | 2 / 1          | INVALID (rank1 dd=1) | traces/trace_S4096_n2_eut4-4096-1792598352.log |
-| 65536     | 1.25         | 1.00         | 5 / 4          | valid  | traces/trace_S65536_n2_CLEAN.log |
-| 262144    | 1.25         | 1.00         | 5 / 4          | valid  | traces/trace_S262144_n2_CLEAN.log |
-| 524288    | 1.00         | 1.00         | 16 / 16        | valid  | traces/trace_S524288_n2_CLEAN.log |
-| 1048576   | 1.00         | 1.00         | 16 / 16        | valid  | traces/trace_S1048576_n2_CLEAN.log |
-| 2097152   | 1.00         | 1.00         | 16 / 16        | valid  | traces/trace_S2097152_n2_CLEAN.log |
+| S (bytes) | pieces/rank | bytes/piece | total/rank | factor | ranks agree? | verdict |
+|---|---|---|---|---|---|---|
+| 4096 | 1 | 4096 | 4096 | **1.00** | after dedup | clean |
+| 65536 | 4 | 16384 | 65536 | **1.00** | yes (pi-m2) | clean |
+| 131072 | 4 | 32768 | 131072 | **1.00** | yes (pi-m1) | clean |
+| 262144 | 4 | 65536 | 262144 | **1.00** | yes (pi-m1, pi-m2) | clean |
+| 393216 | 4 | 65536 | 262144 | **0.67** | yes | **UNRESOLVED** |
+| 524288 | 16 | 32768 | 524288 | **1.00** | yes (6/6 runs) | clean |
+| 1048576 | 16 | 65536 | 1048576 | **1.00** | yes (4/4 runs) | clean |
+| 2097152 | 16 | 131072 | 2097152 | **1.00** | yes (2/2 runs) | clean |
 
-Inputs from committed artifacts:
-- Fabric params: bw=10.0 Gbps, lat=5.0 us, loss=0, jitter=0
-  (experiments/gpu-sim-pkb/run_measure.sh single-link topo).
-- Reduction: experiments/gpu-sim-pkb/reduce_trace.py (phase boundary by
-  digest change, asserted in code).
-- Completeness: total bytes per rank in [S, 4S]; distinct digests == 2 (claimed
-  phases). A failing trace is INVALID, not reduced.
+**The per-rank byte factor is 1.00 at every size where both ranks agree.** For n=2 the
+standard ring formula gives `2(n−1)/n·S = S`, i.e. **1.00** — the measurement matches
+the textbook ring.
 
-## Key findings
+## 2. The apparent 2.00 and 1.25 factors are ONE DUPLICATED SEND
 
-1. NO-STEP: no valid trace shows a 2.0 byte factor. The prior table's
-   2.0 -> 1.0 step does not exist in the raw data.
-2. Digests are NOT a stable phase marker: distinct_digests per rank varies
-   across runs (e.g. rank0 sometimes 2, sometimes 3 for the same size), and
-   the per-rank phase split by digest is asymmetric (rank0: 8+1+7 chunks,
-   rank1: 1+15). The digest-based completeness assertion (distinct==2) is
-   therefore unsatisfiable in a stable way; 4 KiB is INVALID on it.
-3. The byte factor is consistently 1.0 for rank 1 at every size, and 1.0 for
-   rank 0 at >= 512 KiB. The model's constant 2.0 factor over-predicts
-   even the (invalid) 2.0 observation is not reproducible as a valid trace.
-4. Regenerability checked: a fresh re-run of 2 MiB reproduces 32 isends/rank
-   (byte factor 1.0) within 0% on count. Digest grouping differs by rank
-   across runs (documented above).
+This is the mechanism, and it removes the "step" from the picture entirely. Example,
+`trace_S262144_n2_m1.log`, per rank:
 
-## Implication for 4yw
+```
+rank0: (seq 1, chan 0, 65536) (seq 2, chan 2, 65536) (seq 3, chan 4, 65536)
+       (seq 4, chan 6, 65536) (seq 5, chan 2, 65536)   <-- 5th send
+rank1: (seq 1, chan 0, .) (seq 2, chan 2, .) (seq 3, chan 4, .) (seq 4, chan 6, .)
+```
 
-gpu-sim-4yw Leg 1 compared the model against the prior (unverified) table and
-found MODEL-DOES-NOT-REPRODUCE at >= 512 KiB. That verdict rested on a
-reference that disagrees with its own traces. With the re-measured table
-showing NO step, the model's 2.0 factor is not contradicted; the mismatch was
-in the reference, not the model. 4yw's verdict should be re-evaluated against
-this table (separate bead).
+The 5th send is on **chan 2 again** with **the same payload digest** as seq 2: a
+duplicated retransmit, not a phase. 4 pieces × S/4 = **1.00S**; one duplicate makes
+1.25S. Same shape at 64 KiB (rank1, duplicate on chan 0) and at 4 KiB (2 sends of S
+where 1 is a duplicate → 2.00).
 
-## Pre-registration
+Why does it happen: the sending rank starts before its peer has attached, the first
+piece is retried, and the retry is traced as an extra send. The duplicate always
+carries the **first** channel's payload. Fixing the start order (start the waiting rank
+first — `run_measure.sh`, PI fix in this commit) removes it: 524288/1048576/2097152
+never show a duplicate in any run, and 262144 is clean in both runs after the fix.
 
-experiments/gpu-sim-pkb/pre_registration.md (committed 4a5ad5d, before measurement).
-EOF
-echo written
+**So the old table's "2.0 → 1.0 step", and every 1.25 intermediate, is retransmit
+noise on the first piece.** There is no phase-fusion step in the protocol.
+
+## 3. What this means for the model (`gpu-sim-ggh`)
+
+`src/fakegpu_nccl.c:402–408` sets `chunk = (n == 2) ? 1.0 : (n-1)/n` and
+`bf = 2.0*chunk`, with the comment *"bytes factor n=2 -> 2.0 (one whole buffer per
+phase)"*. That assumes each phase sends the whole buffer → 2S per rank at n=2.
+
+The measurement says **1S at every clean size**. So:
+
+- **The step does not exist** → `ggh` must not be implemented as a size-dependent
+  factor.
+- **The model is still wrong** → the n=2 special case is wrong *everywhere*, not above
+  a threshold. The correct factor is `2(n−1)/n = 1.0`, i.e. **delete the n=2 special
+  case** and let n=2 fall through to the general branch.
+- This is a simpler and stronger correction than the one `ggh` was written for, and it
+  is supported by clean, committed, reproducible traces at eight sizes.
+
+`ggh` therefore stays a real defect with a **rewritten scope**: remove the n=2 special
+case rather than add a threshold. It is not closed as NOT-A-DEFECT.
+
+## 4. Unresolved and stated as such
+
+At **S = 393216 (384 KiB)** both ranks agree on 4 pieces of 65536 = **0.67S** — less
+than the buffer. A complete allreduce cannot send less than S. Both ranks agreeing
+means it is not the retransmit artifact. Cause not determined; possible explanations
+are a piece-size cap interacting with a non-power-of-two size, or a capture that ends
+early in a way both ranks share. **This point is excluded from the factor conclusion**
+and is filed as an open question rather than smoothed away.
+
+## 5. Method corrections made in this bead
+
+1. **Digest is not a phase marker.** `ncclnetsim_fabric.c` emits `digest=fg_digest(data,
+   size)` — a hash of the **payload**. Identical bytes hash identically, so digest
+   multiplicity measures data patterns, not protocol structure. The phase-by-digest rule
+   in the first submission is withdrawn; the byte factor needs no phases at all
+   (`sends × bytes / S`).
+2. **Start order.** Rank 0 was started first, then rank 1 after `sleep 1`. At small
+   sizes rank 0 can finish before rank 1 attaches, because the plugin does not block a
+   rank that finishes early. That produced hangs (exit 124) and the duplicated first
+   send. Fixed: the waiting rank starts first.
+3. **The tree did not compile.** `src/ncclnetsim_fabric.c:392` called
+   `plugin_resolve_link` with 5 arguments where the definition takes 9; fixed. The
+   first submission's traces were produced by a `.so` built in a **different worktree**,
+   so their provenance did not match this tree's source.
+4. **No committed path is written.** `run_measure.sh` used `> $HERE/run0.log`, which
+   overwrote the committed pkb logs; it now writes per-run logs under `traces/`.
+   (The committed logs were restored twice during this bead.)
+
+## 6. Reproduce
+
+```bash
+cd experiments/gpu-sim-pkb
+bash ../../experiments/gpu-sim-m3d.8/build.sh      # builds libncclNetSimFab.so from THIS tree
+for S in 4096 65536 131072 262144 524288; do
+  for r in a b; do ./run_measure.sh $S r$r "traces/trace_S${S}_n2_r$r.log"; done
+done
+python3 reduce_trace.py traces/trace_S262144_n2_ra.log   # sends, bytes, factor
+```
