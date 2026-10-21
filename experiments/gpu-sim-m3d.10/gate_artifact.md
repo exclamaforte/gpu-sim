@@ -6,7 +6,7 @@
 
 Two independent grounds, either sufficient:
 
-### G1 — Resolvability (environmental, payload-invariance finding)
+### G1 — Resolvability (environmental: present but not resolvable)
 
 The measured per-iteration time is unresolvable through a ~6.7-6.9 ms per-iteration term (~150x the predicted response): ~6.7-6.9 ms at both 4 KiB
 (min 6677 us, median 6830 us) and 2 MiB (min 6717 us, median 8524 us), while
