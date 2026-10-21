@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+"""gpusim run --topology spec.json -- cmd  (m3d.6 cluster launcher)"""
+import argparse, json, os, signal, subprocess, sys, time, uuid, hashlib, shutil
+
+def parse_timeout(s):
+    s = s.strip().lower()
+    mult = 1
+    if s.endswith("s"): s = s[:-1]
+    elif s.endswith("m"): mult = 60; s = s[:-1]
+    elif s.endswith("h"): mult = 3600; s = s[:-1]
+    return float(s) * mult
+
+def gen_spec(nodes, gpus_per_node):
+    n_nodes = nodes
+    gpn = gpus_per_node
+    n_devs = n_nodes * gpn
+    nodes_list = [{"name": f"n{i}", "devices": [{"id": j, "model": "m"} for j in range(gpn)]} for i in range(n_nodes)]
+    links = []
+    for i in range(n_nodes):
+        for j in range(i+1, n_nodes):
+            for a in range(gpn):
+                for b in range(gpn):
+                    links.append({"a": {"node": f"n{i}", "device": a}, "b": {"node": f"n{j}", "device": b},
+                                  "kind": "nvlink", "bw_gbps": 100.0, "latency_us": 5.0, "mtu": 4096,
+                                  "loss_ppm": 0, "jitter_us": 0.0, "shared_group": None})
+    ranks = []
+    r = 0
+    for i in range(n_nodes):
+        for j in range(gpn):
+            ranks.append({"rank": r, "node": f"n{i}", "device": j})
+            r += 1
+    return {"version": 1, "models": {"m": {"sm_count": 80, "clock_mhz": 1000, "mem_bytes": 1<<30,
+                                           "mem_bw_gbs": 1000.0, "arch": "x", "source": "gen"}},
+            "nodes": nodes_list, "links": links, "ranks": ranks}
+
+def main():
+    ap = argparse.ArgumentParser(prog="gpusim")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    run = sub.add_parser("run")
+    run.add_argument("--topology", help="topology spec JSON")
+    run.add_argument("--nodes", type=int, help="number of nodes (shorthand)")
+    run.add_argument("--gpus-per-node", type=int, dest="gpus_per_node", help="gpus per node")
+    run.add_argument("--dry-run", action="store_true")
+    run.add_argument("--timeout", default="60s")
+    run.add_argument("rest", nargs=argparse.REMAINDER)
+    args = ap.parse_args()
+
+    if args.cmd != "run":
+        ap.error("only 'run' supported")
+
+    # strip leading '--'
+    cmd = args.rest
+    if cmd and cmd[0] == "--":
+        cmd = cmd[1:]
+    if not cmd and not args.dry_run:
+        ap.error("missing command after --")
+
+    if args.topology:
+        with open(args.topology) as f:
+            spec = json.load(f)
+    elif args.nodes and args.gpus_per_node:
+        spec = gen_spec(args.nodes, args.gpus_per_node)
+    else:
+        ap.error("provide --topology or --nodes/--gpus-per-node")
+
+    # topology sha256
+    topo_bytes = json.dumps(spec, sort_keys=True).encode()
+    topo_sha = hashlib.sha256(topo_bytes).hexdigest()
+
+    ranks = spec["ranks"]
+    world = len(ranks)
+    node_by_name = {n["name"]: n for n in spec["nodes"]}
+
+    run_id = "run-" + uuid.uuid4().hex[:12]
+    base = os.getcwd()
+    run_dir = os.path.join(base, "runs", run_id)
+    os.makedirs(run_dir, exist_ok=True)
+
+    # build plan
+    plan = []
+    for r in ranks:
+        node = r["node"]
+        dev = r["device"]
+        plan.append({"rank": r["rank"], "node": node, "device": dev})
+
+    if args.dry_run:
+        for p in plan:
+            print(f"rank={p['rank']} node={p['node']} device={p['device']} cmd={' '.join(cmd)}")
+        print(f"run_id={run_id} world={world}")
+        return 0
+
+    # write topology binary? optional; just store spec
+    with open(os.path.join(run_dir, "topology.json"), "w") as f:
+        json.dump(spec, f)
+
+    # shm path
+    shm = f"/dev/shm/gpusim-{run_id}"
+    timeout = parse_timeout(args.timeout)
+
+    # env template
+    def make_env(p):
+        env = dict(os.environ)
+        env["GPUSIM_RANK"] = str(p["rank"])
+        env["GPUSIM_WORLD"] = str(world)
+        env["GPUSIM_RUN_ID"] = run_id
+        env["GPUSIM_DEVICE_ID"] = str(p["device"])
+        env["GPUSIM_NODE"] = p["node"]
+        env["GPUSIM_FABRIC_SHM"] = shm
+        env["GPUSIM_TOPOLOGY"] = os.path.join(run_dir, "topology.json")
+        return env
+
+    # spawn
+    procs = []
+    started = time.time()
+    started_ns = int(started * 1e9)
+    for p in plan:
+        log_path = os.path.join(run_dir, f"rank{p['rank']}.log")
+        lf = open(log_path, "w")
+        env = make_env(p)
+        pr = subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, env=env,
+                              start_new_session=True, cwd=base)
+        procs.append({"rank": p["rank"], "pid": pr.pid, "proc": pr, "log": lf,
+                      "started_ns": int(time.time()*1e9)})
+
+    # wait with timeout, kill whole group on first non-zero exit or timeout
+    deadline = time.time() + timeout
+    results = []
+    killed = False
+    remaining = list(procs)
+    while remaining:
+        progressed = False
+        for entry in list(remaining):
+            pr = entry["proc"]
+            if pr.poll() is not None:
+                remaining.remove(entry)
+                rc = pr.returncode
+                entry["exit"] = rc
+                entry["signal"] = -rc if rc < 0 else 0
+                entry["ended_ns"] = int(time.time()*1e9)
+                try: entry["log"].close()
+                except Exception: pass
+                results.append({"rank": entry["rank"], "pid": entry["pid"], "exit": rc,
+                                "signal": entry["signal"], "started_ns": entry["started_ns"],
+                                "ended_ns": entry["ended_ns"]})
+                progressed = True
+                if rc != 0:
+                    # kill remaining
+                    for e in remaining:
+                        try: os.killpg(e["proc"].pid, signal.SIGKILL)
+                        except ProcessLookupError: pass
+                    killed = True
+                    remaining = []
+                    break
+        if not remaining:
+            break
+        if time.time() > deadline:
+            for e in remaining:
+                try: os.killpg(e["proc"].pid, signal.SIGKILL)
+                except ProcessLookupError: pass
+                e["proc"].wait()
+                rc = e["proc"].returncode
+                e["exit"] = rc
+                e["signal"] = -rc if rc < 0 else 0
+                e["ended_ns"] = int(time.time()*1e9)
+                try: e["log"].close()
+                except Exception: pass
+                results.append({"rank": e["rank"], "pid": e["pid"], "exit": rc,
+                                "signal": e["signal"], "started_ns": e["started_ns"],
+                                "ended_ns": e["ended_ns"]})
+            remaining = []
+            killed = True
+            break
+        if not progressed:
+            time.sleep(0.05)
+
+    # if any non-zero, kill remaining (already reaped)
+    verdict = "PASS" if all(r["exit"] == 0 for r in results) else "FAIL"
+
+    run_record = {
+        "run_id": run_id,
+        "topology_sha256": topo_sha,
+        "started_ns": started_ns,
+        "ended_ns": int(time.time()*1e9),
+        "ranks": results,
+        "verdict": verdict,
+    }
+    with open(os.path.join(run_dir, "run.json"), "w") as f:
+        json.dump(run_record, f, indent=2)
+    print(json.dumps({"run_id": run_id, "verdict": verdict, "run_dir": run_dir}, indent=2))
+    return 0 if verdict == "PASS" else 1
+
+if __name__ == "__main__":
+    sys.exit(main())
