@@ -131,6 +131,10 @@ RUNS_PER_CONFIG = 3
 TRACKING_TOLERANCE_PCT = 10.0
 SCHEMA = "m3d.10/gate-metrics/1"
 ADMISSIBILITY_SCHEMA = "m3d.10/gate-admissibility/1"
+# The proxy spread must be RE-DERIVED from the committed raw log, not trusted.
+PROXY_RAW_LOG = "iters_2m.log"
+PROXY_TIMER_ARTIFACT_US = 1.0e9   # an iteration longer than ~11 days cannot be real
+PROXY_SPREAD_TOLERANCE = 0.01
 KILL_TEST_MAX_EXIT_S = 10.0
 KILL_TEST_ERROR_MARKER = "EPEERDEAD"
 PLUGIN_LOG_REQUIRED = ("NET/Plugin: Loaded net plugin", "Assigned NET plugin",
@@ -286,6 +290,47 @@ def emit_admissibility(data, out_path):
     max_spread = need_num(data, "max_tolerable_spread_us", where)
     proxy = need_num(data, "noise_floor_proxy_us", where)
 
+    # PROVENANCE OF THE PROXY, re-derived rather than trusted. This is the number
+    # the whole judgement hangs on, and it is asserted by the same artifact the
+    # judgement condemns -- so it is recomputed HERE from the committed raw
+    # per-iteration log. A number the artifact asserts about itself is not
+    # evidence; a number two parties compute from the same raw bytes is. The
+    # derivation is fixed in this script: drop the first (init) iteration, drop
+    # any value above PROXY_TIMER_ARTIFACT_US (a run cannot contain one), then
+    # take max-min of what remains.
+    log_rel = need(data, "ptr_raw_logs", where)
+    if not isinstance(log_rel, str):
+        raise Refused("ptr_raw_logs must be a path string")
+    log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "..", "..", log_rel, PROXY_RAW_LOG)
+    if not os.path.exists(log_path):
+        raise Refused(f"the proxy cannot be re-derived: {log_path} does not exist. "
+                      f"A spread the artifact asserts about itself is not evidence")
+    vals = []
+    try:
+        for line in open(log_path):
+            line = line.strip()
+            if line:
+                vals.append(float(line))
+    except (OSError, ValueError) as e:
+        raise Refused(f"cannot read the raw proxy log {log_path}: {e}")
+    if len(vals) < 3:
+        raise Refused(f"the raw proxy log {log_path} holds {len(vals)} iterations; at "
+                      f"least 3 are needed to derive a spread after dropping init")
+    post_init = vals[1:]
+    kept = [v for v in post_init if v <= PROXY_TIMER_ARTIFACT_US]
+    dropped_artifacts = len(post_init) - len(kept)
+    if len(kept) < 2:
+        raise Refused(f"after dropping the init iteration and {dropped_artifacts} timer "
+                      f"artifact(s), {len(kept)} iteration(s) remain -- too few for a spread")
+    proxy_derived = max(kept) - min(kept)
+    if abs(proxy_derived - proxy) / proxy > PROXY_SPREAD_TOLERANCE:
+        raise Refused(f"noise_floor_proxy_us {proxy}us does not match the spread RE-DERIVED "
+                      f"from {os.path.join(log_rel, PROXY_RAW_LOG)} ({proxy_derived}us over "
+                      f"{len(kept)} post-init iterations, {dropped_artifacts} timer "
+                      f"artifact(s) dropped) -- the proxy is not supported by the committed "
+                      f"raw data")
+
     pc = need(data, "per_criterion", where)
     if not isinstance(pc, dict):
         raise Refused("per_criterion is not an object")
@@ -346,6 +391,10 @@ def emit_admissibility(data, out_path):
             "max_tolerable_spread_us": max_spread,
             "implied_d_pred_over_10": round(implied, 3),
             "noise_floor_proxy_us": proxy,
+            "proxy_spread_derived_us": proxy_derived,
+            "proxy_iterations_kept": len(kept),
+            "proxy_timer_artifacts_dropped": dropped_artifacts,
+            "proxy_raw_log": os.path.join(log_rel, PROXY_RAW_LOG),
             "violation_factor": round(ratio, 1),
         },
         "what_was_not_done": negatives,
