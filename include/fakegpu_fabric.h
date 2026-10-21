@@ -52,6 +52,9 @@ int  fg_fab_recv_max(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got);
    carried the payload and the sender's global consumed_seq witness. */
 int  fg_fab_send_x(fg_fab_t *f, int peer, const void *buf, size_t n,
                    int *slot_out, unsigned *seq_out);
+int  fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
+                     int *slot_out, unsigned *seq_out);
+size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size);
 int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
                         int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 

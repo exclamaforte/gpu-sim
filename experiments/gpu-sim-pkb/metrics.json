@@ -48,5 +48,24 @@
   "absolute_10pct_band": "16-32 us per-piece term is 30-60% of M1 own modelled 53.3 us (absolute per-config 10% band), and 3.9-7.7% of M2 own 415.5 us. So an absolute 10% band at the fast config is unreachable with this c_fixed even on a quiet box.",
   "item_7b": "item 7b = FAIL WITH NUMBERS: measured per-iteration at 2 MiB = 6717/6729/10319/52702 us (median 8524, n=5, after 164257 us init) vs model 415.5 us (M2) and 53.3 us (M1) -- 16-160x miss. Measured time is unresolvable-through-6.7ms-term (4 KiB min 6677 us, median 6830 us; 2 MiB min 6717 us) while 18.6 us of pure wire time separates the predictions. Item 7 did NOT validate the model on this box.",
   "item_7c": "item 7c = canonical byte table vs trace byte counts (exact equality). This is a DOCUMENT COMPARISON, not an executable assertion in test_pkb: the byte counts are compared by hand against the committed canonical_byte_table.md and phase_payload_table.md, not asserted in code.",
-  "timer_artifact_note": "raw/iters_4k.log contains 4641746337 us entry: TIMER ARTIFACT, not a measurement (implies 4641 s iteration). Kept in raw log, excluded from spread. Doc \"spread ~4.6e9 us\" is not a statistic."
+  "timer_artifact_note": "raw/iters_4k.log contains 4641746337 us entry: TIMER ARTIFACT, not a measurement (implies 4641 s iteration). Kept in raw log, excluded from spread. Doc \"spread ~4.6e9 us\" is not a statistic.",
+  "plugin_bytes_per_rank": {
+    "0": 8192,
+    "1": 8192
+  },
+  "model_total_bytes": 16384,
+  "accounting_unit": "per_isend",
+  "trace_bytes_provenance": {
+    "source_file": "experiments/gpu-sim-pkb/trace_single.log",
+    "field": "bytes=N in each 'v12.isend' line",
+    "summed_by": "rank (rank=0 / rank=1), summing bytes per rank",
+    "result": "8192 per rank, 16384 total"
+  },
+  "model_bytes_provenance": {
+    "source": "epic_cluster/link_model.py predict() public API",
+    "call": "predict(spec, 'ring_allreduce', 1024, 'float32', n_ranks=2)",
+    "field": "per_link_bytes (sum of values)",
+    "formula": "2*(n-1)/n * S per link = S per link at n=2; 2 links = 2S total",
+    "result": "16384 total"
+  }
 }

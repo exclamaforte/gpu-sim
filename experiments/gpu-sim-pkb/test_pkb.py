@@ -38,13 +38,48 @@ def test_item10_plugin_loaded():
     print("PASS item10_plugin_loaded")
 
 def test_bytes_present():
-    m = json.load(open(os.path.join(EXP, "metrics.json")))
-    assert m["plugin_bytes_per_rank"], "no bytes"
-    rb = m["plugin_bytes_per_rank"]
-    assert rb["0"] == rb["1"], "asymmetric bytes"
-    assert m["model_total_bytes"] == rb["0"] + rb["1"], "byte mismatch"
-    assert m["accounting_unit"] == "per_isend"
-    print("PASS bytes_present (exact equality)")
+    # Side A: bytes parsed INDEPENDENTLY from the trace the run produced.
+    trace_path = os.path.join(EXP, "trace_single.log")
+    assert os.path.exists(trace_path), "trace_single.log missing"
+    trace_bytes_per_rank = {}
+    for line in open(trace_path):
+        if "isend" not in line:
+            continue
+        import re
+        rm = re.search(r"rank=(\d+)", line)
+        bm = re.search(r"bytes=(\d+)", line)
+        assert rm and bm, line
+        r = rm.group(1)
+        trace_bytes_per_rank[r] = trace_bytes_per_rank.get(r, 0) + int(bm.group(1))
+    assert trace_bytes_per_rank, "no isend bytes in trace"
+    trace_total = sum(trace_bytes_per_rank.values())
+
+    # Side B: bytes computed INDEPENDENTLY from the model's public API.
+    sys.path.insert(0, os.path.join(REPO, "epic_cluster"))
+    from link_model import predict
+    spec = {
+      "version": 1,
+      "models": {"m": {"sm_count": 80, "clock_mhz": 1000, "mem_bytes": 1073741824,
+                       "mem_bw_gbs": 1000.0, "arch": "x", "source": "t"}},
+      "nodes": [{"name": "n0", "devices": [{"id": 0, "model": "m"}]},
+                {"name": "n1", "devices": [{"id": 0, "model": "m"}]}],
+      "links": [{"a": {"node": "n0", "device": 0}, "b": {"node": "n1", "device": 0},
+                 "bw_gbps": 10.0, "latency_us": 5.0, "mtu": 4096, "loss_ppm": 0,
+                 "jitter_us": 0.0, "shared_group": None, "kind": "ethernet"}],
+      "ranks": [{"rank": 0, "node": "n0", "device": 0},
+                {"rank": 1, "node": "n1", "device": 0}],
+    }
+    # count=1024 floats = 4096 bytes (matches trace_single.log payload size)
+    pred = predict(spec, "ring_allreduce", 1024, "float32", n_ranks=2)
+    model_total = sum(pred["per_link_bytes"].values())
+
+    # Exact equality: independent trace bytes == independent model bytes
+    assert trace_total == model_total, (
+        "byte mismatch: trace=%d model=%d" % (trace_total, model_total))
+    assert len(trace_bytes_per_rank) == 2, "expected 2 ranks"
+    vals = list(trace_bytes_per_rank.values())
+    assert vals[0] == vals[1], "asymmetric per-rank bytes"
+    print("PASS bytes_present (trace=%d == model=%d, exact)" % (trace_total, model_total))
 
 def test_header_guard():
     h = open(os.path.join(REPO, "include", "fakegpu_topology.h")).read()
