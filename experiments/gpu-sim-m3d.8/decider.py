@@ -247,6 +247,8 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
         print("2a FAIL: per-entry counter != trace record count (see per_rank)")
     if reason:
         print(reason)
+    elif ratio == 1.0:
+        print("2c OK: ratio 1.00, no acknowledgement required (ratio is 1.0)")
     else:
         print("2c OK: ratio %.2f acknowledged by %s (tracking %s)"
               % (ratio, ack_path, ack.get("tracking_issue") if ack else "n/a"))
@@ -254,7 +256,11 @@ def main(trace, payload_bytes, nranks, dtype, count, ack_path, out_path):
 
 
 if __name__ == "__main__":
-    sys.path.insert(0, ".")
+    import os
+    _here = os.path.dirname(os.path.abspath(__file__))
+    _repo = os.path.abspath(os.path.join(_here, "..", ".."))
+    if _repo not in sys.path:
+        sys.path.insert(0, _repo)
     trace, ack, out = sys.argv[1], sys.argv[2], sys.argv[3]
     payload = int(sys.argv[4]); nranks = int(sys.argv[5]); count = int(sys.argv[6]); dtype = sys.argv[7]
     sys.exit(main(trace, payload, nranks, dtype, count, ack, out))

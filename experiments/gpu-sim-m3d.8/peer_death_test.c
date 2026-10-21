@@ -3,7 +3,7 @@
  * message and dies; the survivor's pending transfer must return
  * FG_FAB_EPEERDEAD, and the plugin's error-class mapping must turn that into
  * ncclSystemError (asserted here through the same mapping function the plugin
- * uses). No NCCL, no GPU.
+ * uses, pinned to the numeric value 2 from the real nccl.h). No NCCL, no GPU.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,8 +46,10 @@ int main(void) {
     fg_fab_recv_max(f, 1, buf, sizeof(buf), &got);
     /* now the pending transfer: nothing more will ever arrive, and the peer is dead */
     int rc = fg_fab_recv_max(f, 1, buf, sizeof(buf), &got);
+    printf("nccl.h resolved: ncclSystemError = %d (plugin uses the real header, value 2)\n", (int)ncclSystemError);
     printf("pending transfer rc=%d (%s), mapped to NCCL code %d\n", rc, fg_fab_errstr(rc), map_fab_error(rc));
-    int ok = (rc == FG_FAB_EPEERDEAD) && (map_fab_error(rc) == ncclSystemError);
+    int ok = (rc == FG_FAB_EPEERDEAD) && (map_fab_error(rc) == ncclSystemError)
+            && (map_fab_error(rc) == 2) && ((int)ncclSystemError == 2);
     printf("peer-death mapping %s\n", ok ? "PASS" : "FAIL");
     int st = 0; waitpid(pid, &st, 0);
     fg_fab_detach(f); fg_fab_unlink(runid);
