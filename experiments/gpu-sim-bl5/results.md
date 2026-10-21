@@ -15,7 +15,10 @@ Race-fixed start order (rank 1 first), 2 s sleep (bl5-m1/m2/m3):
 | bl5-m3 | 5 | 327680 (0.833S) | 4 | 262144 (0.667S) | experiments/gpu-sim-pkb/traces/trace_S393216_n2_bl5-m3-1792601721.log |
 
 Long sleep (5 s, bl5-long1/long2): identical (5/4, 0.833/0.667). More sleep did not
-capture additional sends.
+capture additional sends. The harness sleep between rank starts was raised from 2 s to 5 s
+in run_measure.sh (GPUSIM_FAB_DELAY_US unchanged) to test whether the asymmetric send
+counts were a capture race; counts were identical under both (bl5-m1/m2/m3 vs
+bl5-long1/long2), so the asymmetry is not a timing artifact.
 
 Reversed start order (rank 0 first, bl5-rev1/rev2/rev3): the asymmetry FLIPS which
 rank gets 5 vs 4, but the totals (5+4=9 chunks) are identical. Total per run is
@@ -38,6 +41,21 @@ fabric reduces correctly at small sizes.
    NCCL's own chunking.
 3. 384KiB = 6 x 65536 exactly. NCCL sends 9 chunks of 65536 = 589824 bytes
    total, 196608 bytes (3 chunks) short of the expected 786432.
+
+## Per-channel completions (blocker 3, probe (c))
+
+Extracted with: `grep "rank=R.*recv-done" <trace> | grep -oE "chan=[0-9]+" | sort | uniq -c`
+
+| size | rank | ch1 | ch3 | ch5 | ch7 | total |
+|------|------|----:|----:|----:|----:|------:|
+| 384KiB (val384f) | 0 | 1 | 1 | 2 | 1 | 5 |
+| 384KiB (val384f) | 1 | 1 | 1 | 1 | 1 | 4 |
+| 512KiB (val512f) | 0 | 4 | 4 | 4 | 4 | 16 |
+| 512KiB (val512f) | 1 | 4 | 4 | 4 | 4 | 16 |
+
+384KiB completes 5 receives on rank0 and 4 on rank1 (9 total = 1.5S, 3 chunks short
+of the expected 12). 512KiB completes 16 per rank (1.00S, correct). The per-channel
+asymmetry (rank0 gets 2 on ch5) is the fabric's misdelivery signature.
 
 ## Named cause: undetermined
 
@@ -84,8 +102,8 @@ Prints "about to cudaDeviceSynchronize" before the sync and "copy-back done" aft
   (all 131072 elements == 3.0). Same fabric code; only stderr fprintf timing differed.
   Uniform fill is structurally blind to misdelivery (identical payloads make swaps
   invisible). Committed evidence: traces/trace_S524288_n2_val512d.log (MISMATCH),
-  traces/trace_S524288_n2_val512f.log (OK), traces/run_val512d_rank*.txt,
-  traces/run_val512f_rank*.txt.
+  traces/trace_S524288_n2_val512f.log (OK), traces/run_val512d_rank0.txt, traces/run_val512d_rank1.txt,
+  traces/run_val512f_rank0.txt, traces/run_val512f_rank1.txt.
 
 Conclusion: at 384KiB the sim fabric allreduce hangs (operation never completes,
 success is reported by the async ncclAllReduce return). At 512KiB it completes
