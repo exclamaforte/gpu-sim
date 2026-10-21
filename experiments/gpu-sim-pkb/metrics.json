@@ -48,7 +48,10 @@
     "tolerances": {
       "time_pct": 10,
       "bytes": "exact"
-    }
+    },
+    "measured_pieces_per_phase_at_2MB": 2,
+    "measured_isends_per_rank_at_2MB": 4,
+    "final_decision": "per_isend (candidate A): each isend pays n_chunk/B + L; model latency factor scaled by P (pieces per phase). Unit stated in trace as acct=per_isend. Both candidates + 4-config distortion in candidate_accountings/distortion_note."
   },
   "payload_size_decision": {
     "chosen_bytes": 2097152,
