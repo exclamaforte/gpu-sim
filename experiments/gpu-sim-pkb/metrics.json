@@ -145,5 +145,24 @@
     "ratio": 1.72,
     "verdict": "TRACKS (10 Gbps slower than 25 Gbps) but ratio 1.72, not within 10%. Sync overhead (~5 ms) dominates; wire delay difference (1.01 ms) is 20% of total.",
     "note": "Speed-tracking check is a falsification test, not a pass. Per-piece copy (16.76 us) and sync overhead prevent 10% precision."
+  },
+  "one_mb_trace_detail": {
+    "file": "experiments/gpu-sim-pkb/trace_1mb_isends.txt",
+    "isends_per_rank": 4,
+    "bytes_per_isend": 262144,
+    "distinct_digests": 2,
+    "channel_ids": [
+      0
+    ],
+    "phase1_digest": "9aa3bc5ed8c50383 (rank 0 input) / d23fd389b7cd0383 (rank 1 input)",
+    "phase2_digest": "458b87c1dfcd0383 (summed result, both ranks)",
+    "structure": "2 isends per phase (256 KiB each), 2 phases. Total = S (not 2S).",
+    "mechanism": "NCCL chunking varies with buffer size. At 4 KiB: 1 chunk/phase = S/phase, total 2S. At 1 MiB: 2 chunks/phase = S/2 per phase, total S."
+  },
+  "byte_factor_summary": {
+    "4_KiB": "2S (per rank)",
+    "1_MiB": "S (per rank)",
+    "2_MiB": "2S (per rank, verified)",
+    "conclusion": "Byte factor at n=2 is SIZE-DEPENDENT. Not a single constant. n>=3 factor (2(n-1)/n) is robust (total independent of chunking). n=2 total depends on protocol/channel structure selected at that payload size."
   }
 }
