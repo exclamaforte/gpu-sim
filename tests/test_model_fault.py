@@ -132,14 +132,25 @@ def test_refusal_unchanged():
     print("PASS test_refusal_unchanged")
 
 def test_route_agreement_categorical():
-    """AC4: model predicts categorical outcome matching plugin codes."""
-    # For loss_ppm=1e6 (drop all), model should show loss_factor = inf-ish (1/(1-1) = inf)
-    # Actually p=1.0 means 1/(0) = inf; handle gracefully
-    spec = uniform_spec(2, 10.0, 10.0, loss_ppm=0, jitter_us=0.0)
-    rec = predict(spec, "ring_allreduce", 1000, "float32")
-    assert rec["loss_factor"] == 1.0
-    assert rec["deadline_exceed_prob"] == 0.0
-    print("PASS test_route_agreement_categorical")
+    """AC4: model predicts categorical outcome matching plugin codes (3 settings)."""
+    # Setting 1: no fault -> completes
+    spec1 = uniform_spec(2, 10.0, 10.0, loss_ppm=0, jitter_us=0.0)
+    rec1 = predict(spec1, "ring_allreduce", 1000, "float32")
+    assert rec1["loss_factor"] == 1.0
+    assert rec1["deadline_exceed_prob"] == 0.0
+
+    # Setting 2: loss -> expected retransmit
+    spec2 = uniform_spec(2, 10.0, 10.0, loss_ppm=100000, jitter_us=0.0)
+    rec2 = predict(spec2, "ring_allreduce", 1000, "float32")
+    assert rec2["loss_factor"] > 1.0
+    assert rec2["loss_ppm"] == 100000
+
+    # Setting 3: jitter + tight timeout -> deadline exceedance
+    spec3 = uniform_spec(2, 10.0, 10.0, loss_ppm=0, jitter_us=5.0)
+    rec3 = predict(spec3, "ring_allreduce", 100000, "float32", timeout_us=27.0)
+    assert rec3["deadline_exceed_prob"] > 0.0
+
+    print("PASS test_route_agreement_categorical (3 settings)")
 
 if __name__ == "__main__":
     test_loss_factor_closed_form()
