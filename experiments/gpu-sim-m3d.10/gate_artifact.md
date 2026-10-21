@@ -8,13 +8,14 @@ Two independent grounds, either sufficient:
 
 ### G1 — Resolvability (environmental: present but not resolvable)
 
-The measured per-iteration time is unresolvable through a ~6.7-6.9 ms per-iteration term (~150x the predicted response): ~6.7-6.9 ms at both 4 KiB
-(min 6677 us, median 6830 us) and 2 MiB (min 6717 us, median 8524 us), while
-18.6 us of pure wire time separates the two predictions (M1 53.3 us vs M2
-415.5 us). A measured quantity that does not respond to the quantity under
-test cannot confirm the model. The ~6.7-6.9 ms per-iteration term is
-payload-independent (environment/harness, not model). The timed window is the
-collective window, not process wall-clock (init iteration 164257 us excluded).
+The reading is present but not resolvable: ~6.6 ms offset (minima 6677 us @4 KiB
+vs 6717 us @2 MiB) against model predictions of 53.3 us (M1) and 415.5 us (M2),
+so the payload response is unresolvable through a term ~150x larger than the
+predicted response. 4b's 36.2 us requirement is ~200x below the reading's
+granularity. The measured per-iteration time does not respond to the payload
+within the ~6.6 ms per-iteration term (environment/harness, not model). The timed
+window is the collective window, not process wall-clock (init iteration 164257 us
+excluded).
 
 4b requires the across-run spread of the two configs' medians, summed, to be at
 most 1/10 of the delta being checked. For M1->M2 at 2 MiB that is 36.2 us
