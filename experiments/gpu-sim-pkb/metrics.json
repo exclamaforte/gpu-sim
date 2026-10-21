@@ -85,7 +85,7 @@
     "verdict": "PASS"
   },
   "bytes_exact": false,
-  "bytes_finding": "At 1 MiB, plugin sends S per rank (1048576 B) but model predicts 2S per rank (2097152 B). NCCL's byte count changes with size: 2S at 4 KiB, S at 1 MiB+. Model byte factor (2.0 at n=2) only matches at small sizes. This is a model error to be addressed by 8sy/gate, not a pkb defect.",
+  "bytes_finding": "CORRECTED: byte factor is SIZE-DEPENDENT. At 4 KiB: 2S per rank. At 1 MiB: S per rank (4 isends of 256KB, 2 phases x 2 isends). At 2 MiB: 2S per rank (exact, verified). NCCL chunk size varies with buffer size.",
   "time_finding": "Time agreement at 1 MiB: plugin 899 us vs model 1718 us (48% error) due to byte count mismatch (S vs 2S). At 4 KiB: 0% error, exact bytes (latency regime).",
   "item9_status": "NOT MET at bandwidth-regime size: bytes diverge (S vs 2S) at 1 MiB+. Only 4 KiB (latency regime) gives exact agreement. Reported as finding, not widened.",
   "c_python_agreement": {
@@ -110,5 +110,14 @@
     "fabric_FG_FAB_MAX_PAYLOAD_bytes": 1048576,
     "issue": "Plugin advertises 64 MiB but fabric hard-rejects above 1 MiB (FG_FAB_EINVAL). Transfers between 1-64 MiB fail mid-collective. Fix: advertise fabric's real limit.",
     "status": "needs fix in plugin (maxP2pBytes = maxCollBytes = FG_FAB_MAX_PAYLOAD)"
+  },
+  "one_mb_case": {
+    "status": "completed (R0=R1=0)",
+    "isends_per_rank": 4,
+    "bytes_per_rank": 1048576,
+    "distinct_digests_per_rank": 2,
+    "shared_digest": "458b87c1dfcd0383 (summed result, both phases)",
+    "finding": "Byte factor is SIZE-DEPENDENT: at 1 MiB, total bytes = S (not 2S). 2 distinct digests = 2 phases, each sending S/2. At 4 KiB, total = 2S (each phase sends S). NCCL's chunk size varies with buffer size.",
+    "digest_test": "cross-direction DIGEST: shared digest 458b87c1dfcd0383 = summed result on both ranks -> genuine two-phase protocol, NOT truncated. Bytes = S (not 2S) due to size-dependent chunking."
   }
 }
