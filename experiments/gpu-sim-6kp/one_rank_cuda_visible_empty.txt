@@ -1,0 +1,12 @@
+# gpu-sim-6kp item 3: 1-rank test with CUDA_VISIBLE_DEVICES=''
+# Control: device count comes from spec, not environment.
+#
+# Command: CUDA_VISIBLE_DEVICES='' LD_PRELOAD=libfakegpu.so probe_0a
+# (GPUSIM_TOPOLOGY=/tmp/topo_1dev.bin, FAKEGPU_NUM_DEVICES=1)
+#
+# Output:
+#   cudaGetDeviceCount resolved to: 0x... (libfakegpu.so)
+#   cudaGetDeviceCount() = 1 (err=0)
+#
+# The shim provides device count from the spec (1), ignoring CUDA_VISIBLE_DEVICES.
+# This confirms the interposer controls device identity, not the environment.
