@@ -81,15 +81,18 @@ def classify_shape(phases, digests, payload_bytes):
         if len(sizes) >= 2 and all(b == payload_bytes for b in sizes):
             return "2S: multiple full-payload transfers on the same channel id (distinct phases, distinct digests)"
 
-    # 3. single transfer carrying multiple payload units on one channel id
-    #    (e.g. 1x2S): one record whose size is a multiple of the payload but
-    #    not equal to it.
-    single_multi = False
-    for ck, sizes in phases.items():
-        if len(sizes) == 1 and sizes[0] != payload_bytes and sizes[0] % payload_bytes == 0 and sizes[0] > payload_bytes:
-            single_multi = True
-    if single_multi and sum(len(v) for v in phases.values()) == 1:
-        return "single transfer of multiple payload units on one channel id (not 2S)"
+    # 3. single transfer of multiple payload units per direction (e.g. 1x2S):
+    #    decided on PER-DIRECTION structure, not a global record count. Every
+    #    rank group has exactly ONE transfer; each transfer's size is k*payload
+    #    with k>1; the number of rank groups is >= 2 (the participant count);
+    #    and the single-transfer sizes AGREE across directions.
+    all_single = all(len(v) == 1 for v in phases.values()) and len(phases) >= 2
+    multi_sizes = [v[0] for v in phases.values()] if all_single else []
+    if (all_single and multi_sizes
+            and all(s != payload_bytes and s % payload_bytes == 0 and s > payload_bytes
+                    for s in multi_sizes)
+            and len(set(multi_sizes)) == 1):
+        return "single transfer of multiple payload units per direction (not 2S)"
 
     # 4. one phase SPLIT ACROSS channel ids: one transfer per channel, each
     #    carrying the full payload, on two or more distinct channels.
