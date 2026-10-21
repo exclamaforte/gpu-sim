@@ -1,10 +1,8 @@
 #define _GNU_SOURCE
-#define FG_NCCL_REFUSED (-1.0)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fakegpu_topology.h"
-extern double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int datatype, int nranks, int *bottleneck_link, char *regime, size_t regimesz);
+#include "fakegpu_nccl.h"
 
 int main() {
     char err[256];

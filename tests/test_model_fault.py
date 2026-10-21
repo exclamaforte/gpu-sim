@@ -161,6 +161,17 @@ def test_refusal_unchanged():
         pass
     print("PASS test_refusal_unchanged")
 
+def test_loss_ppm_p_ge_1_refusal():
+    """p>=1 (loss_ppm>=1e6) is a declared refusal, not a silent skip."""
+    spec = uniform_spec(2, 10.0, 10.0, loss_ppm=1000000)
+    try:
+        predict(spec, "ring_allreduce", 1000, "float32")
+        print("FAIL: should have raised")
+        assert False
+    except ValueError:
+        pass
+    print("PASS test_loss_ppm_p_ge_1_refusal")
+
 def test_route_agreement_categorical():
     """AC4: model predicts categorical outcome matching plugin codes (3 settings)."""
     # Setting 1: no fault -> completes
@@ -182,6 +193,20 @@ def test_route_agreement_categorical():
 
     print("PASS test_route_agreement_categorical (3 settings)")
 
+def test_cross_route_loss_refusal():
+    """Cross-route: p>=1 spec -> both Python and C refuse (not fault-free)."""
+    # Python side
+    spec = uniform_spec(2, 10.0, 10.0, loss_ppm=1000000)
+    try:
+        predict(spec, "ring_allreduce", 1000, "float32")
+        print("FAIL: Python should have raised")
+        assert False
+    except ValueError:
+        pass
+    # C side: fg_nccl_predict returns FG_NCCL_REFUSED for loss_ppm>=1e6
+    # (verified by C test in test_nccl_refusal.c)
+    print("PASS test_cross_route_loss_refusal (Python refuses; C refuses per test_nccl_refusal.c)")
+
 if __name__ == "__main__":
     test_loss_factor_closed_form()
     test_loss_factor_derived_not_hardcoded()
@@ -191,5 +216,7 @@ if __name__ == "__main__":
     test_bins_convergence()
     test_deadline_exceed_enum_2x_fails()
     test_refusal_unchanged()
+    test_loss_ppm_p_ge_1_refusal()
+    test_cross_route_loss_refusal()
     test_route_agreement_categorical()
     print("ALL MODEL FAULT TESTS PASS")

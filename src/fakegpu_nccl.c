@@ -7,13 +7,13 @@
  * based on size (via the bandwidth or fixed memcpy model).
  */
 #include "fakegpu.h"
+#include "fakegpu_nccl.h"
 #include "nccl.h"
 #include "fakegpu_topology.h"
 #include "fakegpu_fabric.h"
 #include <math.h>
 
 /* Named refusal: model has no measured P for this (n, S); not a duration. */
-#define FG_NCCL_REFUSED (-1.0)
 
 #include <stddef.h>
 #include <stdlib.h>
