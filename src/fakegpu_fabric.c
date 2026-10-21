@@ -17,6 +17,7 @@
 #include <signal.h>
 
 #define FG_FAB_DEFAULT_TIMEOUT_NS (1000000000ULL) /* 1s message wait */
+#define FG_FAB_REG_POOL_SIZE (64 * 1024 * 1024)  /* 64 MiB registered buffer pool */
 #define FG_FAB_DEFAULT_ATTACH_TIMEOUT_NS (5000000000ULL) /* 5s attach wait */
 
 typedef struct {
@@ -59,6 +60,8 @@ struct fg_fab {
     fg_header_t *hdr;
     fg_rank_slot_t *slots;
     fg_mailbox_t *mailboxes; /* nranks*nranks */
+    void *reg_pool;  /* registered buffer pool */
+    size_t reg_pool_used;
     int rank;
     int nranks;
     uint64_t epoch;
@@ -80,6 +83,8 @@ static size_t total_size_for(int nranks) {
     size_t s = sizeof(fg_header_t);
     s += (size_t)nranks * sizeof(fg_rank_slot_t);
     s += (size_t)nranks * (size_t)nranks * sizeof(fg_mailbox_t);
+    /* registered buffer pool */
+    s += FG_FAB_REG_POOL_SIZE;
     /* align up to page */
     size_t page = 4096;
     if (s % page) s += page - (s % page);
@@ -177,6 +182,13 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
         f->slots = (fg_rank_slot_t *)((char *)base + sizeof(fg_header_t));
         f->mailboxes = (fg_mailbox_t *)((char *)base + sizeof(fg_header_t) +
                                          (size_t)nranks * sizeof(fg_rank_slot_t));
+        /* registered buffer pool starts after mailboxes, page-aligned */
+        size_t _po = sizeof(fg_header_t) + (size_t)nranks * sizeof(fg_rank_slot_t) +
+                     (size_t)nranks * (size_t)nranks * sizeof(fg_mailbox_t);
+        size_t _page = 4096;
+        if (_po % _page) _po += _page - (_po % _page);
+        f->reg_pool = (char *)base + _po;
+        f->reg_pool_used = 0;
         /* zero slots/mailboxes already via memset */
     } else {
         /* wait for ready */
@@ -232,6 +244,12 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
         f->slots = (fg_rank_slot_t *)((char *)base + sizeof(fg_header_t));
         f->mailboxes = (fg_mailbox_t *)((char *)base + sizeof(fg_header_t) +
                                          (size_t)nranks * sizeof(fg_rank_slot_t));
+        size_t _po2 = sizeof(fg_header_t) + (size_t)nranks * sizeof(fg_rank_slot_t) +
+                      (size_t)nranks * (size_t)nranks * sizeof(fg_mailbox_t);
+        size_t _page2 = 4096;
+        if (_po2 % _page2) _po2 += _page2 - (_po2 % _page2);
+        f->reg_pool = (char *)base + _po2;
+        f->reg_pool_used = 0;
     }
 
     /* register slot */
@@ -348,6 +366,43 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
     return FG_FAB_OK;
 }
 
+/* Registered send: store pool offset in mailbox slot (ready=2), skip data copy. */
+int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
+                    int *slot_out, unsigned *seq_out) {
+    if (!f || peer < 0 || peer >= f->nranks || n == 0 || n > FG_FAB_MAX_PAYLOAD) {
+        return FG_FAB_EINVAL;
+    }
+    fg_mailbox_t *m = &f->mailboxes[f->rank * f->nranks + peer];
+    uint64_t deadline = now_ns() + f->timeout_ns;
+    int slot = -1;
+    while (slot < 0) {
+        for (int i = 0; i < FG_FAB_QDEPTH; i++) {
+            int expected = 0;
+            if (atomic_compare_exchange_strong_explicit(&m->slots[i].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
+                slot = i;
+                break;
+            }
+        }
+        if (slot < 0) {
+            if (now_ns() > deadline) {
+                if (!peer_alive(f, peer)) return FG_FAB_EPEERDEAD;
+                return FG_FAB_ETIMEDOUT;
+            }
+            for (int _sp = 0; _sp < 100; _sp++) { __builtin_ia32_pause(); }
+            sched_yield();
+        }
+    }
+    /* store offset in the slot's data field (first 8 bytes) */
+    memcpy(m->slots[slot].data, &reg_offset, sizeof(size_t));
+    atomic_store_explicit(&m->slots[slot].len, n, memory_order_release);
+    m->slots[slot].tag = 1; /* 1 = registered buffer */
+    atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
+    atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
+    if (slot_out) *slot_out = slot;
+    if (seq_out) *seq_out = atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed);
+    return FG_FAB_OK;
+}
+
 /* Same as fg_fab_send but reports which slot and seq carried the payload:
    the decider needs the (slot, seq) PAIR, since seq alone is per-slot. */
 int fg_fab_send_x(fg_fab_t *f, int peer, const void *buf, size_t n,
@@ -397,7 +452,19 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
         atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
         return FG_FAB_ESIZE;
     }
-    memcpy(buf, m->slots[slot].data, mlen);
+    /* For registered buffers (tag==1), data is in the pool at offset stored
+       in the first 8 bytes of the slot's data field. */
+    if (m->slots[slot].tag == 1) {
+        size_t off = 0;
+        memcpy(&off, m->slots[slot].data, sizeof(size_t));
+        if (off > 0 && off + mlen <= FG_FAB_REG_POOL_SIZE) {
+            memcpy(buf, (char *)f->reg_pool + off, mlen);
+        } else {
+            memcpy(buf, m->slots[slot].data, mlen);
+        }
+    } else {
+        memcpy(buf, m->slots[slot].data, mlen);
+    }
     if (got) *got = mlen;
     if (slot_out) *slot_out = slot;
     if (seq_out) *seq_out = mseq;
@@ -439,7 +506,17 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
         atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
         return FG_FAB_ESIZE;
     }
-    memcpy(buf, m->slots[slot].data, n);
+    if (m->slots[slot].tag == 1) {
+        size_t off = 0;
+        memcpy(&off, m->slots[slot].data, sizeof(size_t));
+        if (off > 0 && off + n <= FG_FAB_REG_POOL_SIZE) {
+            memcpy(buf, (char *)f->reg_pool + off, n);
+        } else {
+            memcpy(buf, m->slots[slot].data, n);
+        }
+    } else {
+        memcpy(buf, m->slots[slot].data, n);
+    }
     atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
     atomic_fetch_add_explicit(&f->slots[from].consumed_seq, 1, memory_order_relaxed);
     const char *dr = getenv("GPUSIM_FAB_DELAY_US"); if (dr && *dr) usleep((useconds_t)atoi(dr));
@@ -457,6 +534,18 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
         usleep((useconds_t)delay_us);
     }
     return FG_FAB_OK;
+}
+
+/* Register a buffer in the shared pool. Returns offset (>0) on success. */
+size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size) {
+    if (!f || !buf || size == 0 || size > FG_FAB_MAX_PAYLOAD) return 0;
+    if (f->reg_pool_used + size > FG_FAB_REG_POOL_SIZE) return 0; /* out of pool space */
+    size_t off = f->reg_pool_used;
+    memcpy((char *)f->reg_pool + off, buf, size);
+    f->reg_pool_used += size;
+    /* align to 8 bytes */
+    if (f->reg_pool_used % 8) f->reg_pool_used += 8 - (f->reg_pool_used % 8);
+    return off + 1; /* +1 so 0 means "not registered" */
 }
 
 void fg_fab_detach(fg_fab_t *f) {

@@ -215,8 +215,14 @@ static ncclResult_t v12_accept(void* listenComm, void** recvComm, ncclNetDeviceH
 }
 
 static ncclResult_t v12_regMr(void* comm, void* data, size_t size, int type, void** mhandle) {
-    (void)comm;(void)data;(void)size;(void)type;
-    if (mhandle) *mhandle = (void*)0x1;
+    (void)comm;(void)type;
+    size_t off = fg_fab_reg_mr(FAB, data, size);
+    if (off == 0) {
+        /* pool full or invalid; fall back to no-op handle */
+        if (mhandle) *mhandle = (void*)0x1;
+    } else {
+        if (mhandle) *mhandle = (void*)off;
+    }
     trace("v12.regMr", "");
     return ncclSuccess;
 }
@@ -264,7 +270,14 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
     }
 
     pthread_mutex_lock(&LOCK);
-    int rc = fg_fab_send_x(FAB, sc->peer, data, size, &slot, &seq);
+    int rc;
+    size_t reg_off = (size_t)(uintptr_t)mhandle;
+    if (reg_off > 1) {
+        /* registered buffer: send offset, skip copy */
+        rc = fg_fab_send_reg(FAB, sc->peer, reg_off - 1, size, &slot, &seq);
+    } else {
+        rc = fg_fab_send_x(FAB, sc->peer, data, size, &slot, &seq);
+    }
     pthread_mutex_unlock(&LOCK);
     if (rc != FG_FAB_OK) {
         fprintf(stderr, "isend failed: %s\n", fg_fab_errstr(rc));
