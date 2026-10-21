@@ -73,6 +73,7 @@ check: guard-build-inputs $(LIB)
 	    experiments/gpu-sim-4tw/test_retransmit.c src/fakegpu_fabric.c -lpthread
 	@build/test_retransmit
 	@python3 tests/test_prose_numbers_lint.py
+	@python3 tests/test_bead_prose_numbers_lint.py
 	@python3 scripts/check_prose_numbers.py
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
