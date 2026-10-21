@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/gabe/Documents/gpu-sim
+plugins: anyio-4.15.1
+collected 8 items
+
+tests/test_model_fault.py ..F.....                                       [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_jitter_mean_sd ______________________________
+
+    def test_jitter_mean_sd():
+        """AC3: predict MEAN and SD of drawn per-transfer duration."""
+        jitter_us = 10.0
+        spec = uniform_spec(2, 10.0, 10.0, jitter_us=jitter_us)
+        rec = predict(spec, "ring_allreduce", 1000, "float32")
+>       assert abs(rec["jitter_mean_us"] - jitter_us/2.0) < 1e-9
+E       assert 5.0 < 1e-09
+E        +  where 5.0 = abs((10.0 - (10.0 / 2.0)))
+
+tests/test_model_fault.py:71: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_fault.py::test_jitter_mean_sd - assert 5.0 < 1e-09
+========================= 1 failed, 7 passed in 0.22s ==========================
