@@ -116,7 +116,7 @@ rank = S (byte factor 1.0 per direction; 2.0 total across both directions).
 | 9a | 3 runs/config, median, spread | NOT-APPLICABLE | no GPU run (CPU-only, no admitted set) |
 | 9b | delta_measured = median_i - median_j | NOT-APPLICABLE | no GPU run |
 | 9c | ordering on medians, unresolved pairs | NOT-APPLICABLE | no GPU run |
-| 9d | measured wire bytes re-derived from trace | MET (M1/M2), NOT-APPLICABLE (M3/M4) | n=4 refused (gpu-sim-8ii) |
+| 9d | measured wire bytes re-derived from trace | MET (M1/M2 via test_bytes_present), NOT-APPLICABLE (M3/M4) | test_bytes_present in experiments/gpu-sim-pkb/test_pkb.py: parses bytes from trace_single.log, computes model bytes from link_model.predict() public API, exact equality (16384 == 16384). Negative controls RED: (1) model byte factor 2x -> mismatch (trace=16384, model=32768); (2) trace off by one piece -> mismatch (trace=12288, model=16384). n=4 refused (gpu-sim-8ii) |
 | 9e | real-GPU runs through ts with job id | NOT-APPLICABLE | CPU-only, no GPU run |
 | 9f | verdict by committed script, loud failure on missing input | MET | verdict.py exists, refuses exit 2 on missing input |
 
