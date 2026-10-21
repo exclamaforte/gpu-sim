@@ -10,7 +10,7 @@ by measurement whether a proposed timing criterion (m3d.10) is achievable.
 | # | Bead | What | Proving artifact |
 |---|------|------|-----------------|
 | 1 | 6kp | Real libnccl over a modelled shm fabric via CUDA runtime interposer | experiments/gpu-sim-6kp/probe_nccl4_output.txt (4-rank init PASS) |
-| 2 | wpw | Fabric spends modelled wire time (bw + latency); futex wakeup; EPEERDEAD/ETIMEDOUT | src/fakegpu_fabric.c (bounded FUTEX_WAIT, 3 wake sites) |
+| 2 | wpw | Fabric spends modelled wire time (bw + latency); futex wakeup; EPEERDEAD/ETIMEDOUT | src/fakegpu_fabric.c (bounded FUTEX_WAIT; wake on slot publish/release) |
 | 3 | pkb | Per-link bw/latency in plugin data path; measured phase-payload table | experiments/gpu-sim-pkb/phase_payload_table.md |
 | 4 | m3d.7 | Topology-aware collectives in NCCL interposer + JSONL trace | src/fakegpu_nccl.c (fg_nccl_predict) |
 | 5 | m3d.8 | Net plugin over shm fabric (2-rank real-NCCL numerics) | experiments/gpu-sim-m3d.8/scenario_normal.log |
@@ -20,9 +20,9 @@ by measurement whether a proposed timing criterion (m3d.10) is achievable.
 
 ### Key design decisions
 - **Pieces-per-phase from MEASURED table, not fabric cap**: the cap-derived estimate
-  undercounts by 4x at 2 MiB (pkb criterion 10, committed in
-  experiments/gpu-sim-pkb/canonical_byte_table.md).
-- **n>=3 refused, not estimated**: no cap-based fallback anywhere.
+  undercounts the piece count by four at 2 MiB (gate_artifact.md, G2;
+  admissibility_pi_audit.json). No cap-based fallback anywhere.
+- **n>=3 refused, not estimated**: the model raises ValueError rather than deriving P from the cap.
 - **Chunk rule is an INPUT** (NCCL protocol property), not a modelled function.
 
 ## 3. The Verdict
@@ -79,9 +79,9 @@ cd .lab/wt/gpu-sim-5zv && python3 tests/test_model_fault.py
 cd .lab/wt/gpu-sim-pkb && make test-fabric
 # Expected: "fabric tests PASS"
 
-# Gate verdict (committed output)
-cat .lab/wt/gpu-sim-m3d.10/experiments/gpu-sim-m3d.10/verdict_out.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['verdict'], 'violation_factor=', d.get('violation_factor'))"
-# Expected: NO-CLOSE-ADMISSIBILITY
+# Gate verdict (PI-written judge; exit 1 = failing verdict, a reported result)
+cd .lab/wt/gpu-sim-m3d.10 && python3 experiments/gpu-sim-m3d.10/verdict.py experiments/gpu-sim-m3d.10/metrics.json
+# Expected: VERDICT: NO-CLOSE-ADMISSIBILITY ...; JSON has violation_factor=1270.3; exit code 1
 ```
 
 ## Verification list (spot-checked citations)

@@ -62,6 +62,7 @@ tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 check: guard-build-inputs $(LIB)
 	@python3 tests/test_model_fault.py
 	@python3 scripts/check_guard_uniqueness.py
+	@mkdir -p build
 	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_nccl_refusal tests/test_nccl_refusal.c -L. -lfakegpu -Wl,-rpath,$(CURDIR) -lpthread -lrt -ldl -lm
 	@build/test_nccl_refusal
 	@python3 scripts/gen_growth_list.py --check
