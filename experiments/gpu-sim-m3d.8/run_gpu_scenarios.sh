@@ -90,12 +90,26 @@ gcc -O2 -g -I"$NCCLINC" -I"$CUDAINC" "$HERE/allreduce_test_large.c" \
   -l:libnccl.so.2 -lcudart -Wl,-rpath,"$NCCL_LIB" -Wl,-rpath,"$CUDALIB" || fail "large test build"
 UIDFILE=/tmp/m3d8-uid-kill; PIDFILE=/tmp/m3d8-pid0; KILLTRACE="$OUT/trace_kill.log"
 rm -f "$UIDFILE" "$PIDFILE" "$KILLTRACE"
+# Reap the ranks if this harness is killed (see run_2rank.sh for why: a killed
+# harness must not leave orphaned ranks spinning on a shared CPU quota).
+RANKS=()
+cleanup() {
+  for p in "${RANKS[@]:-}"; do
+    [ -n "$p" ] && kill -TERM "$p" 2>/dev/null
+  done
+  sleep 0.2
+  for p in "${RANKS[@]:-}"; do
+    [ -n "$p" ] && kill -KILL "$p" 2>/dev/null
+  done
+}
+trap cleanup EXIT INT TERM
 NCCL_HOSTID=node0 GPUSIM_RANK=0 GPUSIM_TRACE="$KILLTRACE" GPUSIM_FAB_DELAY_US=20000 \
   timeout 30s "$HERE/build/allreduce_test_large" 0 2 "$UIDFILE" "$PIDFILE" > "$OUT/kill0.log" 2>&1 &
 P0=$!
 NCCL_HOSTID=node1 GPUSIM_RANK=1 GPUSIM_TRACE="$KILLTRACE" GPUSIM_FAB_DELAY_US=20000 \
   timeout 30s "$HERE/build/allreduce_test_large" 1 2 "$UIDFILE" > "$OUT/kill1.log" 2>&1 &
 P1=$!
+RANKS+=("$P0" "$P1")
 LIVE=0
 for i in $(seq 1 400); do
   if grep -q "allreduce enqueued" "$OUT/kill0.log" 2>/dev/null && \

@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
 set -uo pipefail
+# Reap the ranks if this harness is killed. A killed harness must NOT leave
+# orphaned ranks spinning: on 2026-08-22 two probe ranks survived two hours
+# at 77% CPU each on this lab's 2-CPU quota, which contaminated another bead's
+# timing measurements and had to be killed by the PI. SIGINT, SIGTERM and a
+# normal exit all run this.
+RANKS=()
+cleanup() {
+  for p in "${RANKS[@]:-}"; do
+    [ -n "$p" ] && kill -TERM "$p" 2>/dev/null
+  done
+  sleep 0.2
+  for p in "${RANKS[@]:-}"; do
+    [ -n "$p" ] && kill -KILL "$p" 2>/dev/null
+  done
+}
+trap cleanup EXIT INT TERM
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NCCL_LIB="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib"
 export LD_LIBRARY_PATH="$NCCL_LIB${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -24,6 +40,7 @@ P0=$!
 # rank1
 GPUSIM_RANK=1 "$HERE/build/allreduce_test" 1 2 "$UIDFILE" > "$HERE/rank1.log" 2>&1 &
 P1=$!
+RANKS+=("$P0" "$P1")
 wait $P0; R0=$?
 wait $P1; R1=$?
 echo "rank0 exit=$R0 rank1 exit=$R1"
