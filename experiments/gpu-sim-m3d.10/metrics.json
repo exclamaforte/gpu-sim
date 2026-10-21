@@ -447,5 +447,43 @@
       "admitted": true
     }
   },
-  "note": "Admissibility computed from corrected model (8sy). Original ABCD rejected: D->B rel margin 2.3% < 20% (4b)."
+  "note": "Admissibility computed from corrected model (8sy). Original ABCD rejected: D->B rel margin 2.3% < 20% (4b).",
+  "gate_verdict": "NO-CLOSE ON RESOLVABILITY",
+  "gate_grounds": [
+    "G1: resolvability (46ms spread vs 36.2us requirement)",
+    "G2: admissibility (n=4 P unmeasured, refused)"
+  ],
+  "noise_floor_us": 45985,
+  "noise_floor_box": "nproc=2, loadavg ~20-40, ~3274 tasks",
+  "max_tolerable_spread_us": 36.2,
+  "d_pred_M1M2_us": 362.3,
+  "bw_share_4a": 0.823,
+  "rel_margin_4b": 0.872,
+  "payload_bytes": 2097152,
+  "per_criterion": {
+    "1_per_link_timing": "MET",
+    "2_difference_deltas": "UNMET (environment)",
+    "3_ordering": "UNMET (environment)",
+    "4_kill_peer": "MET",
+    "5_structural_counters": "MET",
+    "6_no_gpu_ci": "MET",
+    "7_wire_bytes_match": "UNMET (unmeasured input: n=4 P)",
+    "8_timestamp_clause": "MET",
+    "9_compute_statement": "MET"
+  },
+  "c_fixed_bound_us": "1-2",
+  "artifact_share_pct": "4-8",
+  "8nt_post_gate": true,
+  "forbidden": [
+    "quieter box",
+    "repeated runs",
+    "re-rolled median",
+    "widened 4b",
+    "payload chosen for larger delta"
+  ],
+  "ptr_variance": "experiments/gpu-sim-pkb/variance_measurement.md",
+  "ptr_raw_logs": "experiments/gpu-sim-pkb/raw/",
+  "ptr_phase_payload": "experiments/gpu-sim-pkb/canonical_byte_table.md",
+  "ptr_pkb_metrics": "experiments/gpu-sim-pkb/metrics.json",
+  "ptr_8ii": "gpu-sim-8ii"
 }
