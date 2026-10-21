@@ -1,0 +1,179 @@
+{
+  "bead": "gpu-sim-99g",
+  "executor": "PI",
+  "pre_registration": "experiments/gpu-sim-99g/pre_registration.md",
+  "nsamples": 1,
+  "minima": [
+    0.2143
+  ],
+  "quiet_core_observed": true,
+  "three_ba_verdict_unchanged": "NO-ADMISSION-QUIET-CORE (spreads 15.2/915.4/25.3us; excluded by the self-charging utilisation instrument)",
+  "hit": {
+    "sample": 1,
+    "timestamp_utc": "2026-10-21T14:43:56Z",
+    "least_busy_cpu": 8,
+    "least_busy_util": 0.2143
+  },
+  "verdict": "NO-ADMISSION-CORRECTED-INSTRUMENT",
+  "windows": [
+    {
+      "window": 1,
+      "target_cpu": 8,
+      "mask_before": [
+        8
+      ],
+      "mask_after": [
+        8
+      ],
+      "mask_valid_pinned": true,
+      "tick_us": 10000.0,
+      "span_s": 0.2003,
+      "core_ticks_delta": 20,
+      "core_idle_ticks_delta": 14,
+      "core_busy_us": 60000.0,
+      "our_scope_usage_us": 23616,
+      "other_cpu_us": 36384.0,
+      "other_utilisation": 0.1817,
+      "other_util_below_threshold": true,
+      "threshold": 0.25,
+      "run_durations_us": [
+        5858.8,
+        5896.2,
+        5892.8,
+        5861.1
+      ],
+      "spread_us": 35.1,
+      "spread_within_requirement": true,
+      "requirement_us": 36.2,
+      "workload_iters": 100000,
+      "runs": 4,
+      "timestamp_start_utc": "2026-10-21T14:43:56Z",
+      "timestamp_end_utc": "2026-10-21T14:43:56Z",
+      "scope": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/run-p658046-i206111169.scope",
+      "throttled_fraction_delta": 0.0,
+      "context_nondecisional": {
+        "loadavg": [
+          "19.94",
+          "22.85",
+          "24.72"
+        ],
+        "note": "context only; may NOT admit or exclude a window"
+      }
+    },
+    {
+      "window": 2,
+      "target_cpu": 8,
+      "mask_before": [
+        8
+      ],
+      "mask_after": [
+        8
+      ],
+      "mask_valid_pinned": true,
+      "tick_us": 10000.0,
+      "span_s": 0.2004,
+      "core_ticks_delta": 21,
+      "core_idle_ticks_delta": 16,
+      "core_busy_us": 50000.0,
+      "our_scope_usage_us": 15164,
+      "other_cpu_us": 34836.0,
+      "other_utilisation": 0.1739,
+      "other_util_below_threshold": true,
+      "threshold": 0.25,
+      "run_durations_us": [
+        3304.3,
+        3296.1,
+        3308.2,
+        5175.1
+      ],
+      "spread_us": 1878.9,
+      "spread_within_requirement": false,
+      "requirement_us": 36.2,
+      "workload_iters": 100000,
+      "runs": 4,
+      "timestamp_start_utc": "2026-10-21T14:43:57Z",
+      "timestamp_end_utc": "2026-10-21T14:43:57Z",
+      "scope": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/run-p658046-i206111169.scope",
+      "throttled_fraction_delta": 0.0,
+      "context_nondecisional": {
+        "loadavg": [
+          "19.94",
+          "22.85",
+          "24.72"
+        ],
+        "note": "context only; may NOT admit or exclude a window"
+      }
+    },
+    {
+      "window": 3,
+      "target_cpu": 8,
+      "mask_before": [
+        8
+      ],
+      "mask_after": [
+        8
+      ],
+      "mask_valid_pinned": true,
+      "tick_us": 10000.0,
+      "span_s": 0.2006,
+      "core_ticks_delta": 20,
+      "core_idle_ticks_delta": 16,
+      "core_busy_us": 40000.0,
+      "our_scope_usage_us": 19392,
+      "other_cpu_us": 20608.0,
+      "other_utilisation": 0.1027,
+      "other_util_below_threshold": true,
+      "threshold": 0.25,
+      "run_durations_us": [
+        4241.2,
+        4800.0,
+        5147.6,
+        5188.9
+      ],
+      "spread_us": 388.9,
+      "spread_within_requirement": false,
+      "requirement_us": 36.2,
+      "workload_iters": 100000,
+      "runs": 4,
+      "timestamp_start_utc": "2026-10-21T14:43:57Z",
+      "timestamp_end_utc": "2026-10-21T14:43:57Z",
+      "scope": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/run-p658046-i206111169.scope",
+      "throttled_fraction_delta": 0.0,
+      "context_nondecisional": {
+        "loadavg": [
+          "19.94",
+          "22.85",
+          "24.72"
+        ],
+        "note": "context only; may NOT admit or exclude a window"
+      }
+    }
+  ],
+  "valid_windows": 3,
+  "clean_windows": 1,
+  "median_spread_us_of_clean": 35.1,
+  "smt_finding": {
+    "sibling_map_of_pinned_cpu": [
+      8,
+      24
+    ],
+    "cpu8_util_at_selection": 0.2143,
+    "cpu24_sibling_util_at_selection": 0.9421,
+    "cpu24_sibling_util_recheck_minutes_later": 1.0,
+    "interpretation": "the 'quiet core' was one logical CPU of a physical core whose sibling was ~saturated; SMT sibling contention explains both the bimodal spread (35.1us vs 1878.9/388.9us) and the identical workload running ~5.9ms vs ~3.3-5.2ms",
+    "physical_cores_total": 16,
+    "cores_with_both_siblings_below_0.25_in_3s_sample": 0,
+    "best_core_in_sample": {
+      "siblings": [
+        7,
+        23
+      ],
+      "utils": [
+        0.252,
+        0.215
+      ]
+    },
+    "instrument_error_class": "third instance of measuring the wrong resource: ep3 measured the box, s9j the user slice, 3ba/99g a logical CPU"
+  },
+  "does_not_admit": "pre-registered verdict NO-ADMISSION-CORRECTED-INSTRUMENT (1 of 3 windows qualified); 3ba's sub-requirement windows are NOT evidence of an achievable operating point"
+}
