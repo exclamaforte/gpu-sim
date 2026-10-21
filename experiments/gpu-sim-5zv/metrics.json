@@ -1,7 +1,7 @@
 {
     "bead": "gpu-sim-5zv",
     "acceptance": {
-        "AC1_loss_factor": "MET - 1/(1-p) derived in test, not hardcoded",
+        "AC1_loss_factor": "MET - 1/(1-p) derived in test; p>=1 refuses on both routes",
         "AC2_deadline_exceedance": "MET - binned convolution (100 bins), convergence checked",
         "AC3_jitter_mean_sd": "MET - model predicts mean/sd; fabric draws within +/-5%/+/-15% (artifact committed)",
         "AC4_route_agreement": "PARTIAL - setting 1 MET (two-sided, net_plugin_over_interposed.log); settings 2-3 REFUSED two-sided (one device, nvidia_smi_query.txt); PREDICTED-FROM-FABRIC",
@@ -15,6 +15,6 @@
         "negctrl": "experiments/gpu-sim-5zv/negctrl/",
         "nvidia_smi_query": "experiments/gpu-sim-5zv/nvidia_smi_query.txt"
     },
-    "tests": "tests/test_model_fault.py (8 tests, all PASS)",
+    "tests": "tests/test_model_fault.py (9 tests, all PASS) + tests/test_nccl_refusal.c (C refusal, PASS)",
     "make_check": "wired, green normally, RED with closed form broken"
 }
