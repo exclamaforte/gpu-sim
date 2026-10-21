@@ -14,13 +14,10 @@
 #include "fakegpu_fabric.h"
 #include "nccl_net.h"
 
-/* mirror of the plugin's mapping in v12_test() */
-static int map_fab_error(int rc) {
-    if (rc == FG_FAB_OK) return ncclSuccess;
-    if (rc == FG_FAB_EPEERDEAD) return ncclSystemError;
-    if (rc == FG_FAB_ESIZE) return ncclSystemError;
-    return ncclSystemError;
-}
+/* The plugin's REAL mapping (experiments/gpu-sim-m3d.8/src/ncclnetsim_fabric.c),
+ * declared extern so this test links against the plugin's own code rather than
+ * a copy of it. */
+extern "C" int ncclnetsim_map_fab_error(int rc);
 
 int main(void) {
     const char *runid = "m3d8_peerdeath";
@@ -47,9 +44,11 @@ int main(void) {
     /* now the pending transfer: nothing more will ever arrive, and the peer is dead */
     int rc = fg_fab_recv_max(f, 1, buf, sizeof(buf), &got);
     printf("nccl.h resolved: ncclSystemError = %d (plugin uses the real header, value 2)\n", (int)ncclSystemError);
-    printf("pending transfer rc=%d (%s), mapped to NCCL code %d\n", rc, fg_fab_errstr(rc), map_fab_error(rc));
-    int ok = (rc == FG_FAB_EPEERDEAD) && (map_fab_error(rc) == ncclSystemError)
-            && (map_fab_error(rc) == 2) && ((int)ncclSystemError == 2);
+    int mapped = ncclnetsim_map_fab_error(rc);
+    printf("mapping function called: ncclnetsim_map_fab_error (plugin's real code)\n");
+    printf("pending transfer rc=%d (%s), mapped to NCCL code %d\n", rc, fg_fab_errstr(rc), mapped);
+    int ok = (rc == FG_FAB_EPEERDEAD) && (mapped == ncclSystemError)
+            && (mapped == 2) && ((int)ncclSystemError == 2);
     printf("peer-death mapping %s\n", ok ? "PASS" : "FAIL");
     int st = 0; waitpid(pid, &st, 0);
     fg_fab_detach(f); fg_fab_unlink(runid);

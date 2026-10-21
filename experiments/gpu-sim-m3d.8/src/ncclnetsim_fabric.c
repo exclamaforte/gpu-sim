@@ -227,6 +227,15 @@ static ncclResult_t v12_irecv(void* recvComm, int n, void** data, size_t* sizes,
     return ncclSuccess;
 }
 
+/* Non-static so the no-NCCL peer-death test (peer_death_test.c) can call the
+ * PLUGIN's real mapping rather than a copy of it. */
+extern "C" int ncclnetsim_map_fab_error(int rc) {
+    if (rc == FG_FAB_OK) return ncclSuccess;
+    if (rc == FG_FAB_EPEERDEAD) return ncclSystemError;
+    if (rc == FG_FAB_ESIZE) return ncclSystemError;
+    return ncclSystemError;
+}
+
 static ncclResult_t v12_test(void* request, int* done, int* sizes) {
     req_t *rq = (req_t*)request;
     if (!rq) return ncclInvalidArgument;
@@ -257,10 +266,10 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
     }
     if (rc == FG_FAB_ESIZE) {
         fprintf(stderr, "size mismatch in recv\n");
-        return ncclSystemError;
+        return (ncclResult_t)ncclnetsim_map_fab_error(rc);
     }
     if (rc == FG_FAB_EPEERDEAD) {
-        return ncclSystemError;
+        return (ncclResult_t)ncclnetsim_map_fab_error(rc);
     }
     /* timeout or other: not done */
     if (done) *done = 0;
