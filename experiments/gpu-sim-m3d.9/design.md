@@ -5,7 +5,8 @@
 ### 1. Loss (loss_ppm)
 - Injection point: fabric (fg_fab_transfer in src/fakegpu_fabric.c)
 - Mechanism: per-transfer drop with probability ppm/1e6 (xorshift seeded by GPUSIM_SEED ^ rank ^ link_id)
-- Expected CODE: FG_FAB_EINVAL (or ncclSystemError via plugin) on dropped transfer
+- Expected CODE: FG_FAB_ELOSS (or ncclSystemError via plugin) on dropped transfer
+- Trace field: fault=loss decision=drop rng=<value>
 - Not a delay: loss means failure, not slower
 - Negative control: break the RNG seed (use 0), show loss rate becomes deterministic/uniform (not seeded), test RED
 - Statistical test: loss bound computed from declared p and n (binomial), not observed rate
@@ -16,13 +17,16 @@
 - Mechanism: duration ~ U(base, base+jitter) (uniform, documented)
 - Expected CODE: FG_FAB_OK (jitter is a delay variation, not an error)
 - Tolerance: pre-registered, may not be widened after seeing numbers
+- Trace field: fault=jitter drawn_us=<value>
 - Negative control: set jitter=0, show no variance in duration, test RED
 - Refusal: none (reachable on this box)
 
 ### 3. Partition (shared_group declared partitioned)
 - Injection point: fabric (fg_fab_transfer, shared_group check)
 - Mechanism: links in a shared_group declared partitioned after k transfers (deterministic k) -> subsequent transfers fail
-- Expected CODE: ETIMEDOUT (slow/partitioned), NOT EPEERDEAD (dead peer)
+- Expected CODE: ETIMEDOUT
+- Trace field: fault=timeout elapsed_us=<value> deadline_us=<value> (slow/partitioned), NOT EPEERDEAD (dead peer)
+- Trace field: fault=partition transfer_count=<k>
 - Negative control: remove the partition declaration, show transfers succeed, test RED
 - Refusal: "network partition" cannot be a real packet filter on this box (one shm fabric). The stand-in is: shared_group partition after k transfers. Named as stand-in.
 
@@ -30,6 +34,7 @@
 - Injection point: fabric (fg_fab_transfer, deadline check)
 - Mechanism: exceed deadline -> ETIMEDOUT -> NCCL error
 - Expected CODE: ETIMEDOUT
+- Trace field: fault=timeout elapsed_us=<value> deadline_us=<value>
 - No unbounded sleep or spin (wpw contract: bounded FUTEX_WAIT)
 - Negative control: set deadline to 0, show every transfer times out, test RED
 - Refusal: none (reachable on this box)
