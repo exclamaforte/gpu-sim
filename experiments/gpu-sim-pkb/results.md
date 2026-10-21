@@ -87,12 +87,18 @@ valid, which is precisely how they entered the previous version's "clean" list.
 
 Recorded because it is the same failure this bead exists to fix, one level down:
 
-1. **Hand-typed numbers.** The 4 KiB row said "1.00 after dedup, clean". The script
-   reports 2.00 for rank 0. A manual adjustment is not a measurement.
-2. **Unverifiable run counts.** It cited "6/6 runs" at 512 KiB and "4/4" at 1 MiB. Only
-   two traces per size are committed; other runs existed on disk during the session and
-   were not committed, so they cannot be cited. The counts are now taken from
-   `git ls-files`.
+1. **Hand-typed numbers.** The 4 KiB row claimed a factor of 1.00 "after dedup" when
+   the script reports 2.00 for rank 0. A manual adjustment is not a measurement.
+2. **Unverifiable run counts.** The rejected version claimed more runs than it had
+   committed; the historical claim, quoted verbatim:
+
+   ```
+   at S=524288: "6/6 runs" ... trace files of that size committed at the time: 2
+   at S=1048576: "4/4 runs" ... trace files of that size committed at the time: 2
+   ```
+
+   Other runs existed on disk during the session and were never committed, so they
+   cannot be cited. Counts are now taken from `git ls-files`.
 3. **"Clean" rows that were invalid.** 64/128/256 KiB were listed as clean on the basis
    of runs that are not committed; all committed traces at those sizes fail the gate.
 4. **A wrong mechanism claim.** "Same payload digest as seq 2" is false (§3).
