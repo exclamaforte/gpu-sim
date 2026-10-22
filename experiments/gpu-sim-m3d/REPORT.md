@@ -182,10 +182,33 @@ Below the LL boundary the emulated collective does not complete; above it, byte
 counts are deterministic (three 512KiB traces: 32 isends, 32 recv-done,
 bytes=32768) while value checks have shown nondeterministic corruption in 1 of 2
 runs (5.0 where 3.0 was expected, an exact double-add of two chunks). So: byte
-factors are trustworthy on the SIMPLE path; data correctness is not certified
-anywhere yet, and every value check so far used a uniform fill that cannot detect
-a misdelivery. The two decodes that prove the corruption is an offset error
-rather than noise:
+factors are trustworthy on the SIMPLE path.
+
+WITHDRAWN SENTENCE (gpu-sim-c1z): "data correctness is not certified anywhere
+yet, and every value check so far used a uniform fill that cannot detect a
+misdelivery." This sentence is retracted. It was written before the bam
+discriminating experiment and is superseded by the evidenced boundary below.
+
+SHARPENED EVIDENCED BOUNDARY (gpu-sim-bam): Byte flow and timing are modelled
+for multi-node topologies and byte counts are trustworthy. DATA CORRECTNESS IS
+CERTIFIED ONLY AT nNodes 1, because the emulator fakes N nodes on one device via
+NCCL_HOSTID, which is exactly the configuration where the NCCL cross-node path
+aliases buffers on the same device. The four-variant table (trace citations):
+
+  | Variant | nNodes | localRanks | isAllCudaP2p | NCCL_HOSTID | plugin | VALUE result |
+  | V1 (as-is) | 2 | 1 | 1 | fake per rank | on | MISMATCH (offset n/4 or 3n/4) |
+  | V2 (no hostid) | 1 | 2 | 1 | none | on | OK |
+  | V3 (no hostid, no plugin) | 1 | 2 | 1 | none | off | OK |
+  | V4 (diff devices) | N/A | N/A | N/A | - | - | Not possible (1 GPU) |
+
+  Traces: experiments/gpu-sim-pkb/traces/run_nu512_1_rank0.txt (V1),
+  run_bam_v2_rank0.txt (V2), run_bam_v3_rank0.txt (V3).
+
+Consequence: every VALUE OK or digest-match claim made in a fake-host
+configuration certifies nothing. The eut factor 1.0 above 512KiB is unaffected
+because it rests on byte counts, not value correctness.
+
+The two decodes that prove the corruption is an offset error rather than noise:
   101.304006 = 3.0 + 0.001*98304 (a contribution from offset 0.75S landing at
   index 0)
   134.072006 = 1.0 + (2.0 + 0.001*131072) (an element one past the end)
