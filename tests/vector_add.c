@@ -3,7 +3,7 @@
  *
  * Mirrors what a real CUDA program looks like: allocate host + device buffers,
  * copy input H2D, launch a kernel, copy result D2H. Under LD_PRELOAD=fakegpu.so
- * the "kernel" is a no-op and buffers come back filled with random bytes.
+ * the "kernel" is a no-op and buffers come back zero-filled (real memcpy).
  *
  * Run:  LD_PRELOAD=./libfakegpu.so ./build/vector_add
  */
