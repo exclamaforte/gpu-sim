@@ -192,26 +192,41 @@ yet, and every value check so far used a uniform fill that cannot detect a
 misdelivery." This sentence is retracted. It was written before the bam
 discriminating experiment and is superseded by the evidenced boundary below.
 
-SHARPENED EVIDENCED BOUNDARY (gpu-sim-bam), AND ITS CORRECTION (gpu-sim-652). Byte
-flow and timing are modelled for multi-node topologies and the byte counts taken
-from plugin-exercising runs are trustworthy. What the four-variant table below
-actually compares is TWO CONFIGURATIONS OF REAL NCCL, not the emulator: NONE of
-its runs contains a v12.isend line, so the plugin was loaded and assigned but
-never called, and NCCL carried the data over shm/P2P in every variant. With
-NCCL_HOSTID faked it reported nNodes 2 and the copies aliased; with an honest
-nNodes 1 it was exact. The mechanism named when bam closed (aliasing in the
-NCCL cross-node path) is therefore NOT established; what is established is that
-lying about host identity in this harness can corrupt values, which is a hazard
-for anyone reusing run_measure.sh.
+SHARPENED EVIDENCED BOUNDARY (gpu-sim-bam), WITH THE TRANSPORT EACH VARIANT USED
+(gpu-sim-652). Read the four variants against the transport line in their NCCL
+log, because that is what separates them:
 
-Corollary, and it is the sentence that matters for the validity domain: at
-nNodes 1 the emulated fabric is BYPASSED, so nNodes 1 runs certify real NCCL and
-nothing about the emulator. The emulator data path is exercised only when the
-plugin is forced into the path (NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1, no fake
-NCCL_HOSTID), and the acceptance criterion for such a run is that its trace
-contains v12.isend lines. Value correctness of the emulator data path is
-UNTESTED POST-FIX at the time of writing, not certified. The four-variant table
-is retained because the hazard it documents is real:
+  V1 fake hostid  -> "Channel 00/0 : 0[0] -> 1[0] via NET/sim/" and 32 v12.isend
+                     in the trace: THE EMULATED FABRIC CARRIED THE DATA. Values
+                     MISMATCH with clean-fraction offsets.
+  V2/V3 no hostid -> "via P2P/CUMEM" and zero v12.isend: the plugin was loaded
+                     and assigned but never called; real CUDA carried the data.
+                     Values OK.
+
+So the contrast is not fake-host versus honest topology; it is EMULATED FABRIC
+VERSUS REAL CUDA, and it runs the opposite way from the first reading: the
+corruption appears when the emulator is in the path, and the clean runs are the
+ones that bypassed it. Nothing here is an artefact of lying about host identity
+-- the fake-host configuration is the emulator's normal operating mode, because
+faking nodes is how multi-node is simulated on one box.
+
+Consequence for the validity domain: at nNodes 1 the fabric is BYPASSED, so the
+nine VALUE OK runs of gpu-sim-1c4 certify real NCCL and nothing about the
+emulator. The emulated data path is exercised only in the fake-host
+configuration, and there it corrupts values, post-fix. Per the validity contract
+above that does not invalidate byte counts or timings -- counts are counts -- but
+every value claim from a fabric run is void, and the fabric's data path carries
+a known, reproducible defect.
+
+Acceptance criterion for any future datum about the emulator: the NCCL log must
+show "via NET/sim/" AND the trace must contain v12.isend lines. run_measure.sh
+already enforces the second at line 94 (it exits 1 with "NO isend in trace"), so
+a run whose script exited 1 is not a run and must never be reported as one.
+(The correction in commit e42ed55 claimed no run in bam's table contained a
+v12.isend line. That was wrong: it was checked against the NCCL stderr logs
+rather than the GPUSIM_TRACE files, and V1's trace holds 32 isends. Recorded
+here rather than silently rewritten, because this is the fifth instance today of
+a result read from a file that was not the file that holds the datum.)
 
   | Variant | nNodes | localRanks | isAllCudaP2p | NCCL_HOSTID | plugin | VALUE result |
   | V1 (as-is) | 2 | 1 | 1 | fake per rank | on | MISMATCH (offset n/4 or 3n/4) |
