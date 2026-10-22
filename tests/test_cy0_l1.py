@@ -95,3 +95,19 @@ def test_jsonl_emission():
         assert "op" in rec
         assert "bytes" in rec
         assert "seconds" in rec
+
+
+def test_magnitude_known_link():
+    """Magnitude test: one known link, one known transfer, hand-computed expected time."""
+    import epic_cluster.link_model as lm
+    spec = load_spec(str(SPEC_PATH))
+    # IB link: shared_group="ib" has 8 links, so effective bw = 50/8 = 6.25 GB/s
+    # S = 500000 * 4 = 2,000,000 bytes (2 MB)
+    # bw_term = 1.0 * 2e6 / (6.25e9) = 3.2e-4 s = 320 us
+    # lat_term = 2.0 * 5e-6 * 8 = 8e-5 s = 80 us
+    # total = 400 us
+    res = lm.predict(spec, "ring_allreduce", 500000, "float32", n_ranks=2, pieces_per_phase=8)
+    expected_us = 400.0
+    actual_us = res["duration_s"] * 1e6
+    assert abs(actual_us - expected_us) / expected_us < 0.05, \
+        f"magnitude mismatch: got {actual_us} us, expected {expected_us} us"
