@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 # Run one 2-rank allreduce at size S (bytes) and capture the plugin trace.
-# Usage: run_measure.sh <S_bytes> <run_id> <trace_out_path>
+# Usage: run_measure.sh [mode] <S_bytes> <run_id> <trace_out_path>
+#   mode: uniform (default) or nu (non-uniform fill, gpu-sim-6hg)
 set -uo pipefail
+MODE="${1:-uniform}"; shift
 S_BYTES="$1"; RUN_ID="$2"; TRACE_OUT="$3"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 M8="$HERE/../../experiments/gpu-sim-m3d.8"
 # build the size-flexible test binary if missing
-if [ ! -x "$M8/build/allreduce_test_size" ]; then
+if [ "$MODE" = "nu" ]; then
+  TEST_BIN="$M8/build/allreduce_test_nu"
+  TEST_SRC="$M8/allreduce_test_nu.c"
+else
+  TEST_BIN="$M8/build/allreduce_test_size"
+  TEST_SRC="$M8/allreduce_test_size.c"
+fi
+if [ ! -x "$TEST_BIN" ]; then
   NCCL_INC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"
   CUDA_INC="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include"
   NCCL_LIB="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/lib"
   CUDA_LIB="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
   mkdir -p "$M8/build"
-  gcc -O2 -I"$NCCL_INC" -I"$CUDA_INC" "$M8/allreduce_test_size.c" -o "$M8/build/allreduce_test_size" \
+  gcc -O2 -I"$NCCL_INC" -I"$CUDA_INC" "$TEST_SRC" -o "$TEST_BIN" \
       -L"$NCCL_LIB" -L"$CUDA_LIB" -l:libnccl.so.2 -l:libcudart.so.13 \
       -Wl,-rpath,"$NCCL_LIB" -Wl,-rpath,"$CUDA_LIB"
 fi
@@ -63,10 +72,10 @@ T0="${TRACE_OUT}.rank0"; T1="${TRACE_OUT}.rank1"
 # per-run logs live under traces/ so the committed pkb run0.log/run1.log survive.
 LOGDIR="$HERE/traces"; mkdir -p "$LOGDIR"
 LOG1="$LOGDIR/run_${RUN_ID}_rank1.txt"; LOG0="$LOGDIR/run_${RUN_ID}_rank0.txt"
-timeout 120s env NCCL_HOSTID="node1" GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$M8/build/allreduce_test_size" 1 2 "$UIDFILE" "$FLOATS" > "$LOG1" 2>&1 &
+timeout 120s env NCCL_HOSTID="node1" GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$TEST_BIN" 1 2 "$UIDFILE" "$FLOATS" > "$LOG1" 2>&1 &
 P1=$!
 sleep 1
-timeout 120s env NCCL_HOSTID="node0" GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$M8/build/allreduce_test_size" 0 2 "$UIDFILE" "$FLOATS" > "$LOG0" 2>&1 &
+timeout 120s env NCCL_HOSTID="node0" GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$TEST_BIN" 0 2 "$UIDFILE" "$FLOATS" > "$LOG0" 2>&1 &
 P0=$!
 wait $P0; R0=$?
 wait $P1; R1=$?
