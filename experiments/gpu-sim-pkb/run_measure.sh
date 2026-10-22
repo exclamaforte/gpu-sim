@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Run one 2-rank allreduce at size S (bytes) and capture the plugin trace.
-# Usage: run_measure.sh [mode] <S_bytes> <run_id> <trace_out_path>
-#   mode: uniform (default) or nu (non-uniform fill, gpu-sim-6hg)
+# Usage: run_measure.sh [mode] [hostid] [plugin] <S_bytes> <run_id> <trace_out_path>
+#   mode: uniform (default) or nu
+#   hostid: fake (default, per-rank NCCL_HOSTID) or none (both on node0)
+#   plugin: on (default) or off (NCCL_NET_PLUGIN unset)
 set -uo pipefail
 MODE="${1:-uniform}"; shift
+HOSTID="${1:-fake}"; shift
+PLUGIN="${1:-on}"; shift
 S_BYTES="$1"; RUN_ID="$2"; TRACE_OUT="$3"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 M8="$HERE/../../experiments/gpu-sim-m3d.8"
@@ -34,7 +38,7 @@ export GPUSIM_NRANKS=2
 export GPUSIM_TIMEOUT_NS=5000000
 export GPUSIM_ATTACH_TIMEOUT_NS=5000000000
 export GPUSIM_FAB_DELAY_US=0
-export NCCL_NET_PLUGIN="/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-eut/experiments/gpu-sim-m3d.8/build/libncclNetSimFab.so"
+if [ "$PLUGIN" = "on" ]; then export NCCL_NET_PLUGIN="/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-eut/experiments/gpu-sim-m3d.8/build/libncclNetSimFab.so"; else unset NCCL_NET_PLUGIN; fi
 export NCCL_DEBUG=INFO
 export NCCL_DEBUG_SUBSYS=INIT,NET,GRAPH
 export NCCL_P2P_DISABLE=1
@@ -72,10 +76,12 @@ T0="${TRACE_OUT}.rank0"; T1="${TRACE_OUT}.rank1"
 # per-run logs live under traces/ so the committed pkb run0.log/run1.log survive.
 LOGDIR="$HERE/traces"; mkdir -p "$LOGDIR"
 LOG1="$LOGDIR/run_${RUN_ID}_rank1.txt"; LOG0="$LOGDIR/run_${RUN_ID}_rank0.txt"
-timeout 120s env NCCL_HOSTID="node1" GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$TEST_BIN" 1 2 "$UIDFILE" "$FLOATS" > "$LOG1" 2>&1 &
+if [ "$HOSTID" = "fake" ]; then _H1="NCCL_HOSTID=node1"; else _H1=""; fi
+timeout 120s env $_H1 GPUSIM_RANK=1 GPUSIM_TRACE="$T1" "$TEST_BIN" 1 2 "$UIDFILE" "$FLOATS" > "$LOG1" 2>&1 &
 P1=$!
 sleep 1
-timeout 120s env NCCL_HOSTID="node0" GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$TEST_BIN" 0 2 "$UIDFILE" "$FLOATS" > "$LOG0" 2>&1 &
+if [ "$HOSTID" = "fake" ]; then _H0="NCCL_HOSTID=node0"; else _H0=""; fi
+timeout 120s env $_H0 GPUSIM_RANK=0 GPUSIM_TRACE="$T0" "$TEST_BIN" 0 2 "$UIDFILE" "$FLOATS" > "$LOG0" 2>&1 &
 P0=$!
 wait $P0; R0=$?
 wait $P1; R1=$?
