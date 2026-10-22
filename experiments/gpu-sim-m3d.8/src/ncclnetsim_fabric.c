@@ -34,7 +34,7 @@ static pthread_mutex_t LOCK = PTHREAD_MUTEX_INITIALIZER;
 #error "plugin CAP and fabric FG_FAB_MAX_PAYLOAD disagree"
 #endif
 
-typedef struct { int done; size_t size; void *data; int peer; int is_send; int chan_of_req; } req_t;
+typedef struct { int done; size_t size; void *data; int peer; int is_send; int chan_of_req; int tag; } req_t;
 
 /* comm handles */
 typedef struct { int peer; int local; int chan; } sim_comm_t;
@@ -245,7 +245,7 @@ static ncclResult_t v12_deregMr(void* comm, void* mhandle) {
 }
 
 static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, void* mhandle, void* phandle, void** request) {
-    (void)tag;(void)mhandle;(void)phandle;
+    (void)mhandle;(void)phandle;
     sim_comm_t *sc = (sim_comm_t*)sendComm;
     if (size > CAP) return ncclInvalidArgument;
     int slot = -1; unsigned seq = 0;
@@ -298,7 +298,7 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
         /* registered buffer: send offset, skip copy */
         rc = fg_fab_send_reg(FAB, sc->peer, reg_off - 1, size, &slot, &seq);
     } else {
-        rc = fg_fab_send_x(FAB, sc->peer, data, size, &slot, &seq);
+        rc = fg_fab_send_tag(FAB, sc->peer, data, size, tag);
     }
     pthread_mutex_unlock(&LOCK);
     if (rc != FG_FAB_OK) {
@@ -331,7 +331,7 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
 }
 
 static ncclResult_t v12_irecv(void* recvComm, int n, void** data, size_t* sizes, int* tags, void** mhandles, void** phandles, void** request) {
-    (void)tags;(void)mhandles;(void)phandles;
+    (void)mhandles;(void)phandles;
     sim_comm_t *rcv = (sim_comm_t*)recvComm;
     if (n < 1) return ncclInvalidArgument;
     /* handle only first buffer */
@@ -342,6 +342,7 @@ static ncclResult_t v12_irecv(void* recvComm, int n, void** data, size_t* sizes,
     rq->peer = rcv->peer;
     rq->chan_of_req = rcv->chan;
     rq->is_send = 0;
+    rq->tag = (tags && n > 0) ? tags[0] : -1;   /* gpu-sim-ast: match on tag */
     /* store tag in req via a field? add tag to req_t */
     if (request) *request = rq;
     const char *dt = getenv("GPUSIM_DTYPE"); if (!dt || !*dt) dt = "float32";
@@ -378,7 +379,7 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
     pthread_mutex_lock(&LOCK);
     size_t got = 0;
     int slot = -1; unsigned seq = 0, consumed = 0;
-    int rc = fg_fab_recv_max_ex(FAB, rq->peer, rq->data, rq->size, &got,
+    int rc = fg_fab_recv_tag_ex(FAB, rq->peer, rq->data, rq->size, rq->tag, &got,
                                 &slot, &seq, &consumed);
     pthread_mutex_unlock(&LOCK);
     if (rc == FG_FAB_OK) {

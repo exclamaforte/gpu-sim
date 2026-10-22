@@ -59,6 +59,15 @@ size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size);
 int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
                         int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 
+/* Tag-aware paths (gpu-sim-ast).  A request only ever consumes a message that
+   carries its own tag; want_tag < 0 means "any tag" (legacy behaviour).  NCCL
+   distinguishes concurrent message streams by tag, so delivering whichever
+   message happens to be next hands a piece to a request that belongs to a
+   different stream. */
+int  fg_fab_recv_tag_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_tag,
+                        size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out);
+int  fg_fab_send_tag(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag);
+
 /* query fault-injection counters (for invariant tests) */
 uint64_t fg_fab_success_count(fg_fab_t *f);
 uint64_t fg_fab_attempt_count(fg_fab_t *f);
