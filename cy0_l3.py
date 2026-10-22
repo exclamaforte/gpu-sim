@@ -40,13 +40,21 @@ def plan(model_cfg: Dict[str, Any], spec_path: str, dp: int, tp: int, pp: int,
             f"tp={tp} does not divide total_gpus={total_gpus}"
         )
 
-    # Warning: tp spanning nodes
-    tp_spans_nodes = tp > gpus_per_node
+    # Placement check: do all ranks in a TP group reside on the same node?
+    # A TP group of size tp uses ranks 0..tp-1 (contiguous placement assumed).
+    # If any of those ranks is on a different node, TP spans nodes.
+    tp_spans_nodes = False
+    tp_nodes = set()
+    for r in range(tp):
+        if r < len(spec["ranks"]):
+            tp_nodes.add(spec["ranks"][r]["node"])
+    if len(tp_nodes) > 1:
+        tp_spans_nodes = True
 
     warnings = []
     if tp_spans_nodes:
         warnings.append(
-            f"WARNING: tp={tp} spans multiple nodes (>{gpus_per_node} GPUs/node), "
+            f"WARNING: tp={tp} spans multiple nodes {sorted(tp_nodes)}, "
             f"forcing IB into the latency-critical path"
         )
 
