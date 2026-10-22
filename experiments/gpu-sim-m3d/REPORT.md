@@ -167,14 +167,18 @@ phase-payload table; enforced by tests/test_model_agreement.py (C==Python within
 ### 7.3 Protocol selection is part of every measurement (the day's largest
 methodological finding)
 
-NCCL picks LL/LL128/Simple per size from a cost model over the link numbers the
-plugin advertises via getProperties (committed 512KiB log: LL 18.6/6.0, Simple
-40.4/12.0; two-term crossing ~255KiB). S=393216 runs proto LL and HANGS;
-S=524288 runs proto SIMPLE and COMPLETES. The eut boundary is therefore most
-likely the LL/SIMPLE boundary -- a plugin capability gap, not a fabric size limit
--- and the LL/Simple boundary MOVES with the advertised bandwidth/latency. State
-that every row must carry the protocol that produced it. Every row in the byte
 table now carries a PROTOCOL column (gpu-sim-77d, commit 713f4e3).
+
+CONFIRMED BY EXPERIMENT (gpu-sim-7vw, after the channel fix 3f33f0e): the hang
+at S=393216 is the LL path and nothing else. With the default protocol it exits
+124 on both ranks after 9 isends and ZERO v12.irecv lines -- the receiver never
+posts a receive. With NCCL_PROTO=Simple, same size, same plugin, same fabric: 32
+isends, via NET/sim, and the self-describing payload is exact on both ranks (all
+98304 elements equal the index). So 393216 is measurable today by pinning the
+protocol, and its INVALID byte-table row is a default-protocol artefact rather
+than a fabric limit. This does NOT extend downward: with NCCL_PROTO=Simple
+forced, 262144, 131072 and 65536 still hang (8, 8 and 4 isends). The sub-256KiB
+region is a separate gap from the LL one.
 
 ### 7.4 Emulator validity domain
 
