@@ -12,10 +12,10 @@ A trace is usable only if it passes the completeness gate **and** both ranks rep
 same byte factor in the same run. There are **2 committed traces per size** (`m1`, `m2`),
 and nothing else is cited.
 
-| S (bytes) | trace | protocol | rank0 factor | rank1 factor | gate | usable? | source |
+| S (bytes) | trace | Protocol | rank0 factor | rank1 factor | gate | usable? | source |
 |---|---|---|---|---|---|---|
 | 4096 | m1, m2 | LL | 2.00 | 1.00 | passes | **no — ranks disagree** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S4096_n2_m1.log |
-| 65536 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e); also does not complete under SIMPLE** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S65536_n2_m1.log |
+| 65536 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL (cost model); plugin LL path does not complete (LL not supported, gpu-sim-0xq close 9b8940e); also does not complete under SIMPLE** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S65536_n2_m1.log |
 | 131072 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S131072_n2_m1.log |
 | 262144 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S262144_n2_m1.log |
 | 393216 | m1, m2 | LL | — | — | **INVALID** | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S393216_n2_m1.log |
@@ -25,10 +25,11 @@ and nothing else is cited.
 
 **Validity domain: >=512 KiB on the SIMPLE path.** Usable data exists only at 512 KiB
 and above, where NCCL selects the SIMPLE protocol and the per-rank byte factor is 1.00.
-Below 512 KiB the fabric does not complete: NCCL selects LL at those sizes and the
-plugin's LL path does not complete (gpu-sim-7vw; 0xq close, commit 9b8940e); at 64 KiB
-the collective does not complete even under SIMPLE. These rows are INVALID, not merely
-unmeasured. See gpu-sim-77d.
+Below 512 KiB the fabric does not complete: NCCL selects LL at those sizes via its cost
+model over the link numbers the plugin advertises, and the plugin's LL path does not
+complete (LL not supported, gpu-sim-0xq close, commit 9b8940e); at 64 KiB the collective
+does not complete even under SIMPLE. These rows are INVALID, not merely unmeasured.
+See gpu-sim-77d.
 
 ## 2. Verdict: `FACTOR-1.0-ABOVE-512KiB`; below that, INVALID
 

@@ -146,3 +146,66 @@ python3 experiments/gpu-sim-m3d.10/verdict.py experiments/gpu-sim-m3d.10/metrics
 7. SMT sibling contention: rho=0.5158 (36 runs), +42% duration penalty, external occupiers
    (ca/codds-ca 99.2%, python3/constlaw 97.6%, yes/cclm 71.8%):
    experiments/gpu-sim-r27/metrics.json + windows.jsonl
+
+## 7. Corrected Conclusions (gpu-sim-x70)
+
+### 7.1 eut (closed): FACTOR-1.0-ABOVE-512KiB, NOT 'NO-STEP'
+
+Verdict: FACTOR-1.0-ABOVE-512KiB (withdrawn 'NO-STEP' by name). Usable evidence:
+512KiB / 1MiB / 2MiB, ranks agreeing, exact-multiple gate passing -> factor 1.00
+(2/2 runs each). Below 512KiB: INVALID in the table; the MECHANISM is now known
+(see 7.3) rather than merely unknown. Cite: experiments/gpu-sim-pkb/{results.md,
+metrics.json, reduction_output.txt, traces/}.
+
+### 7.2 ggh (closed): n=2 phase-fusion byte factor is 1.0, not 2.0
+
+The special case in src/fakegpu_nccl.c:402-408 and epic_cluster/link_model.py is
+deleted; n>=3 untouched and REFUSED, never cap-derived; P comes from the measured
+phase-payload table; enforced by tests/test_model_agreement.py (C==Python within
+1e-12, negative control on the old 2*S).
+
+### 7.3 Protocol selection is part of every measurement (the day's largest
+methodological finding)
+
+NCCL picks LL/LL128/Simple per size from a cost model over the link numbers the
+plugin advertises via getProperties (committed 512KiB log: LL 18.6/6.0, Simple
+40.4/12.0; two-term crossing ~255KiB). S=393216 runs proto LL and HANGS;
+S=524288 runs proto SIMPLE and COMPLETES. The eut boundary is therefore most
+likely the LL/SIMPLE boundary -- a plugin capability gap, not a fabric size limit
+-- and the LL/Simple boundary MOVES with the advertised bandwidth/latency. State
+that every row must carry the protocol that produced it. Every row in the byte
+table now carries a PROTOCOL column (gpu-sim-77d, commit 713f4e3).
+
+### 7.4 Emulator validity domain
+
+Below the LL boundary the emulated collective does not complete; above it, byte
+counts are deterministic (three 512KiB traces: 32 isends, 32 recv-done,
+bytes=32768) while value checks have shown nondeterministic corruption in 1 of 2
+runs (5.0 where 3.0 was expected, an exact double-add of two chunks). So: byte
+factors are trustworthy on the SIMPLE path; data correctness is not certified
+anywhere yet, and every value check so far used a uniform fill that cannot detect
+a misdelivery. The two decodes that prove the corruption is an offset error
+rather than noise:
+  101.304006 = 3.0 + 0.001*98304 (a contribution from offset 0.75S landing at
+  index 0)
+  134.072006 = 1.0 + (2.0 + 0.001*131072) (an element one past the end)
+These only became visible with a non-uniform fill.
+
+### 7.5 Not-claimed boundaries
+
+One real CUDA device (RTX 5090 index 0) so two-sided multi-rank fault measurement
+is refused at any rank count; m3d.10 NO-CLOSE stands (no gate run); 4tw
+validates the model against OUR fabric, not hardware loss; n>=3 pieces-per-phase
+REFUSED.
+
+### 7.6 The reference-failure error class
+
+Six-plus instances in one day, each caught by someone other than its author -- the
+byte table's /tmp traces, digest-as-phase-marker, the lint counting .md as an
+artifact, the model's 2S constant, the PI's bl5 bead description, sum[0]=3.0
+read as a 384KiB result when the harness hardcodes n=1024, and a truncated NCCL
+log read as 'NCCL stuck at Connect'. Name the mechanical controls now in place:
+scripts/check_prose_numbers.py, scripts/check_bead_prose_numbers.py, per-row
+proximity mode, ratio/integer grammar, tests/test_model_agreement.py,
+tests/test_fabric.c. State the durable rule: before citing a result, open the
+code or log that produced it and confirm the SIZE, the SUBJECT and the HARNESS.
