@@ -38,6 +38,7 @@ TEST_BIN = build/fake_client
 VEC_BIN  = build/test_zero_fill_smoke
 RING_BIN = build/ring_allreduce
 FABRIC_TEST_BIN = build/test_fabric
+FIFO_TEST_BIN = build/test_fabric_fifo
 
 .PHONY: all check clean
 
@@ -125,6 +126,18 @@ test-fabric: $(FABRIC_TEST_BIN)
 $(FABRIC_TEST_BIN): tests/test_fabric.c src/fakegpu_fabric.c include/fakegpu_fabric.h
 	@mkdir -p build
 	$(CC) $(CFLAGS) -Iinclude -o $@ tests/test_fabric.c src/fakegpu_fabric.c -lpthread
+
+# RED test for gpu-sim-6n6: FIFO delivery per peer, and an oversize head reported
+# as ESIZE instead of being silently skipped (which reorders and loses the head).
+# Standalone until the fabric fix lands; then it joins `check` so the property is
+# enforced from then on.
+.PHONY: test-fifo
+$(FIFO_TEST_BIN): tests/test_fabric_fifo.c src/fakegpu_fabric.c include/fakegpu_fabric.h
+	@mkdir -p build
+	$(CC) $(CFLAGS) -Iinclude -o $@ tests/test_fabric_fifo.c src/fakegpu_fabric.c -lpthread
+
+test-fifo: $(FIFO_TEST_BIN)
+	@./$(FIFO_TEST_BIN)
 
 
 libfakecuda.so: src/fakecuda.o src/fakegpu_config.o src/fakegpu_random.o src/fakegpu_pool.o src/fakegpu_latency.o src/fakegpu_topology.o
