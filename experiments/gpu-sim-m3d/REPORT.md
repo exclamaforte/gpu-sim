@@ -192,11 +192,26 @@ yet, and every value check so far used a uniform fill that cannot detect a
 misdelivery." This sentence is retracted. It was written before the bam
 discriminating experiment and is superseded by the evidenced boundary below.
 
-SHARPENED EVIDENCED BOUNDARY (gpu-sim-bam): Byte flow and timing are modelled
-for multi-node topologies and byte counts are trustworthy. DATA CORRECTNESS IS
-CERTIFIED ONLY AT nNodes 1, because the emulator fakes N nodes on one device via
-NCCL_HOSTID, which is exactly the configuration where the NCCL cross-node path
-aliases buffers on the same device. The four-variant table (trace citations):
+SHARPENED EVIDENCED BOUNDARY (gpu-sim-bam), AND ITS CORRECTION (gpu-sim-652). Byte
+flow and timing are modelled for multi-node topologies and the byte counts taken
+from plugin-exercising runs are trustworthy. What the four-variant table below
+actually compares is TWO CONFIGURATIONS OF REAL NCCL, not the emulator: NONE of
+its runs contains a v12.isend line, so the plugin was loaded and assigned but
+never called, and NCCL carried the data over shm/P2P in every variant. With
+NCCL_HOSTID faked it reported nNodes 2 and the copies aliased; with an honest
+nNodes 1 it was exact. The mechanism named when bam closed (aliasing in the
+NCCL cross-node path) is therefore NOT established; what is established is that
+lying about host identity in this harness can corrupt values, which is a hazard
+for anyone reusing run_measure.sh.
+
+Corollary, and it is the sentence that matters for the validity domain: at
+nNodes 1 the emulated fabric is BYPASSED, so nNodes 1 runs certify real NCCL and
+nothing about the emulator. The emulator data path is exercised only when the
+plugin is forced into the path (NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1, no fake
+NCCL_HOSTID), and the acceptance criterion for such a run is that its trace
+contains v12.isend lines. Value correctness of the emulator data path is
+UNTESTED POST-FIX at the time of writing, not certified. The four-variant table
+is retained because the hazard it documents is real:
 
   | Variant | nNodes | localRanks | isAllCudaP2p | NCCL_HOSTID | plugin | VALUE result |
   | V1 (as-is) | 2 | 1 | 1 | fake per rank | on | MISMATCH (offset n/4 or 3n/4) |
