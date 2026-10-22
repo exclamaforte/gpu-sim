@@ -8,7 +8,6 @@
  */
 #include "fakegpu.h"
 #include "cuda_runtime.h"
-#include <cuda.h>
 
 #include <stddef.h>
 #include <stdint.h>
