@@ -209,3 +209,25 @@ scripts/check_prose_numbers.py, scripts/check_bead_prose_numbers.py, per-row
 proximity mode, ratio/integer grammar, tests/test_model_agreement.py,
 tests/test_fabric.c. State the durable rule: before citing a result, open the
 code or log that produced it and confirm the SIZE, the SUBJECT and the HARNESS.
+
+## 8. Unit correction (gpu-sim-3me)
+
+bw_gbps in epic_cluster/spec.py is GB/s, not Gbps. link_model.py line 328
+previously did B_Bps = B_gbps * 1e9 / 8.0, treating it as Gbps and making every
+comm duration 8x too large. Fixed to B_Bps = B_gbps * 1e9. Unit declared in
+spec.py. Per-link source block added to specs/h100_rack.json.
+
+BLAST RADIUS:
+- m3d.10 gate numbers (predicted_s in admissibility.json) were 8x too large;
+  regenerated with corrected unit (A: 53.3us, was 426us). NO-CLOSE verdict
+  still holds: proxy spread (45985us) >> max_tolerable (36.2us), and the
+  environmental floor dominates. Making predicted deltas 8x smaller makes the
+  resolvability clause HARDER, not easier.
+- leg2.py (experiments/gpu-sim-4yw) had the same /8.0 bug; fixed.
+- leg1.py and m3d.8/decider.py: no /8.0 conversion; bw_gbps passed through
+  without unit conversion; numbers unaffected.
+- Tests (test_link_model, test_model_agreement, test_model_fault): /8.0 removed
+  from local calculations to match corrected model.
+
+Magnitude test added to test_cy0_l1.py: known link (50 GB/s), known size
+(1 MB), hand-computed expected time, asserted within tolerance.

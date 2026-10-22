@@ -11,74 +11,75 @@
         "D"
       ],
       "order": [
-        "C",
         "A",
-        "D",
-        "B"
+        "C",
+        "B",
+        "D"
       ],
       "rows": {
         "A": {
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "B": {
           "n": 2,
           "bw_gbps": 32.0,
           "latency_us": 5.0,
-          "predicted_s": 0.016787216,
+          "predicted_s": 0.001128576,
           "regime": "bandwidth",
-          "bw_term": 0.016777216000000005,
-          "latency_term": 9.999999999996123e-06
+          "bw_term": 0.0010485759999999998,
+          "latency_term": 8.000000000000021e-05
         },
         "C": {
           "n": 4,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0004533924266666666,
+          "predicted_s": 0.00010392405333333333,
           "regime": "bandwidth",
-          "bw_term": 0.0004473924266666667,
-          "latency_term": 5.999999999999929e-06
+          "bw_term": 5.592405333333333e-05,
+          "latency_term": 4.8e-05
         },
         "D": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 50.0,
-          "predicted_s": 0.01640612736,
-          "regime": "bandwidth",
-          "bw_term": 0.01610612736,
-          "latency_term": 0.00030000000000000165
+          "predicted_s": 0.004413265919999999,
+          "regime": "latency",
+          "bw_term": 0.00201326592,
+          "latency_term": 0.0023999999999999994
         }
       },
       "pairs": [
         {
-          "pair": "C->A",
-          "d_pred_us": 145.13080888888902,
-          "d_bw_us": 149.1308088888889,
-          "bw_ratio": 1.0275613429748212,
-          "rel_margin": 0.2424814948983176,
-          "admissible": true
-        },
-        {
-          "pair": "A->D",
-          "d_pred_us": 15807.604124444448,
-          "d_bw_us": 15509.604124444444,
-          "bw_ratio": 0.9811483133273066,
-          "rel_margin": 0.9635183110296448,
-          "admissible": true
-        },
-        {
-          "pair": "D->B",
-          "d_pred_us": 381.0886399999991,
-          "d_bw_us": 671.0886400000046,
-          "bw_ratio": 1.7609778134556995,
-          "rel_margin": 0.022701122091953727,
+          "pair": "A->C",
+          "d_pred_us": 50.64135111111111,
+          "d_bw_us": 18.641351111111106,
+          "bw_ratio": 0.3681053270125142,
+          "rel_margin": 0.48729191642170144,
           "admissible": false,
-          "reason": "; resolvability (4b) fails"
+          "reason": "bw-sensitivity (4a) fails; resolvability (4b) fails"
+        },
+        {
+          "pair": "C->B",
+          "d_pred_us": 1024.6519466666666,
+          "d_bw_us": 992.6519466666665,
+          "bw_ratio": 0.9687698831743788,
+          "rel_margin": 0.9079157687800082,
+          "admissible": true
+        },
+        {
+          "pair": "B->D",
+          "d_pred_us": 3284.6899199999993,
+          "d_bw_us": 964.6899200000001,
+          "bw_ratio": 0.29369284270218127,
+          "rel_margin": 0.74427645637995,
+          "admissible": false,
+          "reason": "bw-sensitivity (4a) fails"
         }
       ],
       "admitted": false
@@ -101,66 +102,67 @@
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "L2": {
           "n": 2,
           "bw_gbps": 400.0,
           "latency_us": 2.0,
-          "predicted_s": 0.00134617728,
+          "predicted_s": 0.00011588608,
           "regime": "bandwidth",
-          "bw_term": 0.00134217728,
-          "latency_term": 4.000000000000097e-06
+          "bw_term": 8.388607999999998e-05,
+          "latency_term": 3.200000000000002e-05
         },
         "L3": {
           "n": 2,
           "bw_gbps": 100.0,
           "latency_us": 5.0,
-          "predicted_s": 0.005378709119999999,
+          "predicted_s": 0.00041554431999999997,
           "regime": "bandwidth",
-          "bw_term": 0.00536870912,
-          "latency_term": 9.999999999999593e-06
+          "bw_term": 0.00033554432,
+          "latency_term": 7.999999999999999e-05
         },
         "L4": {
           "n": 2,
           "bw_gbps": 25.0,
           "latency_us": 10.0,
-          "predicted_s": 0.021494836479999998,
+          "predicted_s": 0.00150217728,
           "regime": "bandwidth",
-          "bw_term": 0.02147483648,
-          "latency_term": 1.9999999999999185e-05
+          "bw_term": 0.00134217728,
+          "latency_term": 0.00015999999999999999
         }
       },
       "pairs": [
         {
           "pair": "L1->L2",
-          "d_pred_us": 747.6540444444444,
-          "d_bw_us": 745.6540444444444,
-          "bw_ratio": 0.9973249659854563,
-          "rel_margin": 0.5553904790641276,
-          "admissible": true
+          "d_pred_us": 62.60337777777778,
+          "d_bw_us": 46.60337777777776,
+          "bw_ratio": 0.7444227361533914,
+          "rel_margin": 0.5402148193965813,
+          "admissible": false,
+          "reason": "; resolvability (4b) fails"
         },
         {
           "pair": "L2->L3",
-          "d_pred_us": 4032.531839999999,
-          "d_bw_us": 4026.53184,
-          "bw_ratio": 0.9985121010228654,
-          "rel_margin": 0.749721122677108,
+          "d_pred_us": 299.65824,
+          "d_bw_us": 251.65824,
+          "bw_ratio": 0.8398175201189195,
+          "rel_margin": 0.7211222138711942,
           "admissible": true
         },
         {
           "pair": "L3->L4",
-          "d_pred_us": 16116.127359999999,
-          "d_bw_us": 16106.12736,
-          "bw_ratio": 0.9993795035384978,
-          "rel_margin": 0.7497673859950202,
+          "d_pred_us": 1086.63296,
+          "d_bw_us": 1006.63296,
+          "bw_ratio": 0.9263780844637733,
+          "rel_margin": 0.7233719844304928,
           "admissible": true
         }
       ],
-      "admitted": true
+      "admitted": false
     },
     "mixed": {
       "configs": [
@@ -180,61 +182,61 @@
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "M2": {
           "n": 2,
           "bw_gbps": 100.0,
           "latency_us": 5.0,
-          "predicted_s": 0.005378709119999999,
+          "predicted_s": 0.00041554431999999997,
           "regime": "bandwidth",
-          "bw_term": 0.00536870912,
-          "latency_term": 9.999999999999593e-06
+          "bw_term": 0.00033554432,
+          "latency_term": 7.999999999999999e-05
         },
         "M3": {
           "n": 4,
           "bw_gbps": 50.0,
           "latency_us": 5.0,
-          "predicted_s": 0.00808306368,
+          "predicted_s": 0.00124663296,
           "regime": "bandwidth",
-          "bw_term": 0.008053063679999998,
-          "latency_term": 3.0000000000002247e-05
+          "bw_term": 0.0010066329599999998,
+          "latency_term": 0.0002400000000000002
         },
         "M4": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 10.0,
-          "predicted_s": 0.01616612736,
+          "predicted_s": 0.00249326592,
           "regime": "bandwidth",
-          "bw_term": 0.016106127359999996,
-          "latency_term": 6.0000000000004494e-05
+          "bw_term": 0.0020132659199999996,
+          "latency_term": 0.0004800000000000004
         }
       },
       "pairs": [
         {
           "pair": "M1->M2",
-          "d_pred_us": 4780.185884444444,
-          "d_bw_us": 4772.185884444444,
-          "bw_ratio": 0.9983264249145554,
-          "rel_margin": 0.8887236282531011,
+          "d_pred_us": 362.2616177777777,
+          "d_bw_us": 298.26161777777776,
+          "bw_ratio": 0.8233320979666703,
+          "rel_margin": 0.8717761267384855,
           "admissible": true
         },
         {
           "pair": "M2->M3",
-          "d_pred_us": 2704.354560000001,
-          "d_bw_us": 2684.3545599999984,
-          "bw_ratio": 0.992604520022699,
-          "rel_margin": 0.33457048800585487,
+          "d_pred_us": 831.08864,
+          "d_bw_us": 671.0886399999998,
+          "bw_ratio": 0.8074814258079617,
+          "rel_margin": 0.6666666666666667,
           "admissible": true
         },
         {
           "pair": "M3->M4",
-          "d_pred_us": 8083.06368,
-          "d_bw_us": 8053.063679999998,
-          "bw_ratio": 0.9962885359824355,
+          "d_pred_us": 1246.63296,
+          "d_bw_us": 1006.6329599999998,
+          "bw_ratio": 0.8074814258079618,
           "rel_margin": 0.5,
           "admissible": true
         }
@@ -249,55 +251,55 @@
       ],
       "order": [
         "A",
-        "D",
-        "B"
+        "B",
+        "D"
       ],
       "rows": {
         "A": {
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "B": {
           "n": 2,
           "bw_gbps": 32.0,
           "latency_us": 5.0,
-          "predicted_s": 0.016787216,
+          "predicted_s": 0.001128576,
           "regime": "bandwidth",
-          "bw_term": 0.016777216000000005,
-          "latency_term": 9.999999999996123e-06
+          "bw_term": 0.0010485759999999998,
+          "latency_term": 8.000000000000021e-05
         },
         "D": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 50.0,
-          "predicted_s": 0.01640612736,
-          "regime": "bandwidth",
-          "bw_term": 0.01610612736,
-          "latency_term": 0.00030000000000000165
+          "predicted_s": 0.004413265919999999,
+          "regime": "latency",
+          "bw_term": 0.00201326592,
+          "latency_term": 0.0023999999999999994
         }
       },
       "pairs": [
         {
-          "pair": "A->D",
-          "d_pred_us": 15807.604124444448,
-          "d_bw_us": 15509.604124444444,
-          "bw_ratio": 0.9811483133273066,
-          "rel_margin": 0.9635183110296448,
+          "pair": "A->B",
+          "d_pred_us": 1075.2932977777778,
+          "d_bw_us": 1011.2932977777776,
+          "bw_ratio": 0.9404813550570212,
+          "rel_margin": 0.9527876702834172,
           "admissible": true
         },
         {
-          "pair": "D->B",
-          "d_pred_us": 381.0886399999991,
-          "d_bw_us": 671.0886400000046,
-          "bw_ratio": 1.7609778134556995,
-          "rel_margin": 0.022701122091953727,
+          "pair": "B->D",
+          "d_pred_us": 3284.6899199999993,
+          "d_bw_us": 964.6899200000001,
+          "bw_ratio": 0.29369284270218127,
+          "rel_margin": 0.74427645637995,
           "admissible": false,
-          "reason": "; resolvability (4b) fails"
+          "reason": "bw-sensitivity (4a) fails"
         }
       ],
       "admitted": false
@@ -309,8 +311,8 @@
         "D"
       ],
       "order": [
-        "C",
         "A",
+        "C",
         "D"
       ],
       "rows": {
@@ -318,49 +320,51 @@
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "C": {
           "n": 4,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0004533924266666666,
+          "predicted_s": 0.00010392405333333333,
           "regime": "bandwidth",
-          "bw_term": 0.0004473924266666667,
-          "latency_term": 5.999999999999929e-06
+          "bw_term": 5.592405333333333e-05,
+          "latency_term": 4.8e-05
         },
         "D": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 50.0,
-          "predicted_s": 0.01640612736,
-          "regime": "bandwidth",
-          "bw_term": 0.01610612736,
-          "latency_term": 0.00030000000000000165
+          "predicted_s": 0.004413265919999999,
+          "regime": "latency",
+          "bw_term": 0.00201326592,
+          "latency_term": 0.0023999999999999994
         }
       },
       "pairs": [
         {
-          "pair": "C->A",
-          "d_pred_us": 145.13080888888902,
-          "d_bw_us": 149.1308088888889,
-          "bw_ratio": 1.0275613429748212,
-          "rel_margin": 0.2424814948983176,
-          "admissible": true
+          "pair": "A->C",
+          "d_pred_us": 50.64135111111111,
+          "d_bw_us": 18.641351111111106,
+          "bw_ratio": 0.3681053270125142,
+          "rel_margin": 0.48729191642170144,
+          "admissible": false,
+          "reason": "bw-sensitivity (4a) fails; resolvability (4b) fails"
         },
         {
-          "pair": "A->D",
-          "d_pred_us": 15807.604124444448,
-          "d_bw_us": 15509.604124444444,
-          "bw_ratio": 0.9811483133273066,
-          "rel_margin": 0.9635183110296448,
-          "admissible": true
+          "pair": "C->D",
+          "d_pred_us": 4309.341866666666,
+          "d_bw_us": 1957.3418666666669,
+          "bw_ratio": 0.45420900156633365,
+          "rel_margin": 0.9764518940808956,
+          "admissible": false,
+          "reason": "bw-sensitivity (4a) fails"
         }
       ],
-      "admitted": true
+      "admitted": false
     }
   },
   "admitted_set": "mixed",
@@ -373,74 +377,75 @@
         "D"
       ],
       "order": [
-        "C",
         "A",
-        "D",
-        "B"
+        "C",
+        "B",
+        "D"
       ],
       "rows": {
         "A": {
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "B": {
           "n": 2,
           "bw_gbps": 32.0,
           "latency_us": 5.0,
-          "predicted_s": 0.016787216,
+          "predicted_s": 0.001128576,
           "regime": "bandwidth",
-          "bw_term": 0.016777216000000005,
-          "latency_term": 9.999999999996123e-06
+          "bw_term": 0.0010485759999999998,
+          "latency_term": 8.000000000000021e-05
         },
         "C": {
           "n": 4,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0004533924266666666,
+          "predicted_s": 0.00010392405333333333,
           "regime": "bandwidth",
-          "bw_term": 0.0004473924266666667,
-          "latency_term": 5.999999999999929e-06
+          "bw_term": 5.592405333333333e-05,
+          "latency_term": 4.8e-05
         },
         "D": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 50.0,
-          "predicted_s": 0.01640612736,
-          "regime": "bandwidth",
-          "bw_term": 0.01610612736,
-          "latency_term": 0.00030000000000000165
+          "predicted_s": 0.004413265919999999,
+          "regime": "latency",
+          "bw_term": 0.00201326592,
+          "latency_term": 0.0023999999999999994
         }
       },
       "pairs": [
         {
-          "pair": "C->A",
-          "d_pred_us": 145.13080888888902,
-          "d_bw_us": 149.1308088888889,
-          "bw_ratio": 1.0275613429748212,
-          "rel_margin": 0.2424814948983176,
-          "admissible": true
-        },
-        {
-          "pair": "A->D",
-          "d_pred_us": 15807.604124444448,
-          "d_bw_us": 15509.604124444444,
-          "bw_ratio": 0.9811483133273066,
-          "rel_margin": 0.9635183110296448,
-          "admissible": true
-        },
-        {
-          "pair": "D->B",
-          "d_pred_us": 381.0886399999991,
-          "d_bw_us": 671.0886400000046,
-          "bw_ratio": 1.7609778134556995,
-          "rel_margin": 0.022701122091953727,
+          "pair": "A->C",
+          "d_pred_us": 50.64135111111111,
+          "d_bw_us": 18.641351111111106,
+          "bw_ratio": 0.3681053270125142,
+          "rel_margin": 0.48729191642170144,
           "admissible": false,
-          "reason": "; resolvability (4b) fails"
+          "reason": "bw-sensitivity (4a) fails; resolvability (4b) fails"
+        },
+        {
+          "pair": "C->B",
+          "d_pred_us": 1024.6519466666666,
+          "d_bw_us": 992.6519466666665,
+          "bw_ratio": 0.9687698831743788,
+          "rel_margin": 0.9079157687800082,
+          "admissible": true
+        },
+        {
+          "pair": "B->D",
+          "d_pred_us": 3284.6899199999993,
+          "d_bw_us": 964.6899200000001,
+          "bw_ratio": 0.29369284270218127,
+          "rel_margin": 0.74427645637995,
+          "admissible": false,
+          "reason": "bw-sensitivity (4a) fails"
         }
       ],
       "admitted": false
@@ -463,66 +468,67 @@
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "L2": {
           "n": 2,
           "bw_gbps": 400.0,
           "latency_us": 2.0,
-          "predicted_s": 0.00134617728,
+          "predicted_s": 0.00011588608,
           "regime": "bandwidth",
-          "bw_term": 0.00134217728,
-          "latency_term": 4.000000000000097e-06
+          "bw_term": 8.388607999999998e-05,
+          "latency_term": 3.200000000000002e-05
         },
         "L3": {
           "n": 2,
           "bw_gbps": 100.0,
           "latency_us": 5.0,
-          "predicted_s": 0.005378709119999999,
+          "predicted_s": 0.00041554431999999997,
           "regime": "bandwidth",
-          "bw_term": 0.00536870912,
-          "latency_term": 9.999999999999593e-06
+          "bw_term": 0.00033554432,
+          "latency_term": 7.999999999999999e-05
         },
         "L4": {
           "n": 2,
           "bw_gbps": 25.0,
           "latency_us": 10.0,
-          "predicted_s": 0.021494836479999998,
+          "predicted_s": 0.00150217728,
           "regime": "bandwidth",
-          "bw_term": 0.02147483648,
-          "latency_term": 1.9999999999999185e-05
+          "bw_term": 0.00134217728,
+          "latency_term": 0.00015999999999999999
         }
       },
       "pairs": [
         {
           "pair": "L1->L2",
-          "d_pred_us": 747.6540444444444,
-          "d_bw_us": 745.6540444444444,
-          "bw_ratio": 0.9973249659854563,
-          "rel_margin": 0.5553904790641276,
-          "admissible": true
+          "d_pred_us": 62.60337777777778,
+          "d_bw_us": 46.60337777777776,
+          "bw_ratio": 0.7444227361533914,
+          "rel_margin": 0.5402148193965813,
+          "admissible": false,
+          "reason": "; resolvability (4b) fails"
         },
         {
           "pair": "L2->L3",
-          "d_pred_us": 4032.531839999999,
-          "d_bw_us": 4026.53184,
-          "bw_ratio": 0.9985121010228654,
-          "rel_margin": 0.749721122677108,
+          "d_pred_us": 299.65824,
+          "d_bw_us": 251.65824,
+          "bw_ratio": 0.8398175201189195,
+          "rel_margin": 0.7211222138711942,
           "admissible": true
         },
         {
           "pair": "L3->L4",
-          "d_pred_us": 16116.127359999999,
-          "d_bw_us": 16106.12736,
-          "bw_ratio": 0.9993795035384978,
-          "rel_margin": 0.7497673859950202,
+          "d_pred_us": 1086.63296,
+          "d_bw_us": 1006.63296,
+          "bw_ratio": 0.9263780844637733,
+          "rel_margin": 0.7233719844304928,
           "admissible": true
         }
       ],
-      "admitted": true
+      "admitted": false
     },
     "drop_C_ABC?_ABD": {
       "configs": [
@@ -532,55 +538,55 @@
       ],
       "order": [
         "A",
-        "D",
-        "B"
+        "B",
+        "D"
       ],
       "rows": {
         "A": {
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "B": {
           "n": 2,
           "bw_gbps": 32.0,
           "latency_us": 5.0,
-          "predicted_s": 0.016787216,
+          "predicted_s": 0.001128576,
           "regime": "bandwidth",
-          "bw_term": 0.016777216000000005,
-          "latency_term": 9.999999999996123e-06
+          "bw_term": 0.0010485759999999998,
+          "latency_term": 8.000000000000021e-05
         },
         "D": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 50.0,
-          "predicted_s": 0.01640612736,
-          "regime": "bandwidth",
-          "bw_term": 0.01610612736,
-          "latency_term": 0.00030000000000000165
+          "predicted_s": 0.004413265919999999,
+          "regime": "latency",
+          "bw_term": 0.00201326592,
+          "latency_term": 0.0023999999999999994
         }
       },
       "pairs": [
         {
-          "pair": "A->D",
-          "d_pred_us": 15807.604124444448,
-          "d_bw_us": 15509.604124444444,
-          "bw_ratio": 0.9811483133273066,
-          "rel_margin": 0.9635183110296448,
+          "pair": "A->B",
+          "d_pred_us": 1075.2932977777778,
+          "d_bw_us": 1011.2932977777776,
+          "bw_ratio": 0.9404813550570212,
+          "rel_margin": 0.9527876702834172,
           "admissible": true
         },
         {
-          "pair": "D->B",
-          "d_pred_us": 381.0886399999991,
-          "d_bw_us": 671.0886400000046,
-          "bw_ratio": 1.7609778134556995,
-          "rel_margin": 0.022701122091953727,
+          "pair": "B->D",
+          "d_pred_us": 3284.6899199999993,
+          "d_bw_us": 964.6899200000001,
+          "bw_ratio": 0.29369284270218127,
+          "rel_margin": 0.74427645637995,
           "admissible": false,
-          "reason": "; resolvability (4b) fails"
+          "reason": "bw-sensitivity (4a) fails"
         }
       ],
       "admitted": false
@@ -592,8 +598,8 @@
         "D"
       ],
       "order": [
-        "C",
         "A",
+        "C",
         "D"
       ],
       "rows": {
@@ -601,49 +607,51 @@
           "n": 2,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0005985232355555556,
+          "predicted_s": 5.328270222222222e-05,
           "regime": "bandwidth",
-          "bw_term": 0.0005965232355555556,
-          "latency_term": 2.0000000000000486e-06
+          "bw_term": 3.7282702222222224e-05,
+          "latency_term": 1.5999999999999996e-05
         },
         "C": {
           "n": 4,
           "bw_gbps": 900.0,
           "latency_us": 1.0,
-          "predicted_s": 0.0004533924266666666,
+          "predicted_s": 0.00010392405333333333,
           "regime": "bandwidth",
-          "bw_term": 0.0004473924266666667,
-          "latency_term": 5.999999999999929e-06
+          "bw_term": 5.592405333333333e-05,
+          "latency_term": 4.8e-05
         },
         "D": {
           "n": 4,
           "bw_gbps": 25.0,
           "latency_us": 50.0,
-          "predicted_s": 0.01640612736,
-          "regime": "bandwidth",
-          "bw_term": 0.01610612736,
-          "latency_term": 0.00030000000000000165
+          "predicted_s": 0.004413265919999999,
+          "regime": "latency",
+          "bw_term": 0.00201326592,
+          "latency_term": 0.0023999999999999994
         }
       },
       "pairs": [
         {
-          "pair": "C->A",
-          "d_pred_us": 145.13080888888902,
-          "d_bw_us": 149.1308088888889,
-          "bw_ratio": 1.0275613429748212,
-          "rel_margin": 0.2424814948983176,
-          "admissible": true
+          "pair": "A->C",
+          "d_pred_us": 50.64135111111111,
+          "d_bw_us": 18.641351111111106,
+          "bw_ratio": 0.3681053270125142,
+          "rel_margin": 0.48729191642170144,
+          "admissible": false,
+          "reason": "bw-sensitivity (4a) fails; resolvability (4b) fails"
         },
         {
-          "pair": "A->D",
-          "d_pred_us": 15807.604124444448,
-          "d_bw_us": 15509.604124444444,
-          "bw_ratio": 0.9811483133273066,
-          "rel_margin": 0.9635183110296448,
-          "admissible": true
+          "pair": "C->D",
+          "d_pred_us": 4309.341866666666,
+          "d_bw_us": 1957.3418666666669,
+          "bw_ratio": 0.45420900156633365,
+          "rel_margin": 0.9764518940808956,
+          "admissible": false,
+          "reason": "bw-sensitivity (4a) fails"
         }
       ],
-      "admitted": true
+      "admitted": false
     }
   }
 }

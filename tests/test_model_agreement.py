@@ -86,7 +86,7 @@ def test_agreement_n2_byte_factor_one():
     dur_c, bl, regime = _c_predict(n, count=count)
     S = count * 4
     bw, lat = 10.0, 5.0
-    B = bw * 1e9 / 8.0
+    B = bw * 1e9
     alpha = lat * 1e-6
     # bf=1.0 -> 1*S/B + 2*alpha
     expected = 1.0 * S / B + 2 * alpha
@@ -116,7 +116,7 @@ def test_agreement_n2_not_old_two():
     dur_c, _, _ = _c_predict(n, count=count)
     S = count * 4
     bw, lat = 10.0, 5.0
-    B = bw * 1e9 / 8.0
+    B = bw * 1e9
     alpha = lat * 1e-6
     old = 2.0 * S / B + 2 * alpha
     assert abs(dur_c - old) > 1e-9, "old 2*S factor still matches C"

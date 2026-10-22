@@ -34,7 +34,7 @@ for bw in [25, 50, 100, 200, 400]:
             dur_us = pred["duration_s"] * 1e6
             per_phase_us = dur_us / 2.0
             # dominant term: compare bw_term, lat_term, loss extra
-            B_Bps = bw * 1e9 / 8.0
+            B_Bps = bw * 1e9
             bw_term_us = (_bw_factor("ring_allreduce", N) * S / B_Bps) * 1e6
             lat_term_us = (2.0 * lat * 1e-6 * P) * 1e6  # 2 phases * alpha * P
             p_loss = loss / 1e6

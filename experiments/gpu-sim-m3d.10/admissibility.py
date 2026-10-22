@@ -41,8 +41,8 @@ CONFIGS = {
 
 def bw_term(spec, count):
     # bw_term = predict(2S) - predict(S)  (== f*S/B)
-    r1 = predict(spec, "ring_allreduce", count, "float32", n_ranks=spec and len(spec["ranks"]))
-    r2 = predict(spec, "ring_allreduce", 2 * count, "float32", n_ranks=len(spec["ranks"]))
+    r1 = predict(spec, "ring_allreduce", count, "float32", n_ranks=spec and len(spec["ranks"]), pieces_per_phase=8)
+    r2 = predict(spec, "ring_allreduce", 2 * count, "float32", n_ranks=len(spec["ranks"]), pieces_per_phase=8)
     return r2["duration_s"] - r1["duration_s"]
 
 
@@ -51,7 +51,7 @@ def eval_set(names):
     for name in names:
         n, bw, lat = CONFIGS[name]
         spec = make_spec(n, bw, lat)
-        r = predict(spec, "ring_allreduce", COUNT, "float32", n_ranks=n)
+        r = predict(spec, "ring_allreduce", COUNT, "float32", n_ranks=n, pieces_per_phase=8)
         bt = bw_term(spec, COUNT)
         rows[name] = {"n": n, "bw_gbps": bw, "latency_us": lat,
                       "predicted_s": r["duration_s"], "regime": r["regime"],

@@ -43,7 +43,7 @@ def test_all_algorithms_closed_form():
     bw = 10.0
     lat = 10.0
     alpha = lat * 1e-6
-    B = bw * 1e9 / 8.0
+    B = bw * 1e9
     count = 100000
     dtype = "float32"
     S = count * 4
@@ -102,7 +102,7 @@ def test_regime_boundary():
     bw = 10.0
     lat = 10.0
     alpha = lat * 1e-6
-    B = bw * 1e9 / 8.0
+    B = bw * 1e9
     # bw_term = 2(n-1)/n * S/B; lat_term = 2(n-1)*alpha.
     # crossover when bw_term == lat_term => S = (2(n-1)*alpha * B) / (2(n-1)/n) = alpha*B*n
     S_star = alpha * B * n
@@ -136,7 +136,7 @@ def test_multihop():
     spec2["ranks"] = [{"rank": 0, "node": "n0", "device": 0}, {"rank": 1, "node": "n0", "device": 2}]
     rec = predict(spec2, "ring_allreduce", 1000, "float32", n_ranks=2)
     # B_eff = min(100,10)=10 Gbps; alpha = 2+3=5 us
-    bw = 10.0 * 1e9 / 8.0
+    bw = 10.0 * 1e9
     alpha = 5e-6
     S = 1000 * 4
     # ggh: n=2 byte factor is 1.0 (was 2.0; corrected per eut committed traces).
@@ -164,7 +164,7 @@ def test_shared_group():
     # each link eff bw = 50
     rec = predict(spec, "ring_allreduce", 1000, "float32", n_ranks=2)
     # ggh: n=2 byte factor is 1.0 (was 2.0; corrected per eut committed traces).
-    B = 50.0 * 1e9 / 8.0
+    B = 50.0 * 1e9
     alpha = 1e-6
     S = 1000 * 4
     expected = 1.0 * S / B + 2 * alpha
@@ -216,7 +216,7 @@ def test_ring_n2_derivation():
     per_rank = sum(rec["per_link_bytes"].values()) / n
     assert per_rank == 1 * S, (per_rank, 1 * S)
 
-    B = B_gbps * 1e9 / 8.0
+    B = B_gbps * 1e9
     alpha = alpha_us * 1e-6
     assert abs(rec["duration_s"] - (1 * S / B + 2 * alpha)) < 1e-15
 
@@ -238,7 +238,7 @@ def test_negative_control_old_byte_factor():
     B_gbps, alpha_us = 100.0, 5.0
     spec = uniform_spec(n, B_gbps, alpha_us)
     rec = predict(spec, "ring_allreduce", count, "float32", n_ranks=n)
-    B = B_gbps * 1e9 / 8.0
+    B = B_gbps * 1e9
     alpha = alpha_us * 1e-6
     corrected = 1 * S / B + 2 * alpha
     old_byte = 2 * S / B + 2 * alpha   # old 2*S byte factor must fail
@@ -253,7 +253,7 @@ def test_negative_control_old_latency_coefficient():
     B_gbps, alpha_us = 100.0, 5.0
     spec = uniform_spec(n, B_gbps, alpha_us)
     rec = predict(spec, "ring_allreduce", count, "float32", n_ranks=n)
-    B = B_gbps * 1e9 / 8.0
+    B = B_gbps * 1e9
     alpha = alpha_us * 1e-6
     corrected = 1 * S / B + 2 * alpha
     old_latency = 1 * S / B + 4 * alpha  # only the latency coeff reverts

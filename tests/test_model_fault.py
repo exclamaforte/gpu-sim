@@ -44,7 +44,7 @@ def test_loss_factor_closed_form():
     rec = predict(spec, "ring_allreduce", count, "float32")
     # wire term should be scaled by 1/(1-p)
     S = count * 4
-    B = bw * 1e9 / 8.0
+    B = bw * 1e9
     alpha = lat * 1e-6
     base_bw = 2.0 * S / B  # n=2 chunk=1.0, factor=2.0
     expected_dur = base_bw * (1.0/(1.0-p)) + 2.0 * 1 * alpha  # 2*(n-1)=2, P=8 for 2MiB? no, 100000*4=400000 bytes
