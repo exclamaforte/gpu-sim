@@ -2,12 +2,29 @@
 # require_idle_host.sh — refuse to start a measurement on a contended box.
 #
 # WHY THIS EXISTS (gpu-sim-2qe, 2026-10-22):
-# Two gpqueue jobs (20261022t053548-93b3a909, 20261022t053800-f4c7c95c) were
-# reported as "failed" with inner ranks exit 124 and NO isend in the trace. Both
-# were timeout(1) firing inside run_measure.sh (timeout 120s per rank) while the
-# container had nproc=2 and the host load average sat at 79-104. Nothing was
-# measured: the ranks never reached the fabric. A run under that load is not a
-# result, and "exit 124 with no isend" must not be read as "the collective hangs".
+# Two gpqueue jobs (20261022t053548, 20261022t053800) failed with inner ranks
+# exit 124 and NO isend in the trace. At the time this looked like load: the
+# container has nproc=2 and host loadavg sat at 79-113, so timeout(1) inside
+# run_measure.sh (120s per rank) could plausibly fire during startup.
+#
+# THAT CAUSAL CLAIM IS NOW WITHDRAWN. A later run at loadavg 85 completed
+# normally (exit0=0 exit1=0, 32 isends, "VALUE OK (all 131072 elements == 3.0)"),
+# so load is not sufficient to explain those failures. The better-supported
+# explanation is the interposer bug itself: those two jobs ran out of
+# .lab/wt/gpu-sim-hfk, whose src/fakegpu_cuda.c still contained the pre-fix
+# fg_write_random copies (8 occurrences) and had no rebuilt libfakegpu.so, while
+# the successful run came from .lab/wt/gpu-sim-2qe with the fix built. Corrupt
+# data in NCCL's own bootstrap copies is a plausible way to hang BEFORE any
+# isend appears. Unproven, and recorded as such.
+#
+# So this guard is HYGIENE, not the explanation: it still refuses to start a
+# measurement on a saturated box, because a run under such load is not a
+# measurement either way. What survives unchanged from the incident:
+#   * exit 124 with NO isend means the ranks never reached the fabric -- report
+#     that as a distinct outcome, never as "the collective hangs";
+#   * every run log records loadavg and nproc;
+#   * check that the tree you are running from actually has the fix built
+#     (grep the source for the old symbol, and check the .so mtime).
 #
 # exit 78 = EX_CONFIG (sysexits.h): "the harness refused, on purpose".
 # exit 0  = the host looks usable, continue with the measurement.
