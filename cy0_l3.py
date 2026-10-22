@@ -69,14 +69,26 @@ def plan(model_cfg: Dict[str, Any], spec_path: str, dp: int, tp: int, pp: int,
             f"> 90% of {model_mem['mem_bytes']/1e9:.1f} GB device memory"
         )
 
+    # Per-device micro-batch: the global batch is split across the data-parallel
+    # and pipeline dimensions, which is the standard mapping and is stated here
+    # rather than implied (gpu-sim-cy4).
+    micro_batch = max(1, batch // max(1, dp * pp))
     cfg = StepConfig(n_layers=model_cfg.get("n_layers", 2),
                      n_microbatches=batch,
                      dp=dp, tp=tp, pp=pp,
-                     overlap=True)
-    # Override seq/batch in layer model by monkey-patching cy0_l1 globals
-    import cy0_l1
-    cy0_l1.SEQ_LEN = seq
-    cy0_l1.BATCH = 1  # per-microbatch batch
+                     overlap=True,
+                     hidden=model_cfg.get("hidden", cy0_l1.HIDDEN),
+                     ffn=model_cfg.get("ffn", cy0_l1.FFN_DIM),
+                     seq=seq,
+                     batch=micro_batch)
+    # Fewer devices than the spec offers is legitimate, but it must be stated:
+    # which block of ranks is used and how many devices sit idle.
+    if world_size < total_gpus:
+        warnings.append(
+            f"NOTE: world_size={world_size} < total_gpus={total_gpus}; "
+            f"using rank block 0..{world_size - 1}, {total_gpus - world_size} "
+            f"device(s) idle. Numbers below describe the used block only."
+        )
     result = predict_step(spec_path, cfg)
 
     return {
@@ -88,6 +100,8 @@ def plan(model_cfg: Dict[str, Any], spec_path: str, dp: int, tp: int, pp: int,
         "config": {
             "dp": dp, "tp": tp, "pp": pp, "ep": ep,
             "zero_stage": zero_stage, "seq": seq, "batch": batch,
+            "micro_batch": micro_batch, "n_layers": cfg.n_layers,
+            "hidden": cfg.hidden, "ffn": cfg.ffn,
         },
         "warnings": warnings,
         "predicted": True,
@@ -105,10 +119,16 @@ def main():
     parser.add_argument("--zero-stage", type=int, default=0, dest="zero_stage")
     parser.add_argument("--seq", type=int, default=8192)
     parser.add_argument("--batch", type=int, default=16)
+    parser.add_argument("--layers", type=int, default=2)
+    parser.add_argument("--hidden", type=int, default=None)
+    parser.add_argument("--ffn", type=int, default=None)
     parser.add_argument("--json", default=None)
     args = parser.parse_args()
 
-    model_cfg = {"n_layers": 2, "param_bytes": 7e9 * 2}
+    import cy0_l1
+    model_cfg = {"n_layers": args.layers, "param_bytes": 7e9 * 2,
+                 "hidden": args.hidden or cy0_l1.HIDDEN,
+                 "ffn": args.ffn or cy0_l1.FFN_DIM}
     try:
         result = plan(model_cfg, args.spec, args.dp, args.tp, args.pp,
                       args.ep, args.zero_stage, args.seq, args.batch)

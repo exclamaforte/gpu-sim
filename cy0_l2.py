@@ -35,15 +35,29 @@ class StepConfig:
     tp: int = 2   # tensor parallelism degree
     pp: int = 1   # pipeline parallelism degree
     overlap: bool = True
+    # Model shape as EXPLICIT fields (gpu-sim-cy4). These used to be read from
+    # cy0_l1 module globals that cy0_l3 monkey-patched, which had no effect:
+    # layer_ops binds its defaults at def time, so --seq and --batch were inert.
+    hidden: int = cy0_l1.HIDDEN
+    ffn: int = cy0_l1.FFN_DIM
+    seq: int = cy0_l1.SEQ_LEN
+    batch: int = cy0_l1.BATCH
 
 
-def layer_compute_time(spec_path: str) -> float:
-    """Compute time for one layer (sum of compute ops, no comm)."""
-    result = cy0_l1.predict_layer(spec_path, tp=1)  # tp=1: no TP comm in layer
+def layer_compute_time(spec_path: str, cfg: "StepConfig" = None) -> float:
+    """Compute time for one layer (sum of compute ops, no comm).
+
+    Model shape comes from cfg (gpu-sim-cy4). Defaults reproduce the old
+    behaviour for callers that pass nothing.
+    """
+    kw = {}
+    if cfg is not None:
+        kw = {"hidden": cfg.hidden, "ffn": cfg.ffn, "seq": cfg.seq, "batch": cfg.batch}
+    result = cy0_l1.predict_layer(spec_path, tp=1, **kw)
     return sum(c["seconds"] for c in result["components"] if c["kind"] == "compute")
 
 
-def layer_tp_comm_time(spec_path: str, tp: int) -> float:
+def layer_tp_comm_time(spec_path: str, tp: int, cfg: "StepConfig" = None) -> float:
     """TP allreduce time for one layer.
 
     Two allreduces per layer: (1) attention output (row-parallel) and
@@ -52,7 +66,10 @@ def layer_tp_comm_time(spec_path: str, tp: int) -> float:
     """
     if tp <= 1:
         return 0.0
-    result = cy0_l1.predict_layer(spec_path, tp=tp)
+    kw = {}
+    if cfg is not None:
+        kw = {"hidden": cfg.hidden, "ffn": cfg.ffn, "seq": cfg.seq, "batch": cfg.batch}
+    result = cy0_l1.predict_layer(spec_path, tp=tp, **kw)
     comm = [c for c in result["components"] if c["kind"] == "comm"]
     single = comm[0]["seconds"] if comm else 0.0
     return 2.0 * single
@@ -85,8 +102,8 @@ def pp_bubble_time(n_microbatches: int, n_stages: int, layer_time: float) -> flo
 def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
     """Predict one training step."""
     spec = load_spec(spec_path)
-    lc = layer_compute_time(spec_path)
-    tp_comm = layer_tp_comm_time(spec_path, cfg.tp)
+    lc = layer_compute_time(spec_path, cfg)
+    tp_comm = layer_tp_comm_time(spec_path, cfg.tp, cfg)
 
     # Per-layer forward time
     if cfg.overlap and OVERLAP_POLICY["tp_allreduce_hidden"]:

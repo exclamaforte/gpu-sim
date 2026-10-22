@@ -139,14 +139,22 @@ def peak_flops(spec) -> float:
     return sm * clock * 1e6 * 4096 / 1e12  # TFLOPS -> convert to FLOPS
 
 
-def predict_layer(spec_path: str, tp: int = TP) -> Dict[str, Any]:
-    """Run the full L1 prediction, emit JSONL trace."""
+def predict_layer(spec_path: str, tp: int = TP, hidden: int = HIDDEN,
+                  ffn: int = FFN_DIM, seq: int = SEQ_LEN,
+                  batch: int = BATCH) -> Dict[str, Any]:
+    """Run the full L1 prediction, emit JSONL trace.
+
+    Model shape is an EXPLICIT parameter (gpu-sim-cy4). It used to be read from
+    module globals that callers monkey-patched, which cannot work: layer_ops
+    binds its defaults at def time, so rebinding the global changed nothing and
+    --seq/--batch were silently inert.
+    """
     spec = load_spec(spec_path)
     pf = peak_flops(spec) * 1e12  # FLOPS
     model = list(spec["models"].values())[0]
     achieved_bw = model["mem_bw_gbs"]  # GB/s
 
-    ops = layer_ops()
+    ops = layer_ops(hidden=hidden, ffn=ffn, seq=seq, batch=batch)
 
     # Resolve TP allreduce through link_model.predict()
     # Use first two ranks (0 and 1) as representative TP group

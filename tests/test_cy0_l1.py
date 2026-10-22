@@ -51,28 +51,44 @@ def test_all_params_have_provenance():
             assert c.get("efficiency_provenance"), f"{c['op']} missing efficiency provenance"
 
 
-def test_ib_bandwidth_doubles_comm_not_compute():
-    result1 = cy0_l1.predict_layer(str(SPEC_PATH))
-    # Double IB bandwidth
+def _predict_with_bandwidth(kind, factor, tp=4):
     spec = json.loads(SPEC_PATH.read_text())
     for link in spec["links"]:
-        if link["kind"] == "ib":
-            link["bw_gbps"] *= 2
+        if link["kind"] == kind:
+            link["bw_gbps"] *= factor
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(spec, f)
         f.flush()
-        result2 = cy0_l1.predict_layer(f.name)
-        os.unlink(f.name)
+        try:
+            return cy0_l1.predict_layer(f.name, tp=tp)
+        finally:
+            os.unlink(f.name)
 
-    # Compute terms unchanged
-    for c1, c2 in zip(result1["components"], result2["components"]):
-        if c1["kind"] == "compute":
-            assert c1["seconds"] == c2["seconds"], f"compute changed for {c1['op']}"
 
-    # Comm term strictly reduced
-    comm1 = [c for c in result1["components"] if c["kind"] == "comm"][0]
-    comm2 = [c for c in result2["components"] if c["kind"] == "comm"][0]
-    assert comm2["seconds"] < comm1["seconds"], "comm did not decrease"
+def test_bandwidth_doubling_moves_only_the_fabric_in_use():
+    """Structural test for the fabric the TP group actually crosses.
+
+    After gpu-sim-by9 ranks are contiguous per node, so a TP group of 4 sits on
+    ONE node and crosses NVLink. Two assertions, and the second is the one that
+    catches a placement regression:
+      - doubling NVLink bandwidth strictly reduces TP comm, compute unchanged;
+      - doubling IB bandwidth does NOT change it, because TP never touches IB.
+    """
+    base = cy0_l1.predict_layer(str(SPEC_PATH), tp=4)
+    nv = _predict_with_bandwidth("nvlink", 2.0)
+    ib = _predict_with_bandwidth("ib", 2.0)
+
+    def comm(r):
+        return [c for c in r["components"] if c["kind"] == "comm"][0]["seconds"]
+
+    for a, b in ((base, nv), (base, ib)):
+        for c1, c2 in zip(a["components"], b["components"]):
+            if c1["kind"] == "compute":
+                assert c1["seconds"] == c2["seconds"], f"compute changed for {c1['op']}"
+
+    assert comm(nv) < comm(base), "doubling NVLink must reduce intra-node TP comm"
+    assert abs(comm(ib) - comm(base)) < 1e-15, (
+        "doubling IB changed the TP comm term: the TP group is not intra-node")
 
 
 def test_trace_has_predicted_true():
@@ -97,56 +113,72 @@ def test_jsonl_emission():
         assert "seconds" in rec
 
 
+def _cross_node_spec():
+    """Spec copy whose ranks 0 and 1 sit on DIFFERENT nodes, so the path is IB.
+
+    After gpu-sim-by9 the rack spec places ranks contiguously per node, so ranks
+    0 and 1 are intra-node and resolve over NVLink. A magnitude test for the IB
+    path must say which ranks it uses rather than assume a placement.
+    """
+    import copy
+    spec = copy.deepcopy(load_spec(str(SPEC_PATH)))
+    spec["ranks"][1] = {"rank": 1, "node": "node1", "device": 0}
+    return spec
+
+
 def test_magnitude_known_link():
-    """Magnitude test: one known link, one known transfer, hand-derived expected time.
+    """Magnitude test: known link, known transfer, hand-derived expected time.
 
-    Derivation, all terms from epic_cluster/link_model.py and nothing else:
-      link        : NDR IB, 50 GB/s, alpha = 5 us (latency_us)
-      payload     : count=500000 float32 -> S = 2,000,000 bytes
-      n_ranks     : 2   -> ring bw factor  2(n-1)/n = 1.0
-                          ring latency factor 2(n-1) = 2
-      pieces      : 8 (passed explicitly; n>=3 is refused, never cap-derived)
-      bw_term     : 1.0 * 2e6 / 50e9 = 4.0e-5 s = 40 us
-      lat_term    : 2.0 * 5e-6 * 8   = 8.0e-5 s = 80 us
-      expected    : 120 us
+    Two fabrics, both derived term by term from epic_cluster/link_model.py:
+      payload S = 500000 float32 = 2,000,000 bytes
+      ring n=2: bw factor 2(n-1)/n = 1.0 ; latency factor 2(n-1) = 2
+      pieces  : 8 (explicit; n>=3 is refused, never cap-derived)
 
-    A 5% tolerance, not a decade window: this test exists to catch a units error
-    (8x), a shared_group error (8x) or a factor-of-n error in the ring maths.
+    NVLink (ranks 0-1 on one node, 900 GB/s, 1 us):
+      bw 1.0*2e6/900e9 = 2.22 us ; lat 2*1us*8 = 16 us ; total 18.22 us
+    IB     (ranks 0-1 on different nodes, 50 GB/s, 5 us):
+      bw 1.0*2e6/50e9  = 40.0 us ; lat 2*5us*8 = 80 us ; total 120.0 us
+
+    5% tolerance, not a decade window: this catches a units error (8x), a
+    shared_group error (8x), a wrong-fabric error (18x here) or a factor-of-n
+    error in the ring maths.
     """
     import epic_cluster.link_model as lm
-    spec = load_spec(str(SPEC_PATH))
-    res = lm.predict(spec, "ring_allreduce", 500000, "float32", n_ranks=2, pieces_per_phase=8)
-    expected_us = 120.0
-    actual_us = res["duration_s"] * 1e6
-    assert abs(actual_us - expected_us) / expected_us < 0.05, \
-        f"magnitude mismatch: got {actual_us} us, expected {expected_us} us"
+    kw = dict(algorithm="ring_allreduce", count=500000, dtype="float32",
+              n_ranks=2, pieces_per_phase=8)
+
+    nvlink_us = lm.predict(load_spec(str(SPEC_PATH)), **kw)["duration_s"] * 1e6
+    ib_us = lm.predict(_cross_node_spec(), **kw)["duration_s"] * 1e6
+
+    for actual, expected, name in ((nvlink_us, 18.22, "NVLink"),
+                                   (ib_us, 120.0, "IB")):
+        assert abs(actual - expected) / expected < 0.05, (
+            f"{name} magnitude mismatch: got {actual:.2f} us, "
+            f"expected {expected:.2f} us")
 
 
 def test_shared_group_costs_a_factor_of_eight():
     """The trap that produced a real 8x error, pinned as a test.
 
-    An NDR node has EIGHT independent 400 Gb/s NICs, one per GPU, so each GPU
-    sees its own 50 GB/s -- hence shared_group=null on the IB links. Putting all
-    eight links in one shared_group makes link_model divide the per-GPU
-    bandwidth by 8, which is a DIFFERENT physical claim (one 50 GB/s trunk
-    shared by eight GPUs) and makes every cross-node term 8x too slow.
-    This test asserts both branches, so a spec edit that reintroduces the
-    sharing is visible as a value change rather than a silent slowdown.
+    An NDR node has EIGHT independent 400 Gb/s NICs, one per GPU, so shared_group
+    is null and each GPU sees its own 50 GB/s. Putting all eight inter-node links
+    in one shared_group divides the per-GPU bandwidth by 8 -- a different
+    physical claim (one 50 GB/s trunk shared by eight GPUs).
     """
-    import copy
     import epic_cluster.link_model as lm
+    kw = dict(algorithm="ring_allreduce", count=500000, dtype="float32",
+              n_ranks=2, pieces_per_phase=8)
 
-    independent = load_spec(str(SPEC_PATH))
-    shared = copy.deepcopy(independent)
+    independent = _cross_node_spec()
+    shared = _cross_node_spec()
     for link in shared["links"]:
         if link["kind"] == "ib":
             link["shared_group"] = "ib"
 
     def us(spec):
-        return lm.predict(spec, "ring_allreduce", 500000, "float32",
-                          n_ranks=2, pieces_per_phase=8)["duration_s"] * 1e6
+        return lm.predict(spec, **kw)["duration_s"] * 1e6
 
-    assert abs(us(independent) - 120.0) / 120.0 < 0.05
-    # one shared trunk: bw 50/8 GB/s -> bw_term 320 us + lat 80 us = 400 us
-    assert abs(us(shared) - 400.0) / 400.0 < 0.05
+    assert abs(us(independent) - 120.0) / 120.0 < 0.05, us(independent)
+    # one shared trunk: bw 50/8 GB/s -> 320 us + lat 80 us = 400 us
+    assert abs(us(shared) - 400.0) / 400.0 < 0.05, us(shared)
     assert us(shared) / us(independent) > 3.0, "sharing must cost a large factor"

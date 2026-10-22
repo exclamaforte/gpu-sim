@@ -98,10 +98,10 @@ def test_absurdity_comm_exceeds_compute():
     import cy0_l2
     # Monkey-patch layer_tp_comm_time to return a huge value
     orig = cy0_l2.layer_tp_comm_time
-    cy0_l2.layer_tp_comm_time = lambda sp, tp: 1.0  # 1 second comm
+    cy0_l2.layer_tp_comm_time = lambda sp, tp, cfg=None: 1.0  # 1 second comm
     # Also make compute small
     orig_lc = cy0_l2.layer_compute_time
-    cy0_l2.layer_compute_time = lambda sp: 0.001  # 1 ms compute
+    cy0_l2.layer_compute_time = lambda sp, cfg=None: 0.001  # 1 ms compute
 
     cfg = StepConfig(n_layers=1, n_microbatches=1, dp=1, tp=2, pp=1, overlap=True)
     result = predict_step(str(SPEC_PATH), cfg)
