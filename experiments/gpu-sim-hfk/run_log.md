@@ -47,3 +47,49 @@ The plugin treats GPU pointers as CPU-accessible memory. memcpy on GPU pointers 
 
 ## Note
 The hfk bead asked to "localise it by instrumenting the chunk offset at send and at receive, not by reading code." Instrumentation confirmed: the send's first4 reads 17.384 (not 1.0) for a chunk starting at element 16384, confirming the memcpy reads from GPU memory at a shifted position. The recv's result contains 134.072 (sum of 131072 elements in one slot), confirming the memcpy writes garbage to GPU memory.
+## Re-investigation (root cause corrected)
+
+### Instrumentation findings
+- NCCL_NET_PLUGIN points to hfk worktree's plugin (fixed path)
+- mhandle=0x1 for ALL sends (reg_off=1, path=COPY). Registered-buffer path is NEVER used.
+- fg_fab_send_reg is never called. The off+1 sentinel / registered buffer path is NOT the issue.
+- Copy path (send_x) transfers correct data: recv first4=17.384 (correct for chunk at element 16384)
+- Pool base is consistent across ranks (0x7f69ccc01000 rank0, 0x7f1d33e01000 rank1 — different pools, as expected for different processes)
+
+### No-plugin test
+- Ran with NCCL_NET_PLUGIN unset: VALUE MISMATCH still occurs (122880/131072 wrong, got=101.304001)
+- The defect is NOT in the plugin. It persists with NCCL's default transport.
+- The defect is in NCCL's allreduce or in the test's value check.
+
+### Root cause (revised)
+The original hypothesis ("memcpy on GPU pointers reads garbage") is WRONG. cudaMalloc is redirected to fg_pool_alloc (host memory), so device pointers ARE host pointers and memcpy is legal. The data transfer is correct (verified by instrumentation). The defect is NOT in the plugin's data path.
+
+The registered-buffer path is never exercised (mhandle=0x1). The copy path works correctly.
+
+The VALUE MISMATCH persists without the plugin, indicating the issue is in NCCL's allreduce algorithm with non-uniform data, or in the test's value check. Further investigation needed.
+
+### CUDA context note
+cudaMemcpy in this emulator calls fg_write_random (writes random data). The test's cudaMemcpy (real libcudart) should work on host-memory device pointers. But the no-plugin test uses real GPU memory, so cudaMemcpy should work.
+
+### Conclusion
+The four reproduction runs stand. The defect is real (VALUE MISMATCH in all runs). But the root cause is NOT "memcpy on GPU pointers" and NOT "registered buffer path." The defect persists without the plugin, suggesting it is in NCCL's allreduce or in the test methodology. Further investigation required.EOF
+echo "appended"
+
+
+## Re-investigation (root cause corrected)
+
+### Instrumentation findings
+- mhandle=0x1 for ALL sends (reg_off=1, path=COPY). Registered-buffer path is NEVER used.
+- fg_fab_send_reg is never called. The off+1 sentinel / registered buffer path is NOT the issue.
+- Copy path (send_x) transfers correct data: recv first4=17.384 (correct for chunk at element 16384)
+- Pool base is consistent across ranks.
+
+### No-plugin test
+- Ran with NCCL_NET_PLUGIN unset: VALUE MISMATCH still occurs (122880/131072 wrong, got=101.304001)
+- The defect is NOT in the plugin. It persists with NCCL default transport.
+- The defect is in NCCL allreduce or in the test value check.
+
+### Root cause (revised)
+The original hypothesis ("memcpy on GPU pointers reads garbage") is WRONG. cudaMalloc is redirected to fg_pool_alloc (host memory), so device pointers ARE host pointers and memcpy is legal. The data transfer is correct (verified by instrumentation). The registered-buffer path is never exercised (mhandle=0x1).
+
+The VALUE MISMATCH persists without the plugin, indicating the issue is in NCCL allreduce with non-uniform data, or in the test methodology. Further investigation required.
