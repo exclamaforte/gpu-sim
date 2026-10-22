@@ -91,3 +91,28 @@ def test_jsonl_emission():
         rec = json.loads(line)
         assert "phase" in rec
         assert "component" in rec
+
+
+def test_absurdity_comm_exceeds_compute():
+    """When comm > compute, the excess must appear in the total (not hidden)."""
+    import cy0_l2
+    # Monkey-patch layer_tp_comm_time to return a huge value
+    orig = cy0_l2.layer_tp_comm_time
+    cy0_l2.layer_tp_comm_time = lambda sp, tp: 1.0  # 1 second comm
+    # Also make compute small
+    orig_lc = cy0_l2.layer_compute_time
+    cy0_l2.layer_compute_time = lambda sp: 0.001  # 1 ms compute
+
+    cfg = StepConfig(n_layers=1, n_microbatches=1, dp=1, tp=2, pp=1, overlap=True)
+    result = predict_step(str(SPEC_PATH), cfg)
+
+    # Restore
+    cy0_l2.layer_tp_comm_time = orig
+    cy0_l2.layer_compute_time = orig_lc
+
+    # The excess (1.0 - 0.001) should be in the total
+    assert result["total_seconds"] > 0.9, "excess comm not in total"
+    # Hidden term should be capped at compute
+    hidden = [c for c in result["components"] if c["component"] == "tp_allreduce_hidden"]
+    if hidden:
+        assert hidden[0]["seconds"] <= 0.001 * 2 + 1e-9, "hidden exceeds compute"
