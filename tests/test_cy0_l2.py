@@ -6,6 +6,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+import pytest
+
 import cy0_l1
 import cy0_l2
 from cy0_l2 import StepConfig, predict_step
@@ -167,3 +169,35 @@ def test_tp_payload_is_BSH():
     ops = cy0_l1.layer_ops()
     tp_op = [o for o in ops if o.name == "tp_allreduce"][0]
     assert tp_op.bytes == expected
+
+
+# --- gpu-sim-1p9: the bubble must depend on model depth --------------------
+
+def test_pp_bubble_is_derived_from_stage_geometry():
+    """bubble = (pp-1) * (n_layers/pp) * layer_time, not (pp-1) * layer_time.
+
+    The old expression was constant in n_layers, so it understated the bubble by
+    n_layers/pp (4x at 8 layers, pp=2) and was invisible only because pp defaults
+    to 1, where both are zero.
+    """
+    lt = 0.0151
+    assert cy0_l2.pp_bubble_time(4, 1, 8, lt) == 0.0
+    assert abs(cy0_l2.pp_bubble_time(4, 2, 8, lt) - 1 * 4 * lt) < 1e-12
+    assert abs(cy0_l2.pp_bubble_time(4, 4, 8, lt) - 3 * 2 * lt) < 1e-12
+
+
+def test_pp_bubble_doubles_with_layers():
+    """At fixed pp, doubling n_layers must double the bubble (was 1.0x)."""
+    def bubble(nl):
+        return cy0_l2.pp_bubble_time(8, 2, nl, 0.0151)
+    assert bubble(16) / bubble(8) == pytest.approx(2.0, rel=1e-9)
+    assert bubble(8) > bubble(2) * 3.5
+
+
+def test_pp_bubble_never_exceeds_the_step():
+    """Absurdity guard: fill+drain cannot exceed the whole step."""
+    import cy0_l3
+    for nl, pp in ((8, 2), (8, 4), (2, 2), (1, 4)):
+        r = cy0_l3.plan({"n_layers": nl}, "specs/h100_rack.json", 1, 1, pp,
+                        seq=2048, batch=8)
+        assert 0.0 <= r["bubble_seconds"] <= r["total_seconds"], (nl, pp, r)

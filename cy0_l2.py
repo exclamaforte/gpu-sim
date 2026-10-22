@@ -87,16 +87,32 @@ def dp_allreduce_time(spec_path: str, dp: int, grad_bytes: int) -> float:
     return res["duration_s"]
 
 
-def pp_bubble_time(n_microbatches: int, n_stages: int, layer_time: float) -> float:
-    """Pipeline bubble: (n_stages - 1) * layer_time for fill + (n_stages - 1) * layer_time for drain.
-    With m microbatches, bubble = (n_stages - 1) * (layer_time / m) * 2? 
-    Standard: bubble = (pp - 1) / (m + pp - 1) * total_time.
-    We return the absolute bubble time: (pp-1) * layer_time for a single layer pass.
+def pp_bubble_time(n_microbatches: int, n_stages: int, n_layers: int,
+                  layer_time: float) -> float:
+    """Pipeline fill + drain, derived from the stage geometry (gpu-sim-1p9).
+
+    A pp-way pipeline splits the model into n_stages stages, so each stage holds
+    n_layers / n_stages layers and one microbatch occupies a stage for
+        t_stage = (n_layers / n_stages) * layer_time
+    Fill costs (n_stages - 1) stages of idle time and drain costs the same, so
+
+        bubble = (n_stages - 1) * (n_layers / n_stages) * layer_time
+
+    The previous version returned (n_stages - 1) * layer_time, which is the
+    n_layers == n_stages case only. It was invisible because StepConfig defaults
+    to pp=1, where both expressions are zero; at 8 layers and pp=2 it understated
+    the bubble by 4x.
+
+    n_microbatches does not enter an ABSOLUTE fill+drain cost: more microbatches
+    shrink the bubble FRACTION, (pp-1)/(m+pp-1), but the absolute idle time is
+    set by the stage count and the per-stage pass. It is accepted here so callers
+    need not special-case it, and named as unused on purpose.
     """
+    del n_microbatches  # absolute fill+drain is independent of m; see docstring
     if n_stages <= 1:
         return 0.0
-    # Simple model: fill + drain = (pp-1) microbatches of idle time
-    return (n_stages - 1) * layer_time
+    layers_per_stage = n_layers / n_stages
+    return (n_stages - 1) * layers_per_stage * layer_time
 
 
 def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
@@ -151,7 +167,8 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
     # PP bubble
     bubble = 0.0
     if cfg.pp > 1:
-        bubble = pp_bubble_time(cfg.n_microbatches, cfg.pp, fwd_layer + bwd_layer)
+        bubble = pp_bubble_time(cfg.n_microbatches, cfg.pp, cfg.n_layers,
+                                 fwd_layer + bwd_layer)
 
     # Total
     fwd_total = cfg.n_layers * fwd_layer
