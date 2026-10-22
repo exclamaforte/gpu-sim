@@ -18,10 +18,13 @@
 # isend appears. Unproven, and recorded as such.
 #
 # So this guard is HYGIENE, not the explanation. The ceiling is deliberately
-# loose (16x nproc) because two runs at loadavg ~85 completed correctly on
+# loose (64x nproc) because two runs at loadavg ~85 completed correctly on
 # 2026-10-22 while the failing ones were explained by an unbuilt fix, not by
-# load: a tight ceiling would have refused workable conditions. It exists to
-# catch a pathologically saturated box, not to predict which runs will work. What survives unchanged from the incident:
+# load. These jobs are mostly blocked on modelled fabric delays, so host load
+# predicts very little: a ceiling near 4x nproc would have refused runs that
+# worked. What the guard is genuinely for is (a) printing loadavg and nproc into
+# the run log, which IS reproducible evidence, and (b) stopping a pathologically
+# saturated box. It is not a predictor of which runs will succeed. What survives unchanged from the incident:
 #   * exit 124 with NO isend means the ranks never reached the fabric -- report
 #     that as a distinct outcome, never as "the collective hangs";
 #   * every run log records loadavg and nproc;
@@ -32,12 +35,12 @@
 # exit 0  = the host looks usable, continue with the measurement.
 #
 # Usage:
-#   scripts/require_idle_host.sh              # default ceiling: 16x nproc
+#   scripts/require_idle_host.sh              # default ceiling: 64x nproc
 #   scripts/require_idle_host.sh --max 8      # absolute ceiling on loadavg
 #   scripts/require_idle_host.sh && bash run_measure.sh ...
 set -u
 
-MAX_FACTOR=16
+MAX_FACTOR=64
 MAX_ABS=""
 while [ $# -gt 0 ]; do
     case "$1" in
