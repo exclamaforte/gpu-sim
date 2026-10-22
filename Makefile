@@ -78,6 +78,9 @@ check: guard-build-inputs $(LIB)
 	@build/test_retransmit
 	@echo "--- fabric FIFO / ESIZE contract (gpu-sim-6n6) ---"
 	@$(MAKE) --no-print-directory test-fifo
+	@echo "--- fabric channel isolation / zero-length (gpu-sim-ast, z3a) ---"
+	@$(CC) $(CFLAGS) -Iinclude -o build/test_fabric_identity tests/test_fabric_identity.c src/fakegpu_fabric.c -lpthread
+	@build/test_fabric_identity
 	@python3 tests/test_prose_numbers_lint.py
 	@python3 tests/test_bead_prose_numbers_lint.py
 	@python3 tests/test_prose_numbers_strict.py
