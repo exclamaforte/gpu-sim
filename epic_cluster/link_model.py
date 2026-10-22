@@ -325,7 +325,7 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
         raise ValueError("loss_ppm>=1e6 (p>=1): every transfer dropped; refused (no finite expectation)")
 
     # bytes per second
-    B_Bps = B_gbps * 1e9 / 8.0
+    B_Bps = B_gbps * 1e9
 
     if algorithm == "tree_bcast":
         lf_t = (math.log2(n) if n > 1 else 1.0)

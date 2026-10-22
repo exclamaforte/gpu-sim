@@ -7,6 +7,11 @@ from typing import Any, Dict, List
 
 SCHEMA_VERSION = 1
 
+# UNIT CONVENTION (gpu-sim-3me): bw_gbps is in GIGABYTES per second (GB/s),
+# NOT gigabits.  H100 SXM NVLink = 900 GB/s, NDR IB = 50 GB/s (400 Gbps).
+# link_model.py converts GB/s -> bytes/s by multiplying by 1e9 (no /8).
+# Every spec in the tree carries GB/s values.
+
 REQUIRED_MODEL_KEYS = {"sm_count", "clock_mhz", "mem_bytes", "mem_bw_gbs", "arch", "source"}
 REQUIRED_LINK_KEYS = {"a", "b", "kind", "bw_gbps", "latency_us", "mtu", "loss_ppm", "jitter_us", "shared_group"}
 REQUIRED_ENDPOINT_KEYS = {"node", "device"}
@@ -14,7 +19,7 @@ REQUIRED_NODE_KEYS = {"name", "devices"}
 REQUIRED_DEVICE_KEYS = {"id", "model"}
 REQUIRED_RANK_KEYS = {"rank", "node", "device"}
 
-TOP_LEVEL_KEYS = {"version", "models", "nodes", "links", "ranks"}
+TOP_LEVEL_KEYS = {"version", "models", "nodes", "links", "ranks", "sources"}
 LINK_KINDS = {"nvlink", "pcie", "ib", "roce", "tcp"}
 
 
@@ -130,6 +135,10 @@ def validate(spec: Any) -> Dict[str, Any]:
         sg = link["shared_group"]
         if sg is not None and not isinstance(sg, str):
             raise _err(f"{p}.shared_group", "must be string or null")
+
+    sources = spec.get("sources")
+    if sources is not None and not isinstance(sources, dict):
+        raise _err("$.sources", "must be object if present")
 
     ranks = spec.get("ranks")
     if not isinstance(ranks, list):
