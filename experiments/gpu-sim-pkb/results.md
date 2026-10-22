@@ -12,29 +12,34 @@ A trace is usable only if it passes the completeness gate **and** both ranks rep
 same byte factor in the same run. There are **2 committed traces per size** (`m1`, `m2`),
 and nothing else is cited.
 
-| S (bytes) | trace | rank0 factor | rank1 factor | gate | usable? |
+| S (bytes) | trace | protocol | rank0 factor | rank1 factor | gate | usable? |
 |---|---|---|---|---|---|
-| 4096 | m1, m2 | 2.00 | 1.00 | passes | **no — ranks disagree** |
-| 65536 | m1, m2 | — | — | **INVALID** (1.25S) | **no** |
-| 131072 | m1, m2 | — | — | **INVALID** (1.25S) | **no** |
-| 262144 | m1, m2 | — | — | **INVALID** (1.25S) | **no** |
-| 393216 | m1 → 0.83S, m2 → 0.67S | — | — | **INVALID** | **no** |
-| 524288 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
-| 1048576 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
-| 2097152 | m1, m2 | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
+| 4096 | m1, m2 | LL | 2.00 | 1.00 | passes | **no — ranks disagree** |
+| 65536 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e); also does not complete under SIMPLE** |
+| 131072 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** |
+| 262144 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** |
+| 393216 | m1, m2 | LL | — | — | **INVALID** | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** |
+| 524288 | m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
+| 1048576 | m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
+| 2097152 | m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs)** |
 
-**Usable data exists only at 512 KiB and above, and there the per-rank byte factor is
-1.00.** Below 512 KiB there is no usable measurement: 4 KiB passes the gate but the ranks
-disagree (2.00 vs 1.00), and 64–384 KiB fail the exact-multiple gate.
+**Validity domain: >=512 KiB on the SIMPLE path.** Usable data exists only at 512 KiB
+and above, where NCCL selects the SIMPLE protocol and the per-rank byte factor is 1.00.
+Below 512 KiB the fabric does not complete: NCCL selects LL at those sizes and the
+plugin's LL path does not complete (gpu-sim-7vw; 0xq close, commit 9b8940e); at 64 KiB
+the collective does not complete even under SIMPLE. These rows are INVALID, not merely
+unmeasured. See gpu-sim-77d.
 
-## 2. Verdict: `FACTOR-1.0-ABOVE-512KiB`; below that, UNMEASURED
+## 2. Verdict: `FACTOR-1.0-ABOVE-512KiB`; below that, INVALID
 
-- At 512 KiB, 1 MiB and 2 MiB — 2 runs each, both ranks agreeing — per-rank traffic is
-  **exactly 1.00S**. The standard n=2 ring value is `2(n−1)/n·S = S`, so the
-  measurement matches the textbook formula.
-- **The small-size regime is not measured.** This bead does not claim a step exists, and
-  it does not claim a step was refuted: there is simply no usable trace below 512 KiB.
-  The earlier `NO-STEP` verdict asserted more than the data supports and is withdrawn.
+- At 512 KiB, 1 MiB and 2 MiB — 2 runs each, both ranks agreeing on the SIMPLE path —
+  per-rank traffic is **exactly 1.00S**. The standard n=2 ring value is
+  `2(n−1)/n·S = S`, so the measurement matches the textbook formula.
+- **The below-512KiB regime is INVALID, not unmeasured.** NCCL selects LL at those sizes
+  and the plugin's LL path does not complete (gpu-sim-7vw; 0xq close, commit 9b8940e);
+  at 64 KiB the collective does not complete even under SIMPLE. No usable trace exists
+  below 512 KiB. The earlier `NO-STEP` verdict asserted more than the data supports
+  and is withdrawn.
 - The 4 KiB row is the one hinge: rank0 sends 2S (2 pieces), rank1 sends S (1 piece), in
   **both** committed runs. That is a real, reproducible rank asymmetry, and it is why
   4 KiB cannot be used to argue either way.
