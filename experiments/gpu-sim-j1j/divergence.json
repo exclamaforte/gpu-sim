@@ -1,0 +1,24 @@
+[
+  {
+    "size_bytes": 524288,
+    "n_ranks": 2,
+    "n_channels": 4,
+    "sends_per_channel": 8,
+    "emu_max_channel_us": 249.7,
+    "emu_per_send_us": 31.2,
+    "analytic_us": 132.4,
+    "ratio_analytic_emu": 0.53,
+    "explanation": "emulator sums per-chunk delays without pipelining within a channel; analytic assumes optimal bandwidth utilization (pieces_per_phase latency but single bandwidth term)"
+  },
+  {
+    "size_bytes": 1048576,
+    "n_ranks": 2,
+    "n_channels": 4,
+    "sends_per_channel": 8,
+    "emu_max_channel_us": 459.4,
+    "emu_per_send_us": 57.4,
+    "analytic_us": 184.9,
+    "ratio_analytic_emu": 0.402,
+    "explanation": "emulator sums per-chunk delays without pipelining within a channel; analytic assumes optimal bandwidth utilization (pieces_per_phase latency but single bandwidth term)"
+  }
+]
