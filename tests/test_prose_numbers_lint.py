@@ -40,9 +40,16 @@ class TestProseNumbers(unittest.TestCase):
         self.assertEqual(code, 1, out)
         # the hand-typed table row: the script reported 2.00, the prose said 1.00
         self.assertIn("1.00", out)
-        # the uncommitted run count
+        # the uncommitted run count: the lint must fire AND report the true count
         self.assertIn("6/6 runs", out)
-        self.assertIn("only 2 trace file(s) are committed", out)
+        # Derive the expected count instead of hard-coding it: this fixture went
+        # stale twice (2 -> 3 committed traces at S=524288 when val512d was
+        # restored), and a hard-coded number turns a passing lint into a red
+        # gate for no reason. The count itself is still asserted exactly.
+        import glob
+        traces = glob.glob(str(REPO / "experiments/gpu-sim-pkb/traces/trace_S524288_*.log"))
+        self.assertGreaterEqual(len(traces), 1, "no S524288 traces to count")
+        self.assertIn(f"only {len(traces)} trace file(s) are committed", out)
 
     def test_does_not_fire_on_the_corrected_version(self):
         """Criterion 3: the corrected document passes."""
