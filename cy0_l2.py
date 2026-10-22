@@ -82,15 +82,20 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
 
     # Per-layer forward time
     if cfg.overlap and OVERLAP_POLICY["tp_allreduce_hidden"]:
-        fwd_layer = lc  # TP comm hidden
-        overlapped_tp = tp_comm
+        # TP comm hidden behind compute, but only up to compute time.
+        # Excess comm beyond compute is exposed (cannot hide more than compute).
+        exposed_tp = max(0.0, tp_comm - lc)
+        fwd_layer = lc + exposed_tp
+        overlapped_tp = min(tp_comm, lc)
     else:
         fwd_layer = lc + tp_comm
         overlapped_tp = 0.0
+        exposed_tp = tp_comm
 
     # Backward: same compute + TP comm (gradient)
     if cfg.overlap and OVERLAP_POLICY["tp_allreduce_hidden"]:
-        bwd_layer = lc
+        exposed_tp_bwd = max(0.0, tp_comm - lc)
+        bwd_layer = lc + exposed_tp_bwd
     else:
         bwd_layer = lc + tp_comm
 
