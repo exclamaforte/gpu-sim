@@ -76,6 +76,8 @@ check: guard-build-inputs $(LIB)
 	@$(CC) $(CFLAGS) -Iinclude -o build/test_retransmit \
 	    experiments/gpu-sim-4tw/test_retransmit.c src/fakegpu_fabric.c -lpthread
 	@build/test_retransmit
+	@echo "--- fabric FIFO / ESIZE contract (gpu-sim-6n6) ---"
+	@$(MAKE) --no-print-directory test-fifo
 	@python3 tests/test_prose_numbers_lint.py
 	@python3 tests/test_bead_prose_numbers_lint.py
 	@python3 tests/test_prose_numbers_strict.py
@@ -122,6 +124,7 @@ test-fabric: $(FABRIC_TEST_BIN)
 	  ./$(FABRIC_TEST_BIN) $$t || exit 1; \
 	done
 	@echo "fabric tests PASS"
+	@$(MAKE) --no-print-directory test-fifo
 
 $(FABRIC_TEST_BIN): tests/test_fabric.c src/fakegpu_fabric.c include/fakegpu_fabric.h
 	@mkdir -p build

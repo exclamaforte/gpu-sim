@@ -37,12 +37,14 @@ typedef struct {
     atomic_uint seq;
     atomic_size_t len;
     atomic_int ready; /* 0 free, 1 ready, -1 reserved */
+    uint64_t send_seq;   /* monotonic per-mailbox send order (gpu-sim-6n6) */
     int tag;
     char data[FG_FAB_MAX_PAYLOAD];
 } fg_slot_t;
 typedef struct {
     fg_slot_t slots[FG_FAB_QDEPTH];
     atomic_uint futex_word; /* for cross-process wakeup */
+    atomic_uint_fast64_t next_send_seq; /* FIFO order, see gpu-sim-6n6 */
 } fg_mailbox_t;
 
 typedef struct {
@@ -379,6 +381,7 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
     atomic_store_explicit(&m->slots[slot].len, n, memory_order_release);
     m->slots[slot].tag = 0;
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
+    m->slots[slot].send_seq = atomic_fetch_add_explicit(&m->next_send_seq, 1, memory_order_relaxed) + 1;
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
     atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
     syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
@@ -386,6 +389,25 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n,
     if (seq_out) *seq_out = atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed);
     const char *ds = getenv("GPUSIM_FAB_DELAY_US"); if (ds && *ds) usleep((useconds_t)atoi(ds));
     return FG_FAB_OK;
+}
+
+
+/* gpu-sim-6n6: the receive side must honour send ORDER, not slot luck.
+   Return the index of the oldest slot that is either ready or in flight
+   (reserved by a sender), or -1 when the mailbox holds nothing.  A slot that is
+   in flight may still acquire a lower send order than one already ready, which
+   is why "oldest" considers reserved slots too: the caller waits for them
+   rather than jumping past them. */
+static int oldest_slot(fg_mailbox_t *m) {
+    int best = -1;
+    uint64_t best_seq = 0;
+    for (int i = 0; i < FG_FAB_QDEPTH; i++) {
+        int st = atomic_load_explicit(&m->slots[i].ready, memory_order_acquire);
+        if (st == 0) continue;
+        uint64_t sq = m->slots[i].send_seq;
+        if (best < 0 || sq < best_seq) { best = i; best_seq = sq; }
+    }
+    return best;
 }
 
 /* Registered send: store pool offset in mailbox slot (ready=2), skip data copy. */
@@ -421,6 +443,7 @@ int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
     atomic_store_explicit(&m->slots[slot].len, n, memory_order_release);
     m->slots[slot].tag = 1; /* 1 = registered buffer */
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
+    m->slots[slot].send_seq = atomic_fetch_add_explicit(&m->next_send_seq, 1, memory_order_relaxed) + 1;
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
     atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
     syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
@@ -452,14 +475,27 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
     uint64_t deadline = now_ns() + f->timeout_ns;
     int slot = -1;
     while (slot < 0) {
+        /* FIFO: only ever consider the OLDEST queued message.  While a sender
+           holds a slot in flight, its send_seq may not be published yet, so we
+           wait rather than risk jumping past it (gpu-sim-6n6). */
+        int in_flight = 0;
         for (int i = 0; i < FG_FAB_QDEPTH; i++) {
-            if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) != 1) continue;
-            size_t mlen = atomic_load_explicit(&m->slots[i].len, memory_order_acquire);
-            if (mlen > cap) continue; /* wait for a message that fits */
-            int expected = 1;
-            if (atomic_compare_exchange_strong_explicit(&m->slots[i].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
-                slot = i;
-                break;
+            if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) == -1) { in_flight = 1; break; }
+        }
+        if (!in_flight) {
+            int head = oldest_slot(m);
+            if (head >= 0) {
+                size_t hlen = atomic_load_explicit(&m->slots[head].len, memory_order_acquire);
+                if (hlen > cap) {
+                    /* the oldest message does not fit: report it, do NOT skip it
+                       and do NOT consume it.  Skipping is what reordered the
+                       data and stranded the tail piece (gpu-sim-6n6). */
+                    return FG_FAB_ESIZE;
+                }
+                int expected = 1;
+                if (atomic_compare_exchange_strong_explicit(&m->slots[head].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
+                    slot = head;
+                }
             }
         }
         if (slot < 0) {
@@ -515,12 +551,17 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
     uint64_t deadline = now_ns() + f->timeout_ns;
     int slot = -1;
     while (slot < 0) {
+        int in_flight = 0;
         for (int i = 0; i < FG_FAB_QDEPTH; i++) {
-            if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) != 1) continue;
-            int expected = 1;
-            if (atomic_compare_exchange_strong_explicit(&m->slots[i].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
-                slot = i;
-                break;
+            if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) == -1) { in_flight = 1; break; }
+        }
+        if (!in_flight) {
+            int head = oldest_slot(m);
+            if (head >= 0) {
+                int expected = 1;
+                if (atomic_compare_exchange_strong_explicit(&m->slots[head].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
+                    slot = head;
+                }
             }
         }
         if (slot < 0) {
@@ -537,7 +578,9 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
     size_t mlen = atomic_load_explicit(&m->slots[slot].len, memory_order_acquire);
     if (getenv("GPUSIM_DEBUG")) fprintf(stderr, "fab recv(exact) rank=%d from=%d expected=%zu slot=%d size=%zu\n", f->rank, from, n, slot, mlen);
     if (mlen != n) {
-        atomic_store_explicit(&m->slots[slot].ready, 0, memory_order_release);
+        /* put the message back, do not eat it: reporting ESIZE must not lose
+           the head (gpu-sim-6n6) */
+        atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
         atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
         syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
         return FG_FAB_ESIZE;
