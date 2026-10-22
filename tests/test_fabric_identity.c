@@ -48,14 +48,14 @@ int main(void) {
 
         /* (tag 0, chan 0) first, then (tag 0, chan 1): the receiver will ask for
            channel 1 first, so a tag-only matcher hands it the wrong message. */
-        if (fg_fab_send_id(f, 0, &(uint32_t){PAYLOAD_A}, sizeof(uint32_t), 0, 0) != FG_FAB_OK) {
+        if (fg_fab_send_id(f, 0, &(uint32_t){PAYLOAD_A}, sizeof(uint32_t), 0, 0, NULL, NULL) != FG_FAB_OK) {
             fprintf(stderr, "rank1 send A failed\n"); _exit(1);
         }
-        if (fg_fab_send_id(f, 0, &(uint32_t){PAYLOAD_B}, sizeof(uint32_t), 0, 1) != FG_FAB_OK) {
+        if (fg_fab_send_id(f, 0, &(uint32_t){PAYLOAD_B}, sizeof(uint32_t), 0, 1, NULL, NULL) != FG_FAB_OK) {
             fprintf(stderr, "rank1 send B failed\n"); _exit(1);
         }
         /* zero-length message, tag 0, channel 2 */
-        if (fg_fab_send_id(f, 0, "", 0, 0, 2) != FG_FAB_OK) {
+        if (fg_fab_send_id(f, 0, "", 0, 0, 2, NULL, NULL) != FG_FAB_OK) {
             fprintf(stderr, "rank1 zero-length send failed: %s\n", fg_fab_errstr(FG_FAB_EINVAL)); _exit(1);
         }
 
