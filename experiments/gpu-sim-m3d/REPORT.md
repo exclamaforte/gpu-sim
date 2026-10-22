@@ -182,7 +182,10 @@ Below the LL boundary the emulated collective does not complete; above it, byte
 counts are deterministic (three 512KiB traces: 32 isends, 32 recv-done,
 bytes=32768) while value checks have shown nondeterministic corruption in 1 of 2
 runs (5.0 where 3.0 was expected, an exact double-add of two chunks). So: byte
-factors are trustworthy on the SIMPLE path.
+factors are trustworthy on the SIMPLE path. The corruption cited in the sentence
+above is the fake-host artefact explained below (gpu-sim-bam), not an emulator
+defect; it is left in place because it is the observation that prompted the
+discriminating experiment, and it must not be read as a standing defect claim.
 
 WITHDRAWN SENTENCE (gpu-sim-c1z): "data correctness is not certified anywhere
 yet, and every value check so far used a uniform fill that cannot detect a
@@ -213,6 +216,23 @@ The two decodes that prove the corruption is an offset error rather than noise:
   index 0)
   134.072006 = 1.0 + (2.0 + 0.001*131072) (an element one past the end)
 These only became visible with a non-uniform fill.
+
+WHAT THE VALIDITY CONTRACT IS, AND IS NOT (PI scope decision, recorded so it is
+not argued again): the claims here are about BYTE FLOW AND TIMING. Data
+correctness is not a precondition for them. A fixed-buffer collective moves the
+same bytes through the same kernel in the same time whether the resulting values
+are right or garbage, so a fabricated value cannot by itself invalidate a byte
+count or a duration. Correctness is retained as a test because it is the
+cheapest PROVENANCE probe available -- a value mismatch is what reveals a stale
+shared object, an unbuilt fix, or a run from the wrong worktree, each of which
+does invalidate timings -- not because the timings depend on the values.
+Correctness would become a validity requirement only if the emulator were used
+to run a data-dependent APPLICATION (convergence loops, validation branches,
+early exit) rather than a fixed-buffer microbenchmark; that use is out of scope
+and is now stated as such. The lesson to keep is narrower than it looks: for a
+performance emulator, ASSUMING the data path is correct is a legitimate
+simplification when it is declared; ASSERTING it, and then using the assertion
+to explain away a contradiction, is how a hypothesis becomes a finding.
 
 ### 7.5 Not-claimed boundaries
 
