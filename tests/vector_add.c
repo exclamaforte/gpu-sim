@@ -48,15 +48,14 @@ static int run(void)
 
     if (cudaMemcpyDtoH(h_c, d_c, sizeof(float) * N) != cudaSuccess) return 1;
 
-    /* Under the fake GPU, h_c is random bytes interpreted as floats. We only
-       assert the program ran end-to-end; correctness is not checked against a
-       real kernel. */
-    int nonzero = 0;
+    /* Value-level check (gpu-sim-2qe): the fake GPU does not execute the
+       kernel, so h_c stays zero-filled from cudaMalloc (mmap zero pages).
+       Verify the D2H round-trip preserved zeros rather than random bytes. */
+    int bad = 0;
     for (int i = 0; i < N; i++)
-        if (h_c[i] != 0.0f) { nonzero = 1; break; }
-
-    printf("vector_add: N=%d  D2H buffer has random data: %s\n",
-           N, nonzero ? "yes" : "no");
+        if (h_c[i] != 0.0f) { bad = 1; break; }
+    if (bad) { fprintf(stderr, "FAIL: D2H buffer not zero-filled (random data leak)\n"); return 1; }
+    printf("vector_add: N=%d  D2H buffer zero-filled (no random leak)\n", N);
 
     cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
     free(h_a); free(h_b); free(h_c);

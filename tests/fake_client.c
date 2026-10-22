@@ -48,13 +48,17 @@ static int test_memory(void)
     if (!dptr) { fprintf(stderr, "FAIL cudaMalloc returned NULL\n"); return 1; }
     printf("  cudaMalloc -> %p\n", dptr);
 
-    char host[64];
-    memset(host, 0, sizeof(host));
+    /* Value-level round-trip check (gpu-sim-2qe): non-uniform pattern so a
+       shifted copy fails too. */
+    char host[64], orig[64];
+    for (size_t i = 0; i < sizeof(host); i++) { host[i] = (char)(i * 37 + 11); orig[i] = host[i]; }
     CHECK(cudaMemcpyHtoD(dptr, host, sizeof(host)));
+    memset(host, 0, sizeof(host));
     CHECK(cudaMemcpyDtoH(host, dptr, sizeof(host)));
-    int nonzero = 0;
-    for (size_t i = 0; i < sizeof(host); i++) if (host[i]) { nonzero = 1; break; }
-    printf("  memcpy rounds ok; random-data present: %s\n", nonzero ? "yes" : "no");
+    int bad = 0;
+    for (size_t i = 0; i < sizeof(host); i++) if (host[i] != orig[i]) { bad = 1; break; }
+    if (bad) { fprintf(stderr, "FAIL: memcpy round-trip value mismatch\n"); return 1; }
+    printf("  memcpy rounds ok; value round-trip preserved\n");
 
     char *big = NULL;
     CHECK(cudaMalloc((void **)&big, 1024 * 1024));
