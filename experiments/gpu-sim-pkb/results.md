@@ -12,13 +12,22 @@ A trace is usable only if it passes the completeness gate **and** both ranks rep
 same byte factor in the same run. There are **2 committed traces per size** (`m1`, `m2`),
 and nothing else is cited.
 
+**Update (gpu-sim-g9t):** the four smallest rows were re-measured with the protocol
+PINNED (`NCCL_PROTO=Simple`, traces `trace_S<S>_n2_g9tsimple_m1/m2`). All four carry a
+factor of 1.00 in both ranks in both runs. The previous INVALID verdicts were about
+NCCL's DEFAULT protocol choice below the LL/SIMPLE crossing (the plugin does not
+implement LL, gpu-sim-7vw) and, for 65536, about zero-length messages having been
+rejected (gpu-sim-z3a, 575a186) -- neither is a property of the byte accounting. The
+LL rows are superseded, not deleted from history: they are what the default protocol
+produces, and the report states the protocol with every number.
+
 | S (bytes) | trace | Protocol | rank0 factor | rank1 factor | gate | usable? | source |
 |---|---|---|---|---|---|---|
 | 4096 | m1, m2 | LL | 2.00 | 1.00 | passes | **no — ranks disagree** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S4096_n2_m1.log |
-| 65536 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL (cost model); plugin LL path does not complete (LL not supported, gpu-sim-0xq close 9b8940e); also does not complete under SIMPLE** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S65536_n2_m1.log |
-| 131072 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S131072_n2_m1.log |
-| 262144 | m1, m2 | LL | — | — | **INVALID** (1.25S) | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S262144_n2_m1.log |
-| 393216 | m1, m2 | LL | — | — | **INVALID** | **no — INVALID: NCCL selects LL; plugin LL path does not complete (gpu-sim-7vw, 0xq close 9b8940e)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S393216_n2_m1.log |
+| 65536 | g9tsimple m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs, protocol pinned)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S65536_n2_g9tsimple_m1.log |
+| 131072 | g9tsimple m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs, protocol pinned)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S131072_n2_g9tsimple_m1.log |
+| 262144 | g9tsimple m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs, protocol pinned)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S262144_n2_g9tsimple_m1.log |
+| 393216 | g9tsimple m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs, protocol pinned)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S393216_n2_g9tsimple_m1.log |
 | 524288 | m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S524288_n2_m1.log |
 | 1048576 | m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S1048576_n2_m1.log |
 | 2097152 | m1, m2 | SIMPLE | **1.00** | **1.00** | passes | **yes (2/2 runs)** | reduction_output.txt experiments/gpu-sim-pkb/traces/trace_S2097152_n2_m1.log |

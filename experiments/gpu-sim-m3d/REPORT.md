@@ -185,6 +185,13 @@ pinned, the self-describing payload is exact on both ranks at 65536 (16384 == i)
 131072, 262144 and 393216, all via NET/sim, while default-protocol runs at 524288
 and 1048576 are unchanged. THE MODELLED RANGE IS THEREFORE 64KiB TO 1MiB under
 Simple; the only remaining low-end boundary is protocol selection, not the fabric.
+THE BYTE TABLE NOW COVERS THAT RANGE (gpu-sim-g9t): the four smallest rows were
+re-measured with the protocol PINNED and carry a byte factor of 1.00 in both ranks
+in both runs -- 65536, 131072, 262144 and 393216, traces
+trace_S<S>_n2_g9tsimple_m1/m2 -- so the 1.00 factor holds from 64KiB to 1MiB, not
+from 512KiB. The old INVALID verdicts were about NCCL's default protocol choice
+and, at 65536, about zero-length messages being rejected; neither was about the
+byte accounting.
 
 ### 7.4 Emulator validity domain
 
