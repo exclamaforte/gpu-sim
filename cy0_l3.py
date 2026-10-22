@@ -58,14 +58,18 @@ def plan(model_cfg: Dict[str, Any], spec_path: str, dp: int, tp: int, pp: int,
             f"forcing IB into the latency-critical path"
         )
 
-    # Memory check: model params per device
+    # Memory check: training memory per device
+    # Training memory = 16 B/param (bf16 weights 2 + grad 2 + fp32 master 4
+    # + Adam m 4 + Adam v 4), before activations. Not just bf16 weights.
     model_bytes = model_cfg.get("param_bytes", 7e9 * 2)  # default 7B params in bf16
-    # Simplified: params / (tp * dp) must fit in mem_bytes
-    per_device_params = model_bytes / (tp * (1 if zero_stage == 0 else dp))
+    num_params = model_bytes / 2.0  # bf16 = 2 B/param
+    training_bytes = num_params * 16.0  # 16 B/param training memory
+    shard = tp * (1 if zero_stage == 0 else dp)
+    per_device_mem = training_bytes / shard
     model_mem = list(spec["models"].values())[0]
-    if per_device_params > model_mem["mem_bytes"] * 0.9:
+    if per_device_mem > model_mem["mem_bytes"] * 0.9:
         raise PlanError(
-            f"model does not fit: {per_device_params/1e9:.1f} GB params per device "
+            f"model does not fit: {per_device_mem/1e9:.1f} GB training memory per device "
             f"> 90% of {model_mem['mem_bytes']/1e9:.1f} GB device memory"
         )
 
