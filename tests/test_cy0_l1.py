@@ -98,16 +98,55 @@ def test_jsonl_emission():
 
 
 def test_magnitude_known_link():
-    """Magnitude test: one known link, one known transfer, hand-computed expected time."""
+    """Magnitude test: one known link, one known transfer, hand-derived expected time.
+
+    Derivation, all terms from epic_cluster/link_model.py and nothing else:
+      link        : NDR IB, 50 GB/s, alpha = 5 us (latency_us)
+      payload     : count=500000 float32 -> S = 2,000,000 bytes
+      n_ranks     : 2   -> ring bw factor  2(n-1)/n = 1.0
+                          ring latency factor 2(n-1) = 2
+      pieces      : 8 (passed explicitly; n>=3 is refused, never cap-derived)
+      bw_term     : 1.0 * 2e6 / 50e9 = 4.0e-5 s = 40 us
+      lat_term    : 2.0 * 5e-6 * 8   = 8.0e-5 s = 80 us
+      expected    : 120 us
+
+    A 5% tolerance, not a decade window: this test exists to catch a units error
+    (8x), a shared_group error (8x) or a factor-of-n error in the ring maths.
+    """
     import epic_cluster.link_model as lm
     spec = load_spec(str(SPEC_PATH))
-    # IB link: shared_group="ib" has 8 links, so effective bw = 50/8 = 6.25 GB/s
-    # S = 500000 * 4 = 2,000,000 bytes (2 MB)
-    # bw_term = 1.0 * 2e6 / (6.25e9) = 3.2e-4 s = 320 us
-    # lat_term = 2.0 * 5e-6 * 8 = 8e-5 s = 80 us
-    # total = 400 us
     res = lm.predict(spec, "ring_allreduce", 500000, "float32", n_ranks=2, pieces_per_phase=8)
-    expected_us = 400.0
+    expected_us = 120.0
     actual_us = res["duration_s"] * 1e6
     assert abs(actual_us - expected_us) / expected_us < 0.05, \
         f"magnitude mismatch: got {actual_us} us, expected {expected_us} us"
+
+
+def test_shared_group_costs_a_factor_of_eight():
+    """The trap that produced a real 8x error, pinned as a test.
+
+    An NDR node has EIGHT independent 400 Gb/s NICs, one per GPU, so each GPU
+    sees its own 50 GB/s -- hence shared_group=null on the IB links. Putting all
+    eight links in one shared_group makes link_model divide the per-GPU
+    bandwidth by 8, which is a DIFFERENT physical claim (one 50 GB/s trunk
+    shared by eight GPUs) and makes every cross-node term 8x too slow.
+    This test asserts both branches, so a spec edit that reintroduces the
+    sharing is visible as a value change rather than a silent slowdown.
+    """
+    import copy
+    import epic_cluster.link_model as lm
+
+    independent = load_spec(str(SPEC_PATH))
+    shared = copy.deepcopy(independent)
+    for link in shared["links"]:
+        if link["kind"] == "ib":
+            link["shared_group"] = "ib"
+
+    def us(spec):
+        return lm.predict(spec, "ring_allreduce", 500000, "float32",
+                          n_ranks=2, pieces_per_phase=8)["duration_s"] * 1e6
+
+    assert abs(us(independent) - 120.0) / 120.0 < 0.05
+    # one shared trunk: bw 50/8 GB/s -> bw_term 320 us + lat 80 us = 400 us
+    assert abs(us(shared) - 400.0) / 400.0 < 0.05
+    assert us(shared) / us(independent) > 3.0, "sharing must cost a large factor"

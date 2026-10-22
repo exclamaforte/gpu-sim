@@ -1,5 +1,12 @@
 {
   "version": 1,
+  "sources": {
+    "model.h100_sxm": "NVIDIA H100 SXM datasheet: 132 SMs, 1830 MHz boost, 80GB HBM3, 3.35 TB/s",
+    "link.nvlink": "NVIDIA H100 SXM NVLink 4: 900 GB/s per GPU (aggregate bidirectional); latency 1 us is an ASSUMPTION, not a published figure",
+    "link.ib": "NDR InfiniBand 400 Gb/s = 50 GB/s per GPU NIC; latency 5 us is an ASSUMPTION, not a published figure",
+    "link.ib.shared_group": "null deliberately: an NDR node has EIGHT independent 400 Gb/s NICs, one per GPU, so each GPU sees its own 50 GB/s. Do NOT put all eight links in one shared_group -- that divides per-GPU bandwidth by 8 and was a measured 8x error in the first version of this spec (found by the gpu-sim-4jx magnitude derivation, 2026-10-22).",
+    "assuming": "the four switches / rail-optimised fabric are not modelled; cross-node bandwidth is per-GPU NIC bandwidth with no oversubscription"
+  },
   "models": {
     "h100_sxm": {
       "sm_count": 132,
@@ -1054,7 +1061,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1071,7 +1078,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1088,7 +1095,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1105,7 +1112,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1122,7 +1129,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1139,7 +1146,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1156,7 +1163,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     },
     {
       "a": {
@@ -1173,7 +1180,7 @@
       "mtu": 4096,
       "loss_ppm": 0,
       "jitter_us": 1.0,
-      "shared_group": "ib"
+      "shared_group": null
     }
   ],
   "ranks": [
