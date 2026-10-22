@@ -8,6 +8,7 @@
  */
 #include "fakegpu.h"
 #include "cuda_runtime.h"
+#include <cuda.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -82,8 +83,8 @@ cudaError_t cudaFreeHost(void *ptr)
 
 cudaError_t cudaMemset(void *devPtr, int value, size_t count)
 {
-    (void)value;
-    if (devPtr && count) fg_fill(devPtr, count);
+    fg_simulate_memcpy(count);
+    if (devPtr && count) memset(devPtr, value, count);
     return cudaSuccess;
 }
 
@@ -154,8 +155,8 @@ struct fg_config *c = fg_cfg();
 
 cudaError_t cudaMemsetD8(void *devPtr, unsigned char value, size_t count)
 {
-    (void)value;
-    if (devPtr && count) fg_fill(devPtr, count);
+    fg_simulate_memcpy(count);
+    if (devPtr && count) memset(devPtr, value, count);
     return cudaSuccess;
 }
 
@@ -163,60 +164,57 @@ cudaError_t cudaMemsetD8(void *devPtr, unsigned char value, size_t count)
 
 cudaError_t cudaMemcpy(void *dst, const void *src, size_t count, int kind)
 {
-    (void)src; (void)kind;
+    (void)kind;
     fg_simulate_memcpy(count);
-    fg_write_random(dst, count);
+    memcpy(dst, src, count);
     return cudaSuccess;
 }
 
 cudaError_t cudaMemcpyAsync(void *dst, const void *src, size_t count, int kind,
                             cudaStream_t stream)
 {
-    (void)src; (void)kind; (void)stream;
+    (void)kind; (void)stream;
     fg_simulate_memcpy(count);
-    fg_write_random(dst, count);
+    memcpy(dst, src, count);
     return cudaSuccess;
 }
 
 cudaError_t cudaMemcpyHtoD(void *dstDevice, const void *srcHost, size_t count)
 {
-    (void)srcHost;
     fg_simulate_memcpy(count);
-    fg_write_random(dstDevice, count);
+    memcpy(dstDevice, srcHost, count);
     return cudaSuccess;
 }
 
 cudaError_t cudaMemcpyDtoH(void *dstHost, const void *srcDevice, size_t count)
 {
-    (void)srcDevice;
     fg_simulate_memcpy(count);
-    fg_write_random(dstHost, count);
+    memcpy(dstHost, srcDevice, count);
     return cudaSuccess;
 }
 
 cudaError_t cudaMemcpyDtoD(void *dstDevice, const void *srcDevice, size_t count)
 {
-    (void)srcDevice;
     fg_simulate_memcpy(count);
-    fg_write_random(dstDevice, count);
+    memcpy(dstDevice, srcDevice, count);
     return cudaSuccess;
 }
 
 cudaError_t cudaMemcpyHtoDAsync(void *dstDevice, const void *srcHost, size_t count,
                                 cudaStream_t stream)
 {
-    (void)srcHost; (void)stream;
+    (void)stream;
     fg_simulate_memcpy(count);
-    fg_write_random(dstDevice, count);
+    memcpy(dstDevice, srcHost, count);
     return cudaSuccess;
 }
 
 cudaError_t cudaMemcpyDtoHAsync(void *dstHost, const void *srcDevice, size_t count,
                                 cudaStream_t stream)
 {
-    (void)srcDevice; (void)stream;
+    (void)stream;
     fg_simulate_memcpy(count);
-    fg_write_random(dstHost, count);
+    memcpy(dstHost, srcDevice, count);
     return cudaSuccess;
 }
 
