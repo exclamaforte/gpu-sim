@@ -364,8 +364,8 @@ int fg_fab_send_id(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag
 
 static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan,
                           int *slot_out, unsigned *seq_out) {
-    if (!f || !buf || peer < 0 || peer >= f->nranks || n == 0 || n > FG_FAB_MAX_PAYLOAD) {
-        return FG_FAB_EINVAL;
+    if (!f || !buf || peer < 0 || peer >= f->nranks || n > FG_FAB_MAX_PAYLOAD) {
+        return FG_FAB_EINVAL;   /* gpu-sim-z3a: n == 0 is a legal message, not an error */
     }
     fg_mailbox_t *m = &f->mailboxes[f->rank * f->nranks + peer];
     uint64_t deadline = now_ns() + f->timeout_ns;
@@ -502,8 +502,8 @@ int fg_fab_recv_tag_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_ta
 
 int fg_fab_recv_id_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_tag, int want_chan,
                       size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out) {
-    if (!f || !buf || from < 0 || from >= f->nranks || cap == 0 || cap > FG_FAB_MAX_PAYLOAD) {
-        return FG_FAB_EINVAL;
+    if (!f || !buf || from < 0 || from >= f->nranks || cap > FG_FAB_MAX_PAYLOAD) {
+        return FG_FAB_EINVAL;   /* gpu-sim-z3a: cap == 0 is a legal receive */
     }
     fg_mailbox_t *m = &f->mailboxes[from * f->nranks + f->rank];
     uint64_t deadline = now_ns() + f->timeout_ns;

@@ -247,7 +247,7 @@ static ncclResult_t v12_deregMr(void* comm, void* mhandle) {
 static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, void* mhandle, void* phandle, void** request) {
     (void)mhandle;(void)phandle;
     sim_comm_t *sc = (sim_comm_t*)sendComm;
-    if (size > CAP) return ncclInvalidArgument;
+    if (size > CAP) return ncclInvalidArgument;   /* size 0 is legal (gpu-sim-z3a) */
     int slot = -1; unsigned seq = 0;
     /* Per-link timing (gpu-sim-pkb): resolve the link for this peer. */
     int link_id = -1;
