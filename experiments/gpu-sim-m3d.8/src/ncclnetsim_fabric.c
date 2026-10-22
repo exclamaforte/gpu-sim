@@ -298,7 +298,7 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
         /* registered buffer: send offset, skip copy */
         rc = fg_fab_send_reg(FAB, sc->peer, reg_off - 1, size, &slot, &seq);
     } else {
-        rc = fg_fab_send_id(FAB, sc->peer, data, size, tag, sc->chan / 2);
+        rc = fg_fab_send_id(FAB, sc->peer, data, size, tag, sc->chan / 2, &slot, &seq);
     }
     pthread_mutex_unlock(&LOCK);
     if (rc != FG_FAB_OK) {

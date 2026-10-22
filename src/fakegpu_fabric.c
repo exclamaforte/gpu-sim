@@ -358,8 +358,9 @@ int fg_fab_send_tag(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_ta
 
 /* tag + channel identity (gpu-sim-ast): NCCL runs one message stream per
    channel, so a request must never be satisfied by another channel's message. */
-int fg_fab_send_id(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan) {
-    return fg_send_common(f, peer, buf, n, msg_tag, msg_chan, NULL, NULL);
+int fg_fab_send_id(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan,
+                   int *slot_out, unsigned *seq_out) {
+    return fg_send_common(f, peer, buf, n, msg_tag, msg_chan, slot_out, seq_out);
 }
 
 static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan,
