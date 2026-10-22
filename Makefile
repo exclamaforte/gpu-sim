@@ -49,7 +49,7 @@ $(LIB): $(OBJS)
 src/%.o: src/%.c include/fakegpu.h shim/cuda_runtime.h shim/nccl.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
-tests/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
+build/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $< -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 
