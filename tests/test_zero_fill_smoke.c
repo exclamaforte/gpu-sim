@@ -1,9 +1,10 @@
 /*
- * vector_add.c — reference CUDA workload compiled against shim/cuda_runtime.h.
+ * test_zero_fill_smoke.c — plumbing smoke test for the fake-GPU interposer.
  *
- * Mirrors what a real CUDA program looks like: allocate host + device buffers,
- * copy input H2D, launch a kernel, copy result D2H. Under LD_PRELOAD=fakegpu.so
- * the "kernel" is a no-op and buffers come back zero-filled (real memcpy).
+ * Exercises the full H2D -> launch -> D2H pipeline. The fake GPU never executes
+ * kernels, so the D2H buffer is zero-filled (MAP_ANONYMOUS pages). This test
+ * verifies the interposer does not leak random bytes into device memory.
+ * It is NOT compute coverage: no kernel runs, no arithmetic is checked.
  *
  * Run:  LD_PRELOAD=./libfakegpu.so ./build/vector_add
  */
@@ -55,7 +56,7 @@ static int run(void)
     for (int i = 0; i < N; i++)
         if (h_c[i] != 0.0f) { bad = 1; break; }
     if (bad) { fprintf(stderr, "FAIL: D2H buffer not zero-filled (random data leak)\n"); return 1; }
-    printf("vector_add: N=%d  D2H buffer zero-filled (no random leak)\n", N);
+    printf("test_zero_fill_smoke: N=%d  D2H buffer zero-filled (no random leak)\n", N);
 
     cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
     free(h_a); free(h_b); free(h_c);

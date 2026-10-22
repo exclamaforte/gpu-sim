@@ -15,13 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Write `count` random bytes to `dst` at an API boundary. src is not touched. */
-static void fg_write_random(void *dst, size_t count)
-{
-    if (!dst || count == 0) return;
-    fg_fill(dst, count);
-}
-
 /* ---- memory allocations -------------------------------------------------- */
 
 cudaError_t cudaMalloc(void **devPtr, size_t size)
@@ -417,17 +410,22 @@ cudaError_t cudaDeviceReset(void)
     return cudaSuccess;
 }
 
+/* Fake-GPU resource limits: recorded but never enforced (the simulator does
+   not track device memory quotas). SetLimit stores, GetLimit reads back, so a
+   set/read-back pair is consistent rather than silently stale. */
+static size_t g_fake_limit[64];
+
 cudaError_t cudaDeviceSetLimit(int limit, size_t value)
 {
-    (void)limit; (void)value;
+    if (limit >= 0 && limit < 64) g_fake_limit[limit] = value;
     return cudaSuccess;
 }
 
 cudaError_t cudaDeviceGetLimit(size_t *value, int limit)
 {
-    (void)limit;
     if (!value) return cudaErrorInvalidValue;
-    *value = 0;
+    if (limit >= 0 && limit < 64) *value = g_fake_limit[limit];
+    else *value = 0;
     return cudaSuccess;
 }
 

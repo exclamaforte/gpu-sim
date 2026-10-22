@@ -35,7 +35,7 @@ SRCS = src/fakegpu_config.c src/fakegpu_random.c src/fakegpu_pool.c \
 OBJS = $(SRCS:.c=.o)
 
 TEST_BIN = build/fake_client
-VEC_BIN  = build/vector_add
+VEC_BIN  = build/test_zero_fill_smoke
 RING_BIN = build/ring_allreduce
 FABRIC_TEST_BIN = build/test_fabric
 
@@ -84,7 +84,7 @@ check: guard-build-inputs $(LIB)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TEST_BIN) tests/fake_client.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	$(TEST_BIN)
 	@echo "--- reference workloads under LD_PRELOAD ---"
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(VEC_BIN)  tests/vector_add.c     -L. -lfakegpu -Wl,-rpath,$(CURDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(VEC_BIN)  tests/test_zero_fill_smoke.c     -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(RING_BIN) tests/ring_allreduce.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	LD_PRELOAD=$(CURDIR)/$(LIB) FAKEGPU_NUM_DEVICES=4 $(VEC_BIN)
 	LD_PRELOAD=$(CURDIR)/$(LIB) FAKEGPU_NUM_DEVICES=4 $(RING_BIN)
