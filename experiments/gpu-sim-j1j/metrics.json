@@ -1,0 +1,9 @@
+{
+  "bead": "gpu-sim-j1j",
+  "window": {"sizes": [524288, 1048576], "ranks": [2], "proto": "Simple"},
+  "divergence": [
+    {"size_bytes": 524288, "n_ranks": 2, "emu_max_channel_us": 249.7, "analytic_us": 132.4, "ratio": 0.53},
+    {"size_bytes": 1048576, "n_ranks": 2, "emu_max_channel_us": 459.4, "analytic_us": 184.9, "ratio": 0.40}
+  ],
+  "conclusion": "Divergence is emulator artefact (no intra-channel pipelining). Analytic is lower bound. Per-chunk delays consistent with link bw/lat."
+}
