@@ -176,9 +176,15 @@ posts a receive. With NCCL_PROTO=Simple, same size, same plugin, same fabric: 32
 isends, via NET/sim, and the self-describing payload is exact on both ranks (all
 98304 elements equal the index). So 393216 is measurable today by pinning the
 protocol, and its INVALID byte-table row is a default-protocol artefact rather
-than a fabric limit. This does NOT extend downward: with NCCL_PROTO=Simple
-forced, 262144, 131072 and 65536 still hang (8, 8 and 4 isends). The sub-256KiB
-region is a separate gap from the LL one.
+than a fabric limit. The sub-256KiB region was a SECOND, separate defect and is
+now also fixed (gpu-sim-z3a, 575a186): the fabric rejected ZERO-LENGTH messages,
+and at small sizes NCCL issues a 0-byte isend for an empty chunk, so the
+collective stalled with the sender a few pieces in and the receiver never posting
+at all (4/8 isends, zero v12.irecv). With zero-length accepted and the protocol
+pinned, the self-describing payload is exact on both ranks at 65536 (16384 == i),
+131072, 262144 and 393216, all via NET/sim, while default-protocol runs at 524288
+and 1048576 are unchanged. THE MODELLED RANGE IS THEREFORE 64KiB TO 1MiB under
+Simple; the only remaining low-end boundary is protocol selection, not the fabric.
 
 ### 7.4 Emulator validity domain
 
