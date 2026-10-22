@@ -51,8 +51,16 @@ int main(void) {
 
         uint64_t big = 0xAAAAAAAAAAAAAAAAULL;      /* 8 bytes */
         uint32_t small = 0xBBBBBBBBu;              /* 4 bytes */
+
         if (fg_fab_send(f, 0, &big, sizeof big) != FG_FAB_OK) { fprintf(stderr, "rank1 send big failed\n"); _exit(1); }
         if (fg_fab_send(f, 0, &small, sizeof small) != FG_FAB_OK) { fprintf(stderr, "rank1 send small failed\n"); _exit(1); }
+
+        /* scenario 2 (reviewer's strengthening): both queued messages exceed the
+         * receiver's capacity, so nothing on the queue fits at all. */
+        if (fg_fab_barrier(f) != FG_FAB_OK) _exit(1);
+        uint64_t big_a = 0xCCCCCCCCCCCCCCCCULL, big_b = 0xDDDDDDDDDDDDDDDDULL;
+        if (fg_fab_send(f, 0, &big_a, sizeof big_a) != FG_FAB_OK) { fprintf(stderr, "rank1 send big_a failed\n"); _exit(1); }
+        if (fg_fab_send(f, 0, &big_b, sizeof big_b) != FG_FAB_OK) { fprintf(stderr, "rank1 send big_b failed\n"); _exit(1); }
 
         fg_fab_barrier(f);
         fg_fab_detach(f);
@@ -95,6 +103,42 @@ int main(void) {
         fprintf(stderr, "second message wrong: rc=%s n=%zu value=0x%08x (expected 0xbbbbbbbb)\n",
                 fg_fab_errstr(r3), n, got_small);
         rc = 1;
+    }
+
+    if (fg_fab_barrier(f) != FG_FAB_OK) return 1;   /* scenario 1 complete on both sides */
+
+    /* ------- scenario 2 (reviewer's strengthening): BOTH queued messages are
+     * oversized, so nothing on the queue fits the caller's capacity at all.
+     * The contract is still ESIZE, promptly: an oversize head is a reportable
+     * error, not a reason to wait for the timeout and not a reason to consume
+     * anything.  This also pins that returning ESIZE leaves the head queued,
+     * because both messages are recovered afterwards, in order. */
+    uint8_t big2_a = 0;
+    int r4 = fg_fab_recv_max(f, 1, &big2_a, 4, &n);
+    if (r4 == FG_FAB_OK) {
+        fprintf(stderr, "ORDER VIOLATION: recv(cap=4) delivered %zu bytes while BOTH queued messages "
+                        "were 8 bytes; it should have reported ESIZE\n", n);
+        rc = 1;
+    } else if (r4 == FG_FAB_ETIMEDOUT) {
+        fprintf(stderr, "BLOCKED INSTEAD OF REFUSING: recv(cap=4) waited for the timeout while an "
+                        "8-byte head was already queued; an oversize head must report ESIZE immediately "
+                        "(blocking is what stalls a polled ncclNet test())\n");
+        rc = 1;
+    } else if (r4 != FG_FAB_ESIZE) {
+        fprintf(stderr, "UNEXPECTED: recv(cap=4) returned %s, expected ESIZE\n", fg_fab_errstr(r4));
+        rc = 1;
+    }
+
+    /* Both oversized messages must survive the ESIZE and come back in order. */
+    uint64_t pair[2] = {0, 0}; n = 0;
+    for (int k = 0; k < 2; k++) {
+        int rk2 = fg_fab_recv_max(f, 1, &pair[k], sizeof pair[k], &n);
+        uint64_t want = k == 0 ? 0xCCCCCCCCCCCCCCCCULL : 0xDDDDDDDDDDDDDDDDULL;
+        if (rk2 != FG_FAB_OK || n != sizeof pair[k] || pair[k] != want) {
+            fprintf(stderr, "ESIZE CONSUMED THE HEAD or order broke: message %d rc=%s n=%zu got=0x%016llx want=0x%016llx\n",
+                    k, fg_fab_errstr(rk2), n, (unsigned long long)pair[k], (unsigned long long)want);
+            rc = 1;
+        }
     }
 
     fg_fab_barrier(f);
