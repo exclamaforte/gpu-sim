@@ -44,10 +44,18 @@ def layer_compute_time(spec_path: str) -> float:
 
 
 def layer_tp_comm_time(spec_path: str, tp: int) -> float:
-    """TP allreduce time for one layer."""
+    """TP allreduce time for one layer.
+
+    Two allreduces per layer: (1) attention output (row-parallel) and
+    (2) MLP down (row-parallel). Each is a full B*S*H payload.
+    tp=1 means no tensor parallelism: zero TP comm.
+    """
+    if tp <= 1:
+        return 0.0
     result = cy0_l1.predict_layer(spec_path, tp=tp)
     comm = [c for c in result["components"] if c["kind"] == "comm"]
-    return comm[0]["seconds"] if comm else 0.0
+    single = comm[0]["seconds"] if comm else 0.0
+    return 2.0 * single
 
 
 def dp_allreduce_time(spec_path: str, dp: int, grad_bytes: int) -> float:
@@ -99,12 +107,24 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
     else:
         bwd_layer = lc + tp_comm
 
-    # Optimizer: simple, ~10% of one layer's compute
-    opt_time = lc * 0.1
+    # Optimizer: Adam, ~12 FLOPs per parameter per step
+    # params per layer = 4*H^2 + 3*H*F (QKV, output, gate, up, down, norms)
+    H = cy0_l1.HIDDEN
+    F = cy0_l1.FFN_DIM
+    params_per_layer = 4 * H * H + 3 * H * F
+    opt_flops = 12 * params_per_layer * cfg.n_layers
+    # peak_flops from spec (FLOPS)
+    spec = load_spec(spec_path)
+    pf = cy0_l1.peak_flops(spec) * 1e12
+    eff = 0.30  # elementwise efficiency (assumption, refit in L4)
+    opt_time = opt_flops / (pf * eff)
 
     # DP allreduce: after backward, gradient sync
-    # Gradient size ~ hidden * hidden * 4 bytes (simplified)
-    grad_bytes = cy0_l1.HIDDEN * cy0_l1.HIDDEN * 4
+    # Gradient size = dtype_bytes (fp32=4) * params_per_layer * n_layers
+    H = cy0_l1.HIDDEN
+    F = cy0_l1.FFN_DIM
+    params_per_layer = 4 * H * H + 3 * H * F
+    grad_bytes = 4 * params_per_layer * cfg.n_layers  # fp32 gradients
     dp_time = dp_allreduce_time(spec_path, cfg.dp, grad_bytes)
     if cfg.overlap and OVERLAP_POLICY["dp_allreduce_exposed"]:
         dp_exposed = dp_time
