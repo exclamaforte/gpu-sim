@@ -67,6 +67,9 @@ int  fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *go
 int  fg_fab_recv_tag_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_tag,
                         size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 int  fg_fab_send_tag(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag);
+int  fg_fab_send_id(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan);
+int  fg_fab_recv_id_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_tag, int want_chan,
+                       size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 
 /* query fault-injection counters (for invariant tests) */
 uint64_t fg_fab_success_count(fg_fab_t *f);

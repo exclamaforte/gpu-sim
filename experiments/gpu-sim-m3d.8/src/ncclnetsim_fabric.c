@@ -298,7 +298,7 @@ static ncclResult_t v12_isend(void* sendComm, void* data, size_t size, int tag, 
         /* registered buffer: send offset, skip copy */
         rc = fg_fab_send_reg(FAB, sc->peer, reg_off - 1, size, &slot, &seq);
     } else {
-        rc = fg_fab_send_tag(FAB, sc->peer, data, size, tag);
+        rc = fg_fab_send_id(FAB, sc->peer, data, size, tag, sc->chan / 2);
     }
     pthread_mutex_unlock(&LOCK);
     if (rc != FG_FAB_OK) {
@@ -379,8 +379,8 @@ static ncclResult_t v12_test(void* request, int* done, int* sizes) {
     pthread_mutex_lock(&LOCK);
     size_t got = 0;
     int slot = -1; unsigned seq = 0, consumed = 0;
-    int rc = fg_fab_recv_tag_ex(FAB, rq->peer, rq->data, rq->size, rq->tag, &got,
-                                &slot, &seq, &consumed);
+    int rc = fg_fab_recv_id_ex(FAB, rq->peer, rq->data, rq->size, rq->tag,
+                                rq->chan_of_req / 2, &got, &slot, &seq, &consumed);
     pthread_mutex_unlock(&LOCK);
     if (rc == FG_FAB_OK) {
         rq->size = got;

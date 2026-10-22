@@ -39,6 +39,7 @@ typedef struct {
     atomic_int ready; /* 0 free, 1 ready, -1 reserved */
     uint64_t send_seq;   /* monotonic per-mailbox send order (gpu-sim-6n6) */
     int msg_tag;         /* NCCL message tag: requests only accept their own (gpu-sim-ast) */
+    int msg_chan;        /* logical channel: NCCL keeps one stream per channel (gpu-sim-ast) */
     int tag;
     char data[FG_FAB_MAX_PAYLOAD];
 } fg_slot_t;
@@ -343,19 +344,25 @@ static int peer_alive(fg_fab_t *f, int peer) {
     return 1;
 }
 
-static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag,
+static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan,
                           int *slot_out, unsigned *seq_out);
 
 int fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n) {
-    return fg_send_common(f, peer, buf, n, -1, NULL, NULL);
+    return fg_send_common(f, peer, buf, n, -1, -1, NULL, NULL);
 }
 
 /* tag-aware send (gpu-sim-ast): the receiver matches on this tag. */
 int fg_fab_send_tag(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag) {
-    return fg_send_common(f, peer, buf, n, msg_tag, NULL, NULL);
+    return fg_send_common(f, peer, buf, n, msg_tag, -1, NULL, NULL);
 }
 
-static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag,
+/* tag + channel identity (gpu-sim-ast): NCCL runs one message stream per
+   channel, so a request must never be satisfied by another channel's message. */
+int fg_fab_send_id(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan) {
+    return fg_send_common(f, peer, buf, n, msg_tag, msg_chan, NULL, NULL);
+}
+
+static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag, int msg_chan,
                           int *slot_out, unsigned *seq_out) {
     if (!f || !buf || peer < 0 || peer >= f->nranks || n == 0 || n > FG_FAB_MAX_PAYLOAD) {
         return FG_FAB_EINVAL;
@@ -389,6 +396,7 @@ static int fg_send_common(fg_fab_t *f, int peer, const void *buf, size_t n, int 
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
     m->slots[slot].send_seq = atomic_fetch_add_explicit(&m->next_send_seq, 1, memory_order_relaxed) + 1;
     m->slots[slot].msg_tag = msg_tag;
+    m->slots[slot].msg_chan = msg_chan;
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
     atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
     syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
@@ -409,13 +417,14 @@ int fg_fab_recv_tag_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_ta
                        size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out);
 int fg_fab_send_tag(fg_fab_t *f, int peer, const void *buf, size_t n, int msg_tag);
 
-static int oldest_slot(fg_mailbox_t *m, int want_tag) {
+static int oldest_slot(fg_mailbox_t *m, int want_tag, int want_chan) {
     int best = -1;
     uint64_t best_seq = 0;
     for (int i = 0; i < FG_FAB_QDEPTH; i++) {
         int st = atomic_load_explicit(&m->slots[i].ready, memory_order_acquire);
         if (st == 0) continue;
         if (want_tag >= 0 && m->slots[i].msg_tag != want_tag) continue;
+        if (want_chan >= 0 && m->slots[i].msg_chan != want_chan) continue;
         uint64_t sq = m->slots[i].send_seq;
         if (best < 0 || sq < best_seq) { best = i; best_seq = sq; }
     }
@@ -457,6 +466,7 @@ int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
     atomic_store_explicit(&m->slots[slot].seq, atomic_load_explicit(&m->slots[slot].seq, memory_order_relaxed) + 1, memory_order_release);
     m->slots[slot].send_seq = atomic_fetch_add_explicit(&m->next_send_seq, 1, memory_order_relaxed) + 1;
     m->slots[slot].msg_tag = -1; /* registered buffers are not tag-matched */
+    m->slots[slot].msg_chan = -1;
     atomic_store_explicit(&m->slots[slot].ready, 1, memory_order_release);
     atomic_fetch_add_explicit(&m->futex_word, 1, memory_order_release);
     syscall(SYS_futex, &m->futex_word, FUTEX_WAKE, 1, NULL, NULL, 0);
@@ -469,7 +479,7 @@ int fg_fab_send_reg(fg_fab_t *f, int peer, size_t reg_offset, size_t n,
    the decider needs the (slot, seq) PAIR, since seq alone is per-slot. */
 int fg_fab_send_x(fg_fab_t *f, int peer, const void *buf, size_t n,
                   int *slot_out, unsigned *seq_out) {
-    return fg_send_common(f, peer, buf, n, -1, slot_out, seq_out);
+    return fg_send_common(f, peer, buf, n, -1, -1, slot_out, seq_out);
 }
 
 int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got,
@@ -487,6 +497,11 @@ int fg_fab_recv_max_ex(fg_fab_t *f, int from, void *buf, size_t cap, size_t *got
 
 int fg_fab_recv_tag_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_tag,
                        size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out) {
+    return fg_fab_recv_id_ex(f, from, buf, cap, want_tag, -1, got, slot_out, seq_out, consumed_out);
+}
+
+int fg_fab_recv_id_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_tag, int want_chan,
+                      size_t *got, int *slot_out, unsigned *seq_out, unsigned *consumed_out) {
     if (!f || !buf || from < 0 || from >= f->nranks || cap == 0 || cap > FG_FAB_MAX_PAYLOAD) {
         return FG_FAB_EINVAL;
     }
@@ -502,7 +517,7 @@ int fg_fab_recv_tag_ex(fg_fab_t *f, int from, void *buf, size_t cap, int want_ta
             if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) == -1) { in_flight = 1; break; }
         }
         if (!in_flight) {
-            int head = oldest_slot(m, want_tag);
+            int head = oldest_slot(m, want_tag, want_chan);
             if (head >= 0) {
                 size_t hlen = atomic_load_explicit(&m->slots[head].len, memory_order_acquire);
                 if (hlen > cap) {
@@ -575,7 +590,7 @@ int fg_fab_recv(fg_fab_t *f, int from, void *buf, size_t n) {
             if (atomic_load_explicit(&m->slots[i].ready, memory_order_acquire) == -1) { in_flight = 1; break; }
         }
         if (!in_flight) {
-            int head = oldest_slot(m, -1);
+            int head = oldest_slot(m, -1, -1);
             if (head >= 0) {
                 int expected = 1;
                 if (atomic_compare_exchange_strong_explicit(&m->slots[head].ready, &expected, -1, memory_order_acq_rel, memory_order_acquire)) {
