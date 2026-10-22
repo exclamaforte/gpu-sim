@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-hfk",
+  "runs": 4,
+  "size_bytes": 524288,
+  "n_floats": 131072,
+  "proto": "Simple",
+  "fill": "non-uniform (h[i] = val + i*0.001)",
+  "results": [
+    {"run": "nu512_1", "wrong": 122880, "total": 131072, "first_idx": 0, "got": 101.304001},
+    {"run": "nu512_2", "wrong": 98304, "total": 131072, "first_idx": 8192, "got": 84.920006},
+    {"run": "nu512_3", "wrong": 65536, "total": 131072, "first_idx": 16384, "got": 134.072006},
+    {"run": "nu512_test8", "wrong": 65536, "total": 131072, "first_idx": 16384, "got": 134.072006}
+  ],
+  "conclusion": "VALUE MISMATCH in all 4 runs. Bug is in plugin data path (memcpy on GPU pointers). Not a reduction script error."
+}
