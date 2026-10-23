@@ -1,0 +1,101 @@
+{
+  "bead": "gpu-sim-2al",
+  "dataset": {
+    "source_commit": "df3dbcb",
+    "n_rows": 673,
+    "n_usable": 673,
+    "families": [
+      "elementwise",
+      "matmul",
+      "reduction",
+      "softmax",
+      "transpose"
+    ],
+    "sizes_range": [
+      262144,
+      16777216
+    ],
+    "source_family": "numeric-only (all rows from measurement harness)",
+    "features_masked": [
+      7,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      29,
+      30,
+      31,
+      32
+    ]
+  },
+  "wiring_check": {
+    "n_feature_slots": 33,
+    "slots_all_zero_in_training_set": [
+      7,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      29,
+      30,
+      31,
+      32
+    ],
+    "test": "tests/test_2al_wiring.py"
+  },
+  "cells": {
+    "latency->latency": {
+      "roofline_94": 2.6083,
+      "gbt_95": 2.9931,
+      "transformer_91": null
+    }
+  },
+  "gaps": [
+    {
+      "head": "latency->memory",
+      "reason": "no memory measurements in this dataset"
+    },
+    {
+      "head": "memory->memory",
+      "reason": "no memory measurements in this dataset"
+    }
+  ],
+  "heldout_family": "matmul",
+  "verdict": "UNDERPOWERED",
+  "verdict_detail": {
+    "underpowered_reasons": [
+      "transformer training did not converge (NaN); only GBT/roofline available"
+    ]
+  },
+  "headline": "UNDERPOWERED"
+}
