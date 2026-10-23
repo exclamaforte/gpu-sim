@@ -107,3 +107,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+Physical descriptors used for the secondary leave-one-family-out protocol
+(written formulas, per family):
+  bytes_moved = 2 * n * 4  (read input + write output, float32)
+  flops       = n            (elementwise/reduction/transpose/softmax)
+               = n * 64      (matmul: m*m*K, K=64, n=m*m)
+  arithmetic_intensity = flops / bytes_moved
+  grid        = min((n + block - 1) // block, 65535)
+  waves_per_sm = grid / 170   (RTX 5090 SM count)
+  block       = launch block size (128/256/512)
+These are DERIVED, not measured, and are stated here so the secondary table
+is reproducible. For the held-out family (matmul) they are out of training
+distribution, so the analytic roofline degenerates to the training mean.

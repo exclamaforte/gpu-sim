@@ -122,5 +122,6 @@
     },
     "mean_predictor_floor": 2.6083
   },
-  "headline": "CONFIRMED"
+  "headline": "CONFIRMED",
+  "roofline_degeneracy": "secondary leave-one-family-out: roofline == train-mean (2.6083) because physical descriptors are masked/constant for the held-out family (matmul), so the analytic model has no family descriptor and predicts the training mean for an unseen family (possibility (b))."
 }

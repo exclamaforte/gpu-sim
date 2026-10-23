@@ -74,6 +74,7 @@ def main():
             "mean_predictor_floor": round(sec["mean"],4),
         },
         "headline": verdict,
+        "roofline_degeneracy": "secondary leave-one-family-out: roofline == train-mean (2.6083) because physical descriptors are masked/constant for the held-out family (matmul), so the analytic model has no family descriptor and predicts the training mean for an unseen family (possibility (b)).",
     }
     pathlib.Path(args.out).write_text(json.dumps(metrics, indent=2)+"\n")
     print("wrote", args.out)
