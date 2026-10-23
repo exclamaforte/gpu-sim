@@ -1,0 +1,130 @@
+# Training-run parallelism simulator — current design
+
+Written 2026-10-23. Describes what exists and how to run it. Supersedes an
+earlier draft of this file that proposed an analytic FLOP-counting model; the
+project's premise is the opposite of that, and the draft was wrong.
+
+## 1. Premise
+
+**Intercept the libraries, don't re-implement the model.**
+
+A training program written against torch / NCCL runs unmodified. The CUDA and
+NCCL symbols it calls are resolved to our interposer instead of the real ones, so
+timing and traffic decisions are made below the Python line. The same program can
+then be run against different parallelism configurations and different fabrics
+without being rewritten, and the trace that comes out is a record of what the
+program *actually asked the hardware to do* — not a spreadsheet's opinion about
+it.
+
+North star: run a real torch model under different parallelism configurations
+(DP now; TP/PP later), see the collective traffic and the time it costs, and use
+that to pick a configuration before committing GPUs to one.
+
+Accuracy is explicitly not the first bar. With no calibration data, per-kernel
+times are synthetic (random within a declared range) and collectives are timed by
+the declared fabric model. What must be right first is the **structure**: which
+collectives are issued, with what sizes, in what order, by which rank.
+
+## 2. What exists
+
+| Piece | Where | State |
+|---|---|---|
+| CUDA runtime + driver interposer | `src/`, `shim/cuda_runtime.h` | 89 exported `cuda*`/`cu*` symbols; random fill; fixed, bandwidth, table-driven or synthetic latency |
+| NCCL interposer | `src/fakegpu_nccl.c`, `shim/nccl.h` | 68 symbols — now the **full set torch references** (see §4) |
+| NCCL-only build | `libfakenccl.so` + `shim/exports_nccl.map` | exports only `nccl*`, so torch computes on the real GPU with fake collectives |
+| Trace emission | `fg_nccl_trace`, `GPUSIM_TRACE=<path>` | JSONL, one line per collective per rank |
+| Fabric cost model | `epic_cluster/link_model.py` | predicts collective duration from a declared topology; measured for n=2, refuses n≥3 without explicit `pieces_per_phase` |
+| Torch harness | `tools/torch_parallel/` | runs a real transformer, sweeps world sizes, summarises |
+| Rack planner (analytic) | `cy0_l1..l4.py` | pre-existing FLOP/roofline planner; **separate track**, not used by the harness |
+
+## 3. How a run works
+
+```
+torchrun --nproc_per_node=N  tools/torch_parallel/train.py
+   └─ torch program (unchanged): TinyLM, AdamW, backward
+        ├─ CUDA calls   → real GPU (compute is real, on the physical card)
+        └─ NCCL calls   → libfakenccl.so
+                            ├─ simulated duration (fabric model, or fallback)
+                            └─ one JSONL line per collective: rank, op, dtype,
+                               count, bytes, timestamp, predicted_s
+```
+
+Two facts that make this work, both learned the hard way (see §4):
+
+- **Ranks share the one real GPU.** The multi-device fan-out is simulated. Every
+  rank calls `torch.cuda.set_device(0)`; asking for device==rank is what
+  "invalid device ordinal" means on a one-GPU box.
+- **Collectives simulate timing, not data.** Buffers are left untouched
+  (`FAKEGPU_NCCL_NO_FILL=1`), because writing into a real device pointer from the
+  host segfaults, and because only the timing is being simulated. Consequence:
+  after `all_reduce` the gradient is not the true sum across ranks. Traffic and
+  timing are real; the arithmetic is not.
+
+## 4. Findings that changed the design
+
+**A single `LD_PRELOAD` of `libfakegpu.so` cannot drive torch.** It replaces
+`cuda*` and `cu*`, but torch's real `libcudart` resolves the driver through
+`dlopen("libcuda.so.1")` + `dlsym`, which preload does not interpose. The process
+ends up with fake handles reaching the real driver and dies inside
+`cuEventRecordWithFlags`. Standing in for the driver instead means implementing
+**462** `cu*` symbols that cudart looks up by name — measured, not estimated.
+
+**So the interposer is split.** `libfakenccl.so` exports `nccl*` only. CUDA stays
+real, NCCL is simulated. That is the split that runs torch today.
+
+**torch references 51 `nccl*` symbols; the interposer exported 38.** The missing
+ones included `ncclCommInitRankConfig` — the call `ProcessGroupNCCL` actually
+makes — so torch silently fell through to real NCCL and failed in
+`ncclSocketInit`. The full set is now covered (config init, unique ids, user
+rank, `ncclMemAlloc/Free`, group-simulate-end, pre-mul-sum, the `Bcast`/`AlltoAll`
+/`Gather` spellings, and benign success stubs for the window/device-comm/signal
+extensions a plain run never exercises).
+
+**Device count comes from NVML, not CUDA.** `torch.cuda.device_count()` consults
+`nvmlDeviceGetCount_v2` on the real driver. Interposing CUDA alone will not make
+torch see more devices. Relevant only for single-process multi-device programs;
+the harness sidesteps it by using one process per rank.
+
+**`torch.nn.parallel.DistributedDataParallel` cannot be used as-is.** DDP
+cross-checks parameter counts with a real all_gather, so it needs collectives that
+move payload. The harness does the gradient all-reduce explicitly instead — the
+same traffic DDP would produce, un-bucketed.
+
+## 5. Running it
+
+```bash
+make libfakenccl.so                      # once
+python3 -m tools.torch_parallel.sweep --world-sizes 1 2 --steps 3
+python3 -m tools.torch_parallel.sweep --world-sizes 1 2 --delay-ms 0.5 2.0
+```
+
+Measured on this box (RTX 5090, 5.2M-parameter model, 2 steps):
+
+```
+world   step_ms  coll_msgs   coll_MB     params
+    1     272.4          0       0.0    5242880
+    2     289.0         75     129.1    5242880
+```
+
+That table is the scaffold doing its job: doubling data-parallel width adds 75
+collectives and 129 MB per rank, and the step time moves accordingly.
+
+## 6. What is not built yet
+
+- **Fabric-backed timing on the harness path.** Without `GPUSIM_TOPO`, collectives
+  take the fallback duration and are traced with `predicted_s: null`. Wiring
+  `link_model.predict()` into that path is the next step, and it is what turns
+  "we issued 75 collectives" into "they cost X ms".
+- **TP and PP.** Only DP is exercised. TP/PP need sharded parameters and
+  per-stage send/recv; the interposer already traces `send`/`recv`.
+- **Data-correct collectives.** Would need a transport between ranks (shared
+  memory or sockets in the interposer). Not required for timing comparison;
+  required before any convergence claim.
+- **Single-process multi-device enumeration.** Blocked on NVML interposition.
+
+## 7. Non-goals
+
+- Convergence. The harness moves no data between ranks.
+- Bit-accurate step times without calibration.
+- Re-implementing the model's arithmetic at a higher level. If a number cannot be
+  observed at the library boundary, this project does not report it.

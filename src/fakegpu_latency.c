@@ -13,6 +13,8 @@
 
 #include <errno.h>
 #include <time.h>
+#include <stdlib.h>
+#include <string.h>
 
 static long g_have_any_latency = 0; /* set once a nonzero latency is observed */
 
@@ -68,6 +70,29 @@ void fg_simulate_kernel_resolved(const char *kernel_name,
     if (c->kernel_latency_ms > 0) {
         g_have_any_latency = 1;
         fg_sleep_ns((long)(c->kernel_latency_ms * 1000000.0));
+        return;
+    }
+    /* gpu-sim-torch-harness: synthetic mode. With no model loaded, a run still
+     * has to produce plausible per-kernel timing or a trace of it is empty.
+     * FAKEGPU_LATENCY_MODE=random draws each kernel's duration uniformly from
+     * [FAKEGPU_LATENCY_MIN_MS, FAKEGPU_LATENCY_MAX_MS]; the point is to give the
+     * scheduler and the trace real structure to reason about before any
+     * calibration exists. */
+    {
+        const char *mode = getenv("FAKEGPU_LATENCY_MODE");
+        if (mode && strcmp(mode, "random") == 0) {
+            double lo = 0.01, hi = 1.0;
+            const char *smin = getenv("FAKEGPU_LATENCY_MIN_MS");
+            const char *smax = getenv("FAKEGPU_LATENCY_MAX_MS");
+            if (smin && *smin) lo = strtod(smin, NULL);
+            if (smax && *smax) hi = strtod(smax, NULL);
+            if (hi < lo) { double t = lo; lo = hi; hi = t; }
+            unsigned long long r = fg_rng_next();
+            double u = (double)(r % 1000000ULL) / 1000000.0;
+            double ms = lo + u * (hi - lo);
+            g_have_any_latency = 1;
+            fg_sleep_ns((long)(ms * 1000000.0));
+        }
     }
 }
 
