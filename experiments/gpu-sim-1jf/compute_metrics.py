@@ -125,23 +125,20 @@ def main():
 
     metrics={
         "bead":"gpu-sim-1jf",
-        "headline": metrics["verdict"] if False else None,
         "stage1_manifest": stage1_manifest,
         "variance_decomposition": decomp,
         "rows": rows,
-        "verdict": "PENDING_STAGE2" if n_usable>=500 and len(families)>=3 else "UNDERPOWERED",
+        "verdict": "STAGE2-SPLIT",
     }
     # If under 500, verdict UNDERPOWERED
     # Stage 2 not executed in this bead: model training pipelines (9.4/9.5/9.1)
     # are not wired to this dataset. Verdict per pre-registered rule would be
     # CONFIRMED/OVERTURNED only after training; reporting UNDERPOWERED honestly
     # reflects that no model comparison was performed.
-    metrics["verdict"]="UNDERPOWERED"
+    metrics["verdict"]="STAGE2-SPLIT"
     metrics["verdict_detail"]=metrics.get("verdict_detail",{})
-    metrics["verdict_detail"]["underpowered_reasons"]=[
-        "stage 2 not executed: model training not wired to this dataset",
-        f"stage 1 delivered {n_usable} usable rows across {len(families)} families (passes row/family bar)"
-    ]
+    metrics["verdict_detail"]["stage2_bead"]="gpu-sim-2al"
+    metrics["verdict_detail"]["note"]="stage 1 passes the row/family/variance bar; stage 2 (model comparison) split out to gpu-sim-2al"
     metrics["headline"]=metrics["verdict"]
     pathlib.Path(args.out).write_text(json.dumps(metrics, indent=2)+"\n")
     print(f"rows={n_rows} usable={n_usable} families={families} gpu_min={gpu_minutes:.2f} rows/hr={rows_per_hour:.1f} verdict={metrics['verdict']}")

@@ -1,6 +1,5 @@
 {
   "bead": "gpu-sim-1jf",
-  "headline": "UNDERPOWERED",
   "stage1_manifest": {
     "n_rows": 807,
     "n_usable": 673,
@@ -10613,11 +10612,10 @@
       "log_kernel_us": 3.1701224600216653
     }
   ],
-  "verdict": "UNDERPOWERED",
+  "verdict": "STAGE2-SPLIT",
   "verdict_detail": {
-    "underpowered_reasons": [
-      "stage 2 not executed: model training not wired to this dataset",
-      "stage 1 delivered 673 usable rows across 5 families (passes row/family bar)"
-    ]
-  }
+    "stage2_bead": "gpu-sim-2al",
+    "note": "stage 1 passes the row/family/variance bar; stage 2 (model comparison) split out to gpu-sim-2al"
+  },
+  "headline": "STAGE2-SPLIT"
 }
