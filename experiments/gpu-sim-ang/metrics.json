@@ -1,18 +1,38 @@
 {
   "bead": "gpu-sim-ang",
-  "step0": {
-    "status": "not_computed",
-    "reason": "feature extraction from canonical_fixture.json to KernelFeatures not wired; 17.4 numbers quoted as history only",
-    "history": {
-      "elementwise": 0.969,
-      "matmul": 0.409,
-      "reduce": 0.473
-    }
+  "step0_baseline": {
+    "elementwise": 0.9689837171671472,
+    "matmul": 0.409073942707547,
+    "reduce": 0.47278598523063287
+  },
+  "step0_pinned": {
+    "elementwise": 0.969,
+    "matmul": 0.409,
+    "reduce": 0.473
   },
   "levers": {
-    "interior_interpolation": "not_run",
-    "two_regime_elementwise": "not_run"
+    "baseline": {
+      "elementwise": 0.9689837171671472,
+      "matmul": 0.409073942707547,
+      "reduce": 0.47278598523063287
+    },
+    "+l1": {
+      "elementwise": 0.62910585166514,
+      "matmul": 0.1928950401776707,
+      "reduce": 0.45892668743426207
+    },
+    "+l2": {
+      "elementwise": 0.5964151917305041,
+      "matmul": 0.409073942707547,
+      "reduce": 0.47278598523063287
+    },
+    "+both": {
+      "elementwise": 0.714662120371881,
+      "matmul": 0.1928950401776707,
+      "reduce": 0.45892668743426207
+    }
   },
-  "verdict": "BOUNDED-RESIDUAL",
-  "headline": "BOUNDED-RESIDUAL"
+  "verdict": "GAP-REMAINS",
+  "bar": 0.25,
+  "bar_criterion": "u2o.17: median |sim-measured|/measured <= 25% per op class"
 }
