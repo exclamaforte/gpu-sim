@@ -32,6 +32,9 @@ from 10.4's cells by headline_114.py, pinned by test). Axes without a
 headline (ranking, calibration, suites, mem->mem) are listed in the
 artifact, not silently dropped. Per PI ruling, 11.4 consumes 10.4's
 verdict; gap-filling is new-leaf work.
+UNDERPOWERED caveat (gpu-sim-tsy): 11.4's target is ~97% dispatch overhead;
+the sound-target re-run has only 8 usable rows and reports no model ranking.
+11.4's NO stands only on the original target; see experiments/gpu-sim-tsy/.
 # 11.5 writeup (real numbers, drift-pinned)
 
 results_writeup.md rewritten from committed artifacts (merged only;

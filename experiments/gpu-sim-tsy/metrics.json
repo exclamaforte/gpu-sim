@@ -1,0 +1,54 @@
+{
+  "bead": "gpu-sim-tsy",
+  "dataset": {
+    "n_rows": 25,
+    "n_usable_rows": 8,
+    "n_excluded": 17,
+    "families": [
+      "elementwise",
+      "matmul",
+      "reduction",
+      "softmax",
+      "transpose"
+    ],
+    "sizes": [
+      262144,
+      4194304,
+      16777216
+    ],
+    "target_field": "kernel_us",
+    "target_transform": "ln(kernel_us) (natural log), matching 10.4 log-space MAE",
+    "target_variance": 6.148097971881333
+  },
+  "cells": {},
+  "gaps": [
+    {
+      "head": "latency->latency",
+      "reason": "underpowered: no training run (8 usable rows)"
+    },
+    {
+      "head": "latency->memory",
+      "reason": "underpowered: no training run (8 usable rows)"
+    },
+    {
+      "head": "memory->memory",
+      "reason": "underpowered: no training run (8 usable rows)"
+    }
+  ],
+  "verdict": "UNDERPOWERED",
+  "verdict_detail": {
+    "underpowered_reasons": [
+      "usable rows 8 < 500"
+    ],
+    "data_requirement": {
+      "usable_rows_now": 8,
+      "usable_rows_needed": 500,
+      "additional_usable_rows_needed": 492,
+      "families_now": 5,
+      "families_needed": 3,
+      "estimated_gpu_hours": 16.4,
+      "note": "Each new (family,size) cell costs ~2 min of GPU (batched+single sweep). 8 of 25 current cells usable; need ~492 more usable cells."
+    }
+  },
+  "headline": "UNDERPOWERED"
+}

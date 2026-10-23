@@ -50,6 +50,12 @@ latency->latency: GBT 0.107 < transformer 0.144 < roofline 0.564.
 latency->memory: GBT 0.027 < transformer 0.260 < roofline 0.687. GBT wins
 both; the transformer beats the roofline ~4x/2.6x and loses to the
 numeric-only GBT -- the sequence channel earns nothing at this scale.
+NOTE (gpu-sim-tsy, 2026-10-23): 11.4's headline above was measured on a
+target that is ~97% dispatch overhead (gpu-sim-u2o.7.1). The re-run on the
+sound target (kernel_us, gate threshold) is UNDERPOWERED: only 8 usable rows,
+so no model ranking is reported. See experiments/gpu-sim-tsy/metrics.json and
+REPORT.md. 11.4's NO is therefore unqualified on the sound target; it stands
+only as a result on the original target.
 Gaps recorded, not filled: ranking/calibration need per-row predictions
 none of the three approaches committed; generalization suites await 10.3;
 memory->memory has no learned-approach test cell (roofline 1.1209 is from
