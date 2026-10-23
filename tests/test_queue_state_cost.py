@@ -82,6 +82,13 @@ def loader_call(**kwargs):
 
 class TestInstrumentIsCheapEnough(unittest.TestCase):
     def setUp(self):
+        # Each timing test must start from the same cache state. Without this,
+        # tests in this class share one warm cache and poison each other's
+        # measurements: test_cache_actually_engages + test_does_not_regress
+        # fails in BOTH orders when run together, while each passes alone.
+        qs.reset_cache()
+
+    def setUp(self):
         qs.reset_cache()
     def test_cached_order_of_magnitude_faster_than_uncached(self):
         """THE BEAD'S GUARD, differential rather than absolute.
