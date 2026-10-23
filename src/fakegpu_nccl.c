@@ -36,6 +36,22 @@ static int fg_nccl_rank_from_env(void)
     return 0;
 }
 
+
+/* gpu-sim-torch-harness: fill the output buffer ONLY when the buffer is ours.
+ *
+ * Under real CUDA (the NCCL-only libfakenccl.so path) recvbuff is a device
+ * pointer from the real allocator: an fg_fill from the host SIGSEGVs, and
+ * writing at all would be wrong, because only the TIMING is simulated and the
+ * data must stay exactly as the real kernels produced it.
+ * FAKEGPU_NCCL_NO_FILL=1 disables the fill for every collective.
+ */
+static void fg_nccl_out_fill(void *buf, size_t nbytes)
+{
+    const char *no_fill = getenv("FAKEGPU_NCCL_NO_FILL");
+    if (buf && nbytes && !(no_fill && *no_fill))
+        fg_fill(buf, nbytes);
+}
+
 static ncclComm_t fg_nccl_fake_comm(int nrank, int rank)
 {
     int n = nrank > 0 ? nrank : (int)fg_cfg()->num_devices;
@@ -170,7 +186,7 @@ ncclResult_t ncclRecv(void *recvbuff, size_t count, int datatype,
 {
     (void)datatype; (void)peer; (void)comm; (void)stream;
     fg_simulate_memcpy(count);
-    if (recvbuff && count) fg_fill(recvbuff, count);
+    fg_nccl_out_fill(recvbuff, count);
     return ncclSuccess;
 }
 
@@ -486,6 +502,11 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
 
 /* ---- collectives --------------------------------------------------------- */
 
+/* gpu-sim-torch-harness: the fallback path (no GPUSIM_TOPO loaded) still has
+ * to emit a trace line, or a torch run against the simulated fabric produces
+ * no evidence at all. fg_cur_op names the collective the caller is in. */
+static const char *fg_cur_op = "collective";
+
 static void fg_collective_out(void *recvbuff, size_t count, int datatype,
                             ncclComm_t comm)
 {
@@ -509,12 +530,19 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
     while (tmp > 1) { lvl++; tmp >>= 1; }
     if (lvl > 0) bytes = bytes + bytes * (size_t)lvl / 2;
     fg_simulate_memcpy(bytes);
-    if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+    fg_nccl_out_fill(recvbuff, bytes);
+
+    /* Fallback path: no declared topology, so no predicted duration -- but the
+     * event itself is real and belongs in the trace (rank, op, bytes, when). */
+    int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : fg_nccl_rank_from_env();
+    fg_nccl_trace(fg_cur_op, rk, nr, count, fg_dtype_name(datatype), bytes,
+                  "fallback", FG_NCCL_REFUSED, -1, "unmodelled");
 }
 
 ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                            int datatype, int op, ncclComm_t comm, void *stream)
 {
+    fg_cur_op = "allreduce";
     (void)sendbuff; (void)op; (void)stream;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
@@ -524,7 +552,7 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
-        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
         return ncclSuccess;
     }
@@ -541,6 +569,7 @@ ncclResult_t ncclAllReduce_v2(const void *sendbuff, void *recvbuff, size_t count
 ncclResult_t ncclBroadcast(const void *sendbuff, void *recvbuff, size_t count,
                            int datatype, int root, ncclComm_t comm, void *stream)
 {
+    fg_cur_op = "broadcast";
     (void)sendbuff; (void)root; (void)stream;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
@@ -550,7 +579,7 @@ ncclResult_t ncclBroadcast(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "tree_bcast", count, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
-        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("broadcast", rk, nr, count, fg_dtype_name(datatype), bytes, "tree_bcast", pred, bl, regime);
         return ncclSuccess;
     }
@@ -576,6 +605,7 @@ ncclResult_t ncclReduce(const void *sendbuff, void *recvbuff, size_t count,
                         int datatype, int op, int root, ncclComm_t comm,
                         void *stream)
 {
+    fg_cur_op = "reduce";
     (void)sendbuff; (void)op; (void)root; (void)stream;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
@@ -585,7 +615,7 @@ ncclResult_t ncclReduce(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
-        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("reduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
         return ncclSuccess;
     }
@@ -611,6 +641,7 @@ ncclResult_t ncclReduce_v3(const void *sendbuff, void *recvbuff, size_t count,
 ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
                            int datatype, ncclComm_t comm, void *stream)
 {
+    fg_cur_op = "allgather";
     (void)sendbuff; (void)stream;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
@@ -620,7 +651,7 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "ring_allgather", count, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * (size_t)nr * fg_dtype_size(datatype);
-        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime);
         return ncclSuccess;
     }
@@ -640,6 +671,7 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
                                const size_t *recvcount, int datatype, int op,
                                ncclComm_t comm, void *stream)
 {
+    fg_cur_op = "reducescatter";
     (void)sendbuff; (void)op; (void)stream;
     size_t rc = recvcount ? recvcount[0] : 0;
     fg_topo_t *t = fg_nccl_topo();
@@ -650,7 +682,7 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
         double pred = fg_nccl_predict(t, "ring_reduce_scatter", rc, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = rc * fg_dtype_size(datatype);
-        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime);
         return ncclSuccess;
     }
@@ -661,6 +693,7 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
 ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
                           int datatype, ncclComm_t comm, void *stream)
 {
+    fg_cur_op = "alltoall";
     (void)sendbuff; (void)stream;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
@@ -670,7 +703,7 @@ ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "ring_alltoall", count, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
-        if (recvbuff && bytes) fg_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("alltoall", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_alltoall", pred, bl, regime);
         return ncclSuccess;
     }
@@ -681,6 +714,7 @@ ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
 ncclResult_t ncclAllToAll_v2(const void *sendbuff, void *recvbuff, size_t count,
                              int datatype, ncclComm_t comm, void *stream)
 {
+    fg_cur_op = "alltoall";
     return ncclAllToAll(sendbuff, recvbuff, count, datatype, comm, stream);
 }
 
@@ -726,4 +760,186 @@ const char *ncclGetErrorString(ncclResult_t code)
     case ncclErrorInvalidArgument: return "invalid argument";
     default:                       return "unknown error";
     }
+}
+
+/* ==========================================================================
+ * Torch-compatible ABI surface.
+ *
+ * torch's libtorch_cuda references 51 nccl* symbols; the interposer exported
+ * 38. The missing ones included ncclCommInitRankConfig -- the entry point
+ * ProcessGroupNCCL actually calls -- so torch fell through to the REAL NCCL
+ * and died in ncclSocketInit with no transport. Everything below exists so a
+ * torch distributed program can run against the simulated fabric.
+ *
+ * Signatures follow nvidia/nccl/include/nccl.h. ncclUniqueId is 128 bytes
+ * passed BY VALUE; getting that wrong corrupts the call, so it is declared
+ * explicitly here rather than reused from the 8-byte shim typedef.
+ * ========================================================================== */
+
+typedef struct { char internal[128]; } fg_nccl_unique_id;
+
+/* Opaque to us: torch allocates and passes it, we never read it. */
+typedef struct fg_nccl_config fg_nccl_config_t;
+
+ncclResult_t ncclGetUniqueId2(fg_nccl_unique_id *uniqueId)
+{
+    if (!uniqueId) return ncclErrorInvalidArgument;
+    /* Every rank must agree on the id for torch's own rendezvous check; the
+     * value carries no transport meaning because init ignores it. */
+    memset(uniqueId->internal, 0x5a, sizeof(uniqueId->internal));
+    return ncclSuccess;
+}
+
+ncclResult_t ncclCommInitRankConfig(ncclComm_t *comm, int nranks,
+                                    fg_nccl_unique_id commId, int rank,
+                                    fg_nccl_config_t *config)
+{
+    (void)commId; (void)config;
+    return ncclCommInitRank(comm, nranks, rank, 0ULL);
+}
+
+ncclResult_t ncclCommUserRank(const ncclComm_t comm, int *rank)
+{
+    if (!rank) return ncclErrorInvalidArgument;
+    *rank = comm ? ((struct fg_nccl_comm *)comm)->rank : fg_nccl_rank_from_env();
+    return ncclSuccess;
+}
+
+ncclResult_t ncclCommGetUniqueId(const ncclComm_t comm, fg_nccl_unique_id *id)
+{
+    (void)comm;
+    return ncclGetUniqueId2(id);
+}
+
+const char *ncclGetLastError(ncclComm_t comm)
+{
+    (void)comm;
+    return "";
+}
+
+/* Torch's NCCL allocator routes through these two. */
+ncclResult_t ncclMemAlloc(void **ptr, size_t size)
+{
+    if (!ptr) return ncclErrorInvalidArgument;
+    *ptr = malloc(size ? size : 1);
+    return *ptr ? ncclSuccess : ncclSystemError;
+}
+
+ncclResult_t ncclMemFree(void *ptr)
+{
+    free(ptr);
+    return ncclSuccess;
+}
+
+ncclResult_t ncclGroupSimulateEnd(int result)
+{
+    (void)result;
+    return ncclSuccess;
+}
+
+ncclResult_t ncclRedOpCreatePreMulSum(ncclRedOp_t *op, void *scalar,
+                                      int datatype, int residence,
+                                      ncclComm_t comm)
+{
+    (void)scalar; (void)datatype; (void)residence; (void)comm;
+    if (op) *op = 0;
+    return ncclSuccess;
+}
+
+/* Collective spellings torch may use that the interposer did not export. */
+ncclResult_t ncclBcast(void *buff, size_t count, int datatype, int root,
+                       ncclComm_t comm, void *stream)
+{
+    return ncclBroadcast(buff, buff, count, datatype, root, comm, stream);
+}
+
+ncclResult_t ncclAlltoAll(const void *sendbuff, void *recvbuff, size_t count,
+                          int datatype, ncclComm_t comm, void *stream)
+{
+    return ncclAllToAll_v2(sendbuff, recvbuff, count, datatype, comm, stream);
+}
+
+/*
+ * Benign stubs. These are newer NCCL extension calls (windows, device comms,
+ * signals) that torch references but a plain DDP/FSDP run does not exercise.
+ * They return success so the dynamic linker and any feature probe succeed;
+ * none of them is load-bearing for simulated timing.
+ */
+#define FG_NCCL_STUB(name, ...) \
+    ncclResult_t name(__VA_ARGS__) { return ncclSuccess; }
+
+ncclResult_t ncclCommRegister(const ncclComm_t comm, void *buff, size_t size, void **handle)
+{ (void)comm; (void)buff; (void)size; if (handle) *handle = buff; return ncclSuccess; }
+
+ncclResult_t ncclCommDeregister(const ncclComm_t comm, void *handle)
+{ (void)comm; (void)handle; return ncclSuccess; }
+
+ncclResult_t ncclCommWindowRegister(ncclComm_t comm, void *buff, size_t size,
+                                     void **win, int flags)
+{ (void)comm; (void)buff; (void)size; (void)flags; if (win) *win = buff; return ncclSuccess; }
+
+ncclResult_t ncclCommWindowDeregister(ncclComm_t comm, void *win)
+{ (void)comm; (void)win; return ncclSuccess; }
+
+ncclResult_t ncclDevCommCreate(ncclComm_t comm, const void *req, void *devComm)
+{ (void)comm; (void)req; (void)devComm; return ncclSuccess; }
+
+ncclResult_t ncclDevCommDestroy(ncclComm_t comm, const void *devComm)
+{ (void)comm; (void)devComm; return ncclSuccess; }
+
+ncclResult_t ncclCommSuspend(ncclComm_t comm)
+{ (void)comm; return ncclSuccess; }
+
+ncclResult_t ncclCommResume(ncclComm_t comm)
+{ (void)comm; return ncclSuccess; }
+
+ncclResult_t ncclCommRevoke(ncclComm_t comm)
+{ (void)comm; return ncclSuccess; }
+
+ncclResult_t ncclCommGrow(ncclComm_t comm, int nranks, int rank, ncclComm_t *newcomm)
+{ (void)comm; (void)nranks; (void)rank; if (newcomm) *newcomm = comm; return ncclSuccess; }
+
+ncclResult_t ncclCommShrink(ncclComm_t comm, int *exclude, int n, ncclComm_t *newcomm)
+{ (void)exclude; (void)n; if (newcomm) *newcomm = comm; return ncclSuccess; }
+
+ncclResult_t ncclCommMemStats(ncclComm_t comm, size_t *used, size_t *limit)
+{ (void)comm; if (used) *used = 0; if (limit) *limit = 0; return ncclSuccess; }
+
+ncclResult_t ncclSignal(int ctx, void *buf, int off, void *handle)
+{ (void)ctx; (void)buf; (void)off; (void)handle; return ncclSuccess; }
+
+ncclResult_t ncclWaitSignal(int n, void **handles)
+{ (void)n; (void)handles; return ncclSuccess; }
+
+ncclResult_t ncclPutSignal(void *buf, int off, int ctx, void *handle)
+{ (void)buf; (void)off; (void)ctx; (void)handle; return ncclSuccess; }
+
+ncclResult_t ncclGetPeerDevicePointer(ncclComm_t comm, int rank, void *ptr, size_t size)
+{ (void)comm; (void)rank; (void)ptr; (void)size; return ncclSuccess; }
+
+ncclResult_t ncclGetLsaMultimemDevicePointer(ncclComm_t comm, void *ptr, void *out)
+{ (void)comm; (void)ptr; if (out) *(void **)out = ptr; return ncclSuccess; }
+
+ncclResult_t ncclWinGetUserPtr(void *win, void **ptr)
+{ if (ptr) *ptr = win; return ncclSuccess; }
+
+ncclResult_t ncclGather(const void *sendbuff, void *recvbuff, size_t count,
+                        int datatype, int root, ncclComm_t comm, void *stream)
+{
+    fg_cur_op = "gather";
+    (void)root;
+    fg_collective_out(recvbuff, count, datatype, comm);
+    return ncclSuccess;
+}
+
+/* Multi-device init in one process: the shape FAKEGPU models natively. */
+ncclResult_t ncclCommInitAll(ncclComm_t *comm, int ndev, const int *devlist)
+{
+    if (!comm || ndev < 1) return ncclErrorInvalidArgument;
+    for (int i = 0; i < ndev; i++) {
+        (void)devlist;
+        comm[i] = fg_nccl_fake_comm(ndev, i);
+        if (!comm[i]) return ncclSystemError;
+    }
+    return ncclSuccess;
 }

@@ -42,7 +42,17 @@ FIFO_TEST_BIN = build/test_fabric_fifo
 
 .PHONY: all check clean
 
-all: $(LIB) libfakecuda.so
+all: $(LIB) libfakecuda.so libfakenccl.so
+
+# gpu-sim-torch-harness: NCCL-only interposer for torch.
+# Preloading all of $(LIB) also replaces cuda*/cu*, while torch's real libcudart
+# resolves the driver through dlopen("libcuda.so.1")+dlsym -- so fake handles
+# reach the real driver and torch dies in cuEventRecordWithFlags. This target
+# exports ONLY nccl*, so a torch program computes on the real GPU while every
+# collective is simulated.
+libfakenccl.so: $(OBJS) shim/exports_nccl.map
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=shim/exports_nccl.map \
+	    -o $@ $(OBJS) -ldl -lpthread
 
 $(LIB): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) -ldl -lpthread
