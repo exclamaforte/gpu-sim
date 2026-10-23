@@ -23,22 +23,34 @@ typedef void *ncclStreamCtx_t;
 
 typedef int ncclDataType_t;
 
+/* These values MUST match real NCCL's ncclDataType_t exactly. torch passes the
+ * constants it compiled against, so a permuted enum silently mislabels every
+ * buffer size: this header previously had Float32=6, Float64=7, Float16=8, while
+ * real NCCL has Float16=6, Float32=7, Float64=8. The result was float32 counted
+ * as 8 bytes/element and float16 as 4 -- every reported collective volume for the
+ * dominant dtype was exactly 2x too large, and the error was invisible because
+ * the numbers were self-consistent. Measured with a 1000-element probe: 4000 B of
+ * float32 traced as 8000 B.
+ *
+ * Reference: real nccl.h -- Int8=0, Uint8=1, Int32=2, Uint32=3, Int64=4, Uint64=5,
+ * Float16=6/Half=6, Float32=7/Float=7, Float64=8/Double=8, Bfloat16=9. */
 #define ncclInt8       ((ncclDataType_t)0)
 #define ncclChar       ((ncclDataType_t)0)
 #define ncclUint8      ((ncclDataType_t)1)
 #define ncclInt32      ((ncclDataType_t)2)
-#define ncclInt          ((ncclDataType_t)2)
+#define ncclInt        ((ncclDataType_t)2)
 #define ncclUint32     ((ncclDataType_t)3)
 #define ncclInt64      ((ncclDataType_t)4)
 #define ncclLong       ((ncclDataType_t)4)
 #define ncclUint64     ((ncclDataType_t)5)
-#define ncclFloat32    ((ncclDataType_t)6)
-#define ncclFloat      ((ncclDataType_t)6)
-#define ncclFloat64    ((ncclDataType_t)7)
-#define ncclDouble     ((ncclDataType_t)7)
-#define ncclFloat16    ((ncclDataType_t)8)
-#define ncclHalf       ((ncclDataType_t)8)
+#define ncclFloat16    ((ncclDataType_t)6)
+#define ncclHalf       ((ncclDataType_t)6)
+#define ncclFloat32    ((ncclDataType_t)7)
+#define ncclFloat      ((ncclDataType_t)7)
+#define ncclFloat64    ((ncclDataType_t)8)
+#define ncclDouble     ((ncclDataType_t)8)
 #define ncclbfloat16   ((ncclDataType_t)9)
+#define ncclBfloat16   ((ncclDataType_t)9)
 
 typedef int ncclRedOp_t;
 
