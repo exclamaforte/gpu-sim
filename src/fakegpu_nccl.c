@@ -811,12 +811,17 @@ ncclResult_t ncclAllGather_v2(const void *sendbuff, void *recvbuff, size_t count
 }
 
 ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
-                               const size_t *recvcount, int datatype, int op,
+                               size_t recvcount, int datatype, int op,
                                ncclComm_t comm, void *stream)
 {
     fg_cur_op = "reducescatter";
     (void)sendbuff; (void)op; (void)stream;
-    size_t rc = recvcount ? recvcount[0] : 0;
+    /* recvcount is BY VALUE in real NCCL. It was declared const size_t* here, so
+     * torch's integer count was dereferenced as a pointer -- a guaranteed
+     * coredump on any FSDP/ZeRO run (seen: SIGSEGV inside this function). A
+     * pointer/scalar mismatch in an ABI shim is worse than a missing function:
+     * the linker accepts it silently because the CALLER decides the convention. */
+    size_t rc = recvcount;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
         int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;

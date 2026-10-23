@@ -62,12 +62,36 @@ def _parse() -> argparse.Namespace:
                    help="pipeline-parallel width: n_layers splits across pp stages")
     p.add_argument("--micro-batches", type=int, default=2,
                    help="GPipe micro-batches per step (must divide --batch)")
+    # ZeRO stage: 1 = plain DP, 2 = shard grads + optimizer states, 3 = shard
+    # parameters too (via FSDP). Verified on the dp axis only (pp==1, tp==1);
+    # tp/pp combinations are refused explicitly until verified, not silently run.
+    p.add_argument("--zero", type=int, default=1, choices=[1, 2, 3],
+                   help="ZeRO stage; 2/3 need dp>1 and pp==tp==1")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--vocab", type=int, default=4096)
     p.add_argument("--seq", type=int, default=512)
     p.add_argument("--d-model", type=int, default=256)
     p.add_argument("--layers", type=int, default=4)
     return p.parse_args()
+
+
+def _zero_mem_model(param_bytes: float, dp: int, zero: int) -> dict:
+    """Analytic per-rank sharded-STATE model (bytes, no activations).
+
+    P = full params; grads = P; AdamW states = 2P. ZeRO-1 shards states,
+    ZeRO-2 shards grads too, ZeRO-3 (FSDP) shards all three. Activations are
+    excluded: no ZeRO stage shards them, so they are the floor the measured
+    peak cannot go below. Compare against measured peak_alloc_MB; the gap is
+    the finding, not an embarrassment."""
+    P = param_bytes
+    if zero == 1:
+        parts = {"params": P, "grads": P, "opt_states": 2 * P / dp}
+    elif zero == 2:
+        parts = {"params": P, "grads": P / dp, "opt_states": 2 * P / dp}
+    else:
+        parts = {"params": P / dp, "grads": P / dp, "opt_states": 2 * P / dp}
+    return {k: round(v / 1e6, 1) for k, v in parts.items()} | \
+        {"state_total_MB": round(sum(parts.values()) / 1e6, 1)}
 
 
 def main() -> int:
@@ -96,6 +120,16 @@ def main() -> int:
     pp_idx = rank // (tp * dp)
     sub = rank % (tp * dp)
     dp_rank, tp_rank = sub // tp, sub % tp
+    zero = args.zero
+    if zero > 1:
+        # Verified on the dp axis only. FSDP over a TP-sharded model or a PP
+        # stage is plausible but unverified; refusing beats silently running.
+        if pp != 1 or tp != 1:
+            raise SystemExit(
+                f"--zero {zero} needs pp==tp==1 (dp axis only), "
+                f"got pp={pp} tp={tp}")
+        if dp < 2:
+            raise SystemExit(f"--zero {zero} needs dp>1 (world {world})")
 
     spec = ModelSpec(vocab=args.vocab, seq=args.seq, d_model=args.d_model,
                      n_layers=args.layers, n_heads=4, d_ff=args.d_model * 4)
@@ -129,6 +163,19 @@ def main() -> int:
         model = PPStage(spec, pp_idx, pp).cuda()
     else:
         model = TinyLM(spec).cuda()
+        if zero == 3:
+            # ZeRO-3 = fully sharded params (FSDP). Verified viable under the
+            # timing-only interposer: the all_gathered payload is garbage
+            # (uninitialized device memory) but FSDP runs to completion and
+            # emits real allgather/reducescatter traffic. Same bargain as the
+            # rest of the harness: traffic and timing are real, values are not.
+            # (Needed a one-line interposer fix first: ncclReduceScatter took
+            # recvcount as a pointer; real NCCL passes size_t by value. The
+            # wrong signature segfaulted FSDP's backward -- fixed in this bead
+            # with tests/test_nccl_rs_signature.py pinning it.)
+            from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+            model = FSDP(model, process_group=dp_group,
+                         device_id=torch.device("cuda", device_index))
     # NOT torch.nn.parallel.DistributedDataParallel.
     #
     # DDP cross-checks parameter counts with a real all_gather, so it needs the
@@ -172,7 +219,14 @@ def main() -> int:
         t0 = time.perf_counter()
         opt.zero_grad(set_to_none=True)
         if not use_pp:
-            loss = model.loss(x)
+            if zero == 3:
+                # FSDP does not expose the inner module's loss; call forward
+                # and score outside, same math as TinyLM.loss.
+                logits = model(x[:, :-1])
+                loss = torch.nn.functional.cross_entropy(
+                    logits.reshape(-1, logits.size(-1)), x[:, 1:].reshape(-1))
+            else:
+                loss = model.loss(x)
             loss.backward()
         else:
             # GPipe: all micro-batch forwards, then all backwards. Blocking
@@ -220,7 +274,7 @@ def main() -> int:
             loss = None
             losses.append(sum(losses_m) / len(losses_m)
                           if losses_m else float("nan"))
-        if dp > 1:
+        if dp > 1 and zero == 1:
             # Data-parallel gradient sync: one all_reduce per parameter, which is
             # the traffic DDP would generate (DDP buckets them; un-bucketed is a
             # conservative upper bound and easier to count from the trace).
@@ -229,7 +283,34 @@ def main() -> int:
             for prm in model.parameters():
                 if prm.grad is not None:
                     dist.all_reduce(prm.grad, group=dp_group)
+        elif dp > 1 and zero == 2:
+            # ZeRO-2: one reduce_scatter of the FLATTENED grads replaces the
+            # per-parameter all_reduces. The shard is a timing event: the local
+            # optimizer still steps full params (same timing-only bargain as
+            # DDP mode -- the update arithmetic is not simulated).
+            grads = [p.grad for p in model.parameters() if p.grad is not None]
+            if grads:
+                flat = torch.cat([gg.reshape(-1) for gg in grads])
+                pad = (-flat.numel()) % dp
+                if pad:
+                    flat = torch.cat([flat, flat.new_zeros(pad)])
+                shard = torch.empty(flat.numel() // dp, device="cuda",
+                                    dtype=flat.dtype)
+                dist.reduce_scatter_tensor(shard, flat, group=dp_group)
         opt.step()
+        if dp > 1 and zero in (1, 2):
+            # ZeRO-1/2 keep sharded optimizer states: after the local step the
+            # updated params are all_gathered back to full replicas -- the
+            # traffic real ZeRO would generate, as a timing event. Gathered
+            # into scratch and DISCARDED: the interposer moves no payload, so
+            # copying the buffer back would corrupt good local params with
+            # uninitialized memory (same reason PP never reads what it recvs).
+            for prm in model.parameters():
+                if prm.grad is not None:
+                    buf = torch.empty(prm.numel() * dp, device="cuda",
+                                      dtype=prm.dtype)
+                    dist.all_gather_into_tensor(buf, prm.contiguous(),
+                                                group=dp_group)
         torch.cuda.synchronize()
 
         delay = 0.0
@@ -239,10 +320,11 @@ def main() -> int:
             if delay > 0:
                 time.sleep(delay)
         if step == n_warm:
-            # The trace is filtered to this instant, so the collective count and
-            # the step times describe the SAME window. Counting warmup traffic
             # against steady-state time is how a sweep quietly lies.
             measure_start_ns = time.time_ns()
+            # Peak memory is windowed the same way: reset here so the peak
+            # covers the measured steps, not CUDA/cuBLAS init.
+            torch.cuda.reset_peak_memory_stats()
         if step >= n_warm:
             step_times.append((time.perf_counter() - t0) + delay)
         if not use_pp:
@@ -261,6 +343,14 @@ def main() -> int:
         "pp_stage": pp_idx if use_pp else 0,
         "micro_batches": args.micro_batches if use_pp else 1,
         "dp": dp,
+        "zero": zero,
+        # Measured peak over the measured window (reset at measure_start).
+        # This is REAL allocator state -- the honest number. It includes
+        # activations, which no ZeRO stage shards; the analytic sharded-state
+        # model below is reported alongside so the two can be compared instead
+        # of conflated. P = params in bytes (fp32); AdamW holds 2 floats/param.
+        "peak_alloc_MB": round(torch.cuda.max_memory_allocated() / 1e6, 1),
+        "mem_model_MB": _zero_mem_model(spec.param_count() * 4, dp, zero),
         "batch": args.batch,
         "steps": args.steps,
         "warmup_steps": n_warm,
@@ -273,7 +363,6 @@ def main() -> int:
         "interposer": os.environ.get("LD_PRELOAD", ""),
         "trace": os.environ.get("GPUSIM_TRACE", ""),
     }
-
     if args.json:
         # One JSON object per rank, appended: a sweep produces one file per
         # (config, rank) without this process having to know about the others.
@@ -283,8 +372,9 @@ def main() -> int:
     if world > 1:
         dist.barrier()
         dist.destroy_process_group()
-    print(f"[rank {rank}/{world} tp={tp} pp={pp} dp={dp}] "
+    print(f"[rank {rank}/{world} tp={tp} pp={pp} dp={dp} zero={zero}] "
           f"mean step {summary['mean_step_s']*1000:.1f} ms "
+          f"peak {summary['peak_alloc_MB']:.1f} MB "
           f"loss {losses[0]:.3f} -> {losses[-1]:.3f}")
     return 0
 

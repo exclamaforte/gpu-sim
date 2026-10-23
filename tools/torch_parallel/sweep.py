@@ -128,6 +128,14 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
         # column exists so that cannot be read as PP being 4x more efficient.
         "params_local": rows[0].get("params_local") if rows else None,
         "pp": pp_of_rank0,
+        # Measured peak over the measured window, averaged across ranks, plus
+        # the analytic sharded-state model from rank 0. Both are reported so
+        # the reader can see where measurement and model agree and diverge.
+        "peak_MB": (round(sum(r.get("peak_alloc_MB", 0) for r in rows)
+                            / len(rows), 1) if rows else None),
+        "mem_model_MB": (rows[0].get("mem_model_MB")
+                           if rows and rows[0].get("mem_model_MB") else None),
+        "zero": int(rows[0].get("zero", 1)) if rows else 1,
         "stderr_tail": proc.stderr.strip().splitlines()[-1] if proc.returncode else "",
     }
 
@@ -143,6 +151,8 @@ def main() -> int:
                     help="pipeline-parallel width; world becomes pp*dp*tp so world must be a multiple")
     ap.add_argument("--micro-batches", type=int, default=2,
                     help="GPipe micro-batches per step (PP mode; must divide batch)")
+    ap.add_argument("--zero", type=int, default=1, choices=[1, 2, 3],
+                    help="ZeRO stage; 2/3 need dp>1 and pp==tp==1")
     ap.add_argument("--fabric", default="nvlink",
                     help="declare a fabric so collectives carry predicted cost; '' to disable")
     ap.add_argument("--json", type=str, default=None)
@@ -166,22 +176,25 @@ def main() -> int:
         if args.pp > 1:
             extra += ["--pp", str(args.pp),
                       "--micro-batches", str(args.micro_batches)]
+        if args.zero > 1:
+            extra += ["--zero", str(args.zero)]
         results.append(_run_one(w, args.steps, args.delay_ms, extra, topo))
     shutil.rmtree(tmp_topo, ignore_errors=True)
 
-    hdr = (f"{'world':>5} {'tp':>3} {'pp':>3} {'dp':>3} {'step_ms':>9} {'coll_msgs':>10} "
+    hdr = (f"{'world':>5} {'tp':>3} {'pp':>3} {'dp':>3} {'zero':>4} {'step_ms':>9} {'coll_msgs':>10} "
            f"{'coll_MB':>9} {'p2p_msgs':>9} {'p2p_MB':>8} {'comm_sim_ms':>12} "
-           f"{'params':>10} {'local':>10}")
+           f"{'params':>10} {'local':>10} {'peak_MB':>9}")
     print(hdr)
     print("-" * len(hdr))
     for r in results:
         step = f"{r['step_ms']:.1f}" if r["step_ms"] is not None else "FAILED"
         denom = args.tp * r["pp"]
         dp = r["world"] // denom if denom else r["world"]
-        print(f"{r['world']:>5} {args.tp:>3} {r['pp']:>3} {dp:>3} {step:>9} {r['coll_msgs']:>10} "
+        peak = f"{r['peak_MB']:.1f}" if r.get("peak_MB") is not None else "-"
+        print(f"{r['world']:>5} {args.tp:>3} {r['pp']:>3} {dp:>3} {r.get('zero', 1):>4} {step:>9} {r['coll_msgs']:>10} "
               f"{r['coll_MB']:>9} {r['p2p_msgs']:>9} {r['p2p_MB']:>8} "
               f"{r['comm_sim_ms']:>12} {r['params'] or '-':>10} "
-              f"{r.get('params_local') or r.get('params') or '-':>10}")
+              f"{r.get('params_local') or r.get('params') or '-':>10} {peak:>9}")
         if r["rc"] != 0 and r["stderr_tail"]:
             print(f"      {r['stderr_tail']}")
 
