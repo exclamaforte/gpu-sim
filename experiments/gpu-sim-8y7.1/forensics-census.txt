@@ -1,0 +1,29 @@
+== pp2 ==
+  ('IN', 0, 'allreduce', 2, 'ring_allreduce'): 36
+  ('IN', 0, 'allreduce', 4, 'ring_allreduce'): 1
+  ('IN', 0, 'recv', 2, 'p2p->1'): 8
+  ('IN', 0, 'send', 2, 'p2p->1'): 8
+  ('IN', 1, 'allreduce', 2, 'ring_allreduce'): 36
+  ('IN', 1, 'allreduce', 4, 'ring_allreduce'): 1
+  ('IN', 1, 'recv', 2, 'p2p->0'): 16
+  ('IN', 1, 'send', 2, 'p2p->0'): 20
+  ('IN', 2, 'allreduce', 4, 'ring_allreduce'): 1
+  ('IN', 3, 'allreduce', 4, 'ring_allreduce'): 1
+  ('out', 0, 'allreduce', 2, 'ring_allreduce'): 54
+  ('out', 0, 'recv', 2, 'p2p->1'): 12
+  ('out', 0, 'send', 2, 'p2p->1'): 12
+  ('out', 1, 'allreduce', 2, 'ring_allreduce'): 54
+  ('out', 1, 'recv', 2, 'p2p->0'): 4
+== pp4 ==
+  ('IN', 0, 'allreduce', 4, 'ring_allreduce'): 1
+  ('IN', 0, 'recv', 2, 'p2p->1'): 23
+  ('IN', 0, 'send', 2, 'p2p->1'): 22
+  ('IN', 1, 'allreduce', 4, 'ring_allreduce'): 1
+  ('IN', 1, 'recv', 2, 'p2p->0'): 21
+  ('IN', 1, 'send', 2, 'p2p->0'): 24
+  ('IN', 2, 'allreduce', 4, 'ring_allreduce'): 1
+  ('IN', 3, 'allreduce', 4, 'ring_allreduce'): 1
+  ('out', 0, 'recv', 2, 'p2p->1'): 7
+  ('out', 0, 'send', 2, 'p2p->1'): 8
+  ('out', 1, 'recv', 2, 'p2p->0'): 9
+  ('out', 1, 'send', 2, 'p2p->0'): 6

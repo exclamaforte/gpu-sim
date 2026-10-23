@@ -151,9 +151,54 @@ message COUNT and easier to audit from the trace; it is not what a tuned DDP run
 would emit.
 
 TP collectives are 8 MB, beyond the measured phase-payload table, so they are
-timed only when `GPUSIM_ALLOW_EXTRAPOLATE=1` is set; the trace then records
-`regime: "extrapolated"` so an extrapolated cost can never be mistaken for a
 measured one. The default remains REFUSE.
+
+### Pipeline parallel, same world size
+
+```
+config     world  tp pp dp  step_ms  coll_msgs  coll_MB  p2p_msgs  p2p_MB  comm_sim_ms
+DP             4   1  1  4     16.1         75     43.0         0     0.0         0.57
+TP             4   4  1  1      9.7         33    134.2         0     0.0         0.81
+PP2            4   1  2  2      7.5         37     22.0         8    16.8         0.35
+PP4            4   1  4  1      4.1          1      0.0         8    16.8         0.03
+```
+
+Measured on the same box and model (5.2M parameters, 5 steps, 2 discarded,
+nvlink, `GPUSIM_ALLOW_EXTRAPOLATE=1`). Counts are per grank 0 over the 2
+measured steps and decompose exactly: PP2 collectives 37 = 18 stage params x 2
++ barrier, p2p 8 = 4 per step x 2 at 2.1 MB each (4x512x256 float32 =
+numel x element_size); PP4 collectives 1 = barrier only. `step_ms` absolutes
+move run to run on the shared box; the traffic counts are bit-identical
+across runs, so traffic is the signal and step time is context.
+
+The shape is explicable: PP replaces TP's few huge allreduces with smaller,
+more numerous messages (PP2: 45 total messages, 38.8 MB vs TP's 33 messages,
+134.2 MB), and pure pipeline (PP4, dp=1) drops to 9 messages and 16.8 MB.
+PP2 carries MORE collectives than TP4 (37 vs 33) because at pp=2 each stage
+still data-parallel-syncs its half-model across dp=2 -- the "fewer
+collectives" premise holds for the pipeline axis proper (PP4), not when DP
+co-traffic is counted alongside it.
+
+The bubble is ABSENT from wall time, and that is stated plainly rather than
+fitted: the interposer's send/recv return instantly (timing only, no payload),
+so no stage ever actually blocks on another and there is no fill/drain idle
+to measure. Per-rank means after the backward fix are within ~10% (stage 0:
+11.5/13.5 ms, stage 1: 12.4/12.7 ms); the spread is residual compute
+imbalance, not pipeline idle. The modelled p2p cost (predicted_s, p2p-link
+regime) totals 0.35/0.03 ms against milliseconds of compute -- even modelled,
+there is no meaningful bubble at this model size. A wall-clock bubble would
+need a transport that actually blocks, which is the data-correct-collectives
+bead, not this one.
+
+Two defects found and fixed along the way, both load-bearing for the numbers
+above. (1) The last stage's backward used `autograd.grad(loss, stage_output)`,
+which leaves every param grad None: the DP sync silently skipped a whole
+stage and the stage ran 3x fast. Now `retain_grad` + full `backward`, verified
+by per-rank times converging. (2) Subgroup traffic was mislabeled (local rank)
+and partly missing (constant ncclUniqueId aliased distinct groups, so dp
+group [2,3] was never even initialized) -- fixed on master (gpu-sim-vtu):
+distinct uniqueIds per group and both `rank` (comm-local) and `grank` (world)
+on every trace line; the sweep aggregates on `grank`.
 
 ### Warmup
 
@@ -174,10 +219,11 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   which is why p2p is modelled while large ring collectives are still refused.
   Verified: 256 B on NVLink 1.0003 us, on PCIe 8.0102 us. An unconnected pair
   refuses; with no topology the duration stays null.
-- **PP.** TP exists (Megatron-style column/row sharding, `_ReduceSum` makes the
-  backward reduction visible so TP traffic is not understated by half). PP does
-  not: it needs stage split and per-stage send/recv; the interposer already traces
-  `send`/`recv`, so the work is a scheduler, not a C change.
+- **PP.** Done (gpu-sim-8y7.1): stage split of TinyLM layers across the pp axis,
+  GPipe schedule (`--micro-batches`), blocking send/recv between adjacent stages,
+  `--pp`/`--micro-batches` in train.py and sweep.py with rank decomposition
+  rank = pp_idx*(tp*dp) + dp_idx*tp + tp_idx. Same timing-only bargain as the rest:
+  stage outputs are garbage, loss curves are not meaningful, traffic/timing are real.
 - **Data-correct collectives.** Would need a transport between ranks (shared
   memory or sockets in the interposer). Not required for timing comparison;
   required before any convergence claim.
