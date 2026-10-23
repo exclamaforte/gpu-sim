@@ -80,6 +80,9 @@ def main():
     with open(HERE/"predictions_bwn.jsonl","w") as f:
         for r,p in zip(test,pred_full):
             f.write(json.dumps({"family":r["family"],"size":r["size"],"block":r["block"],"y_true":r["y"],"y_pred":float(p)})+"\n")
+    with open(HERE/"predictions_sizeonly.jsonl","w") as f:
+        for r,p in zip(test,pred0):
+            f.write(json.dumps({"family":r["family"],"size":r["size"],"block":r["block"],"y_true":r["y"],"y_pred":float(p)})+"\n")
     print(json.dumps(out,indent=2))
 
 if __name__=="__main__":

@@ -17,6 +17,8 @@ def main():
         "pooled_median_rel_error": r["pooled_median_rel_error"],
         "verdict": r["verdict"],
         "informative_slots": r["informative_slots"],
+        "bar": 0.25,
+        "bar_criterion": "u2o.17: median |sim-measured|/measured <= 25% per op class",
         "gate_classes": ["elementwise","matmul","reduction"],
         "gate_pass": {k: r["gate_statistic_by_family"][k]["gbt_median_rel_error"]<=0.25 for k in ["elementwise","matmul","reduction"]},
         "feature_spec": r["feature_spec"],
