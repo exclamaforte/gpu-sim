@@ -27,6 +27,19 @@ collectives are issued, with what sizes, in what order, by which rank.
 
 ## 2. What exists
 
+Honest status per axis -- traffic is traced for all four, but only DP has been
+shown to train correctly (see §6 for what each gate was):
+
+| axis | collective traffic | trains correctly |
+|---|---|---|
+| DP | yes | yes (world2 == world1 to 1.13e-07) |
+| ZeRO 1/2/3 | yes | not yet -- payload work in progress |
+| TP | yes | not yet -- payload work in progress |
+| PP | yes (+ p2p) | not yet -- payload work in progress |
+
+Reading the left column as if it were the right one is the single easiest mistake
+to make with this harness, which is why they are separate columns.
+
 | Piece | Where | State |
 |---|---|---|
 | CUDA runtime + driver interposer | `src/`, `shim/cuda_runtime.h` | 89 exported `cuda*`/`cu*` symbols; random fill; fixed, bandwidth, table-driven or synthetic latency |
