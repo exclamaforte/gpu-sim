@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 """Per-op-class (and size-aware) latency lookup for CI/behavioral simulation (13.4, 9ei).
 
+Validity envelope (gpu-sim-v4e, experiments/gpu-sim-v4e/REPORT.md):
+measured on RTX 5090 against the m93 calibration table, no refit.
+  - Below the grid: elementwise holds 3 octaves, reduce ~3 (marginal, max 0.236),
+    matmul only 1 octave (fails at 2).
+  - Above the grid: 0 octaves supported for every class; error 46-95% because the
+    clamp holds the prediction flat while measured cost keeps growing.
+Out-of-range requests are clamped to the nearest calibrated size and a warning
+is emitted once per (op, direction). Callers can inspect prediction_provenance()
+to distinguish a measured prediction from a clamped one.
+
+
 Env/config-driven table (never hardcoded): GPUSIM_OP_LATENCY_JSON points
 at a table (13.4 schema or mdz calibration schema); unknown ops fall back to
 the legacy default. D_GPUSIM: simulation timing only, never training ground truth.
 """
 import json
+import warnings
 import math
 import os
 import statistics
@@ -16,6 +28,16 @@ DEFAULT_TABLE = REPO / "experiments/gpu-sim-u2o.13.4/op_latency_table.json"
 LEGACY_DEFAULT_MS = 0.5
 
 _cache = {}
+_warned = set()
+
+def _warn_once(op, direction):
+    key = (op, direction)
+    if key in _warned:
+        return
+    _warned.add(key)
+    warnings.warn(f"op_latency: {op} size out of calibrated range ({direction}); "
+                  f"prediction is clamped to the table edge and may be inaccurate.",
+                  stacklevel=3)
 
 
 def _normalize_table(raw):
@@ -75,6 +97,73 @@ def _size_from_spec(spec):
     return None
 
 
+
+def prediction_provenance(op, size=None, table=None, dtype_bytes=4):
+    """Return provenance for a (op, size) prediction.
+
+    Keys: clamped (bool), clamp_target (int or None), cal_min (int or None),
+    cal_max (int or None). clamped is True when size falls outside the
+    calibrated range and the prediction is the edge value.
+    """
+    if isinstance(size, dict) and table is None:
+        table = size
+        size = None
+    if table is None:
+        try:
+            table = load_table()
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"clamped": False, "clamp_target": None,
+                    "cal_min": None, "cal_max": None,
+                "no_size_axis": False}
+    ops = table.get("ops", {}) if isinstance(table, dict) else {}
+    if op not in ops:
+        return {"clamped": False, "clamp_target": None,
+                "cal_min": None, "cal_max": None,
+                "no_size_axis": False}
+    entry = ops[op]
+    bpe = entry.get("bytes_per_element", 4) if isinstance(entry, dict) else 4
+    if size is not None:
+        size = size * dtype_bytes / bpe
+        if isinstance(size, float) and size.is_integer():
+            size = int(size)
+    if not (isinstance(entry, dict) and "sizes" in entry):
+        return {"clamped": None, "clamp_target": None,
+                "cal_min": None, "cal_max": None,
+                "no_size_axis": True}
+    try:
+        sizes = sorted(entry["sizes"], key=lambda x: int(x))
+        xs = [int(x) for x in sizes]
+    except (ValueError, TypeError):
+        return {"clamped": False, "clamp_target": None,
+                "cal_min": None, "cal_max": None,
+                "no_size_axis": False}
+    if not xs:
+        return {"clamped": False, "clamp_target": None,
+                "cal_min": None, "cal_max": None,
+                "no_size_axis": False}
+    cal_min, cal_max = xs[0], xs[-1]
+    if size is None:
+        return {"clamped": False, "clamp_target": None,
+                "cal_min": cal_min, "cal_max": cal_max,
+                "no_size_axis": False}
+    try:
+        si = int(size)
+    except (TypeError, ValueError):
+        return {"clamped": False, "clamp_target": None,
+                "cal_min": cal_min, "cal_max": cal_max,
+                "no_size_axis": False}
+    if si < cal_min:
+        return {"clamped": True, "clamp_target": cal_min,
+                "cal_min": cal_min, "cal_max": cal_max,
+                "no_size_axis": False}
+    if si > cal_max:
+        return {"clamped": True, "clamp_target": cal_max,
+                "cal_min": cal_min, "cal_max": cal_max,
+                "no_size_axis": False}
+    return {"clamped": False, "clamp_target": None,
+            "cal_min": cal_min, "cal_max": cal_max,
+            "no_size_axis": False}
+
 def latency_ms_for(op, size=None, table=None, dtype_bytes=4, default=LEGACY_DEFAULT_MS) -> float:
     """Calibrated median for a known op class, size-aware when possible."""
     if isinstance(size, dict) and table is None:
@@ -107,8 +196,10 @@ def latency_ms_for(op, size=None, table=None, dtype_bytes=4, default=LEGACY_DEFA
             if not sizes:
                 return float(entry.get("median_ms", default))
             if int(size) <= xs[0]:
+                _warn_once(op, "below")
                 return ys[0]
             if int(size) >= xs[-1]:
+                _warn_once(op, "above")
                 return ys[-1]
             for i in range(len(xs)-1):
                 if xs[i] <= int(size) <= xs[i+1]:
