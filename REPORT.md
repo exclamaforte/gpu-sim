@@ -1,6 +1,15 @@
 # gpu-sim-371: restore a trustworthy quality gate
 
-Final (clean checkout, make + pytest tests/): 701 passed, 20 skipped, 1 xfailed, 0 failed.
+Final (clean checkout, pytest tests/ -q, 2026-10-23): 700 passed, 21 skipped, 1 xfailed, 0 failed (exit 0).
+
+The exact skip count is NOT deterministic: it ranged 17-21 across four full runs of
+this same branch, because five of the skips are conditioned on live lab state (whether
+a job is in the queue, whether the beads DB is being written, which git tree state the
+repo is in). The stable statement is: 0 failed, 1 xfailed, and every skip carries a
+stated condition. Listing the condition, not just the count, is what makes this
+auditable -- a count that moves on its own cannot be reconciled against a baseline,
+which is exactly why the first submission of this bead (17 claimed, 22 actual) was
+rejected.
 
 ## Fixed (genuine defects)
 - experiments/gpu-sim-2al/wire_dataset.py: trailing prose after main() -> commented (SyntaxError).
