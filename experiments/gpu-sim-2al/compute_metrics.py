@@ -59,14 +59,8 @@ def main():
         "heldout_family": "within-family size holdout (primary); matmul (secondary)",
         "primary_protocol": "within-family size/config interpolation (pooled, 5 families)",
         "secondary_protocol": "leave-one-family-out (matmul), physical descriptors",
-        "secondary_cells": {
-            "latency->latency": {
-                "mean": round(sec["mean"],4),
-                "roofline_94": round(sec["roofline"],4),
-                "gbt_95": round(sec["gbt"],4),
-                "transformer_91": round(sec["transformer"],4),
-            }
-        },
+        "secondary_cells": "INVALID_UNINTERPRETABLE (unnormalized physical descriptors cause e^76 predictions; see roofline_degeneracy)",
+        "secondary_note": "Leave-one-family-out secondary not reported as a result; descriptors must be normalized before re-running. Cause: physical descriptors (bytes_moved, flops, etc.) are unnormalized, so model predictions are astronomically large.",
         "verdict": verdict,
         "verdict_detail": {
             "primary": prim,
@@ -74,6 +68,7 @@ def main():
             "mean_predictor_floor": round(sec["mean"],4),
         },
         "headline": verdict,
+        "both_heads_clause": "unsatisfiable: only latency->latency is constructible (latency->memory and memory->memory lack targets); verdict rests on the single constructible head",
         "roofline_degeneracy": "secondary leave-one-family-out: roofline == train-mean (2.6083) because physical descriptors are masked/constant for the held-out family (matmul), so the analytic model has no family descriptor and predicts the training mean for an unseen family (possibility (b)).",
     }
     pathlib.Path(args.out).write_text(json.dumps(metrics, indent=2)+"\n")
