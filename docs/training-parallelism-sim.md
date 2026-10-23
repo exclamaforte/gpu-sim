@@ -258,6 +258,47 @@ group [2,3] was never even initialized) -- fixed on master (gpu-sim-vtu):
 distinct uniqueIds per group and both `rank` (comm-local) and `grank` (world)
 on every trace line; the sweep aggregates on `grank`.
 
+### ZeRO, same world size
+
+```
+config     world  tp pp dp zero  step_ms  coll_msgs  coll_MB  comm_sim_ms  peak_MB  state_MB
+DP/ZeRO-1      4   1  1  4    1     14.6        149     86.1         0.93    627.2      52.4
+ZeRO-2         4   1  1  4    2     16.0         77     53.8         0.41    675.6      36.7
+ZeRO-3/FSDP    4   1  1  4    3     11.6          5     21.5         0.09    650.6      21.0
+```
+
+Same box, model, steps, fabric. Counts per grank 0 over the 2 measured steps;
+peak_MB is the measured `torch.cuda.max_memory_allocated` windowed like the
+trace (reset at measure_start); state_MB is the analytic sharded-state model
+(P + P + 2P sharded by stage; P = 21.0 MB fp32). Decomposition is exact:
+ZeRO-1 = 75 DP + 74 param-gathers + barrier (86.1 = 43.0 + 43.0 MB);
+ZeRO-2 = 2 reduce_scatter (5.4 MB shards) + 74 gathers + barrier;
+ZeRO-3 = 2 allgather + 2 reduce_scatter + barrier (5.4 MB each).
+P_actual moved is 21.5 MB, not 21.0: `param_count()` excludes pos/LN.
+
+The deliverable trade-off holds: per-rank traffic bytes fall with N
+(86.1 -> 53.8 -> 21.5) while step time rises 1 -> 2 (14.6 -> 16.0, the extra
+74 gathers). ZeRO-3 breaks the rising-time half: 11.6 ms, fastest of the
+three, because 4 collective launches replace 149 and the optimizer steps a
+shard. Stated, not fitted.
+
+Memory is the honest divergence this axis exists to show: measured peak
+barely moves (627/676/651 MB -- activations dominate, no ZeRO stage shards
+them) while the analytic state falls 52.4 -> 36.7 -> 21.0 MB. ZeRO-2's peak
+is HIGHEST (+48 MB over ZeRO-1): the hand-written path allocates flat grad
+(21 MB), shard (5 MB), and per-param gather scratch every step. That scratch
+is the price of the timing-event approach and it is measured, not modelled.
+
+How each stage is built: ZeRO-1 = DP allreduce + post-step all_gather into
+discarded scratch (the interposer moves no payload, so copying back would
+corrupt good params with uninitialized memory). ZeRO-2 = one flattened
+reduce_scatter + the same post-step gather; the local update still uses full
+grads (timing events, not arithmetic). ZeRO-3 = FSDP over the dp group.
+FSDP was predicted blocked on payload; it is not -- the only blocker was our
+own ReduceScatter signature bug (recvcount by pointer vs by value, SIGSEGV in
+backward, fixed on master with a parse test pinning it). tp/pp x zero
+combinations are refused explicitly until verified.
+
 ### Warmup
 
 WARMUP IS DISCARDED, and that matters: the first step measured 556 ms against
@@ -282,6 +323,11 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   `--pp`/`--micro-batches` in train.py and sweep.py with rank decomposition
   rank = pp_idx*(tp*dp) + dp_idx*tp + tp_idx. Same timing-only bargain as the rest:
   stage outputs are garbage, loss curves are not meaningful, traffic/timing are real.
+- **ZeRO.** Done (gpu-sim-8y7.3): `--zero 1/2/3` on the dp axis. 1 = DP +
+  post-step all_gather; 2 = flattened reduce_scatter + post-step gather;
+  3 = FSDP over the dp group. Measured peak (`max_memory_allocated`,
+  windowed) reported alongside the analytic sharded-state model; tp/pp
+  combinations refused until verified.
 - **Data-correct collectives.** Would need a transport between ranks (shared
   memory or sockets in the interposer). Not required for timing comparison;
   required before any convergence claim.

@@ -1,0 +1,55 @@
+{
+  "all_checks_pass": true,
+  "bead": "gpu-sim-8y7.3",
+  "configs": {
+    "zero1": {
+      "coll_MB": 86.1,
+      "coll_msgs": 149,
+      "comm_sim_ms": 0.93,
+      "mem_model_MB": {
+        "grads": 21.0,
+        "opt_states": 10.5,
+        "params": 21.0,
+        "state_total_MB": 52.4
+      },
+      "peak_MB": 627.2,
+      "step_ms": 14.6
+    },
+    "zero2": {
+      "coll_MB": 53.8,
+      "coll_msgs": 77,
+      "comm_sim_ms": 0.41,
+      "mem_model_MB": {
+        "grads": 5.2,
+        "opt_states": 10.5,
+        "params": 21.0,
+        "state_total_MB": 36.7
+      },
+      "peak_MB": 675.6,
+      "step_ms": 16.0
+    },
+    "zero3": {
+      "coll_MB": 21.5,
+      "coll_msgs": 5,
+      "comm_sim_ms": 0.09,
+      "mem_model_MB": {
+        "grads": 5.2,
+        "opt_states": 10.5,
+        "params": 5.2,
+        "state_total_MB": 21.0
+      },
+      "peak_MB": 650.6,
+      "step_ms": 11.6
+    }
+  },
+  "decomposition_checks": {
+    "bytes_fall_1_2_3": true,
+    "model_states_shard": true,
+    "step_rises_1_to_2": true,
+    "zero1_bytes_are_dp_plus_gather": true,
+    "zero1_is_75dp_plus_74gather_plus_barrier": true,
+    "zero2_is_2rs_plus_74gather_plus_barrier": true,
+    "zero3_is_2ag_plus_2rs_plus_barrier": true
+  },
+  "note": "measured peak_MB is activation-dominated and barely moves; the sharded-state savings live in mem_model_MB, reported alongside"
+}
