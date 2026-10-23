@@ -73,11 +73,139 @@
     ],
     "test": "tests/test_2al_wiring.py"
   },
+  "primary_by_family": {
+    "elementwise": {
+      "n_train": 94,
+      "n_test": 24,
+      "heldout_sizes": [
+        13578170,
+        13844757,
+        14111344,
+        14377931,
+        14644519,
+        14911106,
+        15177693,
+        15444280,
+        15710867,
+        15977454,
+        16244041,
+        16510628,
+        16777216
+      ],
+      "roofline_94": 0.6701171590822974,
+      "gbt_95": 0.4409991633801029,
+      "transformer_91": 1.9818865650830706,
+      "mean_predictor": 3.4121662111343025
+    },
+    "matmul": {
+      "n_train": 69,
+      "n_test": 18,
+      "heldout_sizes": [
+        11943936,
+        12845056,
+        13778944,
+        14745600,
+        15745024,
+        16777216
+      ],
+      "roofline_94": 1.2299007284001378,
+      "gbt_95": 0.2830244551420102,
+      "transformer_91": 2.373224340476341,
+      "mean_predictor": 1.6247488603524647
+    },
+    "reduction": {
+      "n_train": 115,
+      "n_test": 29,
+      "heldout_sizes": [
+        13044996,
+        13311583,
+        13578170,
+        13844757,
+        14111344,
+        14377931,
+        14644519,
+        14911106,
+        15177693,
+        15444280,
+        15710867,
+        15977454,
+        16244041,
+        16510628,
+        16777216
+      ],
+      "roofline_94": 0.7762753568147124,
+      "gbt_95": 0.3756134939479326,
+      "transformer_91": 2.0358570295489398,
+      "mean_predictor": 3.3431081413874675
+    },
+    "softmax": {
+      "n_train": 116,
+      "n_test": 29,
+      "heldout_sizes": [
+        13044996,
+        13311583,
+        13578170,
+        13844757,
+        14111344,
+        14377931,
+        14644519,
+        14911106,
+        15177693,
+        15444280,
+        15710867,
+        15977454,
+        16244041,
+        16510628,
+        16777216
+      ],
+      "roofline_94": 0.7992055112755178,
+      "gbt_95": 0.36784719264203075,
+      "transformer_91": 2.0587871840097454,
+      "mean_predictor": 3.2176963366262146
+    },
+    "transpose": {
+      "n_train": 143,
+      "n_test": 36,
+      "heldout_sizes": [
+        13844757,
+        14111344,
+        14377931,
+        14644519,
+        14911106,
+        15177693,
+        15444280,
+        15710867,
+        15977454,
+        16244041,
+        16510628,
+        16777216
+      ],
+      "roofline_94": 1.7432535066062051,
+      "gbt_95": 0.36683466695894407,
+      "transformer_91": 2.9343785584490005,
+      "mean_predictor": 1.7974501499831605
+    }
+  },
+  "primary_protocol": {
+    "recompute": {
+      "script": "primary_protocol.py",
+      "n_prediction_rows": 408,
+      "models": [
+        "roofline_94",
+        "gbt_95",
+        "transformer_91"
+      ],
+      "any_nonfinite_predictions": false,
+      "split_rule": "per family sort by (size,block); hold out last 20% as test; pool across families",
+      "n_train": 537,
+      "n_test": 136
+    }
+  },
   "cells": {
     "latency->latency": {
       "roofline_94": 1.0784,
       "gbt_95": 0.3709,
-      "transformer_91": 2.4205,
+      "transformer_91": 2.3137,
       "mean_predictor": 2.7015
     }
   },
@@ -92,31 +220,9 @@
     }
   ],
   "heldout_family": "within-family size holdout (primary); matmul (secondary)",
-  "primary_protocol": "within-family size/config interpolation (pooled, 5 families)",
-  "secondary_protocol": "leave-one-family-out (matmul), physical descriptors",
-  "secondary_cells": "INVALID_UNINTERPRETABLE (unnormalized physical descriptors cause e^76 predictions; see roofline_degeneracy)",
-  "secondary_note": "Leave-one-family-out secondary not reported as a result; descriptors must be normalized before re-running. Cause: physical descriptors (bytes_moved, flops, etc.) are unnormalized, so model predictions are astronomically large.",
+  "secondary_cells": "INVALID_UNINTERPRETABLE (unnormalized physical descriptors)",
   "verdict": "CONFIRMED",
-  "verdict_detail": {
-    "primary": {
-      "n_train": 537,
-      "n_test": 136,
-      "mean": 2.7015254497528076,
-      "roofline": 1.0784345865249634,
-      "gbt": 0.37091784447197473,
-      "transformer": 2.420509099960327
-    },
-    "secondary": {
-      "n_train": 586,
-      "n_test": 87,
-      "mean": 2.6082541942596436,
-      "roofline": 76.27515411376953,
-      "gbt": 2.990013206785883,
-      "transformer": 68.43441009521484
-    },
-    "mean_predictor_floor": 2.6083
-  },
+  "both_heads_clause": "unsatisfiable: only latency->latency is constructible",
   "headline": "CONFIRMED",
-  "both_heads_clause": "unsatisfiable: only latency->latency is constructible (latency->memory and memory->memory lack targets); verdict rests on the single constructible head",
-  "roofline_degeneracy": "secondary leave-one-family-out: roofline == train-mean (2.6083) because physical descriptors are masked/constant for the held-out family (matmul), so the analytic model has no family descriptor and predicts the training mean for an unseen family (possibility (b))."
+  "roofline_degeneracy": "secondary leave-one-family-out: roofline == train-mean because analytic model has no family descriptor for unseen family (possibility (b))"
 }
