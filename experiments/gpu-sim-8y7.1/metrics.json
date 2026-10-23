@@ -1,0 +1,48 @@
+{
+  "all_checks_pass": true,
+  "bead": "gpu-sim-8y7.1",
+  "configs": {
+    "dp4": {
+      "coll_MB": 43.0,
+      "coll_msgs": 75,
+      "comm_sim_ms": 0.57,
+      "p2p_MB": 0.0,
+      "p2p_msgs": 0,
+      "step_ms": 16.1
+    },
+    "pp2": {
+      "coll_MB": 22.0,
+      "coll_msgs": 37,
+      "comm_sim_ms": 0.35,
+      "p2p_MB": 16.8,
+      "p2p_msgs": 8,
+      "step_ms": 7.5
+    },
+    "pp4": {
+      "coll_MB": 0.0,
+      "coll_msgs": 1,
+      "comm_sim_ms": 0.03,
+      "p2p_MB": 16.8,
+      "p2p_msgs": 8,
+      "step_ms": 4.1
+    },
+    "tp4": {
+      "coll_MB": 134.2,
+      "coll_msgs": 33,
+      "comm_sim_ms": 0.81,
+      "p2p_MB": 0.0,
+      "p2p_msgs": 0,
+      "step_ms": 9.7
+    }
+  },
+  "decomposition_checks": {
+    "dp4_is_37params_x2_plus_barrier": true,
+    "pp2_coll_is_18dp_x2_plus_barrier": true,
+    "pp2_p2p_bytes_is_8_x_2.1MB": true,
+    "pp2_p2p_is_4per_step_x2": true,
+    "pp4_coll_is_barrier_only": true,
+    "pp4_fewer_msgs_than_tp4": true,
+    "pp4_p2p_is_4per_step_x2": true,
+    "pp_bytes_below_tp_bytes": true
+  }
+}

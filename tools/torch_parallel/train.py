@@ -196,13 +196,19 @@ def main() -> int:
                     outs[m] = model.run_blocks(model.embed_input(inp[sl]))
                 if pp_idx < pp - 1:
                     dist.send(outs[m].contiguous(), dst=next_rank, tag=m)
+                # Non-leaf stage outputs release their grads unless retained;
+                # the last stage needs dLoss/dOuts to send upstream AND the
+                # full param backward (autograd.grad w.r.t. outs alone would
+                # leave every param grad None and silently skip the DP sync).
+                outs[m].retain_grad()
             losses_m: list[float] = []
             for m in range(mbs - 1, -1, -1):
                 if pp_idx == pp - 1:
                     sl = slice(m * mb, (m + 1) * mb)
                     l = model.head_loss(outs[m], tgt[sl])
                     losses_m.append(float(l.detach()))
-                    g = torch.autograd.grad(l, outs[m])[0].contiguous()
+                    l.backward()
+                    g = outs[m].grad.contiguous()
                 else:
                     g = torch.empty_like(outs[m])
                     dist.recv(g, src=next_rank, tag=m)
