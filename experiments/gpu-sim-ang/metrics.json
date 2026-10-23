@@ -33,6 +33,31 @@
     }
   },
   "verdict": "GAP-REMAINS",
+  "high_spread_cases": [
+    {
+      "op_class": "elementwise",
+      "shapes": [
+        1024
+      ],
+      "spread_pct": 53.85
+    },
+    {
+      "op_class": "elementwise",
+      "shapes": [
+        16777216
+      ],
+      "spread_pct": 25.29
+    },
+    {
+      "op_class": "matmul",
+      "shapes": [
+        512,
+        512,
+        512
+      ],
+      "spread_pct": 35.9
+    }
+  ],
   "bar": 0.25,
   "bar_criterion": "u2o.17: median |sim-measured|/measured <= 25% per op class"
 }

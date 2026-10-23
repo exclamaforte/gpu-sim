@@ -116,12 +116,14 @@ def main():
         r=run_config(pts,l1,l2)
         results[name]=r
         print(name, r)
+    high_spread=[{"op_class":c["op_class"],"shapes":c["shapes"],"spread_pct":round(c["device_ms_spread_pct_of_median"],2)} for c in json.loads((REPO/"experiments/gpu-sim-u2o.17.5/canonical_fixture.json").read_text())["cases"] if c.get("device_ms_spread_pct_of_median",0)>25]
     metrics={
         "bead":"gpu-sim-ang",
         "step0_baseline": results["baseline"],
         "step0_pinned": {"elementwise":0.969,"matmul":0.409,"reduce":0.473},
         "levers": results,
         "verdict": "GAP-REMAINS",
+        "high_spread_cases": high_spread,
         "bar": 0.25,
         "bar_criterion": "u2o.17: median |sim-measured|/measured <= 25% per op class",
     }
