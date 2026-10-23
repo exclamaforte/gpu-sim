@@ -72,6 +72,18 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--seq", type=int, default=512)
     p.add_argument("--d-model", type=int, default=256)
     p.add_argument("--layers", type=int, default=4)
+    p.add_argument("--optim", type=str, default="adamw", choices=["adamw", "sgd"],
+                   help="optimizer; sgd exposes gradient-scale bugs AdamW's adaptivity hides")
+    p.add_argument("--lr", type=float, default=1e-4,
+                   help="learning rate for --optim")
+    # gpu-sim-tbp convention (real DDP): disjoint rank shards of the batch +
+    # explicit 1/dp averaging of the summed gradients. Same-batch-no-scale
+    # would leave world-dp grads dp x too big, and AdamW would nearly hide
+    # it -- that false pass is exactly what this flag exists to prevent.
+    # Required whenever the transport is on (dp>1, SIMULATE_ONLY=0); refused
+    # loudly otherwise so no silent wrong-convention run is possible.
+    p.add_argument("--dp-mean", action="store_true",
+                   help="rank-shard the batch and average summed grads by 1/dp")
     return p.parse_args()
 
 
@@ -100,8 +112,14 @@ def main() -> int:
     world = int(os.environ.get("WORLD_SIZE", 1))
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
 
-    torch.manual_seed(args.seed + rank)
-    random.seed(args.seed + rank)
+    # gpu-sim-tbp: --dp-mean needs IDENTICAL inits on every rank (the proof is
+    # that sharded+averaged reproduces the single-process trajectory, which
+    # is impossible if ranks start from different params). The +rank offset
+    # only ever diversified values for timing runs, which do not depend on
+    # values at all; data-correct runs must not use it.
+    init_seed = args.seed if args.dp_mean else args.seed + rank
+    torch.manual_seed(init_seed)
+    random.seed(init_seed)
 
     if world > 1:
         dist.init_process_group(backend="nccl", rank=rank, world_size=world)
@@ -189,16 +207,45 @@ def main() -> int:
     # is NOT the true sum across ranks, and after send/recv the receiver keeps
     # its init value (measured: sender filled 8x8 with 1.0, receiver still read
     # 2.0 -- the payload never moves). Timing and traffic are real (every
-    # collective is issued and traced); the arithmetic is not. Use this harness
-    # to compare COMMUNICATION COST across parallelism configs, never to reason
     # about model convergence. The loss printed in PP mode is garbage.
-    opt = torch.optim.AdamW(model.parameters(), lr=1e-4)
+    # gpu-sim-tbp exception: with --dp-mean AND the transport on
+    # (FAKEGPU_NCCL_SIMULATE_ONLY=0), the DP all_reduce really sums and the
+    # 1/dp averaging restores the exact mean -- that path is data-correct
+    # by construction and proven by the tbp gate, not by this paragraph.
+    # gpu-sim-tbp: the optimizer is a choice because AdamW's adaptivity hides
+    # gradient-scale bugs (a 2x grad barely moves an AdamW trajectory, but
+    # exactly doubles an SGD step). The equivalence proof runs SGD.
+    if args.optim == "sgd":
+        opt = torch.optim.SGD(model.parameters(), lr=args.lr)
+    else:
+        opt = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     # One batch shape for every step: the comparison across parallelism configs
     # must not be confounded by a changing workload.
     g = torch.Generator(device="cuda").manual_seed(args.seed)
     x = torch.randint(0, spec.vocab, (args.batch, spec.seq + 1),
                       device="cuda", generator=g)
+    # gpu-sim-tbp convention: with --dp-mean each rank trains on a DISJOINT
+    # shard of the batch (drawn identically everywhere, then sliced by the
+    # dp-group rank), and the summed gradients are averaged by 1/dp below.
+    # Shard + average reproduces the exact single-process full-batch math;
+    # same-batch-no-scale would double the update and AdamW would hide it.
+    dp_mean = bool(args.dp_mean)
+    if dp_mean and (tp > 1 or pp > 1 or zero != 1):
+        raise SystemExit("--dp-mean is verified for plain DP only "
+                         "(tp==pp==1, zero==1)")
+    if dp > 1 and not dp_mean and zero == 1 and \
+            os.environ.get("FAKEGPU_NCCL_SIMULATE_ONLY") == "0":
+        raise SystemExit("transport is on with dp>1 but --dp-mean is off: "
+                         "summed same-batch gradients would be dp x too big. "
+                         "Pass --dp-mean.")
+    if dp_mean:
+        if args.batch % dp != 0:
+            raise SystemExit(f"--dp-mean needs batch divisible by dp "
+                             f"({args.batch} % {dp})")
+        dp_rank = dist.get_rank(group=dp_group) if world > 1 else 0
+        bsz = args.batch // dp
+        x = x[dp_rank * bsz:(dp_rank + 1) * bsz].contiguous()
 
     step_times: list[float] = []
     measure_start_ns: int | None = None
@@ -283,6 +330,12 @@ def main() -> int:
             for prm in model.parameters():
                 if prm.grad is not None:
                     dist.all_reduce(prm.grad, group=dp_group)
+            if dp_mean:
+                # The transport SUMS; DDP averages. Divide so the update
+                # equals the single-process full-batch mean gradient.
+                for prm in model.parameters():
+                    if prm.grad is not None:
+                        prm.grad.div_(dp)
         elif dp > 1 and zero == 2:
             # ZeRO-2: one reduce_scatter of the FLATTENED grads replaces the
             # per-parameter all_reduces. The shard is a timing event: the local
@@ -359,6 +412,9 @@ def main() -> int:
         "mean_step_s": sum(step_times) / len(step_times),
         "loss_first": losses[0],
         "loss_last": losses[-1],
+        # Full per-step series: the tbp gate asserts matching CURVES, not
+        # just endpoints (a broken gradient path can match step 1 and stall).
+        "losses": losses,
         "synthetic_delay_ms": args.delay_ms,
         "interposer": os.environ.get("LD_PRELOAD", ""),
         "trace": os.environ.get("GPUSIM_TRACE", ""),
