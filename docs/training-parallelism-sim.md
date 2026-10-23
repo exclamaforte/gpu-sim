@@ -328,9 +328,11 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   3 = FSDP over the dp group. Measured peak (`max_memory_allocated`,
   windowed) reported alongside the analytic sharded-state model; tp/pp
   combinations refused until verified.
-- **Data-correct collectives.** Would need a transport between ranks (shared
-  memory or sockets in the interposer). Not required for timing comparison;
-  required before any convergence claim.
+- **Data-correct collectives.** all_reduce only, done (gpu-sim-n5h): real sums
+  through /dev/shm (d2h, barrier, host reduce, h2d), gated behind
+  FAKEGPU_NCCL_SIMULATE_ONLY=0; default stays simulate-only and reproduces
+  the committed traffic record byte-exact. float32/bf16, sum only; all_gather
+  and the rest still move nothing.
 - **Single-process multi-device enumeration.** Blocked on NVML interposition.
 
 ## 7. Non-goals

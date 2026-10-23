@@ -31,7 +31,7 @@ INCLUDES = -Iinclude -Ishim -I/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x8
 LIB = libfakegpu.so
 SRCS = src/fakegpu_config.c src/fakegpu_random.c src/fakegpu_pool.c \
        src/fakegpu_latency.c src/fakegpu_cuda.c src/fakegpu_nccl.c \
-       src/fakegpu_topology.c
+       src/fakegpu_topology.c src/fakegpu_transport.c
 OBJS = $(SRCS:.c=.o)
 
 TEST_BIN = build/fake_client
