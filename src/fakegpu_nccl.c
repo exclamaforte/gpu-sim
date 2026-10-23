@@ -172,21 +172,61 @@ ncclResult_t ncclGroupEnd(void)
 
 /* ---- point-to-point ------------------------------------------------------ */
 
+/* Point-to-point ops used to simulate a copy and emit NOTHING, so a pipeline
+ * parallel run produced no evidence at all: send/recv traffic was invisible in
+ * the trace while every collective showed up. PP is entirely send/recv, so that
+ * gap made the whole axis unobservable. Emit the event; leave the duration
+ * unmodelled rather than inventing one (the fabric oracle models ring
+ * collectives, and a p2p link cost is a different measurement nobody has taken).
+ * The peer is encoded in the algorithm field as "p2p->N" so the stage graph can
+ * be reconstructed from the trace alone. */
+static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count,
+                          const char *dtype, size_t bytes, const char *algo,
+                          double predicted, int bottleneck, const char *regime);
+static const char *fg_dtype_name(int datatype);
+
+static size_t fg_dtype_bytes(int datatype, size_t count)
+{
+    switch (datatype) {
+    case ncclInt8: case ncclUint8:   return count;
+    case ncclInt32: case ncclUint32: return count * 4;
+    case ncclInt64: case ncclUint64: return count * 8;
+    case ncclFloat16: case ncclbfloat16: return count * 2;
+    case ncclFloat32:                return count * 4;
+    case ncclFloat64:                return count * 8;
+    default:                         return count;
+    }
+}
+
+static void fg_p2p_trace(const char *op, ncclComm_t comm, size_t count,
+                         int datatype, int peer)
+{
+    int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : fg_nccl_rank_from_env();
+    int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
+    char algo[32];
+    snprintf(algo, sizeof algo, "p2p->%d", peer);
+    fg_nccl_trace(op, rk, nr, count, fg_dtype_name(datatype),
+                  fg_dtype_bytes(datatype, count), algo,
+                  FG_NCCL_REFUSED, -1, "p2p-unmodelled");
+}
+
 ncclResult_t ncclSend(const void *sendbuff, size_t count, int datatype,
                       int peer, ncclComm_t comm, void *stream)
 {
-    (void)sendbuff; (void)datatype; (void)peer; (void)comm; (void)stream;
+    (void)sendbuff; (void)stream;
     /* model a tiny latency proportional to count */
     fg_simulate_memcpy(count);
+    fg_p2p_trace("send", comm, count, datatype, peer);
     return ncclSuccess;
 }
 
 ncclResult_t ncclRecv(void *recvbuff, size_t count, int datatype,
                       int peer, ncclComm_t comm, void *stream)
 {
-    (void)datatype; (void)peer; (void)comm; (void)stream;
+    (void)stream;
     fg_simulate_memcpy(count);
     fg_nccl_out_fill(recvbuff, count);
+    fg_p2p_trace("recv", comm, count, datatype, peer);
     return ncclSuccess;
 }
 
@@ -194,8 +234,9 @@ ncclResult_t ncclSendRecv(void *recvbuf, size_t rcount, int rtype, int recvFrom,
                           const void *sendbuf, size_t scount, int stype,
                           int sendTo, ncclComm_t comm, void *stream)
 {
-    (void)sendbuf; (void)stype; (void)sendTo; (void)comm; (void)stream;
+    (void)sendbuf; (void)stype; (void)sendTo; (void)stream;
     fg_simulate_memcpy(rcount > scount ? rcount : scount);
+    fg_p2p_trace("sendrecv", comm, rcount, rtype, recvFrom);
     if (recvbuf && rcount) {
         if (rcount) fg_fill(recvbuf, rcount);
     }
