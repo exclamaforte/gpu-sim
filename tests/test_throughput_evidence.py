@@ -16,7 +16,6 @@ import json
 import subprocess
 import sys
 import unittest
-import pytest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -27,9 +26,7 @@ from epic_u2o.throughput_evidence import (  # noqa: E402
     throughput_from_timestamps, throughput_from_wall,
 )
 
-FABRICATED = (REPO.parents[2] / "runs/logs/throughput_demo_run.jsonl") if len(REPO.parents) > 2 else (REPO / "nonexistent_throughput_demo_run.jsonl")
-if not FABRICATED.parent.exists():
-    pytest.skip("environment-dependent: assumes main-tree layout", allow_module_level=True)
+FABRICATED = REPO.parents[2] / "runs/logs/throughput_demo_run.jsonl"
 TRIALS_KEY = "invocation_medians_ms"
 
 
