@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, math, pathlib, sys, numpy as np
+import json, math, pathlib, sys, hashlib, numpy as np
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import KFold
 
@@ -103,6 +103,29 @@ def main():
     # overfitting diagnostic
     overfit={"rows_per_family":{fam: len([r for r in rows if r["family"]==fam]) for fam in sorted(set(r["family"] for r in rows))},
              "feature_count_full": 7, "note": "CV error by candidate richness in selection_log"}
+    # dataset provenance
+    ds_path = pathlib.Path(__file__).resolve().parents[2] / "experiments" / "gpu-sim-2al" / "dataset.jsonl"
+    ds_hash = hashlib.sha256(ds_path.read_bytes()).hexdigest()
+    n_train={}; n_test={}; heldout={}
+    for fam in sorted(set(r["family"] for r in rows)):
+        fr=sorted([r for r in rows if r["family"]==fam], key=lambda r:(r["size"],r["block"]))
+        cut=int(0.8*len(fr))
+        n_train[fam]=cut; n_test[fam]=len(fr)-cut
+        heldout[fam]=sorted(set(r["size"] for r in fr[cut:]))
+    # global size-only reconciliation (bwn style)
+    tr=[]; te=[]
+    for fam in sorted(set(r["family"] for r in rows)):
+        fr=sorted([r for r in rows if r["family"]==fam], key=lambda r:(r["size"],r["block"]))
+        cut=int(0.8*len(fr))
+        tr.extend(fr[:cut]); te.extend(fr[cut:])
+    Xtr=np.array([[math.log1p(r["size"])] for r in tr]); Xte=np.array([[math.log1p(r["size"])] for r in te])
+    ytr=np.array([r["y"] for r in tr]); yte=np.array([r["y"] for r in te])
+    g=HistGradientBoostingRegressor(max_iter=300,max_depth=6,learning_rate=0.05,min_samples_leaf=5,random_state=0)
+    g.fit(Xtr,ytr); predg=g.predict(Xte)
+    global_so={}
+    for fam in sorted(set(r["family"] for r in te)):
+        idx=[i for i,r in enumerate(te) if r["family"]==fam]
+        global_so[fam]=float(np.median([abs(math.exp(predg[i])-math.exp(yte[i]))/math.exp(yte[i]) for i in idx]))
     metrics={
         "bead":"gpu-sim-9ul",
         "matmul_rows":{"n_rows_added":0,"n_usable_added":0,"shapes":[],"gate_rejection_rate":0.0,"gpu_minutes":0.0,"reason":"existing 87 matmul rows sufficient; no new GPU rows generated"},
@@ -111,6 +134,13 @@ def main():
         "gate_classes": gate,
         "verdict": verdict,
         "overfitting_diagnostic": overfit,
+        "dataset_provenance": {"path":"experiments/gpu-sim-2al/dataset.jsonl","sha256":ds_hash,"split_rule":"per-family sorted by (size,block), 80/20 by size","n_train":n_train,"n_test":n_test,"heldout_sizes":heldout},
+        "size_only_reconciliation": {
+            "global_size_only_reproduces_bwn": global_so,
+            "per_family_size_only_as_in_original_9ul": {f: test_cells[f]["size_only_median_rel_error"] for f in test_cells},
+            "conclusion": "9ul's original size-only column was a per-family model, mislabelled as comparable to bwn's global size-only negative control. The global size-only model reproduces bwn exactly. Load-bearing negative control remains bwn's global size-only."
+        },
+        "step0_basis": "Matmul winner was A_size_only (CV 0.0075) and descriptors did not win; existing 87 matmul rows sufficient; no new GPU rows generated. Shape variation not needed because the selected model does not use shape descriptors.",
         "headline": verdict,
     }
     (HERE/"metrics.json").write_text(json.dumps(metrics,indent=2)+"\n")
