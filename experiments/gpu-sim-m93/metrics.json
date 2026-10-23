@@ -1,0 +1,37 @@
+{
+  "bead": "gpu-sim-m93",
+  "criterion": "median |sim-measured|/measured <= 25% per op class + same dominant class by total time",
+  "per_class": {
+    "elementwise": {
+      "median_abs_rel_err": 0.0252,
+      "n_sizes": 12,
+      "passes_25pct": true
+    },
+    "launch_bound": {
+      "median_abs_rel_err": 0.0686,
+      "n_sizes": 1,
+      "passes_25pct": true
+    },
+    "matmul": {
+      "median_abs_rel_err": 0.0382,
+      "n_sizes": 5,
+      "passes_25pct": true
+    },
+    "reduce": {
+      "median_abs_rel_err": 0.0239,
+      "n_sizes": 8,
+      "passes_25pct": true
+    }
+  },
+  "rank_order": {
+    "dominant_measured": "matmul",
+    "dominant_predicted": "matmul",
+    "preserved": true
+  },
+  "verdict": "PASS",
+  "calibration_file": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m93/experiments/gpu-sim-m93/mdz_calibration_fixture.json",
+  "calibration_sha256": "99b0e78bfdcfe12fdc94e19ab4119f010922bdd1e133e472544bb0502b95f8ed",
+  "disjointness": [
+    "chain: no calibration table"
+  ]
+}
