@@ -184,6 +184,12 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count,
                           const char *dtype, size_t bytes, const char *algo,
                           double predicted, int bottleneck, const char *regime);
 static const char *fg_dtype_name(int datatype);
+static fg_topo_t *fg_nccl_topo(void);
+static size_t fg_dtype_size(int datatype);
+static int fg_shortest_path(const fg_topo_t *t, int src, int dst, int *out, int *nout);
+double fg_nccl_predict_p2p(const fg_topo_t *t, size_t count, int datatype,
+                           int from_rank, int to_rank, int *bottleneck_link,
+                           char *regime, size_t regimesz);
 
 static size_t fg_dtype_bytes(int datatype, size_t count)
 {
@@ -205,9 +211,27 @@ static void fg_p2p_trace(const char *op, ncclComm_t comm, size_t count,
     int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
     char algo[32];
     snprintf(algo, sizeof algo, "p2p->%d", peer);
+
+    /* A point-to-point transfer across a declared path costs
+     *      S / min_bw + sum(latency)
+     * from the SAME declared link parameters the ring model uses (see the ring
+     * work in fg_nccl_predict). This is first-principles transfer time, not an
+     * extrapolation of the measured phase-payload table, which is why p2p may be
+     * modelled while large ring collectives are still refused. With no topology
+     * declared the duration stays unmodelled -- an event without a cost, not an
+     * invented cost. */
+    double pred = FG_NCCL_REFUSED;
+    int bl = -1;
+    char regime[32] = "p2p-unmodelled";
+    fg_topo_t *tp = fg_nccl_topo();
+    if (tp) {
+        snprintf(regime, sizeof regime, "p2p-link");
+        pred = fg_nccl_predict_p2p(tp, count, datatype, rk, peer, &bl, regime,
+                                   sizeof regime);
+    }
     fg_nccl_trace(op, rk, nr, count, fg_dtype_name(datatype),
-                  fg_dtype_bytes(datatype, count), algo,
-                  FG_NCCL_REFUSED, -1, "p2p-unmodelled");
+                  fg_dtype_bytes(datatype, count), algo, pred, bl, regime);
+    if (pred != FG_NCCL_REFUSED && pred > 0) fg_sleep_ns((long)(pred * 1e9));
 }
 
 ncclResult_t ncclSend(const void *sendbuff, size_t count, int datatype,
@@ -241,6 +265,55 @@ ncclResult_t ncclSendRecv(void *recvbuf, size_t rcount, int rtype, int recvFrom,
         if (rcount) fg_fill(recvbuf, rcount);
     }
     return ncclSuccess;
+}
+
+/* Point-to-point cost along the declared path between two ranks. Deliberately
+ * NOT a ring model: a send has one source and one destination, so the cost is a
+ * single transfer over the bottleneck link on the shortest path plus the summed
+ * link latency. Refuses when the ranks are unconnected rather than guessing a
+ * route. */
+double fg_nccl_predict_p2p(const fg_topo_t *t, size_t count, int datatype,
+                           int from_rank, int to_rank, int *bottleneck_link,
+                           char *regime, size_t regimesz)
+{
+    if (bottleneck_link) *bottleneck_link = -1;
+    if (!t || from_rank == to_rank) {
+        if (regime && regimesz) snprintf(regime, regimesz, "p2p-link");
+        return 0.0;
+    }
+    int u = -1, v = -1;
+    for (int i = 0; i < t->n_ranks; i++) {
+        if (t->ranks[i].rank == from_rank)
+            u = fg_topo_dev_index(t, t->ranks[i].node_idx, t->ranks[i].dev_id);
+        if (t->ranks[i].rank == to_rank)
+            v = fg_topo_dev_index(t, t->ranks[i].node_idx, t->ranks[i].dev_id);
+    }
+    if (u < 0 || v < 0) {
+        if (regime && regimesz) snprintf(regime, regimesz, "refused");
+        return FG_NCCL_REFUSED;
+    }
+    int path[64];
+    int plen = 0;
+    if (fg_shortest_path(t, u, v, path, &plen) != 0) {
+        if (regime && regimesz) snprintf(regime, regimesz, "refused");
+        return FG_NCCL_REFUSED;
+    }
+    double S = (double)count * (double)fg_dtype_size(datatype);
+    double bw_gbps = 1e9, lat_us = 0.0;
+    for (int k = 0; k < plen; k++) {
+        int li = path[k];
+        double ebw = t->links[li].eff_bw_gbs;
+        if (ebw < bw_gbps) { bw_gbps = ebw; if (bottleneck_link) *bottleneck_link = li; }
+        lat_us += t->links[li].latency_us;
+    }
+    if (plen == 0 || bw_gbps <= 0) {
+        if (regime && regimesz) snprintf(regime, regimesz, "refused");
+        return FG_NCCL_REFUSED;
+    }
+    double transfer_s = S / (bw_gbps * 1e9);
+    double latency_s = lat_us * 1e-6;
+    if (regime && regimesz) snprintf(regime, regimesz, "p2p-link");
+    return transfer_s + latency_s;
 }
 
 static fg_topo_t *fg_topo_cache = NULL;
