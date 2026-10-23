@@ -43,6 +43,11 @@ from tools.torch_parallel.model import ModelSpec, TinyLM
 def _parse() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--steps", type=int, default=5)
+    # The first step pays CUDA context + cuBLAS init + kernel compilation:
+    # measured 556 ms against 11 ms for steady state. Averaging it in makes a
+    # sweep compare initialization cost rather than the parallel config, which
+    # is exactly the confound this harness exists to avoid.
+    p.add_argument("--warmup", type=int, default=2)
     p.add_argument("--batch", type=int, default=8)
     p.add_argument("--delay-ms", type=float, nargs=2, default=None,
                    metavar=("LO", "HI"))
@@ -98,7 +103,9 @@ def main() -> int:
                       device="cuda", generator=g)
 
     step_times: list[float] = []
+    measure_start_ns: int | None = None
     losses: list[float] = []
+    n_warm = max(0, min(args.warmup, args.steps - 1))
     for step in range(args.steps):
         t0 = time.perf_counter()
         opt.zero_grad(set_to_none=True)
@@ -120,7 +127,13 @@ def main() -> int:
             delay = random.uniform(lo, hi) / 1000.0
             if delay > 0:
                 time.sleep(delay)
-        step_times.append((time.perf_counter() - t0) + delay)
+        if step == n_warm:
+            # The trace is filtered to this instant, so the collective count and
+            # the step times describe the SAME window. Counting warmup traffic
+            # against steady-state time is how a sweep quietly lies.
+            measure_start_ns = time.time_ns()
+        if step >= n_warm:
+            step_times.append((time.perf_counter() - t0) + delay)
         losses.append(float(loss.detach()))
 
     summary = {
@@ -131,6 +144,8 @@ def main() -> int:
         "params": spec.param_count(),
         "batch": args.batch,
         "steps": args.steps,
+        "warmup_steps": n_warm,
+        "measure_start_ns": measure_start_ns,
         "step_times_s": step_times,
         "mean_step_s": sum(step_times) / len(step_times),
         "loss_first": losses[0],

@@ -94,20 +94,40 @@ same traffic DDP would produce, un-bucketed.
 
 ```bash
 make libfakenccl.so                      # once
-python3 -m tools.torch_parallel.sweep --world-sizes 1 2 --steps 3
+python3 -m tools.torch_parallel.sweep --world-sizes 1 2 --steps 5
+python3 -m tools.torch_parallel.sweep --world-sizes 2 --fabric pcie
 python3 -m tools.torch_parallel.sweep --world-sizes 1 2 --delay-ms 0.5 2.0
 ```
 
-Measured on this box (RTX 5090, 5.2M-parameter model, 2 steps):
+The sweep emits a topology blob for each world size
+(`tools/torch_parallel/topology.py`) and points `GPUSIM_TOPOLOGY` at it, so
+collectives are timed by the declared fabric. Without it they take the fallback
+path and carry `predicted_s: null` -- bytes but no cost.
+
+Measured on this box (RTX 5090, 5.2M-parameter model, 5 steps, 2 discarded as
+warmup):
 
 ```
-world   step_ms  coll_msgs   coll_MB     params
-    1     272.4          0       0.0    5242880
-    2     289.0         75     129.1    5242880
+fabric  world   step_ms  coll_msgs   coll_MB  comm_sim_ms
+nvlink      1      11.4          0       0.0          0.0
+nvlink      2      11.5         75      86.1          0.68
+pcie        2      12.1         75      86.1          7.04
 ```
 
-That table is the scaffold doing its job: doubling data-parallel width adds 75
-collectives and 129 MB per rank, and the step time moves accordingly.
+Three things that table is good for, none of which needed a second GPU:
+
+- doubling data-parallel width adds 75 collectives and 86 MB per rank;
+- the same configuration on a slower declared fabric costs 10x more simulated
+  communication (0.68 -> 7.04 ms), so fabric and parallelism can be co-varied;
+- `step_ms` barely moves because the simulated collective time is small next to
+  this model's compute -- which is itself the answer to "is this model
+  communication-bound?": at 5.2M parameters and 8x512 tokens, no.
+
+WARMUP IS DISCARDED, and that matters: the first step measured 556 ms against
+11 ms for steady state (CUDA context, cuBLAS init, kernel compilation). Averaging
+it in would make a sweep compare initialization cost instead of the parallel
+configuration. `coll_msgs` is filtered to the same window as `step_ms`
+(`measure_start_ns`) so the two describe the same steps.
 
 ## 6. What is not built yet
 

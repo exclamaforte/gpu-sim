@@ -42,7 +42,8 @@ REPO = Path(__file__).resolve().parents[2]
 INTERPOSER = REPO / "libfakenccl.so"
 
 
-def _run_one(world: int, steps: int, delay, extra: list[str]) -> dict:
+def _run_one(world: int, steps: int, delay, extra: list[str],
+             topology_path: str | None = None) -> dict:
     tmp = Path(tempfile.mkdtemp(prefix=f"harness-w{world}-"))
     trace = tmp / "trace.jsonl"
     summary = tmp / "summary.jsonl"
@@ -52,7 +53,9 @@ def _run_one(world: int, steps: int, delay, extra: list[str]) -> dict:
         "GPUSIM_TRACE": str(trace),
         "FAKEGPU_NCCL_NO_FILL": "1",
         "FAKEGPU_NUM_DEVICES": str(world),
-        "GPUSIM_TOPO": env.get("GPUSIM_TOPO", ""),
+        # The interposer reads GPUSIM_TOPOLOGY; without it collectives take the
+        # fallback path and are traced with predicted_s=null (bytes, no cost).
+        "GPUSIM_TOPOLOGY": topology_path or env.get("GPUSIM_TOPOLOGY", ""),
     })
     cmd = [sys.executable, "-m", "torch.distributed.run",
            f"--nproc_per_node={world}", "--standalone",
@@ -69,14 +72,22 @@ def _run_one(world: int, steps: int, delay, extra: list[str]) -> dict:
     if summary.exists():
         rows = [json.loads(l) for l in summary.read_text().splitlines() if l.strip()]
     msgs = bytes_moved = 0
+    pred_s = 0.0
+    # Only collectives issued during the measured window, so the count and the
+    # step times cover the same steps (see train.py's measure_start_ns).
+    start_ns = next((r.get("measure_start_ns") for r in rows
+                     if r.get("measure_start_ns")), None)
     if trace.exists():
         for line in trace.read_text().splitlines():
             if not line.strip():
                 continue
             e = json.loads(line)
+            if start_ns is not None and e.get("ts_ns", 0) < start_ns:
+                continue
             if e.get("rank") == 0:
                 msgs += 1
                 bytes_moved += int(e.get("bytes") or 0)
+                pred_s += float(e.get("predicted_s") or 0.0)
 
     shutil.rmtree(tmp, ignore_errors=True)
     return {
@@ -85,6 +96,7 @@ def _run_one(world: int, steps: int, delay, extra: list[str]) -> dict:
         "step_ms": (sum(r["mean_step_s"] for r in rows) / len(rows) * 1000) if rows else None,
         "coll_msgs": msgs,
         "coll_MB": round(bytes_moved / 1e6, 1),
+        "comm_sim_ms": round(pred_s * 1000, 2),
         "params": rows[0]["params"] if rows else None,
         "stderr_tail": proc.stderr.strip().splitlines()[-1] if proc.returncode else "",
     }
@@ -95,6 +107,8 @@ def main() -> int:
     ap.add_argument("--world-sizes", type=int, nargs="+", default=[1, 2])
     ap.add_argument("--steps", type=int, default=3)
     ap.add_argument("--delay-ms", type=float, nargs=2, default=None)
+    ap.add_argument("--fabric", default="nvlink",
+                    help="declare a fabric so collectives carry predicted cost; '' to disable")
     ap.add_argument("--json", type=str, default=None)
     ap.add_argument("rest", nargs="*")
     args = ap.parse_args()
@@ -103,16 +117,24 @@ def main() -> int:
         print(f"missing {INTERPOSER}; run 'make libfakenccl.so' first", file=sys.stderr)
         return 2
 
-    results = [_run_one(w, args.steps, args.delay_ms, args.rest)
-               for w in args.world_sizes]
+    from tools.torch_parallel.topology import emit
+    tmp_topo = Path(tempfile.mkdtemp(prefix="harness-topo-"))
+    results = []
+    for w in args.world_sizes:
+        topo = None
+        if args.fabric:
+            topo = str(emit(w, tmp_topo / f"topo_w{w}_{args.fabric}.bin", args.fabric))
+        results.append(_run_one(w, args.steps, args.delay_ms, args.rest, topo))
+    shutil.rmtree(tmp_topo, ignore_errors=True)
 
-    hdr = f"{'world':>5} {'step_ms':>9} {'coll_msgs':>10} {'coll_MB':>9} {'params':>10}"
+    hdr = (f"{'world':>5} {'step_ms':>9} {'coll_msgs':>10} {'coll_MB':>9} "
+           f"{'comm_sim_ms':>12} {'params':>10}")
     print(hdr)
     print("-" * len(hdr))
     for r in results:
         step = f"{r['step_ms']:.1f}" if r["step_ms"] is not None else "FAILED"
         print(f"{r['world']:>5} {step:>9} {r['coll_msgs']:>10} {r['coll_MB']:>9} "
-              f"{r['params'] or '-':>10}")
+              f"{r['comm_sim_ms']:>12} {r['params'] or '-':>10}")
         if r["rc"] != 0 and r["stderr_tail"]:
             print(f"      {r['stderr_tail']}")
 

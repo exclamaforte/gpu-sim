@@ -502,7 +502,7 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
 
 /* ---- collectives --------------------------------------------------------- */
 
-/* gpu-sim-torch-harness: the fallback path (no GPUSIM_TOPO loaded) still has
+/* gpu-sim-torch-harness: the fallback path (no GPUSIM_TOPOLOGY loaded) still has
  * to emit a trace line, or a torch run against the simulated fabric produces
  * no evidence at all. fg_cur_op names the collective the caller is in. */
 static const char *fg_cur_op = "collective";
