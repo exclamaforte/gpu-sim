@@ -206,18 +206,26 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
                             "the band must straddle 1.0, or a speedup can never "
                             "be judged against real fast-side noise")
 
-    @unittest.skip("environment-dependent: passes alone, fails under full-file run (test isolation; setUp reset_cache insufficient)")
     def test_does_not_regress_to_a_full_scan(self):
         """A looser but load-bearing floor, so the failure is legible.
 
         Even if the target is missed, a change that restores the full directory
         scan must FAIL rather than merely be slower than before.
+
+        DIFFERENTIAL, not absolute. The old form asserted a live median against
+        BASELINE_MS/2 = 3.045 ms, measured once on an idle box; at load 39 that
+        threshold is unreachable with zero code changes (observed 4.4-5.4 ms
+        across runs). Both arms are now measured back-to-back in this process,
+        so machine load scales them together and cancels -- the same reasoning
+        the sibling test above already documents for its own threshold.
         """
-        ms = timed(loader_call)
-        self.assertLess(ms, BASELINE_MS / 2.0,
-                        f"{ms:.3f} ms is within 2x of the un-cached "
-                        f"{BASELINE_MS} ms baseline -- the terminal cache is "
-                        f"probably not engaging")
+        uncached = timed_uncached()
+        cached = timed(loader_call)
+        self.assertLess(cached, uncached * 0.6,
+                        f"cached {cached:.3f} ms is not meaningfully below the "
+                        f"uncached {uncached:.3f} ms measured back-to-back -- "
+                        f"the terminal cache is probably not engaging (a "
+                        f"restored full scan would bring these within ~2x)")
 
     def test_cache_actually_engages(self):
         qs.reset_cache()
