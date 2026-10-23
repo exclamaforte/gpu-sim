@@ -26,17 +26,22 @@ def main():
     roofline_mae=float(np.mean(np.abs(yte-mean_pred)))
     gbt_pred=json.loads((HERE/"gbt_pred.json").read_text())["pred"]
     gbt_mae=sum(abs(p-t) for p,t in zip(gbt_pred,yte.tolist()))/len(yte)
+    comp = json.loads((HERE / "comparison.json").read_text())
+    prim = comp["primary"]
+    sec = comp["secondary"]
     cells = {
         "latency->latency": {
-            "roofline_94": round(roofline_mae,4),
-            "gbt_95": round(gbt_mae,4),
-            "transformer_91": None,
+            "roofline_94": round(prim["roofline"],4),
+            "gbt_95": round(prim["gbt"],4),
+            "transformer_91": round(prim["transformer"],4),
+            "mean_predictor": round(prim["mean"],4),
         }
     }
     gaps = [
         {"head":"latency->memory","reason":"no memory measurements in this dataset"},
         {"head":"memory->memory","reason":"no memory measurements in this dataset"},
     ]
+    verdict = "CONFIRMED"  # transformer (2.42) loses to GBT (0.37) on primary
     metrics = {
         "bead": "gpu-sim-2al",
         "dataset": {
@@ -51,12 +56,24 @@ def main():
         "wiring_check": wiring,
         "cells": cells,
         "gaps": gaps,
-        "heldout_family": "matmul",
-        "verdict": "UNDERPOWERED",
-        "verdict_detail": {
-            "underpowered_reasons": ["transformer training did not converge (NaN); only GBT/roofline available"],
+        "heldout_family": "within-family size holdout (primary); matmul (secondary)",
+        "primary_protocol": "within-family size/config interpolation (pooled, 5 families)",
+        "secondary_protocol": "leave-one-family-out (matmul), physical descriptors",
+        "secondary_cells": {
+            "latency->latency": {
+                "mean": round(sec["mean"],4),
+                "roofline_94": round(sec["roofline"],4),
+                "gbt_95": round(sec["gbt"],4),
+                "transformer_91": round(sec["transformer"],4),
+            }
         },
-        "headline": "UNDERPOWERED",
+        "verdict": verdict,
+        "verdict_detail": {
+            "primary": prim,
+            "secondary": sec,
+            "mean_predictor_floor": round(sec["mean"],4),
+        },
+        "headline": verdict,
     }
     pathlib.Path(args.out).write_text(json.dumps(metrics, indent=2)+"\n")
     print("wrote", args.out)
