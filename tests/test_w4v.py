@@ -6,8 +6,12 @@ from epic_u2o.op_latency import latency_ms_for, LEGACY_DEFAULT_MS
 
 class TestW4v(unittest.TestCase):
     def test_fp32_unchanged(self):
-        # default table (13.4) relu median
-        self.assertAlmostEqual(latency_ms_for("relu"), 0.0041, places=4)
+        # Pins the LEGACY 13.4 table explicitly. gpu-sim-el4 made the measured
+        # table the default, so "the default" no longer means the 13.4 numbers;
+        # this test's subject is that the legacy fp32 value did not move.
+        from epic_u2o.op_latency import load_table
+        legacy = load_table(str(REPO / "experiments" / "gpu-sim-u2o.13.4" / "op_latency_table.json"))
+        self.assertAlmostEqual(latency_ms_for("relu", table=legacy), 0.0041, places=4)
 
     def test_fp16_within_25(self):
         os.environ["GPUSIM_OP_LATENCY_JSON"] = str(REPO / "experiments/gpu-sim-84z/mdz_calibration_fixture.json")

@@ -24,9 +24,13 @@ def test_in_grid_not_clamped():
     assert prov["clamp_target"] is None
 
 def test_no_size_axis_reports_none():
-    # default table has no size axis
+    # The size-blind 13.4 table is no longer the default (gpu-sim-el4 made the
+    # measured table the default), so name it explicitly rather than relying on
+    # whatever the default happens to be -- otherwise this test silently changes
+    # meaning whenever the default moves.
+    legacy = ol.load_table(str(REPO / "experiments" / "gpu-sim-u2o.13.4" / "op_latency_table.json"))
     ol._warned.clear()
-    prov = ol.prediction_provenance("relu", size=2 ** 20)
+    prov = ol.prediction_provenance("relu", size=2 ** 20, table=legacy)
     assert prov["clamped"] is None
     assert prov["no_size_axis"] is True
 

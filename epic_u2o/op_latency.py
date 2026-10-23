@@ -24,7 +24,7 @@ import statistics
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_TABLE = REPO / "experiments/gpu-sim-u2o.13.4/op_latency_table.json"
+DEFAULT_TABLE = REPO / "experiments/gpu-sim-m93/mdz_calibration_fixture.json"
 LEGACY_DEFAULT_MS = 0.5
 
 _cache = {}
