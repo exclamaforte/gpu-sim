@@ -55,5 +55,17 @@
     "reduction": false
   },
   "feature_spec": "phys(8) + num33(33) = 41 slots",
+  "size_only_control": {
+    "status": "WITHDRAWN",
+    "feature_list": [
+      "log1p(size)"
+    ],
+    "block_included": false,
+    "standardization": "z-score (train mean/std, sd==0 -> 1)",
+    "target_transform": "ln(median_runtime_ms); median relative error on exp(y)",
+    "split": "per-family top 20% by size held out",
+    "gbt_config": "HistGradientBoostingRegressor(max_iter=300, max_depth=6, learning_rate=0.05, min_samples_leaf=5, random_state=0)",
+    "reason_withdrawn": "PI reconciliation: bwn's stated definition reproduces 9ul's numbers, not bwn's committed ones"
+  },
   "headline": "GAP-REMAINS"
 }
