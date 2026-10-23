@@ -127,10 +127,18 @@ Three things that table is good for, none of which needed a second GPU:
 
 ```
 config     world  tp  dp  step_ms  coll_msgs  coll_MB  comm_sim_ms
-DP             2   1   2      9.5         75     86.1         0.75
-TP             2   2   1      7.6         33    268.4         0.56
-DP2xTP2        4   2   2     29.9        297    803.4         3.24
+DP             2   1   2      9.1         75     43.0         0.62
+TP             2   2   1      9.9         33    134.2         0.28
 ```
+
+These are CORRECTED volumes. Every figure published before 2026-10-23 was
+**exactly 2x too large** for float32: shim/nccl.h defined Float32=6, Float64=7,
+Float16=8, while real NCCL defines Float16=6, Float32=7, Float64=8. torch passes
+the constants it compiled against, so float32 was decoded as float64. The error was
+invisible because it was self-consistent -- every comparison, every ratio, every
+"TP moves more bytes than DP" conclusion was unaffected, which is exactly why it
+survived so long. A 1000-element probe caught it: 4000 B of float32 traced as
+8000 B. The enum now matches the ABI.
 
 The shape of the trade-off is visible and explicable: **TP issues fewer, much
 larger collectives; DP issues many small ones.** That is the textbook tension, and
