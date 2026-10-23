@@ -1,0 +1,66 @@
+{
+  "bead": "gpu-sim-gh9",
+  "calibration_source": "knee_cases.json (elementwise only)",
+  "constants": {
+    "dispatch_floor_us": {
+      "value": 1.308,
+      "source": "gpu-sim-u2o.6.6.1 measured irreducible launch, batched"
+    },
+    "effective_bandwidth_bytes_s": {
+      "value": 7792241763685.914,
+      "source": "median of knee_cases elementwise bytes/time"
+    },
+    "peak_tflops": {
+      "value": 82.6,
+      "source": "hw_5090 vendor spec (unsourced in-tree), used only for matmul"
+    },
+    "memory_bandwidth_bytes_s": {
+      "value": 1688000000000.0,
+      "source": "hw_5090 measured read bw"
+    }
+  },
+  "shape_overlap_knee_vs_fixture": [],
+  "noise_floor": {
+    "per_class_median_spread": {
+      "elementwise": 0.2489149065328347,
+      "matmul": 0.0,
+      "reduce": 0.01589912544231635
+    },
+    "per_class_max_spread": {
+      "elementwise": 0.3508157169117584,
+      "matmul": 0.0,
+      "reduce": 0.16348697493880596
+    },
+    "high_spread_cases": [
+      {
+        "op_class": "elementwise",
+        "shapes": [
+          1024
+        ],
+        "spread": 0.3508,
+        "n_repeats": 3
+      },
+      {
+        "op_class": "elementwise",
+        "shapes": [
+          65536
+        ],
+        "spread": 0.3478,
+        "n_repeats": 3
+      }
+    ]
+  },
+  "baseline": {
+    "elementwise": 0.969,
+    "matmul": 0.409,
+    "reduce": 0.473
+  },
+  "lever3": {
+    "elementwise": 0.48394658461957674,
+    "matmul": 0.17943162873234314,
+    "reduce": 0.4358307479474093
+  },
+  "verdict": "PARTIAL",
+  "bar": 0.25,
+  "bar_criterion": "u2o.17: median |sim-measured|/measured <= 25% per op class"
+}
