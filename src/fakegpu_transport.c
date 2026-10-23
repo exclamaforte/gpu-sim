@@ -150,42 +150,57 @@ int fg_transport_allreduce(const void *sendbuff, void *recvbuff, size_t count,
              nranks, count, datatype, op, k);
     size_t total = sizeof(struct fg_coll_hdr) + (size_t)nranks * payload;
 
-    /* Fresh-or-stale open: a crashed run can leave a segment whose key AND
-     * header fields match ours (same shape, same k). Inheriting its arrival
-     * counter is silent corruption -- observed as arrived=3 with nranks=2.
-     * Rule: O_EXCL-create when possible; on EEXIST, join only if the header
-     * validates AND the creator process is still alive, else unlink and
-     * recreate. PID reuse inside the millisecond live window is accepted
-     * and documented; the barrier timeout remains the backstop. */
+    /* Publish-or-join: a crashed run can leave a segment whose key AND
+     * header fields match ours, and a half-initialized segment (created
+     * but header not yet written) looks exactly like a stale one to the
+     * peer -- which then unlinks it and forks a ghost. Observed as both
+     * ranks timing out at the same k with arrived=1 each.
+     * Rule: build fully under a pid-unique temp name, then link() to the
+     * canonical name (atomic publish). link() wins -> ours; EEXIST -> join
+     * the winner, which is guaranteed fully initialized. A dead creator's
+     * segment is unlinked and the whole loop retried. PID-reuse and EPERM
+     * semantics as documented below; the barrier timeout stays backstop. */
     struct fg_coll_hdr *h = NULL;
     char *slots = NULL;
     void *base = NULL;
+    char keypath[160], tmppath[192];
+    snprintf(keypath, sizeof keypath, "/dev/shm%s", name);
+    snprintf(tmppath, sizeof tmppath, "/dev/shm%s.tmp.%d.%u", name,
+             (int)getpid(), (unsigned)rand());
     for (;;) {
-        int fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600);
-        if (fd >= 0) {
-            if (ftruncate(fd, (off_t)total) != 0)
+        int fd = shm_open(tmppath + 8, O_CREAT | O_EXCL | O_RDWR, 0600);
+        if (fd < 0) {
+            if (errno == EEXIST) continue; /* pid+rand collision: retry */
+            fg_coll_die("shm_open tmp failed", "allreduce", k, rank,
+                          nranks, 0, 0);
+        }
+        if (ftruncate(fd, (off_t)total) != 0)
         fg_coll_die("ftruncate failed", "allreduce", k, rank, nranks, 0, 0);
-            base = mmap(NULL, total, PROT_READ | PROT_WRITE,
-                          MAP_SHARED, fd, 0);
-            close(fd);
-            if (base == MAP_FAILED)
+        base = mmap(NULL, total, PROT_READ | PROT_WRITE,
+                      MAP_SHARED, fd, 0);
+        close(fd);
+        if (base == MAP_FAILED)
         fg_coll_die("mmap failed", "allreduce", k, rank, nranks, 0, 0);
-            h = (struct fg_coll_hdr *)base;
-            slots = (char *)base + sizeof(struct fg_coll_hdr);
-            h->magic = FG_COLL_MAGIC;
-            h->nranks = (uint32_t)nranks;
-            h->op = (uint32_t)op;
-            h->count = (uint64_t)count;
-            h->datatype = (int32_t)datatype;
-            h->creator_pid = (int32_t)getpid();
-            atomic_store(&h->arrived, 0);
-            atomic_store(&h->done, 0);
+        h = (struct fg_coll_hdr *)base;
+        slots = (char *)base + sizeof(struct fg_coll_hdr);
+        h->magic = FG_COLL_MAGIC;
+        h->nranks = (uint32_t)nranks;
+        h->op = (uint32_t)op;
+        h->count = (uint64_t)count;
+        h->datatype = (int32_t)datatype;
+        h->creator_pid = (int32_t)getpid();
+        atomic_store(&h->arrived, 0);
+        atomic_store(&h->done, 0);
+        if (link(tmppath, keypath) == 0) {
+            shm_unlink(tmppath + 8); /* published; drop the temp name */
             break;
         }
-        if (errno != EEXIST)
-        fg_coll_die("shm_open failed", "allreduce", k, rank, nranks, 0, 0);
+        /* Someone else published first: drop ours and join theirs. */
+        munmap(base, total);
+        base = NULL;
+        shm_unlink(tmppath + 8);
         fd = shm_open(name, O_RDWR, 0600);
-        if (fd < 0) continue; /* unlinked between: retry create */
+        if (fd < 0) continue; /* unlinked between: retry */
         void *hdr = mmap(NULL, sizeof(struct fg_coll_hdr),
                            PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
         close(fd);
