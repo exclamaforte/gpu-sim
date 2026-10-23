@@ -75,14 +75,19 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
     pred_s = 0.0
     # Only collectives issued during the measured window, so the count and the
     # step times cover the same steps (see train.py's measure_start_ns).
-    start_ns = next((r.get("measure_start_ns") for r in rows
-                     if r.get("measure_start_ns")), None)
+    # PER RANK. Taking the first row's timestamp and applying it to every rank
+    # made the count unstable: ranks enter their measured window at slightly
+    # different instants, so one rank's warmup collectives leaked in on some runs
+    # and not others -- observed as 33 vs 65 collectives for the same config.
+    start_by_rank = {r["rank"]: r.get("measure_start_ns") for r in rows
+                     if r.get("measure_start_ns")}
     if trace.exists():
         for line in trace.read_text().splitlines():
             if not line.strip():
                 continue
             e = json.loads(line)
-            if start_ns is not None and e.get("ts_ns", 0) < start_ns:
+            rk_ns = start_by_rank.get(e.get("rank"))
+            if rk_ns is not None and e.get("ts_ns", 0) < rk_ns:
                 continue
             if e.get("rank") == 0:
                 msgs += 1
