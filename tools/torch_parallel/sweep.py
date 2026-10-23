@@ -88,10 +88,14 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
             if not line.strip():
                 continue
             e = json.loads(line)
-            rk_ns = start_by_rank.get(e.get("rank"))
+            # grank is the WORLD rank; "rank" is communicator-local and repeats
+            # across subgroups (every group has its own rank 0). Keying on the
+            # local rank mixed distinct ranks' traffic into one bucket.
+            gr = e.get("grank", e.get("rank"))
+            rk_ns = start_by_rank.get(gr)
             if rk_ns is not None and e.get("ts_ns", 0) < rk_ns:
                 continue
-            if e.get("rank") == 0:
+            if gr == 0:
                 if e.get("op") in ("send", "recv", "sendrecv"):
                     p2p_msgs += 1
                     p2p_bytes += int(e.get("bytes") or 0)
