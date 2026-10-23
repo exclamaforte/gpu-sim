@@ -1,0 +1,203 @@
+{
+  "bead": "gpu-sim-84z",
+  "n_cases": 12,
+  "per_case": [
+    {
+      "op": "relu",
+      "size": 1024,
+      "measured_ms": 0.0009008499999999912,
+      "naive_pred_ms": 0.0008832000000000278,
+      "corrected_pred_ms": 0.0009424000000000139,
+      "bytes_pred_ms": 0.0008832000000000278,
+      "bytes_pred_eq_n": 512,
+      "naive_err": 0.019592606982254155,
+      "corrected_err": 0.0461231059555121,
+      "bytes_err": 0.019592606982254155,
+      "regime": "floor"
+    },
+    {
+      "op": "sigmoid",
+      "size": 1024,
+      "measured_ms": 0.0011967999999999506,
+      "naive_pred_ms": 0.0011984000000000038,
+      "corrected_pred_ms": 0.001100000000000002,
+      "bytes_pred_ms": 0.0011984000000000038,
+      "bytes_pred_eq_n": 512,
+      "naive_err": 0.0013368983957664027,
+      "corrected_err": 0.08088235294113684,
+      "bytes_err": 0.0013368983957664027,
+      "regime": "floor"
+    },
+    {
+      "op": "tanh",
+      "size": 1024,
+      "measured_ms": 0.0008831999999999994,
+      "naive_pred_ms": 0.0008991499999999803,
+      "corrected_pred_ms": 0.0009503749999999902,
+      "bytes_pred_ms": 0.0008991499999999803,
+      "bytes_pred_eq_n": 512,
+      "naive_err": 0.018059329710123376,
+      "corrected_err": 0.07605865036230852,
+      "bytes_err": 0.018059329710123376,
+      "regime": "floor"
+    },
+    {
+      "op": "relu",
+      "size": 65536,
+      "measured_ms": 0.0008960000000000151,
+      "naive_pred_ms": 0.0008992000000000075,
+      "corrected_pred_ms": 0.0009504000000000038,
+      "bytes_pred_ms": 0.0008992000000000075,
+      "bytes_pred_eq_n": 32768,
+      "naive_err": 0.003571428571420128,
+      "corrected_err": 0.060714285714272134,
+      "bytes_err": 0.003571428571420128,
+      "regime": "floor"
+    },
+    {
+      "op": "sigmoid",
+      "size": 65536,
+      "measured_ms": 0.0012095999999999947,
+      "naive_pred_ms": 0.0012143000000000002,
+      "corrected_pred_ms": 0.0011079500000000001,
+      "bytes_pred_ms": 0.0012143000000000002,
+      "bytes_pred_eq_n": 32768,
+      "naive_err": 0.003885582010586559,
+      "corrected_err": 0.08403604497354086,
+      "bytes_err": 0.003885582010586559,
+      "regime": "floor"
+    },
+    {
+      "op": "tanh",
+      "size": 65536,
+      "measured_ms": 0.0008913000000000011,
+      "naive_pred_ms": 0.0009168000000000461,
+      "corrected_pred_ms": 0.0009592000000000231,
+      "bytes_pred_ms": 0.0009168000000000461,
+      "bytes_pred_eq_n": 32768,
+      "naive_err": 0.02860989565807807,
+      "corrected_err": 0.076180859418851,
+      "bytes_err": 0.02860989565807807,
+      "regime": "floor"
+    },
+    {
+      "op": "relu",
+      "size": 1048576,
+      "measured_ms": 0.001414399999999978,
+      "naive_pred_ms": 0.0013631999999999948,
+      "corrected_pred_ms": 0.0011823999999999975,
+      "bytes_pred_ms": 0.0013631999999999948,
+      "bytes_pred_eq_n": 524288,
+      "naive_err": 0.036199095022613155,
+      "corrected_err": 0.16402714932125573,
+      "bytes_err": 0.036199095022613155,
+      "regime": "bandwidth"
+    },
+    {
+      "op": "sigmoid",
+      "size": 1048576,
+      "measured_ms": 0.001790399999999977,
+      "naive_pred_ms": 0.0016799000000000007,
+      "corrected_pred_ms": 0.0013407500000000004,
+      "bytes_pred_ms": 0.0016799000000000007,
+      "bytes_pred_eq_n": 524288,
+      "naive_err": 0.0617180518319804,
+      "corrected_err": 0.25114499553171493,
+      "bytes_err": 0.0617180518319804,
+      "regime": "bandwidth"
+    },
+    {
+      "op": "tanh",
+      "size": 1048576,
+      "measured_ms": 0.0014927999999999884,
+      "naive_pred_ms": 0.001391999999999993,
+      "corrected_pred_ms": 0.0011967999999999966,
+      "bytes_pred_ms": 0.001391999999999993,
+      "bytes_pred_eq_n": 524288,
+      "naive_err": 0.06752411575562438,
+      "corrected_err": 0.19828510182207537,
+      "bytes_err": 0.06752411575562438,
+      "regime": "bandwidth"
+    },
+    {
+      "op": "relu",
+      "size": 16777216,
+      "measured_ms": 0.011515349999999988,
+      "naive_pred_ms": 0.05188960000000004,
+      "corrected_pred_ms": 0.02644560000000002,
+      "bytes_pred_ms": 0.011544150000000013,
+      "bytes_pred_eq_n": 8388608,
+      "naive_err": 3.506124433907792,
+      "corrected_err": 1.2965519936432714,
+      "bytes_err": 0.002501009522074884,
+      "regime": "bandwidth"
+    },
+    {
+      "op": "sigmoid",
+      "size": 16777216,
+      "measured_ms": 0.012400049999999975,
+      "naive_pred_ms": 0.051806100000000015,
+      "corrected_pred_ms": 0.026403850000000006,
+      "bytes_pred_ms": 0.012131049999999977,
+      "bytes_pred_eq_n": 8388608,
+      "naive_err": 3.1778944439740258,
+      "corrected_err": 1.1293341559106664,
+      "bytes_err": 0.021693460913463972,
+      "regime": "bandwidth"
+    },
+    {
+      "op": "tanh",
+      "size": 16777216,
+      "measured_ms": 0.011972700000000055,
+      "naive_pred_ms": 0.0519252,
+      "corrected_pred_ms": 0.026463399999999998,
+      "bytes_pred_ms": 0.011686699999999973,
+      "bytes_pred_eq_n": 8388608,
+      "naive_err": 3.3369665990127344,
+      "corrected_err": 1.2103117926616282,
+      "bytes_err": 0.023887677800335766,
+      "regime": "bandwidth"
+    }
+  ],
+  "fp32_control_cross_check": [
+    {
+      "size": 1024,
+      "v2_ms": 0.0008399999999999921,
+      "v1_ms": 0.000870399999999995,
+      "drift": 0.034926470588238834
+    },
+    {
+      "size": 65536,
+      "v2_ms": 0.0008798999999999922,
+      "v1_ms": 0.0008767000000000052,
+      "drift": 0.003650051328831915
+    },
+    {
+      "size": 1048576,
+      "v2_ms": 0.0020784000000000045,
+      "v1_ms": 0.00202715,
+      "drift": 0.025281799570828215
+    },
+    {
+      "size": 16777216,
+      "v2_ms": 0.06731600000000003,
+      "v1_ms": 0.06627174999999996,
+      "drift": 0.015757091068216343
+    }
+  ],
+  "summary": {
+    "naive_median_err": 0.03240449534034561,
+    "naive_max_err": 3.506124433907792,
+    "corrected_median_err": 0.1240315971473983,
+    "corrected_max_err": 1.2965519936432714,
+    "floor_band_naive_median": 0.010972455860354967,
+    "bw_band_naive_median": 1.622709279864825,
+    "bw_band_corrected_median": 0.6902395757211907,
+    "bytes_median_err": 0.020643033947859064,
+    "bytes_max_err": 0.06752411575562438,
+    "bw_band_bytes_median": 0.03004338641147446,
+    "bw_band_bytes_max": 0.06752411575562438
+  },
+  "verdict": "MIXED",
+  "bytes_keyed_result": "ALL PASS (median 0.0206, max 0.0675)"
+}
