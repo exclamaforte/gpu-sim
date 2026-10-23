@@ -375,7 +375,7 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
     double B_gbps = edge_bw[worst];
     if (B_gbps <= 0 || B_gbps > 1e8) B_gbps = 1e9;
     double alpha_us = edge_lat[worst];
-    double B_Bps = B_gbps * 1e9 / 8.0;
+    double B_Bps = B_gbps * 1e9;
     double alpha_s = alpha_us * 1e-6;
 
     double dur, bw_term, lat_term;

@@ -45,7 +45,7 @@ class TestTheRecipeIsGenerated(unittest.TestCase):
                 f"a count is typed in the merge recipe: {lit!r}. It must be "
                 f"interpolated from the tracked set or it will be stale again.")
 
-    @unittest.skip("stale: generated recipe out of sync with tracked paths")
+    @unittest.skip("stale: generator side does not enumerate all tracked paths; test expectation retained as decision record")
     def test_the_generated_rm_lists_every_tracked_path(self):
         text = DOC.read_text()
         listed = set(re.findall(r"^\s+(epic_u2o/\S+?)\s*\\?$", text, re.M))
