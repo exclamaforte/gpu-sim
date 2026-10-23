@@ -120,3 +120,36 @@ def test_agreement_n2_not_old_two():
     alpha = lat * 1e-6
     old = 2.0 * S / B + 2 * alpha
     assert abs(dur_c - old) > 1e-9, "old 2*S factor still matches C"
+
+
+# gpu-sim-b9g corrected acceptance: agreement across the full measured n=2
+# phase-payload table, including the latency->bandwidth regime switch.
+_CASES = [
+    (1024,   1, "latency"),
+    (16384,  4, "latency"),
+    (65536,  4, "latency"),
+    (131072, 8, "latency"),
+    (524288, 8, "bandwidth"),
+]
+
+def test_agreement_n2_measured_p_table():
+    for count, expected_p, expected_regime in _CASES:
+        dur_c, bl, regime_c = _c_predict(2, count=count)
+        spec = _spec(2, 10.0, 5.0)
+        # Python side
+        import tempfile, os, ctypes
+        blob = topology.emit(spec)
+        fd, path = tempfile.mkstemp(suffix=".bin")
+        try:
+            with os.fdopen(fd, "wb") as f:
+                f.write(blob)
+            # reuse link_model directly
+            rec = link_model.predict(spec, "ring_allreduce", count, "float32")
+        finally:
+            os.unlink(path)
+        dur_py = rec["duration_s"]
+        assert abs(dur_c - dur_py) < 1e-12, (count, dur_c, dur_py)
+        assert rec["pieces_per_phase"] == expected_p, (count, rec["pieces_per_phase"], expected_p)
+        assert rec["pieces_per_phase_derived"] is True
+        assert rec["regime"] == expected_regime, (count, rec["regime"], expected_regime)
+        assert regime_c == expected_regime, (count, regime_c, expected_regime)
