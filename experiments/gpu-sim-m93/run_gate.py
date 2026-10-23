@@ -39,9 +39,10 @@ def main():
                        "dominant_predicted": dom_pred,
                        "preserved": rank_ok},
         "verdict": verdict,
-        "calibration_file": str(CAL),
+        "calibration_file": str(CAL.relative_to(REPO)),
         "calibration_sha256": hashlib.sha256(CAL.read_bytes()).hexdigest(),
-        "disjointness": sim.get("gaps", []),
+        "disjointness": sim.get("disjointness"),
+        "gaps": sim.get("gaps", []),
     }
     (EXP / "metrics.json").write_text(json.dumps(metrics, indent=2))
     for cls, v in metrics["per_class"].items():

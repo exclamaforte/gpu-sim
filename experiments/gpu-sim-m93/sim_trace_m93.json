@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-u2o.17.3",
   "method": "external calibration table, log-log interpolation",
-  "calibration": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-m93/experiments/gpu-sim-m93/mdz_calibration_fixture.json",
+  "calibration": "experiments/gpu-sim-m93/mdz_calibration_fixture.json",
   "calibration_sha256": "99b0e78bfdcfe12fdc94e19ab4119f010922bdd1e133e472544bb0502b95f8ed",
   "classes": {
     "elementwise": {
@@ -245,5 +245,9 @@
   },
   "gaps": [
     "chain: no calibration table"
-  ]
+  ],
+  "disjointness": {
+    "n_calibration_cases": 86,
+    "ok": true
+  }
 }

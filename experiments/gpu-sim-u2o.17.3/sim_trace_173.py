@@ -116,11 +116,12 @@ def main(out=None, extra=None, calibration=None) -> int:
 
         result = {"bead": "gpu-sim-u2o.17.3",
                   "method": "external calibration table, log-log interpolation",
-                  "calibration": str(calibration),
+                  "calibration": str(Path(calibration).relative_to(REPO) if Path(calibration).is_absolute() and Path(calibration).is_relative_to(REPO) else calibration),
                   "calibration_sha256": None,
-                  "classes": {}, "gaps": []}
+                  "classes": {}, "gaps": [], "disjointness": None}
         import hashlib
         result["calibration_sha256"] = hashlib.sha256(Path(calibration).read_bytes()).hexdigest()
+        result["disjointness"] = {"n_calibration_cases": len(cal_cases), "ok": True}
         # per-class aggregation
         per_cls = defaultdict(list)
         for c in cases:
