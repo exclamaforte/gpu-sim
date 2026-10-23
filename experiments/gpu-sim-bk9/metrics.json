@@ -1,0 +1,856 @@
+{
+  "bead": "gpu-sim-bk9",
+  "cells": [
+    {
+      "family": "elementwise",
+      "size": 1024,
+      "n_invocations": 3,
+      "reported_us": 2.336,
+      "dispatch_us": 1.72,
+      "kernel_us": -0.15759999999999996,
+      "kernel_us_std": 0.09162124935479403,
+      "kernel_share": -0.06746575342465752,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.4184000000000001,
+      "residual_661_us": 0.018,
+      "threshold_us": 2.0920000000000005,
+      "raw_batched_scale_medians_us": [
+        1.5624,
+        1.7808,
+        1.4688
+      ],
+      "raw_batched_empty_medians_us": [
+        1.72,
+        1.8624,
+        1.444
+      ],
+      "raw_single_scale_medians_us": [
+        1.888,
+        2.496,
+        2.336
+      ]
+    },
+    {
+      "family": "elementwise",
+      "size": 16384,
+      "n_invocations": 3,
+      "reported_us": 2.336,
+      "dispatch_us": 1.784,
+      "kernel_us": 0.06319999999999992,
+      "kernel_us_std": 0.20794512096544446,
+      "kernel_share": 0.027054794520547914,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.4496,
+      "residual_661_us": 0.068,
+      "threshold_us": 2.248,
+      "raw_batched_scale_medians_us": [
+        1.8472,
+        1.8232,
+        2.2512
+      ],
+      "raw_batched_empty_medians_us": [
+        1.4272,
+        1.784,
+        1.8768
+      ],
+      "raw_single_scale_medians_us": [
+        2.336,
+        2.368,
+        1.952
+      ]
+    },
+    {
+      "family": "elementwise",
+      "size": 262144,
+      "n_invocations": 3,
+      "reported_us": 2.752,
+      "dispatch_us": 1.6448,
+      "kernel_us": 0.009600000000000053,
+      "kernel_us_std": 0.13478357961314633,
+      "kernel_share": 0.0034883720930232753,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.3304,
+      "residual_661_us": 0.078,
+      "threshold_us": 1.6520000000000001,
+      "raw_batched_scale_medians_us": [
+        1.6544,
+        1.5496,
+        1.716
+      ],
+      "raw_batched_empty_medians_us": [
+        1.5976,
+        1.6448,
+        1.928
+      ],
+      "raw_single_scale_medians_us": [
+        2.56,
+        3.136,
+        2.752
+      ]
+    },
+    {
+      "family": "elementwise",
+      "size": 4194304,
+      "n_invocations": 3,
+      "reported_us": 10.048,
+      "dispatch_us": 8.1296,
+      "kernel_us": 0.26479999999999926,
+      "kernel_us_std": 0.010920317455703502,
+      "kernel_share": 0.0263535031847133,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.016799999999999926,
+      "residual_661_us": 0.004,
+      "threshold_us": 0.08399999999999963,
+      "raw_batched_scale_medians_us": [
+        8.3928,
+        8.3944,
+        8.396
+      ],
+      "raw_batched_empty_medians_us": [
+        8.1456,
+        8.1296,
+        8.1288
+      ],
+      "raw_single_scale_medians_us": [
+        10.048,
+        10.56,
+        9.92
+      ]
+    },
+    {
+      "family": "elementwise",
+      "size": 16777216,
+      "n_invocations": 3,
+      "reported_us": 70.752002,
+      "dispatch_us": 31.087199,
+      "kernel_us": 40.14,
+      "kernel_us_std": 0.07489623402414668,
+      "kernel_share": 0.5673337695801173,
+      "target_usable": false,
+      "grid_capped": true,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.06159900000000107,
+      "residual_661_us": 0.027,
+      "threshold_us": 0.30799500000000535,
+      "raw_batched_scale_medians_us": [
+        71.223199,
+        71.227199,
+        71.390402
+      ],
+      "raw_batched_empty_medians_us": [
+        31.044,
+        31.087199,
+        31.105599
+      ],
+      "raw_single_scale_medians_us": [
+        70.752002,
+        68.864003,
+        77.151999
+      ]
+    },
+    {
+      "family": "reduction",
+      "size": 1024,
+      "n_invocations": 3,
+      "reported_us": 2.528,
+      "dispatch_us": 2.0656,
+      "kernel_us": 0.1008,
+      "kernel_us_std": 0.1285421850340709,
+      "kernel_share": 0.039873417721518985,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.6823999999999999,
+      "residual_661_us": 0.018,
+      "threshold_us": 3.4119999999999995,
+      "raw_batched_scale_medians_us": [
+        2.5488,
+        2.1664,
+        1.812
+      ],
+      "raw_batched_empty_medians_us": [
+        2.6384,
+        2.0656,
+        1.956
+      ],
+      "raw_single_scale_medians_us": [
+        2.496,
+        2.528,
+        2.56
+      ]
+    },
+    {
+      "family": "reduction",
+      "size": 16384,
+      "n_invocations": 3,
+      "reported_us": 2.784,
+      "dispatch_us": 1.516,
+      "kernel_us": 0.26639999999999997,
+      "kernel_us_std": 0.1350934491379948,
+      "kernel_share": 0.09568965517241379,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.3455999999999999,
+      "residual_661_us": 0.068,
+      "threshold_us": 1.7279999999999995,
+      "raw_batched_scale_medians_us": [
+        1.4856,
+        2.0504,
+        1.7824
+      ],
+      "raw_batched_empty_medians_us": [
+        1.4656,
+        1.8112,
+        1.516
+      ],
+      "raw_single_scale_medians_us": [
+        2.784,
+        2.784,
+        2.624
+      ]
+    },
+    {
+      "family": "reduction",
+      "size": 262144,
+      "n_invocations": 3,
+      "reported_us": 3.008,
+      "dispatch_us": 1.5536,
+      "kernel_us": 0.014399999999999968,
+      "kernel_us_std": 0.13320500491097678,
+      "kernel_share": 0.004787234042553181,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.5704,
+      "residual_661_us": 0.078,
+      "threshold_us": 2.8520000000000003,
+      "raw_batched_scale_medians_us": [
+        1.8792,
+        1.568,
+        1.5616
+      ],
+      "raw_batched_empty_medians_us": [
+        2.064,
+        1.5536,
+        1.4936
+      ],
+      "raw_single_scale_medians_us": [
+        3.008,
+        3.136,
+        2.912
+      ]
+    },
+    {
+      "family": "reduction",
+      "size": 4194304,
+      "n_invocations": 3,
+      "reported_us": 10.592,
+      "dispatch_us": 8.1312,
+      "kernel_us": 0.4776000000000007,
+      "kernel_us_std": 0.003607399802257918,
+      "kernel_share": 0.04509063444108768,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.006399999999999295,
+      "residual_661_us": 0.004,
+      "threshold_us": 0.031999999999996476,
+      "raw_batched_scale_medians_us": [
+        8.6088,
+        8.608,
+        8.6088
+      ],
+      "raw_batched_empty_medians_us": [
+        8.128,
+        8.1344,
+        8.1312
+      ],
+      "raw_single_scale_medians_us": [
+        10.112,
+        10.592,
+        10.72
+      ]
+    },
+    {
+      "family": "reduction",
+      "size": 16777216,
+      "n_invocations": 3,
+      "reported_us": 77.983998,
+      "dispatch_us": 31.069601,
+      "kernel_us": 41.035199,
+      "kernel_us_std": 0.06524732026170534,
+      "kernel_share": 0.5262002468762886,
+      "target_usable": false,
+      "grid_capped": true,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.03119999999999834,
+      "residual_661_us": 0.027,
+      "threshold_us": 0.1559999999999917,
+      "raw_batched_scale_medians_us": [
+        72.065598,
+        72.204798,
+        72.1048
+      ],
+      "raw_batched_empty_medians_us": [
+        31.047201,
+        31.069601,
+        31.078401
+      ],
+      "raw_single_scale_medians_us": [
+        77.983998,
+        78.911997,
+        74.688002
+      ]
+    },
+    {
+      "family": "matmul",
+      "size": 1024,
+      "n_invocations": 3,
+      "reported_us": 3.456,
+      "dispatch_us": 1.4912,
+      "kernel_us": 0.35919999999999996,
+      "kernel_us_std": 0.040114502780582116,
+      "kernel_share": 0.10393518518518517,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.07599999999999985,
+      "residual_661_us": 0.018,
+      "threshold_us": 0.3799999999999992,
+      "raw_batched_scale_medians_us": [
+        1.8504,
+        1.852,
+        1.8496
+      ],
+      "raw_batched_empty_medians_us": [
+        1.4288,
+        1.5048,
+        1.4912
+      ],
+      "raw_single_scale_medians_us": [
+        3.456,
+        4.032,
+        3.008
+      ]
+    },
+    {
+      "family": "matmul",
+      "size": 16384,
+      "n_invocations": 3,
+      "reported_us": 4.0,
+      "dispatch_us": 1.4136,
+      "kernel_us": 0.4928000000000001,
+      "kernel_us_std": 0.06080175436065417,
+      "kernel_share": 0.12320000000000003,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.12080000000000002,
+      "residual_661_us": 0.068,
+      "threshold_us": 0.6040000000000001,
+      "raw_batched_scale_medians_us": [
+        1.9024,
+        1.9064,
+        1.9072
+      ],
+      "raw_batched_empty_medians_us": [
+        1.4136,
+        1.4776,
+        1.3568
+      ],
+      "raw_single_scale_medians_us": [
+        4.0,
+        4.128,
+        3.616
+      ]
+    },
+    {
+      "family": "matmul",
+      "size": 262144,
+      "n_invocations": 3,
+      "reported_us": 8.096,
+      "dispatch_us": 1.5568,
+      "kernel_us": 4.64,
+      "kernel_us_std": 0.07228388478769014,
+      "kernel_share": 0.5731225296442687,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.13600000000000012,
+      "residual_661_us": 0.078,
+      "threshold_us": 0.6800000000000006,
+      "raw_batched_scale_medians_us": [
+        6.1968,
+        6.1984,
+        6.196
+      ],
+      "raw_batched_empty_medians_us": [
+        1.588,
+        1.452,
+        1.5568
+      ],
+      "raw_single_scale_medians_us": [
+        7.616,
+        8.448,
+        8.096
+      ]
+    },
+    {
+      "family": "matmul",
+      "size": 4194304,
+      "n_invocations": 3,
+      "reported_us": 75.167999,
+      "dispatch_us": 1.8744,
+      "kernel_us": 72.180801,
+      "kernel_us_std": 0.1582864694164796,
+      "kernel_share": 0.9602597110507093,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.272,
+      "residual_661_us": 0.004,
+      "threshold_us": 1.36,
+      "raw_batched_scale_medians_us": [
+        74.055201,
+        74.052,
+        74.0776
+      ],
+      "raw_batched_empty_medians_us": [
+        1.924,
+        1.8744,
+        1.652
+      ],
+      "raw_single_scale_medians_us": [
+        75.135998,
+        75.167999,
+        75.744003
+      ]
+    },
+    {
+      "family": "matmul",
+      "size": 16777216,
+      "n_invocations": 3,
+      "reported_us": 292.288005,
+      "dispatch_us": 1.4952,
+      "kernel_us": 294.033593,
+      "kernel_us_std": 0.8716150080008266,
+      "kernel_share": 1.0059721506532573,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.7344000000000002,
+      "residual_661_us": 0.027,
+      "threshold_us": 3.6720000000000006,
+      "raw_batched_scale_medians_us": [
+        295.457602,
+        296.506405,
+        295.528793
+      ],
+      "raw_batched_empty_medians_us": [
+        2.188,
+        1.4952,
+        1.4536
+      ],
+      "raw_single_scale_medians_us": [
+        291.999996,
+        292.288005,
+        292.575985
+      ]
+    },
+    {
+      "family": "transpose",
+      "size": 1024,
+      "n_invocations": 3,
+      "reported_us": 2.432,
+      "dispatch_us": 1.7096,
+      "kernel_us": -0.06879999999999997,
+      "kernel_us_std": 0.09169107553809873,
+      "kernel_share": -0.028289473684210517,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.34240000000000004,
+      "residual_661_us": 0.018,
+      "threshold_us": 1.7120000000000002,
+      "raw_batched_scale_medians_us": [
+        1.6408,
+        1.456,
+        1.6552
+      ],
+      "raw_batched_empty_medians_us": [
+        1.8552,
+        1.5128,
+        1.7096
+      ],
+      "raw_single_scale_medians_us": [
+        2.432,
+        2.464,
+        2.4
+      ]
+    },
+    {
+      "family": "transpose",
+      "size": 16384,
+      "n_invocations": 3,
+      "reported_us": 2.816,
+      "dispatch_us": 1.812,
+      "kernel_us": 0.4296,
+      "kernel_us_std": 0.3536555009233326,
+      "kernel_share": 0.15255681818181818,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.4727999999999999,
+      "residual_661_us": 0.068,
+      "threshold_us": 2.3639999999999994,
+      "raw_batched_scale_medians_us": [
+        1.5192,
+        2.2416,
+        2.2848
+      ],
+      "raw_batched_empty_medians_us": [
+        1.7936,
+        1.812,
+        2.2664
+      ],
+      "raw_single_scale_medians_us": [
+        2.816,
+        2.528,
+        2.912
+      ]
+    },
+    {
+      "family": "transpose",
+      "size": 262144,
+      "n_invocations": 3,
+      "reported_us": 3.552,
+      "dispatch_us": 1.4128,
+      "kernel_us": 0.1976,
+      "kernel_us_std": 0.21031075420275902,
+      "kernel_share": 0.05563063063063063,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.13200000000000012,
+      "residual_661_us": 0.078,
+      "threshold_us": 0.6600000000000006,
+      "raw_batched_scale_medians_us": [
+        1.816,
+        1.4032,
+        1.6104
+      ],
+      "raw_batched_empty_medians_us": [
+        1.4128,
+        1.396,
+        1.528
+      ],
+      "raw_single_scale_medians_us": [
+        3.552,
+        3.424,
+        3.552
+      ]
+    },
+    {
+      "family": "transpose",
+      "size": 4194304,
+      "n_invocations": 3,
+      "reported_us": 10.496,
+      "dispatch_us": 1.5608,
+      "kernel_us": 7.0344,
+      "kernel_us_std": 0.16835961511003786,
+      "kernel_share": 0.6701981707317073,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.32400000000000007,
+      "residual_661_us": 0.004,
+      "threshold_us": 1.6200000000000003,
+      "raw_batched_scale_medians_us": [
+        8.5952,
+        8.5896,
+        8.5992
+      ],
+      "raw_batched_empty_medians_us": [
+        1.5608,
+        1.5024,
+        1.8264
+      ],
+      "raw_single_scale_medians_us": [
+        10.432,
+        10.496,
+        10.528
+      ]
+    },
+    {
+      "family": "transpose",
+      "size": 16777216,
+      "n_invocations": 3,
+      "reported_us": 91.583997,
+      "dispatch_us": 1.496,
+      "kernel_us": 88.367199,
+      "kernel_us_std": 0.057537125432195246,
+      "kernel_share": 0.9648759815538517,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.06320000000000014,
+      "residual_661_us": 0.027,
+      "threshold_us": 0.3160000000000007,
+      "raw_batched_scale_medians_us": [
+        89.863199,
+        89.888799,
+        89.824802
+      ],
+      "raw_batched_empty_medians_us": [
+        1.4664,
+        1.496,
+        1.5296
+      ],
+      "raw_single_scale_medians_us": [
+        91.424003,
+        91.583997,
+        91.871999
+      ]
+    },
+    {
+      "family": "softmax",
+      "size": 1024,
+      "n_invocations": 3,
+      "reported_us": 2.592,
+      "dispatch_us": 1.5688,
+      "kernel_us": 0.25839999999999996,
+      "kernel_us_std": 0.14002133170818415,
+      "kernel_share": 0.09969135802469134,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.1863999999999999,
+      "residual_661_us": 0.018,
+      "threshold_us": 0.9319999999999995,
+      "raw_batched_scale_medians_us": [
+        1.9712,
+        1.8272,
+        1.5336
+      ],
+      "raw_batched_empty_medians_us": [
+        1.6944,
+        1.5688,
+        1.508
+      ],
+      "raw_single_scale_medians_us": [
+        2.848,
+        2.592,
+        2.496
+      ]
+    },
+    {
+      "family": "softmax",
+      "size": 16384,
+      "n_invocations": 3,
+      "reported_us": 2.72,
+      "dispatch_us": 1.7056,
+      "kernel_us": -0.04079999999999995,
+      "kernel_us_std": 0.06396499042445013,
+      "kernel_share": -0.01499999999999998,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.4456,
+      "residual_661_us": 0.068,
+      "threshold_us": 2.2279999999999998,
+      "raw_batched_scale_medians_us": [
+        1.6648,
+        1.4928,
+        2.0368
+      ],
+      "raw_batched_empty_medians_us": [
+        1.7056,
+        1.512,
+        1.9576
+      ],
+      "raw_single_scale_medians_us": [
+        2.432,
+        3.008,
+        2.72
+      ]
+    },
+    {
+      "family": "softmax",
+      "size": 262144,
+      "n_invocations": 3,
+      "reported_us": 3.2,
+      "dispatch_us": 1.9696,
+      "kernel_us": 0.03760000000000008,
+      "kernel_us_std": 0.2749871269714274,
+      "kernel_share": 0.011750000000000024,
+      "target_usable": false,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.31520000000000015,
+      "residual_661_us": 0.078,
+      "threshold_us": 1.5760000000000007,
+      "raw_batched_scale_medians_us": [
+        1.7784,
+        2.0072,
+        2.0584
+      ],
+      "raw_batched_empty_medians_us": [
+        1.9696,
+        2.0264,
+        1.7112
+      ],
+      "raw_single_scale_medians_us": [
+        3.2,
+        3.168,
+        3.712
+      ]
+    },
+    {
+      "family": "softmax",
+      "size": 4194304,
+      "n_invocations": 3,
+      "reported_us": 10.688,
+      "dispatch_us": 8.1336,
+      "kernel_us": 0.7096,
+      "kernel_us_std": 0.01103690777950706,
+      "kernel_share": 0.06639221556886227,
+      "target_usable": true,
+      "grid_capped": false,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.0039999999999995595,
+      "residual_661_us": 0.004,
+      "threshold_us": 0.02,
+      "raw_batched_scale_medians_us": [
+        8.848,
+        8.8304,
+        8.8432
+      ],
+      "raw_batched_empty_medians_us": [
+        8.1336,
+        8.1368,
+        8.1328
+      ],
+      "raw_single_scale_medians_us": [
+        10.688,
+        12.032,
+        10.656
+      ]
+    },
+    {
+      "family": "softmax",
+      "size": 16777216,
+      "n_invocations": 3,
+      "reported_us": 78.752004,
+      "dispatch_us": 31.119201,
+      "kernel_us": 41.487201999999996,
+      "kernel_us_std": 0.04271759361590019,
+      "kernel_share": 0.5268082066838579,
+      "target_usable": false,
+      "grid_capped": true,
+      "queue_state": "single-holder (ts queued job)",
+      "within_process_std_us": 0.05120000000000147,
+      "residual_661_us": 0.027,
+      "threshold_us": 0.25600000000000733,
+      "raw_batched_scale_medians_us": [
+        72.505599,
+        72.640002,
+        72.606403
+      ],
+      "raw_batched_empty_medians_us": [
+        31.076801,
+        31.128001,
+        31.119201
+      ],
+      "raw_single_scale_medians_us": [
+        78.847997,
+        78.752004,
+        75.584002
+      ]
+    }
+  ],
+  "instrument_check": {
+    "1024": {
+      "this_us": -0.15759999999999996,
+      "661_us": 0.046,
+      "diff_pct": -442.6086956521738,
+      "within_25pct": false
+    },
+    "16384": {
+      "this_us": 0.06319999999999992,
+      "661_us": 0.028,
+      "diff_pct": 125.71428571428544,
+      "within_25pct": false
+    },
+    "262144": {
+      "this_us": 0.009600000000000053,
+      "661_us": -0.016,
+      "diff_pct": -160.00000000000034,
+      "within_25pct": false
+    },
+    "4194304": {
+      "this_us": 0.26479999999999926,
+      "661_us": 0.235,
+      "diff_pct": 12.680851063829477,
+      "within_25pct": true
+    }
+  },
+  "instrument_check_note": "Elementwise kernel_us at 1024/16384/262144 is below the noise floor and disagrees with 6.6.1 in both sign and magnitude (expected for sub-us differences); 4194304 agrees within 12.7%. The instrument is therefore validated only where signal exists, which is the point of this bead.",
+  "threshold_rule": "target_usable iff kernel_us >= 5 * max(within_process_std_us, residual_661_us) and not grid_capped",
+  "threshold_inputs": {
+    "within_process_std_us": "median across invocations of per-invocation batched-empty spread (conservative proxy)",
+    "residual_661_us": {
+      "1024": 0.018,
+      "16384": 0.068,
+      "262144": 0.078,
+      "4194304": 0.004,
+      "16777216": 0.027
+    },
+    "launches_per_region_K": 40,
+    "trials_per_invocation": 100,
+    "invocations_per_cell": 3
+  },
+  "usable_count": 8,
+  "usable_cells": [
+    {
+      "family": "elementwise",
+      "size": 4194304
+    },
+    {
+      "family": "reduction",
+      "size": 4194304
+    },
+    {
+      "family": "matmul",
+      "size": 262144
+    },
+    {
+      "family": "matmul",
+      "size": 4194304
+    },
+    {
+      "family": "matmul",
+      "size": 16777216
+    },
+    {
+      "family": "transpose",
+      "size": 4194304
+    },
+    {
+      "family": "transpose",
+      "size": 16777216
+    },
+    {
+      "family": "softmax",
+      "size": 4194304
+    }
+  ]
+}
