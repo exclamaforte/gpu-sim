@@ -60,8 +60,14 @@ static int fg_nccl_world_from_env(void)
  * data must stay exactly as the real kernels produced it.
  * FAKEGPU_NCCL_NO_FILL=1 disables the fill for every collective.
  */
+/* Set by the data-correct transport (gpu-sim-n5h): when a collective really
+ * moved data, fake bytes must not overwrite it. Consumed and cleared here
+ * so the flag cannot leak into a later simulated collective. Same
+ * single-global style as fg_cur_op; the interposer is already thread-loose. */
+int fg_tport_skip_fill = 0;
 static void fg_nccl_out_fill(void *buf, size_t nbytes)
 {
+    if (fg_tport_skip_fill) { fg_tport_skip_fill = 0; return; }
     const char *no_fill = getenv("FAKEGPU_NCCL_NO_FILL");
     if (buf && nbytes && !(no_fill && *no_fill))
         fg_fill(buf, nbytes);
@@ -687,6 +693,20 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
 {
     fg_cur_op = "allreduce";
     (void)sendbuff; (void)op; (void)stream;
+    /* Data-correct path (gpu-sim-n5h): when the transport takes the
+     * collective, values are REALLY summed via /dev/shm. The trace line
+     * below still fires (timing untouched); only the fill is skipped,
+     * because fake bytes must never overwrite real ones. */
+    extern int fg_transport_allreduce(const void *, void *, size_t, int,
+                                      int, int, int);
+    int _tport_nr = comm ? ((struct fg_nccl_comm *)comm)->nrank
+                         : (int)fg_cfg()->num_devices;
+    int _tport_rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+    int _tport_moved = fg_transport_allreduce(sendbuff, recvbuff, count,
+                                              datatype, op, _tport_nr,
+                                              _tport_rk);
+    extern int fg_tport_skip_fill;
+    if (_tport_moved) fg_tport_skip_fill = 1;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
         int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
@@ -695,6 +715,7 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
+        /* Fill skipped via fg_tport_skip_fill when the transport moved data. */
         fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
         return ncclSuccess;
