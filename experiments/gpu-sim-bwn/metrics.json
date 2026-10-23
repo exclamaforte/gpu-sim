@@ -42,6 +42,16 @@
   "pooled_median_rel_error": 0.27549435256724975,
   "verdict": "GAP-REMAINS",
   "informative_slots": 12,
+  "gate_classes": [
+    "elementwise",
+    "matmul",
+    "reduction"
+  ],
+  "gate_pass": {
+    "elementwise": false,
+    "matmul": false,
+    "reduction": false
+  },
   "feature_spec": "phys(8) + num33(33) = 41 slots",
   "headline": "GAP-REMAINS"
 }
