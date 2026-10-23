@@ -101,6 +101,18 @@ self-consistent: every ratio, ordering and conclusion held while every absolute
 number was wrong. A regression test now pins the constants, mutation-checked
 against the original defect.
 
+**`ncclReduceScatter` took its count by pointer.** Real NCCL passes `recvcount` by
+value; our shim declared it `const size_t *`, so torch's integer count was
+dereferenced as an address — a guaranteed SIGSEGV on any FSDP/ZeRO run. This is
+worse than a missing symbol: a missing one fails at load with a clear message, while
+a calling-convention mismatch links silently and faults later somewhere that looks
+unrelated. Found from a coredump backtrace, not from reading the header.
+
+That makes five defects of one family — a constant `uniqueId`, a permuted datatype
+enum, untraced p2p, a wrong parameter type, and the 462-symbol driver dead end.
+**None was found by reading the declaration. Every one was found by probing the
+call.** For any further work on the shim surface, that is the rule.
+
 **`torch.nn.parallel.DistributedDataParallel` cannot be used as-is.** DDP
 cross-checks parameter counts with a real all_gather, so it needs collectives that
 move payload. The harness does the gradient all-reduce explicitly instead — the
