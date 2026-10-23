@@ -132,7 +132,7 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
 ncclResult_t ncclAllGather_v2(const void *sendbuff, void *recvbuff, size_t count,
                               int datatype, ncclComm_t comm, void *stream);
 ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
-                               const size_t *recvcount, int datatype, int op,
+                               size_t recvcount, int datatype, int op,
                                ncclComm_t comm, void *stream);
 ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
                           int datatype, ncclComm_t comm, void *stream);
