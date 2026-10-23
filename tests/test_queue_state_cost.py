@@ -206,7 +206,7 @@ class TestInstrumentIsCheapEnough(unittest.TestCase):
                             "the band must straddle 1.0, or a speedup can never "
                             "be judged against real fast-side noise")
 
-    @unittest.skip("environment-dependent: timing/perf threshold, fails under full-suite load")
+    @unittest.skip("environment-dependent: passes alone, fails under full-file run (test isolation; setUp reset_cache insufficient)")
     def test_does_not_regress_to_a_full_scan(self):
         """A looser but load-bearing floor, so the failure is legible.
 

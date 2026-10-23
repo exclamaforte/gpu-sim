@@ -26,7 +26,7 @@ from epic_u2o.throughput_evidence import (  # noqa: E402
     throughput_from_timestamps, throughput_from_wall,
 )
 
-FABRICATED = REPO.parents[2] / "runs/logs/throughput_demo_run.jsonl"
+FABRICATED = (REPO.parents[2] / "runs/logs/throughput_demo_run.jsonl") if len(REPO.parents) > 2 else (REPO / "nonexistent_throughput_demo_run.jsonl")
 TRIALS_KEY = "invocation_medians_ms"
 
 
