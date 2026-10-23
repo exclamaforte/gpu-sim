@@ -1,0 +1,215 @@
+{
+  "bead": "gpu-sim-9ul",
+  "matmul_rows": {
+    "n_rows_added": 0,
+    "n_usable_added": 0,
+    "shapes": [],
+    "gate_rejection_rate": 0.0,
+    "gpu_minutes": 0.0,
+    "reason": "existing 87 matmul rows sufficient; no new GPU rows generated"
+  },
+  "selection_log": {
+    "elementwise": [
+      {
+        "name": "A_size_only",
+        "cv_score": 1.069993270561451,
+        "cv_folds": 3
+      },
+      {
+        "name": "B_size_block",
+        "cv_score": 0.07643335824400427,
+        "cv_folds": 3
+      },
+      {
+        "name": "C_descriptors",
+        "cv_score": 0.1412445788664973,
+        "cv_folds": 3
+      },
+      {
+        "name": "D_full",
+        "cv_score": 0.07484492338974826,
+        "cv_folds": 3
+      },
+      {
+        "name": "E_constant",
+        "cv_score": 1.5012895472868475,
+        "cv_folds": 3
+      }
+    ],
+    "matmul": [
+      {
+        "name": "A_size_only",
+        "cv_score": 0.007520361870214175,
+        "cv_folds": 3
+      },
+      {
+        "name": "B_size_block",
+        "cv_score": 0.01385739439730266,
+        "cv_folds": 3
+      },
+      {
+        "name": "C_descriptors",
+        "cv_score": 0.025790937461803057,
+        "cv_folds": 3
+      },
+      {
+        "name": "D_full",
+        "cv_score": 0.026631547530763296,
+        "cv_folds": 3
+      },
+      {
+        "name": "E_constant",
+        "cv_score": 0.625721554206916,
+        "cv_folds": 3
+      }
+    ],
+    "reduction": [
+      {
+        "name": "A_size_only",
+        "cv_score": 0.9227801436595261,
+        "cv_folds": 3
+      },
+      {
+        "name": "B_size_block",
+        "cv_score": 0.054215286044638704,
+        "cv_folds": 3
+      },
+      {
+        "name": "C_descriptors",
+        "cv_score": 0.10514467150301217,
+        "cv_folds": 3
+      },
+      {
+        "name": "D_full",
+        "cv_score": 0.04899759163846714,
+        "cv_folds": 3
+      },
+      {
+        "name": "E_constant",
+        "cv_score": 1.5448084490654377,
+        "cv_folds": 3
+      }
+    ],
+    "softmax": [
+      {
+        "name": "A_size_only",
+        "cv_score": 1.0906762536580932,
+        "cv_folds": 3
+      },
+      {
+        "name": "B_size_block",
+        "cv_score": 0.041269439618682874,
+        "cv_folds": 3
+      },
+      {
+        "name": "C_descriptors",
+        "cv_score": 0.1056785391226907,
+        "cv_folds": 3
+      },
+      {
+        "name": "D_full",
+        "cv_score": 0.040508899028980805,
+        "cv_folds": 3
+      },
+      {
+        "name": "E_constant",
+        "cv_score": 1.1589609789300797,
+        "cv_folds": 3
+      }
+    ],
+    "transpose": [
+      {
+        "name": "A_size_only",
+        "cv_score": 0.03202198511104915,
+        "cv_folds": 3
+      },
+      {
+        "name": "B_size_block",
+        "cv_score": 0.03286553988990202,
+        "cv_folds": 3
+      },
+      {
+        "name": "C_descriptors",
+        "cv_score": 0.054612404678310245,
+        "cv_folds": 3
+      },
+      {
+        "name": "D_full",
+        "cv_score": 0.046929760461708804,
+        "cv_folds": 3
+      },
+      {
+        "name": "E_constant",
+        "cv_score": 0.44881557384222664,
+        "cv_folds": 3
+      }
+    ]
+  },
+  "test_cells": {
+    "elementwise": {
+      "winner": "D_full",
+      "median_rel_error": 0.3686415332573427,
+      "log_mae": 0.4595778486692583,
+      "n_test": 24,
+      "size_only_median_rel_error": 0.4661968197759706
+    },
+    "matmul": {
+      "winner": "A_size_only",
+      "median_rel_error": 0.2680373193871414,
+      "log_mae": 0.30376348892386956,
+      "n_test": 18,
+      "size_only_median_rel_error": 0.2680373193871414
+    },
+    "reduction": {
+      "winner": "D_full",
+      "median_rel_error": 0.7055963978323753,
+      "log_mae": 1.429822033221532,
+      "n_test": 29,
+      "size_only_median_rel_error": 0.7663365118111432
+    },
+    "softmax": {
+      "winner": "D_full",
+      "median_rel_error": 0.6811545309291888,
+      "log_mae": 1.3348573120676088,
+      "n_test": 29,
+      "size_only_median_rel_error": 0.7364230495828773
+    },
+    "transpose": {
+      "winner": "A_size_only",
+      "median_rel_error": 0.19796089817316612,
+      "log_mae": 0.2041949898180503,
+      "n_test": 36,
+      "size_only_median_rel_error": 0.19796089817316612
+    }
+  },
+  "gate_classes": {
+    "elementwise": {
+      "median_rel_error": 0.3686415332573427,
+      "bar": 0.25,
+      "pass": false
+    },
+    "matmul": {
+      "median_rel_error": 0.2680373193871414,
+      "bar": 0.25,
+      "pass": false
+    },
+    "reduction": {
+      "median_rel_error": 0.7055963978323753,
+      "bar": 0.25,
+      "pass": false
+    }
+  },
+  "verdict": "GAP-REMAINS",
+  "overfitting_diagnostic": {
+    "rows_per_family": {
+      "elementwise": 118,
+      "matmul": 87,
+      "reduction": 144,
+      "softmax": 145,
+      "transpose": 179
+    },
+    "feature_count_full": 7,
+    "note": "CV error by candidate richness in selection_log"
+  },
+  "headline": "GAP-REMAINS"
+}
