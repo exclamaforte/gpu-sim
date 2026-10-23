@@ -1,6 +1,6 @@
 # gpu-sim-371: restore a trustworthy quality gate
 
-Final (clean checkout, pytest tests/ -q, 2026-10-23): 700 passed, 21 skipped, 1 xfailed, 0 failed (exit 0).
+Final (clean checkout, pytest tests/ -q, 2026-10-23): 705 passed, 17 skipped, 1 xfailed, 0 failed (exit 0).
 
 The exact skip count is NOT deterministic: it ranged 17-21 across four full runs of
 this same branch, because five of the skips are conditioned on live lab state (whether
