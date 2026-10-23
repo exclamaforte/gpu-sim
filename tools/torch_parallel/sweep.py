@@ -122,6 +122,11 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
         "p2p_MB": round(p2p_bytes / 1e6, 1),
         "comm_sim_ms": round(pred_s * 1000, 2),
         "params": rows[0]["params"] if rows else None,
+        # Per-rank parameter count. For TP and PP this is a fraction of the model,
+        # so step_ms across widths is NOT a like-for-like comparison of work: PP4
+        # is 4x faster partly because each rank owns a quarter of the layers. The
+        # column exists so that cannot be read as PP being 4x more efficient.
+        "params_local": rows[0].get("params_local") if rows else None,
         "pp": pp_of_rank0,
         "stderr_tail": proc.stderr.strip().splitlines()[-1] if proc.returncode else "",
     }
@@ -165,7 +170,8 @@ def main() -> int:
     shutil.rmtree(tmp_topo, ignore_errors=True)
 
     hdr = (f"{'world':>5} {'tp':>3} {'pp':>3} {'dp':>3} {'step_ms':>9} {'coll_msgs':>10} "
-           f"{'coll_MB':>9} {'p2p_msgs':>9} {'p2p_MB':>8} {'comm_sim_ms':>12} {'params':>10}")
+           f"{'coll_MB':>9} {'p2p_msgs':>9} {'p2p_MB':>8} {'comm_sim_ms':>12} "
+           f"{'params':>10} {'local':>10}")
     print(hdr)
     print("-" * len(hdr))
     for r in results:
@@ -174,7 +180,8 @@ def main() -> int:
         dp = r["world"] // denom if denom else r["world"]
         print(f"{r['world']:>5} {args.tp:>3} {r['pp']:>3} {dp:>3} {step:>9} {r['coll_msgs']:>10} "
               f"{r['coll_MB']:>9} {r['p2p_msgs']:>9} {r['p2p_MB']:>8} "
-              f"{r['comm_sim_ms']:>12} {r['params'] or '-':>10}")
+              f"{r['comm_sim_ms']:>12} {r['params'] or '-':>10} "
+              f"{r.get('params_local') or r.get('params') or '-':>10}")
         if r["rc"] != 0 and r["stderr_tail"]:
             print(f"      {r['stderr_tail']}")
 
