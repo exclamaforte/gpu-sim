@@ -34,7 +34,7 @@ collectives are issued, with what sizes, in what order, by which rank.
 | NCCL-only build | `libfakenccl.so` + `shim/exports_nccl.map` | exports only `nccl*`, so torch computes on the real GPU with fake collectives |
 | Trace emission | `fg_nccl_trace`, `GPUSIM_TRACE=<path>` | JSONL, one line per collective per rank |
 | Fabric cost model | `epic_cluster/link_model.py` | predicts collective duration from a declared topology; measured for n=2, refuses n≥3 without explicit `pieces_per_phase` |
-| Torch harness | `tools/torch_parallel/` | runs a real transformer, sweeps world sizes, summarises |
+| Torch harness | `tools/torch_parallel/` | runs a real transformer; DP, TP and PP axes; sweeps and summarises |
 | Rack planner (analytic) | `cy0_l1..l4.py` | pre-existing FLOP/roofline planner; **separate track**, not used by the harness |
 
 ## 3. How a run works
@@ -85,6 +85,22 @@ extensions a plain run never exercises).
 torch see more devices. Relevant only for single-process multi-device programs;
 the harness sidesteps it by using one process per rank.
 
+**Every subgroup shared one comm identity.** `ncclGetUniqueId2` returned a
+constant, so torch's comm cache aliased distinct groups: with pp2/world4 the group
+`[2,3]` was never `ncclCommInitRank`'d and its traffic was silently attributed to
+another group's communicator. The id must be identical across the ranks of a group
+and distinct per group — a per-process call counter satisfies both. Related: the
+global rank was read from an env var the harness never set, so every process
+reported rank 0; traces now carry both `rank` (comm-local) and `grank` (world).
+
+**The NCCL datatype enum was permuted against real NCCL.** `shim/nccl.h` had
+Float32=6, Float64=7, Float16=8; real NCCL has Float16=6, Float32=7, Float64=8.
+Every float32 volume was therefore reported at 8 bytes/element — exactly 2× too
+large, across an entire measurement campaign. It survived because it was
+self-consistent: every ratio, ordering and conclusion held while every absolute
+number was wrong. A regression test now pins the constants, mutation-checked
+against the original defect.
+
 **`torch.nn.parallel.DistributedDataParallel` cannot be used as-is.** DDP
 cross-checks parameter counts with a real all_gather, so it needs collectives that
 move payload. The harness does the gradient all-reduce explicitly instead — the
@@ -123,7 +139,37 @@ Three things that table is good for, none of which needed a second GPU:
   this model's compute -- which is itself the answer to "is this model
   communication-bound?": at 5.2M parameters and 8x512 tokens, no.
 
-### Data parallel vs tensor parallel, same world size
+### All three axes, same world size
+
+World=4, NVLink, 5 steps with 2 discarded as warmup. Re-run from a clean worktree
+and reproduced bit-identically:
+
+```
+config  step_ms  coll  coll_MB  p2p  p2p_MB  comm_sim_ms  params  local
+DP4        16.1    75     43.0    0     0.0         0.57  5242880  5242880
+TP4         9.7    33    134.2    0     0.0         0.81  5242880  5242880
+PP2        13.5    37     22.0    8    16.8         0.35  5242880  2621440
+PP4         3.9     1      0.0    8    16.8         0.03  5242880  1967104
+```
+
+Read `local` before `step_ms`: DP and TP keep the whole model on every rank, PP
+does not. PP4 is fast mostly because each rank owns a quarter of the layers, not
+because pipeline parallelism is efficient -- the column exists to stop that
+misreading.
+
+The shape of each trade-off is visible and explicable:
+
+- **DP** issues many small collectives (one per parameter, un-bucketed here).
+- **TP** issues fewer, much larger ones (2 per layer per direction).
+- **PP** issues few collectives and less total bytes, plus point-to-point traffic
+  between stages.
+
+**The PP bubble does not appear in wall time here**, and that is a property of the
+harness, not a result: a simulated p2p hop costs microseconds while compute is
+real, so stages barely wait. Reporting a bubble would require compute to be
+simulated too.
+
+### Data parallel vs tensor parallel (world=2)
 
 ```
 config     world  tp  dp  step_ms  coll_msgs  coll_MB  comm_sim_ms
