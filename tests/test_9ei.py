@@ -65,10 +65,10 @@ class Test9ei(unittest.TestCase):
         b = latency_ms_for("relu", 1048576)
         self.assertNotEqual(a, b)
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
-
     def test_launch_bound_anchor_documented(self):
         # launch_bound relu (64) is merged into relu curve by op-name keying
         entry = self.tab["ops"]["relu"]
         self.assertIn("64", entry["sizes"])
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
