@@ -1,0 +1,132 @@
+{
+  "bead": "gpu-sim-7l9",
+  "unseen_ops": [
+    "gelu",
+    "hardsigmoid"
+  ],
+  "verified_absent_from_table": true,
+  "scored_sizes": [
+    1024,
+    65536,
+    1048576,
+    16777216
+  ],
+  "n_cases": 8,
+  "per_case": [
+    {
+      "op": "gelu",
+      "size": 1024,
+      "measured_ms": 0.0009279999999999631,
+      "relu_pred_ms": 0.0008832000000000278,
+      "class_pred_ms": 0.0008991499999999803,
+      "relu_err": 0.04827586206889781,
+      "class_err": 0.031088362068948258
+    },
+    {
+      "op": "hardsigmoid",
+      "size": 1024,
+      "measured_ms": 0.0008512999999999694,
+      "relu_pred_ms": 0.0008832000000000278,
+      "class_pred_ms": 0.0008991499999999803,
+      "relu_err": 0.03747210149190597,
+      "class_err": 0.056208152237768906
+    },
+    {
+      "op": "gelu",
+      "size": 65536,
+      "measured_ms": 0.0009471999999999922,
+      "relu_pred_ms": 0.0008919709412307053,
+      "class_pred_ms": 0.0009160246721568429,
+      "relu_err": 0.05830770562635913,
+      "class_err": 0.03291314172629817
+    },
+    {
+      "op": "hardsigmoid",
+      "size": 65536,
+      "measured_ms": 0.0008639999999999987,
+      "relu_pred_ms": 0.0008919709412307053,
+      "class_pred_ms": 0.0009160246721568429,
+      "relu_err": 0.03237377457257719,
+      "class_err": 0.06021374092227347
+    },
+    {
+      "op": "gelu",
+      "size": 1048576,
+      "measured_ms": 0.002169599999999997,
+      "relu_pred_ms": 0.0022378077129190485,
+      "class_pred_ms": 0.0022613229756052043,
+      "relu_err": 0.03143792077758657,
+      "class_err": 0.04227644524576313
+    },
+    {
+      "op": "hardsigmoid",
+      "size": 1048576,
+      "measured_ms": 0.002051400000000018,
+      "relu_pred_ms": 0.0022378077129190485,
+      "class_pred_ms": 0.0022613229756052043,
+      "relu_err": 0.09086853510725798,
+      "class_err": 0.10233156654245132
+    },
+    {
+      "op": "gelu",
+      "size": 16777216,
+      "measured_ms": 0.06851114999999999,
+      "relu_pred_ms": 0.07294516161485995,
+      "class_pred_ms": 0.07301377472847272,
+      "relu_err": 0.06471956192327755,
+      "class_err": 0.06572105020091946
+    },
+    {
+      "op": "hardsigmoid",
+      "size": 16777216,
+      "measured_ms": 0.07462904999999997,
+      "relu_pred_ms": 0.07294516161485995,
+      "class_pred_ms": 0.07301377472847272,
+      "relu_err": 0.02256344392887255,
+      "class_err": 0.021644055116971997
+    }
+  ],
+  "summary": {
+    "gelu": {
+      "relu_median": 0.05329178384762847,
+      "relu_max": 0.06471956192327755,
+      "class_median": 0.03759479348603065,
+      "class_max": 0.06572105020091946
+    },
+    "hardsigmoid": {
+      "relu_median": 0.03492293803224158,
+      "relu_max": 0.09086853510725798,
+      "class_median": 0.05821094658002118,
+      "class_max": 0.10233156654245132
+    },
+    "all": {
+      "relu_median": 0.04287398178040189,
+      "relu_max": 0.09086853510725798,
+      "class_median": 0.049242298741766014,
+      "class_max": 0.10233156654245132
+    }
+  },
+  "by_size_band": {
+    "1024": {
+      "relu_median": 0.04287398178040189,
+      "class_median": 0.043648257153358586,
+      "n": 2
+    },
+    "65536": {
+      "relu_median": 0.04534074009946816,
+      "class_median": 0.04656344132428582,
+      "n": 2
+    },
+    "1048576": {
+      "relu_median": 0.06115322794242228,
+      "class_median": 0.07230400589410722,
+      "n": 2
+    },
+    "16777216": {
+      "relu_median": 0.04364150292607505,
+      "class_median": 0.04368255265894573,
+      "n": 2
+    }
+  },
+  "recommendation": "per-op nearest curve (relu) for unseen elementwise ops; both predictors pass <=0.25 at all sizes in this measurement, so op-variety is a non-issue here."
+}
