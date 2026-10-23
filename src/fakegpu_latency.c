@@ -67,7 +67,7 @@ void fg_simulate_kernel_resolved(const char *kernel_name,
      * consults nor disturbs any model state. */
     if (c->kernel_latency_ms > 0) {
         g_have_any_latency = 1;
-        fg_sleep_ns(c->kernel_latency_ms * 1000000L);
+        fg_sleep_ns((long)(c->kernel_latency_ms * 1000000.0));
     }
 }
 
@@ -76,7 +76,7 @@ void fg_simulate_sync(void)
     const struct fg_config *c = fg_cfg();
     if (c->sync_latency_ms > 0) {
         g_have_any_latency = 1;
-        fg_sleep_ns(c->sync_latency_ms * 1000000L);
+        fg_sleep_ns((long)(c->sync_latency_ms * 1000000.0));
     }
 }
 

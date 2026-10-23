@@ -54,8 +54,8 @@ void fg_config_reload(void)
     /* bandwidth (GB/s): 0 disables bandwidth scaling (fixed latency only)  */
     g_cfg.bandwidth_gbps     = parse_double(getenv("FAKEGPU_BANDWIDTH_GBPS"), 0.0);
     /* fixed per-call latencies */
-    g_cfg.kernel_latency_ms  = parse_long(getenv("FAKEGPU_KERNEL_LATENCY_MS"), 0);
-    g_cfg.sync_latency_ms    = parse_long(getenv("FAKEGPU_DEVICE_SYNC_LATENCY_MS"), 0);
+    g_cfg.kernel_latency_ms  = parse_double(getenv("FAKEGPU_KERNEL_LATENCY_MS"), 0.0);
+    g_cfg.sync_latency_ms    = parse_double(getenv("FAKEGPU_DEVICE_SYNC_LATENCY_MS"), 0.0);
     g_cfg.hostfunc_latency_us= parse_long(getenv("FAKEGPU_HOST_FUNC_LATENCY_US"), 0);
     /* seed */
     const char *sseed = getenv("FAKEGPU_SEED");

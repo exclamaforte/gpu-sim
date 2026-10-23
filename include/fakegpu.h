@@ -21,8 +21,8 @@ struct fg_config {
     int    current_device;     /* last cudaSetDevice result                 */
     /* latencies (nanoseconds unless noted) */
     long   memcpy_latency_ns;   /* FAKEGPU_MEMCPY_LATENCY_US * 1000          */
-    long   kernel_latency_ms;   /* FAKEGPU_KERNEL_LATENCY_MS                 */
-    long   sync_latency_ms;     /* FAKEGPU_DEVICE_SYNC_LATENCY_MS            */
+    double kernel_latency_ms;   /* FAKEGPU_KERNEL_LATENCY_MS (ms, fractional) */
+    double sync_latency_ms;     /* FAKEGPU_DEVICE_SYNC_LATENCY_MS (ms, fractional) */
     long   hostfunc_latency_us; /* FAKEGPU_HOST_FUNC_LATENCY_US              */
     double bandwidth_gbps;     /* FAKEGPU_BANDWIDTH_GBPS, 0 = fixed latency */
     uint64_t seed;              /* FAKEGPU_SEED, 0 = time based              */
