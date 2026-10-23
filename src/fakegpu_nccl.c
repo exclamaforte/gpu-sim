@@ -25,15 +25,30 @@
 
 /* ---- world size / rank resolution (per-comm where available) ------------- */
 
+/* WORLD-rank (process) rank, NOT the communicator-local rank. torchrun sets RANK;
+ * FAKEGPU_NCCL_RANK is kept for hand-written probes. Reading only the latter made
+ * every process report global rank 0, so a trace could not distinguish a
+ * subgroup's local rank 0 from the world's rank 0 -- the ambiguity that let
+ * aliased subgroups hide. */
 static int fg_nccl_rank_from_env(void)
 {
-    const char *s = getenv("FAKEGPU_NCCL_RANK");
+    const char *s = getenv("RANK");
+    if (!s || !*s) s = getenv("FAKEGPU_NCCL_RANK");
     if (s && *s) {
         int r = (int)strtol(s, NULL, 10);
-        if (r < 0) r = 0;
-        return r;
+        if (r >= 0) return r;
     }
     return 0;
+}
+
+static int fg_nccl_world_from_env(void)
+{
+    const char *s = getenv("WORLD_SIZE");
+    if (s && *s) {
+        int w = (int)strtol(s, NULL, 10);
+        if (w > 0) return w;
+    }
+    return 1;
 }
 
 
@@ -618,9 +633,9 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
     struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
     long long ts_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
     if (predicted == FG_NCCL_REFUSED) {
-        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":", ts_ns, rank, nranks, op, count, dtype, bytes, algo);
+        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":", ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype, bytes, algo);
     } else {
-        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":", ts_ns, rank, nranks, op, count, dtype, bytes, algo, predicted);
+        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":", ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype, bytes, algo, predicted);
     }
     if (bottleneck >= 0) fprintf(f, "%d", bottleneck); else fprintf(f, "null");
     fprintf(f, ",\"regime\":\"%s\"}\n", regime);
@@ -912,9 +927,28 @@ typedef struct fg_nccl_config fg_nccl_config_t;
 ncclResult_t ncclGetUniqueId2(fg_nccl_unique_id *uniqueId)
 {
     if (!uniqueId) return ncclErrorInvalidArgument;
-    /* Every rank must agree on the id for torch's own rendezvous check; the
-     * value carries no transport meaning because init ignores it. */
-    memset(uniqueId->internal, 0x5a, sizeof(uniqueId->internal));
+    /* DISTINCT PER GROUP, IDENTICAL ACROSS RANKS.
+     *
+     * A constant id made every subgroup share one identity, so torch's comm cache
+     * aliased them: with pp2/world4, group [2,3] was NEVER InitRank'd -- its
+     * traffic was silently attributed to another group's comm. Every multi-axis
+     * configuration (DP groups, TP groups, PP pairs) was affected, not just PP.
+     *
+     * The id must be (a) the same on every rank of a group, since torch compares
+     * it during rendezvous, and (b) different for each group. A per-process
+     * counter gives both: every rank creates its groups in the same order, so the
+     * k-th call agrees across ranks, while different groups get different ids.
+     * The counter is mixed with the world size so a differently-sized run does
+     * not reuse an id that a previous run left in a shared store. */
+    static unsigned long long fg_id_seq = 0;
+    unsigned long long seq = ++fg_id_seq;
+    unsigned long long world = (unsigned long long)fg_nccl_world_from_env();
+    unsigned char *b = (unsigned char *)uniqueId->internal;
+    unsigned long long mix = (seq * 0x9e3779b97f4a7c15ULL) ^ (world << 32) ^ 0x5a5a5a5a5a5a5a5aULL;
+    for (size_t i = 0; i < sizeof(uniqueId->internal); i++) {
+        b[i] = (unsigned char)(mix >> ((i % 8) * 8));
+        mix = mix * 6364136223846793005ULL + 1442695040888963407ULL;
+    }
     return ncclSuccess;
 }
 
