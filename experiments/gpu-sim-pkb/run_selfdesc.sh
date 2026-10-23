@@ -62,7 +62,7 @@ export NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET,GRAPH
 export NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1
 export NCCL_MULTI_RANK_GPU_ENABLE=1
 export NCCL_MIN_NCHANNELS=4 NCCL_MAX_NCHANNELS=4
-[ -n "$PROTO" ] && export NCCL_PROTO="$PROTO"
+if [ -n "$PROTO" ] && [ "$PROTO" != "default" ] && [ "$PROTO" != "none" ]; then export NCCL_PROTO="$PROTO"; fi
 
 # the waiting rank goes first: with rank 0 first a small collective can finish
 # before rank 1 attaches (see run_measure.sh for the same reason)

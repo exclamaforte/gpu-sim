@@ -1,0 +1,158 @@
+rank=0 v12.init init commId=8666117260561145126 rank=0 nranks=2
+rank=0 v12.devices
+rank=0 v12.getProperties
+rank=0 v12.getProperties
+rank=0 v12.getProperties
+rank=0 v12.devices
+rank=0 v12.devices
+rank=0 v12.getProperties
+rank=0 v12.listen
+rank=0 v12.getProperties
+rank=0 v12.listen
+rank=0 v12.getProperties
+rank=0 v12.listen
+rank=0 v12.getProperties
+rank=0 v12.listen
+rank=0 v12.getProperties
+rank=0 v12.getProperties
+rank=0 v12.getProperties
+rank=0 v12.getProperties
+rank=0 v12.connect connect peer=1
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.accept
+rank=0 v12.closeListen
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.connect connect peer=1
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.accept
+rank=0 v12.closeListen
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.connect connect peer=1
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.accept
+rank=0 v12.closeListen
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.connect connect peer=1
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.accept
+rank=0 v12.closeListen
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.regMr
+rank=0 v12.irecv irecv peer=1 chan=1 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=1
+rank=0 v12.irecv irecv peer=1 chan=3 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=2
+rank=0 v12.irecv irecv peer=1 chan=1 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=3
+rank=0 v12.irecv irecv peer=1 chan=3 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=4
+rank=0 v12.irecv irecv peer=1 chan=1 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=5
+rank=0 v12.irecv irecv peer=1 chan=3 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=6
+rank=0 v12.irecv irecv peer=1 chan=1 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=7
+rank=0 v12.irecv irecv peer=1 chan=3 buf=1/1 size=1048576 tags=1 dtype=float32 cnt_irecv=8
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=1 bytes=16384 digest=fff029c1feaf0383 tag=0 dtype=float32 cnt_isend=1 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=0 v12.isend isend peer=1 chan=2 slot=0 seq=2 bytes=16384 digest=5370725a2c638583 tag=0 dtype=float32 cnt_isend=2 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=1 bytes=16384 digest=be7fb0911be00383 consumed_seq=1 cnt_recv_done=1 link=0
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=3 bytes=0 digest=14650fb0739d0383 tag=0 dtype=float32 cnt_isend=3 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=2 bytes=16384 digest=be7fb0911be00383 consumed_seq=2 cnt_recv_done=2 link=0
+rank=0 v12.isend isend peer=1 chan=2 slot=0 seq=4 bytes=0 digest=14650fb0739d0383 tag=0 dtype=float32 cnt_isend=4 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=3 bytes=0 digest=14650fb0739d0383 consumed_seq=3 cnt_recv_done=3 link=0
+rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=4 bytes=0 digest=14650fb0739d0383 consumed_seq=4 cnt_recv_done=4 link=0
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=5 bytes=16384 digest=2a5198eaa72d91aa tag=0 dtype=float32 cnt_isend=5 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=0 v12.isend isend peer=1 chan=2 slot=1 seq=1 bytes=16384 digest=687b0b4be594a983 tag=0 dtype=float32 cnt_isend=6 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=5 bytes=16384 digest=fff029c1feaf0383 consumed_seq=5 cnt_recv_done=5 link=0
+rank=0 v12.isend isend peer=1 chan=0 slot=0 seq=6 bytes=0 digest=14650fb0739d0383 tag=0 dtype=float32 cnt_isend=7 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=3 slot=1 seq=1 bytes=16384 digest=5370725a2c638583 consumed_seq=6 cnt_recv_done=6 link=0
+rank=0 v12.isend isend peer=1 chan=2 slot=0 seq=7 bytes=0 digest=14650fb0739d0383 tag=0 dtype=float32 cnt_isend=8 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=0 v12.recv recv-done peer=1 chan=1 slot=0 seq=6 bytes=0 digest=14650fb0739d0383 consumed_seq=7 cnt_recv_done=7 link=0
+rank=0 v12.recv recv-done peer=1 chan=3 slot=0 seq=7 bytes=0 digest=14650fb0739d0383 consumed_seq=8 cnt_recv_done=8 link=0
+rank=1 v12.init init commId=8666117260561145126 rank=1 nranks=2
+rank=1 v12.devices
+rank=1 v12.getProperties
+rank=1 v12.getProperties
+rank=1 v12.getProperties
+rank=1 v12.devices
+rank=1 v12.devices
+rank=1 v12.getProperties
+rank=1 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.listen
+rank=1 v12.getProperties
+rank=1 v12.getProperties
+rank=1 v12.getProperties
+rank=1 v12.getProperties
+rank=1 v12.connect connect peer=0
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.accept
+rank=1 v12.closeListen
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.connect connect peer=0
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.accept
+rank=1 v12.closeListen
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.connect connect peer=0
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.accept
+rank=1 v12.closeListen
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.connect connect peer=0
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.accept
+rank=1 v12.closeListen
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.regMr
+rank=1 v12.irecv irecv peer=0 chan=1 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=1
+rank=1 v12.irecv irecv peer=0 chan=3 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=2
+rank=1 v12.irecv irecv peer=0 chan=1 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=3
+rank=1 v12.irecv irecv peer=0 chan=3 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=4
+rank=1 v12.irecv irecv peer=0 chan=1 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=5
+rank=1 v12.irecv irecv peer=0 chan=3 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=6
+rank=1 v12.irecv irecv peer=0 chan=1 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=7
+rank=1 v12.irecv irecv peer=0 chan=3 buf=1/1 size=1048576 tags=0 dtype=float32 cnt_irecv=8
+rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=1 bytes=16384 digest=fff029c1feaf0383 consumed_seq=1 cnt_recv_done=1 link=0
+rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=1 bytes=16384 digest=be7fb0911be00383 tag=1 dtype=float32 cnt_isend=1 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=2 bytes=16384 digest=5370725a2c638583 consumed_seq=2 cnt_recv_done=2 link=0
+rank=1 v12.isend isend peer=0 chan=2 slot=0 seq=2 bytes=16384 digest=be7fb0911be00383 tag=1 dtype=float32 cnt_isend=2 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=3 bytes=0 digest=14650fb0739d0383 consumed_seq=3 cnt_recv_done=3 link=0
+rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=3 bytes=0 digest=14650fb0739d0383 tag=1 dtype=float32 cnt_isend=3 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=4 bytes=0 digest=14650fb0739d0383 consumed_seq=4 cnt_recv_done=4 link=0
+rank=1 v12.isend isend peer=0 chan=2 slot=0 seq=4 bytes=0 digest=14650fb0739d0383 tag=1 dtype=float32 cnt_isend=4 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=5 bytes=16384 digest=fff029c1feaf0383 tag=1 dtype=float32 cnt_isend=5 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=1 v12.isend isend peer=0 chan=2 slot=1 seq=1 bytes=16384 digest=5370725a2c638583 tag=1 dtype=float32 cnt_isend=6 acct=none link=0 delay_us=18.107 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=5 bytes=16384 digest=2a5198eaa72d91aa consumed_seq=5 cnt_recv_done=5 link=0
+rank=1 v12.isend isend peer=0 chan=0 slot=0 seq=6 bytes=0 digest=14650fb0739d0383 tag=1 dtype=float32 cnt_isend=7 acct=none link=0 delay_us=5.000 acct=per_isend
+rank=1 v12.recv recv-done peer=0 chan=3 slot=1 seq=1 bytes=16384 digest=687b0b4be594a983 consumed_seq=6 cnt_recv_done=6 link=0
+rank=1 v12.recv recv-done peer=0 chan=1 slot=0 seq=6 bytes=0 digest=14650fb0739d0383 consumed_seq=7 cnt_recv_done=7 link=0
+rank=1 v12.recv recv-done peer=0 chan=3 slot=0 seq=7 bytes=0 digest=14650fb0739d0383 consumed_seq=8 cnt_recv_done=8 link=0
+rank=1 v12.isend isend peer=0 chan=2 slot=0 seq=7 bytes=0 digest=14650fb0739d0383 tag=1 dtype=float32 cnt_isend=8 acct=none link=0 delay_us=5.000 acct=per_isend

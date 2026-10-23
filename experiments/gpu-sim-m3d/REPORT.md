@@ -230,10 +230,15 @@ faking nodes is how multi-node is simulated on one box.
 Consequence for the validity domain: at nNodes 1 the fabric is BYPASSED, so the
 nine VALUE OK runs of gpu-sim-1c4 certify real NCCL and nothing about the
 emulator. The emulated data path is exercised only in the fake-host
-configuration, and there it corrupts values, post-fix. Per the validity contract
-above that does not invalidate byte counts or timings -- counts are counts -- but
-every value claim from a fabric run is void, and the fabric's data path carries
-a known, reproducible defect.
+configuration. POST-FIX CERTIFICATION (gpu-sim-0i8, 2026-10-23): the
+self-describing payload is exact on both ranks in 24 qualifying runs (n=3 per
+cell) at 65536, 131072, 262144, 393216, 524288 and 1048576 bytes under
+NCCL_PROTO=Simple pinned, via NET/sim, with >=1 v12.isend line; and the
+non-uniform fill is VALUE OK on both ranks at 524288 and 1048576 (n=3 each).
+Decision CERTIFIED; see experiments/gpu-sim-0i8/metrics.json. The standing-defect
+claim above is retired: the fabric's data path no longer corrupts values
+post-fix (message identity (tag, logical channel) in 3f33f0e plus zero-length
+legality in 575a186). Byte counts and timings were never affected.
 
 Acceptance criterion for any future datum about the emulator: the NCCL log must
 show "via NET/sim/" AND the trace must contain v12.isend lines. run_measure.sh
@@ -280,6 +285,18 @@ and is now stated as such. The lesson to keep is narrower than it looks: for a
 performance emulator, ASSUMING the data path is correct is a legitimate
 simplification when it is declared; ASSERTING it, and then using the assertion
 to explain away a contradiction, is how a hypothesis becomes a finding.
+
+### 7.4.1 Value-path certification (gpu-sim-0i8, 2026-10-23)
+
+Lineage preserved: c1z withdrew "data correctness is not certified anywhere
+yet"; bam sharpened the emulated-fabric-vs-real-CUDA boundary; 652 confirmed
+the transport. This entry appends the discriminating experiment that settles
+the open question. Result: CERTIFIED -- self-describing payload exact on both
+ranks at 65536, 131072, 262144, 393216, 524288 and 1048576 (n=3 per cell,
+NCCL_PROTO=Simple pinned, via NET/sim); non-uniform fill VALUE OK at 524288
+and 1048576 (n=3 each). Metrics: experiments/gpu-sim-0i8/metrics.json. The
+standing-defect claim in section 7.4 is retired; byte and timing claims were
+never affected.
 
 ### 7.5 Not-claimed boundaries
 
