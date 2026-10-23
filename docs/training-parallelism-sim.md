@@ -169,6 +169,11 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   take the fallback duration and are traced with `predicted_s: null`. Wiring
   `link_model.predict()` into that path is the next step, and it is what turns
   "we issued 75 collectives" into "they cost X ms".
+- **Point-to-point timing.** `send`/`recv` cost `S/min_bw(path) + sum(latency)`
+  from the declared link parameters — first principles, not the fitted ring table,
+  which is why p2p is modelled while large ring collectives are still refused.
+  Verified: 256 B on NVLink 1.0003 us, on PCIe 8.0102 us. An unconnected pair
+  refuses; with no topology the duration stays null.
 - **PP.** TP exists (Megatron-style column/row sharding, `_ReduceSum` makes the
   backward reduction visible so TP traffic is not understated by half). PP does
   not: it needs stage split and per-stage send/recv; the interposer already traces
