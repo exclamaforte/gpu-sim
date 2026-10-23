@@ -67,13 +67,17 @@ for (cls,sh),lst in groups.items():
 per_class_err_lever3={}
 for cls in ["elementwise","matmul","reduce"]:
     errs=[]
-    for (ccls,sh),lst in groups.items():
-        if ccls!=cls: continue
-        med_ms=statistics.median(c["device_ms_median"] for c in lst)
-        pred_us=physical_pred_us(lst[0])
-        pred_ms=pred_us/1000.0
+    for c in cases:
+        if c["op_class"]!=cls: continue
+        med_ms=c["device_ms_median"]
+        pred_ms=physical_pred_us(c)/1000.0
         errs.append(abs((pred_ms-med_ms)/med_ms))
     per_class_err_lever3[cls]=statistics.median(errs) if errs else None
+    # also store max
+per_class_max_lever3={}
+for cls in ["elementwise","matmul","reduce"]:
+    errs=[abs((physical_pred_us(c)/1000.0-c["device_ms_median"])/c["device_ms_median"]) for c in cases if c["op_class"]==cls]
+    per_class_max_lever3[cls]=max(errs) if errs else None
 
 knee=json.loads(KNEE.read_text())
 knee_shapes=set((c["op_class"],tuple(c["shapes"])) for c in knee["cases"])
@@ -116,6 +120,7 @@ metrics={
   },
   "baseline": {"elementwise":0.969,"matmul":0.409,"reduce":0.473},
   "lever3": per_class_err_lever3,
+  "lever3_max": per_class_max_lever3,
   "lever3_elementwise_by_band": ew_band_medians,
   "residual_assessment": "After item1 (correct floor), elementwise residual by band: see lever3_elementwise_by_band. Regime structure remains (floor-bound small, L2 mid, cache-degraded large); not fixable with a single constant.",
   "verdict": None,
