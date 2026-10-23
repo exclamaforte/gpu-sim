@@ -1,0 +1,2 @@
+# gpu-sim-9si: cross-session stability
+Verdict: DRIFT-LIMITED. Re-captured scored fixture in a fresh session; scored with unchanged mdz table. Per-class median err v1->v2: elementwise 0.0252->0.0216, matmul 0.0382->0.0386, reduce 0.0239->0.0292. Max drift 23.3% (reduce sum 16K) crosses 10-point threshold. Medians hold; all classes pass 0.25. Cross-check vs m93 max err matches (0.104/0.175/0.196). See metrics.json.
