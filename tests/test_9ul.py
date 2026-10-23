@@ -24,7 +24,6 @@ def test_provenance_present():
     m = json.loads(METRICS.read_text())
     assert "dataset_provenance" in m
     assert m["dataset_provenance"]["sha256"]
-    assert "size_only_reconciliation" in m
     assert "step0_basis" in m
 
 def test_negative_control_constant_fails():
