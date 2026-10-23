@@ -333,11 +333,23 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   FAKEGPU_NCCL_SIMULATE_ONLY=0; default stays simulate-only and reproduces
   the committed traffic record byte-exact. float32/bf16, sum only; all_gather
   and the rest still move nothing.
+- **Training correctness under DP.** Done (gpu-sim-tbp): `--dp-mean` selects true
+  DDP (disjoint rank shards of one seeded batch, explicit 1/dp average), and
+  world=2 agrees with world=1 to worst 1.13e-07 across 12 steps; 50 steps fall
+  8.4806 -> 8.4276 with zero up-steps. The convention is not a detail: with the
+  same batch on every rank the summed gradient is dp x the single-rank gradient,
+  so "matching losses" would prove only that both sides shared one wrong
+  convention. Transport-on without `--dp-mean` refuses rather than defaulting.
 - **Single-process multi-device enumeration.** Blocked on NVML interposition.
 
 ## 7. Non-goals
 
-- Convergence. The harness moves no data between ranks.
+- **Convergence claims about real hardware.** The harness can now train correctly
+  under data parallelism, but it does so on one GPU with a simulated fabric, so its
+  loss curve is evidence about the SOFTWARE configuration, not about a cluster.
+  (This non-goal used to read "the harness moves no data between ranks" — that
+  stopped being true when the transport landed, and leaving it would have
+  understated the system as badly as claiming more than it does.)
 - Bit-accurate step times without calibration.
 - Re-implementing the model's arithmetic at a higher level. If a number cannot be
   observed at the library boundary, this project does not report it.
