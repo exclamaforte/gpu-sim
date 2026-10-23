@@ -434,10 +434,24 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
         else if (n == 2 && S <= 262144) P = 4;    /* phase-payload table */
         else if (n == 2 && S <= 2097152) P = 8;   /* phase-payload table */
         else {
-            /* outside measured range: refuse rather than derive from cap */
-            *bottleneck_link = -1;
-            if (regime && regimesz) snprintf(regime, regimesz, "refused");
-            return FG_NCCL_REFUSED;
+            /* Outside the measured phase-payload table. The DEFAULT stays REFUSE:
+               deriving P from a cap would invent a number the measurements do not
+               support (gpu-sim-pkb), and the u2o gate depends on that rule.
+               GPUSIM_ALLOW_EXTRAPOLATE=1 is an explicitly labelled opt-in for
+               workloads whose messages are simply larger than anything measured --
+               tensor parallelism all-reduces 8+ MB, so without this every TP
+               collective is refused and carries no predicted cost at all. The
+               regime string reads "extrapolated" so nothing downstream can mistake
+               it for a measured point. */
+            const char *ex = getenv("GPUSIM_ALLOW_EXTRAPOLATE");
+            if (!ex || !*ex || strcmp(ex, "0") == 0) {
+                *bottleneck_link = -1;
+                if (regime && regimesz) snprintf(regime, regimesz, "refused");
+                return FG_NCCL_REFUSED;
+            }
+            P = (int)ceil(((double)(n - 1) / (double)n) * S / (double)FG_FAB_MAX_PAYLOAD);
+            if (P < 1) P = 1;
+            if (regime && regimesz) snprintf(regime, regimesz, "extrapolated");
         }
         bw_term = bf * S / B_Bps;
         lat_term = lf * alpha_s * (double)P;

@@ -107,6 +107,8 @@ def main() -> int:
     ap.add_argument("--world-sizes", type=int, nargs="+", default=[1, 2])
     ap.add_argument("--steps", type=int, default=3)
     ap.add_argument("--delay-ms", type=float, nargs=2, default=None)
+    ap.add_argument("--tp", type=int, default=1,
+                    help="tensor-parallel width; world becomes dp*tp so world must be a multiple")
     ap.add_argument("--fabric", default="nvlink",
                     help="declare a fabric so collectives carry predicted cost; '' to disable")
     ap.add_argument("--json", type=str, default=None)
@@ -124,17 +126,21 @@ def main() -> int:
         topo = None
         if args.fabric:
             topo = str(emit(w, tmp_topo / f"topo_w{w}_{args.fabric}.bin", args.fabric))
-        results.append(_run_one(w, args.steps, args.delay_ms, args.rest, topo))
+        extra = list(args.rest)
+        if args.tp > 1:
+            extra += ["--tp", str(args.tp)]
+        results.append(_run_one(w, args.steps, args.delay_ms, extra, topo))
     shutil.rmtree(tmp_topo, ignore_errors=True)
 
-    hdr = (f"{'world':>5} {'step_ms':>9} {'coll_msgs':>10} {'coll_MB':>9} "
-           f"{'comm_sim_ms':>12} {'params':>10}")
+    hdr = (f"{'world':>5} {'tp':>3} {'dp':>3} {'step_ms':>9} {'coll_msgs':>10} "
+           f"{'coll_MB':>9} {'comm_sim_ms':>12} {'params':>10}")
     print(hdr)
     print("-" * len(hdr))
     for r in results:
         step = f"{r['step_ms']:.1f}" if r["step_ms"] is not None else "FAILED"
-        print(f"{r['world']:>5} {step:>9} {r['coll_msgs']:>10} {r['coll_MB']:>9} "
-              f"{r['comm_sim_ms']:>12} {r['params'] or '-':>10}")
+        dp = r["world"] // args.tp if args.tp else r["world"]
+        print(f"{r['world']:>5} {args.tp:>3} {dp:>3} {step:>9} {r['coll_msgs']:>10} "
+              f"{r['coll_MB']:>9} {r['comm_sim_ms']:>12} {r['params'] or '-':>10}")
         if r["rc"] != 0 and r["stderr_tail"]:
             print(f"      {r['stderr_tail']}")
 

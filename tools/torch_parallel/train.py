@@ -37,7 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import torch
 import torch.distributed as dist
 
-from tools.torch_parallel.model import ModelSpec, TinyLM
+from tools.torch_parallel.model import ModelSpec, TinyLM, TinyLMTP
 
 
 def _parse() -> argparse.Namespace:
@@ -52,6 +52,10 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--delay-ms", type=float, nargs=2, default=None,
                    metavar=("LO", "HI"))
     p.add_argument("--json", type=str, default=None)
+    # Parallelism decomposition. world_size == dp * tp is enforced; there is no
+    # pipeline axis yet, so pp is fixed at 1.
+    p.add_argument("--tp", type=int, default=1,
+                   help="tensor-parallel width; world_size/tp is the data-parallel width")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--vocab", type=int, default=4096)
     p.add_argument("--seq", type=int, default=512)
@@ -77,9 +81,35 @@ def main() -> int:
     device_index = int(os.environ.get("HARNESS_DEVICE", "0"))
     torch.cuda.set_device(device_index)
 
+    tp = args.tp
+    if world % tp != 0:
+        raise SystemExit(f"world_size {world} is not divisible by tp {tp}")
+    dp = world // tp
+    tp_rank, dp_rank = rank % tp, rank // tp
+
     spec = ModelSpec(vocab=args.vocab, seq=args.seq, d_model=args.d_model,
                      n_layers=args.layers, n_heads=4, d_ff=args.d_model * 4)
-    model = TinyLM(spec).cuda()
+    tp_group = dp_group = None
+    if dp > 1:
+        for base in range(0, world, dp):
+            pass
+        # dp groups are strided: ranks with the same tp_rank form one replica set
+        for t in range(tp):
+            ranks = [d * tp + t for d in range(dp)]
+            g = dist.new_group(ranks)
+            if rank in ranks:
+                dp_group = g
+    if tp > 1:
+        # One group per contiguous block of tp ranks. RANK = dp_rank * tp + tp_rank,
+        # so a group is a contiguous slice and its members share one model replica.
+        for base in range(0, world, tp):
+            ranks = list(range(base, base + tp))
+            g = dist.new_group(ranks)
+            if rank in ranks:
+                tp_group = g
+        model = TinyLMTP(spec, tp_size=tp, group=tp_group).cuda()
+    else:
+        model = TinyLM(spec).cuda()
     # NOT torch.nn.parallel.DistributedDataParallel.
     #
     # DDP cross-checks parameter counts with a real all_gather, so it needs the
@@ -111,13 +141,15 @@ def main() -> int:
         opt.zero_grad(set_to_none=True)
         loss = model.loss(x)
         loss.backward()
-        if world > 1:
+        if dp > 1:
             # Data-parallel gradient sync: one all_reduce per parameter, which is
             # the traffic DDP would generate (DDP buckets them; un-bucketed is a
             # conservative upper bound and easier to count from the trace).
+            # Under TP this reduces ACROSS REPLICAS only, not across the tp group:
+            # the tp group's own reductions already happened inside the layers.
             for prm in model.parameters():
                 if prm.grad is not None:
-                    dist.all_reduce(prm.grad)
+                    dist.all_reduce(prm.grad, group=dp_group)
         opt.step()
         torch.cuda.synchronize()
 
@@ -142,6 +174,9 @@ def main() -> int:
         "host": socket.gethostname(),
         "model": spec.to_dict(),
         "params": spec.param_count(),
+        "params_local": model.local_param_count() if tp > 1 else spec.param_count(),
+        "tp": tp,
+        "dp": dp,
         "batch": args.batch,
         "steps": args.steps,
         "warmup_steps": n_warm,
@@ -164,7 +199,8 @@ def main() -> int:
     if world > 1:
         dist.barrier()
         dist.destroy_process_group()
-    print(f"[rank {rank}/{world}] mean step {summary['mean_step_s']*1000:.1f} ms "
+    print(f"[rank {rank}/{world} tp={tp} dp={dp}] "
+          f"mean step {summary['mean_step_s']*1000:.1f} ms "
           f"loss {losses[0]:.3f} -> {losses[-1]:.3f}")
     return 0
 

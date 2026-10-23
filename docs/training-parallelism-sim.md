@@ -123,6 +123,32 @@ Three things that table is good for, none of which needed a second GPU:
   this model's compute -- which is itself the answer to "is this model
   communication-bound?": at 5.2M parameters and 8x512 tokens, no.
 
+### Data parallel vs tensor parallel, same world size
+
+```
+config     world  tp  dp  step_ms  coll_msgs  coll_MB  comm_sim_ms
+DP             2   1   2      9.5         75     86.1         0.75
+TP             2   2   1      7.6         33    268.4         0.56
+DP2xTP2        4   2   2     29.9        297    803.4         3.24
+```
+
+The shape of the trade-off is visible and explicable: **TP issues fewer, much
+larger collectives; DP issues many small ones.** That is the textbook tension, and
+it is now a measurable property of a config rather than an assertion.
+
+One caveat that keeps this from being a like-for-like byte comparison: DP here is
+UNBUCKETED (one all-reduce per parameter, 37 of them per step), whereas DDP would
+fuse them into a few large ones. Un-bucketed is a deliberate upper bound on
+message COUNT and easier to audit from the trace; it is not what a tuned DDP run
+would emit.
+
+TP collectives are 8 MB, beyond the measured phase-payload table, so they are
+timed only when `GPUSIM_ALLOW_EXTRAPOLATE=1` is set; the trace then records
+`regime: "extrapolated"` so an extrapolated cost can never be mistaken for a
+measured one. The default remains REFUSE.
+
+### Warmup
+
 WARMUP IS DISCARDED, and that matters: the first step measured 556 ms against
 11 ms for steady state (CUDA context, cuBLAS init, kernel compilation). Averaging
 it in would make a sweep compare initialization cost instead of the parallel
@@ -135,8 +161,10 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   take the fallback duration and are traced with `predicted_s: null`. Wiring
   `link_model.predict()` into that path is the next step, and it is what turns
   "we issued 75 collectives" into "they cost X ms".
-- **TP and PP.** Only DP is exercised. TP/PP need sharded parameters and
-  per-stage send/recv; the interposer already traces `send`/`recv`.
+- **PP.** TP exists (Megatron-style column/row sharding, `_ReduceSum` makes the
+  backward reduction visible so TP traffic is not understated by half). PP does
+  not: it needs stage split and per-stage send/recv; the interposer already traces
+  `send`/`recv`, so the work is a scheduler, not a C change.
 - **Data-correct collectives.** Would need a transport between ranks (shared
   memory or sockets in the interposer). Not required for timing comparison;
   required before any convergence claim.
