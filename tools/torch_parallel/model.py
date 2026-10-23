@@ -223,3 +223,68 @@ class TinyLMTP(nn.Module):
     def local_param_count(self) -> int:
         """Parameters actually resident on this rank (the memory TP buys back)."""
         return sum(p.numel() for p in self.parameters())
+
+
+# --------------------------------------------------------------------------
+# Pipeline parallelism
+# --------------------------------------------------------------------------
+#
+# A stage owns a contiguous slice of layers: stage s holds
+# [s*n_layers/pp, (s+1)*n_layers/pp). Stage 0 also owns the embedding, the
+# last stage the final norm and head. Stages exchange activations forward and
+# gradients backward with blocking send/recv (the GPipe order: all forwards,
+# then all backwards); the schedule itself lives in train.py, this class is
+# only the per-stage sub-model.
+#
+# Same timing-only bargain as TP: send/recv move NO payload (the receiver
+# keeps its init value), so stage outputs are garbage and the loss in PP mode
+# is not meaningful. Traffic and timing are real; the arithmetic is not.
+
+class PPStage(nn.Module):
+    """One pipeline stage of TinyLM, optionally tensor-sharded within."""
+
+    def __init__(self, spec: ModelSpec, stage_idx: int, pp: int,
+                 tp_size: int = 1, group=None):
+        super().__init__()
+        assert pp > 1, "pp==1 needs no stage model"
+        assert spec.n_layers % pp == 0, (
+            f"n_layers {spec.n_layers} not divisible by pp {pp}")
+        self.spec = spec
+        self.stage_idx = stage_idx
+        self.pp = pp
+        self.tp_size = tp_size
+        n_local = spec.n_layers // pp
+        lo, hi = stage_idx * n_local, (stage_idx + 1) * n_local
+        blk = BlockTP if tp_size > 1 else Block
+        if tp_size > 1:
+            self.blocks = nn.ModuleList(
+                blk(spec, tp_size, group) for _ in range(lo, hi))
+        else:
+            self.blocks = nn.ModuleList(blk(spec) for _ in range(lo, hi))
+        self.is_first = stage_idx == 0
+        self.is_last = stage_idx == pp - 1
+        if self.is_first:
+            self.embed = nn.Embedding(spec.vocab, spec.d_model)
+            self.pos = nn.Parameter(torch.zeros(1, spec.seq, spec.d_model))
+            nn.init.normal_(self.pos, std=0.02)
+        if self.is_last:
+            self.lnf = nn.LayerNorm(spec.d_model)
+            self.head = nn.Linear(spec.d_model, spec.vocab, bias=False)
+
+    def embed_input(self, idx):
+        """First stage only: tokens -> embeddings."""
+        return self.embed(idx) + self.pos[:, : idx.shape[1]]
+
+    def run_blocks(self, x):
+        for blk in self.blocks:
+            x = blk(x)
+        return x
+
+    def head_loss(self, x, target):
+        """Last stage only: norm + head + next-token cross entropy."""
+        logits = self.head(self.lnf(x))
+        return torch.nn.functional.cross_entropy(
+            logits.reshape(-1, logits.size(-1)), target.reshape(-1))
+
+    def local_param_count(self) -> int:
+        return sum(p.numel() for p in self.parameters())

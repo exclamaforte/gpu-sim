@@ -72,11 +72,13 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
     if summary.exists():
         rows = [json.loads(l) for l in summary.read_text().splitlines() if l.strip()]
     msgs = bytes_moved = 0
+    p2p_msgs = p2p_bytes = 0
     pred_s = 0.0
     # Only collectives issued during the measured window, so the count and the
     # step times cover the same steps (see train.py's measure_start_ns).
     start_ns = next((r.get("measure_start_ns") for r in rows
                      if r.get("measure_start_ns")), None)
+    pp_of_rank0 = 1
     if trace.exists():
         for line in trace.read_text().splitlines():
             if not line.strip():
@@ -85,19 +87,33 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
             if start_ns is not None and e.get("ts_ns", 0) < start_ns:
                 continue
             if e.get("rank") == 0:
-                msgs += 1
-                bytes_moved += int(e.get("bytes") or 0)
+                if e.get("op") in ("send", "recv", "sendrecv"):
+                    p2p_msgs += 1
+                    p2p_bytes += int(e.get("bytes") or 0)
+                else:
+                    msgs += 1
+                    bytes_moved += int(e.get("bytes") or 0)
                 pred_s += float(e.get("predicted_s") or 0.0)
+    for r in rows:
+        if r.get("rank") == 0:
+            pp_of_rank0 = int(r.get("pp", 1))
 
     shutil.rmtree(tmp, ignore_errors=True)
     return {
         "world": world,
         "rc": proc.returncode,
         "step_ms": (sum(r["mean_step_s"] for r in rows) / len(rows) * 1000) if rows else None,
+        # Slowest/fastest rank mean step: under PP the spread across stages is
+        # where the pipeline bubble shows up (fill/drain idle on the stages).
+        "step_ms_hi": (max(r["mean_step_s"] for r in rows) * 1000) if rows else None,
+        "step_ms_lo": (min(r["mean_step_s"] for r in rows) * 1000) if rows else None,
         "coll_msgs": msgs,
         "coll_MB": round(bytes_moved / 1e6, 1),
+        "p2p_msgs": p2p_msgs,
+        "p2p_MB": round(p2p_bytes / 1e6, 1),
         "comm_sim_ms": round(pred_s * 1000, 2),
         "params": rows[0]["params"] if rows else None,
+        "pp": pp_of_rank0,
         "stderr_tail": proc.stderr.strip().splitlines()[-1] if proc.returncode else "",
     }
 
@@ -109,6 +125,10 @@ def main() -> int:
     ap.add_argument("--delay-ms", type=float, nargs=2, default=None)
     ap.add_argument("--tp", type=int, default=1,
                     help="tensor-parallel width; world becomes dp*tp so world must be a multiple")
+    ap.add_argument("--pp", type=int, default=1,
+                    help="pipeline-parallel width; world becomes pp*dp*tp so world must be a multiple")
+    ap.add_argument("--micro-batches", type=int, default=2,
+                    help="GPipe micro-batches per step (PP mode; must divide batch)")
     ap.add_argument("--fabric", default="nvlink",
                     help="declare a fabric so collectives carry predicted cost; '' to disable")
     ap.add_argument("--json", type=str, default=None)
@@ -129,18 +149,23 @@ def main() -> int:
         extra = list(args.rest)
         if args.tp > 1:
             extra += ["--tp", str(args.tp)]
+        if args.pp > 1:
+            extra += ["--pp", str(args.pp),
+                      "--micro-batches", str(args.micro_batches)]
         results.append(_run_one(w, args.steps, args.delay_ms, extra, topo))
     shutil.rmtree(tmp_topo, ignore_errors=True)
 
-    hdr = (f"{'world':>5} {'tp':>3} {'dp':>3} {'step_ms':>9} {'coll_msgs':>10} "
-           f"{'coll_MB':>9} {'comm_sim_ms':>12} {'params':>10}")
+    hdr = (f"{'world':>5} {'tp':>3} {'pp':>3} {'dp':>3} {'step_ms':>9} {'coll_msgs':>10} "
+           f"{'coll_MB':>9} {'p2p_msgs':>9} {'p2p_MB':>8} {'comm_sim_ms':>12} {'params':>10}")
     print(hdr)
     print("-" * len(hdr))
     for r in results:
         step = f"{r['step_ms']:.1f}" if r["step_ms"] is not None else "FAILED"
-        dp = r["world"] // args.tp if args.tp else r["world"]
-        print(f"{r['world']:>5} {args.tp:>3} {dp:>3} {step:>9} {r['coll_msgs']:>10} "
-              f"{r['coll_MB']:>9} {r['comm_sim_ms']:>12} {r['params'] or '-':>10}")
+        denom = args.tp * r["pp"]
+        dp = r["world"] // denom if denom else r["world"]
+        print(f"{r['world']:>5} {args.tp:>3} {r['pp']:>3} {dp:>3} {step:>9} {r['coll_msgs']:>10} "
+              f"{r['coll_MB']:>9} {r['p2p_msgs']:>9} {r['p2p_MB']:>8} "
+              f"{r['comm_sim_ms']:>12} {r['params'] or '-':>10}")
         if r["rc"] != 0 and r["stderr_tail"]:
             print(f"      {r['stderr_tail']}")
 
