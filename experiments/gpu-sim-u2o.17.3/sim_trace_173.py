@@ -59,7 +59,7 @@ def loglog_fit(pts):
     return my - b * mx, b
 
 
-def main(out=None, extra=None, calibration=None) -> int:
+def main(out=None, extra=None, calibration=None, dtype_bytes=4) -> int:
     out = Path(out) if out else (REPO / "experiments/gpu-sim-u2o.17.3"
                                  / "metrics.json")
     fix = json.loads(FIX.read_text())
@@ -135,6 +135,8 @@ def main(out=None, extra=None, calibration=None) -> int:
             for c in per_cls[cls]:
                 sh = str(c["shapes"])
                 sz = c["shapes"][0] if cls != "matmul" else c["shapes"][0]
+                if dtype_bytes != 4:
+                    sz = int(sz * dtype_bytes / 4) if isinstance(sz, int) else sz
                 if cls == "matmul":
                     sz = c["shapes"][0]
                 op = c.get("op", cls)
@@ -237,9 +239,12 @@ if __name__ == "__main__":
     out = a[0] if a and not a[0].startswith("--") else None
     extra = None
     calibration = None
+    dtype_bytes = 4
     for i, x in enumerate(a):
         if x == "--extra" and i + 1 < len(a):
             extra = a[i + 1]
         if x == "--calibration" and i + 1 < len(a):
             calibration = a[i + 1]
-    raise SystemExit(main(out, extra, calibration))
+        if x == "--dtype-bytes" and i + 1 < len(a):
+            dtype_bytes = int(a[i + 1])
+    raise SystemExit(main(out, extra, calibration, dtype_bytes))

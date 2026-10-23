@@ -36,7 +36,7 @@ def _normalize_table(raw):
                 ms = c["median_us"] / 1000.0
             else:
                 continue
-            entry = ops.setdefault(op, {"median_ms": ms, "n": 0, "sizes": {}})
+            entry = ops.setdefault(op, {"median_ms": ms, "n": 0, "sizes": {}, "bytes_per_element": 4})
             entry["n"] = entry.get("n", 0) + 1
             entry["sizes"][str(size)] = ms
             # keep overall median as median of size medians
@@ -75,8 +75,11 @@ def _size_from_spec(spec):
     return None
 
 
-def latency_ms_for(op, size=None, table=None, default=LEGACY_DEFAULT_MS) -> float:
+def latency_ms_for(op, size=None, table=None, dtype_bytes=4, default=LEGACY_DEFAULT_MS) -> float:
     """Calibrated median for a known op class, size-aware when possible."""
+    if isinstance(size, dict) and table is None:
+        table = size
+        size = None
     if table is None:
         try:
             table = load_table()
@@ -86,6 +89,11 @@ def latency_ms_for(op, size=None, table=None, default=LEGACY_DEFAULT_MS) -> floa
     if op not in ops:
         return default
     entry = ops[op]
+    bpe = entry.get("bytes_per_element", 4) if isinstance(entry, dict) else 4
+    if size is not None:
+        size = size * dtype_bytes / bpe
+        if isinstance(size, float) and size.is_integer():
+            size = int(size)
     if size is not None and isinstance(entry, dict) and "sizes" in entry:
         key = str(size)
         if key in entry["sizes"]:
@@ -113,9 +121,10 @@ def latency_ms_for(op, size=None, table=None, default=LEGACY_DEFAULT_MS) -> floa
 
 
 def latency_ms_for_spec(spec, table=None) -> float:
-    """Harness wiring: spec dict -> latency (spec.get('op_type'), size-aware)."""
+    """Harness wiring: spec dict -> latency (spec.get('op_type'), size-aware, dtype-aware)."""
     spec = spec or {}
-    return latency_ms_for(spec.get("op_type"), size=_size_from_spec(spec), table=table)
+    dtype_bytes = spec.get("dtype_bytes", 4)
+    return latency_ms_for(spec.get("op_type"), size=_size_from_spec(spec), dtype_bytes=dtype_bytes, table=table)
 
 
 if __name__ == "__main__":
