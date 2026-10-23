@@ -151,35 +151,35 @@
       "median_rel_error": 0.3686415332573427,
       "log_mae": 0.4595778486692583,
       "n_test": 24,
-      "size_only_median_rel_error": 0.17447264619093258
+      "size_only_median_rel_error": 0.4661968197759706
     },
     "matmul": {
       "winner": "A_size_only",
       "median_rel_error": 0.2680373193871414,
       "log_mae": 0.30376348892386956,
       "n_test": 18,
-      "size_only_median_rel_error": 0.8389399136534017
+      "size_only_median_rel_error": 0.2680373193871414
     },
     "reduction": {
       "winner": "D_full",
       "median_rel_error": 0.7055963978323753,
       "log_mae": 1.429822033221532,
       "n_test": 29,
-      "size_only_median_rel_error": 0.19979043030322882
+      "size_only_median_rel_error": 0.7663365118111432
     },
     "softmax": {
       "winner": "D_full",
       "median_rel_error": 0.6811545309291888,
       "log_mae": 1.3348573120676088,
       "n_test": 29,
-      "size_only_median_rel_error": 0.19034247360882584
+      "size_only_median_rel_error": 0.7364230495828773
     },
     "transpose": {
       "winner": "A_size_only",
       "median_rel_error": 0.19796089817316612,
       "log_mae": 0.2041949898180503,
       "n_test": 36,
-      "size_only_median_rel_error": 0.4771217788835518
+      "size_only_median_rel_error": 0.19796089817316612
     }
   },
   "gate_classes": {
@@ -211,7 +211,6 @@
     "feature_count_full": 7,
     "note": "CV error by candidate richness in selection_log"
   },
-  "headline": "GAP-REMAINS",
   "dataset_provenance": {
     "path": "experiments/gpu-sim-2al/dataset.jsonl",
     "sha256": "dd12ed54e7c47ece08187447a5969b6d245742c199f522f12100f36d30717983",
@@ -304,22 +303,6 @@
       ]
     }
   },
-  "size_only_reconciliation": {
-    "global_size_only_reproduces_bwn": {
-      "elementwise": 0.17447264619093258,
-      "matmul": 0.8389399136534017,
-      "reduction": 0.19979043030322882,
-      "softmax": 0.19034247360882584,
-      "transpose": 0.4771217788835518
-    },
-    "per_family_size_only_as_in_original_9ul": {
-      "elementwise": 0.4661968197759706,
-      "matmul": 0.2680373193871414,
-      "reduction": 0.7663365118111432,
-      "softmax": 0.7364230495828773,
-      "transpose": 0.19796089817316612
-    },
-    "conclusion": "9ul's original size-only column was a per-family model, mislabelled as comparable to bwn's global size-only negative control. The global size-only model reproduces bwn exactly (elementwise 0.174, matmul 0.839, reduction 0.200, softmax 0.190, transpose 0.477). Load-bearing negative control remains bwn's global size-only."
-  },
-  "step0_basis": "Matmul winner was A_size_only (CV 0.0075) and descriptors did not win; existing 87 matmul rows sufficient; no new GPU rows generated. Shape variation not needed because the selected model does not use shape descriptors."
+  "step0_basis": "Matmul winner was A_size_only (CV 0.0075) and descriptors did not win; existing 87 matmul rows sufficient; no new GPU rows generated. Shape variation not needed because the selected model does not use shape descriptors.",
+  "headline": "GAP-REMAINS"
 }

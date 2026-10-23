@@ -135,11 +135,6 @@ def main():
         "verdict": verdict,
         "overfitting_diagnostic": overfit,
         "dataset_provenance": {"path":"experiments/gpu-sim-2al/dataset.jsonl","sha256":ds_hash,"split_rule":"per-family sorted by (size,block), 80/20 by size","n_train":n_train,"n_test":n_test,"heldout_sizes":heldout},
-        "size_only_reconciliation": {
-            "global_size_only_reproduces_bwn": global_so,
-            "per_family_size_only_as_in_original_9ul": {f: test_cells[f]["size_only_median_rel_error"] for f in test_cells},
-            "conclusion": "9ul's original size-only column was a per-family model, mislabelled as comparable to bwn's global size-only negative control. The global size-only model reproduces bwn exactly. Load-bearing negative control remains bwn's global size-only."
-        },
         "step0_basis": "Matmul winner was A_size_only (CV 0.0075) and descriptors did not win; existing 87 matmul rows sufficient; no new GPU rows generated. Shape variation not needed because the selected model does not use shape descriptors.",
         "headline": verdict,
     }
