@@ -3,8 +3,8 @@
   "calibration_source": "knee_cases.json (elementwise only)",
   "constants": {
     "dispatch_floor_us": {
-      "value": 1.308,
-      "source": "gpu-sim-u2o.6.6.1 measured irreducible launch, batched"
+      "value": 1.0016,
+      "source": "same-trace launch_bound case, gpu-sim-u2o.17.5 (256 elements, 0.0010016 ms, spread 3.2%)"
     },
     "effective_bandwidth_bytes_s": {
       "value": 7792241763685.914,
@@ -56,10 +56,16 @@
     "reduce": 0.473
   },
   "lever3": {
-    "elementwise": 0.48394658461957674,
+    "elementwise": 0.18111974061579844,
     "matmul": 0.17943162873234314,
-    "reduce": 0.4358307479474093
+    "reduce": 0.4863322189840575
   },
+  "lever3_elementwise_by_band": {
+    "<=65536": 0.1363309626567034,
+    "1048576": 0.21150418711394314,
+    "16777216": 0.6499550534853368
+  },
+  "residual_assessment": "After item1 (correct floor), elementwise residual by band: see lever3_elementwise_by_band. Regime structure remains (floor-bound small, L2 mid, cache-degraded large); not fixable with a single constant.",
   "verdict": "PARTIAL",
   "bar": 0.25,
   "bar_criterion": "u2o.17: median |sim-measured|/measured <= 25% per op class"
