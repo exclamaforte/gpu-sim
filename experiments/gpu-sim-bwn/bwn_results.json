@@ -1,0 +1,45 @@
+{
+  "gate_statistic_by_family": {
+    "elementwise": {
+      "n": 24,
+      "gbt_median_rel_error": 0.5020834513239029,
+      "gbt_log_mae": 0.4042642928659392,
+      "sizeonly_median_rel_error": 0.17447264619093258
+    },
+    "matmul": {
+      "n": 18,
+      "gbt_median_rel_error": 0.2662615503983582,
+      "gbt_log_mae": 0.2875552878766104,
+      "sizeonly_median_rel_error": 0.8389399136534017
+    },
+    "reduction": {
+      "n": 29,
+      "gbt_median_rel_error": 0.4592401690748982,
+      "gbt_log_mae": 0.3279569181210656,
+      "sizeonly_median_rel_error": 0.19979043030322882
+    },
+    "softmax": {
+      "n": 29,
+      "gbt_median_rel_error": 0.43110304141009204,
+      "gbt_log_mae": 0.31725447716230565,
+      "sizeonly_median_rel_error": 0.19034247360882584
+    },
+    "transpose": {
+      "n": 36,
+      "gbt_median_rel_error": 0.25737240481740997,
+      "gbt_log_mae": 0.3427031914770957,
+      "sizeonly_median_rel_error": 0.4771217788835518
+    }
+  },
+  "baseline_from_nk0": {
+    "elementwise": 0.506,
+    "matmul": 0.26,
+    "reduction": 0.462,
+    "softmax": 0.415,
+    "transpose": 0.245
+  },
+  "pooled_median_rel_error": 0.27549435256724975,
+  "verdict": "GAP-REMAINS",
+  "informative_slots": 12,
+  "feature_spec": "phys(8) + num33(33) = 41 slots"
+}
