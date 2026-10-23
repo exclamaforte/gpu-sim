@@ -80,8 +80,7 @@ either side fires loudly instead of silently forking the sets. The
         sys.path.insert(0, str(REPO / "experiments" / "gpu-sim-u2o.6.6.2"))
         import measure_family as mf
         missing = (set(vh.TELEMETRY_FIELDS) - set(mf.TELEMETRY_FIELDS))
-        self.assertEqual(missing, {"power.draw", "power.limit",
-                                   "utilization.gpu", "memory.used"},
+        self.assertEqual(missing, {"power.limit", "memory.used"},
                          "the measure_family gap moved: re-check the README "
                          "account and the PI schema decision")
 
