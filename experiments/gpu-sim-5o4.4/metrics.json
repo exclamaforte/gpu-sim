@@ -19,13 +19,9 @@
     "d": 256,
     "dtype": 4,
     "L": 4,
-    "observed_bytes_per_rank_per_step": 50135040,
-    "model_bytes_per_step": 4194304,
-    "plan_bytes_per_step": 8388608,
-    "ratio_obs_over_model": 11.953,
-    "ratio_obs_over_plan": 5.977,
+    "status": "NOT MEASURED (old trace was shared-path, per-rank attribution lost; step count unknown)",
     "pre_registered": 2.0,
-    "verdict": "ratio not 2.0 (msg-size scale dominates); count correction 2->4 still applied per plan"
+    "note": "static derivation only; count correction 2->4 applied per plan (cy0_l2.py counts fwd+bwd)"
   },
   "H2_CP": {
     "formula_model": "L*2*(S/cp*d*dtype)",
@@ -35,13 +31,9 @@
     "d": 256,
     "dtype": 4,
     "L": 4,
-    "observed_bytes_per_rank_per_step": 24969216,
-    "model_bytes_per_step": 1048576,
-    "plan_bytes_per_step": 3145728,
-    "ratio_obs_over_model": 23.81,
-    "ratio_obs_over_plan": 7.93,
+    "status": "NOT MEASURED (old trace was shared-path, per-rank attribution lost; step count unknown)",
     "pre_registered": 3.0,
-    "verdict": "ratio not 3.0 (msg-size scale dominates); count correction 2->2*(cp-1) still applied per plan"
+    "note": "static derivation only; count correction 2->2*(cp-1) applied per plan"
   },
   "ranked_table": "see stdout of parallelism_search.py",
   "winner_old": "tp=2 pp=1 cp=4 dp=1 zero=0 (56.69ms, with undercounts)",

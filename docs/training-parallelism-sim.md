@@ -11,7 +11,7 @@ Read this first if you are picking the work up from disk rather than from a brie
 | piece | state |
 |---|---|
 | axes DP / TP / PP / ZeRO1-3 | all implemented; all train correctly (verified against references, not against each other) |
-| context parallel (CP) | **scaffold only** -- --cp exists, ranks refuse bad decompositions, but the sequence is never split and no K/V is exchanged. gpu-sim-5o4.3. |
+| context parallel (CP) | **implemented** -- strided? no, contiguous blocks; p2p ring K/V exchange; cp groups. gpu-sim-5o4.3 (2d11df0). Gate: cp=2 forward maxerr 1.9e-8 vs cp=1. |
 | collective cost | ANALYTICAL: n-1 hops of S/n per ring phase, latency vs bandwidth chosen by whether a hop outlasts link latency (`epic_cluster/nccl_cost.py`, mirrored in `src/fakegpu_nccl.c`). Legacy table behind GPUSIM_NCCL_LEGACY_TABLE=1. |
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) for a hardware target, ranked by compute+comm SUM (max-overlap reported separately). |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
