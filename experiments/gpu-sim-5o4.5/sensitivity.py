@@ -21,13 +21,16 @@ def step_f(c, f):
 
 def winner_at_f(N, hw, f, rank_by_sum=True):
     _, feas = ps.search(N, hw)
-    # recompute step under f for each
     scored = []
     for c in feas:
         s = step_f(c, f)
         scored.append((s, c))
     scored.sort(key=lambda x: x[0])
-    return scored[0][1] if scored else None
+    if not scored:
+        return None, 0
+    minstep = scored[0][0]
+    tied = sum(1 for s,_ in scored if abs(s-minstep) < 1e-9)
+    return scored[0][1], tied
 
 # f-curve
 f_values = [round(i/20, 2) for i in range(21)]
@@ -35,10 +38,10 @@ f_curve = []
 prev = None
 swaps = []
 for f in f_values:
-    w = winner_at_f(N, dict(BASE), f)
-    f_curve.append({"f": f, "winner": list(key(w)), "step_ms": step_f(w, f)*1000})
+    w, tied = winner_at_f(N, dict(BASE), f)
+    f_curve.append({"f": f, "winner": list(key(w)), "step_ms": round(step_f(w, f)*1000,3), "tied": tied, "degenerate": tied > 1})
     if prev is not None and key(w) != key(prev[1]):
-        swaps.append({"f": f, "from": list(key(prev[1])), "to": list(key(w))})
+        swaps.append({"f": f, "from": list(key(prev[1])), "to": list(key(w)), "degenerate": (f==1.0)})
     prev = (f, w)
 
 # one-at-a-time break-even
@@ -46,7 +49,7 @@ def sweep(param, values):
     out = []
     for v in values:
         hw = dict(BASE); hw[param] = v
-        w = winner_at_f(N, hw, 0.0)
+        w, _ = winner_at_f(N, hw, 0.0)
         out.append({"value": v, "winner": list(key(w)), "step_ms": step_f(w,0.0)*1000})
     return out
 
@@ -64,8 +67,8 @@ dist_sum = Counter(); dist_max = Counter()
 for a in alphas:
     for b in bws:
         hw = dict(BASE); hw["alpha_s"]=a; hw["bw_gbps"]=b
-        w0 = winner_at_f(N, hw, 0.0)
-        w1 = winner_at_f(N, hw, 1.0)
+        w0, _ = winner_at_f(N, hw, 0.0)
+        w1, _ = winner_at_f(N, hw, 1.0)
         dist_sum[key(w0)] += 1
         dist_max[key(w1)] += 1
 
@@ -105,7 +108,7 @@ metrics = {
   "spearman_rho_sum": {"mean": sum(spearman_sum_vals)/len(spearman_sum_vals), "min": min(spearman_sum_vals)},
   "kendall_tau_max": {"mean": sum(kendall_max_vals)/len(kendall_max_vals), "min": min(kendall_max_vals)},
   "spearman_rho_max": {"mean": sum(spearman_max_vals)/len(spearman_max_vals), "min": min(spearman_max_vals)},
-  "verdict": "min-comm config (ZeRO-3) wins for all f<1; margin goes to zero at f=1 where 22 pp=1 rows tie at 51.63 ms. Not separable at this margin: recommendation depends on overlap policy."
+  "verdict": "min-comm config (ZeRO-3) wins for all f<1; at f=1 the swap to (1,1,4,2,3) is degenerate (24 rows tie at 51.63 ms, float-noise tie-break). Not separable at this margin: recommendation depends on overlap policy."
 }
 with open("experiments/gpu-sim-5o4.5/metrics.json","w") as f:
     json.dump(metrics, f, indent=2)
