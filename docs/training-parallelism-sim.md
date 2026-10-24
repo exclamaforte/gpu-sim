@@ -336,6 +336,13 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   `--pp`/`--micro-batches` in train.py and sweep.py with rank decomposition
   rank = pp_idx*(tp*dp) + dp_idx*tp + tp_idx. Same timing-only bargain as the rest:
   stage outputs are garbage, loss curves are not meaningful, traffic/timing are real.
+- **Memory, and one rule for reading it.** ZeRO's modelled sharded-state saving is
+  52.4 -> 36.7 -> 21.0 MB, and with payload really moving the measured peak is
+  29.0 MB lower for ZeRO-3 than ZeRO-1 -- within 8% of the model. Two caveats,
+  both earned: absolute peak numbers are only comparable between runs with the
+  SAME BATCHING CONVENTION (the `--dp-mean` sharding convention alone moves peak
+  from 627 MB to 272 MB at world=4, entirely independent of transport mode), and
+  the transport itself has zero measurable memory effect.
 - **ZeRO.** Done (gpu-sim-8y7.3): `--zero 1/2/3` on the dp axis. 1 = DP +
   post-step all_gather; 2 = flattened reduce_scatter + post-step gather;
   3 = FSDP over the dp group. Measured peak (`max_memory_allocated`,
