@@ -41,24 +41,33 @@
   },
   "validator": "VALID: 8 ranks across 1 stages, equal counts per op within stage",
   "counts": {
-    "tp_allreduce_per_rank_per_step_total": 16.2,
+    "tp_allreduce_per_rank_per_step": 16,
     "tp_allreduce_per_rank_per_step_plan": 16,
-    "cp_send_per_rank_per_step_total": 24.0,
-    "cp_send_per_rank_per_step_plan": 24
+    "cp_send_per_rank_per_step": 24,
+    "cp_send_per_rank_per_step_plan": 24,
+    "derivation": "windowed ar msgs per rank = 33 over the measured window; 33 = 1 + 2*16, so the first record is a warmup/init all-reduce outside the measured steps and the remaining 32 split as 16 per measured step (2 measured steps captured cleanly). send msgs = 48 = 2*24 over 2 steps. Total-based counts (81/5=16.2, 120/5=24.0) agree. Divisor used: 2 measured steps, not 3 (the window straddles measure_start)."
   },
   "H1_TP": {
     "plan_bytes_per_step": 2097152,
     "observed_bytes_per_step_total_based": 24969218,
     "ratio": 11.906250953674316,
     "pre_registered": 2.0,
-    "verdict": "MISS (count validated: 16.2 vs 16; size factor 11.9x). Per-collective observed 1560576 bytes vs plan 131072 bytes. Cause: plan formula (S_local*d*dtype) omits batch dimension and uses full d; actual allreduce tensor includes batch and tp-sharded head dims. Count is correct (shape-independent), size differs by a checkable linear factor."
+    "verdict": "COUNT VALIDATED (16 = 16). SIZE NOT VALIDATED: harness reduces a 3*d/tp qkv tensor; search assumes Megatron's full-d row-parallel payload. Different TP placements, so sizes are modelled-only until the harness implements Megatron placement.",
+    "observed_bytes_per_step": 24969216,
+    "per_collective_observed_bytes": 1560576,
+    "per_collective_plan_bytes": 131072,
+    "size_arithmetic": "1560576 = 8*127*384*4 (batch=8, seq_local-1=127, 3*d/tp=384, dtype=4); plan 131072 = 128*256*4 (S_local*d*dtype)."
   },
   "H2_CP": {
     "plan_bytes_per_step": 3145728,
     "observed_bytes_per_step_total_based": 12484608,
     "ratio": 3.96875,
     "pre_registered": 3.0,
-    "verdict": "MISS (count validated: 24.0 = 24; size factor 4.0x). Per-collective observed 520192 bytes vs plan 131072 bytes. Cause: plan formula omits batch dimension (8x) partially offset by tp sharding (d/tp). Count is correct."
+    "verdict": "COUNT VALIDATED (24 = 24). SIZE NOT VALIDATED: same placement caveat as H1 (harness tensor shape differs from search's Megatron assumption).",
+    "observed_bytes_per_step": 12484608,
+    "per_collective_observed_bytes": 520192,
+    "per_collective_plan_bytes": 131072,
+    "size_arithmetic": "520192 = 8*127*128*4 (batch=8, seq_local-1=127, d/tp=128, dtype=4); plan 131072 = 128*256*4."
   },
   "per_collective_size_histogram": {
     "allreduce_rank0": {
@@ -69,5 +78,7 @@
       "520192": 48
     }
   },
-  "defect_bead_resolved": "gpu-sim-x7h (fixed tp groups)"
+  "defect_bead_resolved": "gpu-sim-x7h (fixed tp groups)",
+  "measured_steps_windowed": 2,
+  "measured_steps_total": 5
 }
