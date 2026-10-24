@@ -46,6 +46,12 @@ def _spec(n, bw=10.0, lat=5.0):
             "nodes": nodes, "links": links, "ranks": ranks}
 
 
+@pytest.fixture(autouse=True)
+def _analytical_path(monkeypatch):
+    """Pin the DEFAULT path for these tests, whatever else the session has done."""
+    monkeypatch.delenv("GPUSIM_NCCL_LEGACY_TABLE", raising=False)
+
+
 OPMAP = {"ring_allreduce": "allreduce", "ring_allgather": "allgather",
          "ring_reduce_scatter": "reducescatter", "ring_alltoall": "alltoall"}
 

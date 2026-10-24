@@ -18,8 +18,21 @@ import pytest
 from epic_cluster import link_model, topology
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = "1"
 LIB = os.path.join(REPO, "libfakegpu.so")
+
+
+@pytest.fixture(autouse=True)
+def _legacy_table(monkeypatch):
+    """Select the legacy table for THESE tests only.
+
+    This used to be a module-level `os.environ[...] = "1"`. pytest imports every
+    test module before running any of them, so that assignment flipped the whole
+    session onto the legacy path -- and tests/test_nccl_cost_agreement.py, which
+    exists to check the ANALYTICAL path, then failed 16/16 in the full suite while
+    passing 16/16 when run alone. A test that passes in isolation and fails in the
+    suite is the shape of a false green; the leak was the bug, not the check.
+    """
+    monkeypatch.setenv("GPUSIM_NCCL_LEGACY_TABLE", "1")
 
 
 def _spec(n, bw=10.0, lat=5.0):
