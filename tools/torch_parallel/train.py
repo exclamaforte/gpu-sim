@@ -67,6 +67,14 @@ def _parse() -> argparse.Namespace:
     # tp/pp combinations are refused explicitly until verified, not silently run.
     p.add_argument("--zero", type=int, default=1, choices=[1, 2, 3],
                    help="ZeRO stage; 2/3 need dp>1 and pp==tp==1")
+    # gpu-sim-f50 ZeRO-2 gate: --save-flat (world1) writes the concatenated
+    # full-batch grads; --verify-flat (world2 zero2) all_gathers the RS shards
+    # back and asserts reassembled/dp == single-process grads. Reference is a
+    # real single-process run, never a traced value.
+    p.add_argument("--save-flat", type=str, default=None,
+                   help="path to save concatenated grads (dp==1 reference)")
+    p.add_argument("--verify-flat", type=str, default=None,
+                   help="path to single-process flat grads to verify against")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--vocab", type=int, default=4096)
     p.add_argument("--seq", type=int, default=512)
@@ -173,12 +181,16 @@ def main() -> int:
                 if rank in ranks:
                     tp_group = g
         if pp == 1:
-            model = TinyLMTP(spec, tp_size=tp, group=tp_group).cuda()
+            # Deterministic sharding: every rank draws the full weights and
+            # slices its tp shard, so sharded and reference agree (f50 gate).
+            model = TinyLMTP(spec, tp_size=tp, group=tp_group,
+                             tp_rank=tp_rank, weight_seed=args.seed).cuda()
         else:
             model = PPStage(spec, pp_idx, pp,
-                            tp_size=tp, group=tp_group).cuda()
+                            tp_size=tp, group=tp_group, tp_rank=tp_rank,
+                            weight_seed=args.seed).cuda()
     elif pp > 1:
-        model = PPStage(spec, pp_idx, pp).cuda()
+        model = PPStage(spec, pp_idx, pp, weight_seed=args.seed).cuda()
     else:
         model = TinyLM(spec).cuda()
         if zero == 3:
@@ -231,9 +243,11 @@ def main() -> int:
     # Shard + average reproduces the exact single-process full-batch math;
     # same-batch-no-scale would double the update and AdamW would hide it.
     dp_mean = bool(args.dp_mean)
-    if dp_mean and (tp > 1 or pp > 1 or zero != 1):
-        raise SystemExit("--dp-mean is verified for plain DP only "
-                         "(tp==pp==1, zero==1)")
+    if dp_mean and (tp > 1 or pp > 1):
+        raise SystemExit("--dp-mean is verified for the dp axis only "
+                         "(tp==pp==1)")
+    # gpu-sim-f50: zero 2/3 run the same dp loop with real reduce_scatter /
+    # FSDP collectives; the shard+average convention covers them too.
     if dp > 1 and not dp_mean and zero == 1 and \
             os.environ.get("FAKEGPU_NCCL_SIMULATE_ONLY") == "0":
         raise SystemExit("transport is on with dp>1 but --dp-mean is off: "
@@ -243,7 +257,9 @@ def main() -> int:
         if args.batch % dp != 0:
             raise SystemExit(f"--dp-mean needs batch divisible by dp "
                              f"({args.batch} % {dp})")
-        dp_rank = dist.get_rank(group=dp_group) if world > 1 else 0
+        # dp_group is None when dp==1: the shard is the whole batch.
+        dp_rank = dist.get_rank(group=dp_group) \
+            if (world > 1 and dp_group is not None) else 0
         bsz = args.batch // dp
         x = x[dp_rank * bsz:(dp_rank + 1) * bsz].contiguous()
 
@@ -350,6 +366,29 @@ def main() -> int:
                 shard = torch.empty(flat.numel() // dp, device="cuda",
                                     dtype=flat.dtype)
                 dist.reduce_scatter_tensor(shard, flat, group=dp_group)
+                if args.verify_flat:
+                    # Reassemble the shards and check against single-process
+                    # grads: sum of shard-means divided by dp == full-batch
+                    # mean grad, up to fp association order.
+                    full = torch.empty(flat.numel(), device="cuda",
+                                       dtype=flat.dtype)
+                    dist.all_gather_into_tensor(full, shard,
+                                                group=dp_group)
+                    ref = torch.load(args.verify_flat, weights_only=True)
+                    err = (full / dp - ref.to("cuda")).abs().max()
+                    print(f"[rank {rank}] zero2-verify step maxerr={err:.3e}",
+                          flush=True)
+                    assert err < 1e-4 * max(1.0, ref.abs().max()), \
+                        f"reassembled grad mismatch: {err:.3e}"
+        if args.save_flat:
+            # Reference capture: full-batch grads, dp==1 only (a dp>1 run
+            # saves averaged shard grads, which is not the reference).
+            if dp != 1:
+                raise SystemExit("--save-flat needs dp==1")
+            sgrads = [p.grad for p in model.parameters()
+                      if p.grad is not None]
+            torch.save(torch.cat([gg.reshape(-1) for gg in sgrads]).detach(),
+                       args.save_flat)
         opt.step()
         if dp > 1 and zero in (1, 2):
             # ZeRO-1/2 keep sharded optimizer states: after the local step the

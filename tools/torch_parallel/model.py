@@ -15,6 +15,62 @@ from dataclasses import dataclass, asdict
 import torch
 import torch.nn as nn
 import torch.distributed as dist
+import zlib
+
+
+def _wgen(seed: int, name: str) -> torch.Generator:
+    """Deterministic per-weight generator (gpu-sim-f50).
+
+    crc32 is stable across runs (unlike hash()), so the same (seed, name)
+    always draws the same values on every rank. TP ranks draw the FULL
+    weight from one generator and slice their shard; PP stages and the
+    unsharded reference draw the same names -- agreement by construction,
+    which is what the TP/PP gates compare against.
+    """
+    g = torch.Generator()
+    g.manual_seed(zlib.crc32(f"{seed}:{name}".encode()))
+    return g
+
+
+def _draw_full(shape, seed: int, name: str, std: float = 0.02) -> torch.Tensor:
+    t = torch.empty(shape)
+    nn.init.normal_(t, std=std, generator=_wgen(seed, name))
+    return t
+
+
+def _seed_block(blk, spec: ModelSpec, seed: int, layer_idx: int,
+                tp_size: int = 1, tp_rank: int = 0) -> None:
+    """Fill one block's weights deterministically (gpu-sim-f50).
+
+    Draws the FULL weight from the per-layer generator and slices the rank's
+    shard (rows for Col, cols for Row). Same (seed, layer) on every rank ->
+    identical full weights everywhere, so sharded models and the unsharded
+    reference agree by construction. Works for Block (tp_size=1, no slice)
+    and BlockTP alike; LayerNorms stay at their deterministic init.
+
+    QKV EXCEPTION: the (3, heads, head_dim) view lays rows out q-major
+    ([q-all, k-all, v-all]), so a head is NOT a contiguous row slice -- rank
+    r owns rows [r*n:(r+1)*n] of EACH third (n = d/tp). Slicing contiguously
+    would hand rank 0 all of q plus half of k (measured: 0.13 fwd err).
+    """
+    d, d_ff = spec.d_model, spec.d_ff
+    n = d // tp_size if tp_size > 1 else d
+    qkv_groups = ([(j * d + tp_rank * n, j * d + (tp_rank + 1) * n)
+                   for j in range(3)] if tp_size > 1 else None)
+    for name, shape, sdim, groups in (("qkv", (3 * d, d), 0, qkv_groups),
+                                      ("proj", (d, d), 1, None),
+                                      ("ff1", (d_ff, d), 0, None),
+                                      ("ff2", (d, d_ff), 1, None)):
+        full = _draw_full(shape, seed, f"b{layer_idx}.{name}")
+        if groups is not None:
+            full = torch.cat([full[a:b] for a, b in groups], dim=0)
+        elif tp_size > 1:
+            m = full.shape[sdim] // tp_size
+            sl = [slice(None)] * full.dim()
+            sl[sdim] = slice(tp_rank * m, (tp_rank + 1) * m)
+            full = full[tuple(sl)]
+        with torch.no_grad():
+            getattr(blk, name).weight.copy_(full)
 
 
 @dataclass
@@ -75,6 +131,22 @@ class TinyLM(nn.Module):
         self.pos = nn.Parameter(torch.zeros(1, spec.seq, spec.d_model))
         nn.init.normal_(self.pos, std=0.02)
 
+    def seed_weights(self, seed: int) -> None:
+        """Deterministically fill ALL params (gpu-sim-f50).
+
+        Same scheme the sharded models use, so the unsharded reference
+        agrees with them by construction. LayerNorms keep ones/zeros.
+        """
+        with torch.no_grad():
+            d = self.spec.d_model
+            self.embed.weight.copy_(
+                _draw_full((self.spec.vocab, d), seed, "embed"))
+            self.pos.copy_(_draw_full((1, self.spec.seq, d), seed, "pos"))
+            self.head.weight.copy_(
+                _draw_full((self.spec.vocab, d), seed, "head"))
+            for i, blk in enumerate(self.blocks):
+                _seed_block(blk, self.spec, seed, i)
+
     def forward(self, idx):
         x = self.embed(idx) + self.pos[:, : idx.shape[1]]
         for blk in self.blocks:
@@ -100,23 +172,24 @@ class TinyLM(nn.Module):
 # the only collective in the forward pass. Stacking them inside a block
 # (col -> row) means one all-reduce per sub-layer instead of one per matmul.
 #
-# The interposer simulates timing, not payload, so an all_reduce here does not
-# actually sum anything: the VALUES are wrong and the TRAFFIC is right. That is
-# the same bargain data-parallel mode makes, stated here because TP makes it
-# easier to forget -- the loss curve in TP mode is not meaningful.
+# The interposer simulates timing, not payload, so with FAKEGPU_NCCL_SIMULATE_ONLY
+# set (the default gate) an all_reduce here moves no values: the VALUES are wrong
+# and the TRAFFIC is right, the same bargain data-parallel mode makes. With the
+# transport enabled (FAKEGPU_NCCL_SIMULATE_ONLY=0) the values are really summed
+# and the TP loss curve must match the unsharded reference -- that is the gate.
 
 class _ReduceSum(torch.autograd.Function):
-    """All-reduce as an autograd node: sum forward, sum of gradients backward.
+    """All-reduce as an autograd node: SUM forward, IDENTITY backward.
 
-    A bare `dist.all_reduce` inside forward is invisible to autograd, so the
-    backward pass issues no collective at all -- measured: 8 all-reduces per step
-    under tp=2, which is forward-only (2 per layer). Megatron's schedule has two
-    per sub-layer, and the backward one carries the same bytes, so omitting it
-    understates tensor-parallel traffic by roughly half. This makes both passes
-    issue the collective, which is what the trace is supposed to show.
-
-    NOTE the arithmetic is still not right (the interposer simulates timing, not
-    payload), so the backward reduction is a timing event, not a correct sum.
+    The Row-parallel pattern (Megatron f): the forward sums the rank-partials
+    into the whole; the backward is the identity -- dL/d(partial) is dL/d(whole)
+    broadcast, NOT a second sum. Summing in backward too hands every rank
+    tp x the true output-grad (measured: step-1 loss 8.363 ref vs 8.350 TP).
+    The backward collective of a TP sub-layer lives in the Column path
+    (_ColLinear), not here. A bare `dist.all_reduce` inside forward is
+    invisible to autograd, hence this node. Timing traffic: TP forward ARs
+    only from this node; backward ARs from _ColLinear -- one per sub-layer
+    per pass, Megatron's schedule, same bytes each.
     """
 
     @staticmethod
@@ -124,27 +197,51 @@ class _ReduceSum(torch.autograd.Function):
         y = x.clone()
         if group is not None:
             dist.all_reduce(y, group=group)
-        ctx.group = group
         return y
 
     @staticmethod
     def backward(ctx, grad):
-        g = grad.clone()
+        return grad, None
+
+
+class _ColLinear(torch.autograd.Function):
+    """Column-parallel linear with a backward all-reduce (gpu-sim-f50).
+
+    Forward needs no communication (input replicated, output sharded). The
+    input gradient is partial (sharded grad_out through sharded W) and must
+    be SUMMED across the tp group -- without this, TP backward traffic is
+    understated by half and, with the transport on, the values are wrong.
+    With the transport off the reduction is the usual timing event.
+    """
+
+    @staticmethod
+    def forward(ctx, x, weight, group):
+        ctx.group = group
+        ctx.save_for_backward(x, weight)
+        return x @ weight.t()
+
+    @staticmethod
+    def backward(ctx, grad_out):
+        x, weight = ctx.saved_tensors
+        gx = grad_out @ weight
         if ctx.group is not None:
-            dist.all_reduce(g, group=ctx.group)
-        return g, None
+            dist.all_reduce(gx, group=ctx.group)
+        gw = grad_out.reshape(-1, grad_out.shape[-1]).t() @ \
+            x.reshape(-1, x.shape[-1])
+        return gx, gw, None
 
 
 class _Col(nn.Module):
     """Column-parallel: weight [out/tp, in]; output sharded on the last dim."""
 
-    def __init__(self, in_features: int, out_features: int):
+    def __init__(self, in_features: int, out_features: int, group=None):
         super().__init__()
         self.weight = nn.Parameter(torch.empty(out_features, in_features))
         nn.init.normal_(self.weight, std=0.02)
+        self.group = group
 
     def forward(self, x):
-        return x @ self.weight.t()
+        return _ColLinear.apply(x, self.weight, self.group)
 
 
 class _Row(nn.Module):
@@ -161,17 +258,25 @@ class _Row(nn.Module):
 
 
 class BlockTP(nn.Module):
-    def __init__(self, spec: ModelSpec, tp_size: int, group):
+    def __init__(self, spec: ModelSpec, tp_size: int, group,
+                 tp_rank: int = 0, weight_seed: int = 0,
+                 layer_idx: int = 0):
         super().__init__()
         d, d_ff = spec.d_model, spec.d_ff
         self.n_heads = spec.n_heads // tp_size
         self.head_dim = d // spec.n_heads
-        self.qkv = _Col(d, 3 * d // tp_size)
+        self.qkv = _Col(d, 3 * d // tp_size, group)
         self.proj = _Row(d // tp_size, d, group)
-        self.ff1 = _Col(d, d_ff // tp_size)
+        self.ff1 = _Col(d, d_ff // tp_size, group)
         self.ff2 = _Row(d_ff // tp_size, d, group)
         self.ln1 = nn.LayerNorm(d)
         self.ln2 = nn.LayerNorm(d)
+        # Deterministic sharding (gpu-sim-f50): every rank draws the FULL
+        # weight from the same per-layer generator and slices its shard.
+        # Same (weight_seed, layer) -> same full weight on every rank, so
+        # the reference gate constructs identical weights by construction.
+        # Traffic is unaffected (shapes never changed).
+        _seed_block(self, spec, weight_seed, layer_idx, tp_size, tp_rank)
 
     def forward(self, x):
         b, s, d = x.shape
@@ -196,17 +301,27 @@ class TinyLMTP(nn.Module):
     understood.
     """
 
-    def __init__(self, spec: ModelSpec, tp_size: int = 1, group=None):
+    def __init__(self, spec: ModelSpec, tp_size: int = 1, group=None,
+                 tp_rank: int = 0, weight_seed: int = 0):
         super().__init__()
         self.spec = spec
         self.tp_size = tp_size
         self.embed = nn.Embedding(spec.vocab, spec.d_model)
-        self.blocks = nn.ModuleList(BlockTP(spec, tp_size, group)
-                                    for _ in range(spec.n_layers))
+        self.blocks = nn.ModuleList(BlockTP(spec, tp_size, group, tp_rank,
+                                            weight_seed, i)
+                                    for i in range(spec.n_layers))
         self.lnf = nn.LayerNorm(spec.d_model)
         self.head = nn.Linear(spec.d_model, spec.vocab, bias=False)
         self.pos = nn.Parameter(torch.zeros(1, spec.seq, spec.d_model))
-        nn.init.normal_(self.pos, std=0.02)
+        # Replicated weights drawn identically on every rank (same names as
+        # the reference seed_weights, so they agree by construction).
+        with torch.no_grad():
+            d = spec.d_model
+            self.embed.weight.copy_(
+                _draw_full((spec.vocab, d), weight_seed, "embed"))
+            self.pos.copy_(_draw_full((1, spec.seq, d), weight_seed, "pos"))
+            self.head.weight.copy_(
+                _draw_full((spec.vocab, d), weight_seed, "head"))
 
     def forward(self, idx):
         x = self.embed(idx) + self.pos[:, : idx.shape[1]]
@@ -244,7 +359,8 @@ class PPStage(nn.Module):
     """One pipeline stage of TinyLM, optionally tensor-sharded within."""
 
     def __init__(self, spec: ModelSpec, stage_idx: int, pp: int,
-                 tp_size: int = 1, group=None):
+                 tp_size: int = 1, group=None, tp_rank: int = 0,
+                 weight_seed: int = 0):
         super().__init__()
         assert pp > 1, "pp==1 needs no stage model"
         assert spec.n_layers % pp == 0, (
@@ -258,7 +374,8 @@ class PPStage(nn.Module):
         blk = BlockTP if tp_size > 1 else Block
         if tp_size > 1:
             self.blocks = nn.ModuleList(
-                blk(spec, tp_size, group) for _ in range(lo, hi))
+                blk(spec, tp_size, group, tp_rank, weight_seed, i)
+                for i in range(lo, hi))
         else:
             self.blocks = nn.ModuleList(blk(spec) for _ in range(lo, hi))
         self.is_first = stage_idx == 0
@@ -270,6 +387,29 @@ class PPStage(nn.Module):
         if self.is_last:
             self.lnf = nn.LayerNorm(spec.d_model)
             self.head = nn.Linear(spec.d_model, spec.vocab, bias=False)
+        self.seed_weights(weight_seed, tp_rank)
+
+    def seed_weights(self, seed: int, tp_rank: int = 0) -> None:
+        """Deterministically fill this stage's params (gpu-sim-f50).
+
+        Global layer indices, so stages agree with the unsharded reference
+        (which seeds the same names) by construction. TP slices when asked.
+        """
+        n_local = self.spec.n_layers // self.pp
+        lo = self.stage_idx * n_local
+        with torch.no_grad():
+            d = self.spec.d_model
+            if self.is_first:
+                self.embed.weight.copy_(
+                    _draw_full((self.spec.vocab, d), seed, "embed"))
+                self.pos.copy_(
+                    _draw_full((1, self.spec.seq, d), seed, "pos"))
+            if self.is_last:
+                self.head.weight.copy_(
+                    _draw_full((self.spec.vocab, d), seed, "head"))
+            for j, blk in enumerate(self.blocks):
+                _seed_block(blk, self.spec, seed, lo + j,
+                            self.tp_size, tp_rank)
 
     def embed_input(self, idx):
         """First stage only: tokens -> embeddings."""

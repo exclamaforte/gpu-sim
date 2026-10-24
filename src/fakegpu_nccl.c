@@ -258,7 +258,14 @@ static void fg_p2p_trace(const char *op, ncclComm_t comm, size_t count,
 ncclResult_t ncclSend(const void *sendbuff, size_t count, int datatype,
                       int peer, ncclComm_t comm, void *stream)
 {
-    (void)sendbuff; (void)stream;
+    (void)stream;
+    /* Data-correct path (gpu-sim-f50): the send really moves bytes to a
+     * (k,src,dst)-keyed segment; the paired recv blocks for them. No world
+     * barrier by design; the trace below still fires (timing untouched). */
+    extern int fg_transport_send(const void *, size_t, int, int, int);
+    int _tport_self = comm ? ((struct fg_nccl_comm *)comm)->rank
+                           : fg_nccl_rank_from_env();
+    fg_transport_send(sendbuff, count, datatype, _tport_self, peer);
     /* model a tiny latency proportional to count */
     fg_simulate_memcpy(count);
     fg_p2p_trace("send", comm, count, datatype, peer);
@@ -269,6 +276,14 @@ ncclResult_t ncclRecv(void *recvbuff, size_t count, int datatype,
                       int peer, ncclComm_t comm, void *stream)
 {
     (void)stream;
+    /* Paired with the send above: blocks until the (k,src,dst) segment is
+     * ready, then moves real bytes. Fill skipped via fg_tport_skip_fill. */
+    extern int fg_transport_recv(void *, size_t, int, int, int);
+    extern int fg_tport_skip_fill;
+    int _tport_self = comm ? ((struct fg_nccl_comm *)comm)->rank
+                           : fg_nccl_rank_from_env();
+    if (fg_transport_recv(recvbuff, count, datatype, _tport_self, peer))
+        fg_tport_skip_fill = 1;
     fg_simulate_memcpy(count);
     fg_nccl_out_fill(recvbuff, count);
     fg_p2p_trace("recv", comm, count, datatype, peer);
@@ -807,6 +822,17 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
 {
     fg_cur_op = "allgather";
     (void)sendbuff; (void)stream;
+    /* Data-correct path (gpu-sim-f50): unblocks TP backward and ZeRO gather.
+     * Real bytes via the shm segment; trace still fires, fill skipped. */
+    extern int fg_transport_allgather(const void *, void *, size_t, int,
+                                      int, int);
+    extern int fg_tport_skip_fill;
+    int _tport_nr = comm ? ((struct fg_nccl_comm *)comm)->nrank
+                         : (int)fg_cfg()->num_devices;
+    int _tport_rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+    if (fg_transport_allgather(sendbuff, recvbuff, count, datatype,
+                               _tport_nr, _tport_rk))
+        fg_tport_skip_fill = 1;
     fg_topo_t *t = fg_nccl_topo();
     if (t) {
         int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
@@ -837,6 +863,19 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
 {
     fg_cur_op = "reducescatter";
     (void)sendbuff; (void)op; (void)stream;
+    /* Data-correct path (gpu-sim-f50): unblocks ZeRO-2/3 sharded grads.
+     * Real reduce-then-shard via shm; trace still fires, fill skipped. */
+    extern int fg_transport_reducescatter(const void *, void *, size_t, int,
+                                          int, int, int);
+    extern int fg_tport_skip_fill;
+    {
+        int _tport_nr = comm ? ((struct fg_nccl_comm *)comm)->nrank
+                             : (int)fg_cfg()->num_devices;
+        int _tport_rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
+        if (fg_transport_reducescatter(sendbuff, recvbuff, recvcount,
+                                       datatype, op, _tport_nr, _tport_rk))
+            fg_tport_skip_fill = 1;
+    }
     /* recvcount is BY VALUE in real NCCL. It was declared const size_t* here, so
      * torch's integer count was dereferenced as a pointer -- a guaranteed
      * coredump on any FSDP/ZeRO run (seen: SIGSEGV inside this function). A
