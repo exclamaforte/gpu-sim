@@ -182,6 +182,16 @@ def main() -> int:
                 g = dist.new_group(ranks)
                 if rank in ranks:
                     dp_group = g
+    cp_group = None
+    if cp > 1:
+        # CP groups: ranks differing only in cp_idx (same pp, tp, dp_rank).
+        for d in range(dp):
+        # correct: rank = cp_idx * dp + dp_rank (pp=1,tp=1)
+        for d in range(dp):
+            ranks = [c * dp + d for c in range(cp)]
+            g = dist.new_group(ranks)
+            if rank in ranks:
+                cp_group = g
     if tp > 1:
         # One group per (stage, replica) block of tp ranks. RANK inside a
         # stage is dp_rank * tp + tp_rank, so a group is a contiguous slice
@@ -205,7 +215,9 @@ def main() -> int:
     elif pp > 1:
         model = PPStage(spec, pp_idx, pp, weight_seed=args.seed).cuda()
     else:
-        model = TinyLM(spec).cuda()
+        cp_peers = [c * dp + dp_rank for c in range(cp)] if cp > 1 else [rank]
+        model = TinyLM(spec, cp_size=cp, cp_rank=cp_rank,
+                       cp_peers=cp_peers).cuda()
         if zero == 3:
             # ZeRO-3 = fully sharded params (FSDP). Verified viable under the
             # timing-only interposer: the all_gathered payload is garbage
