@@ -480,8 +480,18 @@ def point_to_point(spec: Any, src_rank: int, dst_rank: int, size_bytes: int) -> 
     # alpha per hop = latency_us per link; total alpha = sum of per-link latency
     total_alpha_s = _path_latency(links_spec, path) * 1e-6
     if B == float("inf"):
-        return total_alpha_s
-    return size_bytes / (B * 1e9) + total_alpha_s
+        dur = total_alpha_s
+    else:
+        dur = size_bytes / (B * 1e9) + total_alpha_s
+    # bottleneck link kind along the path: min bw, tie max latency
+    b_link = path[0] if path else None
+    for li in (path or [])[1:]:
+        if _eff_bw(links_spec[li], counts) < _eff_bw(links_spec[b_link], counts):
+            b_link = li
+        elif _eff_bw(links_spec[li], counts) == _eff_bw(links_spec[b_link], counts) and links_spec[li]["latency_us"] > links_spec[b_link]["latency_us"]:
+            b_link = li
+    kind = links_spec[b_link]["kind"] if b_link is not None else None
+    return dur, kind
 
 def main(argv=None):
     ap = argparse.ArgumentParser()

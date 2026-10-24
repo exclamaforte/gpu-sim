@@ -50,10 +50,11 @@ class Config:
     cp_comm: float
     pp_comm: float
     dp_comm: float
-    memory_gb: float
-    feasible: bool
-    reason: str
-    dominant: str
+    memory_gb: float = 0.0
+    feasible: bool = True
+    reason: str = ""
+    dominant: str = ""
+    link_kinds: dict = None
 
 
 def divisors_product(N):
@@ -125,12 +126,14 @@ def score(tp, pp, cp, dp, zero, hw, m):
 
     # TP comm
     tp_comm = 0.0
+    tp_kind = None
     if tp > 1:
         msg_count = d * seq_per_cp
         if spec is not None:
             group = [((0 * tp + t) * cp + 0) * dp + 0 for t in range(tp)]
             pred = link_model.predict(spec, "ring_allreduce", msg_count, "float32", ranks=group, pieces_per_phase=1)
             tp_comm = m["n_layers"] * 4 * pred["duration_s"]
+            tp_kind = pred["bottleneck"]["kind"]
         else:
             msg = d * seq_per_cp * dtype_bytes
             pred = nccl_cost.predict("allreduce", tp, msg, fabric=fabric)
@@ -138,13 +141,17 @@ def score(tp, pp, cp, dp, zero, hw, m):
 
     # CP comm
     cp_comm = 0.0
+    cp_kind = None
     if cp > 1:
         msg_bytes = seq_per_cp * d * dtype_bytes
         if spec is not None:
             group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
             total = 0.0
+            cp_kind = None
             for i in range(cp - 1):
-                total += link_model.point_to_point(spec, group[i], group[i+1], msg_bytes)
+                dur, kind = link_model.point_to_point(spec, group[i], group[i+1], msg_bytes)
+                total += dur
+                cp_kind = kind
             cp_comm = m["n_layers"] * 2 * total
         else:
             msg = seq_per_cp * d * dtype_bytes
@@ -153,6 +160,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
 
     # PP comm
     pp_comm = 0.0
+    pp_kind = None
     if pp > 1:
         microbatches = max(pp, 1)
         act_size = seq * d * dtype_bytes
@@ -160,8 +168,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
             def stage_rank(i):
                 return (((i * tp + 0) * cp + 0) * dp + 0)
             boundary_cost = 0.0
+            pp_kind = None
             for i in range(pp - 1):
-                boundary_cost += link_model.point_to_point(spec, stage_rank(i), stage_rank(i+1), act_size)
+                dur, kind = link_model.point_to_point(spec, stage_rank(i), stage_rank(i+1), act_size)
+                boundary_cost += dur
+                pp_kind = kind
             pp_comm = microbatches * boundary_cost
         else:
             pred = nccl_cost.predict("sendrecv", 2, act_size, fabric=fabric)
@@ -169,17 +180,20 @@ def score(tp, pp, cp, dp, zero, hw, m):
 
     # DP/FSDP comm
     dp_comm = 0.0
+    dp_kind = None
     if dp > 1:
         if spec is not None:
             if zero <= 1:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
                 pred = link_model.predict(spec, "ring_allreduce", int(grad_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
                 dp_comm = pred["duration_s"]
+                dp_kind = pred["bottleneck"]["kind"]
             else:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
                 p1 = link_model.predict(spec, "ring_reduce_scatter", int(grad_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
                 p2 = link_model.predict(spec, "ring_allgather", int(param_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
                 dp_comm = p1["duration_s"] + p2["duration_s"]
+                dp_kind = p1["bottleneck"]["kind"]
         else:
             if zero <= 1:
                 pred = nccl_cost.predict("allreduce", dp, int(grad_bytes_per_gpu), fabric=fabric)
@@ -196,8 +210,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
     terms = {"compute": compute, "tp": tp_comm, "cp": cp_comm, "pp": pp_comm, "dp": dp_comm}
     dominant = max(terms, key=lambda k: terms[k])
 
+    kinds = {"tp": tp_kind, "cp": cp_kind, "pp": pp_kind, "dp": dp_kind}
+    if spec is None:
+        kinds = {"tp": fabric, "cp": fabric, "pp": fabric, "dp": fabric}
     return Config(tp, pp, cp, dp, zero, step_sum, step_max, compute, tp_comm, cp_comm, pp_comm, dp_comm,
-                  total_mem / 1e9, feasible, reason, dominant)
+                  total_mem / 1e9, feasible, reason, dominant, kinds)
 
 
 def search(N, hw, m=MODEL):

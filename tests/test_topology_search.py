@@ -17,8 +17,9 @@ def test_cross_node_magnitude():
     # hand-worked: 1000 bytes over NDR IB 50 GB/s, 1 hop (one link) alpha 5 us
     # S/B = 1000/(50e9) = 2e-8 s; alpha = 5e-6 s; total = 5.02e-6 s
     spec = json.load(open(SPEC))
-    val = lm.point_to_point(spec, 0, 8, 1000)
+    val, kind = lm.point_to_point(spec, 0, 8, 1000)
     assert abs(val - 5.02e-6) < 1e-9, val
+    assert kind == 'ib'
 
 def test_refusal_unplaceable():
     spec = json.load(open(SPEC))
