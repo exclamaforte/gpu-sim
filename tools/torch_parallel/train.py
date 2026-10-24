@@ -121,6 +121,35 @@ def _zero_mem_model(param_bytes: float, dp: int, zero: int) -> dict:
         {"state_total_MB": round(sum(parts.values()) / 1e6, 1)}
 
 
+def tp_groups(pp, tp, cp, dp):
+    """TP groups per the PI decomposition: rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank.
+    A tp group fixes (pp_idx, cp_rank, dp_rank) and varies tp_rank."""
+    groups = []
+    for p in range(pp):
+        for c in range(cp):
+            for d in range(dp):
+                ranks = [((p * tp + t) * cp + c) * dp + d for t in range(tp)]
+                groups.append(ranks)
+    return groups
+
+
+def pp_neighbors(rank, pp, tp, cp, dp):
+    """Previous/next PP stage ranks, keeping tp_rank, cp_rank, dp_rank fixed."""
+    pp_idx = rank // (tp * cp * dp)
+    sub = rank % (tp * cp * dp)
+    tp_rank = sub // (cp * dp)
+    sub2 = sub % (cp * dp)
+    cp_rank = sub2 // dp
+    dp_rank = sub2 % dp
+    prev_rank = None
+    next_rank = None
+    if pp_idx > 0:
+        prev_rank = (((pp_idx - 1) * tp + tp_rank) * cp + cp_rank) * dp + dp_rank
+    if pp_idx < pp - 1:
+        next_rank = (((pp_idx + 1) * tp + tp_rank) * cp + cp_rank) * dp + dp_rank
+    return prev_rank, next_rank
+
+
 def main() -> int:
     args = _parse()
     rank = int(os.environ.get("RANK", 0))
@@ -196,16 +225,10 @@ def main() -> int:
                     if rank in ranks:
                         cp_group = g
     if tp > 1:
-        # One group per (stage, replica) block of tp ranks. RANK inside a
-        # stage is dp_rank * tp + tp_rank, so a group is a contiguous slice
-        # and its members share one model replica.
-        for p in range(pp):
-            for d in range(dp):
-                base = p * tp * dp + d * tp
-                ranks = list(range(base, base + tp))
-                g = dist.new_group(ranks)
-                if rank in ranks:
-                    tp_group = g
+        for ranks in tp_groups(pp, tp, cp, dp):
+            g = dist.new_group(ranks)
+            if rank in ranks:
+                tp_group = g
         if pp == 1:
             # Deterministic sharding: every rank draws the full weights and
             # slices its tp shard, so sharded and reference agree (f50 gate).
@@ -306,8 +329,7 @@ def main() -> int:
                 f"micro-batches {args.micro_batches}")
         mb = args.batch // args.micro_batches
         mbs = args.micro_batches
-        prev_rank = rank - tp * dp if pp_idx > 0 else None
-        next_rank = rank + tp * dp if pp_idx < pp - 1 else None
+        prev_rank, next_rank = pp_neighbors(rank, pp, tp, cp, dp)
         act_shape = (mb, spec.seq, spec.d_model)
     # Clock-domain anchors. The interposer stamps collectives with CLOCK_REALTIME
     # (epoch ns); torch.profiler stamps kernels with CLOCK_MONOTONIC (boot us).

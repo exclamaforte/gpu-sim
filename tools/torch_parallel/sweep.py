@@ -107,10 +107,17 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
         if r.get("rank") == 0:
             pp_of_rank0 = int(r.get("pp", 1))
 
+    # Fail-closed: all ranks must have equal collective counts per op.
+    import subprocess as _sp
+    _v = _sp.run([sys.executable, "-m", "tools.torch_parallel.validate_trace",
+                  "--trace", str(trace), "--summary", str(summary)],
+                 capture_output=True, text=True)
+    invalid = _v.returncode != 0
     shutil.rmtree(tmp, ignore_errors=True)
     return {
         "world": world,
         "rc": proc.returncode,
+        "invalid": invalid,
         "step_ms": (sum(r["mean_step_s"] for r in rows) / len(rows) * 1000) if rows else None,
         # Slowest/fastest rank mean step: under PP the spread across stages is
         # where the pipeline bubble shows up (fill/drain idle on the stages).
