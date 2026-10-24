@@ -195,7 +195,7 @@ def main():
         # A modelled dimension that the harness cannot execute must never read as
         # a runnable recommendation. cp>1 is costed but there is no ring attention
         # in the training path yet, so the row is a hypothesis, not a plan.
-        if any(c.cp > 1 for c in top):
+        if any(c.cp > 1 for c in feasible[:10]):
             print("NOTE: cp>1 rows are MODELLED ONLY -- the harness cannot run "
                   "context parallelism yet (ring attention unimplemented, "
                   "gpu-sim-5o4.3). Do not treat a cp>1 winner as runnable.")
