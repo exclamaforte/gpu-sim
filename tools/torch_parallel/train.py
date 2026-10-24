@@ -127,23 +127,7 @@ def main() -> int:
     world = int(os.environ.get("WORLD_SIZE", 1))
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
 
-    # gpu-sim-tbp: --dp-mean needs IDENTICAL inits on every rank (the proof is
-    # that sharded+averaged reproduces the single-process trajectory, which
-    # is impossible if ranks start from different params). The +rank offset
-    # only ever diversified values for timing runs, which do not depend on
-    # values at all; data-correct runs must not use it.
-    init_seed = args.seed if args.dp_mean else args.seed + rank
-    torch.manual_seed(init_seed)
-    random.seed(init_seed)
-
-    if world > 1:
-        dist.init_process_group(backend="nccl", rank=rank, world_size=world)
-    # All ranks share the one REAL GPU: the multi-device fan-out is simulated by
-    # the interposer, not by hardware. Asking for device==local_rank is what
-    # "invalid device ordinal" means here -- there is no second physical card.
-    device_index = int(os.environ.get("HARNESS_DEVICE", "0"))
-    torch.cuda.set_device(device_index)
-
+    # rank decomposition first (needed for seeding)
     tp = args.tp
     pp = args.pp
     if world % (pp * tp * args.cp) != 0:
@@ -157,6 +141,25 @@ def main() -> int:
     sub2 = sub % (cp * dp)
     cp_rank = sub2 // dp
     dp_rank = sub2 % dp
+
+    # gpu-sim-tbp: --dp-mean needs IDENTICAL inits on every rank.
+    # gpu-sim-7sb: seed by replica identity (pp_idx, tp_rank), NOT world rank,
+    # so cp ranks (replicas) share weights while dp ranks differ.
+    if args.dp_mean:
+        init_seed = args.seed
+    else:
+        init_seed = args.seed + (pp_idx * tp + tp_rank) * 1000 + dp_rank
+    torch.manual_seed(init_seed)
+    random.seed(init_seed)
+
+    if world > 1:
+        dist.init_process_group(backend="nccl", rank=rank, world_size=world)
+    # All ranks share the one REAL GPU: the multi-device fan-out is simulated by
+    # the interposer, not by hardware. Asking for device==local_rank is what
+    # "invalid device ordinal" means here -- there is no second physical card.
+    device_index = int(os.environ.get("HARNESS_DEVICE", "0"))
+    torch.cuda.set_device(device_index)
+
     zero = args.zero
     if cp > 1 and pp > 1:
         raise SystemExit("--cp>1 with --pp>1 not verified in v1")

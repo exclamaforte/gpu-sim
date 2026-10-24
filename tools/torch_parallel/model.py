@@ -129,6 +129,10 @@ class Block(nn.Module):
             att = attn.transpose(1, 2).reshape(b, s, d)
         else:
             import torch.distributed as dist
+            # NOTE: the cp=2 vs cp=1 forward gate (maxerr ~1e-8) tests the
+            # ring and causal masking only. It does NOT prove a cp>1 training
+            # run is correct: training correctness also requires cp replicas
+            # to share weights (gpu-sim-7sb) and correct batch sharding.
             cp = self.cp_size
             seq_full = s * cp
             full_k = torch.zeros(b, seq_full, self.n_heads, hd,
