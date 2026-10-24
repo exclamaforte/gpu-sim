@@ -93,8 +93,12 @@ class ModelSpec:
 
 
 class Block(nn.Module):
-    def __init__(self, spec: ModelSpec):
+    def __init__(self, spec: ModelSpec, cp_size: int = 1, cp_rank: int = 0,
+                 cp_peers=None):
         super().__init__()
+        self.cp_size = cp_size
+        self.cp_rank = cp_rank
+        self.cp_peers = cp_peers or [0]
         d = spec.d_model
         self.n_heads = spec.n_heads
         self.qkv = nn.Linear(d, 3 * d, bias=False)
@@ -110,10 +114,51 @@ class Block(nn.Module):
         h = self.ln1(x)
         qkv = self.qkv(h).view(b, s, 3, self.n_heads, d // self.n_heads)
         q, k, v = qkv.unbind(dim=2)
-        att = torch.nn.functional.scaled_dot_product_attention(
-            q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
-        )
-        att = att.transpose(1, 2).reshape(b, s, d)
+        hd = d // self.n_heads
+        if self.cp_size <= 1:
+            # Use the same manual softmax as the CP path so cp=1 and cp>1
+            # agree numerically (SDPA's flash backend differs by ~1e-2).
+            hd = d // self.n_heads
+            qh = q.transpose(1, 2)
+            kh = k.transpose(1, 2)
+            vh = v.transpose(1, 2)
+            scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
+            mask = torch.arange(s, device=x.device)[None, None, None, :] <= torch.arange(s, device=x.device)[None, None, :, None]
+            scores = scores.masked_fill(~mask, float("-inf"))
+            attn = torch.softmax(scores, dim=-1) @ vh
+            att = attn.transpose(1, 2).reshape(b, s, d)
+        else:
+            import torch.distributed as dist
+            cp = self.cp_size
+            seq_full = s * cp
+            full_k = torch.zeros(b, seq_full, self.n_heads, hd,
+                                 device=x.device, dtype=k.dtype)
+            full_v = torch.zeros(b, seq_full, self.n_heads, hd,
+                                 device=x.device, dtype=v.dtype)
+            full_k[:, self.cp_rank::cp] = k.detach().clone()
+            full_v[:, self.cp_rank::cp] = v.detach().clone()
+            for t in range(cp):
+                if t == self.cp_rank:
+                    continue
+                peer = self.cp_peers[t]
+                recv_k = torch.empty_like(k)
+                recv_v = torch.empty_like(v)
+                sk = dist.isend(k.detach().contiguous(), dst=peer)
+                rk = dist.irecv(recv_k, src=peer)
+                sv = dist.isend(v.detach().contiguous(), dst=peer)
+                rv = dist.irecv(recv_v, src=peer)
+                sk.wait(); rk.wait(); sv.wait(); rv.wait()
+                full_k[:, t::cp] = recv_k
+                full_v[:, t::cp] = recv_v
+            qpos = torch.arange(self.cp_rank, seq_full, cp, device=x.device)
+            qh = q.transpose(1, 2)
+            kh = full_k.permute(0, 2, 1, 3)
+            vh = full_v.permute(0, 2, 1, 3)
+            scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
+            mask = torch.arange(seq_full, device=x.device)[None, None, None, :] <= qpos[None, None, :, None]
+            scores = scores.masked_fill(~mask, float("-inf"))
+            attn = torch.softmax(scores, dim=-1) @ vh
+            att = attn.transpose(1, 2).reshape(b, s, d)
         x = x + self.drop(self.proj(att))
         h = self.ln2(x)
         x = x + self.drop(self.ff2(torch.nn.functional.gelu(self.ff1(h))))
@@ -121,11 +166,17 @@ class Block(nn.Module):
 
 
 class TinyLM(nn.Module):
-    def __init__(self, spec: ModelSpec):
+    def __init__(self, spec: ModelSpec, cp_size: int = 1, cp_rank: int = 0,
+                 cp_peers=None):
         super().__init__()
         self.spec = spec
+        self.cp_size = cp_size
+        self.cp_rank = cp_rank
+        self.cp_peers = cp_peers or [0]
         self.embed = nn.Embedding(spec.vocab, spec.d_model)
-        self.blocks = nn.ModuleList(Block(spec) for _ in range(spec.n_layers))
+        self.blocks = nn.ModuleList(
+            Block(spec, cp_size=cp_size, cp_rank=cp_rank, cp_peers=cp_peers)
+            for _ in range(spec.n_layers))
         self.lnf = nn.LayerNorm(spec.d_model)
         self.head = nn.Linear(spec.d_model, spec.vocab, bias=False)
         self.pos = nn.Parameter(torch.zeros(1, spec.seq, spec.d_model))
@@ -148,7 +199,11 @@ class TinyLM(nn.Module):
                 _seed_block(blk, self.spec, seed, i)
 
     def forward(self, idx):
-        x = self.embed(idx) + self.pos[:, : idx.shape[1]]
+        if self.cp_size > 1:
+            pos = self.pos[:, self.cp_rank::self.cp_size][:, : idx.shape[1]]
+        else:
+            pos = self.pos[:, : idx.shape[1]]
+        x = self.embed(idx) + pos
         for blk in self.blocks:
             x = blk(x)
         return self.head(self.lnf(x))
@@ -260,7 +315,8 @@ class _Row(nn.Module):
 class BlockTP(nn.Module):
     def __init__(self, spec: ModelSpec, tp_size: int, group,
                  tp_rank: int = 0, weight_seed: int = 0,
-                 layer_idx: int = 0):
+                 layer_idx: int = 0, cp_size: int = 1, cp_rank: int = 0,
+                 cp_peers=None):
         super().__init__()
         d, d_ff = spec.d_model, spec.d_ff
         self.n_heads = spec.n_heads // tp_size
@@ -271,6 +327,9 @@ class BlockTP(nn.Module):
         self.ff2 = _Row(d_ff // tp_size, d, group)
         self.ln1 = nn.LayerNorm(d)
         self.ln2 = nn.LayerNorm(d)
+        self.cp_size = cp_size
+        self.cp_rank = cp_rank
+        self.cp_peers = cp_peers or [0]
         # Deterministic sharding (gpu-sim-f50): every rank draws the FULL
         # weight from the same per-layer generator and slices its shard.
         # Same (weight_seed, layer) -> same full weight on every rank, so
@@ -283,10 +342,48 @@ class BlockTP(nn.Module):
         h = self.ln1(x)
         qkv = self.qkv(h).view(b, s, 3, self.n_heads, self.head_dim)
         q, k, v = qkv.unbind(dim=2)
-        att = torch.nn.functional.scaled_dot_product_attention(
-            q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
-        )
-        att = att.transpose(1, 2).reshape(b, s, self.n_heads * self.head_dim)
+        hd = self.head_dim
+        cp = self.cp_size
+        if cp <= 1:
+            qh = q.transpose(1, 2)
+            kh = k.transpose(1, 2)
+            vh = v.transpose(1, 2)
+            scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
+            mask = torch.arange(s, device=x.device)[None, None, None, :] <= torch.arange(s, device=x.device)[None, None, :, None]
+            scores = scores.masked_fill(~mask, float("-inf"))
+            attn = torch.softmax(scores, dim=-1) @ vh
+            att = attn.transpose(1, 2).reshape(b, s, self.n_heads * hd)
+        else:
+            import torch.distributed as dist
+            seq_full = s * cp
+            full_k = torch.zeros(b, seq_full, self.n_heads, hd,
+                                 device=x.device, dtype=k.dtype)
+            full_v = torch.zeros(b, seq_full, self.n_heads, hd,
+                                 device=x.device, dtype=v.dtype)
+            full_k[:, self.cp_rank::cp] = k.detach().clone()
+            full_v[:, self.cp_rank::cp] = v.detach().clone()
+            for t in range(cp):
+                if t == self.cp_rank:
+                    continue
+                peer = self.cp_peers[t]
+                recv_k = torch.empty_like(k)
+                recv_v = torch.empty_like(v)
+                sk = dist.isend(k.detach().contiguous(), dst=peer)
+                rk = dist.irecv(recv_k, src=peer)
+                sv = dist.isend(v.detach().contiguous(), dst=peer)
+                rv = dist.irecv(recv_v, src=peer)
+                sk.wait(); rk.wait(); sv.wait(); rv.wait()
+                full_k[:, t::cp] = recv_k
+                full_v[:, t::cp] = recv_v
+            qpos = torch.arange(self.cp_rank, seq_full, cp, device=x.device)
+            qh = q.transpose(1, 2)
+            kh = full_k.permute(0, 2, 1, 3)
+            vh = full_v.permute(0, 2, 1, 3)
+            scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
+            mask = torch.arange(seq_full, device=x.device)[None, None, None, :] <= qpos[None, None, :, None]
+            scores = scores.masked_fill(~mask, float("-inf"))
+            attn = torch.softmax(scores, dim=-1) @ vh
+            att = attn.transpose(1, 2).reshape(b, s, self.n_heads * hd)
         x = x + self.proj(att)
         h = self.ln2(x)
         x = x + self.ff2(torch.nn.functional.gelu(self.ff1(h)))
@@ -302,13 +399,19 @@ class TinyLMTP(nn.Module):
     """
 
     def __init__(self, spec: ModelSpec, tp_size: int = 1, group=None,
-                 tp_rank: int = 0, weight_seed: int = 0):
+                 tp_rank: int = 0, weight_seed: int = 0,
+                 cp_size: int = 1, cp_rank: int = 0, cp_peers=None):
         super().__init__()
         self.spec = spec
         self.tp_size = tp_size
+        self.cp_size = cp_size
+        self.cp_rank = cp_rank
+        self.cp_peers = cp_peers or [0]
         self.embed = nn.Embedding(spec.vocab, spec.d_model)
         self.blocks = nn.ModuleList(BlockTP(spec, tp_size, group, tp_rank,
-                                            weight_seed, i)
+                                            weight_seed, i,
+                                            cp_size=cp_size, cp_rank=cp_rank,
+                                            cp_peers=cp_peers)
                                     for i in range(spec.n_layers))
         self.lnf = nn.LayerNorm(spec.d_model)
         self.head = nn.Linear(spec.d_model, spec.vocab, bias=False)
@@ -324,7 +427,11 @@ class TinyLMTP(nn.Module):
                 _draw_full((spec.vocab, d), weight_seed, "head"))
 
     def forward(self, idx):
-        x = self.embed(idx) + self.pos[:, : idx.shape[1]]
+        if self.cp_size > 1:
+            pos = self.pos[:, self.cp_rank::self.cp_size][:, : idx.shape[1]]
+        else:
+            pos = self.pos[:, : idx.shape[1]]
+        x = self.embed(idx) + pos
         for blk in self.blocks:
             x = blk(x)
         return self.head(self.lnf(x))

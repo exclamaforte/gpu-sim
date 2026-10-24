@@ -160,6 +160,8 @@ def main() -> int:
     zero = args.zero
     if cp > 1 and pp > 1:
         raise SystemExit("--cp>1 with --pp>1 not verified in v1")
+    if cp > 1 and zero > 1:
+        raise SystemExit("--cp>1 with --zero>1 not verified in v1")
     if zero > 1:
         # Verified on the dp axis only. FSDP over a TP-sharded model or a PP
         # stage is plausible but unverified; refusing beats silently running.
@@ -173,25 +175,23 @@ def main() -> int:
     spec = ModelSpec(vocab=args.vocab, seq=args.seq, d_model=args.d_model,
                      n_layers=args.layers, n_heads=4, d_ff=args.d_model * 4)
     tp_group = dp_group = None
+    cp_group = None
     if dp > 1:
-        # dp groups are strided within a stage: ranks with the same pp stage
-        # and tp position form one replica set (pp==1 recovers the old layout).
         for p in range(pp):
             for t in range(tp):
-                ranks = [p * tp * dp + d * tp + t for d in range(dp)]
-                g = dist.new_group(ranks)
-                if rank in ranks:
-                    dp_group = g
-    cp_group = None
+                for c in range(cp):
+                    ranks = [((p * tp + t) * cp + c) * dp + d for d in range(dp)]
+                    g = dist.new_group(ranks)
+                    if rank in ranks:
+                        dp_group = g
     if cp > 1:
-        # CP groups: ranks differing only in cp_idx (same pp, tp, dp_rank).
-        for d in range(dp):
-        # correct: rank = cp_idx * dp + dp_rank (pp=1,tp=1)
-        for d in range(dp):
-            ranks = [c * dp + d for c in range(cp)]
-            g = dist.new_group(ranks)
-            if rank in ranks:
-                cp_group = g
+        for p in range(pp):
+            for t in range(tp):
+                for d in range(dp):
+                    ranks = [((p * tp + t) * cp + c) * dp + d for c in range(cp)]
+                    g = dist.new_group(ranks)
+                    if rank in ranks:
+                        cp_group = g
     if tp > 1:
         # One group per (stage, replica) block of tp ranks. RANK inside a
         # stage is dp_rank * tp + tp_rank, so a group is a contiguous slice
@@ -206,8 +206,11 @@ def main() -> int:
         if pp == 1:
             # Deterministic sharding: every rank draws the full weights and
             # slices its tp shard, so sharded and reference agree (f50 gate).
+            cp_peers = [((pp_idx * tp + tp_rank) * cp + c) * dp + dp_rank for c in range(cp)] if cp > 1 else [rank]
             model = TinyLMTP(spec, tp_size=tp, group=tp_group,
-                             tp_rank=tp_rank, weight_seed=args.seed).cuda()
+                             tp_rank=tp_rank, weight_seed=args.seed,
+                             cp_size=cp, cp_rank=cp_rank,
+                             cp_peers=cp_peers).cuda()
         else:
             model = PPStage(spec, pp_idx, pp,
                             tp_size=tp, group=tp_group, tp_rank=tp_rank,
@@ -215,7 +218,7 @@ def main() -> int:
     elif pp > 1:
         model = PPStage(spec, pp_idx, pp, weight_seed=args.seed).cuda()
     else:
-        cp_peers = [c * dp + dp_rank for c in range(cp)] if cp > 1 else [rank]
+        cp_peers = [((pp_idx * tp + tp_rank) * cp + c) * dp + dp_rank for c in range(cp)] if cp > 1 else [rank]
         model = TinyLM(spec, cp_size=cp, cp_rank=cp_rank,
                        cp_peers=cp_peers).cuda()
         if zero == 3:
@@ -346,7 +349,11 @@ def main() -> int:
                 loss = torch.nn.functional.cross_entropy(
                     logits.reshape(-1, logits.size(-1)), x[:, 1:].reshape(-1))
              else:
-                loss = model.loss(x)
+                if cp > 1:
+                    x_local = x[:, cp_rank::cp].contiguous()
+                    loss = model.loss(x_local)
+                else:
+                    loss = model.loss(x)
             with torch.profiler.record_function("backward"):
                 loss.backward()
         else:
