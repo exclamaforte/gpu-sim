@@ -46,7 +46,7 @@ def test_validator_logic():
             for _ in range(3):
                 f.write(json.dumps({"grank": r, "ts_ns": 10, "op": "allreduce"}) + "\n")
     from tools.torch_parallel.validate_trace import counts_per_rank
-    per = counts_per_rank(trace, summ)
+    per, _ = counts_per_rank(trace, summ)
     assert per[0]["allreduce"] == per[1]["allreduce"] == 3
 
 
@@ -68,3 +68,27 @@ def test_validator_detects_inequality():
                         capture_output=True, text=True)
     assert res.returncode != 0, res.stdout + res.stderr
     assert "INVALID" in (res.stdout + res.stderr)
+
+
+def test_validator_pp_stage_aware():
+    import tempfile, json, os, subprocess, sys
+    d = tempfile.mkdtemp()
+    trace = os.path.join(d, "t.jsonl")
+    summ = os.path.join(d, "s.jsonl")
+    # stage 0 ranks 0,1: 2 sends, 0 recvs; stage 1 ranks 2,3: 0 sends, 2 recvs
+    with open(summ, "w") as f:
+        for r in (0,1):
+            f.write(json.dumps({"rank": r, "pp_stage": 0, "measure_start_ns": 0}) + "\n")
+        for r in (2,3):
+            f.write(json.dumps({"rank": r, "pp_stage": 1, "measure_start_ns": 0}) + "\n")
+    with open(trace, "w") as f:
+        for r in (0,1):
+            for _ in range(2):
+                f.write(json.dumps({"grank": r, "ts_ns": 10, "op": "send"}) + "\n")
+        for r in (2,3):
+            for _ in range(2):
+                f.write(json.dumps({"grank": r, "ts_ns": 10, "op": "recv"}) + "\n")
+    res = subprocess.run([sys.executable, "-m", "tools.torch_parallel.validate_trace",
+                         "--trace", trace, "--summary", summ],
+                        capture_output=True, text=True)
+    assert res.returncode == 0, res.stdout + res.stderr

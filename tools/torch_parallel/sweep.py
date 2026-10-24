@@ -118,7 +118,7 @@ def _run_one(world: int, steps: int, delay, extra: list[str],
         "world": world,
         "rc": proc.returncode,
         "invalid": invalid,
-        "step_ms": (sum(r["mean_step_s"] for r in rows) / len(rows) * 1000) if rows else None,
+        "step_ms": (None if invalid else ((sum(r["mean_step_s"] for r in rows) / len(rows) * 1000) if rows else None)),
         # Slowest/fastest rank mean step: under PP the spread across stages is
         # where the pipeline bubble shows up (fill/drain idle on the stages).
         "step_ms_hi": (max(r["mean_step_s"] for r in rows) * 1000) if rows else None,
