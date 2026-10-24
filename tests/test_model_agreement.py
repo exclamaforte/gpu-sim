@@ -18,6 +18,7 @@ import pytest
 from epic_cluster import link_model, topology
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = "1"
 LIB = os.path.join(REPO, "libfakegpu.so")
 
 
@@ -73,7 +74,7 @@ def _c_predict(n, bw=10.0, lat=5.0, count=1024):
         assert topo, errbuf.value.decode(errors="replace")
         bl = ctypes.c_int(-1)
         regime = ctypes.create_string_buffer(64)
-        dur = lib.fg_nccl_predict(topo, b"ring_allreduce", count, 6, n,
+        dur = lib.fg_nccl_predict(topo, b"ring_allreduce", count, 7, n,
                                   ctypes.byref(bl), regime, 64)
         return dur, bl.value, regime.value.decode()
     finally:
