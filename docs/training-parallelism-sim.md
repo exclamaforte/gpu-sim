@@ -15,7 +15,8 @@ Read this first if you are picking the work up from disk rather than from a brie
 | collective cost | ANALYTICAL: n-1 hops of S/n per ring phase, latency vs bandwidth chosen by whether a hop outlasts link latency (`epic_cluster/nccl_cost.py`, mirrored in `src/fakegpu_nccl.c`). Legacy table behind GPUSIM_NCCL_LEGACY_TABLE=1. |
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
-| calibration | NOT DONE (gpu-sim-wv2, blocked: needs 2-4 real GPUs). Every duration is modelled. |
+| calibration | **counts** validated on hardware (gpu-sim-5o4.7): 16 tp all-reduces and 24 cp K/V sends per rank per step match the plan exactly. Byte SIZES are not validated: the harness's tp all-reduce carries a 3d/tp qkv tensor while the cost model assumes Megatron's full-d row-parallel payload, so the model's byte magnitudes are Megatron-form and modelled-only. Absolute durations modelled (gpu-sim-wv2, blocked: needs 2-4 real GPUs). |
+| rank layout (read before touching groups) | rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank. TP groups are stride cp*dp, PP neighbours keep (tp_rank, cp_rank, dp_rank) fixed. gpu-sim-x7h found tp groups built with stride 1 and no cp term, which silently disabled tp all-reduce on every rank with cp_rank>0; fixed in 4e8d65c. `tools/torch_parallel/validate_trace.py` now refuses a run whose ranks have unequal collective counts (stage-aware, and invalid rows yield no step time). |
 
 THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
 flops_per_gpu = 6*P*seq/(tp*pp*cp*dp) = 6*P*seq/N is INVARIANT across the space, so every
