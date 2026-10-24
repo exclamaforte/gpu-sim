@@ -13,11 +13,13 @@ def key(c):
     return (c.tp, c.pp, c.cp, c.dp, c.zero)
 
 def step_f(c, f):
-    # step(f) = compute + (1-f)*comm ; comm = tp_comm+cp_comm+dp_comm (sum of comms)
-    comm = c.tp_comm + c.cp_comm + c.dp_comm
-    # compute = step_sum - comm (approx: step_sum = compute + comm under no-overlap)
+    # step(f) = compute + max(0, comm - f*compute): comm overlaps compute up to
+    # f*compute, but comm beyond that stays exposed. At f=1 this reduces to
+    # max(compute, comm) == step_max, so the tie count matches the search's
+    # max-overlap column (22 rows, not 24).
+    comm = c.tp_comm + c.cp_comm + c.pp_comm + c.dp_comm
     compute = c.step_sum - comm
-    return compute + (1.0 - f) * comm
+    return compute + max(0.0, comm - f * compute)
 
 def winner_at_f(N, hw, f, rank_by_sum=True):
     _, feas = ps.search(N, hw)
@@ -31,6 +33,13 @@ def winner_at_f(N, hw, f, rank_by_sum=True):
     minstep = scored[0][0]
     tied = sum(1 for s,_ in scored if abs(s-minstep) < 1e-9)
     return scored[0][1], tied
+
+# invariant: step_f(c,1.0) == step_max for every config
+_, _feas = ps.search(N, dict(BASE))
+for _c in _feas:
+    _comm = _c.tp_comm + _c.cp_comm + _c.pp_comm + _c.dp_comm
+    _compute = _c.step_sum - _comm
+    assert abs((_compute + max(0.0, _comm - 1.0*_compute)) - _c.step_max) < 1e-9, (_c, _c.step_max)
 
 # f-curve
 f_values = [round(i/20, 2) for i in range(21)]
@@ -108,7 +117,7 @@ metrics = {
   "spearman_rho_sum": {"mean": sum(spearman_sum_vals)/len(spearman_sum_vals), "min": min(spearman_sum_vals)},
   "kendall_tau_max": {"mean": sum(kendall_max_vals)/len(kendall_max_vals), "min": min(kendall_max_vals)},
   "spearman_rho_max": {"mean": sum(spearman_max_vals)/len(spearman_max_vals), "min": min(spearman_max_vals)},
-  "verdict": "min-comm config (ZeRO-3) wins for all f<1; at f=1 the swap to (1,1,4,2,3) is degenerate (24 rows tie at 51.63 ms, float-noise tie-break). Not separable at this margin: recommendation depends on overlap policy."
+  "verdict": "ZeRO-3 wins for f<0.55; (1,1,4,2,3) wins for f>=0.55 with tie count rising to 22 at f=1 (degenerate). Not separable at this margin: recommendation depends on overlap fraction f."
 }
 with open("experiments/gpu-sim-5o4.5/metrics.json","w") as f:
     json.dump(metrics, f, indent=2)
