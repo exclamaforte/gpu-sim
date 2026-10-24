@@ -15,6 +15,10 @@ from dataclasses import dataclass
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from epic_cluster import nccl_cost
+try:
+    from epic_cluster import link_model
+except Exception:
+    link_model = None
 
 # Llama-3-8B shape (verified against public Llama-3 spec: 32 layers, hidden 4096,
 # intermediate 14336, 32 heads, head_dim 128, vocab 128256, context 8192).
@@ -73,7 +77,13 @@ def score(tp, pp, cp, dp, zero, hw, m):
     dtype_bytes = 2  # bf16
     peak = hw["peak_flops"]  # per GPU
     mem_limit = hw["mem_gb"] * 1e9
-    fabric = hw["fabric"]
+    fabric = hw.get("fabric", "nvlink4_h100")
+    spec_path = hw.get("spec_path")
+    spec = None
+    if spec_path:
+        import json
+        with open(spec_path) as _f:
+            spec = json.load(_f)
 
     # params per gpu
     params_per_gpu = P / (tp * pp)
@@ -116,36 +126,68 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # TP comm
     tp_comm = 0.0
     if tp > 1:
-        msg = d * seq_per_cp * dtype_bytes
-        pred = nccl_cost.predict("allreduce", tp, msg, fabric=fabric)
-        tp_comm = m["n_layers"] * 4 * pred.total_s
+        msg_count = d * seq_per_cp
+        if spec is not None:
+            group = [((0 * tp + t) * cp + 0) * dp + 0 for t in range(tp)]
+            pred = link_model.predict(spec, "ring_allreduce", msg_count, "float32", ranks=group, pieces_per_phase=1)
+            tp_comm = m["n_layers"] * 4 * pred["duration_s"]
+        else:
+            msg = d * seq_per_cp * dtype_bytes
+            pred = nccl_cost.predict("allreduce", tp, msg, fabric=fabric)
+            tp_comm = m["n_layers"] * 4 * pred.total_s
 
     # CP comm
     cp_comm = 0.0
     if cp > 1:
-        msg = seq_per_cp * d * dtype_bytes  # kv block approx
-        pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
-        cp_comm = m["n_layers"] * 2 * pred.total_s
+        msg_bytes = seq_per_cp * d * dtype_bytes
+        if spec is not None:
+            group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
+            total = 0.0
+            for i in range(cp - 1):
+                total += link_model.point_to_point(spec, group[i], group[i+1], msg_bytes)
+            cp_comm = m["n_layers"] * 2 * total
+        else:
+            msg = seq_per_cp * d * dtype_bytes
+            pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
+            cp_comm = m["n_layers"] * 2 * pred.total_s
 
     # PP comm
     pp_comm = 0.0
     if pp > 1:
         microbatches = max(pp, 1)
-        act_size = seq * d * dtype_bytes  # per microbatch activation (full seq)
-        # per microbatch, 2*(pp-1) boundaries
-        pred = nccl_cost.predict("sendrecv", 2, act_size, fabric=fabric)
-        pp_comm = microbatches * 2 * (pp - 1) * pred.total_s
+        act_size = seq * d * dtype_bytes
+        if spec is not None:
+            def stage_rank(i):
+                return (((i * tp + 0) * cp + 0) * dp + 0)
+            boundary_cost = 0.0
+            for i in range(pp - 1):
+                boundary_cost += link_model.point_to_point(spec, stage_rank(i), stage_rank(i+1), act_size)
+            pp_comm = microbatches * boundary_cost
+        else:
+            pred = nccl_cost.predict("sendrecv", 2, act_size, fabric=fabric)
+            pp_comm = microbatches * 2 * (pp - 1) * pred.total_s
 
     # DP/FSDP comm
     dp_comm = 0.0
     if dp > 1:
-        if zero <= 1:
-            pred = nccl_cost.predict("allreduce", dp, int(grad_bytes_per_gpu), fabric=fabric)
-            dp_comm = pred.total_s
+        if spec is not None:
+            if zero <= 1:
+                group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
+                pred = link_model.predict(spec, "ring_allreduce", int(grad_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                dp_comm = pred["duration_s"]
+            else:
+                group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
+                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grad_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                p2 = link_model.predict(spec, "ring_allgather", int(param_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                dp_comm = p1["duration_s"] + p2["duration_s"]
         else:
-            pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes_per_gpu), fabric=fabric)
-            pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_per_gpu), fabric=fabric)
-            dp_comm = pred1.total_s + pred2.total_s
+            if zero <= 1:
+                pred = nccl_cost.predict("allreduce", dp, int(grad_bytes_per_gpu), fabric=fabric)
+                dp_comm = pred.total_s
+            else:
+                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes_per_gpu), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_per_gpu), fabric=fabric)
+                dp_comm = pred1.total_s + pred2.total_s
 
     comms = tp_comm + cp_comm + pp_comm + dp_comm
     step_sum = compute + comms

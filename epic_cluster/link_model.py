@@ -215,6 +215,7 @@ def _derived_pieces_per_phase(n: int, S: int) -> int:
 
 def predict(spec: Any, algorithm: str, count: int, dtype: str,
             n_ranks: Optional[int] = None,
+            ranks: Optional[List[int]] = None,
             pieces_per_phase: Optional[int] = None,
             timeout_us: Optional[float] = None) -> Dict[str, Any]:
     """Predicted duration for a collective.
@@ -248,12 +249,27 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
         raise ValueError(f"unknown dtype {dtype}")
     S = count * DTYPE_BYTES[dtype]
 
-    ranks = spec.get("ranks", [])
-    if n_ranks is None:
-        n_ranks = len(ranks) if ranks else None
-    if not n_ranks or n_ranks < 1:
-        raise ValueError("n_ranks must be >= 1")
-    n = n_ranks
+    spec_ranks = spec.get("ranks", [])
+    rank_to_dev = {}
+    for r in spec_ranks:
+        rank_to_dev[r["rank"]] = (r["node"], r["device"])
+    if ranks is not None:
+        # explicit rank list: resolve device for each
+        if not ranks:
+            raise ValueError("ranks list must be non-empty")
+        for r in ranks:
+            if r not in rank_to_dev:
+                raise ValueError(f"rank {r} cannot be placed on spec")
+        n = len(ranks)
+        n_ranks = n
+    else:
+        if n_ranks is None:
+            n_ranks = len(spec_ranks) if spec_ranks else None
+        if not n_ranks or n_ranks < 1:
+            raise ValueError("n_ranks must be >= 1")
+        n = n_ranks
+        # default: first n ranks of spec (legacy)
+        ranks = [r["rank"] for r in sorted(spec_ranks, key=lambda x: x["rank"])[:n]]
     # Derive P if not explicitly provided (override).
     if not override:
         S_tmp = count * DTYPE_BYTES[dtype]
@@ -283,12 +299,14 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
 
     # map rank -> device index. Assume ranks sorted by rank id; device from spec.
     # Build list of device indices in rank order.
-    ranks_sorted = sorted(ranks, key=lambda r: r["rank"]) if ranks else []
-    if len(ranks_sorted) >= n:
-        dev_for_rank = [dev_idx[(r["node"], r["device"])] for r in ranks_sorted[:n]]
+    if ranks and all(isinstance(r, int) for r in ranks):
+        dev_for_rank = [dev_idx[rank_to_dev[r]] for r in ranks]
     else:
-        # fallback: first n devices
-        dev_for_rank = list(range(n))
+        ranks_sorted = sorted(spec_ranks, key=lambda r: r["rank"]) if spec_ranks else []
+        if len(ranks_sorted) >= n:
+            dev_for_rank = [dev_idx[(r["node"], r["device"])] for r in ranks_sorted[:n]]
+        else:
+            dev_for_rank = list(range(n))
 
     logical_edges = _logical_edges(algorithm, n)
 
@@ -434,6 +452,36 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
         "_debug": {"bw_term": bw_term, "lat_term": lat_term, "worst_bw_gbps": B_gbps, "worst_lat_us": edge_lat_us[worst_idx]},
     }
 
+
+
+
+def point_to_point(spec: Any, src_rank: int, dst_rank: int, size_bytes: int) -> float:
+    """Duration of one point-to-point transfer of size_bytes from src_rank to
+    dst_rank over the spec's links: S/B + hops*alpha (hand-computed form)."""
+    spec_ranks = spec.get("ranks", [])
+    rank_to_dev = {r["rank"]: (r["node"], r["device"]) for r in spec_ranks}
+    if src_rank not in rank_to_dev or dst_rank not in rank_to_dev:
+        raise ValueError(f"rank {src_rank} or {dst_rank} cannot be placed on spec")
+    dev_idx = _dev_index(spec)
+    adj = _adjacency(spec, dev_idx)
+    links_spec = spec["links"]
+    counts = _shared_counts(spec)
+    link_latency = [float(l["latency_us"]) for l in links_spec]
+    u = dev_idx[rank_to_dev[src_rank]]
+    v = dev_idx[rank_to_dev[dst_rank]]
+    path = _shortest_path(adj, link_latency, u, v)
+    if path is None:
+        raise ValueError(f"no path between rank {src_rank} and {dst_rank}")
+    B = _path_bw(links_spec, path, counts)
+    alpha_s = _path_latency(links_spec, path) * 1e-6
+    hops = len(path)
+    if hops == 0:
+        hops = 1
+    # alpha per hop = latency_us per link; total alpha = sum of per-link latency
+    total_alpha_s = _path_latency(links_spec, path) * 1e-6
+    if B == float("inf"):
+        return total_alpha_s
+    return size_bytes / (B * 1e9) + total_alpha_s
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
