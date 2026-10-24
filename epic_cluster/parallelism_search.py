@@ -80,6 +80,20 @@ def score(tp, pp, cp, dp, zero, hw, m):
     mem_limit = hw["mem_gb"] * 1e9
     fabric = hw.get("fabric", "nvlink4_h100")
     spec_path = hw.get("spec_path")
+    # 5o4.5 sensitivity: allow the legacy single-fabric path to be swept over
+    # alpha/bw without touching the module table. Ignored when spec_path is set
+    # (the topology path reads its parameters from the spec).
+    _alpha_override = hw.get("alpha_s")
+    _bw_override = hw.get("bw_gbps")
+    if spec_path is None and (_alpha_override is not None or _bw_override is not None):
+        base = nccl_cost.FABRICS.get(fabric, {"alpha_s": 1.5e-6, "bw_gbps": 450.0})
+        ov = dict(base)
+        if _alpha_override is not None:
+            ov["alpha_s"] = _alpha_override
+        if _bw_override is not None:
+            ov["bw_gbps"] = _bw_override
+        nccl_cost.FABRICS["__ov__"] = ov
+        fabric = "__ov__"
     spec = None
     if spec_path:
         import json
@@ -120,7 +134,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     compute = flops_per_gpu / peak
     # PP bubble (GPipe): bubble = (pp-1)/(micro_batches+pp-1) of compute
     if pp > 1:
-        micro_batches = pp
+        micro_batches = hw.get("micro_batches", pp)
         bubble = compute * (pp - 1) / (micro_batches + pp - 1)
         compute = compute + bubble
 
@@ -217,7 +231,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
                   total_mem / 1e9, feasible, reason, dominant, kinds)
 
 
-def search(N, hw, m=MODEL):
+def search(N, hw, m=MODEL, rank_by="sum"):
     results = []
     for tp, pp, cp, dp in divisors_product(N):
         zeros = [0] if dp == 1 else [0, 1, 2, 3]
@@ -225,7 +239,8 @@ def search(N, hw, m=MODEL):
             cfg = score(tp, pp, cp, dp, zero, hw, m)
             results.append(cfg)
     feasible = [c for c in results if c.feasible]
-    feasible.sort(key=lambda c: c.step_sum)
+    key = (lambda c: c.step_sum) if rank_by == "sum" else (lambda c: c.step_max)
+    feasible.sort(key=key)
     return results, feasible
 
 
