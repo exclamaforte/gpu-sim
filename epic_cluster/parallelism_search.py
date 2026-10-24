@@ -79,15 +79,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
     params_per_gpu = P / (tp * pp)
     if zero == 3 and dp > 1:
         params_per_gpu = params_per_gpu / dp
-    # grads
+    # grads: ZeRO-2/3 shard grads across dp
     if zero >= 2 and dp > 1:
-        grads_per_gpu = params_per_gpu / dp if zero >= 2 else params_per_gpu * 1  # ZeRO-2 shards grads
-        # actually ZeRO-2 shards grads across dp
-        grads_per_gpu = (P / (tp * pp)) / dp if zero >= 2 else (P / (tp * pp))
+        grads_per_gpu = (P / (tp * pp)) / dp
     else:
         grads_per_gpu = P / (tp * pp)
-    if zero == 3 and dp > 1:
-        grads_per_gpu = (P / (tp * pp)) / dp
     # opt state (8 bytes/param) sharded if zero>=1
     opt_per_gpu = (P / (tp * pp)) * 8
     if zero >= 1 and dp > 1:
@@ -101,7 +97,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # activations per gpu
     layers_per_stage = m["n_layers"] / pp
     seq_per_cp = seq / cp
-    act_per_gpu = layers_per_stage * seq_per_cp * d * dtype_bytes * 2  # fwd+bwd, batch 1
+    act_per_gpu = layers_per_stage * seq_per_cp * (d // tp) * dtype_bytes * 2  # fwd+bwd, batch 1, TP-sharded
 
     total_mem = param_bytes_per_gpu + grad_bytes_per_gpu + opt_per_gpu + act_per_gpu
     feasible = total_mem <= mem_limit
@@ -111,6 +107,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
     tokens_per_gpu = seq / (cp * dp)  # batch 1 sequence
     flops_per_gpu = 6 * (P / (tp * pp)) * tokens_per_gpu
     compute = flops_per_gpu / peak
+    # PP bubble (GPipe): bubble = (pp-1)/(micro_batches+pp-1) of compute
+    if pp > 1:
+        micro_batches = pp
+        bubble = compute * (pp - 1) / (micro_batches + pp - 1)
+        compute = compute + bubble
 
     # TP comm
     tp_comm = 0.0
@@ -160,7 +161,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
 def search(N, hw, m=MODEL):
     results = []
     for tp, pp, cp, dp in divisors_product(N):
-        zeros = [0] if dp == 1 else [1, 2, 3]
+        zeros = [0] if dp == 1 else [0, 1, 2, 3]
         for zero in zeros:
             cfg = score(tp, pp, cp, dp, zero, hw, m)
             results.append(cfg)
