@@ -25,6 +25,18 @@ REPO = Path(__file__).resolve().parents[2]
 # Fabric presets. The numbers are declared, not measured: they exist so two runs
 # differ in a way that is visible in the trace. Replacing them with measured
 # values is a one-line change per preset and touches nothing else.
+# Device presets. Counts are for the DECLARED cluster: the hardware on this box is
+# one consumer GPU, so an "8xH100" run is a claim about a fabric we describe, not
+# one we own. That is the point of the tool and it must be labeled as such
+# wherever the trace is shown.
+DEVICES: dict[str, dict[str, Any]] = {
+    "h100_sxm": {"sm_count": 132, "clock_mhz": 1830, "mem_bytes": 80 << 30,
+                 "mem_bw_gbs": 3350, "arch": "sm_90",
+                 "source": "NVIDIA H100 SXM datasheet: 132 SMs, 1830 MHz, 80GB HBM3, 3.35 TB/s"},
+    "generic":  {"sm_count": 128, "clock_mhz": 1800, "mem_bytes": 32 << 30,
+                 "mem_bw_gbs": 1792, "arch": "sm_120", "source": "declared placeholder"},
+}
+
 FABRICS: dict[str, dict[str, Any]] = {
     "nvlink": {"kind": "nvlink", "bw_gbps": 900.0, "latency_us": 1.0, "mtu": 4096},
     "pcie":   {"kind": "pcie",   "bw_gbps": 25.0,  "latency_us": 8.0, "mtu": 4096},
@@ -60,12 +72,7 @@ def build_spec(n_ranks: int, fabric: str = "nvlink",
         "version": 1,
         "sources": {f"link.{f['kind']}": f"harness preset '{fabric}': declared, not measured",
                     f"model.{device_model}": "declared placeholder for a generic device"},
-        "models": {
-            device_model: {
-                "sm_count": 128, "clock_mhz": 1800, "mem_bytes": 32 << 30,
-                "mem_bw_gbs": 1792, "arch": "sm_120", "source": "declared",
-            }
-        },
+        "models": {device_model: DEVICES.get(device_model, DEVICES["generic"])},
         "nodes": [{"name": "node0",
                    "devices": [{"id": i, "model": device_model}
                                for i in range(n_ranks)]}],
@@ -74,9 +81,10 @@ def build_spec(n_ranks: int, fabric: str = "nvlink",
     }
 
 
-def emit(n_ranks: int, out_path: str | Path, fabric: str = "nvlink") -> Path:
+def emit(n_ranks: int, out_path: str | Path, fabric: str = "nvlink",
+         device_model: str = "generic") -> Path:
     """Validate, encode, and write the topology blob. Returns the path."""
-    spec = cluster_spec.validate(build_spec(n_ranks, fabric))
+    spec = cluster_spec.validate(build_spec(n_ranks, fabric, device_model))
     blob = topology.emit(spec)
     out = Path(out_path)
     out.write_bytes(blob)
@@ -88,9 +96,10 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="emit a topology blob for N ranks")
     ap.add_argument("--ranks", type=int, required=True)
     ap.add_argument("--fabric", default="nvlink", choices=sorted(FABRICS))
+    ap.add_argument("--device", default="generic", choices=sorted(DEVICES))
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
-    p = emit(a.ranks, a.out, a.fabric)
+    p = emit(a.ranks, a.out, a.fabric, a.device)
     print(json.dumps({"path": str(p), "ranks": a.ranks, "fabric": a.fabric,
                       "bytes": p.stat().st_size}))
     return 0
