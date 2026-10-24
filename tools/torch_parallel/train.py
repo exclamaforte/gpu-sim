@@ -65,6 +65,8 @@ def _parse() -> argparse.Namespace:
                    help="tensor-parallel width; world_size/tp is the data-parallel width")
     p.add_argument("--pp", type=int, default=1,
                    help="pipeline-parallel width: n_layers splits across pp stages")
+    p.add_argument("--cp", type=int, default=1,
+                   help="context-parallel width: sequence splits across cp ranks (ring attention)")
     p.add_argument("--micro-batches", type=int, default=2,
                    help="GPipe micro-batches per step (must divide --batch)")
     # ZeRO stage: 1 = plain DP, 2 = shard grads + optimizer states, 3 = shard
@@ -144,14 +146,20 @@ def main() -> int:
 
     tp = args.tp
     pp = args.pp
-    if world % (pp * tp) != 0:
+    if world % (pp * tp * args.cp) != 0:
         raise SystemExit(
-            f"world_size {world} is not divisible by pp*tp {pp * tp}")
-    dp = world // (pp * tp)
-    pp_idx = rank // (tp * dp)
-    sub = rank % (tp * dp)
-    dp_rank, tp_rank = sub // tp, sub % tp
+            f"world_size {world} is not divisible by pp*tp*cp {pp * tp * args.cp}")
+    cp = args.cp
+    dp = world // (pp * tp * cp)
+    pp_idx = rank // (tp * cp * dp)
+    sub = rank % (tp * cp * dp)
+    tp_rank = sub // (cp * dp)
+    sub2 = sub % (cp * dp)
+    cp_rank = sub2 // dp
+    dp_rank = sub2 % dp
     zero = args.zero
+    if cp > 1 and pp > 1:
+        raise SystemExit("--cp>1 with --pp>1 not verified in v1")
     if zero > 1:
         # Verified on the dp axis only. FSDP over a TP-sharded model or a PP
         # stage is plausible but unverified; refusing beats silently running.
