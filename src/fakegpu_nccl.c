@@ -545,6 +545,11 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
     double alpha_s = alpha_us * 1e-6;
 
     double dur, bw_term, lat_term;
+    int legacy = 0;
+    const char *lt = getenv("GPUSIM_NCCL_LEGACY_TABLE");
+    if (lt && *lt && strcmp(lt, "0") != 0) legacy = 1;
+
+    if (legacy) {
     if (is_tree) {
         double logn = log2((double)n);
         if (n <= 1) logn = 1;
@@ -625,6 +630,36 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
         }
     }
 
+    } else {
+        /* Analytical model (mirror epic_cluster/nccl_cost.py exactly). */
+        if (is_tree) {
+            int hops = (int)(2.0 * ceil(log2((double)(n > 1 ? n : 2))));
+            if (n <= 1) hops = 1;
+            bw_term = (double)hops * S / B_Bps;
+            lat_term = (double)hops * alpha_s;
+            dur = bw_term + lat_term;
+        } else {
+            int phases = 1;
+            if (strcmp(algo, "ring_allreduce") == 0) phases = 2;
+            int steps = n - 1;
+            if (steps < 1) steps = 1;
+            double per_step = S / (double)n;
+            double hop_s = per_step / B_Bps;
+            double phase_total, phase_lat;
+            if (hop_s > alpha_s) {
+                phase_total = alpha_s + (double)steps * hop_s;
+                phase_lat = alpha_s;
+            } else {
+                phase_total = (double)steps * (alpha_s + hop_s);
+                phase_lat = (double)steps * alpha_s;
+            }
+            double phase_bw = phase_total - phase_lat;
+            dur = phase_total * (double)phases;
+            bw_term = phase_bw * (double)phases;
+            lat_term = phase_lat * (double)phases;
+        }
+    }
+
     int b_link = -1;
     int wpath_len = edge_pathlen[worst];
     if (wpath_len > 0) {
@@ -637,8 +672,13 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
     }
 
     *bottleneck_link = b_link;
-    if (lat_term > bw_term) snprintf(regime, regimesz, "latency");
-    else snprintf(regime, regimesz, "bandwidth");
+    if (!legacy) {
+        if (lat_term > bw_term) snprintf(regime, regimesz, "analytical_latency");
+        else snprintf(regime, regimesz, "analytical_bandwidth");
+    } else {
+        if (lat_term > bw_term) snprintf(regime, regimesz, "latency");
+        else snprintf(regime, regimesz, "bandwidth");
+    }
 
     free(rank_dev); free(edge_bw); free(edge_lat); free(edge_paths); free(edge_pathlen); free(edges);
     return dur;
