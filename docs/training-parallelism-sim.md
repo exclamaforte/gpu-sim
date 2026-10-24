@@ -4,6 +4,27 @@ Written 2026-10-23. Describes what exists and how to run it. Supersedes an
 earlier draft of this file that proposed an analytic FLOP-counting model; the
 project's premise is the opposite of that, and the draft was wrong.
 
+## 0. Where the project is right now (2026-10-24)
+
+Read this first if you are picking the work up from disk rather than from a briefing.
+
+| piece | state |
+|---|---|
+| axes DP / TP / PP / ZeRO1-3 | all implemented; all train correctly (verified against references, not against each other) |
+| context parallel (CP) | **scaffold only** -- --cp exists, ranks refuse bad decompositions, but the sequence is never split and no K/V is exchanged. gpu-sim-5o4.3. |
+| collective cost | ANALYTICAL: n-1 hops of S/n per ring phase, latency vs bandwidth chosen by whether a hop outlasts link latency (`epic_cluster/nccl_cost.py`, mirrored in `src/fakegpu_nccl.c`). Legacy table behind GPUSIM_NCCL_LEGACY_TABLE=1. |
+| 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) for a hardware target, ranked by compute+comm SUM (max-overlap reported separately). |
+| Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
+| calibration | NOT DONE (gpu-sim-wv2, blocked: needs 2-4 real GPUs). Every duration is modelled. |
+
+OPEN CONTRADICTION worth knowing before trusting the search: its winning config for
+8xH100 has cp=4, and the harness cannot run cp>1 yet. Until 5o4.3 lands, the search's
+own top recommendation is unvalidated by the simulator.
+
+Every row of the current search reports dominant=compute, i.e. at Llama-3-8B on
+8xH100 the fabric model barely moves the ranking. Do not assume that holds at larger
+scale or on a worse interconnect.
+
 ## 1. Premise
 
 **Intercept the libraries, don't re-implement the model.**
