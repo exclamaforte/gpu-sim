@@ -11,19 +11,26 @@ Read this first if you are picking the work up from disk rather than from a brie
 | piece | state |
 |---|---|
 | axes DP / TP / PP / ZeRO1-3 | all implemented; all train correctly (verified against references, not against each other) |
-| context parallel (CP) | **implemented** -- strided? no, contiguous blocks; p2p ring K/V exchange; cp groups. gpu-sim-5o4.3 (2d11df0). Gate: cp=2 forward maxerr 1.9e-8 vs cp=1. |
+| context parallel (CP) | implemented: sequence split into contiguous blocks, K/V exchanged over a p2p ring, cp groups. gpu-sim-5o4.3 (2d11df0). Gate: cp=2 forward maxerr 1.9e-8 vs cp=1. train.py still refuses cp>1 combined with pp>1 or zero>1 (unverified pairs). |
 | collective cost | ANALYTICAL: n-1 hops of S/n per ring phase, latency vs bandwidth chosen by whether a hop outlasts link latency (`epic_cluster/nccl_cost.py`, mirrored in `src/fakegpu_nccl.c`). Legacy table behind GPUSIM_NCCL_LEGACY_TABLE=1. |
-| 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) for a hardware target, ranked by compute+comm SUM (max-overlap reported separately). |
+| 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
 | calibration | NOT DONE (gpu-sim-wv2, blocked: needs 2-4 real GPUs). Every duration is modelled. |
 
-OPEN CONTRADICTION worth knowing before trusting the search: its winning config for
-8xH100 has cp=4, and the harness cannot run cp>1 yet. Until 5o4.3 lands, the search's
-own top recommendation is unvalidated by the simulator.
-
-Every row of the current search reports dominant=compute, i.e. at Llama-3-8B on
-8xH100 the fabric model barely moves the ranking. Do not assume that holds at larger
-scale or on a worse interconnect.
+THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
+flops_per_gpu = 6*P*seq/(tp*pp*cp*dp) = 6*P*seq/N is INVARIANT across the space, so every
+pp=1 row reports the same compute (51.63 ms for Llama-3-8B on 8xH100) and the ORDER is
+decided entirely by the comm terms -- not by the dominant column, which reads compute
+everywhere. With the corrected terms (TP 4 all-reduces per layer per step; CP 2*(cp-1) K/V
+sends per layer) the winner is pure FSDP (tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms), with
+tp=2 cp=4 second at 64.23 ms. But 22 of the 24 feasible pp=1 configurations have IDENTICAL
+max-overlap time (51.63 ms) while their SUM spans 59.71-98.80 ms: under full overlap the
+model cannot separate 22 configurations at all. Conditional advice until gpu-sim-5o4.5
+quantifies it: use pure FSDP if comm does not overlap compute; otherwise this model does
+not resolve the choice. Absolute step times remain modelled -- one 5090 cannot hold
+Llama-3-8B at any decomposition (the search's own memory column says 50.4 GB for the cp=4
+row), so the only quantity validated on this host is per-rank collective BYTES AND COUNTS
+(gpu-sim-5o4.4), never wall time.
 
 ## 1. Premise
 
