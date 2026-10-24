@@ -52,6 +52,11 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--delay-ms", type=float, nargs=2, default=None,
                    metavar=("LO", "HI"))
     p.add_argument("--json", type=str, default=None)
+    # Capture REAL kernels and Python frames with torch.profiler. The interposer
+    # only knows about collectives; everything above it -- the Python stack, aten
+    # ops, CUDA kernels -- is invisible to it and has to come from the profiler.
+    p.add_argument("--torch-profile", type=str, default=None,
+                   help="export a torch.profiler chrome trace to <prefix>.rankN.json")
     # Parallelism decomposition. world_size == pp * dp * tp is enforced; the
     # rank layout is rank = pp_idx*(tp*dp) + dp_idx*tp + tp_idx, so each
     # pipeline stage is a contiguous block of tp*dp ranks and TP groups stay
@@ -278,19 +283,52 @@ def main() -> int:
         prev_rank = rank - tp * dp if pp_idx > 0 else None
         next_rank = rank + tp * dp if pp_idx < pp - 1 else None
         act_shape = (mb, spec.seq, spec.d_model)
+    # Clock-domain anchors. The interposer stamps collectives with CLOCK_REALTIME
+    # (epoch ns); torch.profiler stamps kernels with CLOCK_MONOTONIC (boot us).
+    # Aligning them after the fact means guessing, and a wrong offset silently
+    # slides every collective off the kernels it explains. Capture both here, at
+    # the same instant, so the merger can convert exactly.
+    clock_anchor = {"mono_us": time.monotonic() * 1e6, "real_ns": time.time_ns()}
+    # Kineto's timestamps live in their own base -- measured: torch ts 1.97e12 vs
+    # time.monotonic() 4.06e11 in the same run, a 1.568e12 us gap. So neither
+    # clock can be used directly to place collectives on the kernel timeline.
+    # Emitting an anchor EVENT lets the merger align on a timestamp both traces
+    # contain, with no assumptions about either clock's base.
+    anchor_scope = None
+
+    prof = None
+    if args.torch_profile:
+        prof = torch.profiler.profile(
+            activities=[torch.profiler.ProfilerActivity.CPU,
+                        torch.profiler.ProfilerActivity.CUDA],
+            with_stack=True,          # Python frames: this is the ask
+            record_shapes=False,
+            profile_memory=False,
+        )
+        prof.__enter__()
+        # Captured HERE, not before __enter__: CUPTI initialisation takes seconds
+        # (measured ~7 s), so an anchor taken before it would place every
+        # collective seconds away from the kernels it issued.
+        clock_anchor = {"mono_us": time.monotonic() * 1e6, "real_ns": time.time_ns()}
+        anchor_scope = torch.profiler.record_function("fg_clock_anchor")
+        anchor_scope.__enter__()
+        anchor_scope.__exit__(None, None, None)  # zero-length marker at the anchor
+
     for step in range(args.steps):
         t0 = time.perf_counter()
         opt.zero_grad(set_to_none=True)
         if not use_pp:
-            if zero == 3:
+            with torch.profiler.record_function("forward"):
+             if zero == 3:
                 # FSDP does not expose the inner module's loss; call forward
                 # and score outside, same math as TinyLM.loss.
                 logits = model(x[:, :-1])
                 loss = torch.nn.functional.cross_entropy(
                     logits.reshape(-1, logits.size(-1)), x[:, 1:].reshape(-1))
-            else:
+             else:
                 loss = model.loss(x)
-            loss.backward()
+            with torch.profiler.record_function("backward"):
+                loss.backward()
         else:
             # GPipe: all micro-batch forwards, then all backwards. Blocking
             # send/recv in matching order on both sides, so no deadlock: the
@@ -422,6 +460,12 @@ def main() -> int:
         if not use_pp:
             losses.append(float(loss.detach()))
 
+    if prof is not None:
+        prof.__exit__(None, None, None)
+        trace_path = f"{args.torch_profile}.rank{rank}.json"
+        prof.export_chrome_trace(trace_path)
+        print(f"[rank {rank}] torch profile -> {trace_path}", flush=True)
+
     summary = {
         "rank": rank,
         "world_size": world,
@@ -446,6 +490,7 @@ def main() -> int:
         "batch": args.batch,
         "steps": args.steps,
         "warmup_steps": n_warm,
+        "clock_anchor": clock_anchor,
         "measure_start_ns": measure_start_ns,
         "step_times_s": step_times,
         "mean_step_s": sum(step_times) / len(step_times),
