@@ -350,7 +350,8 @@ def main() -> int:
                     logits.reshape(-1, logits.size(-1)), x[:, 1:].reshape(-1))
              else:
                 if cp > 1:
-                    x_local = x[:, cp_rank::cp].contiguous()
+                    seq_local = args.seq // cp
+                    x_local = x[:, cp_rank*seq_local:(cp_rank+1)*seq_local].contiguous()
                     loss = model.loss(x_local)
                 else:
                     loss = model.loss(x)

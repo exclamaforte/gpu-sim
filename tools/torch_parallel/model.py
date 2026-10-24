@@ -135,8 +135,10 @@ class Block(nn.Module):
                                  device=x.device, dtype=k.dtype)
             full_v = torch.zeros(b, seq_full, self.n_heads, hd,
                                  device=x.device, dtype=v.dtype)
-            full_k[:, self.cp_rank::cp] = k.detach().clone()
-            full_v[:, self.cp_rank::cp] = v.detach().clone()
+            s = x.shape[1]
+            off = self.cp_rank * s
+            full_k[:, off:off+s] = k.detach().clone()
+            full_v[:, off:off+s] = v.detach().clone()
             for t in range(cp):
                 if t == self.cp_rank:
                     continue
@@ -148,9 +150,10 @@ class Block(nn.Module):
                 sv = dist.isend(v.detach().contiguous(), dst=peer)
                 rv = dist.irecv(recv_v, src=peer)
                 sk.wait(); rk.wait(); sv.wait(); rv.wait()
-                full_k[:, t::cp] = recv_k
-                full_v[:, t::cp] = recv_v
-            qpos = torch.arange(self.cp_rank, seq_full, cp, device=x.device)
+                off_t = t * s
+                full_k[:, off_t:off_t+s] = recv_k
+                full_v[:, off_t:off_t+s] = recv_v
+            qpos = torch.arange(self.cp_rank * s, (self.cp_rank + 1) * s, device=x.device)
             qh = q.transpose(1, 2)
             kh = full_k.permute(0, 2, 1, 3)
             vh = full_v.permute(0, 2, 1, 3)
@@ -200,7 +203,9 @@ class TinyLM(nn.Module):
 
     def forward(self, idx):
         if self.cp_size > 1:
-            pos = self.pos[:, self.cp_rank::self.cp_size][:, : idx.shape[1]]
+            s_local = idx.shape[1]
+            off = self.cp_rank * s_local
+            pos = self.pos[:, off:off + s_local]
         else:
             pos = self.pos[:, : idx.shape[1]]
         x = self.embed(idx) + pos
@@ -360,8 +365,10 @@ class BlockTP(nn.Module):
                                  device=x.device, dtype=k.dtype)
             full_v = torch.zeros(b, seq_full, self.n_heads, hd,
                                  device=x.device, dtype=v.dtype)
-            full_k[:, self.cp_rank::cp] = k.detach().clone()
-            full_v[:, self.cp_rank::cp] = v.detach().clone()
+            s = x.shape[1]
+            off = self.cp_rank * s
+            full_k[:, off:off+s] = k.detach().clone()
+            full_v[:, off:off+s] = v.detach().clone()
             for t in range(cp):
                 if t == self.cp_rank:
                     continue
@@ -373,9 +380,10 @@ class BlockTP(nn.Module):
                 sv = dist.isend(v.detach().contiguous(), dst=peer)
                 rv = dist.irecv(recv_v, src=peer)
                 sk.wait(); rk.wait(); sv.wait(); rv.wait()
-                full_k[:, t::cp] = recv_k
-                full_v[:, t::cp] = recv_v
-            qpos = torch.arange(self.cp_rank, seq_full, cp, device=x.device)
+                off_t = t * s
+                full_k[:, off_t:off_t+s] = recv_k
+                full_v[:, off_t:off_t+s] = recv_v
+            qpos = torch.arange(self.cp_rank * s, (self.cp_rank + 1) * s, device=x.device)
             qh = q.transpose(1, 2)
             kh = full_k.permute(0, 2, 1, 3)
             vh = full_v.permute(0, 2, 1, 3)
@@ -428,7 +436,9 @@ class TinyLMTP(nn.Module):
 
     def forward(self, idx):
         if self.cp_size > 1:
-            pos = self.pos[:, self.cp_rank::self.cp_size][:, : idx.shape[1]]
+            s_local = idx.shape[1]
+            off = self.cp_rank * s_local
+            pos = self.pos[:, off:off + s_local]
         else:
             pos = self.pos[:, : idx.shape[1]]
         x = self.embed(idx) + pos
