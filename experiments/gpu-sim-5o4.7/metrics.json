@@ -1,0 +1,57 @@
+{
+  "bead": "gpu-sim-5o4.7",
+  "job_id": "20261024t181446-b7eb9fad",
+  "plan": {
+    "tp": 2,
+    "pp": 1,
+    "cp": 4,
+    "dp": 1,
+    "zero": 1,
+    "world": 8,
+    "steps": 5,
+    "warmup": 2,
+    "measured_steps": 3
+  },
+  "shape": {
+    "vocab": 4096,
+    "seq_global": 512,
+    "seq_local": 128,
+    "d_model": 256,
+    "n_layers": 4,
+    "n_heads": 32,
+    "head_dim": 8,
+    "tp_size": 2,
+    "dtype": "float32",
+    "dtype_bytes": 4,
+    "batch": 8
+  },
+  "sanity_gate": {
+    "all_8_ranks_present": true,
+    "ar_per_rank_msg_counts_distinct": [
+      1,
+      33
+    ],
+    "send_per_rank_msg_counts_distinct": [
+      48
+    ],
+    "recv_per_rank_msg_counts_distinct": [
+      48
+    ],
+    "result": "FAIL - ar counts unequal: ranks 0,1 have 33 (32 real tp allreduces + 1 refused 8-rank), ranks 2-7 have 1 (refused 8-rank only). Defect bead gpu-sim-x7h opened."
+  },
+  "ratios": "NOT COMPUTED - sanity gate failed (unequal rank participation). Per acceptance criterion 3, no ratios from uneven trace.",
+  "cp_send_supplementary": {
+    "observed_bytes_per_rank_per_step": 8323072,
+    "plan_bytes_per_rank_per_step": 3145728,
+    "per_send_bytes_observed": 520192,
+    "sends_per_rank_per_step": 16,
+    "note": "CP send/recv IS uniform across all 8 ranks. Observed send size = 520192 = batch*(seq_local-1)*(n_heads/tp)*head_dim*dtype (seq-1 due to loss shift). Count 16/step vs plan 24/step; windowed step count likely undercounts (measure_start straddles). Reported as supplementary only; not a ratio."
+  },
+  "tp_allreduce_supplementary": {
+    "ranks_0_1_ar_msgs_per_step": 11,
+    "ranks_2_7_ar_msgs_per_step": 0.33,
+    "per_ar_bytes_observed": 1560576,
+    "note": "Only ranks 0,1 issue real tp allreduces (defect gpu-sim-x7h). Size 1560576 = seq_local * (d/tp) * dtype? 128*128*4=65536; no. Actually 1560576 = 12*130048? report as observed."
+  },
+  "defect_bead": "gpu-sim-x7h"
+}
