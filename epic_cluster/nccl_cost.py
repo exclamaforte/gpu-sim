@@ -140,6 +140,27 @@ def sendrecv(size_bytes: int, fabric: str = "nvlink4_h100",
                       "bandwidth" if bw > lat else "latency", "p2p", 2, size_bytes)
 
 
+def ring_exchange(size_bytes: int, hops: int = 1, fabric: str = "nvlink4_h100") -> Prediction:
+    """Serial ring exchange: `hops` dependent point-to-point transfers.
+
+    Unlike sendrecv (one transfer over `hops` links, S/B + alpha*hops), a ring
+    exchange performs `hops` SEQUENTIAL transfers, each of `size_bytes`, so the
+    cost is hops*(alpha + S/B). This is the CP K/V exchange: (cp-1) ranks'
+    blocks must pass through, one at a time, and each transfer depends on the
+    previous one completing.
+    """
+    f = FABRICS[fabric]
+    bw_bps = f["bw_gbps"] * 1e9
+    alpha = f["alpha_s"]
+    hop_s = size_bytes / bw_bps
+    total = hops * (alpha + hop_s)
+    lat = hops * alpha
+    bw = hops * hop_s
+    return Prediction(total, lat, bw, hops, size_bytes,
+                      "bandwidth" if bw > lat else "latency",
+                      "ring_exchange", 2, size_bytes)
+
+
 def alltoall(n: int, size_bytes: int, fabric: str = "nvlink4_h100") -> Prediction:
     """Ring all-to-all: n-1 hops, each moving 1/n of the buffer."""
     f = FABRICS[fabric]
@@ -147,7 +168,7 @@ def alltoall(n: int, size_bytes: int, fabric: str = "nvlink4_h100") -> Predictio
 
 
 OPS = {
-    "allreduce": allreduce, "allgather": allgather,
+    "ring_exchange": ring_exchange, "allreduce": allreduce, "allgather": allgather,
     "reducescatter": reducescatter, "broadcast": broadcast,
     "alltoall": alltoall, "sendrecv": sendrecv,
 }

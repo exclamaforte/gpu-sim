@@ -118,13 +118,13 @@ def score(tp, pp, cp, dp, zero, hw, m):
     if tp > 1:
         msg = d * seq_per_cp * dtype_bytes
         pred = nccl_cost.predict("allreduce", tp, msg, fabric=fabric)
-        tp_comm = m["n_layers"] * 2 * pred.total_s
+        tp_comm = m["n_layers"] * 4 * pred.total_s
 
     # CP comm
     cp_comm = 0.0
     if cp > 1:
         msg = seq_per_cp * d * dtype_bytes  # kv block approx
-        pred = nccl_cost.predict("sendrecv", 2, msg, fabric=fabric)
+        pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
         cp_comm = m["n_layers"] * 2 * pred.total_s
 
     # PP comm
