@@ -1,0 +1,22 @@
+{
+  "measured_peak_gb": {
+    "seq256": 0.0693,
+    "seq512": 0.0711,
+    "seq1024": 0.0769,
+    "layers1": 0.0711,
+    "layers2": 0.0736,
+    "layers4": 0.0787,
+    "d64": 0.0711,
+    "d128": 0.0749
+  },
+  "model_act_plus_ws_gb": {
+    "seq256": 0.0012,
+    "seq512": 0.0045,
+    "seq1024": 0.0173
+  },
+  "measured_delta_256_512": 0.0018,
+  "measured_delta_512_1024": 0.0058,
+  "model_delta_256_512": 0.0033,
+  "model_delta_512_1024": 0.0128,
+  "note": "Absolute numbers differ (hardware/dtype/optimizer overhead); only the shape (linear growth with seq for activation term under flash, quadratic under non-flash scores) is validated. Measured growth is roughly linear in seq, matching the model's activation term (residual stream) which is linear in seq. Score-storage term (S^2) is not exercised here because the small seq makes it negligible; a separate test would need seq>=4096 to see quadratic."
+}

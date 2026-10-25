@@ -61,6 +61,16 @@ for N in (8,16,32):
                         "compute_ms": round(w_sum.compute*1000,2) if w_sum else None,
                         "comm_ms": round((w_sum.tp_comm+w_sum.cp_comm+w_sum.pp_comm+w_sum.dp_comm)*1000,2) if w_sum else None,
                         "mem_gb_winner": round(w_sum.memory_gb,1) if w_sum else None,
+                        "mem_terms_gb_winner": {
+                            "params": round(w_sum.mem_params_gb,2),
+                            "grads": round(w_sum.mem_grads_gb,2),
+                            "fp32_master": round(w_sum.mem_master_gb,2),
+                            "opt_state": round(w_sum.mem_opt_gb,2),
+                            "activations": round(w_sum.mem_act_gb,2),
+                            "attn_workspace": round(w_sum.mem_attn_ws_gb,2),
+                            "logits": round(w_sum.mem_logits_gb,2),
+                            "cp_buffers": round(w_sum.mem_cp_buf_gb,2),
+                        } if w_sum else None,
                     }
                 else:
                     rec = {"N":N,"fabric":fab,"model":model_name,"seq":S,"feasible":False,"constrained_by":"memory",

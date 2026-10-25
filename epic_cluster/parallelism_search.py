@@ -55,6 +55,14 @@ class Config:
     reason: str = ""
     dominant: str = ""
     link_kinds: dict = None
+    mem_params_gb: float = 0.0
+    mem_grads_gb: float = 0.0
+    mem_master_gb: float = 0.0
+    mem_opt_gb: float = 0.0
+    mem_act_gb: float = 0.0
+    mem_attn_ws_gb: float = 0.0
+    mem_logits_gb: float = 0.0
+    mem_cp_buf_gb: float = 0.0
 
 
 def divisors_product(N):
@@ -100,7 +108,17 @@ def score(tp, pp, cp, dp, zero, hw, m):
         with open(spec_path) as _f:
             spec = json.load(_f)
 
-    # params per gpu
+    # ---- Per-rank memory model (gpu-sim-6y1) ----
+    # Assumptions stated per term. Mixed precision (bf16/fp16) is assumed:
+    # params/grads/activations in dtype_bytes, master weights + optimizer
+    # states in fp32. flash_attn (default True) avoids O(S^2) score storage.
+    mixed_precision = hw.get("mixed_precision", True)
+    flash_attn = hw.get("flash_attn", True)
+    # recompute knob reduces activation term (gpu-sim-ooj): none=store all,
+    # selective=recompute attention (store residuals only), full=recompute all.
+    recompute = hw.get("recompute", "none")
+
+    # params per gpu: ZeRO-3 shards params across dp
     params_per_gpu = P / (tp * pp)
     if zero == 3 and dp > 1:
         params_per_gpu = params_per_gpu / dp
@@ -109,24 +127,57 @@ def score(tp, pp, cp, dp, zero, hw, m):
         grads_per_gpu = (P / (tp * pp)) / dp
     else:
         grads_per_gpu = P / (tp * pp)
-    # opt state (8 bytes/param) sharded if zero>=1
+    # fp32 master weights: ZeRO-1 shards optimizer state (incl. master) across dp
+    if mixed_precision:
+        master_per_gpu = (P / (tp * pp))
+        if zero >= 1 and dp > 1:
+            master_per_gpu = master_per_gpu / dp
+    else:
+        master_per_gpu = 0.0
+    # optimizer state m+v in fp32 (8 B/param), ZeRO-1 shards across dp
     opt_per_gpu = (P / (tp * pp)) * 8
     if zero >= 1 and dp > 1:
         opt_per_gpu = opt_per_gpu / dp
-    if zero == 3 and dp > 1:
-        opt_per_gpu = (P / (tp * pp)) * 8 / dp
-    # params/grads bytes
-    param_bytes_per_gpu = params_per_gpu * dtype_bytes
-    grad_bytes_per_gpu = grads_per_gpu * dtype_bytes
 
-    # activations per gpu
+    param_bytes = params_per_gpu * dtype_bytes
+    grad_bytes = grads_per_gpu * dtype_bytes
+    master_bytes = master_per_gpu * 4.0
+    opt_bytes = opt_per_gpu  # already in bytes (8 B/param)
+
+    # activations: residual stream, batch 1, TP-sharded hidden, CP-sharded seq
     layers_per_stage = m["n_layers"] / pp
     seq_per_cp = seq / cp
-    act_per_gpu = layers_per_stage * seq_per_cp * (d // tp) * dtype_bytes * 2  # fwd+bwd, batch 1, TP-sharded
+    d_tp = d // tp
+    if recompute == "none":
+        act_factor = 4.0   # input + attn out + ffn out + residual per layer
+    elif recompute == "selective":
+        act_factor = 2.0   # residuals only; attention recomputed
+    else:  # full
+        act_factor = 1.0   # single layer checkpointed
+    act_bytes = layers_per_stage * seq_per_cp * d_tp * dtype_bytes * act_factor
 
-    total_mem = param_bytes_per_gpu + grad_bytes_per_gpu + opt_per_gpu + act_per_gpu
-    feasible = total_mem <= mem_limit
-    reason = "" if feasible else f"mem {total_mem/1e9:.1f}GB > {mem_limit/1e9:.1f}GB"
+    # attention workspace (scores): [heads/tp, seq/cp, seq] if not flash
+    if flash_attn:
+        attn_ws_bytes = 0.0
+    else:
+        attn_ws_bytes = layers_per_stage * (m["n_heads"] // tp) * seq_per_cp * seq * 4.0
+
+    # logits: [seq/cp, V/tp] (LM head sharded by tp, seq by cp)
+    logits_bytes = (seq / cp) * (m["vocab"] // tp) * dtype_bytes
+
+    # CP ring buffers: (cp-1) in-flight K/V blocks of (seq/cp)*(d/tp)
+    if cp > 1:
+        cp_buf_bytes = 2.0 * (cp - 1) * seq_per_cp * d_tp * dtype_bytes
+    else:
+        cp_buf_bytes = 0.0
+
+    total_mem_bytes = (param_bytes + grad_bytes + master_bytes + opt_bytes
+                       + act_bytes + attn_ws_bytes + logits_bytes + cp_buf_bytes)
+    total_mem_gb = total_mem_bytes / 1e9
+    mem_limit_bytes = mem_limit  # mem_limit is in bytes (80GB default passed as 80*1e9? check)
+
+    feasible = total_mem_bytes <= mem_limit
+    reason = "" if feasible else f"mem {total_mem_bytes/1e9:.1f}GB > {mem_limit/1e9:.1f}GB"
 
     # compute
     tokens_per_gpu = seq / (cp * dp)  # batch 1 sequence
@@ -215,22 +266,22 @@ def score(tp, pp, cp, dp, zero, hw, m):
         if spec is not None:
             if zero <= 1:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                pred = link_model.predict(spec, "ring_allreduce", int(grad_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                pred = link_model.predict(spec, "ring_allreduce", int(grads_per_gpu), "float32", ranks=group, pieces_per_phase=1)
                 dp_comm = pred["duration_s"]
                 dp_kind = pred["bottleneck"]["kind"]
             else:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grad_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
-                p2 = link_model.predict(spec, "ring_allgather", int(param_bytes_per_gpu // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), "float32", ranks=group, pieces_per_phase=1)
+                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu), "float32", ranks=group, pieces_per_phase=1)
                 dp_comm = p1["duration_s"] + p2["duration_s"]
                 dp_kind = p1["bottleneck"]["kind"]
         else:
             if zero <= 1:
-                pred = nccl_cost.predict("allreduce", dp, int(grad_bytes_per_gpu), fabric=fabric)
+                pred = nccl_cost.predict("allreduce", dp, int(grad_bytes), fabric=fabric)
                 dp_comm = pred.total_s
             else:
-                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes_per_gpu), fabric=fabric)
-                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_per_gpu), fabric=fabric)
+                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
 
     comms = tp_comm + cp_comm + pp_comm + dp_comm
@@ -245,7 +296,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
     if spec is None:
         kinds = {"tp": fabric, "cp": fabric, "pp": fabric, "dp": fabric}
     return Config(tp, pp, cp, dp, zero, step_sum, step_max, compute, tp_comm, cp_comm, pp_comm, dp_comm,
-                  total_mem / 1e9, feasible, reason, dominant, kinds)
+                  total_mem_bytes / 1e9, feasible, reason, dominant, kinds,
+                  param_bytes/1e9, grad_bytes/1e9, master_bytes/1e9, opt_bytes/1e9,
+                  act_bytes/1e9, attn_ws_bytes/1e9, logits_bytes/1e9, cp_buf_bytes/1e9)
 
 
 def search(N, hw, m=MODEL, rank_by="sum"):

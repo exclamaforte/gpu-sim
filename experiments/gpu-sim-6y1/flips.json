@@ -1,0 +1,42 @@
+{
+  "flips": [
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "old_feasible": true,
+      "new_feasible": false,
+      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "old_feasible": true,
+      "new_feasible": false,
+      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "old_feasible": true,
+      "new_feasible": false,
+      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "old_feasible": true,
+      "new_feasible": false,
+      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+    }
+  ],
+  "old_feasible": 18,
+  "new_feasible": 14
+}
