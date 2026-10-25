@@ -31,6 +31,8 @@ for N in NS:
             fsdp = [c for c in feas if c.tp==1 and c.cp==1 and c.dp==8 and c.zero==3]
         f = fsdp[0] if fsdp else None
         results[f"N{N}"] = {
+            "pricing_path": "spec",
+            "spec_path": FABRIC[N],
             "winner": {"tp":w.tp,"pp":w.pp,"cp":w.cp,"dp":w.dp,"zero":w.zero,"step_ms":round(w.step_sum*1000,2),"dp_comm_ms":round(w.dp_comm*1000,3)},
             "fsdp_row": {"step_ms":round(f.step_sum*1000,2),"dp_comm_ms":round(f.dp_comm*1000,3)} if f else None,
         }
