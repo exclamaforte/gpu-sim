@@ -1,0 +1,75 @@
+{
+  "bead": "gpu-sim-dpc",
+  "what": "DP collective counts vs dp: measured at dp=2 and dp=4; dp=8 blocked on this host (deadlock)",
+  "note": "6r5 acceptance item 6 asked for dp=8. World=8 time-sliced on one 5090 does not complete: 2 of 3 attempts produced traces covering only 5-6 of 8 ranks with UNEQUAL counts, one produced none. dp=2 and dp=4 complete with all ranks equal.",
+  "runs": {
+    "dp=2 zero=1": {
+      "ranks_seen": 2,
+      "all_ranks_equal": true,
+      "ops_per_step": {
+        "allreduce": 37.3,
+        "allgather": 37.0
+      },
+      "mb_per_step": {
+        "allreduce": 32.27,
+        "allgather": 64.54
+      }
+    },
+    "dp=2 zero=2": {
+      "ranks_seen": 2,
+      "all_ranks_equal": true,
+      "ops_per_step": {
+        "reducescatter": 1.0,
+        "allgather": 37.0,
+        "allreduce": 0.3
+      },
+      "mb_per_step": {
+        "reducescatter": 16.14,
+        "allgather": 64.54,
+        "allreduce": 0.0
+      }
+    },
+    "dp=2 zero=3": {
+      "ranks_seen": 2,
+      "all_ranks_equal": true,
+      "ops_per_step": {
+        "allgather": 1.0,
+        "reducescatter": 1.0,
+        "allreduce": 0.3
+      },
+      "mb_per_step": {
+        "allgather": 32.27,
+        "reducescatter": 16.14,
+        "allreduce": 0.0
+      }
+    },
+    "dp=4 zero=2": {
+      "ranks_seen": 4,
+      "all_ranks_equal": true,
+      "ops_per_step": {
+        "reducescatter": 1.0,
+        "allgather": 37.0,
+        "allreduce": 0.3
+      },
+      "mb_per_step": {
+        "reducescatter": 10.76,
+        "allgather": 172.11,
+        "allreduce": 0.0
+      }
+    },
+    "dp=4 zero=3": {
+      "ranks_seen": 4,
+      "all_ranks_equal": true,
+      "ops_per_step": {
+        "allgather": 1.0,
+        "reducescatter": 1.0,
+        "allreduce": 0.3
+      },
+      "mb_per_step": {
+        "allgather": 43.03,
+        "reducescatter": 10.76,
+        "allreduce": 0.0
+      }
+    }
+  }
+}
