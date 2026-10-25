@@ -48,7 +48,7 @@ model now carries params, grads, fp32 master, optimizer, per-tensor activations 
 d_ff), logits and CP buffers. The QUADRATIC score-storage term is calibrated on a 5090
 (d=512, 6 layers, seq 4096-8192: the model is 22-32% HIGH in materialized mode). The
 DEFAULT flash/SDPA regime is the opposite direction and is NOT calibrated: the same runs
-put the model's linear term 2.1-2.3x BELOW the measured memory, i.e. a LOWER bound, so a
+put the model's linear term 2.6-3.2x BELOW the measured memory, i.e. a LOWER bound, so a
 phase-map cell the model places within ~15% under the 80 GB limit may be infeasible in
 reality. Closing that gap is gpu-sim-6bi's rework. Everything else in the feasibility column is arithmetic on
 bytes that do not depend on the device. What IS validated on this host: the

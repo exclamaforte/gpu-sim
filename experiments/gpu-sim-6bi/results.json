@@ -6,74 +6,110 @@
     "heads": 8,
     "dtype": "bf16"
   },
-  "tolerance": "25% on each delta for seq>=4096; 1024 materialized case attributed to allocator granularity on small allocations",
-  "note": "Per-tensor widths (3*d + d_ff). Measured delta reported as total; model broken into act/ws/logits deltas. Materialized (quadratic) term within ~25% at seq 4096/8192. At seq=1024 materialized model is 32% high (allocator granularity on small allocations). Flash/SDPA measured growth exceeds linear residual term, indicating partial score materialization; flash-path memory is an upper bound between linear and quadratic. Linear residual activation term remains an unvalidated upper bound for exact fit.",
+  "tolerance": "25% on each delta for seq>=4096 (materialized); flash path is a LOWER bound (measured 2.1-2.3x model at seq 4096-8192), not held to tolerance",
+  "note": "Per-tensor widths (3*d + d_ff). Baseline measured ONCE before any seq-sized allocation. SDPA backend: flash_sdp=True, mem_efficient_sdp=True, math_sdp=True for all rows. Measured delta reported as total; model broken into act/ws/logits deltas. Materialized (quadratic) term within ~20% at seq 4096/8192 (measured/model 0.85/0.80). At seq=1024 materialized model is 40% high (allocator granularity on small allocations). Flash/SDPA measured is 2.6-3.2x the model (measured/model 2.87/3.15/2.64), so the model is a LOWER bound in flash mode; flash path is UNCALIBRATED with no tolerance claim. Linear residual activation term remains an unvalidated upper bound for exact fit. Feasibility verdicts at 8B/70B scale dominated by params/master/opt, not activation.",
   "results": [
     {
       "mode": "flash",
       "seq": 1024,
-      "peak_gb": 0.3052,
-      "base_gb": 0.2678,
-      "delta_gb": 0.0374,
+      "peak_gb": 0.3871,
+      "base_gb": 0.2594,
+      "delta_gb": 0.1277,
+      "sdpa_backend": {
+        "flash_sdp": true,
+        "mem_efficient_sdp": true,
+        "math_sdp": true
+      },
       "model_delta_gb": 0.0445,
       "model_act_delta_gb": 0.044,
       "model_ws_delta_gb": 0.0,
-      "model_logits_delta_gb": 0.0005
+      "model_logits_delta_gb": 0.0005,
+      "flash_factor": 2.868
     },
     {
       "mode": "flash",
       "seq": 4096,
-      "peak_gb": 0.7393,
-      "base_gb": 0.3634,
-      "delta_gb": 0.3759,
+      "peak_gb": 0.8212,
+      "base_gb": 0.2594,
+      "delta_gb": 0.5618,
+      "sdpa_backend": {
+        "flash_sdp": true,
+        "mem_efficient_sdp": true,
+        "math_sdp": true
+      },
       "model_delta_gb": 0.1782,
       "model_act_delta_gb": 0.1761,
       "model_ws_delta_gb": 0.0,
-      "model_logits_delta_gb": 0.0021
+      "model_logits_delta_gb": 0.0021,
+      "flash_factor": 3.152
     },
     {
       "mode": "flash",
       "seq": 8192,
-      "peak_gb": 1.2822,
-      "base_gb": 0.4506,
-      "delta_gb": 0.8316,
+      "peak_gb": 1.2008,
+      "base_gb": 0.2594,
+      "delta_gb": 0.9414,
+      "sdpa_backend": {
+        "flash_sdp": true,
+        "mem_efficient_sdp": true,
+        "math_sdp": true
+      },
       "model_delta_gb": 0.3565,
       "model_act_delta_gb": 0.3523,
       "model_ws_delta_gb": 0.0,
-      "model_logits_delta_gb": 0.0042
+      "model_logits_delta_gb": 0.0042,
+      "flash_factor": 2.641
     },
     {
       "mode": "materialized",
       "seq": 1024,
-      "peak_gb": 0.518,
-      "base_gb": 0.3513,
-      "delta_gb": 0.1667,
+      "peak_gb": 0.6041,
+      "base_gb": 0.2594,
+      "delta_gb": 0.3447,
+      "sdpa_backend": {
+        "flash_sdp": true,
+        "mem_efficient_sdp": true,
+        "math_sdp": true
+      },
       "model_delta_gb": 0.2458,
       "model_act_delta_gb": 0.044,
       "model_ws_delta_gb": 0.2013,
-      "model_logits_delta_gb": 0.0005
+      "model_logits_delta_gb": 0.0005,
+      "flash_factor": 1.402
     },
     {
       "mode": "materialized",
       "seq": 4096,
-      "peak_gb": 3.1414,
-      "base_gb": 0.4416,
-      "delta_gb": 2.6998,
+      "peak_gb": 3.1425,
+      "base_gb": 0.2594,
+      "delta_gb": 2.8831,
+      "sdpa_backend": {
+        "flash_sdp": true,
+        "mem_efficient_sdp": true,
+        "math_sdp": true
+      },
       "model_delta_gb": 3.3994,
       "model_act_delta_gb": 0.1761,
       "model_ws_delta_gb": 3.2212,
-      "model_logits_delta_gb": 0.0021
+      "model_logits_delta_gb": 0.0021,
+      "flash_factor": 0.848
     },
     {
       "mode": "materialized",
       "seq": 8192,
-      "peak_gb": 10.5926,
-      "base_gb": 0.2819,
-      "delta_gb": 10.3107,
+      "peak_gb": 10.839,
+      "base_gb": 0.2594,
+      "delta_gb": 10.5796,
+      "sdpa_backend": {
+        "flash_sdp": true,
+        "mem_efficient_sdp": true,
+        "math_sdp": true
+      },
       "model_delta_gb": 13.2414,
       "model_act_delta_gb": 0.3523,
       "model_ws_delta_gb": 12.8849,
-      "model_logits_delta_gb": 0.0042
+      "model_logits_delta_gb": 0.0042,
+      "flash_factor": 0.799
     }
   ]
 }
