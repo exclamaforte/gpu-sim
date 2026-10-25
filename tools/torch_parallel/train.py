@@ -87,6 +87,8 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--seq", type=int, default=512)
     p.add_argument("--d-model", type=int, default=256)
     p.add_argument("--layers", type=int, default=4)
+    p.add_argument("--cp-grad-sync", type=str, default="reducescatter", choices=["allreduce", "reducescatter"],
+                   help="cp gradient sync mode: allreduce (crude, default) or reducescatter (production)")
     p.add_argument("--optim", type=str, default="adamw", choices=["adamw", "sgd"],
                    help="optimizer; sgd exposes gradient-scale bugs AdamW's adaptivity hides")
     p.add_argument("--lr", type=float, default=1e-4,
@@ -382,14 +384,33 @@ def main() -> int:
                     loss = model.loss(x)
             with torch.profiler.record_function("backward"):
                 loss.backward()
-            # CP gradient sync: each cp rank trains on a disjoint sequence
-            # chunk; sum gradients across cp peers so replicas stay identical
-            # and the update matches the full-sequence gradient (gpu-sim-8jg).
+            # CP gradient sync (gpu-sim-fzd): each cp rank trains on a disjoint
+            # sequence chunk; combine gradients across cp peers so replicas stay
+            # identical and the update matches the full-sequence gradient
+            # (gpu-sim-8jg).
             if cp > 1 and cp_group is not None:
-                for prm in model.parameters():
-                    if prm.grad is not None:
-                        dist.all_reduce(prm.grad, op=dist.ReduceOp.SUM, group=cp_group)
-                        prm.grad.div_(cp)
+                if args.cp_grad_sync == "reducescatter":
+                    # Production (gpu-sim-fzd): reduce-scatter the flattened
+                    # gradient over cp ranks (each rank gets 1/cp of the SUM),
+                    # then all-gather to reconstruct the full gradient. Result is
+                    # bit-identical to allreduce+div(cp) up to fp accumulation;
+                    # the trace records the reduce_scatter collective so the model's
+                    # production-mode byte count (2*(cp-1)/cp * bytes/cp) is
+                    # checkable against a real run. Equivalent loss curve.
+                    for prm in model.parameters():
+                        if prm.grad is not None:
+                            flat = prm.grad.flatten().contiguous()
+                            shard = torch.empty(flat.numel() // cp, dtype=flat.dtype, device=flat.device)
+                            dist.reduce_scatter_tensor(shard, flat, op=dist.ReduceOp.SUM, group=cp_group)
+                            full = [torch.empty_like(shard) for _ in range(cp)]
+                            dist.all_gather(full, shard, group=cp_group)
+                            prm.grad.copy_(torch.cat(full).view_as(prm.grad))
+                            prm.grad.div_(cp)
+                else:
+                    for prm in model.parameters():
+                        if prm.grad is not None:
+                            dist.all_reduce(prm.grad, op=dist.ReduceOp.SUM, group=cp_group)
+                            prm.grad.div_(cp)
         else:
             # GPipe: all micro-batch forwards, then all backwards. Blocking
             # send/recv in matching order on both sides, so no deadlock: the
