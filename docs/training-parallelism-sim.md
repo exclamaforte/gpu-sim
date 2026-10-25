@@ -579,6 +579,15 @@ pattern the recommendation is about, and the harness's CP is recorded here as an
 approximation that cannot validate this term. Absolute CP pricing therefore rests on the model plus
 the ring argument, not on the harness.
 
+That pairing is also why the last unidentified bucket in the cp=2 trace does not matter. The trace
+carries an all_gather of 1,044,480 elements next to one of 1,048,576 = vocab(4096) x d_model(256),
+the token embedding, and every all_gather has a reduce_scatter of EXACTLY half its elements (byte
+totals 549,376,000 on each side). 1,044,480 is 4080 x d_model -- not 4095 x d_model, so it is not
+"the embedding minus one row" (that would be 1,048,320), and its exact parameter origin cannot be
+recovered from the trace alone. It does not need to be: because the AG/RS pairing is exact for every
+bucket, a bucket whose parameter we cannot name still reconciles perfectly against itself. The
+remaining unknown is a label, not a byte (gpu-sim-wlab, tests/test_cp_payload_structure.py).
+
 **Three byte bugs had to be fixed before any of this was true** (gpu-sim-6wd-bytes,
 gpu-sim-smt3, gpu-sim-smt6), and all three are the same dp x / n x species of error the COST MODEL
 carried before gpu-sim-6r5 -- one layer down each time:
