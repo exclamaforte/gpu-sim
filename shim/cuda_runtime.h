@@ -69,7 +69,7 @@ typedef int cudaError_t;
 #define cudaSuccess                  ((cudaError_t)0)
 #define cudaErrorInvalidValue        ((cudaError_t)1)
 #define cudaErrorInvalidDevice       ((cudaError_t)2)  /* also used for mem alloc */
-#define cudaErrorMemoryAllocation    ((cudaError_t)2)  /* OOM (m3d.12) */
+#define cudaErrorMemoryAllocation    ((cudaError_t)100) /* OOM (m3d.12) */
 #define cudaErrorInitializationError ((cudaError_t)3)
 #define cudaErrorInvalidConfiguration ((cudaError_t)9) /* matches real CUDA */
 #define cudaErrorUnknownError        ((cudaError_t)999)

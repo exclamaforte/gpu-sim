@@ -123,6 +123,9 @@ check: guard-build-inputs $(LIB)
 	@echo "--- resolver attachment (gpu-sim-urr) ---"
 	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_resolver_attach tests/test_resolver_attach.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
 	@./build/test_resolver_attach
+	@echo "--- heterogeneous compute (gpu-sim-m3d.12) ---"
+	@$(CC) $(CFLAGS) $(INCLUDES) -o build/test_m3d_12_hetero tests/test_m3d_12_hetero.c -L. -lfakegpu -Wl,-rpath,$(CURDIR)
+	@./build/test_m3d_12_hetero
 
 .PHONY: guard-build-inputs
 # The guard runs FIRST, as a prerequisite: a red guard stops the suite before

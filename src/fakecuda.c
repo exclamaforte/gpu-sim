@@ -7,7 +7,7 @@ struct fg_config *fg_cfg(void);
 void *fg_pool_alloc(size_t size);
 void fg_fill(void *dst, size_t n);
 void fg_sleep_ns(long ns);
-#include "fakegpu_topology.h"
+
 #include "cuda.h"
 
 #include <dlfcn.h>
@@ -189,6 +189,7 @@ static unsigned long long fc_mem(int dev) {
 
 static CUcontext fc_ctx = (CUcontext)0x1;
 static CUcontext fc_current = NULL;
+static int fc_current_device = 0;
 
 /* ---- basic init ---------------------------------------------------------- */
 
@@ -354,7 +355,9 @@ CUresult cuCtxCreate(CUcontext *pctx, CUctxCreateParams *ctxCreateParams, unsign
 CUresult cuCtxDestroy(CUcontext ctx) {
     fprintf(stderr,"fakecuda: %s\n", "cuCtxDestroy"); (void)ctx; return CUDA_SUCCESS; }
 CUresult cuCtxSetCurrent(CUcontext ctx) {
-    fprintf(stderr,"fakecuda: %s\n", "cuCtxSetCurrent"); fc_current = ctx; return CUDA_SUCCESS; }
+    fprintf(stderr,"fakecuda: %s\n", "cuCtxSetCurrent"); fc_current = ctx;
+    fg_cfg()->current_device = fc_current_device;
+    return CUDA_SUCCESS; }
 CUresult cuCtxGetCurrent(CUcontext *pctx) {
     fprintf(stderr,"fakecuda: %s\n", "cuCtxGetCurrent");
     if (!pctx) return CUDA_ERROR_INVALID_VALUE;
@@ -388,7 +391,7 @@ CUresult cuCtxGetApiVersion(CUcontext ctx, unsigned int *version) {
 /* primary context (NCCL often uses these) */
 CUresult cuDevicePrimaryCtxRetain(CUcontext *pctx, CUdevice dev) {
     fprintf(stderr,"fakecuda: %s\n", "cuDevicePrimaryCtxRetain");
-    (void)dev;
+    fc_current_device = (int)dev;
     if (!pctx) return CUDA_ERROR_INVALID_VALUE;
     *pctx = fc_ctx;
     return CUDA_SUCCESS;
