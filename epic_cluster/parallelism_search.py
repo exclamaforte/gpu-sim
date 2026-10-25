@@ -262,7 +262,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # ranks. Production alternative: reduce-scatter the sequence-sharded shards
     # (~2*(cp-1)/cp * bytes/cp). Harness does crude.
     cp_grad = 0.0
-    cp_grad_kind = None
+    cp_grad_kind = None  # only populated on the spec path (link_model); nccl path has no .kind
     cp_grad_mode = hw.get("cp_grad_mode", "crude")
     if cp > 1:
         grad_bytes = (P / (tp * pp)) * dtype_bytes
@@ -273,7 +273,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
             msg_bytes = grad_bytes
             algo = "allreduce"
         if spec is not None:
-            group = [((0 * tp + c) * cp + 0) * dp + 0 for c in range(cp)] if False else [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
+            group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
             if algo == "allreduce":
                 pred = link_model.predict(spec, "ring_allreduce", int(msg_bytes // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
                 cp_grad = pred["duration_s"]

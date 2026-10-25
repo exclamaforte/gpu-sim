@@ -31,8 +31,10 @@ all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the winner is p
 73.05 ms on the legacy single-fabric path, the same 0.013 ms path delta as 5o4.5 reported), with tp=2 cp=4
 second at 64.23 ms weight-only. gpu-sim-olg (P1) adds the CP gradient sync (8jg) to the cost model:
 every cp>1 row pays a full all-reduce of P/(tp*pp) params over cp ranks (+9 to +55 ms at cp=2/4),
-so cp rows drop well behind FSDP; the winner stays pure FSDP and no cp>1 config is in the top-5
-at N=8/16/32. But ALL 24 feasible pp=1 configurations have identical
+so cp rows drop well behind FSDP; the winner stays pure FSDP at N=8/16/32. cp>1 configs
+still appear in the top-5 by step_sum because several tie at the max-overlap floor (e.g. N=8
+top-5 includes (4,1,2,1,0) at 93.77 ms with cp_grad 9.24 ms), but none is strictly better than
+FSDP. See experiments/gpu-sim-olg/top5.json. But ALL 24 feasible pp=1 configurations have identical
 max-overlap time (64.97 ms with attention; 22 of 24 at 51.63 ms weight-only, where two rows'
 comm exceeded the floor) while their SUM spans 73.06-129.62 ms with attention (59.71-98.80
 ms weight-only): under full overlap the
