@@ -1,0 +1,622 @@
+{
+  "records": [
+    {
+      "N": 8,
+      "fabric": "8xH100-NVLink",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 73.77
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 64.97
+      },
+      "tie_count_max_floor": 3,
+      "feasible_configs": 46,
+      "total_configs": 50,
+      "compute_ms": 64.97,
+      "comm_ms": 8.8,
+      "mem_gb_winner": 50.4
+    },
+    {
+      "N": 8,
+      "fabric": "8xH100-NVLink",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 453.81
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 419.96
+      },
+      "tie_count_max_floor": 3,
+      "feasible_configs": 46,
+      "total_configs": 50,
+      "compute_ms": 419.96,
+      "comm_ms": 33.85,
+      "mem_gb_winner": 52.0
+    },
+    {
+      "N": 8,
+      "fabric": "8xH100-NVLink",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "feasible": false,
+      "constrained_by": "memory",
+      "best_sum": null,
+      "best_max": null,
+      "tie_count_max_floor": 0,
+      "feasible_configs": 0,
+      "total_configs": 50
+    },
+    {
+      "N": 8,
+      "fabric": "8xH100-NVLink",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "feasible": false,
+      "constrained_by": "memory",
+      "best_sum": null,
+      "best_max": null,
+      "tie_count_max_floor": 0,
+      "feasible_configs": 0,
+      "total_configs": 50
+    },
+    {
+      "N": 8,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 73.77
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 64.97
+      },
+      "tie_count_max_floor": 3,
+      "feasible_configs": 46,
+      "total_configs": 50,
+      "compute_ms": 64.97,
+      "comm_ms": 8.8,
+      "mem_gb_winner": 50.4
+    },
+    {
+      "N": 8,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 453.81
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 419.96
+      },
+      "tie_count_max_floor": 3,
+      "feasible_configs": 46,
+      "total_configs": 50,
+      "compute_ms": 419.96,
+      "comm_ms": 33.85,
+      "mem_gb_winner": 52.0
+    },
+    {
+      "N": 8,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "feasible": false,
+      "constrained_by": "memory",
+      "best_sum": null,
+      "best_max": null,
+      "tie_count_max_floor": 0,
+      "feasible_configs": 0,
+      "total_configs": 50
+    },
+    {
+      "N": 8,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "feasible": false,
+      "constrained_by": "memory",
+      "best_sum": null,
+      "best_max": null,
+      "tie_count_max_floor": 0,
+      "feasible_configs": 0,
+      "total_configs": 50
+    },
+    {
+      "N": 8,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 73.77
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 64.97
+      },
+      "tie_count_max_floor": 3,
+      "feasible_configs": 46,
+      "total_configs": 50,
+      "compute_ms": 64.97,
+      "comm_ms": 8.8,
+      "mem_gb_winner": 50.4
+    },
+    {
+      "N": 8,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 453.81
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 419.96
+      },
+      "tie_count_max_floor": 3,
+      "feasible_configs": 46,
+      "total_configs": 50,
+      "compute_ms": 419.96,
+      "comm_ms": 33.85,
+      "mem_gb_winner": 52.0
+    },
+    {
+      "N": 8,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "feasible": false,
+      "constrained_by": "memory",
+      "best_sum": null,
+      "best_max": null,
+      "tie_count_max_floor": 0,
+      "feasible_configs": 0,
+      "total_configs": 50
+    },
+    {
+      "N": 8,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "feasible": false,
+      "constrained_by": "memory",
+      "best_sum": null,
+      "best_max": null,
+      "tie_count_max_floor": 0,
+      "feasible_configs": 0,
+      "total_configs": 50
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 1,
+        "pp": 2,
+        "cp": 8,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 59.52
+      },
+      "best_max": {
+        "tp": 1,
+        "pp": 1,
+        "cp": 8,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 39.15
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 90,
+      "total_configs": 95,
+      "compute_ms": 52.21,
+      "comm_ms": 7.32,
+      "mem_gb_winner": 50.1
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 1,
+        "pp": 1,
+        "cp": 8,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 393.21
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 8,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 209.98
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 90,
+      "total_configs": 95,
+      "compute_ms": 316.71,
+      "comm_ms": 76.51,
+      "mem_gb_winner": 52.0
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 592.59
+      },
+      "best_max": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 415.7
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 18,
+      "total_configs": 95,
+      "compute_ms": 415.7,
+      "comm_ms": 176.89,
+      "mem_gb_winner": 60.5
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 3424.15
+      },
+      "best_max": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 2730.08
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 13,
+      "total_configs": 95,
+      "compute_ms": 2730.08,
+      "comm_ms": 694.07,
+      "mem_gb_winner": 64.5
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 1,
+        "pp": 2,
+        "cp": 8,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 59.52
+      },
+      "best_max": {
+        "tp": 1,
+        "pp": 1,
+        "cp": 8,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 39.15
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 90,
+      "total_configs": 95,
+      "compute_ms": 52.21,
+      "comm_ms": 7.32,
+      "mem_gb_winner": 50.1
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 1,
+        "pp": 1,
+        "cp": 8,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 393.21
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 8,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 209.98
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 90,
+      "total_configs": 95,
+      "compute_ms": 316.71,
+      "comm_ms": 76.51,
+      "mem_gb_winner": 52.0
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 592.59
+      },
+      "best_max": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 415.7
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 18,
+      "total_configs": 95,
+      "compute_ms": 415.7,
+      "comm_ms": 176.89,
+      "mem_gb_winner": 60.5
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 3424.15
+      },
+      "best_max": {
+        "tp": 8,
+        "pp": 2,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 2730.08
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 13,
+      "total_configs": 95,
+      "compute_ms": 2730.08,
+      "comm_ms": 694.07,
+      "mem_gb_winner": 64.5
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 1,
+        "pp": 2,
+        "cp": 16,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 39.62
+      },
+      "best_max": {
+        "tp": 1,
+        "pp": 2,
+        "cp": 16,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 26.1
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 155,
+      "total_configs": 161,
+      "compute_ms": 26.1,
+      "comm_ms": 13.52,
+      "mem_gb_winner": 50.0
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 16,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 231.63
+      },
+      "best_max": {
+        "tp": 2,
+        "pp": 1,
+        "cp": 16,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 126.64
+      },
+      "tie_count_max_floor": 1,
+      "feasible_configs": 155,
+      "total_configs": 161,
+      "compute_ms": 104.99,
+      "comm_ms": 126.64,
+      "mem_gb_winner": 50.4
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 4,
+        "pp": 4,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 388.21
+      },
+      "best_max": {
+        "tp": 4,
+        "pp": 4,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 270.34
+      },
+      "tie_count_max_floor": 2,
+      "feasible_configs": 66,
+      "total_configs": 161,
+      "compute_ms": 270.34,
+      "comm_ms": 117.87,
+      "mem_gb_winner": 59.8
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "feasible": true,
+      "constrained_by": "compute",
+      "best_sum": {
+        "tp": 4,
+        "pp": 4,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 2689.92
+      },
+      "best_max": {
+        "tp": 4,
+        "pp": 4,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 2224.88
+      },
+      "tie_count_max_floor": 2,
+      "feasible_configs": 59,
+      "total_configs": 161,
+      "compute_ms": 2224.88,
+      "comm_ms": 465.04,
+      "mem_gb_winner": 61.9
+    }
+  ]
+}
