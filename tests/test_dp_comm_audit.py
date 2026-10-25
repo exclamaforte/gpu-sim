@@ -95,3 +95,16 @@ def test_ag_equals_rs_same_payload():
     c = ps.score(1, 1, 1, 4, 2, hw, m)
     # dp_comm = RS + AG; both same payload P, so each ~half
     assert c.dp_comm > 0
+
+def test_payload_convention_rs_full_p():
+    # Pin: RS of full P at dp=n costs ~AR of full P / 2 (ring factor).
+    # Under the broken convention (sharded P), RS would be dp x cheaper.
+    m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}
+    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "dp_dtype": "bf16"}
+    c_ar = ps.score(1, 1, 1, 4, 1, hw, m)   # zero=1: AR(grads) + AG(params)
+    c_z3 = ps.score(1, 1, 1, 4, 3, hw, m)   # zero=3: RS(grads) + AG(params)
+    # RS component should be ~half of AR (ring factor (n-1)/n vs (n-1)/n*2)
+    # AR = RS + AG where RS==AG (same payload), so AR = 2*RS, RS = AR/2
+    rs_approx = c_z3.dp_comm / 2  # RS is half of (RS+AG) when RS==AG
+    ar_approx = c_ar.dp_comm / 2  # AR = RS+AG, RS component = AR/2
+    assert abs(rs_approx - ar_approx) / max(rs_approx, 1e-12) < 0.5, (rs_approx, ar_approx)
