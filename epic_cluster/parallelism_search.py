@@ -149,9 +149,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
     seq_per_cp = seq / cp
     d_tp = d // tp
     if recompute == "none":
-        act_factor = 4.0   # input + attn out + ffn out + residual per layer
+        act_factor = 2.0   # residual stream + one activation per layer (torch shows ~2 of 4 live)
     elif recompute == "selective":
-        act_factor = 2.0   # residuals only; attention recomputed
+        act_factor = 1.0   # residuals only; attention recomputed
     else:  # full
         act_factor = 1.0   # single layer checkpointed
     act_bytes = layers_per_stage * seq_per_cp * d_tp * dtype_bytes * act_factor
@@ -174,7 +174,6 @@ def score(tp, pp, cp, dp, zero, hw, m):
     total_mem_bytes = (param_bytes + grad_bytes + master_bytes + opt_bytes
                        + act_bytes + attn_ws_bytes + logits_bytes + cp_buf_bytes)
     total_mem_gb = total_mem_bytes / 1e9
-    mem_limit_bytes = mem_limit  # mem_limit is in bytes (80GB default passed as 80*1e9? check)
 
     feasible = total_mem_bytes <= mem_limit
     reason = "" if feasible else f"mem {total_mem_bytes/1e9:.1f}GB > {mem_limit/1e9:.1f}GB"

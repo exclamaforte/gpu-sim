@@ -82,7 +82,7 @@ out = {"measured_peak_gb": results,
        "measured_delta_512_1024": round(m1024-m512,4),
        "model_delta_256_512": round(model_act(512)-model_act(256),4),
        "model_delta_512_1024": round(model_act(1024)-model_act(512),4),
-       "note": "Absolute numbers differ (hardware/dtype/optimizer overhead); only the shape (linear growth with seq for activation term under flash, quadratic under non-flash scores) is validated. Measured growth is roughly linear in seq, matching the model's activation term (residual stream) which is linear in seq. Score-storage term (S^2) is not exercised here because the small seq makes it negligible; a separate test would need seq>=4096 to see quadratic."}
+       "note": "Absolute numbers differ (hardware/dtype/optimizer overhead); only the shape is validated. The model defaults flash_attn=True, which zeros the S^2 score-storage term (attn_ws), so that term is UNEXERCISED by default and would need seq>=4096 to become visible. This harness sets flash_attn=False to exercise the score term, but seqs are small (256-1024) so it stays negligible vs the linear residual term; measured growth is roughly linear in seq, matching the residual-stream activation term. act_factor=2 (residual + one activation per layer) is justified by torch showing only ~2 of the 4 nominally-stored tensors are live at backward."}
 with open(os.path.join(os.path.dirname(__file__),"torch_mem_results.json"),"w") as f:
     json.dump(out, f, indent=2)
 print(json.dumps(out, indent=2))
