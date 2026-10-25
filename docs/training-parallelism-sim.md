@@ -43,9 +43,13 @@ harness), and the ranking MOVES:
 | 16 | (tp=4 pp=2 cp=2 dp=1 z0) **58.69 ms** | (tp=8 pp=2 cp=1 dp=1 z0) **54.06 ms** |
 | 32 | (tp=1 pp=4 cp=1 dp=8 z2/z3) 47.46 ms | (tp=8 pp=4 cp=1 dp=1 z0) **47.42 ms** |
 
-Under the harness convention the winner is pure tensor parallelism with NO context parallelism,
-so **whether CP pays at 8192 is itself undecided**: it pays under Megatron payloads and does not
-under the harness's. The TP term is 8-16 ms of a 73-80 ms step, which is why it decides. Neither
+Under the harness convention the winner is pure tensor parallelism with NO context parallelism
+at EVERY sequence tested -- cp=1 wins at 8192/16384/32768/65536 (73.02 / 170.93 / 446.80 /
+1318.72 ms) -- so **S_best is not 8192, it is NEVER (up to 65536)** under that convention, while
+every Megatron-shaped payload set puts cp>1 in the winner at 8192 already. Whether CP pays at all
+is therefore not a property the model can currently decide: it is decided by an unmeasured TP
+payload. A third convention, Megatron's ACTUAL per-layer set (2d + 2d_ff, i.e. 2.25x the model's
+4xd), moves the winner to (tp=2 pp=1 cp=4 dp=1 z0) at 88.22 ms -- CP again, and harder. The TP term is 8-16 ms of a 73-80 ms step, which is why it decides. Neither
 convention is validated: the harness's own layout is a 4-layer toy, not Megatron's; the model's
 full-d is the textbook row-parallel size. Until TP payloads are measured on a real Megatron-shaped
 run, this document should be read as a pair of conditional answers, not one answer.
