@@ -40,7 +40,20 @@ for overlap fraction f < 0.25,
 then TIES with a growing set (2 at f=0.25, 7 at f=0.55, 22 at f=1) at the 51.626 ms weight-only
 compute floor; no other config is ever strictly better and there are no rank swaps. The same
 result holds on the legacy single-fabric path and the spec/topology path (59.708 vs
-59.721 ms), so it does not depend on which pricing path produced the table. Absolute step
+59.721 ms), so it does not depend on which pricing path produced the table. CONVENTION -- read this before comparing any two rows. The model's step time is for a
+FIXED GLOBAL BATCH of one sequence of `seq` tokens split across all N ranks: each rank
+handles seq/(cp*dp) tokens, weights are split by tp, layers by pp, the sequence by cp and
+the batch dimension by dp. Every split therefore divides the per-rank work by its factor,
+which is why compute = (6P + 12*L*seq*d)*seq/N is invariant across the space at fixed N
+(work conservation) and why ties are the honest output. It is NOT the latency of one
+sequence replicated on N GPUs: with dp=8, eight replicas each processing their own batch do
+the same per-rank work as dp=1. Data parallelism buys throughput; only tp/pp/cp reduce
+per-step latency. To read a row as per-sequence latency instead, multiply its compute and
+comm by dp. This convention also fixes what the rank layout means (rank =
+((pp*tp + tp_rank)*cp + cp_rank)*dp + dp_rank) and it is the reason the same N=8 cells can
+tie at 51.6 ms weight-only while their dp differs eightfold.
+
+Absolute step
 times remain modelled -- one 5090 cannot hold Llama-3-8B at any decomposition (the search's
 own memory column says 68.5 GB for the tp=2 cp=4 row and 32.7 GB for the FSDP row with the
 completed memory model, gpu-sim-6y1). MEMORY FEASIBILITY IS MODELLED, not measured: the
