@@ -72,11 +72,13 @@ def main():
     for fam in ["tp_allreduce", "cp_exchange", "cp_grad_sync", "pp_sendrecv",
                 "dp_allreduce", "dp_allgather", "dp_reducescatter"]:
         mb = model.get(fam, 0)
-        # measured: normalise
         raw = meas_family.get(fam, 0)
         meas_norm = raw // norm if norm > 0 else raw
+        if mb == 0 and meas_norm == 0:
+            print(f"{fam:<20} {mb:>14} {meas_norm:>14} {'n/a':>8}")
+            continue
         ratio = (meas_norm / mb) if mb > 0 else float("inf")
-        flag = "" if (mb == 0 and meas_norm == 0) or (0.95 <= ratio <= 1.05) else "  <-- OUT OF RANGE"
+        flag = "" if (0.95 <= ratio <= 1.05) else "  <-- OUT OF RANGE"
         print(f"{fam:<20} {mb:>14} {meas_norm:>14} {ratio:>8.3f}{flag}")
 
     print(f"\n{'total':<20} {model['total']:>14}")

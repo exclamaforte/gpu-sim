@@ -69,6 +69,7 @@ run_hard "close audit (concrete artifacts)" python3 scripts/close_requires_artif
 run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
 run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
+run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 
 rm -f "$GATE_LOG"
 echo

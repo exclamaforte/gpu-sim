@@ -398,7 +398,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 dp_kind = p1["bottleneck"]["kind"]
         else:
             _dpb = 2 if dp_dtype_str == "float32" else 1
-            _P_bytes = (P / (tp * pp)) * dtype_bytes * _dpb
+            _P_bytes = (P / (tp * pp)) * dp_dtype_bytes * _dpb
             if zero <= 1:
                 pred1 = nccl_cost.predict("allreduce", dp, int(_P_bytes), fabric=fabric)
                 pred2 = nccl_cost.predict("allgather", dp, int(_P_bytes), fabric=fabric)
@@ -446,7 +446,9 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
     Mirrors the byte conventions in score() (no timing)."""
     seq = m["seq"]
     d = m["d_model"]
-    dtype_bytes = 2  # bf16
+    _dp_dtype = hw.get("dp_dtype", "bf16")
+    dtype_bytes = 4 if _dp_dtype == "float32" else 2
+    dp_dtype_bytes = 4 if _dp_dtype == "float32" else 2
     P = total_params(m)
     seq_per_cp = seq // cp
     tp_payload_mode = hw.get("tp_payload", "four_d")
@@ -488,7 +490,7 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
 
     # DP/FSDP
     if dp > 1:
-        _P_bytes = (P / (tp * pp)) * dtype_bytes
+        _P_bytes = (P / (tp * pp)) * dp_dtype_bytes
         zero_level = zero
         if zero_level <= 1:
             out["dp_allreduce"] += int(_P_bytes)
