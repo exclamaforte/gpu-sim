@@ -150,9 +150,13 @@ merely rounded, because the audit changed which config WINS. gpu-sim-olg (P1) ad
 gradient sync (8jg) to the cost model: every cp>1 row pays a full all-reduce of P/(tp*pp)
 params over cp ranks, so cp rows drop behind the dp=8 rows; the best cp>1 row at N=8 is
 (4,1,2,1,zero=0) at 78.90 ms. The winner is zero=2 at N=8/16/32 (66.99 / 47.02 / 26.50 ms,
-FSDP zero=3 second (historical). The recommendation does not depend on how
-the cp sync is modelled: with the production variant (cp_grad_mode="production") the tp=2 cp=4
-row comes back to 73.12 ms (historical). That mode is HYPOTHETICAL for now -- it assumes an optimizer
+FSDP zero=3 second (historical). **Correction: S_best does not depend on how the cp sync is modelled, but the SHAPE of the winner
+does.** With the production variant (cp_grad_mode="production") the winner at N=8 is
+(tp=2 pp=1 cp=4 dp=1 z0) at 80.81 ms against the crude answer's (tp=4 pp=1 cp=2 dp=1 z0) at
+94.12 ms -- different tp AND different cp. Both put CP in the winner at 8192, which is what "CP pays
+at 8192" claims, but quoting one config as THE answer without its cp_grad_mode is wrong. The
+published answer is the CRUDE (conservative) one, and this is the second knob after act_factor that
+has to travel with any config quoted from this section. That mode is HYPOTHETICAL for now -- it assumes an optimizer
 that never reconstructs the gradient. The harness's reduce-scatter path (gpu-sim-fzd) still
 all-gathers the gradient, so ring-allreduce == reduce-scatter + all-gather: its measured
 traffic equals the crude path byte for byte, and the production figure is unreachable until
