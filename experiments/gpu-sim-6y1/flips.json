@@ -7,7 +7,7 @@
       "seq": 8192,
       "old_feasible": true,
       "new_feasible": false,
-      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+      "term_responsible": "fp32_master weights + logits + per-tensor activations (FFN width d_ff=14336, was 4*d); master weights term was entirely missing from the old model"
     },
     {
       "N": 16,
@@ -16,7 +16,7 @@
       "seq": 32768,
       "old_feasible": true,
       "new_feasible": false,
-      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+      "term_responsible": "fp32_master weights + logits + per-tensor activations (FFN width d_ff=14336, was 4*d); master weights term was entirely missing from the old model"
     },
     {
       "N": 16,
@@ -25,7 +25,7 @@
       "seq": 8192,
       "old_feasible": true,
       "new_feasible": false,
-      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+      "term_responsible": "fp32_master weights + logits + per-tensor activations (FFN width d_ff=14336, was 4*d); master weights term was entirely missing from the old model"
     },
     {
       "N": 16,
@@ -34,7 +34,7 @@
       "seq": 32768,
       "old_feasible": true,
       "new_feasible": false,
-      "term_responsible": "fp32_master weights (19.7GB at 70B scale) + logits/cp_buffers; master weights term was entirely missing from the old model"
+      "term_responsible": "fp32_master weights + logits + per-tensor activations (FFN width d_ff=14336, was 4*d); master weights term was entirely missing from the old model"
     }
   ],
   "old_feasible": 18,

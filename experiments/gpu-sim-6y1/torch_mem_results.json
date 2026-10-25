@@ -10,13 +10,13 @@
     "d128": 0.0749
   },
   "model_act_plus_ws_gb": {
-    "seq256": 0.0011,
-    "seq512": 0.0043,
-    "seq1024": 0.017
+    "seq256": 0.0013,
+    "seq512": 0.0047,
+    "seq1024": 0.0177
   },
   "measured_delta_256_512": 0.0018,
   "measured_delta_512_1024": 0.0058,
-  "model_delta_256_512": 0.0032,
-  "model_delta_512_1024": 0.0127,
-  "note": "Absolute numbers differ (hardware/dtype/optimizer overhead); only the shape is validated. The model defaults flash_attn=True, which zeros the S^2 score-storage term (attn_ws), so that term is UNEXERCISED by default and would need seq>=4096 to become visible. This harness sets flash_attn=False to exercise the score term, but seqs are small (256-1024) so it stays negligible vs the linear residual term; measured growth is roughly linear in seq, matching the residual-stream activation term. act_factor=2 (residual + one activation per layer) is justified by torch showing only ~2 of the 4 nominally-stored tensors are live at backward."
+  "model_delta_256_512": 0.0034,
+  "model_delta_512_1024": 0.013,
+  "note": "Absolute numbers differ (hardware/dtype/optimizer overhead); only the shape is validated. Per-tensor widths now used (3*d + d_ff). The model defaults flash_attn=True, which zeros the S^2 score-storage term (attn_ws), so that term is UNEXERCISED by default and would need seq>=4096 to become visible. This harness sets flash_attn=False to exercise the score term, but seqs are small (256-1024) so it stays negligible vs the linear residual term; measured growth is roughly linear in seq. The measured activation delta is ~0.5x the model's S^2 score-storage term (torch frees scores during backward), so the activation term is an UPPER BOUND and UNVALIDATED for exact fit; feasibility verdicts at 8B/70B scale are dominated by params/master/opt, not activation."
 }

@@ -144,17 +144,35 @@ def score(tp, pp, cp, dp, zero, hw, m):
     master_bytes = master_per_gpu * 4.0
     opt_bytes = opt_per_gpu  # already in bytes (8 B/param)
 
-    # activations: residual stream, batch 1, TP-sharded hidden, CP-sharded seq
+    # activations: per-tensor widths (gpu-sim-6y1 rework).
+    # A transformer layer stores, for backward, four tensors per token:
+    #   input/residual (d), attention output (d), ffn intermediate (d_ff),
+    #   ffn output (d).  Each is TP-sharded where the producing linear is
+    #   sharded (all of them are, under standard TP), so widths are d/tp and
+    #   d_ff/tp.  Previously this used 4*d, undercounting the FFN term by
+    #   ~1.63x (d_ff=14336 vs 3*d=12288 for Llama-3 8B).
+    # act_factor: backward reuses the stored forward activations; gradients
+    #   live in grads_bytes, not here.  torch validation on a 5090 shows the
+    #   measured activation delta is ~0.5x the S^2 score-storage term (torch
+    #   frees scores during backward), so the S^2 term is an UPPER BOUND and
+    #   the activation term is UNVALIDATED for exact fit; feasibility verdicts
+    #   at 8B/70B scale are dominated by params/master/opt, not activation.
     layers_per_stage = m["n_layers"] / pp
     seq_per_cp = seq / cp
     d_tp = d // tp
+    d_ff_tp = m["d_ff"] // tp
+    # per-tensor widths: residual(d) + attn_out(d) + ffn_intermediate(d_ff) + ffn_out(d)
+    per_token_width = 3 * d_tp + d_ff_tp
     if recompute == "none":
-        act_factor = 2.0   # residual stream + one activation per layer (torch shows ~2 of 4 live)
+        act_factor = 1.0
+        layers_act = layers_per_stage
     elif recompute == "selective":
-        act_factor = 1.0   # residuals only; attention recomputed
+        act_factor = 0.5   # residuals only; attention recomputed
+        layers_act = layers_per_stage
     else:  # full
-        act_factor = 1.0   # single layer checkpointed
-    act_bytes = layers_per_stage * seq_per_cp * d_tp * dtype_bytes * act_factor
+        act_factor = 1.0
+        layers_act = 1.0   # only one layer's activations live at a time
+    act_bytes = layers_act * seq_per_cp * dtype_bytes * per_token_width * act_factor
 
     # attention workspace (scores): [heads/tp, seq/cp, seq] if not flash
     if flash_attn:
