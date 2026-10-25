@@ -46,8 +46,10 @@ if ! : > "$GATE_LOG" 2>/dev/null; then
   exit 1
 fi
 
+RAN=()
 run_hard() {  # name, command...
   local name="$1"; shift
+  RAN+=("$name")
   printf '%-42s ' "$name"
   if "$@" >"$GATE_LOG" 2>&1; then
     echo "PASS"; pass=$((pass+1))
@@ -63,6 +65,7 @@ run_hard() {  # name, command...
 
 run_advisory() {  # name, command...
   local name="$1"; shift
+  RAN+=("$name")
   printf '%-42s ' "$name (advisory)"
   if "$@" >"$GATE_LOG" 2>&1; then
     echo "PASS"
@@ -89,6 +92,38 @@ run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace ex
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
 rm -f "$GATE_LOG"
+
+# gpu-sim-gman: THE GATE MUST PROVE IT RAN ITS CHECKS. A check line once went in as
+# `run_check` (a function that does not exist); the shell errored, `set -uo pipefail` has no
+# -e, and the gate reported GREEN at 6 checks instead of 7. Nothing compared what ran against
+# what was supposed to run, so a missing check looks exactly like a passing one. The manifest
+# below is that comparison: if a check is dropped, renamed, or silently fails to start, the
+# gate now FAILS instead of shrinking.
+EXPECTED_HARD=7
+EXPECTED_ADVISORY=3
+# --fast skips exactly one hard check (the test suite), so the manifest must track the mode
+if [ $FAST -eq 1 ]; then
+  EXPECTED_TOTAL=$((EXPECTED_HARD - 1 + EXPECTED_ADVISORY))
+  EXPECTED_HARD_NOW=$((EXPECTED_HARD - 1))
+else
+  EXPECTED_TOTAL=$((EXPECTED_HARD + EXPECTED_ADVISORY))
+  EXPECTED_HARD_NOW=$EXPECTED_HARD
+fi
+manifest_fail=0
+if [ "${#RAN[@]}" -ne "$EXPECTED_TOTAL" ]; then
+  echo "MANIFEST: ${#RAN[@]} checks ran, expected $EXPECTED_TOTAL"
+  manifest_fail=1
+fi
+if [ "$pass" -ne "$EXPECTED_HARD_NOW" ]; then
+  echo "MANIFEST: $pass hard checks passed, expected $EXPECTED_HARD_NOW"
+  manifest_fail=1
+fi
+if [ $manifest_fail -ne 0 ]; then
+  echo "MANIFEST FAILED: the gate did not run the checks it advertises"
+  printf 'ran: %s\n' "${RAN[*]}"
+  exit 1
+fi
+
 echo
 echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
 if [ $fail -ne 0 ]; then
