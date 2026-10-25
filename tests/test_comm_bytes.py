@@ -23,3 +23,14 @@ if __name__ == "__main__":
     test_comm_bytes_returns_dict()
     test_comm_bytes_zero_traffic()
     print("OK")
+
+
+def test_comm_bytes_dtype_negative_control():
+    hw2 = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
+           "tp_payload": "four_d", "dp_dtype": "float32"}
+    hw1 = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
+           "tp_payload": "four_d", "dp_dtype": "bf16"}
+    m = ps.MODEL
+    r1 = ps.comm_bytes(2, 1, 2, 4, 3, hw1, m)
+    r2 = ps.comm_bytes(2, 1, 2, 4, 3, hw2, m)
+    assert r1["dp_allreduce"] != r2["dp_allreduce"], "dtype change must affect bytes"
