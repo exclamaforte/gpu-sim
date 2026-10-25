@@ -1,0 +1,120 @@
+{
+  "cell_flips": [],
+  "old_feasible_cells": 14,
+  "new_feasible_cells": 14,
+  "config_count_changes": [
+    {
+      "N": 8,
+      "fabric": "8xH100-NVLink",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "old": 45,
+      "new": 42
+    },
+    {
+      "N": 8,
+      "fabric": "8xH100-NVLink",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "old": 35,
+      "new": 25
+    },
+    {
+      "N": 8,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "old": 45,
+      "new": 42
+    },
+    {
+      "N": 8,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "old": 35,
+      "new": 25
+    },
+    {
+      "N": 8,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "old": 45,
+      "new": 42
+    },
+    {
+      "N": 8,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "old": 35,
+      "new": 25
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "old": 89,
+      "new": 87
+    },
+    {
+      "N": 16,
+      "fabric": "16xH100-2node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "old": 82,
+      "new": 68
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "old": 89,
+      "new": 87
+    },
+    {
+      "N": 16,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "old": 82,
+      "new": 68
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 8192,
+      "old": 154,
+      "new": 152
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-8b",
+      "seq": 32768,
+      "old": 148,
+      "new": 137
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 8192,
+      "old": 38,
+      "new": 29
+    },
+    {
+      "N": 32,
+      "fabric": "32xH100-4node-IB",
+      "model": "llama3-70b",
+      "seq": 32768,
+      "old": 24,
+      "new": 6
+    }
+  ],
+  "note": "act_factor 1->2.3 (calibrated gpu-sim-4nf): no cell-level feasibility flips, but 3 configs dropped at 8B/seq8192 (45->42). Attribution: 70% matmul intermediates, 6% cuBLAS, 24% allocator. snapshot_results.json frames are '<module>' (no Python frames); attribution comes from instrument.py per-block peaks, stated in attribution.json."
+}

@@ -37,5 +37,6 @@
   ],
   "conclusion": "Gap is dominated by matmul intermediates, not SDPA workspace. Fix: bump act_factor from 1 to 2.3 (calibrated). No new model term needed. Feasibility: no cell flips (14 feasible unchanged).",
   "act_factor_new": 2.3,
-  "feasibility_flips": 0
+  "feasibility_flips": 0,
+  "attribution_source": "instrument.py per-block peaks (not snapshot.py frames, which resolve to '<module>'); snapshot.py provides the raw snapshot but frames lack Python-level op names"
 }
