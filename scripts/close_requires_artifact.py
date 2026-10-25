@@ -36,6 +36,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+# The audit record the u2o.15 item is about. main() used to reference a bare `out`
+# that no longer existed after apply_coverage_gate() was extracted, so the script
+# crashed with NameError on every run and certified nothing.
+OUT = REPO / "experiments/gpu-sim-u2o.15/close_audit.json"
 AUDIT_LABEL = "fab-audit-reopened"
 
 # Close reasons that assert completion while pointing at nothing.
@@ -250,11 +254,11 @@ def apply_coverage_gate(rec: dict, coverage: dict) -> dict:
 def main() -> int:
     issues, coverage = gather_with_proven_coverage()
     rec = apply_coverage_gate(audit(issues), coverage)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(rec, indent=2) + "\n")
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(rec, indent=2) + "\n")
     print(json.dumps({k: v for k, v in rec.items()
                       if k not in ("verdicts",)}, indent=2))
-    print(f"\nwrote {out.relative_to(REPO)}")
+    print(f"\nwrote {OUT.relative_to(REPO)}")
     if not coverage["coverage_proven"]:
         print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
         return 1

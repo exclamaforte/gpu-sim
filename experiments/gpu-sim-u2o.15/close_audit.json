@@ -1,11 +1,22 @@
 {
   "bead": "gpu-sim-u2o.15",
   "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-  "produced_at_utc": "2026-10-03T21:00:33.050643+00:00",
+  "produced_at_utc": "2026-10-25T12:15:33.884138+00:00",
   "scope_label": "fab-audit-reopened",
-  "beads_in_scope": 72,
-  "closed_in_scope": 12,
+  "beads_in_scope": 76,
+  "closed_in_scope": 66,
   "violations": [
+    {
+      "id": "gpu-sim-u2o.6.10",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites commit 9816875f, which this repository does not have"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Supervised single-dose validation complete: all 8 PI-authored acceptance criteria met on the criterion-7 re-run against "
+    },
     {
       "id": "gpu-sim-u2o.6.8",
       "concrete": false,
@@ -32,19 +43,160 @@
       "why": [],
       "disqualified_by": [
         "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact",
         "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
       ],
       "bare_close": false,
       "wont_fix": false,
       "close_reason": ""
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.5",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": true,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.3",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": true,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "done-in-fact: all leaves validated+closed including 8.4 honest negative; repr decision open on evidence, re-enters as ne"
+    },
+    {
+      "id": "gpu-sim-u2o.8.1",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7.3",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7.2",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "done-in-fact: all stage leaves validated+closed; sole open child 7.8 is deferred-as-rejected-for-v1 (not pending), re-en"
+    },
+    {
+      "id": "gpu-sim-u2o.7.4",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7.5",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
     }
   ],
   "wont_fix_closures_excluded": [
-    "gpu-sim-u2o.16"
+    "gpu-sim-u2o.16",
+    "gpu-sim-u2o.6.6.6.2.1",
+    "gpu-sim-u2o.6.4"
   ],
   "satisfies_the_acceptance": false,
   "acceptance": "every bead reopened by this audit, when closed again, must carry a concrete artifact path / resolvable commit / comparison figure -- never a bare 'Closed'",
   "verdicts": [
+    {
+      "id": "gpu-sim-u2o.6.6.6.2.1.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: c423b7b"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged c423b7b: retro test reads rows from master"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.6.3.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 69dff37",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 69dff37: negative cache bounds the parse retry; live queue 152ms to 0.6ms with the skip counted"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.2.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: c1b28b6"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged c1b28b6: artifacts carry writing-job provenance with a recomputable hash; the triage report no longer "
+    },
+    {
+      "id": "gpu-sim-edu",
+      "concrete": true,
+      "why": [
+        "resolvable commit: e727838",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged e727838: AC1-AC5 re-verified on current main, AC6 fixes live in running daemon, 359/359 green"
+    },
+    {
+      "id": "gpu-sim-u2o.6.11",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 7ec6a5f"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 7ec6a5f: the merge recipe names all 58 tracked paths and the count is generated"
+    },
     {
       "id": "gpu-sim-u2o.6.1.3",
       "concrete": true,
@@ -56,6 +208,17 @@
       "bare_close": false,
       "wont_fix": false,
       "close_reason": "validated, merged 819a8d6 via merge a688a84: -cudart=none fake path, 9/9 make-check assertions green after clean rebuild"
+    },
+    {
+      "id": "gpu-sim-u2o.6.10",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [
+        "cites commit 9816875f, which this repository does not have"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Supervised single-dose validation complete: all 8 PI-authored acceptance criteria met on the criterion-7 re-run against "
     },
     {
       "id": "gpu-sim-u2o.6.1.1",
@@ -91,6 +254,20 @@
       "close_reason": "Closed"
     },
     {
+      "id": "gpu-sim-u2o.17.4",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 5cf5897",
+        "comparison figure present"
+      ],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated negative, merged 5cf5897: parity FAIL with numbers, gate stays closed"
+    },
+    {
       "id": "gpu-sim-u2o.17.1",
       "concrete": false,
       "why": [],
@@ -107,11 +284,26 @@
       "why": [],
       "disqualified_by": [
         "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact",
         "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
       ],
       "bare_close": false,
       "wont_fix": false,
       "close_reason": ""
+    },
+    {
+      "id": "gpu-sim-u2o.17.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 640fadb"
+      ],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated at tip 640fadb; blockers u2o.6/u2o.9 are DEFERRED epics whose deliverables (.6 dataset, .9 model) have landed "
     },
     {
       "id": "gpu-sim-u2o.16",
@@ -126,6 +318,62 @@
       "close_reason": ""
     },
     {
+      "id": "gpu-sim-u2o.17",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 7f7217d",
+        "comparison figure present"
+      ],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Gate PASSES on master (7f7217d, 073c909): scored through the sim path via --calibration mode on mdz's measured table (sh"
+    },
+    {
+      "id": "gpu-sim-u2o.6.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 7e708b0"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 7e708b0: hang killed in-budget, pipeline continues"
+    },
+    {
+      "id": "gpu-sim-u2o.6.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 036bc0c"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 036bc0c: dose-3 PASS both arms, ruled ladder exercised, gates green"
+    },
+    {
+      "id": "gpu-sim-u2o.6.11.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 43c421c"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 43c421c: recipe regenerated to 59 paths including resource_limits.py"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.6.2.1",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": true,
+      "close_reason": "done-in-fact: fix landed in master ancestry, tests green, superseded by .1.1; verdict would cover dead code. Blocker 6.7"
+    },
+    {
       "id": "gpu-sim-edu.1",
       "concrete": true,
       "why": [
@@ -137,6 +385,17 @@
       "close_reason": "validated, merged 2eced29: a lookup that cannot answer raises; the dispatch gate no longer flips on the reviewer's own l"
     },
     {
+      "id": "gpu-sim-u2o.6.6.6.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 721f03e"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 721f03e: set-membership partition, sub-linear criterion met by measurement"
+    },
+    {
       "id": "gpu-sim-u2o.6.6.6.2",
       "concrete": true,
       "why": [
@@ -146,6 +405,35 @@
       "bare_close": false,
       "wont_fix": false,
       "close_reason": "validated, merged 45c3b27: per-sample provenance on every row; additivity baseline resolved by content so the test survi"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.6",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 9d8ba28"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, landed as 9d8ba28 byte-identical to validated a2fd2b4: own_job_entry + fail-loud + tests live on master"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.5",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": true,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6.3",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": true,
+      "wont_fix": false,
+      "close_reason": "Closed"
     },
     {
       "id": "gpu-sim-u2o.17.5",
@@ -179,6 +467,413 @@
       "bare_close": false,
       "wont_fix": false,
       "close_reason": "validated, merged a1d0192: noise floor frozen as measurement_version 1, MDD note with per-correlation populations, fail-"
+    },
+    {
+      "id": "gpu-sim-u2o.6.5.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 517d773",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 517d773: 11 claims inventoried, 1 false fixed to -cudart=none, 17/17 checks + make check green"
+    },
+    {
+      "id": "gpu-sim-u2o.6.1.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 9cd34c5"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 9cd34c5: cgroup v2 pids.max containment verified firing, harness.md additive"
+    },
+    {
+      "id": "gpu-sim-u2o.11.6",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 19456c5"
+      ],
+      "disqualified_by": [
+        "cites scripts/bd-exp.sh, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 19456c5: protocol exists, used in production, close rule added"
+    },
+    {
+      "id": "gpu-sim-u2o.11.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: b8f9f8d",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged b8f9f8d: 1804-row corpus, census PASS, green"
+    },
+    {
+      "id": "gpu-sim-u2o.11.4",
+      "concrete": true,
+      "why": [
+        "resolvable commit: a4d821b",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged a4d821b: headline NO derived from 10.4 cells, ratios computed not typed"
+    },
+    {
+      "id": "gpu-sim-u2o.11.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 9edd327"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 9edd327: pipeline overfits real rows, control bit-exact"
+    },
+    {
+      "id": "gpu-sim-u2o.11.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: cf23d1e",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated on resubmission, merged cf23d1e: 9/10 with intruder named and test-pinned"
+    },
+    {
+      "id": "gpu-sim-u2o.10.4",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 1024abb"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 1024abb: packet acceptance met; blocker 10.3 is DEFERRED and its absence is 10.4's recorded gap #3, no"
+    },
+    {
+      "id": "gpu-sim-u2o.10.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 9c09804"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 9c09804: variance contract fixed, calibration machinery proven on real data"
+    },
+    {
+      "id": "gpu-sim-u2o.10.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: e7a06fc"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged e7a06fc: ranking verified vs scipy, real rank signal recorded"
+    },
+    {
+      "id": "gpu-sim-u2o.9.6",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 396931c"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 396931c: shared loop proven on real data, audit point closed"
+    },
+    {
+      "id": "gpu-sim-u2o.9.5",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 51df315"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 51df315: GBT baseline beats roofline on held-out template, green"
+    },
+    {
+      "id": "gpu-sim-u2o.9.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 598c1bd",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 598c1bd: three-way answered against transformer at this scale, GBT wins honestly reported"
+    },
+    {
+      "id": "gpu-sim-u2o.9.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 486c348"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 486c348: concat wins both triples, default stands"
+    },
+    {
+      "id": "gpu-sim-u2o.9.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: d37eec4"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged d37eec4: shared NLL-with-floor, loop corrected, no runs invalidated"
+    },
+    {
+      "id": "gpu-sim-u2o.8.4",
+      "concrete": true,
+      "why": [
+        "resolvable commit: f4cbfce"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged f4cbfce: ablation undecidable per pre-committed B, numbers exact, green"
+    },
+    {
+      "id": "gpu-sim-u2o.8.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 7c5e09b",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 7c5e09b: PTX/SASS over 3261 rows, join exact, green"
+    },
+    {
+      "id": "gpu-sim-u2o.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "done-in-fact: all leaves validated+closed including 8.4 honest negative; repr decision open on evidence, re-enters as ne"
+    },
+    {
+      "id": "gpu-sim-u2o.8.1",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7.3",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 1f0b2a3",
+        "comparison figure present"
+      ],
+      "disqualified_by": [
+        "cites tests/test_u2o71_records.py, which exists but is not a measurement artifact",
+        "cites epic_u2o/complete.md, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Rework complete and merged 1f0b2a3 (rebased onto master, 0 commits behind). Criterion 6 met: all 264 rows carry per-cell"
+    },
+    {
+      "id": "gpu-sim-u2o.7.2",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.6.6",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 874ca92",
+        "comparison figure present"
+      ],
+      "disqualified_by": [
+        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
+      ],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated r2, merged 874ca92: 456 noise targets, bias beside never in, green"
+    },
+    {
+      "id": "gpu-sim-u2o.7",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "done-in-fact: all stage leaves validated+closed; sole open child 7.8 is deferred-as-rejected-for-v1 (not pending), re-en"
+    },
+    {
+      "id": "gpu-sim-u2o.6.4",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": true,
+      "close_reason": "superseded: measurement program completed under the validated telemetry-gate strategy; clock-locking now would break com"
+    },
+    {
+      "id": "gpu-sim-u2o.6.5",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 53a3916"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 53a3916: 8 passes GPU-measured, 4 rejects kept out, preflight filter demonstrated"
+    },
+    {
+      "id": "gpu-sim-u2o.6.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 936ea4a"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 936ea4a: VRAM hunk restored on the preflight path with artifacts regenerated from the same tree; close"
+    },
+    {
+      "id": "gpu-sim-u2o.10.4.1",
+      "concrete": true,
+      "why": [
+        "existing artifact: experiments/gpu-sim-u2o.11.2/predictions.json",
+        "comparison figure present"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "neutral (kept=true) artifact: lab/gpu-sim-u2o.11.2:experiments/gpu-sim-u2o.11.2/predictions.json (57 rows, committed on "
+    },
+    {
+      "id": "gpu-sim-u2o.14",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 6ca037f"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated on rework, merged 6ca037f: registry fixed, metrics.json anchored, green"
+    },
+    {
+      "id": "gpu-sim-u2o.11.5",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 692994a"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 692994a: writeup fully sourced, drift-pinned, negatives as deliverable"
+    },
+    {
+      "id": "gpu-sim-u2o.7.4",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.7.5",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Closed"
+    },
+    {
+      "id": "gpu-sim-u2o.13.5",
+      "concrete": true,
+      "why": [
+        "resolvable commit: aabad87"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged aabad87: selector shipped tested, retrospective honestly negative, loop gated"
+    },
+    {
+      "id": "gpu-sim-u2o.13.2",
+      "concrete": true,
+      "why": [
+        "resolvable commit: b8f59de"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged b8f59de: spec schema shipped with sourced constants, training gated on second-GPU data"
+    },
+    {
+      "id": "gpu-sim-u2o.13.3",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 34adff2"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 34adff2: search machinery shipped tested, validation gated on measured multi-config data"
+    },
+    {
+      "id": "gpu-sim-u2o.13.4",
+      "concrete": true,
+      "why": [
+        "resolvable commit: e770881"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged e770881: measured medians wired in CI lane with fallback intact"
+    },
+    {
+      "id": "gpu-sim-u2o.13.1",
+      "concrete": true,
+      "why": [
+        "resolvable commit: 35245df"
+      ],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "validated, merged 35245df: entry gate machine-checked closed, design banked, no compute spent by design"
     }
   ],
   "query_coverage": {
@@ -189,8 +884,8 @@
       "--json"
     ],
     "primary_rc": 0,
-    "primary_rows": 154,
-    "primary_closed_rows": 76,
+    "primary_rows": 325,
+    "primary_closed_rows": 307,
     "independent_closed_query": [
       "bd",
       "list",
@@ -198,7 +893,7 @@
       "closed",
       "--json"
     ],
-    "independent_closed_rows": 76,
+    "independent_closed_rows": 307,
     "closed_beads_the_primary_query_MISSED": [],
     "coverage_proven": true,
     "note": "coverage is proven only when the primary query accounts for every closed bead an independent query reports. A query that cannot see closed beads cannot certify anything about closures."
