@@ -459,25 +459,30 @@ on every trace line; the sweep aggregates on `grank`.
 
 ```
 config     world  tp pp dp zero  step_ms  coll_msgs  coll_MB  comm_sim_ms  peak_MB  state_MB
-DP/ZeRO-1      4   1  1  4    1     14.6        149     86.1         0.93    627.2      52.4
-ZeRO-2         4   1  1  4    2     16.0         77     53.8         0.41    675.6      36.7
-ZeRO-3/FSDP    4   1  1  4    3     11.6          5     21.5         0.09    650.6      21.0
+DP/ZeRO-1      4   1  1  4    1     20.6        149    215.1         0.83    762.2      52.4
+ZeRO-2         4   1  1  4    2     25.1         77    215.1         0.37    810.6      36.7
+ZeRO-3/FSDP    4   1  1  4    3     32.2          5     86.1         0.08    785.6      21.0
 ```
 
-Same box, model, steps, fabric. Counts per grank 0 over the 2 measured steps;
-peak_MB is the measured `torch.cuda.max_memory_allocated` windowed like the
-trace (reset at measure_start); state_MB is the analytic sharded-state model
-(P + P + 2P sharded by stage; P = 21.0 MB fp32). Decomposition is exact:
-ZeRO-1 = 75 DP + 74 param-gathers + barrier (86.1 = 43.0 + 43.0 MB);
-ZeRO-2 = 2 reduce_scatter (5.4 MB shards) + 74 gathers + barrier;
-ZeRO-3 = 2 allgather + 2 reduce_scatter + barrier (5.4 MB each).
-P_actual moved is 21.5 MB, not 21.0: `param_count()` excludes pos/LN.
+Same box, model, steps, fabric, RE-MEASURED after gpu-sim-4x8 (the predictor and the
+trace now use TOTAL payloads for all-gather/reduce-scatter; before that fix both used the
+per-rank send count, so every coll_MB below was 4x smaller at dp=4 and every predicted
+sleep was 4x shorter -- the pre-fix table read 14.6/16.0/11.6 ms and 86.1/53.8/21.5 MB and
+is NOT comparable, which is why this table was redone rather than annotated).
+Counts per grank 0 over the measured steps; peak_MB is the measured
+`torch.cuda.max_memory_allocated` windowed like the trace (reset at measure_start);
+state_MB is the analytic sharded-state model (P + P + 2P sharded by stage; P = 21.0 MB
+fp32). Decomposition: ZeRO-1 = 37 allreduces + 37 param-gathers per step + barrier;
+ZeRO-2 = 1 reducescatter over the flat gradient + 37 gathers + barrier; ZeRO-3 = 1
+allgather + 1 reducescatter + barrier, all totals. P_actual moved is 21.5 MB, not 21.0:
+`param_count()` excludes pos/LN.
 
-The deliverable trade-off holds: per-rank traffic bytes fall with N
-(86.1 -> 53.8 -> 21.5) while step time rises 1 -> 2 (14.6 -> 16.0, the extra
-74 gathers). ZeRO-3 breaks the rising-time half: 11.6 ms, fastest of the
-three, because 4 collective launches replace 149 and the optimizer steps a
-shard. Stated, not fitted.
+The trade-off now reads plainly: ZeRO-1 pays two 37-message sweeps per step (215.1 MB
+total), ZeRO-2 pays one reduce-scatter plus the same 37 gathers (also 215.1), and ZeRO-3
+pays 5 collectives of the same totals (86.1) and steps a shard. On this model ZeRO-3 is
+not the fastest any more (32.2 ms vs 20.6), because each of its 5 collectives now sleeps a
+TOTAL-payload prediction instead of a shard-sized one -- the previous "ZeRO-3 is fastest"
+line was an artifact of the same understatement.
 
 Memory is the honest divergence this axis exists to show: measured peak
 barely moves (627/676/651 MB -- activations dominate, no ZeRO stage shards
