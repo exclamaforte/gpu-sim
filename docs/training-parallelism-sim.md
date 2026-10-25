@@ -23,11 +23,11 @@ cp=1 config (2,1,1,4,3) at 202.11 ms while the spec/topology path picks cp=2 (4,
 200.09 ms. So S_best is 16384 on the spec path and 32768 on the legacy path, and the 2 ms
 that decides it is inside the model's error. With the uncalibrated activation factor 1.0,
 FSDP survives 16384 at 48.7 GB and wins outright at 164.71 ms, which pushes S_best to 32768
-on BOTH paths. gpu-sim-54m now reads hw["act_factor"] in score() (so 1.0 vs 2.3 changes the
-memory number) and passes spec_path for the spec rows; its sweep shows S_best=16384 (spec) vs
-32768 (legacy) under act=2.3/crude, and 32768 on both paths under act=1.0. At N=16
-the legacy path gives 65536; the spec path is evaluated with specs/h100_rack_4node.json
-for N>=16. By seq 65536 (N=8)
+on BOTH paths. gpu-sim-54m's sweep reports 32768 everywhere because neither of its knobs is
+effective: score() does not read hw["act_factor"] (memory is 85.0 GB for {} and for
+{"act_factor": 1.0}) and its two path columns are byte-identical (bead reopened). At N=16
+the legacy path gives 65536; the spec path cannot be evaluated beyond N=8 with the 8-rank
+spec and needs specs/h100_rack_4node.json. By seq 65536 (N=8)
 only 7 configs are feasible and by 131072 none
 are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
