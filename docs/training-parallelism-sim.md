@@ -47,8 +47,10 @@ only 7 configs are feasible and by 131072 none
 are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
 cp_grad_mode and the act_factor alongside every threshold. At 70B on 32
-GPUs the answer is decided by MEMORY, not speed: (tp=2, pp=4, dp=4, zero=3) is the only cell
-that fits (1.6 s/step at seq 32768), and 70B on 8-16 GPUs is infeasible outright.
+GPUs the answer is still decided by MEMORY: only 6 of 161 configs fit at seq 32768, and the
+best of them is (tp=8, pp=4, cp=1, dp=1, zero=0) at 1.55 s/step and 60.6 GB (a pipeline over
+tp=8, not a dp-sharded optimizer -- with 70B the optimizer state per rank dominates before
+replication does). 70B on 8-16 GPUs is infeasible outright.
 
 **CONFIDENCE.** Validated on hardware: collective COUNTS (exact, 16 tp all-reduces + 24 cp
 K/V sends per rank per step), CP training correctness (loss and parameter equivalence), and
@@ -315,6 +317,15 @@ The sweep emits a topology blob for each world size
 (`tools/torch_parallel/topology.py`) and points `GPUSIM_TOPOLOGY` at it, so
 collectives are timed by the declared fabric. Without it they take the fallback
 path and carry `predicted_s: null` -- bytes but no cost.
+
+**Checking section 0 against the code.** `python3 scripts/check_docs_model_numbers.py`
+re-computes the numbers section 0 quotes (winners per N, the seq-32768 case, the
+S_best matrix, the model-size table), writes them to `docs/model_facts.json`, and fails
+if any decimal in that section is not a value the current model produces. Numbers the
+gate cannot derive (superseded pre-audit figures quoted for contrast) must be listed
+with a reason in `scripts/docs_model_numbers_grandfathered.txt`. It exists because four
+section-0 numbers went stale in one day (gpu-sim-a8x), each found by a human reading
+prose against code rather than by any test.
 
 Measured on this box (RTX 5090, 5.2M-parameter model, 5 steps, 2 discarded as
 warmup):

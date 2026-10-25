@@ -1,0 +1,8 @@
+# Numbers in docs section 0 that the current model does NOT produce, with the reason each
+# is allowed. Anything not listed here and not computed by scripts/check_docs_model_numbers.py
+# is a finding. Keep this file short: every entry is a claim the gate cannot verify.
+#
+# format: <value>  <reason>
+202.11   superseded pre-audit value, quoted in the S_best paragraph as what gpu-sim-54m reported BEFORE the DP audit (the sentence exists to explain the correction)
+200.09   same sentence, same reason
+73.06    superseded pre-audit FSDP step, quoted as "was claimed as pure FSDP pre-audit"
