@@ -492,31 +492,41 @@ on every trace line; the sweep aggregates on `grank`.
 ### ZeRO, same world size
 
 ```
-config     world  tp pp dp zero  step_ms  coll_msgs  coll_MB  comm_sim_ms  peak_MB  state_MB
-DP/ZeRO-1      4   1  1  4    1     20.6        149    215.1         0.83    762.2      52.4
-ZeRO-2         4   1  1  4    2     25.1         77    215.1         0.37    810.6      36.7
-ZeRO-3/FSDP    4   1  1  4    3     32.2          5     86.1         0.08    785.6      21.0
+config     world  tp pp dp zero  AR/step  AG/step  RS/step  MB/step   state_MB
+DP/ZeRO-1      4   1  1  4    1       37       37        0     43.03       52.4
+ZeRO-2         4   1  1  4    2        0       37        1     26.89       36.7
+ZeRO-3/FSDP    4   1  1  4    3        0        1        1     26.89       21.0
+DP/ZeRO-1      8   1  1  8    1       37       37        0     43.03       52.4
+ZeRO-2         8   1  1  8    2        0       37        1     24.20       36.7
+ZeRO-3/FSDP    8   1  1  8    3        0        1        1     24.20       21.0
 ```
 
-Same box, model, steps, fabric, RE-MEASURED after gpu-sim-4x8 (the predictor and the
-trace now use TOTAL payloads for all-gather/reduce-scatter; before that fix both used the
-per-rank send count, so every coll_MB below was 4x smaller at dp=4 and every predicted
-sleep was 4x shorter -- the pre-fix table read 14.6/16.0/11.6 ms and 86.1/53.8/21.5 MB and
-is NOT comparable, which is why this table was redone rather than annotated).
-Counts per grank 0 over the measured steps; peak_MB is the measured
-`torch.cuda.max_memory_allocated` windowed like the trace (reset at measure_start);
-state_MB is the analytic sharded-state model (P + P + 2P sharded by stage; P = 21.0 MB
-fp32). Decomposition: ZeRO-1 = 37 allreduces + 37 param-gathers per step + barrier;
-ZeRO-2 = 1 reducescatter over the flat gradient + 37 gathers + barrier; ZeRO-3 = 1
-allgather + 1 reducescatter + barrier, all totals. P_actual moved is 21.5 MB, not 21.0:
-`param_count()` excludes pos/LN.
+Same box, TinyLM 5.24M, 5 steps, fallback path, counts per grank 0 over the measured steps.
+**`step_ms` is deliberately absent**: at dp>1 on one GPU the ranks are time-sliced, so wall-clock
+in this table was never comparable -- the same dp=4 runs produced per-rank means from 5.3 ms to
+76.2 ms depending on which rank won the SliceHost scheduler. The earlier version of this table
+printed 20.6/25.1/32.2 ms and drew conclusions from their ORDER; that was noise. The deterministic
+columns tell the story instead, and they now hold at dp=4 AND dp=8 (dp=8 was previously
+unmeasurable -- see below).
 
-The trade-off now reads plainly: ZeRO-1 pays two 37-message sweeps per step (215.1 MB
-total), ZeRO-2 pays one reduce-scatter plus the same 37 gathers (also 215.1), and ZeRO-3
-pays 5 collectives of the same totals (86.1) and steps a shard. On this model ZeRO-3 is
-not the fastest any more (32.2 ms vs 20.6), because each of its 5 collectives now sleeps a
-TOTAL-payload prediction instead of a shard-sized one -- the previous "ZeRO-3 is fastest"
-line was an artifact of the same understatement.
+P = 21.5 MB of parameter bytes (fp32, `param_count()` excludes pos/LN). Every total is
+dp-independent except the reduce-scatter, which is a shard and therefore P/dp:
+
+  * all-reduce total = P at every dp (37 per-parameter all-reduces summing to one model);
+  * all-gather total = P at every dp (37 shard-gathers summing to one model);
+  * reduce-scatter total = P/dp (5.38 MB at dp=4, 2.69 MB at dp=8).
+
+Two structural consequences that survive every byte fix: **ZeRO-2 and ZeRO-3 move identical
+bytes** (26.89 MB at dp=4) -- the difference is 37 messages versus 1, i.e. alpha and peak memory,
+not volume; and ZeRO-1's extra cost is the 37-message all-reduce sweep on top of the same gather.
+
+**Two byte bugs had to be fixed before any of this was true** (gpu-sim-6wd-bytes, gpu-sim-smt3).
+The interposer's fallback path wrote and recorded `payload * (1 + floor(log2 n)/2)` bytes (see
+below) -- an out-of-bounds fill -- and the harness's own ZeRO param gather sent the FULL parameter
+and received dp copies instead of sending the shard and receiving the parameter, so it moved dp x
+the bytes a real gather moves. Both are the same dp x / n x species of error the COST MODEL had
+before gpu-sim-6r5, one layer down. Before the harness fix, all-gather read 86.06 MB/step at dp=4
+and 172.11 at dp=8 (x4 and x8 P); after it, 21.51 at both.
 
 **The remaining DP byte puzzle was a BUG, not an accounting convention
 (gpu-sim-6wd-bytes).** For a long time the DP traces could not be reconciled: a

@@ -522,11 +522,22 @@ def main() -> int:
             # into scratch and DISCARDED: the interposer moves no payload, so
             # copying the buffer back would corrupt good local params with
             # uninitialized memory (same reason PP never reads what it recvs).
+            # gpu-sim-smt3: this used to SEND THE FULL PARAM and receive dp copies
+            # of it (`buf = numel*dp`, `input = prm.contiguous()`), which satisfies
+            # all_gather_into_tensor's contract but moves dp x the bytes a real ZeRO
+            # param gather moves -- the same dp x error the COST MODEL had before
+            # gpu-sim-6r5, mirrored in the harness. A real gather sends each rank's
+            # SHARD (numel/dp) and receives the full param (numel):
             for prm in model.parameters():
                 if prm.grad is not None:
-                    buf = torch.empty(prm.numel() * dp, device="cuda",
+                    flat = prm.reshape(-1)
+                    pad = (-flat.numel()) % dp
+                    if pad:
+                        flat = torch.cat([flat, flat.new_zeros(pad)])
+                    shard = flat.chunk(dp)[rank]
+                    buf = torch.empty(flat.numel(), device="cuda",
                                       dtype=prm.dtype)
-                    dist.all_gather_into_tensor(buf, prm.contiguous(),
+                    dist.all_gather_into_tensor(buf, shard.contiguous(),
                                                 group=dp_group)
         torch.cuda.synchronize()
 
