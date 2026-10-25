@@ -1,22 +1,11 @@
 {
   "bead": "gpu-sim-u2o.15",
   "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-  "produced_at_utc": "2026-10-25T12:15:33.884138+00:00",
+  "produced_at_utc": "2026-10-25T12:16:48.088887+00:00",
   "scope_label": "fab-audit-reopened",
   "beads_in_scope": 76,
   "closed_in_scope": 66,
   "violations": [
-    {
-      "id": "gpu-sim-u2o.6.10",
-      "concrete": false,
-      "why": [],
-      "disqualified_by": [
-        "cites commit 9816875f, which this repository does not have"
-      ],
-      "bare_close": false,
-      "wont_fix": false,
-      "close_reason": "Supervised single-dose validation complete: all 8 PI-authored acceptance criteria met on the criterion-7 re-run against "
-    },
     {
       "id": "gpu-sim-u2o.6.8",
       "concrete": false,
@@ -49,24 +38,6 @@
       "bare_close": false,
       "wont_fix": false,
       "close_reason": ""
-    },
-    {
-      "id": "gpu-sim-u2o.6.6.5",
-      "concrete": false,
-      "why": [],
-      "disqualified_by": [],
-      "bare_close": true,
-      "wont_fix": false,
-      "close_reason": "Closed"
-    },
-    {
-      "id": "gpu-sim-u2o.6.6.3",
-      "concrete": false,
-      "why": [],
-      "disqualified_by": [],
-      "bare_close": true,
-      "wont_fix": false,
-      "close_reason": "Closed"
     },
     {
       "id": "gpu-sim-u2o.8",
@@ -211,8 +182,10 @@
     },
     {
       "id": "gpu-sim-u2o.6.10",
-      "concrete": false,
-      "why": [],
+      "concrete": true,
+      "why": [
+        "existing artifact: experiments/gpu-sim-u2o.6.10/gate_evidence_step2.json"
+      ],
       "disqualified_by": [
         "cites commit 9816875f, which this repository does not have"
       ],
@@ -419,19 +392,23 @@
     },
     {
       "id": "gpu-sim-u2o.6.6.5",
-      "concrete": false,
-      "why": [],
+      "concrete": true,
+      "why": [
+        "existing artifact: experiments/gpu-sim-u2o.6.6.5/metrics.json"
+      ],
       "disqualified_by": [],
-      "bare_close": true,
+      "bare_close": false,
       "wont_fix": false,
       "close_reason": "Closed"
     },
     {
       "id": "gpu-sim-u2o.6.6.3",
-      "concrete": false,
-      "why": [],
+      "concrete": true,
+      "why": [
+        "existing artifact: experiments/gpu-sim-u2o.6.6.3/metrics.json"
+      ],
       "disqualified_by": [],
-      "bare_close": true,
+      "bare_close": false,
       "wont_fix": false,
       "close_reason": "Closed"
     },
