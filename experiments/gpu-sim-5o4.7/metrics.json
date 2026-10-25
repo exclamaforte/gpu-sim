@@ -11,7 +11,9 @@
     "steps": 5,
     "warmup": 2,
     "measured_steps_windowed": 3,
-    "measured_steps_total": 5
+    "measured_steps_total": 5,
+    "measured_steps_complete_collectives": 2,
+    "window_note": "measured_steps_windowed=3 is the wall-clock window (steps 5, warmup 2); only 2 of those steps have all their collective records inside the trace window (33 ar = 1 init + 2*16). Counts are normalised by 2, the fully captured steps; the 3rd step sits on the window boundary."
   },
   "shape": {
     "vocab": 4096,
@@ -45,7 +47,7 @@
     "tp_allreduce_per_rank_per_step_plan": 16,
     "cp_send_per_rank_per_step": 24,
     "cp_send_per_rank_per_step_plan": 24,
-    "derivation": "windowed ar msgs per rank = 33 over the measured window; 33 = 1 + 2*16, so the first record is a warmup/init all-reduce outside the measured steps and the remaining 32 split as 16 per measured step (2 measured steps captured cleanly). send msgs = 48 = 2*24 over 2 steps. Total-based counts (81/5=16.2, 120/5=24.0) agree. Divisor used: 2 measured steps, not 3 (the window straddles measure_start)."
+    "derivation": "windowed ar msgs per rank = 33 over the measured window; 33 = 1 + 2*16, so the first record is a warmup/init all-reduce outside the measured steps and the remaining 32 split as 16 per measured step (2 measured steps captured cleanly). send msgs = 48 = 2*24 over 2 steps. Total-based counts (81/5=16.2, 120/5=24.0) agree. Divisor used: 2 measured steps, not 3 (the window straddles measure_start). Divisor is 2 fully-captured steps (plan.measured_steps_complete_collectives), NOT the 3 steps of the wall window."
   },
   "H1_TP": {
     "plan_bytes_per_step": 2097152,
