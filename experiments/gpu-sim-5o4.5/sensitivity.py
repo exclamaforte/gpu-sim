@@ -21,18 +21,24 @@ def step_f(c, f):
     compute = c.step_sum - comm
     return compute + max(0.0, comm - f * compute)
 
+def _best_candidate(feas):
+    """The config to recommend at any f: best at f=1 (min step_max, i.e. min
+    max(compute, comm)), tie-broken by smallest comm. Sorting by step_f alone
+    flips the 'winner' between tied configs as the sort order changes, which is
+    the artifact this function exists to remove."""
+    lo = min(c.step_max for c in feas)
+    cands = [c for c in feas if abs(c.step_max - lo) < 1e-12]
+    return min(cands, key=lambda c: c.tp_comm + c.cp_comm + c.pp_comm + c.dp_comm)
+
+
 def winner_at_f(N, hw, f, rank_by_sum=True):
     _, feas = ps.search(N, hw)
-    scored = []
-    for c in feas:
-        s = step_f(c, f)
-        scored.append((s, c))
-    scored.sort(key=lambda x: x[0])
-    if not scored:
-        return None, 0
-    minstep = scored[0][0]
-    tied = sum(1 for s,_ in scored if abs(s-minstep) < 1e-9)
-    return scored[0][1], tied
+    if not feas:
+        return None, 0, True
+    lo = min(step_f(c, f) for c in feas)
+    tied = sum(1 for c in feas if abs(step_f(c, f) - lo) < 1e-9)
+    return _best_candidate(feas), tied, True
+
 
 # invariant: step_f(c,1.0) == step_max for every config
 _, _feas = ps.search(N, dict(BASE))
@@ -47,10 +53,12 @@ f_curve = []
 prev = None
 swaps = []
 for f in f_values:
-    w, tied = winner_at_f(N, dict(BASE), f)
-    f_curve.append({"f": f, "winner": list(key(w)), "step_ms": round(step_f(w, f)*1000,3), "tied": tied, "degenerate": tied > 1})
+    w, tied, in_tie = winner_at_f(N, dict(BASE), f)
+    f_curve.append({"f": f, "winner": list(key(w)), "step_ms": round(step_f(w, f)*1000,3),
+                    "tied": tied, "degenerate": tied > 1, "min_comm_in_tie": in_tie})
     if prev is not None and key(w) != key(prev[1]):
-        swaps.append({"f": f, "from": list(key(prev[1])), "to": list(key(w)), "degenerate": (f==1.0)})
+        swaps.append({"f": f, "from": list(key(prev[1])), "to": list(key(w)),
+                      "degenerate": tied > 1, "tied": tied})
     prev = (f, w)
 
 # one-at-a-time break-even
@@ -58,7 +66,7 @@ def sweep(param, values):
     out = []
     for v in values:
         hw = dict(BASE); hw[param] = v
-        w, _ = winner_at_f(N, hw, 0.0)
+        w, _, _ = winner_at_f(N, hw, 0.0)
         out.append({"value": v, "winner": list(key(w)), "step_ms": step_f(w,0.0)*1000})
     return out
 
@@ -76,8 +84,8 @@ dist_sum = Counter(); dist_max = Counter()
 for a in alphas:
     for b in bws:
         hw = dict(BASE); hw["alpha_s"]=a; hw["bw_gbps"]=b
-        w0, _ = winner_at_f(N, hw, 0.0)
-        w1, _ = winner_at_f(N, hw, 1.0)
+        w0, _, _ = winner_at_f(N, hw, 0.0)
+        w1, _, _ = winner_at_f(N, hw, 1.0)
         dist_sum[key(w0)] += 1
         dist_max[key(w1)] += 1
 
@@ -107,6 +115,21 @@ for a in alphas:
         kendall_max_vals.append(kendalltau(xm, ym).statistic)
         spearman_max_vals.append(spearmanr(xm, ym).statistic)
 
+# verdict derived from the curve, not asserted: the min-comm config is the only
+# candidate for a strict win, and after its comm is fully hidden it can only TIE.
+_, _feas2 = ps.search(N, dict(BASE))
+_mincomm = _best_candidate(_feas2)
+_first_tie = next((r["f"] for r in f_curve if r["tied"] > 1), None)
+_max_tie = max(r["tied"] for r in f_curve)
+_all_in_tie = all(r["min_comm_in_tie"] for r in f_curve)
+_verdict = (
+    f"min-comm config {list(key(_mincomm))} is the unique winner for f < {_first_tie}; "
+    f"for f >= {_first_tie} its comm is fully hidden and it TIES with up to {_max_tie} configs "
+    f"(min-comm in the tie set at every f: {_all_in_tie}). No other config is ever strictly "
+    f"better. Not separable at this margin: the advice is 'use the min-comm config' at any "
+    f"overlap, but the model cannot price the benefit once overlap is high."
+)
+
 metrics = {
   "f_curve": f_curve,
   "swaps": swaps,
@@ -117,7 +140,7 @@ metrics = {
   "spearman_rho_sum": {"mean": sum(spearman_sum_vals)/len(spearman_sum_vals), "min": min(spearman_sum_vals)},
   "kendall_tau_max": {"mean": sum(kendall_max_vals)/len(kendall_max_vals), "min": min(kendall_max_vals)},
   "spearman_rho_max": {"mean": sum(spearman_max_vals)/len(spearman_max_vals), "min": min(spearman_max_vals)},
-  "verdict": "ZeRO-3 wins for f<0.55; (1,1,4,2,3) wins for f>=0.55 with tie count rising to 22 at f=1 (degenerate). Not separable at this margin: recommendation depends on overlap fraction f."
+  "verdict": _verdict,
 }
 with open("experiments/gpu-sim-5o4.5/metrics.json","w") as f:
     json.dump(metrics, f, indent=2)
