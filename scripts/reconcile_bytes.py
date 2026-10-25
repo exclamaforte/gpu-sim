@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Model-vs-harness byte reconciliation (gpu-sim-wrvw).
 
-Reads a harness trace (JSONL), sums bytes per collective family, normalises by
-steps and batch, and compares against comm_bytes() from epic_cluster.parallelism_search.
+Reads a harness trace (JSONL), sums bytes per op, normalises by steps*batch,
+and compares against comm_bytes() from epic_cluster.parallelism_search.
 Prints model/measured ratios; flags any outside [0.95, 1.05].
 """
 import argparse, json, os, sys
@@ -11,14 +11,6 @@ from collections import defaultdict
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
 from epic_cluster import parallelism_search as ps
-
-FAMILIES = {
-    "allreduce": "tp_allreduce",
-    "allgather": "dp_allgather",
-    "reducescatter": "dp_reducescatter",
-    "send": "pp_sendrecv",
-    "recv": "pp_sendrecv",
-}
 
 
 def read_trace(path):
@@ -45,7 +37,6 @@ def main():
     args = ap.parse_args()
 
     rows = read_trace(args.trace)
-    # Sum bytes per op family (rank 0 only to avoid double counting)
     meas = defaultdict(int)
     for r in rows:
         if r.get("rank", 0) != 0:
@@ -53,35 +44,37 @@ def main():
         op = r.get("op", "")
         meas[op] += int(r.get("bytes") or 0)
 
-    # Normalise by steps (approx: divide by steps) and batch (model assumes 1 seq)
-    # Measured trace covers `steps` steps * `batch` sequences.
     norm = args.steps * args.batch if args.steps * args.batch > 0 else 1
 
-    hw = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100"}
+    hw = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
+          "tp_payload": "four_d", "dp_dtype": "bf16"}
     m = ps.MODEL
     model = ps.comm_bytes(args.tp, args.pp, args.cp, args.dp, args.zero, hw, m)
 
-    print(f"{'family':<20} {'model_bytes':>14} {'meas_bytes':>14} {'ratio':>8}")
-    print("-" * 60)
-    # Aggregate measured by family
-    meas_family = defaultdict(int)
-    for op, b in meas.items():
-        fam = FAMILIES.get(op, op)
-        meas_family[fam] += b
+    op_model = defaultdict(int)
+    op_model["allreduce"] += model.get("tp_allreduce", 0)
+    op_model["allreduce"] += model.get("cp_grad_sync", 0)
+    op_model["allreduce"] += model.get("dp_allreduce", 0)
+    op_model["allgather"] += model.get("dp_allgather", 0)
+    op_model["reducescatter"] += model.get("dp_reducescatter", 0)
+    # cp_exchange and pp_sendrecv map to send/recv
+    ce = model.get("cp_exchange", 0)
+    psr = model.get("pp_sendrecv", 0)
+    op_model["send"] += ce // 2 + psr // 2
+    op_model["recv"] += ce // 2 + psr // 2
 
-    for fam in ["tp_allreduce", "cp_exchange", "cp_grad_sync", "pp_sendrecv",
-                "dp_allreduce", "dp_allgather", "dp_reducescatter"]:
-        mb = model.get(fam, 0)
-        raw = meas_family.get(fam, 0)
+    print(f"{'op':<16} {'model_bytes':>14} {'meas_bytes':>14} {'ratio':>8}")
+    print("-" * 56)
+    for op in ["allreduce", "allgather", "reducescatter", "send", "recv"]:
+        mb = op_model.get(op, 0)
+        raw = meas.get(op, 0)
         meas_norm = raw // norm if norm > 0 else raw
         if mb == 0 and meas_norm == 0:
-            print(f"{fam:<20} {mb:>14} {meas_norm:>14} {'n/a':>8}")
+            print(f"{op:<16} {mb:>14} {meas_norm:>14} {'n/a':>8}")
             continue
         ratio = (meas_norm / mb) if mb > 0 else float("inf")
         flag = "" if (0.95 <= ratio <= 1.05) else "  <-- OUT OF RANGE"
-        print(f"{fam:<20} {mb:>14} {meas_norm:>14} {ratio:>8.3f}{flag}")
-
-    print(f"\n{'total':<20} {model['total']:>14}")
+        print(f"{op:<16} {mb:>14} {meas_norm:>14} {ratio:>8.3f}{flag}")
 
 
 if __name__ == "__main__":

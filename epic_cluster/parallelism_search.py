@@ -495,14 +495,11 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
         if zero_level <= 1:
             out["dp_allreduce"] += int(_P_bytes)
         elif zero_level == 2:
-            out["dp_reducescatter"] += int(_P_bytes)
+            out["dp_reducescatter"] += int(_P_bytes * dp)
         else:
-            out["dp_reducescatter"] += int(_P_bytes)
-        # all_gather of params for zero>=? (FSDP gathers params)
-        if zero_level >= 2:
-            out["dp_allgather"] += int(_P_bytes)
-        else:
-            out["dp_allgather"] += int(_P_bytes)
+            out["dp_reducescatter"] += int(_P_bytes * dp)
+        # all_gather of params: score charges it for all zero levels; trace records count*nr*elem
+        out["dp_allgather"] += int(_P_bytes * dp)
 
     out["total"] = sum(v for k, v in out.items() if k != "total")
     return out
