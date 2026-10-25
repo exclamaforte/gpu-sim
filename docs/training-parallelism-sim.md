@@ -22,7 +22,7 @@ The correction is validated by the two pricing paths converging: at N=8 the spec
 **92.85 ms** against the legacy path's **90.19 ms** (0.4% apart; before the fix they were 79.96 vs
 90.19, 15% apart). Consequences are NOT cosmetic:
 
-  * N=8 keeps (tp=4 pp=1 cp=2 dp=1 z0) but 94.12 ms instead of 79.96, and the best dp>1 row is now
+  * N=8 keeps (tp=4 pp=1 cp=2 dp=1 z0) but 92.85 ms instead of 79.96, and the best dp>1 row is now
     (tp=4 pp=1 cp=1 dp=2 z2) at 104.38 ms;
   * **N=16 FLIPS**: the winner is (tp=1 pp=4 cp=1 dp=4 z2/z3) at 66.86 ms, i.e. NO tensor
     parallelism -- the same shape that won at N=32 all along (now 55.54 ms);
@@ -230,7 +230,7 @@ params over cp ranks, so cp rows drop behind the dp=8 rows; the best cp>1 row at
 FSDP zero=3 second (historical). **Correction: S_best does not depend on how the cp sync is modelled, but the SHAPE of the winner
 does.** With the production variant (cp_grad_mode="production") the winner at N=8 is
 (tp=2 pp=1 cp=4 dp=1 z0) at 84.28 ms against the crude answer's (tp=4 pp=1 cp=2 dp=1 z0) at
-94.12 ms -- different tp AND different cp (production now charges RS+AG per flat bucket, gpu-sim-juzb,
+92.85 ms -- different tp AND different cp (production now charges RS+AG per flat bucket, gpu-sim-juzb,
 so its cp_grad is 6.93 ms against the crude all-reduce's 9.24 ms). Both put CP in the winner at 8192, which is what "CP pays
 at 8192" claims, but quoting one config as THE answer without its cp_grad_mode is wrong. The
 published answer is the CRUDE (conservative) one, and this is the second knob after act_factor that
@@ -793,7 +793,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 
 | claim | status | evidence | guard |
 |---|---|---|---|
-| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 94.12 ms; margin 6.42% at the implied MFU, 4.01% at 40% | tests/test_fragility_map.py |
+| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 92.85 ms; margin 10.09% at the implied MFU, 4.01% at 40% | tests/test_fragility_map.py |
 | Same config at seq 16384 / 32768 | **TIE** | margin only 1.84% / 1.60% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
 | N=16 winner (tp=1 pp=4 cp=1 dp=4 z2), seq 8192 | **TIE** | 0.79% at 40% MFU; flips below MFU 0.310 | tests/test_mfu_sensitivity.py |
 | N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (1,2,1,8) at 40%, margins 2.30% / 1.50% | tests/test_fragility_map.py |
