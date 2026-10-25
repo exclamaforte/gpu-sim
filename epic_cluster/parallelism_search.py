@@ -118,6 +118,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # recompute knob reduces activation term (gpu-sim-ooj): none=store all,
     # selective=recompute attention (store residuals only), full=recompute all.
     recompute = hw.get("recompute", "none")
+    # gpu-sim-qk9: DP/FSDP comm audit knobs
+    dp_dtype_str = "bfloat16" if hw.get("dp_dtype", "bf16") == "bf16" else "float32"
+    dp_count_mode = hw.get("dp_count_mode", "flat")  # "flat" or "per_param"
 
     # params per gpu: ZeRO-3 shards params across dp
     params_per_gpu = P / (tp * pp)
@@ -232,7 +235,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
         msg_count = d * seq_per_cp
         if spec is not None:
             group = [((0 * tp + t) * cp + 0) * dp + 0 for t in range(tp)]
-            pred = link_model.predict(spec, "ring_allreduce", msg_count, "float32", ranks=group, pieces_per_phase=1)
+            pred = link_model.predict(spec, "ring_allreduce", msg_count, "bfloat16", ranks=group, pieces_per_phase=1)
             tp_comm = m["n_layers"] * 4 * pred["duration_s"]
             tp_kind = pred["bottleneck"]["kind"]
         else:
@@ -277,11 +280,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
         if spec is not None:
             group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
             if algo == "allreduce":
-                pred = link_model.predict(spec, "ring_allreduce", int(msg_bytes // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                pred = link_model.predict(spec, "ring_allreduce", int(msg_bytes // dtype_bytes), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 cp_grad = pred["duration_s"]
                 cp_grad_kind = pred["bottleneck"]["kind"]
             else:
-                pred = link_model.predict(spec, "ring_reduce_scatter", int(msg_bytes // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                pred = link_model.predict(spec, "ring_reduce_scatter", int(msg_bytes // dtype_bytes), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 cp_grad = pred["duration_s"]
                 cp_grad_kind = pred["bottleneck"]["kind"]
         else:
@@ -312,29 +315,45 @@ def score(tp, pp, cp, dp, zero, hw, m):
             pred = nccl_cost.predict("sendrecv", 2, act_size, fabric=fabric)
             pp_comm = microbatches * 2 * (pp - 1) * pred.total_s
 
-    # DP/FSDP comm
+    # DP/FSDP comm (gpu-sim-qk9: audited)
+    # Named scheme: production ZeRO semantics:
+    #   zero<=1 (DDP/ZeRO-1): all_reduce of grads only (grads stay full; params stay full)
+    #   zero==2 (ZeRO-2):      reduce_scatter of grads only (grads sharded; params stay full)
+    #   zero>=3 (ZeRO-3/FSDP): reduce_scatter of grads + all_gather of params
+    # Payload dtype: bf16 (dtype_bytes) by default; fp32 only if implementation upcasts.
+    # Count: "flat" (one collective per op, production/bucketed) by default.
+    #        "per_param" multiplies latency by ~N_param_tensors (harness upper bound).
     dp_comm = 0.0
     dp_kind = None
     if dp > 1:
         if spec is not None:
             if zero <= 1:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                pred = link_model.predict(spec, "ring_allreduce", int(grads_per_gpu), "float32", ranks=group, pieces_per_phase=1)
+                pred = link_model.predict(spec, "ring_allreduce", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                dp_comm = pred["duration_s"]
+                dp_kind = pred["bottleneck"]["kind"]
+            elif zero == 2:
+                group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
+                pred = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 dp_comm = pred["duration_s"]
                 dp_kind = pred["bottleneck"]["kind"]
             else:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), "float32", ranks=group, pieces_per_phase=1)
-                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu), "float32", ranks=group, pieces_per_phase=1)
+                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 dp_comm = p1["duration_s"] + p2["duration_s"]
                 dp_kind = p1["bottleneck"]["kind"]
         else:
+            _dpb = 2 if dp_dtype_str == "float32" else 1
             if zero <= 1:
-                pred = nccl_cost.predict("allreduce", dp, int(grad_bytes), fabric=fabric)
+                pred = nccl_cost.predict("allreduce", dp, int(grad_bytes * _dpb), fabric=fabric)
+                dp_comm = pred.total_s
+            elif zero == 2:
+                pred = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
                 dp_comm = pred.total_s
             else:
-                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes), fabric=fabric)
-                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes), fabric=fabric)
+                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes * _dpb), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
 
     comms = tp_comm + cp_comm + cp_grad + pp_comm + dp_comm
