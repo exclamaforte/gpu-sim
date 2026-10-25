@@ -1,0 +1,168 @@
+{
+  "S2048": {
+    "winner": {
+      "tp": 2,
+      "pp": 1,
+      "cp": 4,
+      "dp": 1,
+      "zero": 0,
+      "step_ms": 17.39
+    },
+    "top5": [
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 17.39
+      },
+      {
+        "tp": 4,
+        "pp": 1,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 18.99
+      },
+      {
+        "tp": 1,
+        "pp": 2,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 21.66
+      },
+      {
+        "tp": 8,
+        "pp": 1,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 22.48
+      },
+      {
+        "tp": 2,
+        "pp": 2,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 23.65
+      }
+    ]
+  },
+  "S8192": {
+    "winner": {
+      "tp": 2,
+      "pp": 1,
+      "cp": 4,
+      "dp": 1,
+      "zero": 0,
+      "step_ms": 77.57
+    },
+    "top5": [
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 77.57
+      },
+      {
+        "tp": 4,
+        "pp": 1,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 84.54
+      },
+      {
+        "tp": 8,
+        "pp": 1,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 98.76
+      },
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 2,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 102.34
+      },
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 4,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 104.22
+      }
+    ]
+  },
+  "S32768": {
+    "winner": {
+      "tp": 2,
+      "pp": 1,
+      "cp": 4,
+      "dp": 1,
+      "zero": 0,
+      "step_ms": 468.35
+    },
+    "top5": [
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 468.35
+      },
+      {
+        "tp": 4,
+        "pp": 1,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 496.79
+      },
+      {
+        "tp": 8,
+        "pp": 1,
+        "cp": 1,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 553.96
+      },
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 4,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 680.8
+      },
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 4,
+        "dp": 2,
+        "zero": 2,
+        "step_ms": 690.04
+      }
+    ]
+  },
+  "attention_flops_formula": "12 * L * S^2 * d / (cp * tp) (fwd+bwd, scores recomputed in bwd; fwd=4*L*S^2*d)",
+  "recompute_knob": {
+    "default": "none",
+    "options": [
+      "none",
+      "full",
+      "selective"
+    ],
+    "none_reproduces_current": true
+  }
+}

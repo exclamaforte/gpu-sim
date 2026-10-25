@@ -131,6 +131,19 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # compute
     tokens_per_gpu = seq / (cp * dp)  # batch 1 sequence
     flops_per_gpu = 6 * (P / (tp * pp)) * tokens_per_gpu
+    # attention FLOPs (fwd+bwd): 12 * L * S^2 * d / (cp * tp)
+    # fwd: QK^T (2*S^2*d) + softmax + AV (2*S^2*d) = 4*S^2*d per layer; *L
+    # bwd: ~3x fwd (recompute scores) => 12*L*S^2*d total, sharded by cp (queries) and tp (heads)
+    attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (cp * tp)
+    flops_per_gpu = flops_per_gpu + attn_flops
+    # recompute knob
+    recompute = hw.get("recompute", "none")
+    if recompute == "full":
+        # full recompute: extra forward pass of weights + attention
+        flops_per_gpu = flops_per_gpu + (6 * (P / (tp * pp)) * tokens_per_gpu) + attn_flops
+    elif recompute == "selective":
+        # selective: recompute attention only
+        flops_per_gpu = flops_per_gpu + attn_flops
     compute = flops_per_gpu / peak
     # PP bubble (GPipe): bubble = (pp-1)/(micro_batches+pp-1) of compute
     if pp > 1:
