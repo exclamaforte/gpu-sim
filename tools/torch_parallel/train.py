@@ -88,7 +88,7 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--d-model", type=int, default=256)
     p.add_argument("--layers", type=int, default=4)
     p.add_argument("--cp-grad-sync", type=str, default="reducescatter", choices=["allreduce", "reducescatter"],
-                   help="cp gradient sync mode: allreduce (crude, default) or reducescatter (production)")
+                   help="cp gradient sync mode: allreduce (crude) or reducescatter (equivalence-preserving; same byte cost as allreduce in this harness because all_gather reconstructs full grad; true production reduce-scatter needs sharded optimizer)")
     p.add_argument("--optim", type=str, default="adamw", choices=["adamw", "sgd"],
                    help="optimizer; sgd exposes gradient-scale bugs AdamW's adaptivity hides")
     p.add_argument("--lr", type=float, default=1e-4,
