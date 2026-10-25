@@ -219,7 +219,7 @@ to make with this harness, which is why they are separate columns.
 | NCCL interposer | `src/fakegpu_nccl.c`, `shim/nccl.h` | 68 symbols — now the **full set torch references** (see §4) |
 | NCCL-only build | `libfakenccl.so` + `shim/exports_nccl.map` | exports only `nccl*`, so torch computes on the real GPU with fake collectives |
 | Trace emission | `fg_nccl_trace`, `GPUSIM_TRACE=<path>` | JSONL, one line per collective per rank |
-| Fabric cost model | `epic_cluster/link_model.py` | predicts collective duration from a declared topology; measured for n=2, refuses n≥3 without explicit `pieces_per_phase` |
+| Fabric cost model | `epic_cluster/link_model.py` | predicts collective duration from a declared topology; measured for n=2, refuses n≥3 without explicit `pieces_per_phase`. ALPHA ACCOUNTING (gpu-sim-8nt, kept=false): alpha is charged PER LOGICAL TRANSFER by the model (every `search()` call site passes `pieces_per_phase=1`), PER CALL by the harness (blocking `dist.send`/`dist.recv`, one call per peer per microbatch, no isend/grouping), and PER PIECE by a real NIC (the measured pkb table gives P=4-8 for payloads ≥256 KiB). The three agree only because the harness never chunks -- the model therefore UNDER-charges alpha for large payloads by P relative to real framing. Do not read the model/harness agreement as a validation of network semantics. |
 | Torch harness | `tools/torch_parallel/` | runs a real transformer; DP, TP and PP axes; sweeps and summarises |
 | Rack planner (analytic) | `cy0_l1..l4.py` | pre-existing FLOP/roofline planner; **separate track**, not used by the harness |
 
