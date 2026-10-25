@@ -358,8 +358,15 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 pred2 = nccl_cost.predict("allgather", dp, int(param_bytes * _dpb), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
 
-    if dp_count_mode == "per_param" and dp_comm > 0:
-        dp_comm = dp_comm * dp_param_tensors
+    if dp_count_mode == "per_param" and dp_comm > 0 and dp_param_tensors > 1:
+        if spec is not None:
+            _probe = link_model.predict(spec, "ring_allreduce", 1, dp_dtype_str,
+                                       ranks=list(range(dp)), pieces_per_phase=1)
+            _per_lat = _probe["duration_s"]
+        else:
+            _probe = nccl_cost.predict("allreduce", dp, 1, fabric=fabric)
+            _per_lat = _probe.total_s
+        dp_comm = dp_comm + (dp_param_tensors - 1) * _per_lat
     comms = tp_comm + cp_comm + cp_grad + pp_comm + dp_comm
     step_compute = compute + bubble
     step_sum = step_compute + comms
