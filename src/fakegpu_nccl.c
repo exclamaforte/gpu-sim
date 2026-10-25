@@ -930,7 +930,7 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
         double pred = fg_nccl_predict(t, "ring_reduce_scatter", rc * (size_t)nr, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = rc * (size_t)nr * fg_dtype_size(datatype);
-        fg_nccl_out_fill(recvbuff, bytes);
+        fg_nccl_out_fill(recvbuff, rc * fg_dtype_size(datatype));  /* recvbuf is the shard */
         fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime);
         return ncclSuccess;
     }
