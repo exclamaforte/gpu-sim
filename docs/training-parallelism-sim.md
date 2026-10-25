@@ -31,7 +31,13 @@ all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the winner is p
 73.05 ms on the legacy single-fabric path, the same 0.013 ms path delta as 5o4.5 reported), with tp=2 cp=4
 second at 64.23 ms weight-only. gpu-sim-olg (P1) adds the CP gradient sync (8jg) to the cost model:
 every cp>1 row pays a full all-reduce of P/(tp*pp) params over cp ranks (+9 to +55 ms at cp=2/4),
-so cp rows drop well behind FSDP; the winner stays pure FSDP at N=8/16/32. cp>1 configs
+so cp rows drop well behind FSDP; the winner stays pure FSDP at N=8/16/32 (36.81 ms at N=16,
+18.48 ms at N=32 for 8B/8192). The runner-up at N=8 is now (tp=2, pp=1, cp=1, dp=4, zero=3)
+at 91.37 ms, and the recommendation does not depend on how the cp sync is modelled: with the
+production reduce-scatter variant (cp_grad_mode="production") the tp=2 cp=4 row comes back to
+81.03 ms, still behind FSDP's 73.05 ms. What DOES depend on it is the size of the CP penalty
+(+27.7 ms crude vs +3.5 ms production at tp=2 cp=4), which is why the harness must state
+which sync it does before any CP claim is quoted. cp>1 configs
 still appear in the top-5 by step_sum because several tie at the max-overlap floor (e.g. N=8
 top-5 includes (4,1,2,1,0) at 93.77 ms with cp_grad 9.24 ms), but none is strictly better than
 FSDP. See experiments/gpu-sim-olg/top5.json. But ALL 24 feasible pp=1 configurations have identical
