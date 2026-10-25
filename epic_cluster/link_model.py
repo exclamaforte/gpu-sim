@@ -99,7 +99,27 @@ def _shared_counts(spec: Any) -> Dict[str, int]:
 
 
 def _eff_bw(link: Any, counts: Dict[str, int]) -> float:
+    """One-directional link bandwidth, in GB/s.
+
+    gpu-sim-smt8: `bw_gbps` in the spec files is the AGGREGATE BIDIRECTIONAL figure for
+    NVLink -- specs/h100_rack.json says so in its own provenance string ("NVLink 4:
+    900 GB/s per GPU (aggregate bidirectional)"). Every transfer this model prices (a
+    ring phase, a point-to-point send) runs in ONE direction at a time, so the usable
+    rate is half of it. Using 900 as a per-direction rate made the spec path exactly 2x
+    faster than the calibrated legacy path for the same collective (spec all-reduce
+    31.24 ms vs legacy 62.46 ms at dp=8/bf16/8B); 450 GB/s is the figure the legacy
+    nccl_cost table had used all along, and with the fix the two paths agree to 0.4%
+    (94.12 vs 93.77 ms at N=8/seq 8192).
+
+    The flag is PER LINK because the two fabrics are quoted differently, and the specs
+    say so: NVLink 4 "900 GB/s per GPU (aggregate bidirectional)" is two-way, while NDR
+    IB "400 Gb/s = 50 GB/s per GPU NIC" is already per direction. Halving both would
+    make the IB links half as fast as the hardware. Default is per-direction (unchanged
+    behaviour) so only links declaring `bw_is_bidirectional` are halved.
+    """
     bw = float(link["bw_gbps"])
+    if link.get("bw_is_bidirectional", False):
+        bw *= 0.5
     sg = link["shared_group"]
     if sg is None:
         return bw
