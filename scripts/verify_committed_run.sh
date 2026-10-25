@@ -14,8 +14,13 @@ trap 'git -C "$repo_root" worktree remove --force "$scratch" 2>/dev/null || true
 git -C "$repo_root" worktree add --detach "$scratch" "$commit" >/dev/null 2>&1
 runsh="$scratch/experiments/$bead/run.sh"
 if [[ ! -f "$runsh" ]]; then
-    echo "verify_committed_run: FAIL: $runsh not found or not executable" >&2
+    echo "verify_committed_run: FAIL: $runsh not found" >&2
     exit 1
+fi
+# GPU-hinted skip rule (gpu-sim-jvs): if run.sh is marked GPU-hinted, skip.
+if grep -qiE "gpu.hinted|gpu-hinted|# *GPU|ts --max-runtime|gpqueue" "$runsh"; then
+    echo "verify_committed_run: SKIP (GPU-hinted): $bead @ $commit"
+    exit 0
 fi
 if ! (cd "$scratch" && bash "experiments/$bead/run.sh"); then
     echo "verify_committed_run: FAIL: run.sh failed in clean tree at $commit" >&2
