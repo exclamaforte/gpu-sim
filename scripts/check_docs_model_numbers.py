@@ -98,6 +98,31 @@ def compute_facts():
         return (best.tp, best.pp, best.cp, best.dp, best.zero), best.step_sum, \
                (alt.tp, alt.pp, alt.cp, alt.dp, alt.zero), alt.step_sum
 
+    # gpu-sim-hroom: does the answer depend on treating HBM as a HARD fit? Sweep a required
+    # headroom (fraction of HBM kept free) over the published grid and record where it bites.
+    # Exactly one cell changes: N=16 seq 32768, whose winner otherwise occupies 94% of HBM.
+    facts["headroom_sensitivity"] = {"note": "winner at required free-HBM fraction 0 / 0.10 / 0.20, "
+                                             "evaluated at the MEASURED 0.566 efficiency (the "
+                                             "implied 0.765 winner already has headroom)",
+                                     "grid": {}}
+    for n in (8, 16, 32):
+        for seq in (8192, 16384, 32768):
+            cell = {}
+            for hr in (0.0, 0.10, 0.20):
+                m = dict(M8)
+                m["seq"] = seq
+                hwv = {"peak_flops": PEAK * 0.566 / 0.765, "mem_gb": 80.0,
+                       "spec_path": SPEC[n], "mem_headroom": hr}
+                _, feas = ps.search(n, hwv, m)
+                cell[f"hr{hr:.2f}"] = ({"config": [feas[0].tp, feas[0].pp, feas[0].cp,
+                                                   feas[0].dp, feas[0].zero],
+                                        "step_ms": round(feas[0].step_sum * 1e3, 2),
+                                        "mem_gb": round(feas[0].memory_gb, 1)}
+                                       if feas else None)
+            shapes = {tuple(v["config"][:4]) for v in cell.values() if v}
+            cell["changes"] = len(shapes) > 1
+            facts["headroom_sensitivity"]["grid"][f"N{n}_seq{seq}"] = cell
+
     # gpu-sim-frag: WHERE is the recommendation a coin flip? Margin of the winner against the
     # best config with a different (tp,pp,cp,dp) shape, over N x seq x MFU. This is the grid
     # that showed the fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk: at 8192 only
@@ -455,6 +480,12 @@ def allowed_decimals(facts):
                 if _tag in _v:
                     add(_v[_tag]["step_ms"])
                     add(_v[_tag]["margin_pct"])
+    _hr = facts.get("headroom_sensitivity", {}).get("grid", {})
+    for _cell in _hr.values():
+        for _k in ("hr0.00", "hr0.10", "hr0.20"):
+            if _cell.get(_k):
+                add(_cell[_k]["step_ms"])
+                add(_cell[_k]["mem_gb"])
     _fm = facts.get("fragility_map", {}).get("grid", {})
     for _cell in _fm.values():
         for _tag in ("implied", "measured", "typical"):

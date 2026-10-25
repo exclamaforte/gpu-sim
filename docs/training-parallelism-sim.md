@@ -145,6 +145,17 @@ separated from the alternative. Second, N=16 at 16384 is a genuine three-way tan
 from (tp=1 pp=4) to (tp=1 pp=2) as efficiency drops, and the margin never exceeds 2.33%. N=32 is the
 only cell family that is decisive everywhere (4-14%).
 
+**And one cell recommends a config nobody would deploy.** The model treats HBM as a hard fit, so a
+config at 94% of capacity looks as good as one at 65%. Requiring a mere 10% of HBM to stay free --
+room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
+**one** cell in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **75.3 of
+80 GB** and is replaced by (tp=1 pp=4 cp=1 dp=4 z2) at **51.9 GB** for **445.57 vs 437.17 ms**. That is
+1.9% slower and it is the same config that wins at N=16 for the other sequence lengths, so the
+headroom requirement does not cost a real recommendation -- it removes an artifact. Every other cell
+is unchanged at 10% and even at 20% headroom. The model's default stays a hard fit (headroom 0.0),
+because that is what the published numbers assume; `mem_headroom` is an hw knob and this is the
+sensitivity it produces.
+
 **N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
 dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
 N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes

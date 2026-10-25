@@ -87,7 +87,12 @@ def score(tp, pp, cp, dp, zero, hw, m):
     _dp_dtype = hw.get("dp_dtype", "bf16")
     dtype_bytes = 4 if _dp_dtype == "float32" else 2
     peak = hw["peak_flops"]  # per GPU
-    mem_limit = hw["mem_gb"] * 1e9
+    # gpu-sim-hroom: memory is a HARD fit test by default (headroom 0.0), which is what every
+    # published number assumes. Real deployments need slack for fragmentation, allocator
+    # rounding, activation spikes and the CUDA context, so `mem_headroom` (fraction of HBM kept
+    # free) is exposed as an hw knob. It changes exactly ONE cell in the published grid -- see
+    # docs/model_facts.json "headroom_sensitivity" -- so the default stays 0.0 and nothing moves.
+    mem_limit = hw["mem_gb"] * 1e9 * (1.0 - hw.get("mem_headroom", 0.0))
     fabric = hw.get("fabric", "nvlink4_h100")
     spec_path = hw.get("spec_path")
     # 5o4.5 sensitivity: allow the legacy single-fabric path to be swept over
