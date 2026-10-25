@@ -55,8 +55,7 @@
         "step_ms": 98.6,
         "cp_grad_ms": 0.0
       }
-    ],
-    "note": "cp>1 configs that tie at the max-overlap floor are included in top-5 by step_sum ordering"
+    ]
   },
   "N8_S32768": {
     "winner": {
@@ -114,27 +113,35 @@
         "step_ms": 539.49,
         "cp_grad_ms": 0.0
       }
-    ],
-    "note": "cp>1 configs that tie at the max-overlap floor are included in top-5 by step_sum ordering"
+    ]
   },
   "N16_S8192": {
     "winner": {
       "tp": 1,
-      "pp": 2,
+      "pp": 1,
       "cp": 1,
-      "dp": 8,
+      "dp": 16,
       "zero": 3,
-      "step_ms": 50.06,
+      "step_ms": 36.81,
       "cp_grad_ms": 0.0
     },
     "top5": [
       {
         "tp": 1,
+        "pp": 1,
+        "cp": 1,
+        "dp": 16,
+        "zero": 3,
+        "step_ms": 36.81,
+        "cp_grad_ms": 0.0
+      },
+      {
+        "tp": 1,
         "pp": 2,
         "cp": 1,
         "dp": 8,
         "zero": 3,
-        "step_ms": 50.06,
+        "step_ms": 47.96,
         "cp_grad_ms": 0.0
       },
       {
@@ -143,7 +150,16 @@
         "cp": 1,
         "dp": 4,
         "zero": 3,
-        "step_ms": 55.87,
+        "step_ms": 53.49,
+        "cp_grad_ms": 0.0
+      },
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 1,
+        "dp": 8,
+        "zero": 3,
+        "step_ms": 56.0,
         "cp_grad_ms": 0.0
       },
       {
@@ -152,107 +168,105 @@
         "cp": 1,
         "dp": 4,
         "zero": 2,
-        "step_ms": 61.07,
-        "cp_grad_ms": 0.0
-      },
-      {
-        "tp": 1,
-        "pp": 2,
-        "cp": 1,
-        "dp": 8,
-        "zero": 2,
-        "step_ms": 64.2,
-        "cp_grad_ms": 0.0
-      },
-      {
-        "tp": 1,
-        "pp": 8,
-        "cp": 1,
-        "dp": 2,
-        "zero": 3,
-        "step_ms": 64.37,
+        "step_ms": 58.68,
         "cp_grad_ms": 0.0
       }
-    ],
-    "note": "cp>1 configs that tie at the max-overlap floor are included in top-5 by step_sum ordering"
+    ]
   },
   "N16_S32768": {
     "winner": {
-      "tp": 1,
-      "pp": 2,
-      "cp": 2,
-      "dp": 4,
-      "zero": 3,
-      "step_ms": 325.73,
-      "cp_grad_ms": 18.47
+      "tp": 4,
+      "pp": 1,
+      "cp": 4,
+      "dp": 1,
+      "zero": 0,
+      "step_ms": 281.77,
+      "cp_grad_ms": 13.85
     },
     "top5": [
       {
-        "tp": 1,
-        "pp": 2,
-        "cp": 2,
-        "dp": 4,
-        "zero": 3,
-        "step_ms": 325.73,
-        "cp_grad_ms": 18.47
-      },
-      {
-        "tp": 1,
-        "pp": 4,
-        "cp": 1,
-        "dp": 4,
-        "zero": 3,
-        "step_ms": 327.33,
-        "cp_grad_ms": 0.0
-      },
-      {
-        "tp": 1,
-        "pp": 4,
-        "cp": 1,
-        "dp": 4,
-        "zero": 2,
-        "step_ms": 332.53,
-        "cp_grad_ms": 0.0
-      },
-      {
-        "tp": 1,
-        "pp": 2,
-        "cp": 2,
-        "dp": 4,
-        "zero": 2,
-        "step_ms": 336.12,
-        "cp_grad_ms": 18.47
-      },
-      {
-        "tp": 1,
-        "pp": 4,
-        "cp": 1,
-        "dp": 4,
+        "tp": 4,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
         "zero": 0,
-        "step_ms": 337.72,
+        "step_ms": 281.77,
+        "cp_grad_ms": 13.85
+      },
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 8,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 286.31,
+        "cp_grad_ms": 32.32
+      },
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 1,
+        "dp": 8,
+        "zero": 3,
+        "step_ms": 290.76,
         "cp_grad_ms": 0.0
+      },
+      {
+        "tp": 2,
+        "pp": 1,
+        "cp": 4,
+        "dp": 2,
+        "zero": 3,
+        "step_ms": 299.93,
+        "cp_grad_ms": 27.7
+      },
+      {
+        "tp": 8,
+        "pp": 1,
+        "cp": 2,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 300.98,
+        "cp_grad_ms": 4.62
       }
-    ],
-    "note": "cp>1 configs that tie at the max-overlap floor are included in top-5 by step_sum ordering"
+    ]
   },
   "N32_S8192": {
     "winner": {
       "tp": 1,
-      "pp": 4,
+      "pp": 1,
       "cp": 1,
-      "dp": 8,
+      "dp": 32,
       "zero": 3,
-      "step_ms": 41.4,
+      "step_ms": 18.48,
       "cp_grad_ms": 0.0
     },
     "top5": [
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 1,
+        "dp": 32,
+        "zero": 3,
+        "step_ms": 18.48,
+        "cp_grad_ms": 0.0
+      },
+      {
+        "tp": 1,
+        "pp": 2,
+        "cp": 1,
+        "dp": 16,
+        "zero": 3,
+        "step_ms": 24.43,
+        "cp_grad_ms": 0.0
+      },
       {
         "tp": 1,
         "pp": 4,
         "cp": 1,
         "dp": 8,
         "zero": 3,
-        "step_ms": 41.4,
+        "step_ms": 28.84,
         "cp_grad_ms": 0.0
       },
       {
@@ -261,38 +275,19 @@
         "cp": 1,
         "dp": 8,
         "zero": 2,
-        "step_ms": 48.47,
+        "step_ms": 35.91,
         "cp_grad_ms": 0.0
-      },
-      {
-        "tp": 1,
-        "pp": 4,
-        "cp": 2,
-        "dp": 4,
-        "zero": 3,
-        "step_ms": 54.52,
-        "cp_grad_ms": 9.24
       },
       {
         "tp": 2,
-        "pp": 4,
-        "cp": 4,
-        "dp": 1,
-        "zero": 0,
-        "step_ms": 55.1,
-        "cp_grad_ms": 6.93
-      },
-      {
-        "tp": 1,
-        "pp": 4,
+        "pp": 1,
         "cp": 1,
-        "dp": 8,
-        "zero": 0,
-        "step_ms": 55.54,
+        "dp": 16,
+        "zero": 3,
+        "step_ms": 37.88,
         "cp_grad_ms": 0.0
       }
-    ],
-    "note": "cp>1 configs that tie at the max-overlap floor are included in top-5 by step_sum ordering"
+    ]
   },
   "N32_S32768": {
     "winner": {
@@ -301,7 +296,7 @@
       "cp": 1,
       "dp": 16,
       "zero": 3,
-      "step_ms": 189.88,
+      "step_ms": 144.55,
       "cp_grad_ms": 0.0
     },
     "top5": [
@@ -311,7 +306,7 @@
         "cp": 1,
         "dp": 16,
         "zero": 3,
-        "step_ms": 189.88,
+        "step_ms": 144.55,
         "cp_grad_ms": 0.0
       },
       {
@@ -320,8 +315,17 @@
         "cp": 1,
         "dp": 8,
         "zero": 3,
-        "step_ms": 216.51,
+        "step_ms": 166.36,
         "cp_grad_ms": 0.0
+      },
+      {
+        "tp": 4,
+        "pp": 1,
+        "cp": 8,
+        "dp": 1,
+        "zero": 0,
+        "step_ms": 169.93,
+        "cp_grad_ms": 16.16
       },
       {
         "tp": 1,
@@ -329,28 +333,18 @@
         "cp": 1,
         "dp": 8,
         "zero": 2,
-        "step_ms": 223.57,
+        "step_ms": 173.43,
         "cp_grad_ms": 0.0
       },
       {
-        "tp": 1,
-        "pp": 4,
-        "cp": 1,
-        "dp": 8,
+        "tp": 8,
+        "pp": 1,
+        "cp": 4,
+        "dp": 1,
         "zero": 0,
-        "step_ms": 230.64,
-        "cp_grad_ms": 0.0
-      },
-      {
-        "tp": 1,
-        "pp": 4,
-        "cp": 1,
-        "dp": 8,
-        "zero": 1,
-        "step_ms": 230.64,
-        "cp_grad_ms": 0.0
+        "step_ms": 174.63,
+        "cp_grad_ms": 6.93
       }
-    ],
-    "note": "cp>1 configs that tie at the max-overlap floor are included in top-5 by step_sum ordering"
+    ]
   }
 }
