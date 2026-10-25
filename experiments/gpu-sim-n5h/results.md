@@ -13,3 +13,5 @@ All three validations green on GPU (job IDs in bd comments).
   err=1024.0 rc=1 (assert guards the contract); pre-stale-fix run
   (e390e1d4) showed arrived=3, fixed by O_EXCL-create +
   join-only-if-creator-alive.
+
+Cross-bead citations: experiments/gpu-sim-8y7.3/sweep-zero1.json

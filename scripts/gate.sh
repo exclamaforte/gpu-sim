@@ -4,9 +4,8 @@
 # The orchestrator has been reporting "gate status unknown: gate script not found"
 # every drain, so here it is. Checks are split into HARD (a failure fails the gate)
 # and ADVISORY (reported, never fails). Advisory is not a loophole: the two
-# advisory checks currently have pre-existing findings recorded elsewhere
-# (check_prose_numbers: 6 unprovenanced claims in older results docs; the bead
-# tracker owns them). Everything that can be made green today is HARD.
+# check_prose_numbers promoted from ADVISORY to HARD (gpu-sim-xte): all
+# findings either cited or grandfathered.
 #
 # Usage:
 #   scripts/gate.sh            # full: pytest (~2 min) + every check
@@ -52,7 +51,7 @@ run_hard "docs section 0 vs model" python3 scripts/check_docs_model_numbers.py
 run_hard "close audit (concrete artifacts)" python3 scripts/close_requires_artifact.py
 run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
-run_advisory "prose-number provenance" python3 scripts/check_prose_numbers.py
+run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
 
 rm -f /tmp/gate.$$.out
 echo
