@@ -36,7 +36,7 @@ from epic_cluster import parallelism_search as ps  # noqa: E402
 DOC = os.path.join(ROOT, "docs/training-parallelism-sim.md")
 FACTS_JSON = os.path.join(ROOT, "docs/model_facts.json")
 
-M8 = {"n_layers": 32, "d_model": 4096, "n_heads": 32, "head_dim": 128,
+M8 = {"n_layers": 32, "d_model": 4096, "n_heads": 32, "n_kv_heads": 8, "head_dim": 128,
       "d_ff": 14336, "vocab": 128256}
 SPEC = {8: "specs/h100_rack.json", 16: "specs/h100_rack.json", 32: "specs/h100_rack_4node.json"}
 ACT_FACTOR = 2.3
@@ -362,7 +362,7 @@ def compute_facts():
         m["seq"] = S
         c = ps.score(1, 1, 1, 8, 2, hw_for(8), m)
         facts[f"compute_floor_{S}_ms"] = round(c.compute * 1e3, 2)
-    m70 = {"n_layers": 80, "d_model": 8192, "n_heads": 64, "head_dim": 128,
+    m70 = {"n_layers": 80, "d_model": 8192, "n_heads": 64, "n_kv_heads": 8, "head_dim": 128,
            "d_ff": 28672, "vocab": 128256, "seq": 32768}
     hw32 = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": "specs/h100_rack_4node.json",
             "cp_grad_mode": "crude", "act_factor": ACT_FACTOR}
@@ -377,11 +377,14 @@ def compute_facts():
     # 4) model-size sweep (the "does the answer generalize" table)
     sweep_models = {
         "llama3-8b": M8,
-        "qwen2.5-32b": {"n_layers": 64, "d_model": 5120, "n_heads": 40, "head_dim": 128,
+        "qwen2.5-32b": {"n_layers": 64, "d_model": 5120, "n_heads": 40, "n_kv_heads": 8,
+                        "head_dim": 128,
                         "d_ff": 27648, "vocab": 152064},
-        "llama2-34b": {"n_layers": 48, "d_model": 8192, "n_heads": 64, "head_dim": 128,
+        "llama2-34b": {"n_layers": 48, "d_model": 8192, "n_heads": 64, "n_kv_heads": 64,
+                       "head_dim": 128,
                        "d_ff": 22016, "vocab": 32000},
-        "llama3-70b": {"n_layers": 80, "d_model": 8192, "n_heads": 64, "head_dim": 128,
+        "llama3-70b": {"n_layers": 80, "d_model": 8192, "n_heads": 64, "n_kv_heads": 8,
+                       "head_dim": 128,
                        "d_ff": 28672, "vocab": 128256},
     }
     facts["sweep"] = {}

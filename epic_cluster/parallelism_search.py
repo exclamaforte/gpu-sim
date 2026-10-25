@@ -26,6 +26,7 @@ MODEL = {
     "n_layers": 32,
     "d_model": 4096,
     "n_heads": 32,
+    "n_kv_heads": 8,
     "head_dim": 128,
     "d_ff": 14336,
     "vocab": 128256,
@@ -301,7 +302,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
     cp_comm = 0.0
     cp_kind = None
     if cp > 1:
-        msg_bytes = seq_per_cp * d * dtype_bytes
+        kv_dim = (m.get("n_kv_heads", m["n_heads"])) * m["head_dim"]
+        msg_bytes = seq_per_cp * min(kv_dim, d) * dtype_bytes
         if spec is not None:
             group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
             total = 0.0
@@ -312,7 +314,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 cp_kind = kind
             cp_comm = m["n_layers"] * 2 * total
         else:
-            msg = seq_per_cp * d * dtype_bytes
+            kv_dim = (m.get("n_kv_heads", m["n_heads"])) * m["head_dim"]
+            msg = seq_per_cp * min(kv_dim, d) * dtype_bytes
             pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
             cp_comm = m["n_layers"] * 2 * pred.total_s
 
@@ -482,7 +485,8 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
 
     # CP exchange: 2 directions * (cp-1) hops * msg_bytes per layer * n_layers
     if cp > 1:
-        msg_bytes = seq_per_cp * d * dtype_bytes
+        kv_dim = (m.get("n_kv_heads", m["n_heads"])) * m["head_dim"]
+        msg_bytes = seq_per_cp * min(kv_dim, d) * dtype_bytes
         out["cp_exchange"] += m["n_layers"] * 2 * (cp - 1) * msg_bytes
 
     # CP grad sync
