@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-oez",
+  "decision": "b",
+  "decision_summary": "Keep model's Megatron-shaped payloads (full-d row-parallel output); label the scheme. Do not move the harness.",
+  "counts_validated": [16, 24],
+  "sizes_validated": false,
+  "reason": "Counts shape-independent and validated on hardware. Sizes differ by scheme but scale uniformly within a scheme, preserving ranking order. Absolute ms already modelled-only.",
+  "scheme_label_model": "Megatron-shaped payload model (full-d row-parallel output)",
+  "scheme_label_harness": "harness scheme (qkv-shaped, batch included)"
+}
