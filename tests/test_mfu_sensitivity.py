@@ -57,3 +57,35 @@ def test_absolute_durations_move_but_by_a_bounded_factor():
     _, slow = ps.search(8, _hw(0.40, 8), ps.MODEL)
     ratio = slow[0].step_sum / base[0].step_sum
     assert 1.4 < ratio < 1.9, f"degrading MFU 0.765->0.40 scaled the step by {ratio:.2f}x"
+
+
+@pytest.mark.parametrize("n", [8, 32])
+def test_margin_never_collapses_for_the_robust_answers(n):
+    """N=8 and N=32 keep a >=3.5% margin against the best DIFFERENT shape at every MFU."""
+    for mfu in (MODEL_IMPLIED_MFU, 0.566, 0.45, 0.40, 0.35, 0.30):
+        _, feas = ps.search(n, _hw(mfu, n), ps.MODEL)
+        best = feas[0]
+        shape = (best.tp, best.pp, best.cp, best.dp)
+        alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != shape)
+        margin = 100 * (alt.step_sum / best.step_sum - 1)
+        assert margin > 2.5, f"N={n} at MFU {mfu}: margin collapsed to {margin:.2f}%"
+
+
+def test_n16_answer_has_a_measured_crossover():
+    """'No TP at N=16' is a near-tie: it holds only above ~0.349 MFU (gpu-sim-mfum)."""
+    def wins_without_tp(mfu):
+        _, feas = ps.search(16, _hw(mfu, 16), ps.MODEL)
+        return feas[0].tp == 1
+
+    assert wins_without_tp(0.765), "the published answer must hold at the model's own efficiency"
+    assert wins_without_tp(0.40), "and at a pessimistic-but-plausible H100 efficiency"
+    assert not wins_without_tp(0.30), "below the crossover TP returns -- the answer is a near-tie"
+
+    lo, hi = 0.25, 0.40
+    for _ in range(20):
+        mid = (lo + hi) / 2
+        if wins_without_tp(mid):
+            hi = mid
+        else:
+            lo = mid
+    assert hi == pytest.approx(0.349, abs=0.005), f"crossover moved to {hi:.3f}"

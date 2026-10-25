@@ -184,6 +184,187 @@
     "ratio_at_measured": 1.24,
     "ratio_at_typical": 1.63
   },
+  "mfu_margin_sweep": {
+    "note": "margin = best config with a different shape",
+    "N8": {
+      "implied": {
+        "mfu": 0.765,
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 94.12,
+        "runner_shape": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "margin_pct": 6.42
+      },
+      "measured": {
+        "mfu": 0.566,
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 116.96,
+        "runner_shape": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "margin_pct": 5.16
+      },
+      "typical_h100": {
+        "mfu": 0.4,
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 153.41,
+        "runner_shape": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "margin_pct": 3.94
+      }
+    },
+    "N16": {
+      "implied": {
+        "mfu": 0.765,
+        "config": [
+          1,
+          4,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 66.86,
+        "runner_shape": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 5.08
+      },
+      "measured": {
+        "mfu": 0.566,
+        "config": [
+          1,
+          4,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 83.17,
+        "runner_shape": [
+          4,
+          2,
+          2,
+          1,
+          0
+        ],
+        "margin_pct": 3.13
+      },
+      "typical_h100": {
+        "mfu": 0.4,
+        "config": [
+          1,
+          4,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 109.2,
+        "runner_shape": [
+          4,
+          2,
+          2,
+          1,
+          0
+        ],
+        "margin_pct": 0.79
+      }
+    },
+    "N32": {
+      "implied": {
+        "mfu": 0.765,
+        "config": [
+          1,
+          4,
+          1,
+          8,
+          2
+        ],
+        "step_ms": 55.54,
+        "runner_shape": [
+          2,
+          4,
+          4,
+          1,
+          0
+        ],
+        "margin_pct": 5.64
+      },
+      "measured": {
+        "mfu": 0.566,
+        "config": [
+          1,
+          4,
+          1,
+          8,
+          2
+        ],
+        "step_ms": 63.7,
+        "runner_shape": [
+          2,
+          4,
+          4,
+          1,
+          0
+        ],
+        "margin_pct": 4.92
+      },
+      "typical_h100": {
+        "mfu": 0.4,
+        "config": [
+          1,
+          4,
+          1,
+          8,
+          2
+        ],
+        "step_ms": 76.72,
+        "runner_shape": [
+          2,
+          4,
+          4,
+          1,
+          0
+        ],
+        "margin_pct": 4.09
+      }
+    },
+    "N16_crossover_mfu": 0.349
+  },
   "fsdp_mem_16384_gb": 85.0,
   "legacy_path_steps": {
     "8192": 93.77,

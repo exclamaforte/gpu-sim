@@ -104,6 +104,18 @@ at N=32 at 0.765, 0.566 AND 0.40 MFU -- three different efficiencies, one rankin
 (tests/test_mfu_sensitivity.py). Absolute comm durations still rest on the model: only a 2-4 GPU
 NVLink run can validate those.
 
+**The margins are what matter, not just the argmin.** Measured against the best config with a
+DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **6.42%**
+at the model's implied 76.5%, **5.16%** at the measured 56.6% and **3.94%** at a pessimistic 40%; at
+N=32 it is **5.64% / 4.92% / 4.09%**. Both answers hold across the whole plausible efficiency range.
+
+**N=16 is the exception and it needs to be quoted with its margin.** The "no tensor parallelism"
+answer wins by **5.08%** at 76.5% but only **0.79%** at 40%, and the crossover is at **MFU 0.349**:
+below that, (tp=4 pp=2 cp=2 dp=1) takes over and TP returns. So the N=16 recommendation is a
+near-tie, not a verdict -- it is the right call if H100 training runs at 35-50% MFU, and it is within
+noise of the alternative at the low end. At N=8 the same question is decided by 3.94-6.42%, which is
+why "TP is not worth it at 16 GPUs" is a much weaker statement than "TP+CP is right at 8".
+
 **N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
 dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
 N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes

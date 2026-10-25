@@ -86,6 +86,37 @@ def compute_facts():
         facts["mfu_sensitivity"][key] = round(
             facts["mfu_sensitivity"][tag]["step_ms"] / facts["mfu_sensitivity"]["implied_0.765"]["step_ms"], 2)
 
+    # gpu-sim-mfum: how DECISIVE is each winner? The margin against the best config with a
+    # different (tp,pp,cp,dp) shape, and where the N=16 answer stops holding. A tie between
+    # zero policies (same shape, zero=2 vs zero=3) is not a fragile win, so the runner-up is
+    # taken over shapes, not over rows.
+    def _winner(n, mfu):
+        _, feas = search(n, peak=PEAK * mfu / 0.765)
+        best = feas[0]
+        shape = (best.tp, best.pp, best.cp, best.dp)
+        alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != shape)
+        return (best.tp, best.pp, best.cp, best.dp, best.zero), best.step_sum, \
+               (alt.tp, alt.pp, alt.cp, alt.dp, alt.zero), alt.step_sum
+
+    facts["mfu_margin_sweep"] = {"note": "margin = best config with a different shape"}
+    for n in (8, 16, 32):
+        row = {}
+        for tag, mfu in (("implied", 0.765), ("measured", 0.566), ("typical_h100", 0.40)):
+            w, ms, alt, alt_ms = _winner(n, mfu)
+            row[tag] = {"mfu": mfu, "config": list(w), "step_ms": round(ms * 1e3, 2),
+                        "runner_shape": list(alt), "margin_pct": round(100 * (alt_ms / ms - 1), 2)}
+        facts["mfu_margin_sweep"][f"N{n}"] = row
+
+    # where does the N=16 "no tensor parallelism" answer stop holding? Bisect on MFU.
+    lo, hi = 0.25, 0.40
+    for _ in range(22):
+        mid = (lo + hi) / 2
+        if _winner(16, mid)[0][0] == 1:          # still tp=1 -> the answer holds
+            hi = mid
+        else:
+            lo = mid
+    facts["mfu_margin_sweep"]["N16_crossover_mfu"] = round(hi, 3)
+
     # 1) winners + top-3 at seq 8192, N=8/16/32
     for N in (8, 16, 32):
         _, feas = search(N)
@@ -352,8 +383,18 @@ def allowed_decimals(facts):
             for f in ("mfu", "implied_mfu"):
                 if v.get(f) is not None:
                     add(v[f])
+                    add(round(v[f] * 100, 1))    # efficiencies are also quoted as percentages
         else:
             add(v)
+    _ms = facts.get("mfu_margin_sweep", {})
+    for _k, _v in _ms.items():
+        if isinstance(_v, dict):
+            for _tag in ("implied", "measured", "typical_h100"):
+                if _tag in _v:
+                    add(_v[_tag]["step_ms"])
+                    add(_v[_tag]["margin_pct"])
+    if "N16_crossover_mfu" in _ms:
+        add(_ms["N16_crossover_mfu"])
     for v in facts.get("dp8_rows", {}).values():
         for k in ("step_ms", "mem_gb", "dp_comm_ms"):
             add(v[k])
