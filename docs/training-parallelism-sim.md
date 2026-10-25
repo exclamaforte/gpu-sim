@@ -516,6 +516,17 @@ dp-independent except the reduce-scatter, which is a shard and therefore P/dp:
   * all-gather total = P at every dp (37 shard-gathers summing to one model);
   * reduce-scatter total = P/dp (5.38 MB at dp=4, 2.69 MB at dp=8).
 
+**Trap worth knowing before analysing any trace: `count` is not comparable across the two
+paths, `bytes` is.** Running the SAME job with and without a topology gives 74 all-gathers
+with identical byte totals (43.028 MB) but sum(count) 2689280 (topology) vs 10757120
+(fallback) -- a factor of nranks, because the topology path is handed the per-rank send count
+(reporting bytes = count*nranks*elem) and the fallback the recv count (bytes = count*elem).
+Both byte columns agree, so `bytes` is the canonical field; any conclusion drawn from
+comparing `count` between a topology run and a fallback run is wrong by the group size. That
+is recorded in the code where the fallback traces, rather than "fixed" by normalising: which
+convention the torch side actually passes was not pinned down, and inventing one would have
+made a second silent error.
+
 Two structural consequences that survive every byte fix: **ZeRO-2 and ZeRO-3 move identical
 bytes** (26.89 MB at dp=4) -- the difference is 37 messages versus 1, i.e. alpha and peak memory,
 not volume; and ZeRO-1's extra cost is the 37-message all-reduce sweep on top of the same gather.

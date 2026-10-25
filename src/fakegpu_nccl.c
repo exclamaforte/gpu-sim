@@ -742,6 +742,13 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
     /* Fallback path: no declared topology, so no predicted duration -- but the
      * event itself is real and belongs in the trace (rank, op, bytes, when). */
     int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : fg_nccl_rank_from_env();
+    /* gpu-sim-smt4: `count` is NOT comparable across the two paths for all-gather.
+     * The topology path is handed the per-rank SEND count (bytes = count*nr*elem);
+     * this fallback path is handed the RECV count (bytes = count*elem). For the same
+     * 74 all-gathers the two paths recorded sum(count) 2689280 vs 10757120 -- a
+     * factor of nr -- while their BYTE columns agreed exactly. `bytes` is therefore
+     * the canonical field; do not compare `count` across paths until the caller's
+     * convention is pinned (that needs the torch-side call sites, not a guess here). */
     fg_nccl_trace(fg_cur_op, rk, nr, count, fg_dtype_name(datatype), bytes,
                   "fallback", FG_NCCL_REFUSED, -1, "unmodelled");
 }
