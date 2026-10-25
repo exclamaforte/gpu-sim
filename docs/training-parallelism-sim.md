@@ -152,8 +152,9 @@ params over cp ranks, so cp rows drop behind the dp=8 rows; the best cp>1 row at
 (4,1,2,1,zero=0) at 78.90 ms. The winner is zero=2 at N=8/16/32 (66.99 / 47.02 / 26.50 ms,
 FSDP zero=3 second (historical). **Correction: S_best does not depend on how the cp sync is modelled, but the SHAPE of the winner
 does.** With the production variant (cp_grad_mode="production") the winner at N=8 is
-(tp=2 pp=1 cp=4 dp=1 z0) at 80.81 ms against the crude answer's (tp=4 pp=1 cp=2 dp=1 z0) at
-94.12 ms -- different tp AND different cp. Both put CP in the winner at 8192, which is what "CP pays
+(tp=2 pp=1 cp=4 dp=1 z0) at 84.28 ms against the crude answer's (tp=4 pp=1 cp=2 dp=1 z0) at
+94.12 ms -- different tp AND different cp (production now charges RS+AG per flat bucket, gpu-sim-juzb,
+so its cp_grad is 6.93 ms against the crude all-reduce's 9.24 ms). Both put CP in the winner at 8192, which is what "CP pays
 at 8192" claims, but quoting one config as THE answer without its cp_grad_mode is wrong. The
 published answer is the CRUDE (conservative) one, and this is the second knob after act_factor that
 has to travel with any config quoted from this section. That mode is HYPOTHETICAL for now -- it assumes an optimizer
