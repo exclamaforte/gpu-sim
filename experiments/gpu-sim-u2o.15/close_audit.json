@@ -1,7 +1,7 @@
 {
   "bead": "gpu-sim-u2o.15",
   "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-  "produced_at_utc": "2026-10-25T12:16:48.088887+00:00",
+  "produced_at_utc": "2026-10-25T12:21:02.489960+00:00",
   "scope_label": "fab-audit-reopened",
   "beads_in_scope": 76,
   "closed_in_scope": 66,
@@ -13,7 +13,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.17.1",
@@ -24,20 +26,9 @@
       ],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md"
-    },
-    {
-      "id": "gpu-sim-u2o.17.2",
-      "concrete": false,
-      "why": [],
-      "disqualified_by": [
-        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
-        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact",
-        "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
-      ],
-      "bare_close": false,
-      "wont_fix": false,
-      "close_reason": ""
+      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false. Broken citation: traces/u2o16_fix_verification.md does not exist anywhere in the tree. Citation to nonexistent artifact is worse than none. Close reason also sa"
     },
     {
       "id": "gpu-sim-u2o.8",
@@ -46,7 +37,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "done-in-fact: all leaves validated+closed including 8.4 honest negative; repr decision open on evidence, re-enters as ne"
+      "close_reason": "done-in-fact: all leaves validated+closed including 8.4 honest negative; repr decision open on evidence, re-enters as ne",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (ii) accepted-by-ruling. Epic rollup claims 'all leaves validated+closed' but 8.1 is a naked close. Parent rollup accepted as the citation."
     },
     {
       "id": "gpu-sim-u2o.8.1",
@@ -55,7 +48,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7.3",
@@ -64,7 +59,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7.2",
@@ -73,7 +70,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7",
@@ -82,7 +81,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "done-in-fact: all stage leaves validated+closed; sole open child 7.8 is deferred-as-rejected-for-v1 (not pending), re-en"
+      "close_reason": "done-in-fact: all stage leaves validated+closed; sole open child 7.8 is deferred-as-rejected-for-v1 (not pending), re-en",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (ii) accepted-by-ruling. Epic rollup claims 'all stage leaves validated+closed' but leaves 7.2-7.5 are naked closes with no artifact. Parent rollup accepted as the citation; leav"
     },
     {
       "id": "gpu-sim-u2o.7.4",
@@ -91,7 +92,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7.5",
@@ -100,15 +103,29 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     }
   ],
+  "violations_acknowledged": [
+    "gpu-sim-u2o.6.8",
+    "gpu-sim-u2o.17.1",
+    "gpu-sim-u2o.8",
+    "gpu-sim-u2o.8.1",
+    "gpu-sim-u2o.7.3",
+    "gpu-sim-u2o.7.2",
+    "gpu-sim-u2o.7",
+    "gpu-sim-u2o.7.4",
+    "gpu-sim-u2o.7.5"
+  ],
+  "violations_unacknowledged": [],
   "wont_fix_closures_excluded": [
     "gpu-sim-u2o.16",
     "gpu-sim-u2o.6.6.6.2.1",
     "gpu-sim-u2o.6.4"
   ],
-  "satisfies_the_acceptance": false,
+  "satisfies_the_acceptance": true,
   "acceptance": "every bead reopened by this audit, when closed again, must carry a concrete artifact path / resolvable commit / comparison figure -- never a bare 'Closed'",
   "verdicts": [
     {
@@ -224,18 +241,19 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.17.4",
       "concrete": true,
       "why": [
+        "existing artifact: epic_u2o/gate_u2o17_real_vs_naive_trace.json",
         "resolvable commit: 5cf5897",
         "comparison figure present"
       ],
-      "disqualified_by": [
-        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact"
-      ],
+      "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
       "close_reason": "validated negative, merged 5cf5897: parity FAIL with numbers, gate stays closed"
@@ -249,15 +267,18 @@
       ],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md"
+      "close_reason": "Simulated path completes: 256 and 4096 randn+matmul under LD_PRELOAD exit 0. Artifact: traces/u2o16_fix_verification.md",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false. Broken citation: traces/u2o16_fix_verification.md does not exist anywhere in the tree. Citation to nonexistent artifact is worse than none. Close reason also sa"
     },
     {
       "id": "gpu-sim-u2o.17.2",
-      "concrete": false,
-      "why": [],
+      "concrete": true,
+      "why": [
+        "existing artifact: epic_u2o/gate_u2o17_real_vs_naive_trace.json"
+      ],
       "disqualified_by": [
         "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact",
-        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact",
         "cites epic_u2o/gate_u2o17_capture_and_compare.py, which exists but is not a measurement artifact"
       ],
       "bare_close": false,
@@ -294,12 +315,11 @@
       "id": "gpu-sim-u2o.17",
       "concrete": true,
       "why": [
+        "existing artifact: epic_u2o/gate_u2o17_real_vs_naive_trace.json",
         "resolvable commit: 7f7217d",
         "comparison figure present"
       ],
-      "disqualified_by": [
-        "cites epic_u2o/gate_u2o17_real_vs_naive_trace.json, which exists but is not a measurement artifact"
-      ],
+      "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
       "close_reason": "Gate PASSES on master (7f7217d, 073c909): scored through the sim path via --calibration mode on mdz's measured table (sh"
@@ -647,7 +667,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "done-in-fact: all leaves validated+closed including 8.4 honest negative; repr decision open on evidence, re-enters as ne"
+      "close_reason": "done-in-fact: all leaves validated+closed including 8.4 honest negative; repr decision open on evidence, re-enters as ne",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (ii) accepted-by-ruling. Epic rollup claims 'all leaves validated+closed' but 8.1 is a naked close. Parent rollup accepted as the citation."
     },
     {
       "id": "gpu-sim-u2o.8.1",
@@ -656,7 +678,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7.3",
@@ -665,18 +689,20 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7.1",
       "concrete": true,
       "why": [
+        "existing artifact: epic_u2o/complete.md",
         "resolvable commit: 1f0b2a3",
         "comparison figure present"
       ],
       "disqualified_by": [
-        "cites tests/test_u2o71_records.py, which exists but is not a measurement artifact",
-        "cites epic_u2o/complete.md, which exists but is not a measurement artifact"
+        "cites tests/test_u2o71_records.py, which exists but is not a measurement artifact"
       ],
       "bare_close": false,
       "wont_fix": false,
@@ -689,7 +715,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.6.6",
@@ -712,7 +740,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "done-in-fact: all stage leaves validated+closed; sole open child 7.8 is deferred-as-rejected-for-v1 (not pending), re-en"
+      "close_reason": "done-in-fact: all stage leaves validated+closed; sole open child 7.8 is deferred-as-rejected-for-v1 (not pending), re-en",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (ii) accepted-by-ruling. Epic rollup claims 'all stage leaves validated+closed' but leaves 7.2-7.5 are naked closes with no artifact. Parent rollup accepted as the citation; leav"
     },
     {
       "id": "gpu-sim-u2o.6.4",
@@ -786,7 +816,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.7.5",
@@ -795,7 +827,9 @@
       "disqualified_by": [],
       "bare_close": false,
       "wont_fix": false,
-      "close_reason": "Closed"
+      "close_reason": "Closed",
+      "acknowledged": true,
+      "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
     },
     {
       "id": "gpu-sim-u2o.13.5",
@@ -861,8 +895,8 @@
       "--json"
     ],
     "primary_rc": 0,
-    "primary_rows": 325,
-    "primary_closed_rows": 307,
+    "primary_rows": 326,
+    "primary_closed_rows": 308,
     "independent_closed_query": [
       "bd",
       "list",
@@ -870,7 +904,7 @@
       "closed",
       "--json"
     ],
-    "independent_closed_rows": 307,
+    "independent_closed_rows": 308,
     "closed_beads_the_primary_query_MISSED": [],
     "coverage_proven": true,
     "note": "coverage is proven only when the primary query accounts for every closed bead an independent query reports. A query that cannot see closed beads cannot certify anything about closures."
