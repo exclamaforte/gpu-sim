@@ -40,28 +40,51 @@ M8 = {"n_layers": 32, "d_model": 4096, "n_heads": 32, "head_dim": 128,
       "d_ff": 14336, "vocab": 128256}
 SPEC = {8: "specs/h100_rack.json", 16: "specs/h100_rack.json", 32: "specs/h100_rack_4node.json"}
 ACT_FACTOR = 2.3
+PEAK = 989e12
 
 
-def hw_for(N, path="spec", cpg="crude", act=ACT_FACTOR):
+def hw_for(N, path="spec", cpg="crude", act=ACT_FACTOR, peak=None):
+    peak = PEAK if peak is None else peak
     if N == 8 and path == "legacy":
-        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "cp_grad_mode": cpg}
+        hw = {"peak_flops": peak, "mem_gb": 80.0, "fabric": "nvlink4_h100", "cp_grad_mode": cpg}
     else:
-        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[N], "cp_grad_mode": cpg}
+        hw = {"peak_flops": peak, "mem_gb": 80.0, "spec_path": SPEC[N], "cp_grad_mode": cpg}
     if act is not None:
         hw["act_factor"] = act
     return hw
 
 
-def search(N, seq=8192, path="spec", cpg="crude", act=ACT_FACTOR):
+def search(N, seq=8192, path="spec", cpg="crude", act=ACT_FACTOR, peak=None):
     m = dict(M8)
     m["seq"] = seq
-    return ps.search(N, hw_for(N, path, cpg, act), m=m)
+    return ps.search(N, hw_for(N, path, cpg, act, peak), m=m)
 
 
 def compute_facts():
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
              "pricing_path": "spec/topology", "rank_by": "sum", "rows": {}}
+
+    # gpu-sim-wv2 (partial): the compute term divides FLOPs by peak with no efficiency
+    # factor. Record the implied MFU and the step at a measured (0.566) and pessimistic
+    # (0.40) efficiency, so the doc can quote them and the numbers are reproducible here.
+    facts["mfu_sensitivity"] = {}
+    _implied = None
+    for tag, mfu in (("implied_0.765", None), ("measured_5090", 0.566), ("typical_h100", 0.40)):
+        peak = PEAK if mfu is None else PEAK * mfu / 0.765
+        _, feas = search(8, peak=peak)
+        b = feas[0]
+        facts["mfu_sensitivity"][tag] = {"mfu": round(mfu, 3) if mfu else None,
+                                         "config": [b.tp, b.pp, b.cp, b.dp, b.zero],
+                                         "step_ms": round(b.step_sum * 1e3, 2)}
+        if mfu is None:
+            _implied = (6 * 8e9 * 8192) / (8 * PEAK) / b.compute
+            facts["mfu_sensitivity"][tag]["implied_mfu"] = round(_implied, 3)
+            facts["mfu_sensitivity"]["implied_mfu_pct"] = round(_implied * 100, 1)
+            _base = b.step_sum
+    for tag, key in (("measured_5090", "ratio_at_measured"), ("typical_h100", "ratio_at_typical")):
+        facts["mfu_sensitivity"][key] = round(
+            facts["mfu_sensitivity"][tag]["step_ms"] / facts["mfu_sensitivity"]["implied_0.765"]["step_ms"], 2)
 
     # 1) winners + top-3 at seq 8192, N=8/16/32
     for N in (8, 16, 32):
@@ -289,6 +312,8 @@ def allowed_decimals(facts):
             s = f"{v:.2f}" if isinstance(v, float) else str(v)
             vals.add(s)
             vals.add(f"{v:.1f}")
+            if isinstance(v, float):
+                vals.add(f"{v:.3f}")   # efficiencies are quoted to three places
 
     for row in facts["rows"].values():
         if not row:
@@ -321,6 +346,14 @@ def allowed_decimals(facts):
     add(round(100 * (_apc["4"]["step_ms"] / _apc["1"]["step_ms"] - 1), 1))
     for v in facts["tp_payload_winners"].values():
         add(v["step_ms"])
+    for k, v in facts.get("mfu_sensitivity", {}).items():
+        if isinstance(v, dict):
+            add(v["step_ms"])
+            for f in ("mfu", "implied_mfu"):
+                if v.get(f) is not None:
+                    add(v[f])
+        else:
+            add(v)
     for v in facts.get("dp8_rows", {}).values():
         for k in ("step_ms", "mem_gb", "dp_comm_ms"):
             add(v[k])

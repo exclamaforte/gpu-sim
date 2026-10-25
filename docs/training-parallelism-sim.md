@@ -90,6 +90,20 @@ for P=1/4/8 at **94.12 / 96.43 / 99.51 ms**, and the reason is structural: ring 
 What is still NOT settled about this row: absolute durations (gpu-sim-wv2 needs real GPUs), and the
 harness runs fp32 where the model prices bf16 -- compare element counts with the harness, not bytes.
 
+**How much the absolute durations are worth, measured rather than assumed (gpu-sim-wv2, partial).**
+The compute term divides 6*P*T FLOPs by dense peak with NO efficiency factor, which works out to an
+implied **76.5% MFU** at this row. That is unrealistically high, and it is now measured rather than
+argued: on the shapes this model prices (8192x4096x4096 plus the MLP pair), a real GPU reaches
+**52-57%** of its dense bf16 peak -- 229/237/218 TFLOP/s on an RTX 5090 (scripts/measure_mfu.py), and
+published large-model bf16 training runs sit at 35-50%. Feeding those back in, N=8 reads **116.96 ms**
+at 0.566 and **153.41 ms** at 0.40, i.e. the absolute number carries a factor-1.24-to-1.63 uncertainty.
+
+The reason this does not undermine the answer: **the winner is invariant across the whole range.**
+(tp=4 pp=1 cp=2 dp=1 z0) wins at N=8, (tp=1 pp=4 cp=1 dp=4 z2) at N=16 and (tp=1 pp=4 cp=1 dp=8 z2)
+at N=32 at 0.765, 0.566 AND 0.40 MFU -- three different efficiencies, one ranking
+(tests/test_mfu_sensitivity.py). Absolute comm durations still rest on the model: only a 2-4 GPU
+NVLink run can validate those.
+
 **N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
 dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
 N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes

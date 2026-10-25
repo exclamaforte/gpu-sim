@@ -28,6 +28,7 @@ Exits 0 when every re-closed audit bead carries a concrete pointer, 1 otherwise.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import subprocess
@@ -222,7 +223,12 @@ def audit(issues: list[dict]) -> dict:
     return {
         "bead": "gpu-sim-u2o.15",
         "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-        "produced_at_utc": datetime.now(timezone.utc).isoformat(),
+        # deliberately NOT a wall-clock stamp: this file is tracked, and a timestamp
+        # made it show as modified after every gate run, so it kept riding into the next
+        # `git add -A`. Content identity is what matters -- the audit is regenerated on
+        # demand, and an unchanged bead set must produce a byte-identical report.
+        "audit_id": hashlib.sha256(
+            json.dumps([b.get("id") for b in violations], sort_keys=True).encode()).hexdigest()[:16],
         "scope_label": AUDIT_LABEL,
         "beads_in_scope": len(in_scope),
         "closed_in_scope": len(closed),
