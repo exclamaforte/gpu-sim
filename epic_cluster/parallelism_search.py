@@ -131,25 +131,28 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # compute
     tokens_per_gpu = seq / (cp * dp)  # batch 1 sequence
     flops_per_gpu = 6 * (P / (tp * pp)) * tokens_per_gpu
-    # attention FLOPs (fwd+bwd): 12 * L * S^2 * d / (cp * tp)
-    # fwd: QK^T (2*S^2*d) + softmax + AV (2*S^2*d) = 4*S^2*d per layer; *L
-    # bwd: ~3x fwd (recompute scores) => 12*L*S^2*d total, sharded by cp (queries) and tp (heads)
-    attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (cp * tp)
+    # attention FLOPs (fwd+bwd): 12 * L * S^2 * d / (tp*pp*cp*dp)
+    # Derivation: per layer, per rank: local queries (S/cp) x all keys (S) x
+    # (d/tp) heads, for QK^T and AV = 4 * (S/cp) * S * (d/tp) MACs fwd;
+    # bwd recomputes scores (3x) => 12 * S^2 * d / (cp*tp) per layer for one
+    # sample; sharded across pp stages (layers/pp) and dp ranks (batch slice)
+    # gives /pp and /dp. Equivalently (12*L*S*d)*S/N with N=tp*pp*cp*dp.
+    # Ring assumption: local queries attend all keys (gathered via ring).
+    attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (tp * pp * cp * dp)
     flops_per_gpu = flops_per_gpu + attn_flops
     # recompute knob
     recompute = hw.get("recompute", "none")
     if recompute == "full":
-        # full recompute: extra forward pass of weights + attention
         flops_per_gpu = flops_per_gpu + (6 * (P / (tp * pp)) * tokens_per_gpu) + attn_flops
     elif recompute == "selective":
-        # selective: recompute attention only
         flops_per_gpu = flops_per_gpu + attn_flops
     compute = flops_per_gpu / peak
-    # PP bubble (GPipe): bubble = (pp-1)/(micro_batches+pp-1) of compute
+    # PP bubble (GPipe): idle time, NOT FLOPs. Kept out of `compute` so the
+    # compute term stays invariant across pp splits (gpu-sim-i95 conservation).
+    bubble = 0.0
     if pp > 1:
         micro_batches = hw.get("micro_batches", pp)
         bubble = compute * (pp - 1) / (micro_batches + pp - 1)
-        compute = compute + bubble
 
     # TP comm
     tp_comm = 0.0
@@ -231,10 +234,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 dp_comm = pred1.total_s + pred2.total_s
 
     comms = tp_comm + cp_comm + pp_comm + dp_comm
-    step_sum = compute + comms
-    step_max = max(compute, comms)
+    step_compute = compute + bubble
+    step_sum = step_compute + comms
+    step_max = max(step_compute, comms)
 
-    terms = {"compute": compute, "tp": tp_comm, "cp": cp_comm, "pp": pp_comm, "dp": dp_comm}
+    terms = {"compute": step_compute, "tp": tp_comm, "cp": cp_comm, "pp": pp_comm, "dp": dp_comm}
     dominant = max(terms, key=lambda k: terms[k])
 
     kinds = {"tp": tp_kind, "cp": cp_kind, "pp": pp_kind, "dp": dp_kind}

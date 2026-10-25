@@ -31,36 +31,44 @@
         "cp": 4,
         "dp": 1,
         "zero": 0,
-        "step_ms": 21.66
+        "step_ms": 20.55
       },
       {
-        "tp": 8,
+        "tp": 1,
         "pp": 1,
         "cp": 1,
-        "dp": 1,
-        "zero": 0,
-        "step_ms": 22.48
+        "dp": 8,
+        "zero": 3,
+        "step_ms": 21.82
       },
       {
-        "tp": 2,
-        "pp": 2,
+        "tp": 1,
+        "pp": 4,
         "cp": 2,
         "dp": 1,
         "zero": 0,
-        "step_ms": 23.65
+        "step_ms": 21.85
       }
     ]
   },
   "S8192": {
     "winner": {
-      "tp": 2,
+      "tp": 1,
       "pp": 1,
-      "cp": 4,
-      "dp": 1,
-      "zero": 0,
-      "step_ms": 77.57
+      "cp": 1,
+      "dp": 8,
+      "zero": 3,
+      "step_ms": 73.05
     },
     "top5": [
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 1,
+        "dp": 8,
+        "zero": 3,
+        "step_ms": 73.05
+      },
       {
         "tp": 2,
         "pp": 1,
@@ -68,6 +76,14 @@
         "dp": 1,
         "zero": 0,
         "step_ms": 77.57
+      },
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 2,
+        "dp": 4,
+        "zero": 3,
+        "step_ms": 83.69
       },
       {
         "tp": 4,
@@ -78,20 +94,48 @@
         "step_ms": 84.54
       },
       {
-        "tp": 8,
-        "pp": 1,
-        "cp": 1,
-        "dp": 1,
-        "zero": 0,
-        "step_ms": 98.76
-      },
-      {
         "tp": 2,
         "pp": 1,
         "cp": 2,
         "dp": 2,
         "zero": 3,
-        "step_ms": 102.34
+        "step_ms": 89.0
+      }
+    ]
+  },
+  "S32768": {
+    "winner": {
+      "tp": 1,
+      "pp": 1,
+      "cp": 1,
+      "dp": 8,
+      "zero": 3,
+      "step_ms": 428.04
+    },
+    "top5": [
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 1,
+        "dp": 8,
+        "zero": 3,
+        "step_ms": 428.04
+      },
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 2,
+        "dp": 4,
+        "zero": 3,
+        "step_ms": 453.0
+      },
+      {
+        "tp": 1,
+        "pp": 1,
+        "cp": 1,
+        "dp": 8,
+        "zero": 2,
+        "step_ms": 456.32
       },
       {
         "tp": 1,
@@ -99,20 +143,8 @@
         "cp": 4,
         "dp": 2,
         "zero": 3,
-        "step_ms": 104.22
-      }
-    ]
-  },
-  "S32768": {
-    "winner": {
-      "tp": 2,
-      "pp": 1,
-      "cp": 4,
-      "dp": 1,
-      "zero": 0,
-      "step_ms": 468.35
-    },
-    "top5": [
+        "step_ms": 467.35
+      },
       {
         "tp": 2,
         "pp": 1,
@@ -120,42 +152,10 @@
         "dp": 1,
         "zero": 0,
         "step_ms": 468.35
-      },
-      {
-        "tp": 4,
-        "pp": 1,
-        "cp": 2,
-        "dp": 1,
-        "zero": 0,
-        "step_ms": 496.79
-      },
-      {
-        "tp": 8,
-        "pp": 1,
-        "cp": 1,
-        "dp": 1,
-        "zero": 0,
-        "step_ms": 553.96
-      },
-      {
-        "tp": 1,
-        "pp": 1,
-        "cp": 4,
-        "dp": 2,
-        "zero": 3,
-        "step_ms": 680.8
-      },
-      {
-        "tp": 1,
-        "pp": 1,
-        "cp": 4,
-        "dp": 2,
-        "zero": 2,
-        "step_ms": 690.04
       }
     ]
   },
-  "attention_flops_formula": "12 * L * S^2 * d / (cp * tp) (fwd+bwd, scores recomputed in bwd; fwd=4*L*S^2*d)",
+  "attention_flops_formula": "12 * L * S^2 * d / (tp*pp*cp*dp) (fwd+bwd, scores recomputed in bwd)",
   "recompute_knob": {
     "default": "none",
     "options": [
