@@ -438,6 +438,73 @@ def score(tp, pp, cp, dp, zero, hw, m):
                   act_bytes/1e9, attn_ws_bytes/1e9, logits_bytes/1e9, cp_buf_bytes/1e9)
 
 
+def comm_bytes(tp, pp, cp, dp, zero, hw, m):
+    """Bytes per rank per step charged by the model, per collective family.
+
+    Returns a dict with keys: tp_allreduce, cp_exchange, cp_grad_sync,
+    pp_sendrecv, dp_allreduce, dp_allgather, dp_reducescatter, plus 'total'.
+    Mirrors the byte conventions in score() (no timing)."""
+    seq = m["seq"]
+    d = m["d_model"]
+    dtype_bytes = 2  # bf16
+    P = total_params(m)
+    seq_per_cp = seq // cp
+    tp_payload_mode = hw.get("tp_payload", "four_d")
+    if tp_payload_mode == "harness" or tp_payload_mode == "harness_3d_over_tp":
+        tp_scales = [3.0 / tp] * 4
+    elif tp_payload_mode in ("megatron", "df_allreduce_hypothesis"):
+        tp_scales = [1.0, m["d_ff"] / d, 1.0, m["d_ff"] / d]
+    else:
+        tp_scales = [1.0] * 4
+
+    out = {"tp_allreduce": 0, "cp_exchange": 0, "cp_grad_sync": 0,
+           "pp_sendrecv": 0, "dp_allreduce": 0, "dp_allgather": 0,
+           "dp_reducescatter": 0}
+
+    # TP: 4 all-reduces per layer, n_layers layers
+    if tp > 1:
+        for sc in tp_scales:
+            out["tp_allreduce"] += m["n_layers"] * int(d * seq_per_cp * sc * dtype_bytes)
+
+    # CP exchange: 2 directions * (cp-1) hops * msg_bytes per layer * n_layers
+    if cp > 1:
+        msg_bytes = seq_per_cp * d * dtype_bytes
+        out["cp_exchange"] += m["n_layers"] * 2 * (cp - 1) * msg_bytes
+
+    # CP grad sync
+    if cp > 1:
+        cp_grad_mode = hw.get("cp_grad_mode", "crude")
+        cp_grad_bytes = (P / (tp * pp)) * dtype_bytes
+        if cp_grad_mode == "production":
+            out["cp_grad_sync"] += int(cp_grad_bytes / cp)
+        else:
+            out["cp_grad_sync"] += int(cp_grad_bytes)
+
+    # PP send/recv
+    if pp > 1:
+        microbatches = max(pp, 1)
+        act_size = seq * d * dtype_bytes
+        out["pp_sendrecv"] += microbatches * 2 * (pp - 1) * act_size
+
+    # DP/FSDP
+    if dp > 1:
+        _P_bytes = (P / (tp * pp)) * dtype_bytes
+        zero_level = zero
+        if zero_level <= 1:
+            out["dp_allreduce"] += int(_P_bytes)
+        elif zero_level == 2:
+            out["dp_reducescatter"] += int(_P_bytes)
+        else:
+            out["dp_reducescatter"] += int(_P_bytes)
+        # all_gather of params for zero>=? (FSDP gathers params)
+        if zero_level >= 2:
+            out["dp_allgather"] += int(_P_bytes)
+        else:
+            out["dp_allgather"] += int(_P_bytes)
+
+    out["total"] = sum(v for k, v in out.items() if k != "total")
+    return out
+
 def search(N, hw, m=MODEL, rank_by="sum"):
     results = []
     for tp, pp, cp, dp in divisors_product(N):
