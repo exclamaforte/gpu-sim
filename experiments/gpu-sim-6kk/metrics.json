@@ -1,0 +1,37 @@
+{
+  "bead": "gpu-sim-6kk",
+  "shape": {
+    "vocab": 256,
+    "seq": 64,
+    "d_model": 32,
+    "n_layers": 2,
+    "n_heads": 4,
+    "d_ff": 64,
+    "batch": 4,
+    "steps": 8,
+    "warmup": 2,
+    "measured_steps": 5
+  },
+  "cp1_losses": [
+    7.099330425262451,
+    7.088902473449707,
+    7.0784807205200195,
+    7.068065166473389,
+    7.057656288146973,
+    7.047253608703613,
+    7.036855697631836,
+    7.026464462280273
+  ],
+  "cp2_rank0_losses": [
+    5.555741310119629,
+    5.5499067306518555,
+    5.544077396392822,
+    5.538255214691162,
+    5.5324387550354
+  ],
+  "max_abs_loss_diff": 1.5435891151428223,
+  "max_abs_param_diff_cp1_vs_cp2": 0.0010090740397572517,
+  "max_abs_param_diff_cp2_rank0_vs_rank1": 0.0021515879780054092,
+  "verdict": "DIVERGE. cp=2 training does not match cp=1. First divergent component: K/V ring gather (k.detach()/v.detach() breaks gradient flow for non-local positions). cp ranks do not stay identical (max param diff 0.002). Defect bead gpu-sim-8jg filed.",
+  "note_gpu": "GPU run with fill disabled (NO_FILL=1) completed but produced NaN losses (data did not move). CPU test with real gloo collectives (fill not needed) is the equivalence result reported here. GPU cp=2 run with fill enabled SIGSEGV'd (interposer fg_fill on device pointers)."
+}
