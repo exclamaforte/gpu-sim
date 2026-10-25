@@ -123,6 +123,38 @@ def compute_facts():
             cell["changes"] = len(shapes) > 1
             facts["headroom_sensitivity"]["grid"][f"N{n}_seq{seq}"] = cell
 
+    # gpu-sim-scross: where does CONTEXT PARALLELISM start paying? The docs say "CP pays at
+    # seq 8192" and S_best=8192, but 8192 was the smallest grid point, not a computed boundary.
+    # Bisect the seq at which the best cp>1 config overtakes the best cp=1 config: the crossover
+    # sits WELL BELOW 8192, so S_best is a discretization with room to spare, not a knife edge.
+    def _cp_advantage(seq, mfu):
+        m = dict(M8)
+        m["seq"] = seq
+        hwv = {"peak_flops": PEAK * mfu / 0.765, "mem_gb": 80.0,
+               "spec_path": "specs/h100_rack.json"}
+        _, feas = ps.search(8, hwv, m)
+        cp1 = [c for c in feas if c.cp == 1]
+        cpg = [c for c in feas if c.cp > 1]
+        if not cp1 or not cpg:
+            return None
+        return 100 * (min(c.step_sum for c in cp1) / min(c.step_sum for c in cpg) - 1)
+
+    facts["cp_crossover"] = {}
+    for tag, mfu in (("implied", 0.765), ("measured", 0.566), ("typical", 0.40)):
+        lo, hi = 2048, 8192
+        for _ in range(22):
+            mid = (lo + hi) / 2
+            a = _cp_advantage(int(mid), mfu)
+            if a is None or a > 0:
+                hi = mid
+            else:
+                lo = mid
+        facts["cp_crossover"][f"{tag}_seq"] = int((lo + hi) / 2)
+        facts["cp_crossover"][f"advantage_at_8192_{tag}_pct"] = round(
+            _cp_advantage(8192, mfu), 2)
+        facts["cp_crossover"][f"advantage_at_4096_{tag}_pct"] = round(
+            _cp_advantage(4096, mfu), 2)
+
     # gpu-sim-frag: WHERE is the recommendation a coin flip? Margin of the winner against the
     # best config with a different (tp,pp,cp,dp) shape, over N x seq x MFU. This is the grid
     # that showed the fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk: at 8192 only
@@ -480,6 +512,10 @@ def allowed_decimals(facts):
                 if _tag in _v:
                     add(_v[_tag]["step_ms"])
                     add(_v[_tag]["margin_pct"])
+    for _k, _v in facts.get("cp_crossover", {}).items():
+        add(_v)
+        if isinstance(_v, (int, float)) and _v < 0:
+            add(abs(_v))   # prose quotes a LOSS as a magnitude ("loses by 3.65%")
     _hr = facts.get("headroom_sensitivity", {}).get("grid", {})
     for _cell in _hr.values():
         for _k in ("hr0.00", "hr0.10", "hr0.20"):

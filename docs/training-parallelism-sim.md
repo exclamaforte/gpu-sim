@@ -145,6 +145,17 @@ separated from the alternative. Second, N=16 at 16384 is a genuine three-way tan
 from (tp=1 pp=4) to (tp=1 pp=2) as efficiency drops, and the margin never exceeds 2.33%. N=32 is the
 only cell family that is decisive everywhere (4-14%).
 
+**Where does CP actually start paying? At seq ~4819, not 8192.** "CP pays at 8192" has always read
+like a boundary, but 8192 was simply the smallest grid point that was tried. Bisecting the sequence
+length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **4819**
+tokens at the model's implied efficiency (**4735** at the measured 56.6% and at 40%), and act_factor
+does not move it at all (activations are memory, not time). So S_best=8192 is not a knife edge -- it
+is the smallest standard sequence length above a crossover that is 40% lower, where the CP advantage
+is already **6.42%** (**5.16% / 3.94%** at measured/pessimistic efficiency) and at seq 4096 CP still
+loses by 3.65%. The published claim survives with room; what changes is that it can now be stated as
+"CP pays from ~4.8k tokens, and 8192 is the first conventional length above that" instead of implying
+the boundary is at 8192.
+
 **And one cell recommends a config nobody would deploy.** The model treats HBM as a hard fit, so a
 config at 94% of capacity looks as good as one at 65%. Requiring a mere 10% of HBM to stay free --
 room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
