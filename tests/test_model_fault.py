@@ -210,26 +210,35 @@ def test_cross_route_loss_refusal():
 
 
 def test_cross_route_ctypes():
-    """Cross-route via ctypes: C fg_nccl_predict returns FG_NCCL_REFUSED for p>=1 spec."""
-    import ctypes
+    """Cross-route via ctypes: C fg_nccl_predict returns FG_NCCL_REFUSED for p>=1 spec, under BOTH regimes."""
+    import ctypes, os
     lib = ctypes.CDLL("./libfakegpu.so")
     lib.fg_nccl_predict.restype = ctypes.c_double
     lib.fg_nccl_predict.argtypes = [
         ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t,
         ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int),
         ctypes.c_char_p, ctypes.c_size_t]
-    # Use fg_topo_load from C
     lib.fg_topo_load.restype = ctypes.c_void_p
     lib.fg_topo_load.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_size_t]
-    errbuf = ctypes.create_string_buffer(256)
-    topo = lib.fg_topo_load(b"tests/topo_p1.bin", errbuf, 256)
-    assert topo, errbuf.value
-    bl = ctypes.c_int(-1)
-    regime = ctypes.create_string_buffer(64)
-    pred = lib.fg_nccl_predict(topo, b"ring_allreduce", 1000, 0, 2,
-                               ctypes.byref(bl), regime, 64)
-    assert pred == -1.0, ("C returned %f, expected -1.0 (FG_NCCL_REFUSED)" % pred)
-    print("PASS test_cross_route_ctypes (C returns FG_NCCL_REFUSED=%.1f)" % pred)
+
+    for envval in (None, "1"):
+        if envval is None:
+            os.environ.pop("GPUSIM_NCCL_LEGACY_TABLE", None)
+        else:
+            os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = envval
+        label = "default" if envval is None else "legacy"
+        errbuf = ctypes.create_string_buffer(256)
+        topo = lib.fg_topo_load(b"tests/topo_p1.bin", errbuf, 256)
+        assert topo, errbuf.value
+        bl = ctypes.c_int(-1)
+        regime = ctypes.create_string_buffer(64)
+        pred = lib.fg_nccl_predict(topo, b"ring_allreduce", 1000, 0, 2,
+                                   ctypes.byref(bl), regime, 64)
+        assert pred == -1.0, ("[%s] C returned %f, expected -1.0" % (label, pred))
+        assert regime.value.decode() == "refused", ("[%s] regime=%s" % (label, regime.value))
+        print("PASS test_cross_route_ctypes [%s] (C returns FG_NCCL_REFUSED=%.1f)" % (label, pred))
+
+    os.environ.pop("GPUSIM_NCCL_LEGACY_TABLE", None)
 
     # Python side: same spec raises ValueError
     spec = uniform_spec(2, 10.0, 10.0, loss_ppm=1000000)

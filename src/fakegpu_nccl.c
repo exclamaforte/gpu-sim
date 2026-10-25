@@ -546,6 +546,24 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
 
     double dur, bw_term, lat_term;
     int legacy = 0;
+    /* gpu-sim-xq3: hoist loss/refusal semantics out of the legacy branch so
+       both the analytical (default) and legacy paths share them. p>=1 => refused;
+       0<p<1 => retransmit factor 1/(1-p) on the bandwidth term (expected number
+       of transmissions of a packet under independent loss p). */
+    int _loss_ppm = 0;
+    if (is_tree) {
+        if (t->n_links > 0) _loss_ppm = (int)t->links[0].loss_ppm;
+    } else {
+        if (worst < nedges && edge_pathlen[worst] > 0) {
+            int _li = edge_paths[worst][0];
+            if (_li >= 0 && _li < t->n_links) _loss_ppm = (int)t->links[_li].loss_ppm;
+        }
+    }
+    if (_loss_ppm >= 1000000) {
+        *bottleneck_link = -1;
+        if (regime && regimesz) snprintf(regime, regimesz, "refused");
+        return FG_NCCL_REFUSED;
+    }
     const char *lt = getenv("GPUSIM_NCCL_LEGACY_TABLE");
     if (lt && *lt && strcmp(lt, "0") != 0) legacy = 1;
 
@@ -558,16 +576,7 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
         bw_term = logn * S / B_Bps;
         lat_term = logn * alpha_s * (double)P_tree;
         dur = bw_term + lat_term;
-        /* fault: loss factor (gpu-sim-5zv) - use first link's loss_ppm */
-        if (t->n_links > 0 && t->links[0].loss_ppm >= 1000000) {
-            *bottleneck_link = -1;
-            if (regime && regimesz) snprintf(regime, regimesz, "refused");
-            return FG_NCCL_REFUSED;
-        }
-        if (t->n_links > 0 && t->links[0].loss_ppm > 0 && t->links[0].loss_ppm < 1000000) {
-            double _p = t->links[0].loss_ppm / 1e6;
-            dur = bw_term * (1.0 / (1.0 - _p)) + lat_term;
-        }
+        /* retransmit factor applied after the legacy/analytical split (xq3) */
     } else {
         double bf, lf;
         /* gpu-sim-ggh: n=2 special case removed. bf=2*(n-1)/n, so n=2 -> 1.0
@@ -611,23 +620,7 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
         bw_term = bf * S / B_Bps;
         lat_term = lf * alpha_s * (double)P;
         dur = bw_term + lat_term;
-        /* fault: expected retransmit factor under loss (gpu-sim-5zv) */
-        {
-            int _loss_ppm = 0;
-            if (worst < nedges && edge_pathlen[worst] > 0) {
-                int _li = edge_paths[worst][0];
-                if (_li >= 0 && _li < t->n_links) _loss_ppm = (int)t->links[_li].loss_ppm;
-            }
-            if (_loss_ppm >= 1000000) {
-                *bottleneck_link = -1;
-                if (regime && regimesz) snprintf(regime, regimesz, "refused");
-                return FG_NCCL_REFUSED;
-            }
-            if (_loss_ppm > 0 && _loss_ppm < 1000000) {
-                double _p = _loss_ppm / 1e6;
-                dur = bw_term * (1.0 / (1.0 - _p)) + lat_term;
-            }
-        }
+        /* retransmit factor applied after the legacy/analytical split (xq3) */
     }
 
     } else {
@@ -658,6 +651,13 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
             bw_term = phase_bw * (double)phases;
             lat_term = phase_lat * (double)phases;
         }
+    }
+
+    /* gpu-sim-xq3: retransmit factor 1/(1-p) on bandwidth term for 0<p<1,
+       shared by both legacy and analytical paths. */
+    if (_loss_ppm > 0 && _loss_ppm < 1000000) {
+        double _p = _loss_ppm / 1e6;
+        dur = bw_term * (1.0 / (1.0 - _p)) + lat_term;
     }
 
     int b_link = -1;
