@@ -27,10 +27,12 @@ the invariance. So every pp=1 row reports the same compute -- 51.63 ms weight-on
 with attention at seq=8192 -- and the ORDER is decided entirely by the comm terms, not by
 the dominant column, which reads compute everywhere. With the corrected terms (TP 4
 all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the winner is pure FSDP
-(tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms weight-only, 73.06 ms with attention), with tp=2 cp=4
+(tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms weight-only, 73.06 ms with attention on the spec path and
+73.05 ms on the legacy single-fabric path, the same 0.013 ms path delta as 5o4.5 reported), with tp=2 cp=4
 second at 64.23 ms weight-only. But ALL 24 feasible pp=1 configurations have identical
 max-overlap time (64.97 ms with attention; 22 of 24 at 51.63 ms weight-only, where two rows'
-comm exceeded the floor) while their SUM spans 59.71-98.80 ms: under full overlap the
+comm exceeded the floor) while their SUM spans 73.06-129.62 ms with attention (59.71-98.80
+ms weight-only): under full overlap the
 model cannot separate them at all. Numbers in this section are weight-only unless labelled;
 gpu-sim-i95 regenerates every table with the attention term. gpu-sim-5o4.5 quantified the
 overlap question on the merged search: the min-comm config (pure FSDP) is the unique winner
