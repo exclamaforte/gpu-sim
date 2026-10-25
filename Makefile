@@ -70,6 +70,14 @@ build/%: tests/%.c $(LIB) shim/cuda_runtime.h shim/nccl.h
 # files, the header and the three test programs were committed, so every
 # "make check passes" claim made before that -- including the reviewer's own
 # validation of gpu-sim-8dw -- was true here and unreproducible elsewhere.
+# Quality gates: scripts/gate.sh runs them all (docs-vs-model, close audit,
+# guard uniqueness, libfakegpu freshness, pytest). "make gate-fast" skips the suite.
+gate:
+	./scripts/gate.sh
+
+gate-fast:
+	./scripts/gate.sh --fast
+
 check: guard-build-inputs $(LIB)
 	@python3 tests/test_model_fault.py
 	@python3 tests/test_model_agreement.py
