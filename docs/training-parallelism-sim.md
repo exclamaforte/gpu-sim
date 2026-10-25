@@ -51,8 +51,10 @@ is therefore not a property the model can currently decide: it is decided by an 
 payload. A third convention, Megatron's ACTUAL per-layer set (2d + 2d_ff, i.e. 2.25x the model's
 4xd), moves the winner to (tp=2 pp=1 cp=4 dp=1 z0) at 88.22 ms -- CP again, and harder. The TP term is 8-16 ms of a 73-80 ms step, which is why it decides. Neither
 convention is validated: the harness's own layout is a 4-layer toy, not Megatron's; the model's
-full-d is the textbook row-parallel size. Until TP payloads are measured on a real Megatron-shaped
-run, this document should be read as a pair of conditional answers, not one answer.
+full-d is the textbook row-parallel size. Until TP payloads are measured on a real Megatron-shaped run, this document should be read as a
+pair of conditional answers, not one answer. Measurement attempted on this box: the harness
+SIGSEGVs on tp>1 workloads (u2o bead 17 dot 1, won-fix), so neither convention can be
+validated here; the ranking is undecidable on this axis.
 
 **N=16 and N=32.** At N=16 the winner is (tp=4 pp=2 cp=2 dp=1 zero=0) at 58.69 ms (best
 dp>1 row: (tp=1 pp=4 cp=1 dp=4 zero=2/3) at 59.34 ms -> the two policies tie within 1%). At
