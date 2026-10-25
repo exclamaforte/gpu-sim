@@ -41,9 +41,12 @@ all-gathers the gradient, so ring-allreduce == reduce-scatter + all-gather: its 
 traffic equals the crude path byte for byte, and the production figure is unreachable until
 a sharded optimizer exists (gpu-sim-fzd rework). What DOES depend on it is the size of the CP penalty
 (+27.7 ms crude vs +3.5 ms production at tp=2 cp=4), which is why the harness must state
-which sync it does before any CP claim is quoted. gpu-sim-fzd (P2) makes the harness do the
-production sync by default (--cp-grad-sync=reducescatter; crude kept via --cp-grad-sync=allreduce);
-equivalence verified: identical loss curves (5.760->5.743, 5.695->5.680) on both paths. cp>1 configs
+which sync it does before any CP claim is quoted. gpu-sim-fzd (P2) adds --cp-grad-sync=reducescatter
+(equivalence-preserving: measured bytes per rank are EQUAL to allreduce because all_gather
+reconstructs the full gradient; the true production sync needs a sharded optimizer this
+harness lacks). Equivalence verified: identical loss curves (5.760->5.743, 5.695->5.680).
+Model cp_grad stays CRUDE (conservative); production cp_grad (2*(cp-1)/cp * bytes/cp) is
+hypothetical. cp>1 configs
 still appear in the top-5 by step_sum because several tie at the max-overlap floor (e.g. N=8
 top-5 includes (4,1,2,1,0) at 93.77 ms with cp_grad 9.24 ms), but none is strictly better than
 FSDP. See experiments/gpu-sim-olg/top5.json. But ALL 24 feasible pp=1 configurations have identical
