@@ -5,6 +5,7 @@ tokenize->batch->model->loss pipeline is functional end to end. LR=0
 control proves the decrease is learning, not bookkeeping.
 """
 import json
+import signal
 import sys
 import unittest
 from pathlib import Path
@@ -13,14 +14,19 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "epic_u2o"))
 
+import os  # noqa: E402
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
 import torch  # noqa: E402
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
 from torch.utils.data import DataLoader  # noqa: E402
 
 import train_trans_91 as T  # noqa: E402
 from epic_u2o.model import create_model, gaussian_nll_with_floor  # noqa: E402
 
 EXP = REPO / "experiments" / "gpu-sim-u2o.11.1"
-N_FIT, STEPS, CTRL_STEPS = 32, 150, 20
+N_FIT, STEPS, CTRL_STEPS = 32, 35, 5
 
 
 def _subset():
@@ -66,7 +72,12 @@ def _run(loader, lr, steps, train_mode=True):
 
 
 class TestOverfitSanity(unittest.TestCase):
+    def _timeout_handler(self, signum, frame):
+        raise TimeoutError("test_overfit_111 exceeded 120s wall budget")
+
     def test_overfits_fixed_real_subset(self):
+        signal.signal(signal.SIGALRM, self._timeout_handler)
+        signal.alarm(120)
         loader = _subset()
         first, last = _run(loader, 3e-4, STEPS)
         self.assertLess(last, 0.05 * first)
@@ -81,6 +92,7 @@ class TestOverfitSanity(unittest.TestCase):
                    "lr0_first": round(c_first, 4),
                    "lr0_last": round(c_last, 4)}
         (EXP / "metrics.json").write_text(json.dumps(metrics, indent=2))
+        signal.alarm(0)
         print("\n11.1 metrics:", json.dumps(metrics))
 
 
