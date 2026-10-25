@@ -19,24 +19,41 @@ FAST=0
 pass=0; fail=0; advisory=0
 declare -a FAILED=() ADVISED=()
 
+# gpu-sim-smt5: the gate used to buffer each check's output in /tmp. On a host where /tmp is
+# out of quota (this one: 13G tmpfs with a project quota, routinely exhausted by trace dumps)
+# EVERY check fails with an empty log and no diagnostics -- the gate went red with 0/6 passing
+# while each check passed when run directly. Keep the log inside the repo, and if the redirect
+# itself fails, say so instead of reporting a phantom check failure.
+GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
+mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
+GATE_LOG="$GATE_TMP/gate.$$.out"
+if ! : > "$GATE_LOG" 2>/dev/null; then
+  echo "gate: cannot write $GATE_LOG (filesystem full or read-only)" >&2
+  exit 1
+fi
+
 run_hard() {  # name, command...
   local name="$1"; shift
   printf '%-42s ' "$name"
-  if "$@" >/tmp/gate.$$.out 2>&1; then
+  if "$@" >"$GATE_LOG" 2>&1; then
     echo "PASS"; pass=$((pass+1))
   else
     echo "FAIL"; fail=$((fail+1)); FAILED+=("$name")
-    sed -n '1,12p' /tmp/gate.$$.out | sed 's/^/    /'
+    if [ -s "$GATE_LOG" ]; then
+      sed -n '1,12p' "$GATE_LOG" | sed 's/^/    /'
+    else
+      echo "    (no output: check produced no log -- did it fail to start?)"
+    fi
   fi
 }
 
 run_advisory() {  # name, command...
   local name="$1"; shift
   printf '%-42s ' "$name (advisory)"
-  if "$@" >/tmp/gate.$$.out 2>&1; then
+  if "$@" >"$GATE_LOG" 2>&1; then
     echo "PASS"
   else
-    echo "FINDINGS: $(tail -1 /tmp/gate.$$.out)"
+    echo "FINDINGS: $(tail -1 "$GATE_LOG")"
     advisory=$((advisory+1)); ADVISED+=("$name")
   fi
 }
@@ -53,7 +70,7 @@ run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
 run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
 
-rm -f /tmp/gate.$$.out
+rm -f "$GATE_LOG"
 echo
 echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
 if [ $fail -ne 0 ]; then
