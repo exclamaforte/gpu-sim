@@ -709,6 +709,31 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
     fclose(f);
 }
 
+/* ---- byte conventions (gpu-sim-smt7, complete as of 2026-10-25) -----------
+ *
+ * Five count-vs-bytes bugs were found in one day, all the same species: a count
+ * that is PER-RANK used where a TOTAL belongs, or an element count used where BYTES
+ * belong. Before adding a collective, satisfy this table.
+ *
+ *   op             caller's count means   collective total        recv buffer holds  trace `bytes`
+ *   -------------  ---------------------  ----------------------  -----------------  -------------
+ *   allreduce      elements (full)       count                   count              count*elem
+ *   broadcast      elements (full)       count                   count              count*elem
+ *   reduce         elements (full)       count                   count (root)       count*elem
+ *   allgather      SEND count (shard)    count*nr                count*nr           count*nr*elem
+ *   reducescatter  RECV count (shard)    count*nr                count  (shard!)    count*nr*elem
+ *   alltoall       per-peer count        count*nr                count*nr           count*nr*elem
+ *   send/recv      elements              count (one peer)        count              count*elem
+ *   gather         per-rank count        count*nr                count*nr (root!)   count*nr*elem
+ *
+ * `bytes` is always the COLLECTIVE TOTAL (the cost model's convention); the FILL
+ * size is always the recv buffer's size, which is NOT the total for reduce-scatter
+ * (shard) and gather (root only). Conflating those two overflowed a shard buffer
+ * once and silently under-filled an all-to-all once.
+ *
+ * Guards: tests/test_fallback_fill_bounds.py (9 cases). Deliberately unguarded:
+ * ncclGather -- it is not exported and nothing calls it.
+ */
 /* ---- collectives --------------------------------------------------------- */
 
 /* gpu-sim-torch-harness: the fallback path (no GPUSIM_TOPOLOGY loaded) still has
@@ -1244,8 +1269,22 @@ ncclResult_t ncclGather(const void *sendbuff, void *recvbuff, size_t count,
                         int datatype, int root, ncclComm_t comm, void *stream)
 {
     fg_cur_op = "gather";
-    (void)root;
-    fg_collective_out(recvbuff, count, datatype, comm);
+    (void)sendbuff; (void)stream;
+    /* gpu-sim-smt7 (completeness pass): only the ROOT holds the gathered buffer, and
+     * it holds count*nr elements -- falling through to fg_collective_out() recorded
+     * count*elem (a shard-as-total error) and filled that much of the root's buffer.
+     * NOT exported (shim/exports_nccl.map exports only the nccl* wildcard for the
+     * functions torch actually calls, and nothing calls this one), so it has no guard
+     * test; fixed anyway so the trap cannot move into a caller later. */
+    int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
+    int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : fg_nccl_rank_from_env();
+    size_t total = fg_dtype_bytes(datatype, count * (size_t)nr);
+    if (rk == root) {
+        fg_simulate_memcpy(total);
+        fg_nccl_out_fill(recvbuff, total);
+    }
+    fg_nccl_trace("gather", rk, nr, count, fg_dtype_name(datatype), total,
+                  "ring_gather", FG_NCCL_REFUSED, -1, "unmodelled");
     return ncclSuccess;
 }
 

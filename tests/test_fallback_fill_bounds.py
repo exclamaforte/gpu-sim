@@ -136,10 +136,16 @@ def test_point_to_point_fills_the_whole_payload():
         row = [json.loads(l) for l in open(trace) if l.strip()][-1]
     assert row["bytes"] == payload, (
         f"recv trace bytes {row['bytes']} != payload {payload}")
-    assert body.count(b"\xa5") < payload, "recv filled nothing"
-    assert all(b != 0xA5 for b in body[-16:]), (
-        "the tail of the payload is still canary -- the fill used the ELEMENT count "
-        "as a BYTE count (gpu-sim-smt7)")
+    # fg_fill() writes PSEUDO-RANDOM bytes, so "this byte != canary" is probabilistic:
+    # with a 16-byte tail one run in ~40 leaves all 16 unchanged by chance. Assert on
+    # the FRACTION of surviving canary instead (a partial fill leaves ~75% of the
+    # buffer untouched; a complete one leaves ~0.4% by chance).
+    survived = body.count(b"\xa5")
+    assert survived < payload // 4, (
+        f"{survived}/{payload} payload bytes still hold the canary -- the fill used "
+        "the ELEMENT count as a BYTE count (gpu-sim-smt7)")
+    assert any(b != 0xA5 for b in body[-16:]), (
+        "the tail of the payload was never written -- fill stopped early")
     assert all(b == 0xA5 for b in past), "recv wrote past the end of the buffer"
 
 @pytest.mark.parametrize("nranks", [2, 4])
@@ -169,5 +175,10 @@ def test_alltoall_totals_and_fill_cover_every_peer(nranks):
         tail = bytes(buf[total * 4 - 16:total * 4])
     assert row["bytes"] == total * 4, (
         f"n={nranks}: alltoall bytes {row['bytes']} != total {total * 4}")
-    assert all(b != 0xA5 for b in tail), "fill stopped at the per-peer payload"
+    # pseudorandom fill: use the surviving-canary FRACTION, not per-byte equality
+    survived = bytes(buf[:total * 4]).count(b"\xa5")
+    assert survived < (total * 4) // 4, (
+        f"{survived}/{total * 4} payload bytes still hold the canary -- fill stopped at "
+        "the per-peer payload")
+    assert any(b != 0xA5 for b in tail), "the last peer's slot was never written"
     assert all(b == 0xA5 for b in past), "fill wrote past the buffer"
