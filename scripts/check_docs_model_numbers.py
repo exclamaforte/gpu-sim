@@ -98,6 +98,32 @@ def compute_facts():
         return (best.tp, best.pp, best.cp, best.dp, best.zero), best.step_sum, \
                (alt.tp, alt.pp, alt.cp, alt.dp, alt.zero), alt.step_sum
 
+    # gpu-sim-frag: WHERE is the recommendation a coin flip? Margin of the winner against the
+    # best config with a different (tp,pp,cp,dp) shape, over N x seq x MFU. This is the grid
+    # that showed the fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk: at 8192 only
+    # N=16 at a pessimistic MFU is tight, but at 16384/32768 the N=8 answer itself wins by ~1%.
+    facts["fragility_map"] = {"note": "margin = best config with a different shape; <2% = coin flip",
+                              "grid": {}}
+    for n in (8, 16, 32):
+        for seq in (8192, 16384, 32768):
+            cell = {}
+            for tag, mfu in (("implied", 0.765), ("measured", 0.566), ("typical", 0.40)):
+                m = dict(M8)
+                m["seq"] = seq
+                hwv = {"peak_flops": PEAK * mfu / 0.765, "mem_gb": 80.0, "spec_path": SPEC[n]}
+                _, feas = ps.search(n, hwv, m)
+                if not feas:
+                    cell[tag] = None
+                    continue
+                b = feas[0]
+                alt = next((c for c in feas
+                            if (c.tp, c.pp, c.cp, c.dp) != (b.tp, b.pp, b.cp, b.dp)), None)
+                cell[tag] = {"config": [b.tp, b.pp, b.cp, b.dp],
+                             "step_ms": round(b.step_sum * 1e3, 2),
+                             "margin_pct": round(100 * (alt.step_sum / b.step_sum - 1), 2)
+                             if alt else None}
+            facts["fragility_map"]["grid"][f"N{n}_seq{seq}"] = cell
+
     # gpu-sim-aknob: act_factor is a MEMORY knob -- record where, if anywhere, it moves the
     # answer. A 5x band around the fit leaves the ranking untouched; the bend points and the
     # all-infeasible ceilings are computed here so the doc cannot quote drift.
@@ -429,6 +455,12 @@ def allowed_decimals(facts):
                 if _tag in _v:
                     add(_v[_tag]["step_ms"])
                     add(_v[_tag]["margin_pct"])
+    _fm = facts.get("fragility_map", {}).get("grid", {})
+    for _cell in _fm.values():
+        for _tag in ("implied", "measured", "typical"):
+            if _cell.get(_tag):
+                add(_cell[_tag]["step_ms"])
+                add(_cell[_tag]["margin_pct"])
     _ak = facts.get("act_factor_knob", {})
     add(_ak.get("calibrated"))
     for d in (_ak.get("bend_point", {}), _ak.get("infeasible_above", {})):

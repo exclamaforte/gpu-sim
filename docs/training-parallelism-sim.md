@@ -127,6 +127,24 @@ the calibrated number, and the model stops being feasible at all beyond ~36 / ~8
 recommendation therefore does not rest on this fit
 (tests/test_act_factor_knob.py).
 
+**Where the recommendation is a coin flip (fragility map).** Margin of the winner against the best
+config with a different shape, over N x sequence length x efficiency:
+
+| N | seq 8192 | seq 16384 | seq 32768 |
+|---|---|---|---|
+| 8 | 6.42 / 5.16 / 3.94% | **1.84 / 1.45 / 1.08%** | **1.60 / 1.24 / 0.91%** |
+| 16 | 5.08 / 3.13 / **0.79%** | 2.33 / **0.35%** / **1.50%** | 3.72 / **1.92%** / 9.60% |
+| 32 | 5.64 / 4.92 / 4.09% | 14.43 / 12.14 / 9.69% | 11.30 / 9.20 / 4.35% |
+
+(76.5% / 56.6% / 40% MFU; bold is a margin under 2%.) Two things fall out and neither was visible in
+the single-cell analysis. First, the fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk: at
+8192 only N=16 at a pessimistic efficiency is tight, but from 16384 the N=8 answer itself wins by
+about 1%, and at 32768 it is 0.91% at 40% MFU. The config does not change there -- (tp=4 cp=2 dp=1)
+wins at all three lengths -- so the recommendation stands, but at long sequences it is not decisively
+separated from the alternative. Second, N=16 at 16384 is a genuine three-way tangle: the winner moves
+from (tp=1 pp=4) to (tp=1 pp=2) as efficiency drops, and the margin never exceeds 2.33%. N=32 is the
+only cell family that is decisive everywhere (4-14%).
+
 **N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
 dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
 N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes

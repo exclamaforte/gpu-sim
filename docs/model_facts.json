@@ -184,6 +184,299 @@
     "ratio_at_measured": 1.24,
     "ratio_at_typical": 1.63
   },
+  "fragility_map": {
+    "note": "margin = best config with a different shape; <2% = coin flip",
+    "grid": {
+      "N8_seq8192": {
+        "implied": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 94.12,
+          "margin_pct": 6.42
+        },
+        "measured": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 116.96,
+          "margin_pct": 5.16
+        },
+        "typical": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 153.41,
+          "margin_pct": 3.94
+        }
+      },
+      "N8_seq16384": {
+        "implied": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 204.86,
+          "margin_pct": 1.84
+        },
+        "measured": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 259.92,
+          "margin_pct": 1.45
+        },
+        "typical": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 347.77,
+          "margin_pct": 1.08
+        }
+      },
+      "N8_seq32768": {
+        "implied": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 506.38,
+          "margin_pct": 1.6
+        },
+        "measured": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 654.03,
+          "margin_pct": 1.24
+        },
+        "typical": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 889.59,
+          "margin_pct": 0.91
+        }
+      },
+      "N16_seq8192": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 66.86,
+          "margin_pct": 5.08
+        },
+        "measured": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 83.17,
+          "margin_pct": 3.13
+        },
+        "typical": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 109.2,
+          "margin_pct": 0.79
+        }
+      },
+      "N16_seq16384": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 138.88,
+          "margin_pct": 2.33
+        },
+        "measured": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 178.21,
+          "margin_pct": 0.35
+        },
+        "typical": {
+          "config": [
+            1,
+            2,
+            1,
+            8
+          ],
+          "step_ms": 237.4,
+          "margin_pct": 1.5
+        }
+      },
+      "N16_seq32768": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 340.11,
+          "margin_pct": 3.72
+        },
+        "measured": {
+          "config": [
+            2,
+            1,
+            8,
+            1
+          ],
+          "step_ms": 437.17,
+          "margin_pct": 1.92
+        },
+        "typical": {
+          "config": [
+            2,
+            1,
+            8,
+            1
+          ],
+          "step_ms": 554.95,
+          "margin_pct": 9.6
+        }
+      },
+      "N32_seq8192": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 55.54,
+          "margin_pct": 5.64
+        },
+        "measured": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 63.7,
+          "margin_pct": 4.92
+        },
+        "typical": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 76.72,
+          "margin_pct": 4.09
+        }
+      },
+      "N32_seq16384": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 104.38,
+          "margin_pct": 14.43
+        },
+        "measured": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 124.05,
+          "margin_pct": 12.14
+        },
+        "typical": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 155.42,
+          "margin_pct": 9.69
+        }
+      },
+      "N32_seq32768": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 230.64,
+          "margin_pct": 11.3
+        },
+        "measured": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 283.38,
+          "margin_pct": 9.2
+        },
+        "typical": {
+          "config": [
+            1,
+            4,
+            1,
+            8
+          ],
+          "step_ms": 367.51,
+          "margin_pct": 4.35
+        }
+      }
+    }
+  },
   "act_factor_knob": {
     "calibrated": 2.3,
     "band_tested": [
