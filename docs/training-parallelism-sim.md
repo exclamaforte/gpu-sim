@@ -557,6 +557,23 @@ is recorded in the code where the fallback traces, rather than "fixed" by normal
 convention the torch side actually passes was not pinned down, and inventing one would have
 made a second silent error.
 
+**What the byte reconciliation can and cannot validate (gpu-sim-wrvw, gpu-sim-juzb).** With the
+model and the harness compared on the model the harness actually ran (TinyLM, fp32), the DP axis
+agrees to **2.5%** -- all-gather and reduce-scatter both ratio 1.025 at dp=4/zero=3, and the 2.5% is
+exactly the documented `param_count()` pos/LN exclusion. That is the first end-to-end validation of
+a comm term against a real trace rather than against a fixture generated from the model.
+
+The **CP axis cannot be reconciled this way, by construction**. This model prices context parallelism
+the way Megatron runs it: a RING p2p exchange of each rank's K/V chunk with its (cp-1) peers, per
+layer, forward and backward. The harness implements it as a FULL all_gather of K/V (replication, not
+rotation) plus, because `torch.distributed.nn.all_gather` is differentiable, a reduce_scatter of the
+same tensor in backward, plus a per-parameter gradient sync. Measured at cp=2 it moves 109.8 MB/step
+against the model's 21.0 MB -- 5.2x, and the trace is a perfectly symmetric AG/RS pair, which is the
+autograd signature, not a byte bug. Neither side is "fixed" to match: the model keeps the production
+pattern the recommendation is about, and the harness's CP is recorded here as an AG-based
+approximation that cannot validate this term. Absolute CP pricing therefore rests on the model plus
+the ring argument, not on the harness.
+
 **Three byte bugs had to be fixed before any of this was true** (gpu-sim-6wd-bytes,
 gpu-sim-smt3, gpu-sim-smt6), and all three are the same dp x / n x species of error the COST MODEL
 carried before gpu-sim-6r5 -- one layer down each time:
