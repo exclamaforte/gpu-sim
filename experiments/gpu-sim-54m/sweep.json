@@ -2,19 +2,19 @@
   "thresholds_summary": {
     "path=legacy_cpgrad=crude_act=2.3": {
       "N8_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 69.01,
-              "mem_gb": 65.4
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 93.77,
+              "mem_gb": 37.5
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -22,13 +22,13 @@
           "16384": {
             "feasible": true,
             "best": {
-              "tp": 2,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 198.64,
-              "mem_gb": 57.1
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 204.51,
+              "mem_gb": 41.8
             },
             "cp1_feasible": true,
             "nfeas": 34
@@ -36,13 +36,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 2,
+              "tp": 4,
               "pp": 1,
               "cp": 2,
-              "dp": 2,
-              "zero": 2,
-              "step_ms": 500.79,
-              "mem_gb": 71.7
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 506.03,
+              "mem_gb": 50.4
             },
             "cp1_feasible": true,
             "nfeas": 25
@@ -106,19 +106,19 @@
         }
       },
       "N16_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 33.7
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 58.69,
+              "mem_gb": 18.9
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -131,7 +131,7 @@
               "cp": 1,
               "dp": 8,
               "zero": 2,
-              "step_ms": 110.81,
+              "step_ms": 125.96,
               "mem_gb": 51.9
             },
             "cp1_feasible": true,
@@ -140,13 +140,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 2,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 311.3,
-              "mem_gb": 59.4
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 321.96,
+              "mem_gb": 42.5
             },
             "cp1_feasible": true,
             "nfeas": 68
@@ -159,7 +159,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 911.03,
+              "step_ms": 917.95,
               "mem_gb": 74.5
             },
             "cp1_feasible": true,
@@ -225,12 +225,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 54.5
+              "step_ms": 47.46,
+              "mem_gb": 17.9
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -239,12 +239,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 59.66,
-              "mem_gb": 72.6
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 96.3,
+              "mem_gb": 28.0
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -253,12 +253,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 2,
+              "pp": 4,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 170.4,
-              "mem_gb": 76.8
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 222.56,
+              "mem_gb": 48.3
             },
             "cp1_feasible": true,
             "nfeas": 137
@@ -271,7 +271,7 @@
               "cp": 2,
               "dp": 4,
               "zero": 2,
-              "step_ms": 605.99,
+              "step_ms": 612.05,
               "mem_gb": 52.5
             },
             "cp1_feasible": true,
@@ -305,7 +305,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 2,
-              "step_ms": 277.66,
+              "step_ms": 306.43,
               "mem_gb": 76.4
             },
             "cp1_feasible": true,
@@ -319,7 +319,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 2,
-              "step_ms": 657.71,
+              "step_ms": 665.93,
               "mem_gb": 65.5
             },
             "cp1_feasible": true,
@@ -356,19 +356,19 @@
     },
     "path=legacy_cpgrad=crude_act=1.0": {
       "N8_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 69.01,
-              "mem_gb": 47.2
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 93.77,
+              "mem_gb": 35.3
             },
             "cp1_feasible": true,
             "nfeas": 45
@@ -376,13 +376,13 @@
           "16384": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 160.66,
-              "mem_gb": 63.3
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 204.51,
+              "mem_gb": 37.3
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -390,13 +390,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 483.01,
-              "mem_gb": 78.1
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 496.06,
+              "mem_gb": 74.7
             },
             "cp1_feasible": true,
             "nfeas": 35
@@ -409,7 +409,7 @@
               "cp": 2,
               "dp": 2,
               "zero": 2,
-              "step_ms": 1404.93,
+              "step_ms": 1418.78,
               "mem_gb": 69.8
             },
             "cp1_feasible": true,
@@ -468,19 +468,19 @@
         }
       },
       "N16_8b": {
-        "S_best": 65536,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 24.7
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 58.69,
+              "mem_gb": 17.8
             },
             "cp1_feasible": true,
             "nfeas": 89
@@ -489,12 +489,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 2,
               "cp": 1,
-              "dp": 16,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 97.88,
-              "mem_gb": 56.0
+              "step_ms": 125.96,
+              "mem_gb": 33.7
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -503,12 +503,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 2,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 249.13,
-              "mem_gb": 72.6
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 306.89,
+              "mem_gb": 51.9
             },
             "cp1_feasible": true,
             "nfeas": 82
@@ -535,7 +535,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 2882.74,
+              "step_ms": 2889.67,
               "mem_gb": 70.3
             },
             "cp1_feasible": true,
@@ -587,12 +587,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 36.3
+              "step_ms": 47.46,
+              "mem_gb": 13.4
             },
             "cp1_feasible": true,
             "nfeas": 154
@@ -601,12 +601,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 49.41,
-              "mem_gb": 52.4
+              "step_ms": 96.3,
+              "mem_gb": 19.0
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -615,12 +615,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 125.5,
-              "mem_gb": 68.4
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 222.56,
+              "mem_gb": 30.2
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -629,12 +629,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 2,
+              "pp": 4,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 463.43,
-              "mem_gb": 76.8
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 589.44,
+              "mem_gb": 52.5
             },
             "cp1_feasible": true,
             "nfeas": 139
@@ -663,12 +663,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 4,
+              "pp": 8,
               "cp": 1,
-              "dp": 8,
-              "zero": 3,
-              "step_ms": 240.75,
-              "mem_gb": 59.0
+              "dp": 4,
+              "zero": 2,
+              "step_ms": 306.43,
+              "mem_gb": 65.1
             },
             "cp1_feasible": true,
             "nfeas": 38
@@ -681,7 +681,7 @@
               "cp": 1,
               "dp": 8,
               "zero": 3,
-              "step_ms": 519.48,
+              "step_ms": 586.6,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -695,7 +695,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 3,
-              "step_ms": 1410.03,
+              "step_ms": 1434.69,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -709,7 +709,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 3,
-              "step_ms": 3762.9,
+              "step_ms": 3768.38,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -734,19 +734,19 @@
     },
     "path=legacy_cpgrad=production_act=2.3": {
       "N8_8b": {
-        "S_best": 16384,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 69.01,
-              "mem_gb": 65.4
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 81.03,
+              "mem_gb": 70.8
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -768,13 +768,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 2,
+              "tp": 4,
               "pp": 1,
               "cp": 2,
-              "dp": 2,
-              "zero": 2,
-              "step_ms": 486.94,
-              "mem_gb": 71.7
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 499.1,
+              "mem_gb": 50.4
             },
             "cp1_feasible": true,
             "nfeas": 25
@@ -838,7 +838,7 @@
         }
       },
       "N16_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
@@ -846,11 +846,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 33.7
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 51.65,
+              "mem_gb": 68.9
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -860,11 +860,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 110.81,
-              "mem_gb": 51.9
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 119.61,
+              "mem_gb": 71.3
             },
             "cp1_feasible": true,
             "nfeas": 81
@@ -874,11 +874,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 304.37,
-              "mem_gb": 59.4
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 308.89,
+              "mem_gb": 76.0
             },
             "cp1_feasible": true,
             "nfeas": 68
@@ -891,7 +891,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 898.91,
+              "step_ms": 905.83,
               "mem_gb": 74.5
             },
             "cp1_feasible": true,
@@ -950,19 +950,19 @@
         }
       },
       "N32_8b": {
-        "S_best": 65536,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 54.5
+              "pp": 4,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 44.51,
+              "mem_gb": 34.6
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -971,12 +971,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 59.66,
-              "mem_gb": 72.6
+              "pp": 2,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 87.79,
+              "mem_gb": 69.0
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -984,13 +984,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
-              "pp": 2,
-              "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 170.4,
-              "mem_gb": 76.8
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 198.51,
+              "mem_gb": 71.0
             },
             "cp1_feasible": true,
             "nfeas": 137
@@ -1037,7 +1037,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 2,
-              "step_ms": 277.66,
+              "step_ms": 306.43,
               "mem_gb": 76.4
             },
             "cp1_feasible": true,
@@ -1051,7 +1051,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 2,
-              "step_ms": 657.71,
+              "step_ms": 665.93,
               "mem_gb": 65.5
             },
             "cp1_feasible": true,
@@ -1088,19 +1088,19 @@
     },
     "path=legacy_cpgrad=production_act=1.0": {
       "N8_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 69.01,
-              "mem_gb": 47.2
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 81.03,
+              "mem_gb": 68.5
             },
             "cp1_feasible": true,
             "nfeas": 45
@@ -1108,13 +1108,13 @@
           "16384": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 160.66,
-              "mem_gb": 63.3
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 184.61,
+              "mem_gb": 70.6
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -1122,13 +1122,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 455.3,
-              "mem_gb": 78.1
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 471.82,
+              "mem_gb": 74.7
             },
             "cp1_feasible": true,
             "nfeas": 35
@@ -1141,7 +1141,7 @@
               "cp": 2,
               "dp": 2,
               "zero": 2,
-              "step_ms": 1391.07,
+              "step_ms": 1404.93,
               "mem_gb": 69.8
             },
             "cp1_feasible": true,
@@ -1200,7 +1200,7 @@
         }
       },
       "N16_8b": {
-        "S_best": 65536,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
@@ -1208,11 +1208,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 24.7
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 51.65,
+              "mem_gb": 67.7
             },
             "cp1_feasible": true,
             "nfeas": 89
@@ -1221,12 +1221,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 16,
-              "zero": 2,
-              "step_ms": 97.88,
-              "mem_gb": 56.0
+              "pp": 2,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 119.61,
+              "mem_gb": 69.0
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -1235,12 +1235,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 2,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 249.13,
-              "mem_gb": 72.6
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 306.89,
+              "mem_gb": 51.9
             },
             "cp1_feasible": true,
             "nfeas": 82
@@ -1267,7 +1267,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 2870.62,
+              "step_ms": 2877.55,
               "mem_gb": 70.3
             },
             "cp1_feasible": true,
@@ -1312,19 +1312,19 @@
         }
       },
       "N32_8b": {
-        "S_best": 131072,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 36.3
+              "pp": 4,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 44.51,
+              "mem_gb": 34.1
             },
             "cp1_feasible": true,
             "nfeas": 154
@@ -1333,12 +1333,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 2,
-              "step_ms": 49.41,
-              "mem_gb": 52.4
+              "pp": 2,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 87.79,
+              "mem_gb": 67.9
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -1346,13 +1346,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 125.5,
-              "mem_gb": 68.4
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 198.51,
+              "mem_gb": 68.7
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -1360,13 +1360,13 @@
           "65536": {
             "feasible": true,
             "best": {
-              "tp": 1,
-              "pp": 2,
-              "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 463.43,
-              "mem_gb": 76.8
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 491.35,
+              "mem_gb": 71.0
             },
             "cp1_feasible": true,
             "nfeas": 139
@@ -1395,12 +1395,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 4,
+              "pp": 8,
               "cp": 1,
-              "dp": 8,
-              "zero": 3,
-              "step_ms": 240.75,
-              "mem_gb": 59.0
+              "dp": 4,
+              "zero": 2,
+              "step_ms": 306.43,
+              "mem_gb": 65.1
             },
             "cp1_feasible": true,
             "nfeas": 38
@@ -1413,7 +1413,7 @@
               "cp": 1,
               "dp": 8,
               "zero": 3,
-              "step_ms": 519.48,
+              "step_ms": 586.6,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -1427,7 +1427,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 3,
-              "step_ms": 1410.03,
+              "step_ms": 1434.69,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -1441,7 +1441,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 3,
-              "step_ms": 3762.9,
+              "step_ms": 3768.38,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -1466,19 +1466,19 @@
     },
     "path=spec_cpgrad=crude_act=2.3": {
       "N8_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 66.99,
-              "mem_gb": 65.4
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 79.96,
+              "mem_gb": 37.5
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -1486,13 +1486,13 @@
           "16384": {
             "feasible": true,
             "best": {
-              "tp": 2,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 177.7,
-              "mem_gb": 57.1
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 181.15,
+              "mem_gb": 41.8
             },
             "cp1_feasible": true,
             "nfeas": 34
@@ -1500,13 +1500,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 2,
+              "tp": 4,
               "pp": 1,
               "cp": 2,
-              "dp": 2,
-              "zero": 2,
-              "step_ms": 460.46,
-              "mem_gb": 71.7
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 463.59,
+              "mem_gb": 50.4
             },
             "cp1_feasible": true,
             "nfeas": 25
@@ -1570,19 +1570,19 @@
         }
       },
       "N16_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 33.7
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 58.69,
+              "mem_gb": 18.9
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -1595,7 +1595,7 @@
               "cp": 1,
               "dp": 8,
               "zero": 2,
-              "step_ms": 110.81,
+              "step_ms": 125.96,
               "mem_gb": 51.9
             },
             "cp1_feasible": true,
@@ -1604,13 +1604,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 2,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 311.3,
-              "mem_gb": 59.4
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 321.96,
+              "mem_gb": 42.5
             },
             "cp1_feasible": true,
             "nfeas": 68
@@ -1623,7 +1623,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 911.03,
+              "step_ms": 917.95,
               "mem_gb": 74.5
             },
             "cp1_feasible": true,
@@ -1689,12 +1689,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 54.5
+              "step_ms": 47.46,
+              "mem_gb": 17.9
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -1703,12 +1703,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 59.66,
-              "mem_gb": 72.6
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 96.3,
+              "mem_gb": 28.0
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -1717,12 +1717,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 2,
+              "pp": 4,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 170.4,
-              "mem_gb": 76.8
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 222.56,
+              "mem_gb": 48.3
             },
             "cp1_feasible": true,
             "nfeas": 137
@@ -1735,7 +1735,7 @@
               "cp": 2,
               "dp": 4,
               "zero": 2,
-              "step_ms": 605.99,
+              "step_ms": 612.05,
               "mem_gb": 52.5
             },
             "cp1_feasible": true,
@@ -1769,7 +1769,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 2,
-              "step_ms": 277.66,
+              "step_ms": 306.43,
               "mem_gb": 76.4
             },
             "cp1_feasible": true,
@@ -1783,7 +1783,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 2,
-              "step_ms": 657.71,
+              "step_ms": 665.93,
               "mem_gb": 65.5
             },
             "cp1_feasible": true,
@@ -1820,19 +1820,19 @@
     },
     "path=spec_cpgrad=crude_act=1.0": {
       "N8_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 66.99,
-              "mem_gb": 47.2
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 79.96,
+              "mem_gb": 35.3
             },
             "cp1_feasible": true,
             "nfeas": 45
@@ -1840,13 +1840,13 @@
           "16384": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 158.64,
-              "mem_gb": 63.3
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 181.15,
+              "mem_gb": 37.3
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -1854,13 +1854,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 451.5,
-              "mem_gb": 78.1
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 458.12,
+              "mem_gb": 74.7
             },
             "cp1_feasible": true,
             "nfeas": 35
@@ -1873,7 +1873,7 @@
               "cp": 2,
               "dp": 2,
               "zero": 2,
-              "step_ms": 1335.96,
+              "step_ms": 1342.88,
               "mem_gb": 69.8
             },
             "cp1_feasible": true,
@@ -1932,19 +1932,19 @@
         }
       },
       "N16_8b": {
-        "S_best": 65536,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 4,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 24.7
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 58.69,
+              "mem_gb": 17.8
             },
             "cp1_feasible": true,
             "nfeas": 89
@@ -1953,12 +1953,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 2,
               "cp": 1,
-              "dp": 16,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 97.88,
-              "mem_gb": 56.0
+              "step_ms": 125.96,
+              "mem_gb": 33.7
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -1967,12 +1967,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 2,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 249.13,
-              "mem_gb": 72.6
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 306.89,
+              "mem_gb": 51.9
             },
             "cp1_feasible": true,
             "nfeas": 82
@@ -1999,7 +1999,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 2882.74,
+              "step_ms": 2889.67,
               "mem_gb": 70.3
             },
             "cp1_feasible": true,
@@ -2051,12 +2051,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 36.3
+              "step_ms": 47.46,
+              "mem_gb": 13.4
             },
             "cp1_feasible": true,
             "nfeas": 154
@@ -2065,12 +2065,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
+              "dp": 8,
               "zero": 2,
-              "step_ms": 49.41,
-              "mem_gb": 52.4
+              "step_ms": 96.3,
+              "mem_gb": 19.0
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -2079,12 +2079,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 4,
               "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 125.5,
-              "mem_gb": 68.4
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 222.56,
+              "mem_gb": 30.2
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -2093,12 +2093,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 2,
+              "pp": 4,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 463.43,
-              "mem_gb": 76.8
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 589.44,
+              "mem_gb": 52.5
             },
             "cp1_feasible": true,
             "nfeas": 139
@@ -2127,12 +2127,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 4,
+              "pp": 8,
               "cp": 1,
-              "dp": 8,
-              "zero": 3,
-              "step_ms": 240.75,
-              "mem_gb": 59.0
+              "dp": 4,
+              "zero": 2,
+              "step_ms": 306.43,
+              "mem_gb": 65.1
             },
             "cp1_feasible": true,
             "nfeas": 38
@@ -2145,7 +2145,7 @@
               "cp": 1,
               "dp": 8,
               "zero": 3,
-              "step_ms": 519.48,
+              "step_ms": 586.6,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -2159,7 +2159,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 3,
-              "step_ms": 1410.03,
+              "step_ms": 1434.69,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -2173,7 +2173,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 3,
-              "step_ms": 3762.9,
+              "step_ms": 3768.38,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -2198,19 +2198,19 @@
     },
     "path=spec_cpgrad=production_act=2.3": {
       "N8_8b": {
-        "S_best": 16384,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 66.99,
-              "mem_gb": 65.4
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 73.12,
+              "mem_gb": 70.8
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -2232,13 +2232,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 2,
+              "tp": 4,
               "pp": 1,
               "cp": 2,
-              "dp": 2,
-              "zero": 2,
-              "step_ms": 453.53,
-              "mem_gb": 71.7
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 460.12,
+              "mem_gb": 50.4
             },
             "cp1_feasible": true,
             "nfeas": 25
@@ -2302,7 +2302,7 @@
         }
       },
       "N16_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
@@ -2310,11 +2310,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 33.7
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 51.65,
+              "mem_gb": 68.9
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -2324,11 +2324,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 110.81,
-              "mem_gb": 51.9
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 119.61,
+              "mem_gb": 71.3
             },
             "cp1_feasible": true,
             "nfeas": 81
@@ -2338,11 +2338,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 304.37,
-              "mem_gb": 59.4
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 308.89,
+              "mem_gb": 76.0
             },
             "cp1_feasible": true,
             "nfeas": 68
@@ -2355,7 +2355,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 898.91,
+              "step_ms": 905.83,
               "mem_gb": 74.5
             },
             "cp1_feasible": true,
@@ -2414,19 +2414,19 @@
         }
       },
       "N32_8b": {
-        "S_best": 65536,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 54.5
+              "pp": 4,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 44.51,
+              "mem_gb": 34.6
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -2435,12 +2435,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 59.66,
-              "mem_gb": 72.6
+              "pp": 2,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 87.79,
+              "mem_gb": 69.0
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -2448,13 +2448,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
-              "pp": 2,
-              "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 170.4,
-              "mem_gb": 76.8
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 198.51,
+              "mem_gb": 71.0
             },
             "cp1_feasible": true,
             "nfeas": 137
@@ -2501,7 +2501,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 2,
-              "step_ms": 277.66,
+              "step_ms": 306.43,
               "mem_gb": 76.4
             },
             "cp1_feasible": true,
@@ -2515,7 +2515,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 2,
-              "step_ms": 657.71,
+              "step_ms": 665.93,
               "mem_gb": 65.5
             },
             "cp1_feasible": true,
@@ -2552,19 +2552,19 @@
     },
     "path=spec_cpgrad=production_act=1.0": {
       "N8_8b": {
-        "S_best": 32768,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 66.99,
-              "mem_gb": 47.2
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 73.12,
+              "mem_gb": 68.5
             },
             "cp1_feasible": true,
             "nfeas": 45
@@ -2572,13 +2572,13 @@
           "16384": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 158.64,
-              "mem_gb": 63.3
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 170.73,
+              "mem_gb": 70.6
             },
             "cp1_feasible": true,
             "nfeas": 42
@@ -2586,13 +2586,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 2,
-              "dp": 4,
-              "zero": 2,
-              "step_ms": 437.65,
-              "mem_gb": 78.1
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 446.0,
+              "mem_gb": 74.7
             },
             "cp1_feasible": true,
             "nfeas": 35
@@ -2605,7 +2605,7 @@
               "cp": 2,
               "dp": 2,
               "zero": 2,
-              "step_ms": 1329.03,
+              "step_ms": 1335.96,
               "mem_gb": 69.8
             },
             "cp1_feasible": true,
@@ -2664,7 +2664,7 @@
         }
       },
       "N16_8b": {
-        "S_best": 65536,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
@@ -2672,11 +2672,11 @@
             "best": {
               "tp": 1,
               "pp": 2,
-              "cp": 1,
-              "dp": 8,
-              "zero": 2,
-              "step_ms": 47.02,
-              "mem_gb": 24.7
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 51.65,
+              "mem_gb": 67.7
             },
             "cp1_feasible": true,
             "nfeas": 89
@@ -2685,12 +2685,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 16,
-              "zero": 2,
-              "step_ms": 97.88,
-              "mem_gb": 56.0
+              "pp": 2,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 119.61,
+              "mem_gb": 69.0
             },
             "cp1_feasible": true,
             "nfeas": 87
@@ -2699,12 +2699,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
+              "pp": 2,
               "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 249.13,
-              "mem_gb": 72.6
+              "dp": 8,
+              "zero": 2,
+              "step_ms": 306.89,
+              "mem_gb": 51.9
             },
             "cp1_feasible": true,
             "nfeas": 82
@@ -2731,7 +2731,7 @@
               "cp": 4,
               "dp": 2,
               "zero": 2,
-              "step_ms": 2870.62,
+              "step_ms": 2877.55,
               "mem_gb": 70.3
             },
             "cp1_feasible": true,
@@ -2776,19 +2776,19 @@
         }
       },
       "N32_8b": {
-        "S_best": 131072,
+        "S_best": 8192,
         "S_required": null,
         "cells": {
           "8192": {
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 2,
-              "step_ms": 26.5,
-              "mem_gb": 36.3
+              "pp": 4,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 44.51,
+              "mem_gb": 34.1
             },
             "cp1_feasible": true,
             "nfeas": 154
@@ -2797,12 +2797,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 2,
-              "step_ms": 49.41,
-              "mem_gb": 52.4
+              "pp": 2,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 87.79,
+              "mem_gb": 67.9
             },
             "cp1_feasible": true,
             "nfeas": 152
@@ -2810,13 +2810,13 @@
           "32768": {
             "feasible": true,
             "best": {
-              "tp": 1,
+              "tp": 2,
               "pp": 1,
-              "cp": 1,
-              "dp": 32,
-              "zero": 3,
-              "step_ms": 125.5,
-              "mem_gb": 68.4
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 198.51,
+              "mem_gb": 68.7
             },
             "cp1_feasible": true,
             "nfeas": 148
@@ -2824,13 +2824,13 @@
           "65536": {
             "feasible": true,
             "best": {
-              "tp": 1,
-              "pp": 2,
-              "cp": 1,
-              "dp": 16,
-              "zero": 3,
-              "step_ms": 463.43,
-              "mem_gb": 76.8
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 491.35,
+              "mem_gb": 71.0
             },
             "cp1_feasible": true,
             "nfeas": 139
@@ -2859,12 +2859,12 @@
             "feasible": true,
             "best": {
               "tp": 1,
-              "pp": 4,
+              "pp": 8,
               "cp": 1,
-              "dp": 8,
-              "zero": 3,
-              "step_ms": 240.75,
-              "mem_gb": 59.0
+              "dp": 4,
+              "zero": 2,
+              "step_ms": 306.43,
+              "mem_gb": 65.1
             },
             "cp1_feasible": true,
             "nfeas": 38
@@ -2877,7 +2877,7 @@
               "cp": 1,
               "dp": 8,
               "zero": 3,
-              "step_ms": 519.48,
+              "step_ms": 586.6,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -2891,7 +2891,7 @@
               "cp": 1,
               "dp": 4,
               "zero": 3,
-              "step_ms": 1410.03,
+              "step_ms": 1434.69,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,
@@ -2905,7 +2905,7 @@
               "cp": 1,
               "dp": 2,
               "zero": 3,
-              "step_ms": 3762.9,
+              "step_ms": 3768.38,
               "mem_gb": 78.5
             },
             "cp1_feasible": true,

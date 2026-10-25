@@ -77,14 +77,19 @@ for path in ("legacy", "spec"):
 # again instead of silently rewriting the doc.
 leg = summary["path=legacy_cpgrad=crude_act=2.3"]["N8_8b"]["cells"][16384]["best"]
 spec = summary["path=spec_cpgrad=crude_act=2.3"]["N8_8b"]["cells"][16384]["best"]
-assert leg["cp"] == 1, f"legacy cp at 16384 should be 1 after qk9, got {leg['cp']}"
-assert spec["cp"] == 1, f"spec cp at 16384 should be 1 after qk9, got {spec['cp']}"
+# post-6r5: cp>1 wins at 16384 on BOTH paths (the dp-heavy rows the earlier
+# assertions were written against are no longer competitive).
+assert leg["cp"] > 1, f"legacy cp at 16384 should be >1 after 6r5, got {leg['cp']}"
+assert spec["cp"] > 1, f"spec cp at 16384 should be >1 after 6r5, got {spec['cp']}"
 sb = {k: v["N8_8b"]["S_best"] for k, v in summary.items() if "N8_8b" in v}
-assert sb["path=legacy_cpgrad=crude_act=2.3"] == 32768, sb
-assert sb["path=spec_cpgrad=crude_act=2.3"] == 32768, sb
-assert sb["path=spec_cpgrad=production_act=2.3"] == 16384, sb
-print(f"ASSERT OK (post-qk9): cp=1 on BOTH paths at 16384; S_best 32768 crude on both, "
-      f"16384 under production cp-grad")
+# REVISED again after gpu-sim-6r5 (payload convention + ZeRO-1/2 param all-gather):
+# the DP term was dp x too cheap, dp-heavy rows looked best, and CP appeared to lose at
+# 8192. Corrected, cp>1 wins from the smallest sequence tested on both paths and under
+# every knob combination -> S_best = 8192 everywhere.
+assert sb["path=legacy_cpgrad=crude_act=2.3"] == 8192, sb
+assert sb["path=spec_cpgrad=crude_act=2.3"] == 8192, sb
+assert sb["path=spec_cpgrad=production_act=2.3"] == 8192, sb
+print("ASSERT OK (post-6r5): S_best = 8192 on both paths, crude and production")
 
 # Save compact
 compact = {}

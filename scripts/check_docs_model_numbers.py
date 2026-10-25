@@ -85,6 +85,32 @@ def compute_facts():
     fsdp16k = ps.score(1, 1, 1, 8, 3, hw_for(8), m)
     facts["fsdp_mem_16384_gb"] = round(fsdp16k.memory_gb, 1)
 
+    # 1c) the legacy single-fabric path at 8192/16384/32768 (section 0 quotes it beside
+    # the spec numbers), and the dp=8 rows' step/memory/dp_comm that the answer cites.
+    facts["legacy_path_steps"] = {}
+    for S in (8192, 16384, 32768):
+        m = dict(M8)
+        m["seq"] = S
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
+              "cp_grad_mode": "crude", "act_factor": ACT_FACTOR}
+        _, f = ps.search(8, hw, m)
+        facts["legacy_path_steps"][str(S)] = round(f[0].step_sum * 1e3, 2)
+    facts["spec_path_steps"] = {}
+    for S in (16384, 32768):
+        m = dict(M8)
+        m["seq"] = S
+        _, f = ps.search(8, hw_for(8), m)
+        facts["spec_path_steps"][str(S)] = round(f[0].step_sum * 1e3, 2)
+    dp8 = {}
+    for z in (2, 3):
+        m8 = dict(M8)
+        m8["seq"] = 8192
+        c = ps.score(1, 1, 1, 8, z, hw_for(8), m8)
+        dp8[f"zero={z}"] = {"step_ms": round(c.step_sum * 1e3, 2),
+                            "mem_gb": round(c.memory_gb, 1),
+                            "dp_comm_ms": round(c.dp_comm * 1e3, 2)}
+    facts["dp8_rows"] = dp8
+
     # 2) seq 32768: the dp=8 zero=2 config must be infeasible, and name the best feasible
     _, feas32k = search(8, seq=32768)
     best = feas32k[0]
@@ -237,6 +263,13 @@ def allowed_decimals(facts):
     if "llama3-70b_N32_seq32768_step_s" in facts:
         add(facts["llama3-70b_N32_seq32768_step_s"])
         add(facts["llama3-70b_N32_seq32768_mem_gb"])
+    for v in facts.get("legacy_path_steps", {}).values():
+        add(v)
+    for v in facts.get("spec_path_steps", {}).values():
+        add(v)
+    for v in facts.get("dp8_rows", {}).values():
+        for k in ("step_ms", "mem_gb", "dp_comm_ms"):
+            add(v[k])
     for row in facts.get("sweep", {}).values():
         for k, v in row.items():
             if isinstance(v, dict):

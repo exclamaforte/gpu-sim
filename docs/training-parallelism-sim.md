@@ -9,37 +9,39 @@ project's premise is the opposite of that, and the draft was wrong.
 Read this first if you are picking the work up from disk rather than from a briefing.
 
 **CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
-recommendation is unsettled after the payload convention fix (dp=1 configs win on time, no data parallelism): see gpu-sim-6r5
-best under the sum policy there. That config does NOT carry to 32768: at that sequence it
-is memory-infeasible (>80 GB, params are not dp-sharded at zero=2) and the best feasible
-config is (tp=2 pp=1 cp=2 dp=2 zero=2) at 463.59 ms -- so the recommendation is a function
-of sequence, and the 8192 answer is not the 32768 answer.
-The DP term now ties zero=2 and zero=3 on comm; FSDP wins on memory (50.8 GB). CP does not pay AT SEQ 8192: its
-K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
-not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
-logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear
-activation/logits term, not the quadratic attention term. S_best (smallest seq where the
-overall best FEASIBLE config has cp>1), re-measured after the DP-comm audit (gpu-sim-qk9)
-on the 8B model at N=8/16/32 and seq 8192..65536:
+recommendation is **(tp=4 pp=1 cp=2 dp=1 zero=0)** -- tensor parallelism 4 by context
+parallelism 2, NO data parallelism and NO ZeRO -- at **79.96 ms/step at 8192**, 181.15 at
+16384 and 463.59 at 32768 on the spec/topology path (legacy single-fabric: 93.77 / 204.51 /
+506.03). Runner-up at 8192 is (tp=8 pp=1 cp=1 dp=1 zero=0) at 83.46 ms; the best dp=8 row is
+(tp=1 pp=1 cp=1 dp=8 zero=3, FSDP) at 97.30 ms and the best dp=8 zero=2 row ties it on time
+and loses on memory (65.4 vs 50.8 GB).
 
-* crude cp gradient sync, shipped activation factor 2.3: S_best = 32768 at N=8 and N=16,
-  65536 at N=32 (cp=1 wins at every smaller seq).
-* production cp gradient sync (no gradient reconstruction): N=8 comes IN to 16384 (cp=4
-  wins there); N=16 stays 32768; N=32 stays 65536.
-* activation factor 1.0: N=8 32768; N=16 moves OUT to 65536; N=32 never pivots up to
-  65536 (no feasible cp>1 config).
+**CP PAYS AT SEQ 8192** (cp=2 is in the winner), so S_best -- the smallest seq where the
+overall best feasible config has cp>1 -- is **8192 on both pricing paths** and under every
+knob combination measured (crude/production cp-grad sync x activation factor 2.3/1.0). The
+earlier claim that CP does not pay at 8192, and the 16384/32768 thresholds that came with
+it, were artifacts of an understated DP term (below).
 
-The pricing path NO LONGER MATTERS, and that is a correction of what gpu-sim-54m originally
-reported: before the DP audit the legacy and spec paths disagreed at 16384 (legacy picked
-cp=1 at 202.11 ms, spec picked cp=2 at 200.09 ms, a 2 ms gap inside the model's error), so
-S_best read 16384 spec / 32768 legacy. With bf16 DP payloads and real ZeRO semantics both
-paths now pick cp=1 at 16384 and agree on 32768, and the remaining driver of the threshold
-is the CP gradient-sync model (a cp>1 row saves compute but pays an all-reduce of
-P/(tp*pp) params over cp ranks), not the fabric pricing. FSDP/zero=2 rows still go
-memory-infeasible first (FSDP at act 2.3: 85.0 GB at 16384 > 80), which is why the pivot is
-WHICH surviving config wins rather than whether one exists. gpu-sim-54m's sweep.py now
-asserts the post-qk9 facts (cp=1 on both paths at 16384; S_best 32768 crude both paths,
-16384 under production) so the next model change that moves them breaks the run.
+**Why the answer moved (gpu-sim-6r5, measured + fixed).** Two DP defects, both now fixed:
+the DP term passed the dp-SHARD to a cost function whose `count` is the TOTAL payload
+(`link_model._bw_factor = (n-1)/n * S/B`), making every dp>=2 collective dp x too cheap; and
+it omitted the param all-gather that ZeRO-1/2 actually issue (the harness issues one per
+parameter -- 37 per step at 4 layers, measured). Corrected, a dp=8 row pays 32.33 ms of DP
+comm at 8192, while a dp=1 row pays none, so dp-heavy splits lose to tp/cp splits. This is
+the strongest evidence yet that the previous recommendation was an accounting artifact, not a
+property of the hardware.
+
+**N=16 and N=32.** At N=16 the winner is (tp=4 pp=2 cp=2 dp=1 zero=0) at 58.69 ms (best
+dp>1 row: (tp=1 pp=4 cp=1 dp=4 zero=2/3) at 59.34 ms -> the two policies tie within 1%). At
+N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 47.46 ms, because pp=4 finally makes
+the per-rank state small enough that a dp=8 ring is affordable.
+
+**What this does NOT say.** TP comm is priced from the same bytes-only ring formulas (per-step
+TP message COUNT is harness-validated, sizes are Megatron-form: gpu-sim-5o4.7 / gpu-sim-oez),
+and absolute durations are modelled, not measured (gpu-sim-wv2, blocked on 2-4 real GPUs). A
+tp=4 cp=2 recommendation is more sensitive to the TP term than the old dp=8 one was; the next
+gate on this answer is calibrating TP bytes, not the DP term.
+
 The 8-rank spec covers N=8 fully and N=16 for all groups; N=32
 RAISES ('rank 16 cannot be placed on spec'), so 32-GPU cells must pass
 specs/h100_rack_4node.json explicitly or they silently fall back to the legacy path. By seq 65536 (N=8)

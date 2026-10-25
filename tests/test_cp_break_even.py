@@ -23,9 +23,11 @@ def s_best(N=8, path="legacy", model=None, cp_grad_mode="crude", act_factor=2.3)
     return None
 
 def test_s_best_legacy_n8_8b():
-    # Legacy single-fabric path: FSDP survives? No -- FSDP infeasible (85 GB > 80)
-    # but cp_grad on nccl path makes cp=2 slower than cp=1 at 16384, so S_best=32768.
-    assert s_best(path="legacy") == 32768, s_best(path="legacy")
+    # REVISED after gpu-sim-6r5 (payload convention + the ZeRO-1/2 param all-gather).
+    # The DP term had been dp x too cheap and omitted an all-gather, so dp-heavy rows
+    # looked better than they are. Corrected, cp=2 wins from the SMALLEST sequence
+    # tested on both pricing paths: S_best = 8192, not 32768.
+    assert s_best(path="legacy") == 8192, s_best(path="legacy")
 
 def test_s_best_spec_n8_8b():
     # REVISED after the DP-comm audit (gpu-sim-qk9). The original expectation here was
@@ -33,10 +35,13 @@ def test_s_best_spec_n8_8b():
     # payloads + real ZeRO semantics moved the cp=1 rows, and the spec path now agrees
     # with legacy: cp=1 wins at 16384 and S_best is 32768. Production cp-grad still
     # pulls it in to 16384 -- asserted separately so the knob keeps its meaning.
-    assert s_best(path="spec") == 32768, s_best(path="spec")
-    assert s_best(path="spec", cp_grad_mode="production") == 16384, \
+    assert s_best(path="spec") == 8192, s_best(path="spec")
+    # production cp-grad moves neither path any more: 8192 in every knob combination
+    # measured (crude/production x act_factor 2.3/1.0).
+    assert s_best(path="spec", cp_grad_mode="production") == 8192, \
         s_best(path="spec", cp_grad_mode="production")
-    assert s_best(path="legacy") == 32768, s_best(path="legacy")
+    assert s_best(path="legacy", cp_grad_mode="production") == 8192, \
+        s_best(path="legacy", cp_grad_mode="production")
 
 def test_act_factor_override_changes_memory():
     # hw.get('act_factor', ...) must actually affect the memory number.
