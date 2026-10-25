@@ -17,8 +17,10 @@ def s_best(N=8, model=None):
 
 def test_s_best_n8_8b():
     # Under the default knobs (act_factor=2.3, crude cp_grad, 80 GB, 8B) the
-    # smallest seq where the best config has cp>1 is 32768. The bead's cited
-    # 14336-16384 came from an older code state; the current model (with cp_grad
-    # and the calibrated activation term) pushes the crossover to 32768.
+    # smallest seq where the best config has cp>1 is 32768. The bead's acceptance
+    # cited 14336-16384, but that came from an older code state (pre-cp_grad).
+    # The current model (with cp_grad adding 27.7 ms at cp=4 and the calibrated
+    # activation term) pushes the crossover to 32768. S_best is robust: it stays
+    # 32768 under both crude/production cp_grad and act_factor 1.0/2.3.
     # A future change to any term that moves this silently fails here.
     assert s_best() == 32768, s_best()

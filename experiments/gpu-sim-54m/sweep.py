@@ -9,27 +9,35 @@ MODELS = {
 }
 SEQS = [8192, 16384, 32768, 65536, 131072]
 NS = [8, 16, 32]
-FABRIC = {8: ("nvlink4_h100", None), 16: (None, "specs/h100_rack.json"), 32: (None, "specs/h100_rack_4node.json")}
+FABRIC = {8: (None, None), 16: (None, "specs/h100_rack.json"), 32: (None, "specs/h100_rack_4node.json")}
 
-def hw_for(N, cp_grad_mode="crude", act_factor=2.3):
-    fabric, spec = FABRIC[N]
-    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "cp_grad_mode": cp_grad_mode, "act_factor_override": act_factor}
-    if spec:
-        hw["spec_path"] = spec
+def hw_for(N, cp_grad_mode="crude"):
+    if N == 8:
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "cp_grad_mode": cp_grad_mode}
     else:
-        hw["fabric"] = fabric
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": FABRIC[N][1], "cp_grad_mode": cp_grad_mode}
     return hw
+
+def make_score(act_factor):
+    orig = ps.score
+    def patched(tp, pp, cp, dp, zero, hw, m):
+        r = orig(tp, pp, cp, dp, zero, hw, m)
+        # scale act_bytes by act_factor/2.3 (model uses 2.3 internally)
+        if hasattr(r, "mem_act_gb"):
+            r.mem_act_gb = r.mem_act_gb * (act_factor / 2.3)
+            r.memory_gb = r.memory_gb + r.mem_act_gb * (act_factor/2.3 - 1)
+        return r
+    return patched
 
 def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor):
     base = dict(MODELS[model_name]); base["seq"] = seq
-    # act_factor override: monkeypatch by setting hw key; score() reads hw.get("act_factor"...)? 
-    # Currently act_factor is hardcoded 2.3. To support 1.0, we need to pass it. 
-    # We'll handle by temporarily scaling: use a wrapper. Simpler: set hw["act_factor"] and patch score.
     m = base
-    hw = hw_for(N, cp_grad_mode, act_factor)
-    hw["act_factor"] = act_factor
+    hw = hw_for(N, cp_grad_mode)
+    ps.score = make_score(act_factor)
     _, feas = ps.search(N, hw, m=m, rank_by=rank_by)
-    # Note: score() ignores hw["act_factor"] currently. We'll patch below.
+    ps.score = ps.score.__wrapped__ if hasattr(ps.score, "__wrapped__") else ps.score
+    # restore original
+    import importlib; importlib.reload(ps)
     if not feas:
         return {"feasible": False, "feasible_configs": 0, "cp1_feasible": False,
                 "best": None, "top5": []}
@@ -45,77 +53,46 @@ def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor):
                   "step_ms":round(c.step_sum*1000,2)} for c in feas[:5]],
     }
 
-# Patch score() to honor hw["act_factor"] if present
-orig_score = ps.score
-def patched_score(tp, pp, cp, dp, zero, hw, m):
-    # temporarily set act_factor by monkeypatching the module global? 
-    # Instead, we replicate: call orig, but orig uses hardcoded 2.3.
-    # We'll just call orig; act_factor sensitivity handled by post-hoc? 
-    # For simplicity, accept that act_factor is fixed at 2.3 in this run;
-    # the sensitivity run will be a separate invocation with a patched module.
-    return orig_score(tp, pp, cp, dp, zero, hw, m)
-ps.score = patched_score
-
-# To support act_factor sensitivity, we monkeypatch the source string
-import re
-
-def set_act_factor(val):
-    src = open("epic_cluster/parallelism_search.py").read()
-    # replace the act_factor line for "none"
-    src2 = src.replace('        act_factor = 2.3   # calibrated', f'        act_factor = {val}   # calibrated')
-    open("epic_cluster/parallelism_search.py","w").write(src2)
-
-def restore_act_factor():
-    src = open("epic_cluster/parallelism_search.py").read()
-    src2 = src.replace('        act_factor = 1.0   # calibrated', '        act_factor = 2.3   # calibrated')
-    src2 = src2.replace('        act_factor = 2.3   # calibrated', '        act_factor = 2.3   # calibrated')
-    open("epic_cluster/parallelism_search.py","w").write(src2)
-
-# Run grid
-results = {}
+# Run grid, compact summary only
+summary = {}
+thresholds = {}
 for cp_grad_mode in ("crude", "production"):
     for act_factor in (2.3, 1.0):
         key = f"cpgrad={cp_grad_mode}_act={act_factor}"
-        set_act_factor(act_factor)
-        # reload module
-        import importlib; importlib.reload(ps)
-        grid = {}
+        # store only thresholds, not full grid
+        thr = {}
         for N in NS:
             for model_name in ("8b", "70b"):
+                s_best = None; s_req = None
+                cells = {}
                 for seq in SEQS:
-                    for rb in ("sum", "max"):
-                        cell = run_one(N, model_name, seq, rb, cp_grad_mode, act_factor)
-                        grid[f"N{N}_{model_name}_S{seq}_{rb}"] = cell
-        results[key] = grid
+                    cell = run_one(N, model_name, seq, "sum", cp_grad_mode, act_factor)
+                    cells[seq] = {"feasible": cell["feasible"], "best": cell["best"],
+                                 "cp1_feasible": cell["cp1_feasible"],
+                                 "nfeas": cell["feasible_configs"]}
+                    if cell["feasible"]:
+                        if s_best is None and cell["best"]["cp"] > 1:
+                            s_best = seq
+                        if s_req is None and not cell["cp1_feasible"]:
+                            s_req = seq
+                thr[f"N{N}_{model_name}"] = {"S_best": s_best, "S_required": s_req, "cells": cells}
+        summary[key] = thr
         print(f"done {key}")
 
-# restore
-set_act_factor(2.3)
-import importlib; importlib.reload(ps)
+# Save compact (thresholds + per-cell best, not top5)
+compact = {}
+for key, thr in summary.items():
+    compact[key] = {}
+    for nk, v in thr.items():
+        compact[key][nk] = {"S_best": v["S_best"], "S_required": v["S_required"],
+                            "cells": {str(s): {"feasible": c["feasible"], "best": c["best"],
+                                              "cp1_feasible": c["cp1_feasible"],
+                                              "nfeas": c["nfeas"]} for s,c in v["cells"].items()}}
 
-# Compute thresholds
-thresholds = {}
-for cp_grad_mode in ("crude","production"):
-    for act_factor in (2.3,1.0):
-        key = f"cpgrad={cp_grad_mode}_act={act_factor}"
-        grid = results[key]
-        for N in NS:
-            for model_name in ("8b","70b"):
-                # S_best: smallest seq where best config has cp>1
-                s_best = None
-                s_req = None
-                for seq in SEQS:
-                    cell = grid[f"N{N}_{model_name}_S{seq}_sum"]
-                    if not cell["feasible"]:
-                        continue
-                    if s_best is None and cell["best"]["cp"] > 1:
-                        s_best = seq
-                    if s_req is None and not cell["cp1_feasible"]:
-                        s_req = seq
-                thresholds[f"{key}_N{N}_{model_name}"] = {"S_best": s_best, "S_required": s_req}
-
-json.dump({"results": results, "thresholds": thresholds}, open("experiments/gpu-sim-54m/sweep.json","w"), indent=2)
-print("written sweep.json")
+json.dump({"thresholds_summary": compact}, open("experiments/gpu-sim-54m/sweep.json","w"), indent=2)
+print("written compact sweep.json")
 # print thresholds
-for k,v in sorted(thresholds.items()):
-    print(k, v)
+for key in sorted(compact):
+    for nk in ("N8_8b","N16_8b","N32_8b"):
+        v = compact[key][nk]
+        print(f"{key} {nk}: S_best={v['S_best']} S_required={v['S_required']}")
