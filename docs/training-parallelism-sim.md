@@ -42,7 +42,13 @@ compute floor; no other config is ever strictly better and there are no rank swa
 result holds on the legacy single-fabric path and the spec/topology path (59.708 vs
 59.721 ms), so it does not depend on which pricing path produced the table. Absolute step
 times remain modelled -- one 5090 cannot hold Llama-3-8B at any decomposition (the search's
-own memory column says 50.4 GB for the cp=4 row). What IS validated on this host: the
+own memory column says 68.5 GB for the tp=2 cp=4 row and 32.7 GB for the FSDP row with the
+completed memory model, gpu-sim-6y1). MEMORY FEASIBILITY IS MODELLED, not measured: the
+model now carries params, grads, fp32 master, optimizer, per-tensor activations (FFN at
+d_ff), logits and CP buffers, but its activation term is an UNVALIDATED upper bound (torch
+frees buffers during backward), so a phase-map cell within ~15% of the 80 GB limit may flip
+when that term is calibrated. Everything else in the feasibility column is arithmetic on
+bytes that do not depend on the device. What IS validated on this host: the
 per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
 gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model
 assumes Megatron's full-d payload -- gpu-sim-oez) and wall time, ever.
