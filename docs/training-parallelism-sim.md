@@ -494,11 +494,11 @@ on every trace line; the sweep aggregates on `grank`.
 ```
 config     world  tp pp dp zero  AR/step  AG/step  RS/step  MB/step   state_MB
 DP/ZeRO-1      4   1  1  4    1       37       37        0     43.03       52.4
-ZeRO-2         4   1  1  4    2        0       37        1     26.89       36.7
-ZeRO-3/FSDP    4   1  1  4    3        0        1        1     26.89       21.0
+ZeRO-2         4   1  1  4    2        0       37        1     43.03       36.7
+ZeRO-3/FSDP    4   1  1  4    3        0        1        1     43.03       21.0
 DP/ZeRO-1      8   1  1  8    1       37       37        0     43.03       52.4
-ZeRO-2         8   1  1  8    2        0       37        1     24.20       36.7
-ZeRO-3/FSDP    8   1  1  8    3        0        1        1     24.20       21.0
+ZeRO-2         8   1  1  8    2        0       37        1     43.03       36.7
+ZeRO-3/FSDP    8   1  1  8    3        0        1        1     43.03       21.0
 ```
 
 Same box, TinyLM 5.24M, 5 steps, fallback path, counts per grank 0 over the measured steps.
@@ -509,12 +509,17 @@ printed 20.6/25.1/32.2 ms and drew conclusions from their ORDER; that was noise.
 columns tell the story instead, and they now hold at dp=4 AND dp=8 (dp=8 was previously
 unmeasurable -- see below).
 
-P = 21.5 MB of parameter bytes (fp32, `param_count()` excludes pos/LN). Every total is
-dp-independent except the reduce-scatter, which is a shard and therefore P/dp:
+P = 21.5 MB of parameter bytes (fp32, `param_count()` excludes pos/LN), and with the byte
+conventions settled EVERY total is dp-independent, as it must be:
 
   * all-reduce total = P at every dp (37 per-parameter all-reduces summing to one model);
   * all-gather total = P at every dp (37 shard-gathers summing to one model);
-  * reduce-scatter total = P/dp (5.38 MB at dp=4, 2.69 MB at dp=8).
+  * reduce-scatter total = P at every dp (payloads delivered, i.e. dp x P/dp -- see below).
+
+Every ZeRO stage therefore moves the same 43.03 MB/step (2P) at dp=4 and dp=8, which is what the
+cost model charges (all-gather P + reduce-scatter P). What separates the stages is not volume but
+MESSAGE COUNT and memory: ZeRO-2 and ZeRO-3 move identical bytes (37 small collectives versus 1 is
+alpha and peak memory, not volume), and ZeRO-1 adds a 37-message all-reduce sweep on top.
 
 **Trap worth knowing before analysing any trace: `count` is not comparable across the two
 paths, `bytes` is.** Running the SAME job with and without a topology gives 74 all-gathers
@@ -527,17 +532,18 @@ is recorded in the code where the fallback traces, rather than "fixed" by normal
 convention the torch side actually passes was not pinned down, and inventing one would have
 made a second silent error.
 
-Two structural consequences that survive every byte fix: **ZeRO-2 and ZeRO-3 move identical
-bytes** (26.89 MB at dp=4) -- the difference is 37 messages versus 1, i.e. alpha and peak memory,
-not volume; and ZeRO-1's extra cost is the 37-message all-reduce sweep on top of the same gather.
+**Three byte bugs had to be fixed before any of this was true** (gpu-sim-6wd-bytes,
+gpu-sim-smt3, gpu-sim-smt6), and all three are the same dp x / n x species of error the COST MODEL
+carried before gpu-sim-6r5 -- one layer down each time:
 
-**Two byte bugs had to be fixed before any of this was true** (gpu-sim-6wd-bytes, gpu-sim-smt3).
-The interposer's fallback path wrote and recorded `payload * (1 + floor(log2 n)/2)` bytes (see
-below) -- an out-of-bounds fill -- and the harness's own ZeRO param gather sent the FULL parameter
-and received dp copies instead of sending the shard and receiving the parameter, so it moved dp x
-the bytes a real gather moves. Both are the same dp x / n x species of error the COST MODEL had
-before gpu-sim-6r5, one layer down. Before the harness fix, all-gather read 86.06 MB/step at dp=4
-and 172.11 at dp=8 (x4 and x8 P); after it, 21.51 at both.
+1. the interposer's fallback path wrote and recorded `payload * (1 + floor(log2 n)/2)` bytes,
+   an out-of-bounds fill (below);
+2. the harness's own ZeRO param gather sent the FULL parameter and received dp copies instead of
+   sending the shard and receiving the parameter, so it moved dp x the bytes a real gather moves
+   (all-gather read 86.06 MB/step at dp=4 and 172.11 at dp=8 before; 21.51 at both after);
+3. the fallback recorded a reduce-scatter's SHARD (P/dp) where the topology path records the
+   total, giving RS 5.38 MB at dp=4 and 2.69 at dp=8 -- a spurious dp-dependence that looked like
+   an accounting mystery for a day.
 
 **The remaining DP byte puzzle was a BUG, not an accounting convention
 (gpu-sim-6wd-bytes).** For a long time the DP traces could not be reconciled: a

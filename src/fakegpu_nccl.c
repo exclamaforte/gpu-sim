@@ -749,7 +749,21 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
      * factor of nr -- while their BYTE columns agreed exactly. `bytes` is therefore
      * the canonical field; do not compare `count` across paths until the caller's
      * convention is pinned (that needs the torch-side call sites, not a guess here). */
-    fg_nccl_trace(fg_cur_op, rk, nr, count, fg_dtype_name(datatype), bytes,
+    /* gpu-sim-smt6: `bytes` must be the PAYLOAD TOTAL on both paths, and for a
+     * reduce-scatter it was not. NCCL's ncclReduceScatter takes recvcount, so this
+     * fallback path saw the SHARD (P/dp) and recorded count*elem = P/dp, while the
+     * topology path records rc*nr*elem = P (the totals convention, and what the cost
+     * model charges). Measured effect: zero=3 at dp=4 read all-gather 21.51 MB but
+     * reduce-scatter 5.38 MB, and at dp=8 all-gather 21.51 vs reduce-scatter 2.69 --
+     * a spurious dp-dependence in the trace that the DP audit then had to explain.
+     * Scale only reduce-scatter here; all-gather already receives a total (NCCL's
+     * ncclAllGather takes the send count, but torch hands this shim the recv count,
+     * which is why the same fix is not applied there and `count` stays the caller's).
+     */
+    size_t bytes_total = bytes;
+    if (nr > 1 && fg_cur_op && strcmp(fg_cur_op, "reducescatter") == 0)
+        bytes_total = count * (size_t)nr * fg_dtype_size(datatype);
+    fg_nccl_trace(fg_cur_op, rk, nr, count, fg_dtype_name(datatype), bytes_total,
                   "fallback", FG_NCCL_REFUSED, -1, "unmodelled");
 }
 

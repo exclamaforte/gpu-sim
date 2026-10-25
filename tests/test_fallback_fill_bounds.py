@@ -76,3 +76,34 @@ def test_fallback_collective_writes_only_the_payload(nranks):
     assert past_end == 0, (
         f"n={nranks}: {past_end} bytes written past the end of the recv buffer -- "
         "the out-of-bounds fill that corrupted the heap (gpu-sim-6wd-bytes)")
+
+@pytest.mark.parametrize("nranks", [2, 4, 8])
+def test_fallback_reducescatter_reports_the_total(nranks):
+    """gpu-sim-smt6: `bytes` must be the payload total on both paths. NCCL's
+    ncclReduceScatter takes recvcount, so the fallback path saw the SHARD and recorded
+    count*elem = P/dp while the topology path records rc*nr*elem = P. Measured effect
+    before the fix: zero=3 read all-gather 21.51 MB but reduce-scatter 5.38 MB at dp=4
+    and 2.69 MB at dp=8 -- a spurious dp-dependence the DP audit then had to explain."""
+    lib = _load()
+    lib.ncclReduceScatter.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
+                                      ctypes.c_int, ctypes.c_int, ctypes.c_void_p,
+                                      ctypes.c_void_p]
+    lib.ncclReduceScatter.restype = ctypes.c_int
+    shard = 250                      # per-rank recv count; payload total = shard * nranks
+    total = shard * nranks
+    with tempfile.TemporaryDirectory() as tmpdir:
+        trace = os.path.join(tmpdir, "rs.jsonl")
+        os.environ["GPUSIM_TRACE"] = trace
+        os.environ["FAKEGPU_NCCL_NO_FILL"] = ""
+        os.environ.pop("GPUSIM_TOPOLOGY", None)
+        comm = ctypes.c_void_p()
+        assert lib.ncclCommInitRank(ctypes.byref(comm), nranks, 0, 0) == 0
+        sendbuf = (ctypes.c_char * (total * 4))()
+        recvbuf = (ctypes.c_char * (shard * 4 + GUARD))()
+        ctypes.memset(recvbuf, 0, shard * 4 + GUARD)
+        assert lib.ncclReduceScatter(sendbuf, recvbuf, shard, NCCL_FLOAT32, 0,
+                                     comm, None) == 0
+        row = [json.loads(l) for l in open(trace) if l.strip()][-1]
+    assert row["bytes"] == total * 4, (
+        f"n={nranks}: reduce-scatter bytes {row['bytes']} != total payload {total * 4} "
+        "-- the fallback recorded the shard (gpu-sim-smt6)")
