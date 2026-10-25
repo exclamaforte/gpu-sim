@@ -741,8 +741,26 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
      * The byte column carries the PAYLOAD; fan-in is a cost concern, and the
      * topology path already reports payload while modelling cost separately. */
     int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
-    fg_simulate_memcpy(bytes);
-    fg_nccl_out_fill(recvbuff, bytes);
+    /* gpu-sim-smt7: two different quantities live here and conflating them has
+     * already cost two bugs today.
+     *   bytes_total -- what the COLLECTIVE moves (used for the memcpy model and the
+     *                  trace, which is a totals convention). For reduce-scatter and
+     *                  all-to-all the caller's count is per-rank, so the total is
+     *                  count*nr*elem; for all-gather the caller already hands us the
+     *                  recv count, which IS the total.
+     *   recv_bytes  -- the size of RECVBUF, which is what may be filled. A
+     *                  reduce-scatter receives a SHARD (count*elem), an all-to-all
+     *                  receives count*nr, an all-gather receives the whole thing.
+     * Filling with bytes_total overflowed the shard buffer for reduce-scatter; filling
+     * with count left all-to-all a quarter filled. Both were silent. */
+    int is_rs = fg_cur_op && strcmp(fg_cur_op, "reducescatter") == 0;
+    int is_a2a = fg_cur_op && strcmp(fg_cur_op, "alltoall") == 0;
+    size_t bytes_total = bytes;
+    if (nr > 1 && (is_rs || is_a2a))
+        bytes_total = count * (size_t)nr * fg_dtype_size(datatype);
+    size_t recv_bytes = is_rs ? count * fg_dtype_size(datatype) : bytes_total;
+    fg_simulate_memcpy(bytes_total);
+    fg_nccl_out_fill(recvbuff, recv_bytes);
 
     /* Fallback path: no declared topology, so no predicted duration -- but the
      * event itself is real and belongs in the trace (rank, op, bytes, when). */
@@ -765,9 +783,6 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
      * ncclAllGather takes the send count, but torch hands this shim the recv count,
      * which is why the same fix is not applied there and `count` stays the caller's).
      */
-    size_t bytes_total = bytes;
-    if (nr > 1 && fg_cur_op && strcmp(fg_cur_op, "reducescatter") == 0)
-        bytes_total = count * (size_t)nr * fg_dtype_size(datatype);
     fg_nccl_trace(fg_cur_op, rk, nr, count, fg_dtype_name(datatype), bytes_total,
                   "fallback", FG_NCCL_REFUSED, -1, "unmodelled");
 }
@@ -977,9 +992,15 @@ ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
         int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[32];
-        double pred = fg_nccl_predict(t, "ring_alltoall", count, datatype, nr, &bl, regime, sizeof(regime));
+        /* gpu-sim-smt7: NCCL's ncclAllToAll `count` is the PER-PEER send count, so a
+         * rank receives count*nr elements and the payload total is count*nr*elem.
+         * This recorded and filled count*elem -- 1/nr of the buffer, the same
+         * shard-as-total error as the reduce-scatter. No current workload uses
+         * all-to-all (no MoE), so this is preventive; it is the last site of this
+         * family found by auditing every collective's byte convention. */
+        size_t bytes = count * (size_t)nr * fg_dtype_size(datatype);
+        double pred = fg_nccl_predict(t, "ring_alltoall", count * (size_t)nr, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
-        size_t bytes = count * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("alltoall", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_alltoall", pred, bl, regime);
         return ncclSuccess;

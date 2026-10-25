@@ -141,3 +141,33 @@ def test_point_to_point_fills_the_whole_payload():
         "the tail of the payload is still canary -- the fill used the ELEMENT count "
         "as a BYTE count (gpu-sim-smt7)")
     assert all(b == 0xA5 for b in past), "recv wrote past the end of the buffer"
+
+@pytest.mark.parametrize("nranks", [2, 4])
+def test_alltoall_totals_and_fill_cover_every_peer(nranks):
+    """gpu-sim-smt7: NCCL's ncclAllToAll `count` is the PER-PEER send count, so a rank
+    receives count*nranks elements. The shim recorded and filled count*elem -- 1/nranks
+    of the buffer, the same shard-as-total error as the reduce-scatter. No current
+    workload uses all-to-all (no MoE), so this guard is preventive."""
+    lib = _load()
+    lib.ncclAllToAll.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
+                                 ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
+    lib.ncclAllToAll.restype = ctypes.c_int
+    per_peer = 64
+    total = per_peer * nranks
+    with tempfile.TemporaryDirectory() as tmpdir:
+        trace = os.path.join(tmpdir, "a2a.jsonl")
+        os.environ["GPUSIM_TRACE"] = trace
+        os.environ["FAKEGPU_NCCL_NO_FILL"] = ""
+        os.environ.pop("GPUSIM_TOPOLOGY", None)
+        comm = ctypes.c_void_p()
+        assert lib.ncclCommInitRank(ctypes.byref(comm), nranks, 0, 0) == 0
+        buf = (ctypes.c_char * (total * 4 + GUARD))()
+        ctypes.memset(buf, 0xA5, total * 4 + GUARD)
+        assert lib.ncclAllToAll(buf, buf, per_peer, NCCL_FLOAT32, comm, None) == 0
+        row = [json.loads(l) for l in open(trace) if l.strip()][-1]
+        past = bytes(buf[total * 4:])
+        tail = bytes(buf[total * 4 - 16:total * 4])
+    assert row["bytes"] == total * 4, (
+        f"n={nranks}: alltoall bytes {row['bytes']} != total {total * 4}")
+    assert all(b != 0xA5 for b in tail), "fill stopped at the per-peer payload"
+    assert all(b == 0xA5 for b in past), "fill wrote past the buffer"
