@@ -1,0 +1,7 @@
+  gathered_v = all_gather(v, group=group) if group is not None and cp > 1 and dist.is_initialized() else [v]
+rank0 step 0: loss 5.555741
+rank0 step 1: loss 5.552816
+rank0 step 2: loss 5.549892
+rank0 step 3: loss 5.546969
+rank0 step 4: loss 5.544049
+cp ranks identical (maxdiff 0.0); cp1 vs cp2 param diff 0.0012

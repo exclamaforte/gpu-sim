@@ -389,6 +389,7 @@ def main() -> int:
                 for prm in model.parameters():
                     if prm.grad is not None:
                         dist.all_reduce(prm.grad, op=dist.ReduceOp.SUM, group=cp_group)
+                        prm.grad.div_(cp)
         else:
             # GPipe: all micro-batch forwards, then all backwards. Blocking
             # send/recv in matching order on both sides, so no deadlock: the

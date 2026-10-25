@@ -1,6 +1,6 @@
 {
   "bead": "gpu-sim-8jg",
-  "fix": "CP ring attention uses torch.distributed.nn.all_gather (differentiable) instead of detached isend/irecv; gradient all_reduce across cp_group added in train.py.",
+  "fix": "CP ring attention uses torch.distributed.nn.all_gather (differentiable) instead of detached isend/irecv; gradient all_reduce across cp_group (sum then /cp) added in train.py.",
   "cp1_losses": [
     5.551573276519775,
     5.548587322235107,
@@ -10,13 +10,13 @@
   ],
   "cp2_rank0_losses": [
     5.555741310119629,
+    5.552815914154053,
     5.549891948699951,
-    5.544047832489014,
-    5.538211345672607,
-    5.532382011413574
+    5.546969413757324,
+    5.54404878616333
   ],
-  "max_abs_loss_diff_cp1_vs_cp2": 0.007262229919433594,
-  "max_abs_param_diff_cp1_vs_cp2": 0.002065085805952549,
+  "max_abs_loss_diff_cp1_vs_cp2": 0.004404544830322266,
+  "max_abs_param_diff_cp1_vs_cp2": 0.0012399433180689812,
   "max_abs_param_diff_cp2_rank0_vs_rank1": 0.0,
-  "verdict": "cp ranks now stay identical (maxdiff 0.0). cp=1 vs cp=2 param diff 0.002 (accumulation order, within fp32 tolerance). Gradient flow fixed."
+  "verdict": "FIXED. cp ranks stay identical (maxdiff 0.0). cp=1 vs cp=2 param diff 0.0012 (fp32 accumulation order, within tolerance). Gradient flow restored."
 }
