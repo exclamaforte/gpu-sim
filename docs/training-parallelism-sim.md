@@ -518,7 +518,29 @@ not the fastest any more (32.2 ms vs 20.6), because each of its 5 collectives no
 TOTAL-payload prediction instead of a shard-sized one -- the previous "ZeRO-3 is fastest"
 line was an artifact of the same understatement.
 
-Memory is the honest divergence this axis exists to show: measured peak
+**The remaining DP byte puzzle was a BUG, not an accounting convention
+(gpu-sim-6wd-bytes).** For a long time the DP traces could not be reconciled: a
+zero=3 all-gather read 32.27 MB/step at dp=2 and 43.03 MB at dp=4 although a
+full-parameter gather must be dp-independent. The all-gather COUNT was dp-independent all
+along; what scaled was the fallback path's byte column. `fg_collective_out()` computed
+
+    bytes = payload * (1 + floor(log2 nrank) / 2)     /* "model fan-in/fan-out cost" */
+
+before recording the event -- exactly x1.5 at n=2 (21.51 -> 32.27) and x2.0 at n=4
+(21.51 -> 43.03). It then handed that inflated count to `fg_nccl_out_fill()`, i.e. wrote
+1.5x the recv buffer at n=2, 2x at n=4 and 2.5x at n=8: **an out-of-bounds heap write**,
+reproduced as glibc `malloc(): corrupted top size`. So the byte column now carries the
+payload (matching the topology path, which always did) and `tests/test_fallback_fill_bounds.py`
+pins both halves at n=2/4/8.
+
+That also retires a claim made earlier in this document's history: **dp=8 was NOT
+impossible on this host.** With the overflow fixed all 8 ranks report (previously 5-6 of 8,
+or nothing), so the "world=8 does not fit" note was a symptom of the corruption. Remaining
+real limitation: 8 ranks writing ONE trace file with no locking, so a dp=8 run can drop
+torn lines (1 torn line in 3186 at dp=8 here) -- count-based conclusions survive, per-rank
+row-count equality does not.
+
+Memory is the honest divergence this axis exists to show: measured peakMemory is the honest divergence this axis exists to show: measured peak
 barely moves (627/676/651 MB -- activations dominate, no ZeRO stage shards
 them) while the analytic state falls 52.4 -> 36.7 -> 21.0 MB. ZeRO-2's peak
 is HIGHEST (+48 MB over ZeRO-1): the hand-written path allocates flat grad

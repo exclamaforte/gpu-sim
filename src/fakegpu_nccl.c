@@ -727,12 +727,15 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
     case ncclFloat16: bytes = count * 2; break;
     default:          bytes = count; break;
     }
-    /* scale by log2(nrank) to model fan-in/fan-out cost */
+    /* gpu-sim-6wd-bytes: this used to inflate `bytes` by 1 + floor(log2 n)/2 "to
+     * model fan-in/fan-out cost" and then hand the INFLATED count to
+     * fg_nccl_out_fill(), i.e. write up to 2.5x past the end of recvbuff at n=8.
+     * That is heap corruption, not modelling: reproduced at n=4 as glibc
+     * "malloc(): corrupted top size", and the most likely cause of the SIGSEGVs
+     * and partial traces previously blamed on the host (tp>1 at world=4, dp=8).
+     * The byte column carries the PAYLOAD; fan-in is a cost concern, and the
+     * topology path already reports payload while modelling cost separately. */
     int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
-    int lvl = 0;
-    int tmp = nr;
-    while (tmp > 1) { lvl++; tmp >>= 1; }
-    if (lvl > 0) bytes = bytes + bytes * (size_t)lvl / 2;
     fg_simulate_memcpy(bytes);
     fg_nccl_out_fill(recvbuff, bytes);
 
