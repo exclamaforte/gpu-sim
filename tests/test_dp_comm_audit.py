@@ -56,7 +56,7 @@ def test_per_param_ge_flat():
     hw_per = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "dp_dtype": "bf16", "dp_count_mode": "per_param", "dp_param_tensors": 5}
     c_flat = ps.score(1, 1, 1, 4, 3, hw_flat, m)
     c_per = ps.score(1, 1, 1, 4, 3, hw_per, m)
-    assert c_per.dp_comm >= c_flat.dp_comm, (c_per.dp_comm, c_flat.dp_comm)
+    assert c_per.dp_comm > c_flat.dp_comm, (c_per.dp_comm, c_flat.dp_comm)
 
 def test_per_param_equals_flat_when_one():
     m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}
