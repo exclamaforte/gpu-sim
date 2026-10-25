@@ -111,23 +111,20 @@ def compute_facts():
                             "dp_comm_ms": round(c.dp_comm * 1e3, 2)}
     facts["dp8_rows"] = dp8
 
-    # 1d) TP payload conventions (gpu-sim-6wd): four_d is what the harness MEASURED
-    # (B*seq*d per all-reduce, identical at tp=2 and tp=4); megatron's real set carries
-    # d_ff on the MLP all-reduce (2.25x for 8B) and is unmeasured. Section 0 quotes both.
+    # 1d) TP payload (gpu-sim-6wd): four_d is MEASURED on the harness (B*seq*d per
+    # all-reduce, identical at tp=2 and tp=4) and derived for Megatron (d_ff never
+    # crosses a rank boundary), so it is the default and the refuted alternatives must
+    # stay strictly dearer/cheaper than it.
     facts["tp_payload_winners"] = {}
-    for mode in ("four_d", "megatron"):
-        for N in (8, 16, 32):
-            hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[N],
-                  "cp_grad_mode": "crude", "act_factor": ACT_FACTOR,
-                  "tp_payload": mode}
-            mm = dict(M8)
-            mm["seq"] = 8192
-            _, ff = ps.search(N, hw, mm)
-            b = ff[0]
-            facts["tp_payload_winners"][f"{mode}_N{N}"] = {
-                "config": [b.tp, b.pp, b.cp, b.dp, b.zero],
-                "step_ms": round(b.step_sum * 1e3, 2),
-            }
+    for N in (8, 16, 32):
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[N],
+              "cp_grad_mode": "crude", "act_factor": ACT_FACTOR}
+        mm = dict(M8)
+        mm["seq"] = 8192
+        _, ff = ps.search(N, hw, mm)
+        b = ff[0]
+        facts["tp_payload_winners"][f"N{N}"] = {"config": [b.tp, b.pp, b.cp, b.dp, b.zero],
+                                                "step_ms": round(b.step_sum * 1e3, 2)}
 
     # 2) seq 32768: the dp=8 zero=2 config must be infeasible, and name the best feasible
     _, feas32k = search(8, seq=32768)

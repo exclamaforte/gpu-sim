@@ -45,11 +45,12 @@ def test_ring_exchange_handworked():
     assert pred.steps == 2
 
 def test_tp_payload_conventions_are_named_and_ordered():
-    """gpu-sim-6wd: the TP payload set decides the winner, so it is a named list of the
-    4 per-layer all-reduces, not a magic scale. four_d is the MEASURED convention (the
-    harness moves B*seq*d elements per all-reduce, identical at tp=2 and tp=4); megatron
-    carries d_ff on the MLP all-reduce, so it must cost strictly MORE; the refuted
-    harness_3d_over_tp must cost less at tp>1 or the refutation is not reproducible."""
+    """gpu-sim-6wd: the TP payload set was the last unmeasured term, so it is a named list
+    of the 4 per-layer all-reduces, not a magic scale. four_d is the SETTLED convention:
+    measured on the harness (B*seq*d per all-reduce, identical at tp=2 and tp=4) and
+    derived for Megatron (fc1 column / fc2 row means d_ff never crosses ranks). The two
+    refuted alternatives stay in the code as guards: df_allreduce_hypothesis must cost
+    MORE (it puts d_ff across the wire) and harness_3d_over_tp LESS (3d/tp at tp=4)."""
     import epic_cluster.parallelism_search as ps
     from collections import namedtuple
     hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": "specs/h100_rack.json"}
@@ -59,7 +60,7 @@ def test_tp_payload_conventions_are_named_and_ordered():
         return ps.score(4, 1, 1, 1, 0, h, ps.MODEL).tp_comm
 
     four = tp("four_d")
-    mega = tp("megatron")
+    mega = tp("df_allreduce_hypothesis")
     refuted = tp("harness_3d_over_tp")
     assert four > 0.0
     # d_ff = 14336 > d = 4096, so half the all-reduces are 3.5x bigger -> strictly dearer

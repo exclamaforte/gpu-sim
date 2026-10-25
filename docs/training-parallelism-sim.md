@@ -31,35 +31,31 @@ comm at 8192, while a dp=1 row pays none, so dp-heavy splits lose to tp/cp split
 the strongest evidence yet that the previous recommendation was an accounting artifact, not a
 property of the hardware.
 
-**THE TP PAYLOAD WAS MEASURED (and the answer survives, minus one column).** The TP all-reduce
-payload was the last unvalidated load-bearing term, and the harness turns out to be able to measure
-it. Running the interposer on tp=2 and tp=4 (2 and 4 ranks, 5 steps, trace on) the TP all-reduce
-moves **1,048,576 elements per call = B*seq*d** (B=8, seq=512, d=256) at **both tp widths** -- i.e.
-**d elements per rank per token, independent of tp**. That confirms the `four_d` convention this
-model has always priced and **refutes** the `3d/tp` qkv payload inherited from gpu-sim-oez (a 3d/tp
-payload would have halved between tp=2 and tp=4; it did not). Two earlier claims in this document
-were wrong for the same reason and are withdrawn: the harness does NOT crash on tp>1 (both runs
-exited 0), and the `tp=8 cp=1` winner column below existed only under the refuted `3d/tp` premise.
+**THE TP PAYLOAD IS NOW SETTLED, AND IT AGREES WITH THE MODEL (gpu-sim-6wd).** The TP
+all-reduce payload was the last unvalidated load-bearing term. Two independent lines close it:
 
-What stays open is smaller and sharper: the harness prices `d` for BOTH of its per-layer
-all-reduces, while Megatron's MLP down-projection all-reduce carries **d_ff**, giving the set
-`2d + 2d_ff` = **2.25x** the `four_d` set for 8B. The harness is a 4-layer toy, so it cannot
-validate Megatron's set; it can only refute the 3d/tp hypothesis. Two live conventions, both of
-which put CP in the winner at 8192:
+1. **Measured on the harness.** With the interposer on tp=2 and tp=4 (2 and 4 ranks, 5 steps, trace
+   on, fresh libfakegpu.so) the TP all-reduce moves **1,048,576 elements per call = B*seq*d**
+   (B=8, seq=512, d=256) at **both tp widths** -- d elements per rank per token,
+   tp-independent. Shape probe: `(8, 512, 256)` at both all-reduce sites; varying the model shows
+   the count is seq-proportional, per-layer, and independent of vocab and tp.
+2. **Derived for Megatron.** Its tensor parallelism pairs a column-parallel fc1 with a
+   row-parallel fc2, and the sharded `d_ff/tp` activation between them is consumed locally: **d_ff
+   never crosses a rank boundary**. fc2's all-reduce is over its *output*, width d. Attention is
+   the same shape (qkv column, output projection row). Megatron's four per-layer all-reduces are
+   therefore all width d -- which is exactly the `four_d` convention this model has always priced.
 
-| N | `four_d` (measured against the harness) | `megatron` set `2d+2d_ff` (textbook, unmeasured) |
-| --- | --- | --- |
-| 8 | (tp=4 pp=1 cp=2 dp=1 z0) **79.96 ms** | (tp=2 pp=1 cp=4 dp=1 z0) **88.22 ms** |
-| 16 | (tp=4 pp=2 cp=2 dp=1 z0) **58.69 ms** | (tp=1 pp=4 cp=1 dp=4 z2) **59.34 ms** |
-| 32 | (tp=1 pp=4 cp=1 dp=8 z2) **47.46 ms** | (tp=1 pp=4 cp=1 dp=8 z2) **47.46 ms** |
+So the earlier version of this section was wrong twice, and both claims are withdrawn: the harness
+does **not** crash on tp>1 (both runs exited 0), and the `3d/tp` payload inherited from
+gpu-sim-oez is **refuted** (it would have halved between tp=2 and tp=4; it did not). A third guess,
+that the MLP all-reduce carries `d_ff` (2.25x), is refuted by the column/row pairing above and is
+kept in the code as `df_allreduce_hypothesis` so the error stays reproducible. Consequences: the
+`tp=8 cp=1` column and the claim that CP never pays up to 65536 rested on those refuted premises
+and are gone; **`four_d` is the default**, the winner is **(tp=4 pp=1 cp=2 dp=1 z0)** at
+**79.96 ms** (N=8), 58.69 (N=16), 47.46 (N=32), and **S_best = 8192** stands on TP grounds.
 
-So **S_best = 8192 holds under both live conventions** -- CP pays at 8192 regardless -- but the
-*shape* of the winner moves a lot: at N=8 the megatron set buys tp=2/cp=4 instead of tp=4/cp=2, and
-from N=16 up it drives the winner to **tp=1** (59.34 ms at N=16, tp=1 pp=4 cp=1 dp=4 z2), i.e. if the
-MLP all-reduce really carries d_ff then tensor parallelism is not worth its traffic at 16 GPUs and
-above. That is the one title-level claim still exposed: 'tp pays' at N>=16 depends on the payload set. For the record, the refuted `3d/tp` column would have
-put (tp=8 cp=1) at 8192 and made CP never pay up to 65536; that column is why the earlier draft of
-this section called the answer undecidable.
+What is still NOT settled about this row: absolute durations (gpu-sim-wv2 needs real GPUs), and the
+harness runs fp32 where the model prices bf16 -- compare element counts with the harness, not bytes.
 
 **N=16 and N=32.** At N=16 the winner is (tp=4 pp=2 cp=2 dp=1 zero=0) at 59.34 ms (best
 dp>1 row: (tp=1 pp=4 cp=1 dp=4 zero=2/3) at 59.34 ms -> the two policies tie within 1%). At

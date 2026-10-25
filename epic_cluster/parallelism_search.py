@@ -245,9 +245,18 @@ def score(tp, pp, cp, dp, zero, hw, m):
     #                                       B*seq*d elements per call, B=8, seq=512, d=256
     #                                       = 1048576, IDENTICAL at tp=2 and tp=4 (i.e.
     #                                       d per token per rank, tp-independent).
-    #   megatron          [d, d_ff, d, d_ff] -- Megatron's real row-parallel set: the MLP
-    #                                       down-projection all-reduce carries d_ff, not d.
-    #                                       For 8B that is 2.25x the four_d set.
+    #   df_allreduce_hypothesis [d, d_ff, d, d_ff] -- the guess that Megatron's MLP
+    #                                       all-reduce carries d_ff (2.25x for 8B). WRONG,
+    #                                       and kept named so the error is reproducible: in
+    #                                       Megatron's tensor parallelism fc1 is
+    #                                       column-parallel and fc2 row-parallel, and the
+    #                                       sharded d_ff/tp activation between them is
+    #                                       consumed LOCALLY -- d_ff never crosses a rank
+    #                                       boundary. fc2's all-reduce is over its OUTPUT,
+    #                                       whose width is d. So Megatron's four per-layer
+    #                                       all-reduces are ALL width d, i.e. four_d. The
+    #                                       same holds for attention (qkv is the column op,
+    #                                       the output projection the row op).
     #   harness_3d_over_tp [3d/tp x4]  -- the convention inherited from gpu-sim-oez, now
     #                                       REFUTED by the measurement above (a 3d/tp
     #                                       payload would have halved between tp=2 and tp=4;
@@ -262,7 +271,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
         tp_scales = [3.0 / tp] * 4
     elif tp_payload_mode == "harness_3d_over_tp":
         tp_scales = [3.0 / tp] * 4
-    elif tp_payload_mode == "megatron":
+    elif tp_payload_mode in ("megatron", "df_allreduce_hypothesis"):
         tp_scales = [1.0, m["d_ff"] / d, 1.0, m["d_ff"] / d]
     else:  # four_d (default)
         tp_scales = [1.0] * 4
