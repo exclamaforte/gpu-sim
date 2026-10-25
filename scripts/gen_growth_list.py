@@ -11,7 +11,7 @@ Usage:
 """
 import subprocess, sys, os, re
 
-NCCL = "/tmp/ncclsrc/nccl-2.32.3-1/build/lib/libnccl.so.2"
+NCCL = os.environ.get("NCCL_LIB_PATH", "/tmp/ncclsrc/nccl-2.32.3-1/build/lib/libnccl.so.2")
 SHIM = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "libfakegpu.so")
 GROWTH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                       "experiments", "gpu-sim-6kp", "growth_list.txt")

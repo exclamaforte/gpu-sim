@@ -21,6 +21,14 @@ set -euo pipefail
 
 SIG="close with bd-exp.sh finish"
 die() { echo "bd-exp: $*" >&2; exit 1; }
+bd_exp_preflight() {
+    local dir="${1:-.}"
+    local avail_kb
+    avail_kb=$(df -kP "$dir" 2>/dev/null | awk 'NR==2{print $4}')
+    if [[ -z "$avail_kb" || "$avail_kb" -lt 1048576 ]]; then
+        die "refusing to start: less than 1 GiB free in $dir (avail=${avail_kb:-unknown} KiB). Use a project-local dir, not /tmp."
+    fi
+}
 git_commit() { git rev-parse --short HEAD 2>/dev/null || echo unknown; }
 
 cmd_start() {
@@ -38,6 +46,7 @@ cmd_start() {
     esac
   done
   case "$kind" in train|datagen|analysis) ;; *) die "--kind must be train|datagen|analysis";; esac
+  bd_exp_preflight "."
   local meta
   meta=$(python3 -c 'import json,sys;print(json.dumps({"exp_id":"pending","hypothesis":sys.argv[1],"baseline_exp":sys.argv[2],"kind":sys.argv[3],"artifact_intent":sys.argv[4],"commit":sys.argv[5],"outcome":"running","kept":"unknown"}))' \
     "$hypothesis" "$baseline" "$kind" "$intent" "$(git_commit)")
@@ -99,6 +108,7 @@ cmd_finish() {
   local pairs=("outcome=$outcome" "kept=$kept" "artifact=$artifact" "commit=$(git_commit)")
   pairs+=("finished_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" "forced=$force")
   for key in "${!M[@]}"; do pairs+=("$key=${M[$key]}"); done
+  bd_exp_preflight "."
   local meta
   meta=$(python3 -c 'import json,sys;print(json.dumps(dict(p.split("=",1) for p in sys.argv[1:])))' "${pairs[@]}")
   if [[ "$dry" -eq 1 ]]; then

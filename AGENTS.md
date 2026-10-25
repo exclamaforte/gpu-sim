@@ -127,3 +127,14 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+
+
+## Scratch space (gpu-sim-u6j5)
+
+Do not write experiment traces, sweep outputs, or tool scratch to `/tmp`: it is a
+quota-limited tmpfs and long runs die with `EDQUOT` mid-flight. Use the
+experiment directory (`experiments/<bead-id>/`) or `.lab/tmp/` (gitignored)
+instead. Tools that accept an output path must default to a project-local dir,
+not `/tmp`; hardcoding `/tmp` is a bug. `scripts/gpu_run.sh` and `scripts/bd-exp.sh`
+run a quota preflight before long runs and refuse to start if the target dir has
+less than 1 GiB free.

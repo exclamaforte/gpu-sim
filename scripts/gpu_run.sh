@@ -26,6 +26,17 @@
 
 set -uo pipefail
 
+# Quota preflight (gpu-sim-u6j5): refuse if the log/target dir has < 1 GiB free.
+gpu_run_preflight() {
+    local dir="${1:-.}"
+    local avail_kb
+    avail_kb=$(df -kP "$dir" 2>/dev/null | awk 'NR==2{print $4}')
+    if [[ -z "$avail_kb" || "$avail_kb" -lt 1048576 ]]; then
+        echo "gpu_run: refusing to start: less than 1 GiB free in $dir (avail=${avail_kb:-unknown} KiB). Use a project-local dir, not /tmp." >&2
+        exit 2
+    fi
+}
+
 usage() {
     echo "usage: $0 <timeout> [--log FILE] -- <command> [args...]" >&2
     exit 2
@@ -38,6 +49,7 @@ esac
 
 TIMEOUT="$1"; shift
 LOGFILE=""
+gpu_run_preflight "."
 if [ "${1:-}" = "--log" ]; then
     LOGFILE="${2:-}"; shift 2
 fi
