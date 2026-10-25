@@ -107,3 +107,37 @@ def test_fallback_reducescatter_reports_the_total(nranks):
     assert row["bytes"] == total * 4, (
         f"n={nranks}: reduce-scatter bytes {row['bytes']} != total payload {total * 4} "
         "-- the fallback recorded the shard (gpu-sim-smt6)")
+
+def test_point_to_point_fills_the_whole_payload():
+    """gpu-sim-smt7: the p2p sites passed an ELEMENT count to APIs that take BYTES.
+    fg_simulate_memcpy() divides by bandwidth, so every PP/CP transfer was charged
+    1/4 of its real time at fp32, and ncclRecv's fill wrote `count` bytes into a
+    count*elem byte buffer -- a quarter of it. Same count-vs-bytes species as the
+    three DP-trace byte bugs; p2p had never been audited because it moves no group
+    total. This pins the fill: every payload byte must be written, none past the end."""
+    lib = _load()
+    lib.ncclRecv.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int,
+                             ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
+    lib.ncclRecv.restype = ctypes.c_int
+    count = 1024                       # elements
+    payload = count * 4                # float32
+    with tempfile.TemporaryDirectory() as tmpdir:
+        trace = os.path.join(tmpdir, "p2p.jsonl")
+        os.environ["GPUSIM_TRACE"] = trace
+        os.environ["FAKEGPU_NCCL_NO_FILL"] = ""      # fill ON
+        os.environ.pop("GPUSIM_TOPOLOGY", None)
+        comm = ctypes.c_void_p()
+        assert lib.ncclCommInitRank(ctypes.byref(comm), 2, 0, 0) == 0
+        buf = (ctypes.c_char * (payload + GUARD))()
+        ctypes.memset(buf, 0xA5, payload + GUARD)     # canary everywhere
+        assert lib.ncclRecv(buf, count, NCCL_FLOAT32, 1, comm, None) == 0
+        body = bytes(buf[:payload])
+        past = bytes(buf[payload:])
+        row = [json.loads(l) for l in open(trace) if l.strip()][-1]
+    assert row["bytes"] == payload, (
+        f"recv trace bytes {row['bytes']} != payload {payload}")
+    assert body.count(b"\xa5") < payload, "recv filled nothing"
+    assert all(b != 0xA5 for b in body[-16:]), (
+        "the tail of the payload is still canary -- the fill used the ELEMENT count "
+        "as a BYTE count (gpu-sim-smt7)")
+    assert all(b == 0xA5 for b in past), "recv wrote past the end of the buffer"

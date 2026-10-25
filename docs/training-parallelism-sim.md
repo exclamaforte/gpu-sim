@@ -543,7 +543,11 @@ carried before gpu-sim-6r5 -- one layer down each time:
    (all-gather read 86.06 MB/step at dp=4 and 172.11 at dp=8 before; 21.51 at both after);
 3. the fallback recorded a reduce-scatter's SHARD (P/dp) where the topology path records the
    total, giving RS 5.38 MB at dp=4 and 2.69 at dp=8 -- a spurious dp-dependence that looked like
-   an accounting mystery for a day.
+   an accounting mystery for a day;
+4. and in point-to-point (PP/CP, gpu-sim-smt7) the element count was passed where BYTES are
+   expected: `fg_simulate_memcpy(count)` charges 1/4 of the real transfer at fp32, and ncclRecv
+   filled `count` BYTES of a count*elem buffer -- a quarter of it. p2p escaped the earlier audits
+   because it moves no group total, which is exactly why it was worth auditing.
 
 **The remaining DP byte puzzle was a BUG, not an accounting convention
 (gpu-sim-6wd-bytes).** For a long time the DP traces could not be reconciled: a

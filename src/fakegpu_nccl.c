@@ -266,8 +266,13 @@ ncclResult_t ncclSend(const void *sendbuff, size_t count, int datatype,
     int _tport_self = comm ? ((struct fg_nccl_comm *)comm)->rank
                            : fg_nccl_rank_from_env();
     fg_transport_send(sendbuff, count, datatype, _tport_self, peer);
-    /* model a tiny latency proportional to count */
-    fg_simulate_memcpy(count);
+    /* gpu-sim-smt7: fg_simulate_memcpy() takes BYTES (it divides by bandwidth);
+     * these three p2p sites passed fg_simulate_memcpy(count) -- an ELEMENT count --
+     * so every PP/CP transfer was charged 1/4 of its real cost at fp32, and the recv
+     * fill below wrote `count` BYTES into a count*elem byte buffer, i.e. filled a
+     * quarter of it. Same count-vs-bytes species as the three byte bugs of the DP
+     * audit; p2p had simply never been audited because it moves no group total. */
+    fg_simulate_memcpy(fg_dtype_bytes(datatype, count));
     fg_p2p_trace("send", comm, count, datatype, peer);
     return ncclSuccess;
 }
@@ -284,8 +289,8 @@ ncclResult_t ncclRecv(void *recvbuff, size_t count, int datatype,
                            : fg_nccl_rank_from_env();
     if (fg_transport_recv(recvbuff, count, datatype, _tport_self, peer))
         fg_tport_skip_fill = 1;
-    fg_simulate_memcpy(count);
-    fg_nccl_out_fill(recvbuff, count);
+    fg_simulate_memcpy(fg_dtype_bytes(datatype, count));
+    fg_nccl_out_fill(recvbuff, fg_dtype_bytes(datatype, count));
     fg_p2p_trace("recv", comm, count, datatype, peer);
     return ncclSuccess;
 }
@@ -295,7 +300,7 @@ ncclResult_t ncclSendRecv(void *recvbuf, size_t rcount, int rtype, int recvFrom,
                           int sendTo, ncclComm_t comm, void *stream)
 {
     (void)sendbuf; (void)stype; (void)sendTo; (void)stream;
-    fg_simulate_memcpy(rcount > scount ? rcount : scount);
+    fg_simulate_memcpy(fg_dtype_bytes(rtype, rcount > scount ? rcount : scount));
     fg_p2p_trace("sendrecv", comm, rcount, rtype, recvFrom);
     if (recvbuf && rcount) {
         if (rcount) fg_fill(recvbuf, rcount);
