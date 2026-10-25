@@ -1,10 +1,10 @@
 {
   "bead": "gpu-sim-u2o.15",
   "kind": "CLOSE-AUDIT -- reports only, never modifies a bead",
-  "audit_id": "b220d09ad2c50418",
+  "audit_id": "920bc3db77ccaad9",
   "scope_label": "fab-audit-reopened",
   "beads_in_scope": 76,
-  "closed_in_scope": 66,
+  "closed_in_scope": 67,
   "violations": [
     {
       "id": "gpu-sim-u2o.6.8",
@@ -106,6 +106,17 @@
       "close_reason": "Closed",
       "acknowledged": true,
       "acknowledgement": "Triage (gpu-sim-tps): (iii) kept=false / unsubstantiated. Naked close with no experiment directory and no artifact. No evidence found."
+    },
+    {
+      "id": "gpu-sim-u2o.7.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Gated on deferred epic gpu-sim-u2o.13 (J1) and POST-V1-only. Closed as not-applicable.",
+      "acknowledged": true,
+      "acknowledgement": "PI ruling (final, ends a defer/close tug-of-war): accepted-by-ruling. This bead is POST-V1 scope (v1_scope.md sec.3) AND gated on the deferred epic gpu-sim-u2o.13 (J1), so there is no version of it th"
     }
   ],
   "violations_acknowledged": [
@@ -117,7 +128,8 @@
     "gpu-sim-u2o.7.2",
     "gpu-sim-u2o.7",
     "gpu-sim-u2o.7.4",
-    "gpu-sim-u2o.7.5"
+    "gpu-sim-u2o.7.5",
+    "gpu-sim-u2o.7.8"
   ],
   "violations_unacknowledged": [],
   "wont_fix_closures_excluded": [
@@ -885,6 +897,17 @@
       "bare_close": false,
       "wont_fix": false,
       "close_reason": "validated, merged 35245df: entry gate machine-checked closed, design banked, no compute spent by design"
+    },
+    {
+      "id": "gpu-sim-u2o.7.8",
+      "concrete": false,
+      "why": [],
+      "disqualified_by": [],
+      "bare_close": false,
+      "wont_fix": false,
+      "close_reason": "Gated on deferred epic gpu-sim-u2o.13 (J1) and POST-V1-only. Closed as not-applicable.",
+      "acknowledged": true,
+      "acknowledgement": "PI ruling (final, ends a defer/close tug-of-war): accepted-by-ruling. This bead is POST-V1 scope (v1_scope.md sec.3) AND gated on the deferred epic gpu-sim-u2o.13 (J1), so there is no version of it th"
     }
   ],
   "query_coverage": {
@@ -895,8 +918,8 @@
       "--json"
     ],
     "primary_rc": 0,
-    "primary_rows": 341,
-    "primary_closed_rows": 328,
+    "primary_rows": 342,
+    "primary_closed_rows": 330,
     "independent_closed_query": [
       "bd",
       "list",
@@ -904,7 +927,7 @@
       "closed",
       "--json"
     ],
-    "independent_closed_rows": 328,
+    "independent_closed_rows": 330,
     "closed_beads_the_primary_query_MISSED": [],
     "coverage_proven": true,
     "note": "coverage is proven only when the primary query accounts for every closed bead an independent query reports. A query that cannot see closed beads cannot certify anything about closures."
