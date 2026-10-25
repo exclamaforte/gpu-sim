@@ -61,6 +61,24 @@ for f in f_values:
                       "degenerate": tied > 1, "tied": tied})
     prev = (f, w)
 
+# model-path cross-check: the same structural question on the merged topology
+# path (spec prices each group's links via link_model) vs the legacy
+# single-fabric path. The overlap conclusion is about compute invariance, so it
+# must not depend on which pricing path produced the ranking.
+path_check = {}
+for _label, _extra in (("legacy", {}), ("spec_h100", {"spec_path": "specs/h100_rack.json"})):
+    _hw = dict(BASE); _hw.update(_extra)
+    _, _feas = ps.search(N, _hw)
+    _pp1 = [c for c in _feas if c.pp == 1]
+    _lo = min(c.step_max for c in _pp1)
+    _best = _best_candidate(_feas)
+    path_check[_label] = {
+        "winner_at_f0": list(key(_best)),
+        "sum_ms_f0": round(_best.step_sum * 1000, 3),
+        "tied_at_max_overlap": sum(1 for c in _pp1 if abs(c.step_max - _lo) < 1e-12),
+        "compute_floor_ms": round(_lo * 1000, 3),
+    }
+
 # one-at-a-time break-even
 def sweep(param, values):
     out = []
@@ -133,6 +151,7 @@ _verdict = (
 metrics = {
   "f_curve": f_curve,
   "swaps": swaps,
+  "model_path_check": path_check,
   "break_even": break_even,
   "joint_band_sum": {str(k):v for k,v in dist_sum.items()},
   "joint_band_max": {str(k):v for k,v in dist_max.items()},
