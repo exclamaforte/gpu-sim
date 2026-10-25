@@ -98,6 +98,42 @@ def compute_facts():
         return (best.tp, best.pp, best.cp, best.dp, best.zero), best.step_sum, \
                (alt.tp, alt.pp, alt.cp, alt.dp, alt.zero), alt.step_sum
 
+    # gpu-sim-aknob: act_factor is a MEMORY knob -- record where, if anywhere, it moves the
+    # answer. A 5x band around the fit leaves the ranking untouched; the bend points and the
+    # all-infeasible ceilings are computed here so the doc cannot quote drift.
+    facts["act_factor_knob"] = {"calibrated": 2.3,
+                                "band_tested": [1.0, 12.0],
+                                "bend_point": {}, "infeasible_above": {}}
+    for n in (8, 16, 32):
+        _, base = search(n)
+        base_shape = (base[0].tp, base[0].pp, base[0].cp, base[0].dp, base[0].zero)
+
+        def _w(a):
+            spec = SPEC[n]
+            hwv = {"peak_flops": PEAK, "mem_gb": 80.0, "spec_path": spec, "act_factor": a}
+            _, feas = ps.search(n, hwv, m=ps.MODEL)
+            return feas
+
+        a, bend = 2.3, None
+        while a < 200:
+            feas = _w(a)
+            if not feas:
+                break
+            b = feas[0]
+            if (b.tp, b.pp, b.cp, b.dp, b.zero) != base_shape:
+                bend = round(a, 1)
+                break
+            a *= 1.15
+        facts["act_factor_knob"]["bend_point"][f"N{n}"] = bend
+        lo, hi = 1.0, 400.0
+        for _ in range(28):
+            mid = (lo + hi) / 2
+            if _w(mid):
+                lo = mid
+            else:
+                hi = mid
+        facts["act_factor_knob"]["infeasible_above"][f"N{n}"] = round(lo, 1)
+
     facts["mfu_margin_sweep"] = {"note": "margin = best config with a different shape"}
     for n in (8, 16, 32):
         row = {}
@@ -393,6 +429,14 @@ def allowed_decimals(facts):
                 if _tag in _v:
                     add(_v[_tag]["step_ms"])
                     add(_v[_tag]["margin_pct"])
+    _ak = facts.get("act_factor_knob", {})
+    add(_ak.get("calibrated"))
+    for d in (_ak.get("bend_point", {}), _ak.get("infeasible_above", {})):
+        for v in d.values():
+            if v is not None:
+                add(v)
+    for v in _ak.get("band_tested", []):
+        add(v)
     if "N16_crossover_mfu" in _ms:
         add(_ms["N16_crossover_mfu"])
     for v in facts.get("dp8_rows", {}).values():

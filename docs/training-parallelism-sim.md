@@ -116,6 +116,17 @@ near-tie, not a verdict -- it is the right call if H100 training runs at 35-50% 
 noise of the alternative at the low end. At N=8 the same question is decided by 3.94-6.42%, which is
 why "TP is not worth it at 16 GPUs" is a much weaker statement than "TP+CP is right at 8".
 
+**The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
+instrumented measurement and the model itself calls it "unvalidated for exact fit", so it deserved
+the same suspicion. It turns out not to be a time knob at all: activations enter MEMORY, while the CP
+term prices a ring exchange of K/V chunks and the DP/TP terms price parameters and messages, so
+sweeping act_factor 1.0 to 12.0 -- a 5x band around the fit -- leaves every step time bit-identical
+and every winner unmoved at N=8, 16 and 32. It bites only as a memory ceiling, and only far outside
+the fitted value: the ranking first bends at act_factor ~28.5 (N=8) and ~21.5 (N=16, N=32), i.e. 9-12x
+the calibrated number, and the model stops being feasible at all beyond ~36 / ~82 / ~174. The
+recommendation therefore does not rest on this fit
+(tests/test_act_factor_knob.py).
+
 **N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
 dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
 N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes
