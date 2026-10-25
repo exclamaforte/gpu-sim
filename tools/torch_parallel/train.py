@@ -400,11 +400,16 @@ def main() -> int:
                     for prm in model.parameters():
                         if prm.grad is not None:
                             flat = prm.grad.flatten().contiguous()
+                            # pad to cp divisibility (reuse ZeRO-2 convention)
+                            pad = (-flat.numel()) % cp
+                            if pad:
+                                flat = torch.cat([flat, flat.new_zeros(pad)])
                             shard = torch.empty(flat.numel() // cp, dtype=flat.dtype, device=flat.device)
                             dist.reduce_scatter_tensor(shard, flat, op=dist.ReduceOp.SUM, group=cp_group)
+                            # all_gather into a separate buffer (no aliasing with prm.grad)
                             full = [torch.empty_like(shard) for _ in range(cp)]
                             dist.all_gather(full, shard, group=cp_group)
-                            prm.grad.copy_(torch.cat(full).view_as(prm.grad))
+                            prm.grad.copy_(torch.cat(full)[:prm.grad.numel()].view_as(prm.grad))
                             prm.grad.div_(cp)
                 else:
                     for prm in model.parameters():
