@@ -235,18 +235,29 @@ def score(tp, pp, cp, dp, zero, hw, m):
         bubble = compute * (pp - 1) / (micro_batches + pp - 1)
 
     # TP comm
+    # tp_bytes_scale: the TP all-reduce payload is MODELLED, not measured. The model
+    # assumes Megatron's row-parallel full-d payload (d elements per rank); the
+    # harness actually reduces a 3d/tp qkv tensor, i.e. 3/tp of that (gpu-sim-oez).
+    # 1.0 = Megatron choice, 3/tp = harness choice. Exposed so the SENSITIVITY of the
+    # published recommendation to this unvalidated term can be measured instead of
+    # argued (the DP term taught that lesson the hard way: gpu-sim-qk9 / 6r5).
+    tp_bytes_scale = float(hw.get("tp_bytes_scale", 1.0))
+    if hw.get("tp_payload", "megatron") == "harness":
+        # harness reduces a 3d/tp qkv tensor per rank; the model's baseline is
+        # Megatron's full-d row-parallel payload, so the ratio is 3/tp.
+        tp_bytes_scale = 3.0 / tp
     tp_comm = 0.0
     tp_kind = None
     if tp > 1:
-        msg_count = d * seq_per_cp
+        msg_count = int(d * seq_per_cp * tp_bytes_scale)
         if spec is not None:
             group = [((0 * tp + t) * cp + 0) * dp + 0 for t in range(tp)]
             pred = link_model.predict(spec, "ring_allreduce", msg_count, "bfloat16", ranks=group, pieces_per_phase=1)
             tp_comm = m["n_layers"] * 4 * pred["duration_s"]
             tp_kind = pred["bottleneck"]["kind"]
         else:
-            msg = d * seq_per_cp * dtype_bytes
-            pred = nccl_cost.predict("allreduce", tp, msg, fabric=fabric)
+            msg = d * seq_per_cp * tp_bytes_scale * dtype_bytes
+            pred = nccl_cost.predict("allreduce", tp, int(msg), fabric=fabric)
             tp_comm = m["n_layers"] * 4 * pred.total_s
 
     # CP comm

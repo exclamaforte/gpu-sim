@@ -31,6 +31,25 @@ comm at 8192, while a dp=1 row pays none, so dp-heavy splits lose to tp/cp split
 the strongest evidence yet that the previous recommendation was an accounting artifact, not a
 property of the hardware.
 
+**THE ANSWER IS CONDITIONAL ON AN UNVALIDATED TP PAYLOAD (read this before quoting
+the line above).** The TP all-reduce payload is modelled, not measured: the cost model assumes
+Megatron's row-parallel **full-d** payload, while the harness actually reduces a **3d/tp** qkv
+tensor (gpu-sim-oez). `hw["tp_bytes_scale"]` now exposes the ratio (1.0 = Megatron, 3/tp =
+harness), and the ranking MOVES:
+
+| N | full-d (Megatron, `tp_payload='megatron'`) | harness payload (`tp_payload='harness'`: 3d/tp per rank) |
+| --- | --- | --- |
+| 8 | (tp=4 pp=1 cp=2 dp=1 z0) **79.96 ms** | (tp=8 pp=1 cp=1 dp=1 z0) **73.02 ms** |
+| 16 | (tp=4 pp=2 cp=2 dp=1 z0) **58.69 ms** | (tp=8 pp=2 cp=1 dp=1 z0) **54.06 ms** |
+| 32 | (tp=1 pp=4 cp=1 dp=8 z2/z3) 47.46 ms | (tp=8 pp=4 cp=1 dp=1 z0) **47.42 ms** |
+
+Under the harness convention the winner is pure tensor parallelism with NO context parallelism,
+so **whether CP pays at 8192 is itself undecided**: it pays under Megatron payloads and does not
+under the harness's. The TP term is 8-16 ms of a 73-80 ms step, which is why it decides. Neither
+convention is validated: the harness's own layout is a 4-layer toy, not Megatron's; the model's
+full-d is the textbook row-parallel size. Until TP payloads are measured on a real Megatron-shaped
+run, this document should be read as a pair of conditional answers, not one answer.
+
 **N=16 and N=32.** At N=16 the winner is (tp=4 pp=2 cp=2 dp=1 zero=0) at 58.69 ms (best
 dp>1 row: (tp=1 pp=4 cp=1 dp=4 zero=2/3) at 59.34 ms -> the two policies tie within 1%). At
 N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 47.46 ms, because pp=4 finally makes
