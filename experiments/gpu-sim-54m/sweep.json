@@ -1,6 +1,1518 @@
 {
   "thresholds_summary": {
-    "cpgrad=crude_act=2.3": {
+    "path=legacy_cpgrad=crude_act=2.3": {
+      "N8_8b": {
+        "S_best": 32768,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 73.05,
+              "mem_gb": 32.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 45
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 164.7,
+              "mem_gb": 48.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 42
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 496.06,
+              "mem_gb": 74.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 35
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 2,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 1414.16,
+              "mem_gb": 65.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 25
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 4,
+              "pp": 1,
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 4556.42,
+              "mem_gb": 65.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 7
+          }
+        }
+      },
+      "N8_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N16_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 36.81,
+              "mem_gb": 24.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 89
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 82.64,
+              "mem_gb": 40.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 87
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 214.31,
+              "mem_gb": 72.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 82
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 752.69,
+              "mem_gb": 75.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 70
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 2353.76,
+              "mem_gb": 66.2
+            },
+            "cp1_feasible": true,
+            "nfeas": 49
+          }
+        }
+      },
+      "N16_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N32_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 18.48,
+              "mem_gb": 20.2
+            },
+            "cp1_feasible": true,
+            "nfeas": 154
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 41.39,
+              "mem_gb": 36.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 152
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 107.23,
+              "mem_gb": 68.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 148
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 2,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 428.71,
+              "mem_gb": 73.1
+            },
+            "cp1_feasible": true,
+            "nfeas": 139
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 1259.03,
+              "mem_gb": 75.5
+            },
+            "cp1_feasible": true,
+            "nfeas": 115
+          }
+        }
+      },
+      "N32_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 2,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 207.36,
+              "mem_gb": 76.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 38
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 4,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 478.93,
+              "mem_gb": 78.5
+            },
+            "cp1_feasible": true,
+            "nfeas": 32
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 8,
+              "pp": 1,
+              "cp": 1,
+              "dp": 4,
+              "zero": 3,
+              "step_ms": 1442.47,
+              "mem_gb": 75.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 24
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 16,
+              "pp": 1,
+              "cp": 1,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 3491.13,
+              "mem_gb": 75.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 9
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 32,
+              "pp": 1,
+              "cp": 1,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 9189.37,
+              "mem_gb": 75.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 3
+          }
+        }
+      }
+    },
+    "path=legacy_cpgrad=crude_act=1.0": {
+      "N8_8b": {
+        "S_best": 32768,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 73.05,
+              "mem_gb": 29.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 45
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 164.7,
+              "mem_gb": 41.9
+            },
+            "cp1_feasible": true,
+            "nfeas": 42
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 496.06,
+              "mem_gb": 73.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 35
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 2,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 1414.16,
+              "mem_gb": 58.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 25
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 4,
+              "pp": 1,
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 4556.42,
+              "mem_gb": 58.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 7
+          }
+        }
+      },
+      "N8_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N16_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 36.81,
+              "mem_gb": 20.9
+            },
+            "cp1_feasible": true,
+            "nfeas": 89
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 82.64,
+              "mem_gb": 33.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 87
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 214.31,
+              "mem_gb": 58.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 82
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 752.69,
+              "mem_gb": 73.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 70
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 2353.76,
+              "mem_gb": 59.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 49
+          }
+        }
+      },
+      "N16_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N32_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 18.48,
+              "mem_gb": 16.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 154
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 41.39,
+              "mem_gb": 29.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 152
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 107.23,
+              "mem_gb": 54.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 148
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 2,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 428.71,
+              "mem_gb": 59.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 139
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 1259.03,
+              "mem_gb": 73.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 115
+          }
+        }
+      },
+      "N32_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 2,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 207.36,
+              "mem_gb": 67.9
+            },
+            "cp1_feasible": true,
+            "nfeas": 38
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 4,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 478.93,
+              "mem_gb": 70.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 32
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 8,
+              "pp": 1,
+              "cp": 1,
+              "dp": 4,
+              "zero": 3,
+              "step_ms": 1442.47,
+              "mem_gb": 66.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 24
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 16,
+              "pp": 1,
+              "cp": 1,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 3491.13,
+              "mem_gb": 66.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 9
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 32,
+              "pp": 1,
+              "cp": 1,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 9189.37,
+              "mem_gb": 66.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 3
+          }
+        }
+      }
+    },
+    "path=legacy_cpgrad=production_act=2.3": {
+      "N8_8b": {
+        "S_best": 32768,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 73.05,
+              "mem_gb": 32.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 45
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 164.7,
+              "mem_gb": 48.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 42
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 471.82,
+              "mem_gb": 74.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 35
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 2,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 1400.31,
+              "mem_gb": 65.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 25
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 4,
+              "pp": 1,
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 4549.49,
+              "mem_gb": 65.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 7
+          }
+        }
+      },
+      "N8_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N16_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 36.81,
+              "mem_gb": 24.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 89
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 82.64,
+              "mem_gb": 40.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 87
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 214.31,
+              "mem_gb": 72.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 82
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 722.39,
+              "mem_gb": 75.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 70
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 2329.52,
+              "mem_gb": 66.2
+            },
+            "cp1_feasible": true,
+            "nfeas": 49
+          }
+        }
+      },
+      "N16_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N32_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 18.48,
+              "mem_gb": 20.2
+            },
+            "cp1_feasible": true,
+            "nfeas": 154
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 41.39,
+              "mem_gb": 36.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 152
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 107.23,
+              "mem_gb": 68.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 148
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 400.74,
+              "mem_gb": 71.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 139
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 1225.48,
+              "mem_gb": 75.5
+            },
+            "cp1_feasible": true,
+            "nfeas": 115
+          }
+        }
+      },
+      "N32_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 2,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 207.36,
+              "mem_gb": 76.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 38
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 4,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 478.93,
+              "mem_gb": 78.5
+            },
+            "cp1_feasible": true,
+            "nfeas": 32
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 8,
+              "pp": 1,
+              "cp": 1,
+              "dp": 4,
+              "zero": 3,
+              "step_ms": 1442.47,
+              "mem_gb": 75.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 24
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 16,
+              "pp": 1,
+              "cp": 1,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 3491.13,
+              "mem_gb": 75.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 9
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 32,
+              "pp": 1,
+              "cp": 1,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 9189.37,
+              "mem_gb": 75.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 3
+          }
+        }
+      }
+    },
+    "path=legacy_cpgrad=production_act=1.0": {
+      "N8_8b": {
+        "S_best": 32768,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 73.05,
+              "mem_gb": 29.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 45
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 164.7,
+              "mem_gb": 41.9
+            },
+            "cp1_feasible": true,
+            "nfeas": 42
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 471.82,
+              "mem_gb": 73.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 35
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 2,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 1400.31,
+              "mem_gb": 58.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 25
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 4,
+              "pp": 1,
+              "cp": 2,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 4549.49,
+              "mem_gb": 58.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 7
+          }
+        }
+      },
+      "N8_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N16_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 36.81,
+              "mem_gb": 20.9
+            },
+            "cp1_feasible": true,
+            "nfeas": 89
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 82.64,
+              "mem_gb": 33.6
+            },
+            "cp1_feasible": true,
+            "nfeas": 87
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 214.31,
+              "mem_gb": 58.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 82
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 8,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 722.39,
+              "mem_gb": 73.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 70
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 4,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 2329.52,
+              "mem_gb": 59.3
+            },
+            "cp1_feasible": true,
+            "nfeas": 49
+          }
+        }
+      },
+      "N16_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "16384": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "32768": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "65536": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          },
+          "131072": {
+            "feasible": false,
+            "best": null,
+            "cp1_feasible": false,
+            "nfeas": 0
+          }
+        }
+      },
+      "N32_8b": {
+        "S_best": 65536,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 18.48,
+              "mem_gb": 16.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 154
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 41.39,
+              "mem_gb": 29.4
+            },
+            "cp1_feasible": true,
+            "nfeas": 152
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 1,
+              "cp": 1,
+              "dp": 32,
+              "zero": 3,
+              "step_ms": 107.23,
+              "mem_gb": 54.7
+            },
+            "cp1_feasible": true,
+            "nfeas": 148
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 400.74,
+              "mem_gb": 70.1
+            },
+            "cp1_feasible": true,
+            "nfeas": 139
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 2,
+              "pp": 1,
+              "cp": 16,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 1225.48,
+              "mem_gb": 73.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 115
+          }
+        }
+      },
+      "N32_70b": {
+        "S_best": null,
+        "S_required": null,
+        "cells": {
+          "8192": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 2,
+              "cp": 1,
+              "dp": 16,
+              "zero": 3,
+              "step_ms": 207.36,
+              "mem_gb": 67.9
+            },
+            "cp1_feasible": true,
+            "nfeas": 38
+          },
+          "16384": {
+            "feasible": true,
+            "best": {
+              "tp": 1,
+              "pp": 4,
+              "cp": 1,
+              "dp": 8,
+              "zero": 3,
+              "step_ms": 478.93,
+              "mem_gb": 70.0
+            },
+            "cp1_feasible": true,
+            "nfeas": 32
+          },
+          "32768": {
+            "feasible": true,
+            "best": {
+              "tp": 8,
+              "pp": 1,
+              "cp": 1,
+              "dp": 4,
+              "zero": 3,
+              "step_ms": 1442.47,
+              "mem_gb": 66.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 24
+          },
+          "65536": {
+            "feasible": true,
+            "best": {
+              "tp": 16,
+              "pp": 1,
+              "cp": 1,
+              "dp": 2,
+              "zero": 3,
+              "step_ms": 3491.13,
+              "mem_gb": 66.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 9
+          },
+          "131072": {
+            "feasible": true,
+            "best": {
+              "tp": 32,
+              "pp": 1,
+              "cp": 1,
+              "dp": 1,
+              "zero": 0,
+              "step_ms": 9189.37,
+              "mem_gb": 66.8
+            },
+            "cp1_feasible": true,
+            "nfeas": 3
+          }
+        }
+      }
+    },
+    "path=spec_cpgrad=crude_act=2.3": {
       "N8_8b": {
         "S_best": 32768,
         "S_required": null,
@@ -378,7 +1890,7 @@
         }
       }
     },
-    "cpgrad=crude_act=1.0": {
+    "path=spec_cpgrad=crude_act=1.0": {
       "N8_8b": {
         "S_best": 32768,
         "S_required": null,
@@ -756,7 +2268,7 @@
         }
       }
     },
-    "cpgrad=production_act=2.3": {
+    "path=spec_cpgrad=production_act=2.3": {
       "N8_8b": {
         "S_best": 32768,
         "S_required": null,
@@ -1134,7 +2646,7 @@
         }
       }
     },
-    "cpgrad=production_act=1.0": {
+    "path=spec_cpgrad=production_act=1.0": {
       "N8_8b": {
         "S_best": 32768,
         "S_required": null,

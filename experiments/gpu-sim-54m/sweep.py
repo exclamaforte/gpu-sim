@@ -11,11 +11,12 @@ SEQS = [8192, 16384, 32768, 65536, 131072]
 NS = [8, 16, 32]
 FABRIC = {8: (None, None), 16: (None, "specs/h100_rack.json"), 32: (None, "specs/h100_rack_4node.json")}
 
-def hw_for(N, cp_grad_mode="crude"):
-    if N == 8:
+def hw_for(N, path="legacy", cp_grad_mode="crude"):
+    if path == "legacy" or N == 8:
         hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "cp_grad_mode": cp_grad_mode}
     else:
-        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": FABRIC[N][1], "cp_grad_mode": cp_grad_mode}
+        spec = "specs/h100_rack.json" if N <= 16 else "specs/h100_rack_4node.json"
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": spec, "cp_grad_mode": cp_grad_mode}
     return hw
 
 def make_score(act_factor):
@@ -29,10 +30,10 @@ def make_score(act_factor):
         return r
     return patched
 
-def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor):
+def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor, path="legacy"):
     base = dict(MODELS[model_name]); base["seq"] = seq
     m = base
-    hw = hw_for(N, cp_grad_mode)
+    hw = hw_for(N, path, cp_grad_mode)
     ps.score = make_score(act_factor)
     _, feas = ps.search(N, hw, m=m, rank_by=rank_by)
     ps.score = ps.score.__wrapped__ if hasattr(ps.score, "__wrapped__") else ps.score
@@ -56,27 +57,28 @@ def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor):
 # Run grid, compact summary only
 summary = {}
 thresholds = {}
-for cp_grad_mode in ("crude", "production"):
-    for act_factor in (2.3, 1.0):
-        key = f"cpgrad={cp_grad_mode}_act={act_factor}"
-        # store only thresholds, not full grid
-        thr = {}
-        for N in NS:
-            for model_name in ("8b", "70b"):
-                s_best = None; s_req = None
-                cells = {}
-                for seq in SEQS:
-                    cell = run_one(N, model_name, seq, "sum", cp_grad_mode, act_factor)
-                    cells[seq] = {"feasible": cell["feasible"], "best": cell["best"],
-                                 "cp1_feasible": cell["cp1_feasible"],
-                                 "nfeas": cell["feasible_configs"]}
-                    if cell["feasible"]:
-                        if s_best is None and cell["best"]["cp"] > 1:
-                            s_best = seq
-                        if s_req is None and not cell["cp1_feasible"]:
-                            s_req = seq
-                thr[f"N{N}_{model_name}"] = {"S_best": s_best, "S_required": s_req, "cells": cells}
-        summary[key] = thr
+for path in ("legacy", "spec"):
+    for cp_grad_mode in ("crude", "production"):
+        for act_factor in (2.3, 1.0):
+            key = f"path={path}_cpgrad={cp_grad_mode}_act={act_factor}"
+            thr = {}
+            for N in NS:
+                for model_name in ("8b", "70b"):
+                    s_best = None; s_req = None
+                    cells = {}
+                    for seq in SEQS:
+                        cell = run_one(N, model_name, seq, "sum", cp_grad_mode, act_factor, path)
+                        cells[seq] = {"feasible": cell["feasible"], "best": cell["best"],
+                                     "cp1_feasible": cell["cp1_feasible"],
+                                     "nfeas": cell["feasible_configs"]}
+                        if cell["feasible"]:
+                            if s_best is None and cell["best"]["cp"] > 1:
+                                s_best = seq
+                            if s_req is None and not cell["cp1_feasible"]:
+                                s_req = seq
+                    thr[f"N{N}_{model_name}"] = {"S_best": s_best, "S_required": s_req, "cells": cells}
+            summary[key] = thr
+            print(f"done {key}")
         print(f"done {key}")
 
 # Save compact (thresholds + per-cell best, not top5)
