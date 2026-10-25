@@ -30,6 +30,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
+from epic_cluster import link_model  # noqa: E402
 from epic_cluster import parallelism_search as ps  # noqa: E402
 
 DOC = os.path.join(ROOT, "docs/training-parallelism-sim.md")
@@ -125,6 +126,34 @@ def compute_facts():
         b = ff[0]
         facts["tp_payload_winners"][f"N{N}"] = {"config": [b.tp, b.pp, b.cp, b.dp, b.zero],
                                                 "step_ms": round(b.step_sum * 1e3, 2)}
+
+    # 1g) alpha piece-charging (gpu-sim-8nt follow-up): pay alpha P times on payloads
+    # >= 256 KiB and the winner must not move. Reproduces
+    # experiments/gpu-sim-8nt/alpha_piece_charging.py without importing it.
+    facts["alpha_piece_charging"] = {}
+    _orig_predict = link_model.predict
+    for pieces in (1, 4, 8):
+        def patched(spec, algorithm, count, dtype, _p=pieces, **kw):
+            kw["pieces_per_phase"] = 1
+            out = _orig_predict(spec, algorithm, count, dtype, **kw)
+            nb = count * link_model.DTYPE_BYTES.get(dtype, 2)
+            if _p > 1 and nb >= 256 * 1024:
+                out["duration_s"] += (_p - 1) * (out["_debug"]["lat_term"] or 0.0)
+            return out
+        link_model.predict = patched
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[8],
+              "cp_grad_mode": "crude", "act_factor": ACT_FACTOR}
+        mm = dict(M8)
+        mm["seq"] = 8192
+        try:
+            _, ff = ps.search(8, hw, mm)
+            b = ff[0]
+            facts["alpha_piece_charging"][str(pieces)] = {
+                "config": [b.tp, b.pp, b.cp, b.dp, b.zero],
+                "step_ms": round(b.step_sum * 1e3, 2),
+                "runner_up_ms": round(ff[1].step_sum * 1e3, 2) if len(ff) > 1 else None}
+        finally:
+            link_model.predict = _orig_predict
 
     # 2) seq 32768: the dp=8 zero=2 config must be infeasible, and name the best feasible
     _, feas32k = search(8, seq=32768)
@@ -282,6 +311,14 @@ def allowed_decimals(facts):
         add(v)
     for v in facts.get("spec_path_steps", {}).values():
         add(v)
+    _apc = facts["alpha_piece_charging"]
+    for v in _apc.values():
+        add(v["step_ms"])
+        if v["runner_up_ms"] is not None:
+            add(v["runner_up_ms"])
+    # the relative slowdown quoted in prose (+6.7% at P=8)
+    add(round(100 * (_apc["8"]["step_ms"] / _apc["1"]["step_ms"] - 1), 1))
+    add(round(100 * (_apc["4"]["step_ms"] / _apc["1"]["step_ms"] - 1), 1))
     for v in facts["tp_payload_winners"].values():
         add(v["step_ms"])
     for v in facts.get("dp8_rows", {}).values():

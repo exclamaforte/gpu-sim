@@ -54,6 +54,14 @@ kept in the code as `df_allreduce_hypothesis` so the error stays reproducible. C
 and are gone; **`four_d` is the default**, the winner is **(tp=4 pp=1 cp=2 dp=1 z0)** at
 **79.96 ms** (N=8), 58.69 (N=16), 47.46 (N=32), and **S_best = 8192** stands on TP grounds.
 
+**Alpha granularity does not move the winner (gpu-sim-8nt follow-up).** The model charges
+alpha once per *logical transfer* while a real NIC charges per *piece* (measured P=4-8 for
+payloads >= 256 KiB), so it under-charges alpha on big payloads. Paying alpha P times instead
+(`experiments/gpu-sim-8nt/alpha_piece_charging.py`) leaves the winner at (tp=4 pp=1 cp=2 dp=1 z0)
+for P=1/4/8 at **79.96 / 82.27 / 85.35 ms**, and the reason is structural: ring alpha is
+2*(n-1)*lat, so a wider TP group pays more of it -- at P>=4 the tp=8 runner-up is displaced by
+(tp=2 cp=4) 86.02 ms. The ranking is robust; the absolute duration is not (+6.7% at P=8).
+
 What is still NOT settled about this row: absolute durations (gpu-sim-wv2 needs real GPUs), and the
 harness runs fp32 where the model prices bf16 -- compare element counts with the harness, not bytes.
 
