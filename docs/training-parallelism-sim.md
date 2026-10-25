@@ -13,11 +13,16 @@ recommendation is pure FSDP (tp=1 pp=1 cp=1 dp=8 zero=3): 73.05 ms per step at 8
 428 ms at 32768, never worse than any other split and strictly best under the sum policy.
 Runner-up is (tp=2, pp=1, cp=1, dp=4, zero=3) at 91.37 ms. CP does not pay AT SEQ 8192: its
 K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
-not general -- the model's own answer turns over as the attention term (seq^2) grows: at N=8
-the best config becomes tp=4 cp=2 at seq 16384 (200 ms), and at N=16 tp=1 pp=2 cp=2 at seq
-32768 (326 ms); by seq 65536 (N=8) only 7 configs are feasible and by 131072 none are, so CP
-switches from optional to mandatory around there. Those crossover numbers are modelled, not
-measured, and they are the subject of gpu-sim-54m. At 70B on 32
+not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
+logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear
+activation/logits term, not the quadratic attention term. The crossover is a BAND, not a
+point, because it also depends on which fabric path prices the table: at N=8 the best config
+has cp>1 from seq 16384 on the spec/topology path but only from 32768 on the legacy
+single-fabric path (a 2 ms difference on a 200 ms step, i.e. inside the model's error); at N=16
+both paths agree on 32768. By seq 65536 (N=8) only 7 configs are feasible and by 131072 none
+are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
+not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
+cp_grad_mode and the act_factor alongside every threshold. At 70B on 32
 GPUs the answer is decided by MEMORY, not speed: (tp=2, pp=4, dp=4, zero=3) is the only cell
 that fits (1.6 s/step at seq 32768), and 70B on 8-16 GPUs is infeasible outright.
 
