@@ -8,94 +8,94 @@
     "N8": {
       "winner": {
         "config": [
+          4,
           1,
+          2,
           1,
-          1,
-          8,
-          2
+          0
         ],
-        "step_ms": 66.99,
-        "mem_gb": 65.4
+        "step_ms": 79.96,
+        "mem_gb": 37.5
       },
       "top3": [
         {
           "config": [
+            4,
             1,
-            1,
-            1,
-            8,
-            2
-          ],
-          "step_ms": 66.99
-        },
-        {
-          "config": [
-            1,
-            1,
-            1,
-            8,
-            3
-          ],
-          "step_ms": 69.02
-        },
-        {
-          "config": [
             2,
             1,
+            0
+          ],
+          "step_ms": 79.96
+        },
+        {
+          "config": [
+            8,
             1,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 83.46
+        },
+        {
+          "config": [
             4,
+            1,
+            1,
+            2,
             2
           ],
-          "step_ms": 76.5
+          "step_ms": 84.67
         }
       ],
       "fsdp_zero3_row": {
-        "step_ms": 69.02,
+        "step_ms": 97.3,
         "mem_gb": 50.8
       }
     },
     "N16": {
       "winner": {
         "config": [
-          1,
+          4,
+          2,
           2,
           1,
-          8,
-          2
+          0
         ],
-        "step_ms": 47.02,
-        "mem_gb": 33.7
+        "step_ms": 58.69,
+        "mem_gb": 18.9
       },
       "top3": [
         {
           "config": [
-            1,
+            4,
+            2,
             2,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 47.02
+          "step_ms": 58.69
         },
         {
           "config": [
             1,
-            2,
+            4,
             1,
-            8,
+            4,
+            2
+          ],
+          "step_ms": 59.34
+        },
+        {
+          "config": [
+            1,
+            4,
+            1,
+            4,
             3
           ],
-          "step_ms": 48.04
-        },
-        {
-          "config": [
-            1,
-            1,
-            1,
-            16,
-            2
-          ],
-          "step_ms": 52.06
+          "step_ms": 59.34
         }
       ]
     },
@@ -103,44 +103,44 @@
       "winner": {
         "config": [
           1,
+          4,
           1,
-          1,
-          32,
+          8,
           2
         ],
-        "step_ms": 26.5,
-        "mem_gb": 54.5
+        "step_ms": 47.46,
+        "mem_gb": 17.9
       },
       "top3": [
         {
           "config": [
             1,
+            4,
             1,
-            1,
-            32,
+            8,
             2
           ],
-          "step_ms": 26.5
+          "step_ms": 47.46
         },
         {
           "config": [
             1,
-            2,
+            4,
             1,
-            16,
-            2
-          ],
-          "step_ms": 34.18
-        },
-        {
-          "config": [
-            1,
-            1,
-            1,
-            32,
+            8,
             3
           ],
-          "step_ms": 36.75
+          "step_ms": 47.46
+        },
+        {
+          "config": [
+            2,
+            4,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 49.25
         }
       ]
     }
@@ -148,24 +148,24 @@
   "fsdp_mem_16384_gb": 85.0,
   "seq32768": {
     "best_config": [
-      2,
+      4,
       1,
       2,
-      2,
-      2
+      1,
+      0
     ],
-    "best_step_ms": 460.46,
+    "best_step_ms": 463.59,
     "dp8_zero2_feasible": false
   },
   "s_best": {
-    "path=legacy,cp_grad=crude,act=2.3,N=8": 32768,
-    "path=legacy,cp_grad=crude,act=1.0,N=8": 32768,
-    "path=legacy,cp_grad=production,act=2.3,N=8": 16384,
-    "path=legacy,cp_grad=production,act=1.0,N=8": 32768,
-    "path=spec,cp_grad=crude,act=2.3,N=8": 32768,
-    "path=spec,cp_grad=crude,act=1.0,N=8": 32768,
-    "path=spec,cp_grad=production,act=2.3,N=8": 16384,
-    "path=spec,cp_grad=production,act=1.0,N=8": 32768
+    "path=legacy,cp_grad=crude,act=2.3,N=8": 8192,
+    "path=legacy,cp_grad=crude,act=1.0,N=8": 8192,
+    "path=legacy,cp_grad=production,act=2.3,N=8": 8192,
+    "path=legacy,cp_grad=production,act=1.0,N=8": 8192,
+    "path=spec,cp_grad=crude,act=2.3,N=8": 8192,
+    "path=spec,cp_grad=crude,act=1.0,N=8": 8192,
+    "path=spec,cp_grad=production,act=2.3,N=8": 8192,
+    "path=spec,cp_grad=production,act=1.0,N=8": 8192
   },
   "compute_floor_8192_ms": 64.97,
   "compute_floor_32768_ms": 419.96,
@@ -202,14 +202,14 @@
           "logits": 0.26
         },
         "best_config": [
+          4,
           1,
+          2,
           1,
-          1,
-          8,
-          2
+          0
         ],
-        "best_step_ms": 66.99,
-        "best_mem_gb": 65.37
+        "best_step_ms": 79.96,
+        "best_mem_gb": 37.53
       },
       "N16": {
         "n_ranks": 16,
@@ -231,14 +231,14 @@
           "logits": 0.26
         },
         "best_config": [
-          1,
+          4,
+          2,
           2,
           1,
-          8,
-          2
+          0
         ],
-        "best_step_ms": 47.02,
-        "best_mem_gb": 33.74
+        "best_step_ms": 58.69,
+        "best_mem_gb": 18.91
       }
     },
     "qwen2.5-32b": {
@@ -282,14 +282,14 @@
           "logits": 0.31
         },
         "best_config": [
-          1,
           4,
+          2,
+          2,
           1,
-          4,
-          2
+          0
         ],
-        "best_step_ms": 188.77,
-        "best_mem_gb": 76.09
+        "best_step_ms": 204.34,
+        "best_mem_gb": 76.15
       }
     },
     "llama2-34b": {
@@ -339,7 +339,7 @@
           4,
           2
         ],
-        "best_step_ms": 218.21,
+        "best_step_ms": 246.74,
         "best_mem_gb": 75.38
       }
     },
