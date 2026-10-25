@@ -11,9 +11,7 @@ d = json.load(open("experiments/gpu-sim-qk9/rerank.json"))
 for key, v in d.items():
     N = int(key[1:])
     m = {"n_layers":32,"d_model":4096,"n_heads":32,"head_dim":128,"d_ff":14336,"vocab":128256,"seq":8192}
-    if N == 8:
-        hw = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100","dp_dtype":"bf16"}
-    elif N <= 16:
+    if N <= 16:
         hw = {"peak_flops":989e12,"mem_gb":80.0,"spec_path":"specs/h100_rack.json","dp_dtype":"bf16"}
     else:
         hw = {"peak_flops":989e12,"mem_gb":80.0,"spec_path":"specs/h100_rack_4node.json","dp_dtype":"bf16"}

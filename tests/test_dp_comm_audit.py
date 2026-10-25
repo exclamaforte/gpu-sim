@@ -65,3 +65,15 @@ def test_per_param_equals_flat_when_one():
     c_flat = ps.score(1, 1, 1, 4, 3, hw_flat, m)
     c_one = ps.score(1, 1, 1, 4, 3, hw_one, m)
     assert abs(c_one.dp_comm - c_flat.dp_comm) < 1e-12, (c_one.dp_comm, c_flat.dp_comm)
+
+def test_dp_payload_cp_gt_1_not_full_grad():
+    # gpu-sim-qk9 shadowing fix: when cp>1, dp_comm must price grads_per_gpu,
+    # not the full unsharded grad (which would be inflated by ~dp).
+    m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}
+    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "dp_dtype": "bf16", "cp_grad_mode": "crude"}
+    # cp=2, dp=4: grads_per_gpu = P/(tp*pp*dp) = P/8? Actually P/(1*1*4)=P/4 for dp. cp doesn't shard grads.
+    # The key: dp_comm should use grads_per_gpu, not P. Check by comparing cp=1 vs cp=2 at same dp.
+    c_cp1 = ps.score(1, 1, 1, 4, 2, hw, m)
+    c_cp2 = ps.score(1, 1, 2, 4, 2, hw, m)
+    # dp_comm should be the same (grads_per_gpu depends on dp, not cp)
+    assert abs(c_cp1.dp_comm - c_cp2.dp_comm) < 1e-12, (c_cp1.dp_comm, c_cp2.dp_comm)

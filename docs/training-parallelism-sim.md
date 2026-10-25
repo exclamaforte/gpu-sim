@@ -9,9 +9,9 @@ project's premise is the opposite of that, and the draft was wrong.
 Read this first if you are picking the work up from disk rather than from a briefing.
 
 **CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
-recommendation is (tp=1 pp=1 cp=1 dp=8 zero=2): 69.01 ms per step at 8192 and
+recommendation is (tp=1 pp=1 cp=1 dp=8 zero=2): 66.99 ms per step at 8192 and
 428 ms at 32768, never worse than any other split and strictly best under the sum policy.
-Runner-up is (tp=1 pp=1 cp=1 dp=8 zero=3) at 73.05 ms (FSDP, now 2nd after the DP audit). CP does not pay AT SEQ 8192: its
+Runner-up is (tp=1 pp=1 cp=1 dp=8 zero=3) at 69.02 ms (FSDP, now 2nd after the DP audit). CP does not pay AT SEQ 8192: its
 K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
 not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
 logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear

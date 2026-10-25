@@ -272,12 +272,12 @@ def score(tp, pp, cp, dp, zero, hw, m):
     cp_grad_kind = None  # only populated on the spec path (link_model); nccl path has no .kind
     cp_grad_mode = hw.get("cp_grad_mode", "crude")
     if cp > 1:
-        grad_bytes = (P / (tp * pp)) * dtype_bytes
+        cp_grad_bytes = (P / (tp * pp)) * dtype_bytes
         if cp_grad_mode == "production":
-            msg_bytes = grad_bytes / cp
+            msg_bytes = cp_grad_bytes / cp
             algo = "reducescatter"
         else:
-            msg_bytes = grad_bytes
+            msg_bytes = cp_grad_bytes
             algo = "allreduce"
         if spec is not None:
             group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
