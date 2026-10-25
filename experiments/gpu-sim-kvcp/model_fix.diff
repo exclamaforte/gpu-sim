@@ -1,0 +1,78 @@
+diff --git i/epic_cluster/parallelism_search.py w/epic_cluster/parallelism_search.py
+index 04ecf6c..692a6a8 100644
+--- i/epic_cluster/parallelism_search.py
++++ w/epic_cluster/parallelism_search.py
+@@ -26,6 +26,11 @@ MODEL = {
+     "n_layers": 32,
+     "d_model": 4096,
+     "n_heads": 32,
++    # gpu-sim-kvcp: Llama-3-8B uses GQA with 8 KV heads, so the K/V blocks a ring CP
++    # exchanges are n_kv_heads*head_dim = 1024 wide, NOT d_model = 4096. The CP term used
++    # d_model and therefore overstated context-parallel traffic by 4x on this model. Set
++    # n_kv_heads == n_heads for MHA; absent means MHA (kv width = d_model).
++    "n_kv_heads": 8,
+     "head_dim": 128,
+     "d_ff": 14336,
+     "vocab": 128256,
+@@ -301,7 +306,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
+     cp_comm = 0.0
+     cp_kind = None
+     if cp > 1:
+-        msg_bytes = seq_per_cp * d * dtype_bytes
++        # the ring exchanges K/V blocks, so the message width is the KV width, not d_model
++        kv_dim = (m.get("n_kv_heads", m["n_heads"])) * m["head_dim"]
++        msg_bytes = seq_per_cp * min(kv_dim, d) * dtype_bytes
+         if spec is not None:
+             group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
+             total = 0.0
+@@ -312,7 +319,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
+                 cp_kind = kind
+             cp_comm = m["n_layers"] * 2 * total
+         else:
+-            msg = seq_per_cp * d * dtype_bytes
++            msg = seq_per_cp * min(kv_dim, d) * dtype_bytes
+             pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
+             cp_comm = m["n_layers"] * 2 * pred.total_s
+ 
+diff --git i/scripts/check_docs_model_numbers.py w/scripts/check_docs_model_numbers.py
+index bc8a837..e7b36e6 100644
+--- i/scripts/check_docs_model_numbers.py
++++ w/scripts/check_docs_model_numbers.py
+@@ -36,8 +36,8 @@ from epic_cluster import parallelism_search as ps  # noqa: E402
+ DOC = os.path.join(ROOT, "docs/training-parallelism-sim.md")
+ FACTS_JSON = os.path.join(ROOT, "docs/model_facts.json")
+ 
+-M8 = {"n_layers": 32, "d_model": 4096, "n_heads": 32, "head_dim": 128,
+-      "d_ff": 14336, "vocab": 128256}
++M8 = {"n_layers": 32, "d_model": 4096, "n_heads": 32, "n_kv_heads": 8, "head_dim": 128,
++      "d_ff": 14336, "vocab": 128256}   # gpu-sim-kvcp: Llama-3-8B is GQA(8)
+ SPEC = {8: "specs/h100_rack.json", 16: "specs/h100_rack.json", 32: "specs/h100_rack_4node.json"}
+ ACT_FACTOR = 2.3
+ PEAK = 989e12
+@@ -362,7 +362,7 @@ def compute_facts():
+         m["seq"] = S
+         c = ps.score(1, 1, 1, 8, 2, hw_for(8), m)
+         facts[f"compute_floor_{S}_ms"] = round(c.compute * 1e3, 2)
+-    m70 = {"n_layers": 80, "d_model": 8192, "n_heads": 64, "head_dim": 128,
++    m70 = {"n_layers": 80, "d_model": 8192, "n_heads": 64, "n_kv_heads": 8, "head_dim": 128,
+            "d_ff": 28672, "vocab": 128256, "seq": 32768}
+     hw32 = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": "specs/h100_rack_4node.json",
+             "cp_grad_mode": "crude", "act_factor": ACT_FACTOR}
+@@ -377,11 +377,14 @@ def compute_facts():
+     # 4) model-size sweep (the "does the answer generalize" table)
+     sweep_models = {
+         "llama3-8b": M8,
+-        "qwen2.5-32b": {"n_layers": 64, "d_model": 5120, "n_heads": 40, "head_dim": 128,
++        "qwen2.5-32b": {"n_layers": 64, "d_model": 5120, "n_heads": 40, "n_kv_heads": 8,
++                        "head_dim": 128,
+                         "d_ff": 27648, "vocab": 152064},
+-        "llama2-34b": {"n_layers": 48, "d_model": 8192, "n_heads": 64, "head_dim": 128,
++        "llama2-34b": {"n_layers": 48, "d_model": 8192, "n_heads": 64, "n_kv_heads": 64,
++                       "head_dim": 128,
+                        "d_ff": 22016, "vocab": 32000},
+-        "llama3-70b": {"n_layers": 80, "d_model": 8192, "n_heads": 64, "head_dim": 128,
++        "llama3-70b": {"n_layers": 80, "d_model": 8192, "n_heads": 64, "n_kv_heads": 8,
++                       "head_dim": 128,
+                        "d_ff": 28672, "vocab": 128256},
+     }
+     facts["sweep"] = {}
