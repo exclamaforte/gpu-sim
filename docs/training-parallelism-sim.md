@@ -9,12 +9,12 @@ project's premise is the opposite of that, and the draft was wrong.
 Read this first if you are picking the work up from disk rather than from a briefing.
 
 **CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
-recommendation is (tp=1 pp=1 cp=1 dp=8 zero=3, FSDP): 69.02 ms per step at 8192, strictly
+recommendation is unsettled after the payload convention fix (dp=1 configs win on time, no data parallelism): see gpu-sim-6r5
 best under the sum policy there. That config does NOT carry to 32768: at that sequence it
 is memory-infeasible (>80 GB, params are not dp-sharded at zero=2) and the best feasible
-config is (tp=2 pp=1 cp=2 dp=2 zero=2) at 462.77 ms -- so the recommendation is a function
+config is (tp=2 pp=1 cp=2 dp=2 zero=2) at 463.59 ms -- so the recommendation is a function
 of sequence, and the 8192 answer is not the 32768 answer.
-Runner-up is (tp=1 pp=1 cp=1 dp=8 zero=2) at 82.62 ms (ZeRO-2, now 2nd after the AG fix). CP does not pay AT SEQ 8192: its
+The DP term now ties zero=2 and zero=3 on comm; FSDP wins on memory (50.8 GB). CP does not pay AT SEQ 8192: its
 K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
 not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
 logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear
@@ -69,7 +69,7 @@ below for the derivation of each number; nothing here is a measured duration.
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
 | calibration | **counts** validated on hardware (gpu-sim-5o4.7): 16 tp all-reduces and 24 cp K/V sends per rank per step match the plan exactly. Byte SIZES are not validated: the harness's tp all-reduce carries a 3d/tp qkv tensor while the cost model assumes Megatron's full-d row-parallel payload, so the model's byte magnitudes are Megatron-form and modelled-only. Absolute durations modelled (gpu-sim-wv2, blocked: needs 2-4 real GPUs). |
-| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) at 69.02 ms and FSDP is second at 69.02 ms, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=2 pp=1 cp=2 dp=2 zero=2) at 462.77 ms (compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
+| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) see gpu-sim-6r5, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=2 pp=1 cp=2 dp=2 zero=2) at 463.59 ms (compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
 | rank layout (read before touching groups) | rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank. TP groups are stride cp*dp, PP neighbours keep (tp_rank, cp_rank, dp_rank) fixed. gpu-sim-x7h found tp groups built with stride 1 and no cp term, which silently disabled tp all-reduce on every rank with cp_rank>0; fixed in 4e8d65c. `tools/torch_parallel/validate_trace.py` now refuses a run whose ranks have unequal collective counts (stage-aware, and invalid rows yield no step time). |
 
 THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
@@ -81,17 +81,17 @@ with attention at seq=8192 -- and the ORDER is decided entirely by the comm term
 the dominant column, which reads compute everywhere. With the corrected terms (TP 4
 all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the ranking is the one in
 section 0, and it was RE-RANKED by the DP-comm audit (gpu-sim-qk9: bf16 payloads, real ZeRO
-semantics, one flat collective per op): (tp=1 pp=1 cp=1 dp=8 zero=2) first at 69.02 ms,
-(tp=1 pp=1 cp=1 dp=8 zero=3, FSDP) second at 69.02 ms, (tp=2 pp=1 cp=1 dp=4 zero=2) third at
+semantics, one flat collective per op): (tp=1 pp=1 cp=1 dp=8 zero=2) first (historical),
+(tp=1 pp=1 cp=1 dp=8 zero=3, FSDP) second (historical), (tp=2 pp=1 cp=1 dp=4 zero=2) third at
 76.50 ms -- all at 8B/8192, attention on, spec path. The pre-audit text quoted FSDP at
 73.06 ms (spec) / 73.05 ms (legacy) and tp=2 cp=4 second; those numbers are superseded, not
 merely rounded, because the audit changed which config WINS. gpu-sim-olg (P1) adds the CP
 gradient sync (8jg) to the cost model: every cp>1 row pays a full all-reduce of P/(tp*pp)
 params over cp ranks, so cp rows drop behind the dp=8 rows; the best cp>1 row at N=8 is
 (4,1,2,1,zero=0) at 79.96 ms. The winner is zero=2 at N=8/16/32 (66.99 / 47.02 / 26.50 ms,
-FSDP zero=3 second at 69.02 / 48.04 / 36.75 ms). The recommendation does not depend on how
+FSDP zero=3 second (historical). The recommendation does not depend on how
 the cp sync is modelled: with the production variant (cp_grad_mode="production") the tp=2 cp=4
-row comes back to 73.12 ms, still behind the winner's 69.02 ms. That mode is HYPOTHETICAL for now -- it assumes an optimizer
+row comes back to 73.12 ms (historical). That mode is HYPOTHETICAL for now -- it assumes an optimizer
 that never reconstructs the gradient. The harness's reduce-scatter path (gpu-sim-fzd) still
 all-gathers the gradient, so ring-allreduce == reduce-scatter + all-gather: its measured
 traffic equals the crude path byte for byte, and the production figure is unreachable until
@@ -164,9 +164,9 @@ params+grads, fp32 master, fp32 Adam m,v):
 
 | model | N=8 | N=16 |
 | --- | --- | --- |
-| llama3-8b | FIT (1,1,1,8,z2) 69.02 ms, 50.8 GB | FIT (1,2,1,8,z2) 48.04 ms |
-| qwen2.5-32b | MISS by 2.62 GB (min 82.62 at tp=8) | FIT (1,4,1,4,z2) 192.38 ms, 63.1 GB |
-| llama2-34b | MISS by 8.84 GB | FIT (1,4,1,4,z2) 222.29 ms, 60.7 GB |
+| llama3-8b | see gpu-sim-6r5 (model under revision) |
+| qwen2.5-32b | MISS by 2.62 GB (min 82.62 at tp=8) | FIT (1,4,1,4,z2) 200.09 ms, 64.97 GB |
+| llama2-34b | MISS by 8.84 GB | FIT (1,4,1,4,z2) 204.34 ms, 60.6 GB |
 | llama3-70b | MISS by 98.1 GB | MISS by 9.19 GB (min 89.19 at tp=8,pp=2) |
 
 The 8B row reproduces the audited answer exactly (the sweep asserts it). The boundary is

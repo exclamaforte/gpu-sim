@@ -333,39 +333,41 @@ def score(tp, pp, cp, dp, zero, hw, m):
     dp_kind = None
     if dp > 1:
         if spec is not None:
+            # link_model convention: count is the TOTAL payload. Ring formula
+            # already accounts for per-rank shard via (n-1)/n. So pass full P.
+            _P_elems = P / (tp * pp)  # full params/grads per tp*pp group
             if zero <= 1:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                p1 = link_model.predict(spec, "ring_allreduce", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
-                # ZeRO-1 keeps full params; all-gather after step (harness issues 37 per-param AG)
-                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu_full), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p1 = link_model.predict(spec, "ring_allreduce", int(_P_elems), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p2 = link_model.predict(spec, "ring_allgather", int(_P_elems), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 dp_comm = p1["duration_s"] + p2["duration_s"]
                 dp_kind = p1["bottleneck"]["kind"]
             elif zero == 2:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
-                # ZeRO-2 keeps full params; all-gather after step
-                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu_full), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p1 = link_model.predict(spec, "ring_reduce_scatter", int(_P_elems), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p2 = link_model.predict(spec, "ring_allgather", int(_P_elems), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 dp_comm = p1["duration_s"] + p2["duration_s"]
                 dp_kind = p1["bottleneck"]["kind"]
             else:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
-                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p1 = link_model.predict(spec, "ring_reduce_scatter", int(_P_elems), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                p2 = link_model.predict(spec, "ring_allgather", int(_P_elems), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 dp_comm = p1["duration_s"] + p2["duration_s"]
                 dp_kind = p1["bottleneck"]["kind"]
         else:
             _dpb = 2 if dp_dtype_str == "float32" else 1
+            _P_bytes = (P / (tp * pp)) * dtype_bytes * _dpb
             if zero <= 1:
-                pred1 = nccl_cost.predict("allreduce", dp, int(grad_bytes * _dpb), fabric=fabric)
-                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_full * _dpb), fabric=fabric)
+                pred1 = nccl_cost.predict("allreduce", dp, int(_P_bytes), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(_P_bytes), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
             elif zero == 2:
-                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
-                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_full * _dpb), fabric=fabric)
+                pred1 = nccl_cost.predict("reducescatter", dp, int(_P_bytes), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(_P_bytes), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
             else:
-                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
-                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes * _dpb), fabric=fabric)
+                pred1 = nccl_cost.predict("reducescatter", dp, int(_P_bytes), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(_P_bytes), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
 
     if dp_count_mode == "per_param" and dp_comm > 0 and dp_param_tensors > 1:

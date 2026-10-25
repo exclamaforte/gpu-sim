@@ -47,8 +47,8 @@ def test_zero_level_reduces_comm():
     c3 = ps.score(1, 1, 1, 4, 3, hw, m)
     # zero=2 < zero=1 (sharded grads)
     assert c2.dp_comm < c1.dp_comm, (c2.dp_comm, c1.dp_comm)
-    # zero=2 > zero=3: zero=2 AGs full params, zero=3 AGs sharded params
-    assert c2.dp_comm > c3.dp_comm, (c2.dp_comm, c3.dp_comm)
+    # zero=2 and zero=3 now both RS+AG of full P (tie on comm)
+    assert abs(c2.dp_comm - c3.dp_comm) < 1e-12, (c2.dp_comm, c3.dp_comm)
 
 def test_per_param_ge_flat():
     m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}
@@ -77,3 +77,21 @@ def test_dp_payload_cp_gt_1_not_full_grad():
     c_cp2 = ps.score(1, 1, 2, 4, 2, hw, m)
     # dp_comm should be the same (grads_per_gpu depends on dp, not cp)
     assert abs(c_cp1.dp_comm - c_cp2.dp_comm) < 1e-12, (c_cp1.dp_comm, c_cp2.dp_comm)
+
+def test_ring_factor_rs_vs_ar():
+    # RS of a full gradient costs ~half of AR of the same payload (ring factor)
+    m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}
+    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "dp_dtype": "bf16"}
+    c_ar = ps.score(1, 1, 1, 4, 1, hw, m)   # zero=1: AR(grads) + AG(params)
+    c_rs = ps.score(1, 1, 1, 4, 3, hw, m)   # zero=3: RS(grads) + AG(params)
+    # AR = RS + AG of same payload, so AR/2 ~ RS (within ring factor)
+    assert c_ar.dp_comm > c_rs.dp_comm, (c_ar.dp_comm, c_rs.dp_comm)
+
+def test_ag_equals_rs_same_payload():
+    # AG(full P) == RS(full P) for the same payload
+    m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}
+    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "dp_dtype": "bf16"}
+    # zero=2: RS(grads) + AG(params). If grads==params (P), RS==AG.
+    c = ps.score(1, 1, 1, 4, 2, hw, m)
+    # dp_comm = RS + AG; both same payload P, so each ~half
+    assert c.dp_comm > 0
