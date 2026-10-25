@@ -17,7 +17,7 @@ not general -- the model's own answer turns over as the attention term (seq^2) g
 the best config becomes tp=4 cp=2 at seq 16384 (200 ms), and at N=16 tp=1 pp=2 cp=2 at seq
 32768 (326 ms); by seq 65536 (N=8) only 7 configs are feasible and by 131072 none are, so CP
 switches from optional to mandatory around there. Those crossover numbers are modelled, not
-measured, and they are the subject of gpu-sim-<pending>. At 70B on 32
+measured, and they are the subject of gpu-sim-54m. At 70B on 32
 GPUs the answer is decided by MEMORY, not speed: (tp=2, pp=4, dp=4, zero=3) is the only cell
 that fits (1.6 s/step at seq 32768), and 70B on 8-16 GPUs is infeasible outright.
 
