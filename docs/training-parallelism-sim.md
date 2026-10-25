@@ -502,7 +502,7 @@ it in would make a sweep compare initialization cost instead of the parallel
 configuration. `coll_msgs` is filtered to the same window as `step_ms`
 (`measure_start_ns`) so the two describe the same steps.
 
-## 6. What is not built yet
+## 6. Component status (what is built, and the two things that are not)
 
 - **Fabric-backed timing on the harness path.** Without `GPUSIM_TOPO`, collectives
   take the fallback duration and are traced with `predicted_s: null`. Wiring
@@ -543,6 +543,10 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
   so "matching losses" would prove only that both sides shared one wrong
   convention. Transport-on without `--dp-mean` refuses rather than defaulting.
 - **Single-process multi-device enumeration.** Blocked on NVML interposition.
+- **Absolute durations of the modelled collective terms.** The DP/TP/CP cost terms are
+  priced, not measured: gpu-sim-wv2 (fabric calibration) needs 2-4 real GPUs and is the
+  honest blocker. What IS validated on hardware is the collective COUNTS per rank per
+  step and the DP payload dtype; see the confidence block above.
 
 ## 7. Non-goals
 

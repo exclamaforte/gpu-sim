@@ -11,10 +11,28 @@ import argparse, json, sys
 from collections import defaultdict, Counter
 
 def counts_per_rank(trace_path, summary_path):
+    """Count collectives per rank from the trace, keyed by the SUMMARY's ranks.
+
+    The ranks and their pp stages come from the summary, which always exists;
+    counts come from the trace, which may not. The plugin creates the trace lazily
+    on the first event, so a run that issues no collectives (world=1, dp=1) leaves
+    no trace file at all -- and this function used to raise FileNotFoundError on
+    it, which made the sweep report the simplest documented command
+    (--world-sizes 1) as FAILED (gpu-sim-2cd follow-up, 2026-10-25). A run with
+    zero collectives has equal counts by definition; a SUMMARY with no rows is
+    still invalid.
+    """
+    import os
     rows = [json.loads(l) for l in open(summary_path) if l.strip()]
     start = {r["rank"]: r.get("measure_start_ns") for r in rows if r.get("measure_start_ns")}
     pp_of = {r["rank"]: r.get("pp_stage", r.get("pp_idx", 0)) for r in rows}
     per = defaultdict(Counter)
+    for r in rows:  # every rank the run reported, even with no events
+        per[r["rank"]] = Counter()
+    if not os.path.exists(trace_path):
+        print(f"note: no trace file at {trace_path} -- no collectives were issued, "
+              f"validating rank equality from the summary only", file=sys.stderr)
+        return per, pp_of
     for line in open(trace_path):
         if not line.strip():
             continue
