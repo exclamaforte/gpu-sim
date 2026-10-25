@@ -34,6 +34,7 @@ def main():
     ap.add_argument("--zero", type=int, default=3)
     ap.add_argument("--steps", type=int, default=1)
     ap.add_argument("--batch", type=int, default=8)
+    ap.add_argument("--cp-grad-mode", type=str, default="production")
     args = ap.parse_args()
 
     rows = read_trace(args.trace)
@@ -47,16 +48,22 @@ def main():
     norm = args.steps * args.batch if args.steps * args.batch > 0 else 1
 
     hw = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
-          "tp_payload": "four_d", "dp_dtype": "bf16"}
+          "tp_payload": "four_d", "dp_dtype": "bf16", "cp_grad_mode": args.cp_grad_mode}
     m = ps.MODEL
     model = ps.comm_bytes(args.tp, args.pp, args.cp, args.dp, args.zero, hw, m)
 
     op_model = defaultdict(int)
     op_model["allreduce"] += model.get("tp_allreduce", 0)
-    op_model["allreduce"] += model.get("cp_grad_sync", 0)
     op_model["allreduce"] += model.get("dp_allreduce", 0)
     op_model["allgather"] += model.get("dp_allgather", 0)
     op_model["reducescatter"] += model.get("dp_reducescatter", 0)
+    # cp_grad_sync: crude=allreduce, production=RS+AG
+    cgs = model.get("cp_grad_sync", 0)
+    if args.cp_grad_mode == "production":
+        op_model["reducescatter"] += cgs // 2
+        op_model["allgather"] += cgs // 2
+    else:
+        op_model["allreduce"] += cgs
     # cp_exchange and pp_sendrecv map to send/recv
     ce = model.get("cp_exchange", 0)
     psr = model.get("pp_sendrecv", 0)

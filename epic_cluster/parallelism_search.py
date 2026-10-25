@@ -335,13 +335,19 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 pred = link_model.predict(spec, "ring_reduce_scatter", int(msg_bytes // dtype_bytes), dp_dtype_str, ranks=group, pieces_per_phase=1)
                 cp_grad = pred["duration_s"]
                 cp_grad_kind = pred["bottleneck"]["kind"]
+                # Production Megatron-DCP pattern (gpu-sim-juzb): RS + AG per bucket.
+                pred2 = link_model.predict(spec, "ring_allgather", int(msg_bytes // dtype_bytes), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                cp_grad = cp_grad + pred2["duration_s"]
         else:
             if algo == "allreduce":
                 pred = nccl_cost.predict("allreduce", cp, msg_bytes, fabric=fabric)
+                cp_grad = pred.total_s
+                cp_grad_kind = getattr(pred, "kind", None)
             else:
                 pred = nccl_cost.predict("reducescatter", cp, msg_bytes, fabric=fabric)
-            cp_grad = pred.total_s
-            cp_grad_kind = getattr(pred, "kind", None)
+                pred2 = nccl_cost.predict("allgather", cp, msg_bytes, fabric=fabric)
+                cp_grad = pred.total_s + pred2.total_s
+                cp_grad_kind = getattr(pred, "kind", None)
 
     # PP comm
     pp_comm = 0.0
@@ -478,7 +484,7 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
         cp_grad_mode = hw.get("cp_grad_mode", "crude")
         cp_grad_bytes = (P / (tp * pp)) * dtype_bytes
         if cp_grad_mode == "production":
-            out["cp_grad_sync"] += int(cp_grad_bytes / cp)
+            out["cp_grad_sync"] += int(cp_grad_bytes / cp) * 2
         else:
             out["cp_grad_sync"] += int(cp_grad_bytes)
 

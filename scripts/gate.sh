@@ -70,6 +70,7 @@ run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
 run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
+run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
 rm -f "$GATE_LOG"
 echo
