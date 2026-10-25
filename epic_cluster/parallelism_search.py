@@ -121,6 +121,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # gpu-sim-qk9: DP/FSDP comm audit knobs
     dp_dtype_str = "bfloat16" if hw.get("dp_dtype", "bf16") == "bf16" else "float32"
     dp_count_mode = hw.get("dp_count_mode", "flat")  # "flat" or "per_param"
+    # estimated number of parameter tensors per rank (for per_param latency)
+    dp_param_tensors = hw.get("dp_param_tensors", m["n_layers"] * 9 + 2)
 
     # params per gpu: ZeRO-3 shards params across dp
     params_per_gpu = P / (tp * pp)
@@ -356,6 +358,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 pred2 = nccl_cost.predict("allgather", dp, int(param_bytes * _dpb), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
 
+    if dp_count_mode == "per_param" and dp_comm > 0:
+        dp_comm = dp_comm * dp_param_tensors
     comms = tp_comm + cp_comm + cp_grad + pp_comm + dp_comm
     step_compute = compute + bubble
     step_sum = step_compute + comms

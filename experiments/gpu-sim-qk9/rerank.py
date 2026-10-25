@@ -25,7 +25,10 @@ for N in NS:
     _, feas = ps.search(N, h, m=m)
     if feas:
         w = feas[0]
-        fsdp = [c for c in feas if c.tp==1 and c.pp==1 and c.cp==1 and c.dp==8 and c.zero==3]
+        # FSDP-equivalent: tp=1, cp=1, dp=8, pp=N//8 (so total ranks N)
+        fsdp = [c for c in feas if c.tp==1 and c.cp==1 and c.dp==8 and c.zero==3 and c.pp==max(1, N//8)]
+        if not fsdp:
+            fsdp = [c for c in feas if c.tp==1 and c.cp==1 and c.dp==8 and c.zero==3]
         f = fsdp[0] if fsdp else None
         results[f"N{N}"] = {
             "winner": {"tp":w.tp,"pp":w.pp,"cp":w.cp,"dp":w.dp,"zero":w.zero,"step_ms":round(w.step_sum*1000,2),"dp_comm_ms":round(w.dp_comm*1000,3)},
