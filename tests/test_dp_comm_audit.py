@@ -47,8 +47,8 @@ def test_zero_level_reduces_comm():
     c3 = ps.score(1, 1, 1, 4, 3, hw, m)
     # zero=2 < zero=1 (sharded grads)
     assert c2.dp_comm < c1.dp_comm, (c2.dp_comm, c1.dp_comm)
-    # zero=3 > zero=2 (adds AG)
-    assert c3.dp_comm > c2.dp_comm, (c3.dp_comm, c2.dp_comm)
+    # zero=2 > zero=3: zero=2 AGs full params, zero=3 AGs sharded params
+    assert c2.dp_comm > c3.dp_comm, (c2.dp_comm, c3.dp_comm)
 
 def test_per_param_ge_flat():
     m = {"n_layers": 2, "d_model": 64, "n_heads": 4, "head_dim": 16, "d_ff": 256, "vocab": 1000, "seq": 128}

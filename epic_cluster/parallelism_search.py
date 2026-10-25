@@ -133,6 +133,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
         grads_per_gpu = (P / (tp * pp)) / dp
     else:
         grads_per_gpu = P / (tp * pp)
+    # params_per_gpu_full: ZeRO-1/2 keep full params (no shard), used for the
+    # param all-gather that the harness issues for zero in (1,2).
+    params_per_gpu_full = P / (tp * pp)
     # fp32 master weights: ZeRO-1 shards optimizer state (incl. master) across dp
     if mixed_precision:
         master_per_gpu = (P / (tp * pp))
@@ -146,6 +149,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
         opt_per_gpu = opt_per_gpu / dp
 
     param_bytes = params_per_gpu * dtype_bytes
+    param_bytes_full = params_per_gpu_full * dtype_bytes
     grad_bytes = grads_per_gpu * dtype_bytes
     master_bytes = master_per_gpu * 4.0
     opt_bytes = opt_per_gpu  # already in bytes (8 B/param)
@@ -331,14 +335,18 @@ def score(tp, pp, cp, dp, zero, hw, m):
         if spec is not None:
             if zero <= 1:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                pred = link_model.predict(spec, "ring_allreduce", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
-                dp_comm = pred["duration_s"]
-                dp_kind = pred["bottleneck"]["kind"]
+                p1 = link_model.predict(spec, "ring_allreduce", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                # ZeRO-1 keeps full params; all-gather after step (harness issues 37 per-param AG)
+                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu_full), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                dp_comm = p1["duration_s"] + p2["duration_s"]
+                dp_kind = p1["bottleneck"]["kind"]
             elif zero == 2:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
-                pred = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
-                dp_comm = pred["duration_s"]
-                dp_kind = pred["bottleneck"]["kind"]
+                p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                # ZeRO-2 keeps full params; all-gather after step
+                p2 = link_model.predict(spec, "ring_allgather", int(params_per_gpu_full), dp_dtype_str, ranks=group, pieces_per_phase=1)
+                dp_comm = p1["duration_s"] + p2["duration_s"]
+                dp_kind = p1["bottleneck"]["kind"]
             else:
                 group = [((0 * tp + 0) * cp + 0) * dp + d for d in range(dp)]
                 p1 = link_model.predict(spec, "ring_reduce_scatter", int(grads_per_gpu), dp_dtype_str, ranks=group, pieces_per_phase=1)
@@ -348,11 +356,13 @@ def score(tp, pp, cp, dp, zero, hw, m):
         else:
             _dpb = 2 if dp_dtype_str == "float32" else 1
             if zero <= 1:
-                pred = nccl_cost.predict("allreduce", dp, int(grad_bytes * _dpb), fabric=fabric)
-                dp_comm = pred.total_s
+                pred1 = nccl_cost.predict("allreduce", dp, int(grad_bytes * _dpb), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_full * _dpb), fabric=fabric)
+                dp_comm = pred1.total_s + pred2.total_s
             elif zero == 2:
-                pred = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
-                dp_comm = pred.total_s
+                pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
+                pred2 = nccl_cost.predict("allgather", dp, int(param_bytes_full * _dpb), fabric=fabric)
+                dp_comm = pred1.total_s + pred2.total_s
             else:
                 pred1 = nccl_cost.predict("reducescatter", dp, int(grad_bytes * _dpb), fabric=fabric)
                 pred2 = nccl_cost.predict("allgather", dp, int(param_bytes * _dpb), fabric=fabric)
