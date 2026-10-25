@@ -8,6 +8,23 @@ project's premise is the opposite of that, and the draft was wrong.
 
 Read this first if you are picking the work up from disk rather than from a briefing.
 
+**CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
+recommendation is pure FSDP (tp=1 pp=1 cp=1 dp=8 zero=3): 73.05 ms per step at 8192 and
+428 ms at 32768, never worse than any other split and strictly best under the sum policy.
+Runner-up is (tp=2, pp=1, cp=1, dp=4, zero=3) at 91.37 ms. CP does not pay at these sizes:
+its K/V ring plus the cp gradient sync cost more than the compute it shards. At 70B on 32
+GPUs the answer is decided by MEMORY, not speed: (tp=2, pp=4, dp=4, zero=3) is the only cell
+that fits (1.6 s/step at seq 32768), and 70B on 8-16 GPUs is infeasible outright.
+
+**CONFIDENCE.** Validated on hardware: collective COUNTS (exact, 16 tp all-reduces + 24 cp
+K/V sends per rank per step), CP training correctness (loss and parameter equivalence), and
+the S^2 score-storage memory term (15-20%). Modelled only: byte SIZES, fabric constants,
+absolute times, and the activation memory factor (a fit at one shape). The ranking is a
+NO-OVERLAP ranking, so every "X is faster" claim is conditional on comm not overlapping
+compute; at full overlap 24 configs tie at the same floor, which is why the honest output of
+the search is the FSDP recommendation plus a tie set, not a single winner. Read the sections
+below for the derivation of each number; nothing here is a measured duration.
+
 | piece | state |
 |---|---|
 | axes DP / TP / PP / ZeRO1-3 | all implemented; all train correctly (verified against references, not against each other) |
@@ -39,7 +56,7 @@ still behind FSDP's 73.05 ms. That mode is HYPOTHETICAL for now -- it assumes an
 that never reconstructs the gradient. The harness's reduce-scatter path (gpu-sim-fzd) still
 all-gathers the gradient, so ring-allreduce == reduce-scatter + all-gather: its measured
 traffic equals the crude path byte for byte, and the production figure is unreachable until
-a sharded optimizer exists (gpu-sim-fzd rework). What DOES depend on it is the size of the CP penalty
+a sharded optimizer exists (gpu-sim-fzd, closed). What DOES depend on it is the size of the CP penalty
 (+27.7 ms crude vs +3.5 ms production at tp=2 cp=4), which is why the harness must state
 which sync it does before any CP claim is quoted. gpu-sim-fzd (P2) adds --cp-grad-sync=reducescatter
 (equivalence-preserving: measured bytes per rank are EQUAL to allreduce because all_gather
