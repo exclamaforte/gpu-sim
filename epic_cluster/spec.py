@@ -13,6 +13,11 @@ SCHEMA_VERSION = 1
 # Every spec in the tree carries GB/s values.
 
 REQUIRED_MODEL_KEYS = {"sm_count", "clock_mhz", "mem_bytes", "mem_bw_gbs", "arch", "source"}
+# bw_is_bidirectional (gpu-sim-smt8, optional): true when bw_gbps is the AGGREGATE
+# BIDIRECTIONAL figure (NVLink 4 "900 GB/s per GPU (aggregate bidirectional)"), in which
+# case the one-directional rate used for a ring phase or a p2p send is half of it. Absent
+# means per-direction -- NDR IB "400 Gb/s = 50 GB/s per GPU NIC" is already per direction.
+OPTIONAL_LINK_KEYS = {"bw_is_bidirectional"}
 REQUIRED_LINK_KEYS = {"a", "b", "kind", "bw_gbps", "latency_us", "mtu", "loss_ppm", "jitter_us", "shared_group"}
 REQUIRED_ENDPOINT_KEYS = {"node", "device"}
 REQUIRED_NODE_KEYS = {"name", "devices"}
@@ -111,7 +116,7 @@ def validate(spec: Any) -> Dict[str, Any]:
         raise _err("$.links", "must be array")
     for i, link in enumerate(links):
         p = f"$.links[{i}]"
-        _check_keys(link, REQUIRED_LINK_KEYS, p)
+        _check_keys(link, REQUIRED_LINK_KEYS | OPTIONAL_LINK_KEYS, p)
         endpoint_exists(link["a"], f"{p}.a")
         endpoint_exists(link["b"], f"{p}.b")
         kind = link["kind"]
@@ -135,6 +140,9 @@ def validate(spec: Any) -> Dict[str, Any]:
         sg = link["shared_group"]
         if sg is not None and not isinstance(sg, str):
             raise _err(f"{p}.shared_group", "must be string or null")
+        bib = link.get("bw_is_bidirectional")
+        if bib is not None and not isinstance(bib, bool):
+            raise _err(f"{p}.bw_is_bidirectional", "must be boolean if present")
 
     sources = spec.get("sources")
     if sources is not None and not isinstance(sources, dict):

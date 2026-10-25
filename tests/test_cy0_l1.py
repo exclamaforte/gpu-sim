@@ -150,7 +150,12 @@ def test_magnitude_known_link():
     nvlink_us = lm.predict(load_spec(str(SPEC_PATH)), **kw)["duration_s"] * 1e6
     ib_us = lm.predict(_cross_node_spec(), **kw)["duration_s"] * 1e6
 
-    for actual, expected, name in ((nvlink_us, 18.22, "NVLink"),
+    # NVLink: S = 500000*4 = 2 MB, ring n=2 byte factor 1.0, 8 pieces at 1 us, and
+    # 450 GB/s -- gpu-sim-smt8: the spec's 900 GB/s is AGGREGATE BIDIRECTIONAL, and a
+    # ring phase runs one way, so the usable rate is half. 2e6/450e9 = 4.44 us plus
+    # 2*1 us * 8 pieces = 16 us -> 20.44 us. IB is 50 GB/s per direction already, so
+    # it is unchanged at 120.0 us: that difference is the reason the flag is per-link.
+    for actual, expected, name in ((nvlink_us, 20.44, "NVLink"),
                                    (ib_us, 120.0, "IB")):
         assert abs(actual - expected) / expected < 0.05, (
             f"{name} magnitude mismatch: got {actual:.2f} us, "

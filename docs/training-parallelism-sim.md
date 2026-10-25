@@ -8,12 +8,37 @@ project's premise is the opposite of that, and the draft was wrong.
 
 Read this first if you are picking the work up from disk rather than from a briefing.
 
+**LINK RATE CORRECTED: the spec's 900 GB/s is AGGREGATE BIDIRECTIONAL, and every collective here
+runs one way (gpu-sim-smt8).** `specs/h100_rack.json` says it in its own provenance string ("NVLink
+4: 900 GB/s per GPU (aggregate bidirectional)"), but `link_model` used it as a per-direction rate --
+exactly 2x optimistic, and exactly 2x off the legacy `nccl_cost` path, whose fabric table had used
+450 GB/s all along (spec all-reduce 31.24 ms vs legacy 62.46 ms for the same 8B/bf16/dp=8
+collective). `_eff_bw` now halves a link that declares `"bw_is_bidirectional": true`, and the flag is
+PER LINK because the fabrics are quoted differently in the same file: NVLink is two-way aggregate,
+NDR IB "400 Gb/s = 50 GB/s per GPU NIC" is already per-direction. Halving both -- the first version
+of this fix -- would have made the IB links half as fast as the hardware.
+
+The correction is validated by the two pricing paths converging: at N=8 the spec path now reads
+**94.12 ms** against the legacy path's **93.77 ms** (0.4% apart; before the fix they were 79.96 vs
+93.77, 15% apart). Consequences are NOT cosmetic:
+
+  * N=8 keeps (tp=4 pp=1 cp=2 dp=1 z0) but 94.12 ms instead of 79.96, and the best dp>1 row is now
+    (tp=4 pp=1 cp=1 dp=2 z2) at 103.61 ms;
+  * **N=16 FLIPS**: the winner is (tp=1 pp=4 cp=1 dp=4 z2/z3) at 66.86 ms, i.e. NO tensor
+    parallelism -- the same shape that won at N=32 all along (now 55.54 ms);
+  * the 70B-on-32-GPUs best feasible moves 1.55 s -> 1.88 s;
+  * every comm term doubles, so the DP term of a dp=8 row is 64.65 ms, not 32.33.
+
+That TP stops paying at 16 GPUs is the substantive result: once the link rate is honest, TP's
+all-reduce costs more than the pipeline bubbles it removes except at 8 GPUs, where cp=2 absorbs the
+long-sequence cost.
+
 **CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
 recommendation is **(tp=4 pp=1 cp=2 dp=1 zero=0)** -- tensor parallelism 4 by context
-parallelism 2, NO data parallelism and NO ZeRO -- at **79.96 ms/step at 8192**, 181.15 at
-16384 and 463.59 at 32768 on the spec/topology path (legacy single-fabric: 93.77 / 204.51 /
-506.03). Runner-up at 8192 is (tp=8 pp=1 cp=1 dp=1 zero=0) at 83.46 ms; the best dp=8 row is
-(tp=1 pp=1 cp=1 dp=8 zero=3, FSDP) at 97.30 ms and the best dp=8 zero=2 row ties it on time
+parallelism 2, NO data parallelism and NO ZeRO -- at **94.12 ms/step at 8192**, 204.86 at
+16384 and 506.38 at 32768 on the spec/topology path (legacy single-fabric: 93.77 / 204.51 /
+506.03). Runner-up at 8192 is (tp=8 pp=1 cp=1 dp=1 zero=0) at 100.16 ms; the best dp>1 row is
+(tp=4 pp=1 cp=1 dp=2 zero=2) at 103.61 ms and the best dp=8 zero=2 row ties it on time
 and loses on memory (65.4 vs 50.8 GB).
 
 **CP PAYS AT SEQ 8192** (cp=2 is in the winner), so S_best -- the smallest seq where the
@@ -26,7 +51,7 @@ it, were artifacts of an understated DP term (below).
 the DP term passed the dp-SHARD to a cost function whose `count` is the TOTAL payload
 (`link_model._bw_factor = (n-1)/n * S/B`), making every dp>=2 collective dp x too cheap; and
 it omitted the param all-gather that ZeRO-1/2 actually issue (the harness issues one per
-parameter -- 37 per step at 4 layers, measured). Corrected, a dp=8 row pays 32.33 ms of DP
+parameter -- 37 per step at 4 layers, measured). Corrected, a dp=8 row pays 64.65 ms of DP
 comm at 8192, while a dp=1 row pays none, so dp-heavy splits lose to tp/cp splits. This is
 the strongest evidence yet that the previous recommendation was an accounting artifact, not a
 property of the hardware.
@@ -52,22 +77,22 @@ that the MLP all-reduce carries `d_ff` (2.25x), is refuted by the column/row pai
 kept in the code as `df_allreduce_hypothesis` so the error stays reproducible. Consequences: the
 `tp=8 cp=1` column and the claim that CP never pays up to 65536 rested on those refuted premises
 and are gone; **`four_d` is the default**, the winner is **(tp=4 pp=1 cp=2 dp=1 z0)** at
-**79.96 ms** (N=8), 58.69 (N=16), 47.46 (N=32), and **S_best = 8192** stands on TP grounds.
+**94.12 ms** (N=8), 66.86 (N=16), 55.54 (N=32), and **S_best = 8192** stands on TP grounds.
 
 **Alpha granularity does not move the winner (gpu-sim-8nt follow-up).** The model charges
 alpha once per *logical transfer* while a real NIC charges per *piece* (measured P=4-8 for
 payloads >= 256 KiB), so it under-charges alpha on big payloads. Paying alpha P times instead
 (`experiments/gpu-sim-8nt/alpha_piece_charging.py`) leaves the winner at (tp=4 pp=1 cp=2 dp=1 z0)
-for P=1/4/8 at **79.96 / 82.27 / 85.35 ms**, and the reason is structural: ring alpha is
+for P=1/4/8 at **94.12 / 96.43 / 99.51 ms**, and the reason is structural: ring alpha is
 2*(n-1)*lat, so a wider TP group pays more of it -- at P>=4 the tp=8 runner-up is displaced by
-(tp=2 cp=4) 86.02 ms. The ranking is robust; the absolute duration is not (+6.7% at P=8).
+(tp=8 cp=1) 100.16 ms. The ranking is robust; the absolute duration is not (+5.7% at P=8).
 
 What is still NOT settled about this row: absolute durations (gpu-sim-wv2 needs real GPUs), and the
 harness runs fp32 where the model prices bf16 -- compare element counts with the harness, not bytes.
 
-**N=16 and N=32.** At N=16 the winner is (tp=4 pp=2 cp=2 dp=1 zero=0) at 59.34 ms (best
-dp>1 row: (tp=1 pp=4 cp=1 dp=4 zero=2/3) at 59.34 ms -> the two policies tie within 1%). At
-N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 47.46 ms, because pp=4 finally makes
+**N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
+dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
+N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes
 the per-rank state small enough that a dp=8 ring is affordable.
 
 **What this does NOT say.** TP comm is priced from the same bytes-only ring formulas (per-step
@@ -84,7 +109,7 @@ are, so CP goes from optional to mandatory somewhere in between. All of these ar
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
 cp_grad_mode and the act_factor alongside every threshold. At 70B on 32
 GPUs the answer is still decided by MEMORY: only 6 of 161 configs fit at seq 32768, and the
-best of them is (tp=8, pp=4, cp=1, dp=1, zero=0) at 1.55 s/step and 60.6 GB (a pipeline over
+best of them is (tp=8, pp=4, cp=1, dp=1, zero=0) at 1.88 s/step and 60.6 GB (a pipeline over
 tp=8, not a dp-sharded optimizer -- with 70B the optimizer state per rank dominates before
 replication does). 70B on 8-16 GPUs is infeasible outright.
 
@@ -105,7 +130,7 @@ below for the derivation of each number; nothing here is a measured duration.
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
 | calibration | **counts** validated on hardware (gpu-sim-5o4.7): 16 tp all-reduces and 24 cp K/V sends per rank per step match the plan exactly. Byte SIZES are not validated: the harness's tp all-reduce carries a 3d/tp qkv tensor while the cost model assumes Megatron's full-d row-parallel payload, so the model's byte magnitudes are Megatron-form and modelled-only. Absolute durations modelled (gpu-sim-wv2, blocked: needs 2-4 real GPUs). |
-| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) see gpu-sim-6r5, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=4 pp=1 cp=2 dp=1 zero=0) at 463.59 ms (compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
+| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) see gpu-sim-6r5, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=4 pp=1 cp=2 dp=1 zero=0) at 506.38 ms (compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
 | rank layout (read before touching groups) | rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank. TP groups are stride cp*dp, PP neighbours keep (tp_rank, cp_rank, dp_rank) fixed. gpu-sim-x7h found tp groups built with stride 1 and no cp term, which silently disabled tp all-reduce on every rank with cp_rank>0; fixed in 4e8d65c. `tools/torch_parallel/validate_trace.py` now refuses a run whose ranks have unequal collective counts (stage-aware, and invalid rows yield no step time). |
 
 THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
