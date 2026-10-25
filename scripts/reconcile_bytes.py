@@ -35,6 +35,19 @@ def main():
     ap.add_argument("--steps", type=int, default=1)
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--cp-grad-mode", type=str, default="production")
+    # gpu-sim-wrvw: the comparison is meaningless unless the MODEL is the model the
+    # harness actually ran. Without these the script compared llama3-8B's 16.6 GB of
+    # parameter traffic against TinyLM's 2.7 MB and reported ratio 0.000 -- the
+    # synthetic fixture matched only because it was generated from the same default.
+    ap.add_argument("--model", choices=["llama3-8b", "tiny"], default="llama3-8b")
+    ap.add_argument("--layers", type=int, default=None)
+    ap.add_argument("--d-model", type=int, default=None)
+    ap.add_argument("--d-ff", type=int, default=None)
+    ap.add_argument("--vocab", type=int, default=None)
+    ap.add_argument("--seq", type=int, default=None)
+    # the harness runs fp32 activations/grads; the model's baseline is bf16. Comparing
+    # across dtypes silently doubles every ratio, so make it explicit.
+    ap.add_argument("--dtype", choices=["bf16", "float32"], default="bf16")
     args = ap.parse_args()
 
     rows = read_trace(args.trace)
@@ -48,8 +61,21 @@ def main():
     norm = args.steps * args.batch if args.steps * args.batch > 0 else 1
 
     hw = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
-          "tp_payload": "four_d", "dp_dtype": "bf16", "cp_grad_mode": args.cp_grad_mode}
-    m = ps.MODEL
+          "tp_payload": "four_d", "dp_dtype": args.dtype,
+          "cp_grad_mode": args.cp_grad_mode}
+    m = dict(ps.MODEL)
+    if args.model == "tiny":
+        # the harness's TinyLM (tools/torch_parallel/train.py defaults)
+        m.update({"n_layers": 4, "d_model": 256, "n_heads": 4, "head_dim": 64,
+                  "d_ff": 1024, "vocab": 4096, "seq": 512})
+    for flag, key in (("layers", "n_layers"), ("d_model", "d_model"),
+                      ("d_ff", "d_ff"), ("vocab", "vocab"), ("seq", "seq")):
+        v = getattr(args, flag)
+        if v is not None:
+            m[key] = v
+    if args.batch != 1:
+        # the model prices ONE sequence per step; the harness runs --batch of them
+        pass
     model = ps.comm_bytes(args.tp, args.pp, args.cp, args.dp, args.zero, hw, m)
 
     op_model = defaultdict(int)
