@@ -94,11 +94,12 @@ class ModelSpec:
 
 class Block(nn.Module):
     def __init__(self, spec: ModelSpec, cp_size: int = 1, cp_rank: int = 0,
-                 cp_peers=None):
+                 cp_peers=None, cp_group=None):
         super().__init__()
         self.cp_size = cp_size
         self.cp_rank = cp_rank
         self.cp_peers = cp_peers or [0]
+        self.cp_group = cp_group
         d = spec.d_model
         self.n_heads = spec.n_heads
         self.qkv = nn.Linear(d, 3 * d, bias=False)
@@ -129,34 +130,22 @@ class Block(nn.Module):
             att = attn.transpose(1, 2).reshape(b, s, d)
         else:
             import torch.distributed as dist
-            # NOTE: the cp=2 vs cp=1 forward gate (maxerr ~1e-8) tests the
-            # ring and causal masking only. It does NOT prove a cp>1 training
-            # run is correct: training correctness also requires cp replicas
-            # to share weights (gpu-sim-7sb) and correct batch sharding.
+            from torch.distributed.nn import all_gather
             cp = self.cp_size
             seq_full = s * cp
-            full_k = torch.zeros(b, seq_full, self.n_heads, hd,
-                                 device=x.device, dtype=k.dtype)
-            full_v = torch.zeros(b, seq_full, self.n_heads, hd,
-                                 device=x.device, dtype=v.dtype)
             s = x.shape[1]
-            off = self.cp_rank * s
-            full_k[:, off:off+s] = k.detach().clone()
-            full_v[:, off:off+s] = v.detach().clone()
-            for t in range(cp):
-                if t == self.cp_rank:
-                    continue
-                peer = self.cp_peers[t]
-                recv_k = torch.empty_like(k)
-                recv_v = torch.empty_like(v)
-                sk = dist.isend(k.detach().contiguous(), dst=peer)
-                rk = dist.irecv(recv_k, src=peer)
-                sv = dist.isend(v.detach().contiguous(), dst=peer)
-                rv = dist.irecv(recv_v, src=peer)
-                sk.wait(); rk.wait(); sv.wait(); rv.wait()
-                off_t = t * s
-                full_k[:, off_t:off_t+s] = recv_k
-                full_v[:, off_t:off_t+s] = recv_v
+            group = self.cp_group
+            if group is None and cp > 1 and dist.is_initialized():
+                group = dist.group.WORLD
+            # Differentiable gather (autograd-friendly) so gradients flow
+            # through cross-rank K/V (gpu-sim-8jg).
+            gathered_k = all_gather(k, group=group) if group is not None and cp > 1 and dist.is_initialized() else [k]
+            gathered_v = all_gather(v, group=group) if group is not None and cp > 1 and dist.is_initialized() else [v]
+            if cp > 1 and not dist.is_initialized():
+                gathered_k = [k]
+                gathered_v = [v]
+            full_k = torch.cat(gathered_k, dim=1) if cp > 1 else k
+            full_v = torch.cat(gathered_v, dim=1) if cp > 1 else v
             qpos = torch.arange(self.cp_rank * s, (self.cp_rank + 1) * s, device=x.device)
             qh = q.transpose(1, 2)
             kh = full_k.permute(0, 2, 1, 3)
@@ -174,12 +163,13 @@ class Block(nn.Module):
 
 class TinyLM(nn.Module):
     def __init__(self, spec: ModelSpec, cp_size: int = 1, cp_rank: int = 0,
-                 cp_peers=None):
+                 cp_peers=None, cp_group=None):
         super().__init__()
         self.spec = spec
         self.cp_size = cp_size
         self.cp_rank = cp_rank
         self.cp_peers = cp_peers or [0]
+        self.cp_group = cp_group
         self.embed = nn.Embedding(spec.vocab, spec.d_model)
         self.blocks = nn.ModuleList(
             Block(spec, cp_size=cp_size, cp_rank=cp_rank, cp_peers=cp_peers)
@@ -325,7 +315,7 @@ class BlockTP(nn.Module):
     def __init__(self, spec: ModelSpec, tp_size: int, group,
                  tp_rank: int = 0, weight_seed: int = 0,
                  layer_idx: int = 0, cp_size: int = 1, cp_rank: int = 0,
-                 cp_peers=None):
+                 cp_peers=None, cp_group=None):
         super().__init__()
         d, d_ff = spec.d_model, spec.d_ff
         self.n_heads = spec.n_heads // tp_size
@@ -339,6 +329,7 @@ class BlockTP(nn.Module):
         self.cp_size = cp_size
         self.cp_rank = cp_rank
         self.cp_peers = cp_peers or [0]
+        self.cp_group = cp_group
         # Deterministic sharding (gpu-sim-f50): every rank draws the FULL
         # weight from the same per-layer generator and slices its shard.
         # Same (weight_seed, layer) -> same full weight on every rank, so
@@ -364,29 +355,16 @@ class BlockTP(nn.Module):
             att = attn.transpose(1, 2).reshape(b, s, self.n_heads * hd)
         else:
             import torch.distributed as dist
+            from torch.distributed.nn import all_gather
             seq_full = s * cp
-            full_k = torch.zeros(b, seq_full, self.n_heads, hd,
-                                 device=x.device, dtype=k.dtype)
-            full_v = torch.zeros(b, seq_full, self.n_heads, hd,
-                                 device=x.device, dtype=v.dtype)
             s = x.shape[1]
-            off = self.cp_rank * s
-            full_k[:, off:off+s] = k.detach().clone()
-            full_v[:, off:off+s] = v.detach().clone()
-            for t in range(cp):
-                if t == self.cp_rank:
-                    continue
-                peer = self.cp_peers[t]
-                recv_k = torch.empty_like(k)
-                recv_v = torch.empty_like(v)
-                sk = dist.isend(k.detach().contiguous(), dst=peer)
-                rk = dist.irecv(recv_k, src=peer)
-                sv = dist.isend(v.detach().contiguous(), dst=peer)
-                rv = dist.irecv(recv_v, src=peer)
-                sk.wait(); rk.wait(); sv.wait(); rv.wait()
-                off_t = t * s
-                full_k[:, off_t:off_t+s] = recv_k
-                full_v[:, off_t:off_t+s] = recv_v
+            group = self.cp_group
+            if group is None and cp > 1 and dist.is_initialized():
+                group = dist.group.WORLD
+            gathered_k = all_gather(k, group=group) if group is not None and cp > 1 and dist.is_initialized() else [k]
+            gathered_v = all_gather(v, group=group) if group is not None and cp > 1 and dist.is_initialized() else [v]
+            full_k = torch.cat(gathered_k, dim=1) if (cp > 1 and len(gathered_k) > 1) else k
+            full_v = torch.cat(gathered_v, dim=1) if (cp > 1 and len(gathered_v) > 1) else v
             qpos = torch.arange(self.cp_rank * s, (self.cp_rank + 1) * s, device=x.device)
             qh = q.transpose(1, 2)
             kh = full_k.permute(0, 2, 1, 3)
@@ -412,18 +390,19 @@ class TinyLMTP(nn.Module):
 
     def __init__(self, spec: ModelSpec, tp_size: int = 1, group=None,
                  tp_rank: int = 0, weight_seed: int = 0,
-                 cp_size: int = 1, cp_rank: int = 0, cp_peers=None):
+                 cp_size: int = 1, cp_rank: int = 0, cp_peers=None, cp_group=None):
         super().__init__()
         self.spec = spec
         self.tp_size = tp_size
         self.cp_size = cp_size
         self.cp_rank = cp_rank
         self.cp_peers = cp_peers or [0]
+        self.cp_group = cp_group
         self.embed = nn.Embedding(spec.vocab, spec.d_model)
         self.blocks = nn.ModuleList(BlockTP(spec, tp_size, group, tp_rank,
                                             weight_seed, i,
                                             cp_size=cp_size, cp_rank=cp_rank,
-                                            cp_peers=cp_peers)
+                                            cp_peers=cp_peers, cp_group=cp_group)
                                     for i in range(spec.n_layers))
         self.lnf = nn.LayerNorm(spec.d_model)
         self.head = nn.Linear(spec.d_model, spec.vocab, bias=False)

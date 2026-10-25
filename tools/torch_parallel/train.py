@@ -236,7 +236,7 @@ def main() -> int:
             model = TinyLMTP(spec, tp_size=tp, group=tp_group,
                              tp_rank=tp_rank, weight_seed=args.seed,
                              cp_size=cp, cp_rank=cp_rank,
-                             cp_peers=cp_peers).cuda()
+                             cp_peers=cp_peers, cp_group=cp_group).cuda()
         else:
             model = PPStage(spec, pp_idx, pp,
                             tp_size=tp, group=tp_group, tp_rank=tp_rank,
@@ -246,7 +246,7 @@ def main() -> int:
     else:
         cp_peers = [((pp_idx * tp + tp_rank) * cp + c) * dp + dp_rank for c in range(cp)] if cp > 1 else [rank]
         model = TinyLM(spec, cp_size=cp, cp_rank=cp_rank,
-                       cp_peers=cp_peers).cuda()
+                       cp_peers=cp_peers, cp_group=cp_group).cuda()
         if zero == 3:
             # ZeRO-3 = fully sharded params (FSDP). Verified viable under the
             # timing-only interposer: the all_gathered payload is garbage
@@ -382,6 +382,13 @@ def main() -> int:
                     loss = model.loss(x)
             with torch.profiler.record_function("backward"):
                 loss.backward()
+            # CP gradient sync: each cp rank trains on a disjoint sequence
+            # chunk; sum gradients across cp peers so replicas stay identical
+            # and the update matches the full-sequence gradient (gpu-sim-8jg).
+            if cp > 1 and cp_group is not None:
+                for prm in model.parameters():
+                    if prm.grad is not None:
+                        dist.all_reduce(prm.grad, op=dist.ReduceOp.SUM, group=cp_group)
         else:
             # GPipe: all micro-batch forwards, then all backwards. Blocking
             # send/recv in matching order on both sides, so no deadlock: the
