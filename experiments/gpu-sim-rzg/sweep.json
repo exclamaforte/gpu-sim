@@ -1,0 +1,174 @@
+{
+  "llama3-8b": {
+    "N8": {
+      "seq": 8192,
+      "n_ranks": 8,
+      "spec": "specs/h100_rack.json",
+      "feasible": 42,
+      "total": 80,
+      "min_mem_gb": 20.9,
+      "min_mem_config": [
+        8,
+        1,
+        1,
+        1,
+        0
+      ],
+      "best": {
+        "config": [
+          1,
+          1,
+          1,
+          8,
+          2
+        ],
+        "step_ms": 66.99,
+        "mem_gb": 65.37
+      }
+    },
+    "N16": {
+      "seq": 8192,
+      "n_ranks": 16,
+      "spec": "specs/h100_rack.json",
+      "feasible": 87,
+      "total": 128,
+      "min_mem_gb": 10.58,
+      "min_mem_config": [
+        8,
+        2,
+        1,
+        1,
+        0
+      ],
+      "best": {
+        "config": [
+          1,
+          2,
+          1,
+          8,
+          2
+        ],
+        "step_ms": 47.02,
+        "mem_gb": 33.74
+      }
+    }
+  },
+  "qwen2.5-32b": {
+    "N8": {
+      "seq": 8192,
+      "n_ranks": 8,
+      "spec": "specs/h100_rack.json",
+      "feasible": 0,
+      "total": 80,
+      "min_mem_gb": 82.62,
+      "min_mem_config": [
+        8,
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    "N16": {
+      "seq": 8192,
+      "n_ranks": 16,
+      "spec": "specs/h100_rack.json",
+      "feasible": 27,
+      "total": 128,
+      "min_mem_gb": 41.46,
+      "min_mem_config": [
+        8,
+        2,
+        1,
+        1,
+        0
+      ],
+      "best": {
+        "config": [
+          1,
+          4,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 188.77,
+        "mem_gb": 76.09
+      }
+    }
+  },
+  "llama2-34b": {
+    "N8": {
+      "seq": 8192,
+      "n_ranks": 8,
+      "spec": "specs/h100_rack.json",
+      "feasible": 0,
+      "total": 80,
+      "min_mem_gb": 88.84,
+      "min_mem_config": [
+        8,
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    "N16": {
+      "seq": 8192,
+      "n_ranks": 16,
+      "spec": "specs/h100_rack.json",
+      "feasible": 23,
+      "total": 128,
+      "min_mem_gb": 44.45,
+      "min_mem_config": [
+        8,
+        2,
+        1,
+        1,
+        0
+      ],
+      "best": {
+        "config": [
+          1,
+          4,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 218.21,
+        "mem_gb": 75.38
+      }
+    }
+  },
+  "llama3-70b": {
+    "N8": {
+      "seq": 8192,
+      "n_ranks": 8,
+      "spec": "specs/h100_rack.json",
+      "feasible": 0,
+      "total": 80,
+      "min_mem_gb": 178.12,
+      "min_mem_config": [
+        8,
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    "N16": {
+      "seq": 8192,
+      "n_ranks": 16,
+      "spec": "specs/h100_rack.json",
+      "feasible": 0,
+      "total": 128,
+      "min_mem_gb": 89.19,
+      "min_mem_config": [
+        8,
+        2,
+        1,
+        1,
+        0
+      ]
+    }
+  }
+}

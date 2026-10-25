@@ -140,6 +140,25 @@ bytes that do not depend on the device. What IS validated on this host: the
 per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
 gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model
 assumes Megatron's full-d payload -- gpu-sim-oez) and wall time, ever.
+d05|
+**Does the answer generalize past 8B? (gpu-sim-rzg, modelled).** The same search at seq 8192
+with published configs, spec/topology pricing, and the shipped 16 B/param accounting (bf16
+params+grads, fp32 master, fp32 Adam m,v):
+
+| model | N=8 | N=16 |
+| --- | --- | --- |
+| llama3-8b | FIT (1,1,1,8,z2) 66.99 ms, 65.4 GB | FIT (1,2,1,8,z2) 47.02 ms |
+| qwen2.5-32b | MISS by 2.62 GB (min 82.62 at tp=8) | FIT (1,4,1,4,z2) 188.77 ms, 76.1 GB |
+| llama2-34b | MISS by 8.84 GB | FIT (1,4,1,4,z2) 218.21 ms, 75.4 GB |
+| llama3-70b | MISS by 98.1 GB | MISS by 9.19 GB (min 89.19 at tp=8,pp=2) |
+
+The 8B row reproduces the audited answer exactly (the sweep asserts it). The boundary is
+set by OPTIMIZER STATE, not by activations or compute: for the binding 32B config
+(tp=8,pp=1,cp=1,dp=1) the footprint is 82.62 GB = master 17.33 + opt 34.67 (52 GB, 63%) +
+params 8.67 + grads 8.67 + act 12.97 + logits 0.31. So the model's "70B does not fit 16
+H100s" is a statement about fp32 Adam states with a separate fp32 master, NOT about the
+architecture: bf16 moments or sharded/offloaded optimizer state move this boundary by tens
+of GB. Nothing here is measured; the accounting is the deliverable and the caveat.
 
 ## 1. Premise
 
