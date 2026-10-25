@@ -16,20 +16,26 @@ Read this first if you are picking the work up from disk rather than from a brie
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
 | calibration | **counts** validated on hardware (gpu-sim-5o4.7): 16 tp all-reduces and 24 cp K/V sends per rank per step match the plan exactly. Byte SIZES are not validated: the harness's tp all-reduce carries a 3d/tp qkv tensor while the cost model assumes Megatron's full-d row-parallel payload, so the model's byte magnitudes are Megatron-form and modelled-only. Absolute durations modelled (gpu-sim-wv2, blocked: needs 2-4 real GPUs). |
-| attention FLOPs | gpu-sim-ooj added attention (seq^2) to the compute term: 12*L*S^2*d/(cp*tp) fwd+bwd. CP now gets credit for sharding attention. At S>=8192 the winner changes from pure FSDP to tp=2 cp=4 (77.57 ms at S=8192). At S=2048 the ordering is similar to the weight-only model. |
+| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner stays pure FSDP (verified by direct re-run: 73.06 ms at S=8192, 428.05 ms at S=32768; compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
 | rank layout (read before touching groups) | rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank. TP groups are stride cp*dp, PP neighbours keep (tp_rank, cp_rank, dp_rank) fixed. gpu-sim-x7h found tp groups built with stride 1 and no cp term, which silently disabled tp all-reduce on every rank with cp_rank>0; fixed in 4e8d65c. `tools/torch_parallel/validate_trace.py` now refuses a run whose ranks have unequal collective counts (stage-aware, and invalid rows yield no step time). |
 
 THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
-flops_per_gpu = 6*P*seq/(tp*pp*cp*dp) = 6*P*seq/N is INVARIANT across the space, so every
-pp=1 row reports the same compute (51.63 ms for Llama-3-8B on 8xH100) and the ORDER is
-decided entirely by the comm terms -- not by the dominant column, which reads compute
-everywhere. With the corrected terms (TP 4 all-reduces per layer per step; CP 2*(cp-1) K/V
-sends per layer) the winner is pure FSDP (tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms), with
-tp=2 cp=4 second at 64.23 ms. But 22 of the 24 feasible pp=1 configurations have IDENTICAL
-max-overlap time (51.63 ms) while their SUM spans 59.71-98.80 ms: under full overlap the
+flops_per_gpu = (6*P + 12*L*seq*d)*seq/(tp*pp*cp*dp) = (6*P + 12*L*seq*d)*seq/N is
+INVARIANT across the split at fixed N: the attention term changes the MAGNITUDE (about +27%
+at seq=8192 and +107% at 32768, crossover at seq ~= P/(2*L*d) = 30.6k for 8B/d4096), never
+the invariance. So every pp=1 row reports the same compute -- 51.63 ms weight-only, 64.97 ms
+with attention at seq=8192 -- and the ORDER is decided entirely by the comm terms, not by
+the dominant column, which reads compute everywhere. With the corrected terms (TP 4
+all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the winner is pure FSDP
+(tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms weight-only, 73.06 ms with attention), with tp=2 cp=4
+second at 64.23 ms weight-only. But ALL 24 feasible pp=1 configurations have identical
+max-overlap time (64.97 ms with attention; 22 of 24 at 51.63 ms weight-only, where two rows'
+comm exceeded the floor) while their SUM spans 59.71-98.80 ms: under full overlap the
+model cannot separate them at all. Numbers in this section are weight-only unless labelled;
+gpu-sim-i95 regenerates every table with the attention term.
 model cannot separate 22 configurations at all. gpu-sim-5o4.5 quantified it on the merged
-search: the min-comm config (pure FSDP) is the unique winner for overlap fraction f < 0.25,
-then TIES with a growing set (2 at f=0.25, 7 at f=0.55, 22 at f=1) at the 51.626 ms compute
+then TIES with a growing set (2 at f=0.25, 7 at f=0.55, 22 at f=1) at the 51.626 ms weight-only
+compute
 floor; no other config is ever strictly better and there are no rank swaps. The same
 result holds on the legacy single-fabric path and the spec/topology path (59.708 vs
 59.721 ms), so it does not depend on which pricing path produced the table. Absolute step
