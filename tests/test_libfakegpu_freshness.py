@@ -53,9 +53,15 @@ def test_guard_fires_on_stale_binary():
     src = REPO / "src" / "fakegpu_config.c"
     so = REPO / "libfakegpu.so"
     # make .so older
-    old_mtime = so.stat().st_mtime
-    new_mtime = src.stat().st_mtime + 10
+    old_mtime = src.stat().st_mtime
+    # gpu-sim-x1v rework (PI): the staleness condition is "source newer than the
+    # .so", so base the bumped mtime on the .so, not on the source. src+10s is
+    # only stale when the last build happened <10s after the checkout and stops
+    # the guard from firing on a normally-built tree (red on master 02954b0).
+    new_mtime = so.stat().st_mtime + 60
     os.utime(src, (new_mtime, new_mtime))
+    fresh, msg = freshness(str(so), str(REPO / "src" / "*.c"))
+    assert not fresh, "test setup did not make the binary stale: " + msg
     try:
         r = subprocess.run(
             [sys.executable, "-m", "pytest", "tests/test_model_fault.py", "-q"],
