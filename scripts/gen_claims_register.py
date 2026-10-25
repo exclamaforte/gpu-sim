@@ -96,6 +96,10 @@ def render(facts):
         _row("Alpha piece-charging granularity", "BOUNDED",
              f"+{round(100 * (apc['8']['step_ms'] / apc['1']['step_ms'] - 1), 1)}% at P=8, winner unmoved",
              "docs section 0 (alpha piece charging)"),
+        _row("Harness determinism (the instrument itself)", "VALIDATED",
+             "two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank "
+             "sequences; only cross-rank interleaving differs",
+             "tests/test_trace_determinism.py"),
         _row("DP byte counts / payload", "VALIDATED",
              "reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion",
              "tests/test_reconcile_bytes.py"),

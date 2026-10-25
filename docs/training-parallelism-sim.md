@@ -803,6 +803,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / 21.5 (N=16,32) | tests/test_act_factor_knob.py |
 | S_best = 8192 | **VALIDATED** | CP crossover is seq 4819 (4735 measured), so 8192 is the first conventional length above it, +6.42% | tests/test_cp_crossover.py |
 | Alpha piece-charging granularity | **BOUNDED** | +5.7% at P=8, winner unmoved | docs section 0 (alpha piece charging) |
+| Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
 | CP byte accounting | **UNVALIDATED** | harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; different algorithms, not reconciled by construction | tests/test_cp_payload_structure.py |
