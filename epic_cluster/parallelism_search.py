@@ -84,7 +84,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
     P = total_params(m)
     seq = m["seq"]
     d = m["d_model"]
-    dtype_bytes = 2  # bf16
+    _dp_dtype = hw.get("dp_dtype", "bf16")
+    dtype_bytes = 4 if _dp_dtype == "float32" else 2
     peak = hw["peak_flops"]  # per GPU
     mem_limit = hw["mem_gb"] * 1e9
     fabric = hw.get("fabric", "nvlink4_h100")
@@ -404,7 +405,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 dp_kind = p1["bottleneck"]["kind"]
         else:
             _dpb = 2 if dp_dtype_str == "float32" else 1
-            _P_bytes = (P / (tp * pp)) * dp_dtype_bytes * _dpb
+            _P_bytes = (P / (tp * pp)) * dtype_bytes * _dpb
             if zero <= 1:
                 pred1 = nccl_cost.predict("allreduce", dp, int(_P_bytes), fabric=fabric)
                 pred2 = nccl_cost.predict("allgather", dp, int(_P_bytes), fabric=fabric)

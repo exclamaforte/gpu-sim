@@ -76,12 +76,18 @@ def main():
         mb = op_model.get(op, 0)
         raw = meas.get(op, 0)
         meas_norm = raw // norm if norm > 0 else raw
+        if op in ("allgather", "reducescatter") and mb > 0 and meas_norm > 0:
+            # CP axis note (gpu-sim-juzb PI ruling): CP uses ring pricing in the
+            # model but AG-based in the harness; cannot reconcile by construction.
+            note = "  (cp axis: by-construction un-reconcilable, see gpu-sim-juzb)"
+        else:
+            note = ""
         if mb == 0 and meas_norm == 0:
-            print(f"{op:<16} {mb:>14} {meas_norm:>14} {'n/a':>8}")
+            print(f"{op:<16} {mb:>14} {meas_norm:>14} {'n/a':>8}{note}")
             continue
         ratio = (meas_norm / mb) if mb > 0 else float("inf")
         flag = "" if (0.95 <= ratio <= 1.05) else "  <-- OUT OF RANGE"
-        print(f"{op:<16} {mb:>14} {meas_norm:>14} {ratio:>8.3f}{flag}")
+        print(f"{op:<16} {mb:>14} {meas_norm:>14} {ratio:>8.3f}{flag}{note}")
 
 
 if __name__ == "__main__":
