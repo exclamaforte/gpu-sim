@@ -16,10 +16,10 @@ def test_tp_bytes_count():
     # tp_comm should be L*4*pred (not L*2)
     # Just ensure tp_comm > 0 and finite
     assert c2.tp_comm > 0
-    # Re-run with hypothetical 2 (not possible via API) - instead check source
+    # Source check: TP comm now sums over tp_scales (4 all-reduces per layer)
     import inspect
     src = inspect.getsource(ps.score)
-    assert "m[\"n_layers\"] * 4 *" in src or 'm["n_layers"] * 4 *' in src
+    assert "tp_scales" in src
 
 def test_cp_bytes_count():
     c = _cfg(1, 1, 4, 2, 3)

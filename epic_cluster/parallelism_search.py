@@ -241,24 +241,32 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # 1.0 = Megatron choice, 3/tp = harness choice. Exposed so the SENSITIVITY of the
     # published recommendation to this unvalidated term can be measured instead of
     # argued (the DP term taught that lesson the hard way: gpu-sim-qk9 / 6r5).
-    tp_bytes_scale = float(hw.get("tp_bytes_scale", 1.0))
-    if hw.get("tp_payload", "megatron") == "harness":
-        # harness reduces a 3d/tp qkv tensor per rank; the model's baseline is
-        # Megatron's full-d row-parallel payload, so the ratio is 3/tp.
-        tp_bytes_scale = 3.0 / tp
+    # TP payload convention (gpu-sim-6wd): named list of 4 per-layer all-reduces.
+    # Megatron row-parallel: [d, d_ff, d, d_ff] (avg scale (1+d_ff/d)/2 = 2.25 for 8B).
+    # Harness (3d/tp qkv): [3d/tp, 3d/tp, 3d/tp, 3d/tp].
+    # Four-d: [d, d, d, d].
+    tp_payload_mode = hw.get("tp_payload", "megatron")
+    if tp_payload_mode == "harness":
+        tp_scales = [3.0 / tp] * 4
+    elif tp_payload_mode == "four_d":
+        tp_scales = [1.0] * 4
+    else:  # megatron (default)
+        tp_scales = [1.0, m["d_ff"] / d, 1.0, m["d_ff"] / d]
     tp_comm = 0.0
     tp_kind = None
     if tp > 1:
-        msg_count = int(d * seq_per_cp * tp_bytes_scale)
         if spec is not None:
             group = [((0 * tp + t) * cp + 0) * dp + 0 for t in range(tp)]
-            pred = link_model.predict(spec, "ring_allreduce", msg_count, "bfloat16", ranks=group, pieces_per_phase=1)
-            tp_comm = m["n_layers"] * 4 * pred["duration_s"]
-            tp_kind = pred["bottleneck"]["kind"]
+            for sc in tp_scales:
+                msg_count = int(d * seq_per_cp * sc)
+                pred = link_model.predict(spec, "ring_allreduce", msg_count, "bfloat16", ranks=group, pieces_per_phase=1)
+                tp_comm += m["n_layers"] * pred["duration_s"]
+                tp_kind = pred["bottleneck"]["kind"]
         else:
-            msg = d * seq_per_cp * tp_bytes_scale * dtype_bytes
-            pred = nccl_cost.predict("allreduce", tp, int(msg), fabric=fabric)
-            tp_comm = m["n_layers"] * 4 * pred.total_s
+            for sc in tp_scales:
+                msg = d * seq_per_cp * sc * dtype_bytes
+                pred = nccl_cost.predict("allreduce", tp, int(msg), fabric=fabric)
+                tp_comm += m["n_layers"] * pred.total_s
 
     # CP comm
     cp_comm = 0.0
