@@ -164,7 +164,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # per-tensor widths: residual(d) + attn_out(d) + ffn_intermediate(d_ff) + ffn_out(d)
     per_token_width = 3 * d_tp + d_ff_tp
     if recompute == "none":
-        act_factor = 1.0
+        act_factor = 2.3   # calibrated (gpu-sim-4nf): instrumented per-layer peak shows ~2.3x the per-tensor-width estimate (matmul intermediates, gradients in backward)
         layers_act = layers_per_stage
     elif recompute == "selective":
         act_factor = 0.5   # residuals only; attention recomputed

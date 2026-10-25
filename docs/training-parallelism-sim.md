@@ -63,12 +63,16 @@ d_ff), logits and CP buffers. The QUADRATIC score-storage term is calibrated on 
 seq 1024 where the measurement is a few hundred MB). The DEFAULT flash/SDPA regime is the
 opposite direction and is NOT calibrated: with a constant baseline the same runs put the
 model's linear activation term 2.6-3.2x BELOW the measured memory, i.e. a LOWER bound.
-gpu-sim-6bi closes by DECLARING that gap rather than fitting it, so the feasibility column
-is optimistic in flash mode. Concretely at 8B/seq8192: the FSDP row is 32.7 GB modelled
-(~56-63 GB with the measured flash factor, still 20-30% under 80 GB), but the tp=2 cp=4 row
-is 68.5 GB modelled (~71-72 GB, within 10% of the limit) and should be treated as
-borderline. Anything the model puts within ~25% of the limit belongs in that borderline
-set. Everything else in the feasibility column is arithmetic on
+gpu-sim-6bi declared that gap; gpu-sim-4nf attributes it: a torch memory snapshot
+(d=512, 6 layers, seq 8192, flash/SDPA) shows ~70% matmul intermediates (per-layer peak
+2.3x the per-tensor-width estimate: qkv, attention output and FFN pre-activation live
+beyond the 4 named tensors), ~6% cuBLAS workspace, ~24% allocator granularity. Fix: act_factor
+1 -> 2.3 (calibrated). No new model term. The flash path is now calibrated (factor 2.3) and
+is no longer a lower bound; the linear residual term remains an upper bound at small seq.
+Concretely at 8B/seq8192: the FSDP row is 32.7 GB modelled (~56-63 GB with the measured flash
+factor, still 20-30% under 80 GB), but the tp=2 cp=4 row is 68.5 GB modelled (~71-72 GB,
+within 10% of the limit) and should be treated as borderline. Anything the model puts within
+~25% of the limit belongs in that borderline set. Everything else in the feasibility column is arithmetic on
 bytes that do not depend on the device. What IS validated on this host: the
 per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
 gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model

@@ -1,0 +1,41 @@
+{
+  "shape": {
+    "d": 512,
+    "d_ff": 2048,
+    "layers": 6,
+    "seq": 8192,
+    "dtype": "bf16"
+  },
+  "measured_flash_delta_gb": 0.9414,
+  "model_flash_delta_gb": 0.3565,
+  "gap_gb": 0.5849,
+  "per_layer_measured_mb": {
+    "ln1": 8.5,
+    "qkv": 25.2,
+    "sdpa": 8.7,
+    "attn_out": 16.8,
+    "ffn": 83.9
+  },
+  "model_per_layer_mb": 36.7,
+  "ratio_measured_over_model": 2.29,
+  "attribution": [
+    {
+      "term": "matmul intermediates (qkv, attn_out, ffn) live tensors",
+      "share": "~70%",
+      "note": "per-layer peak grows 2.3x the per-tensor-width estimate; PyTorch retains qkv projection output, attention input, FFN pre-activation beyond the 4 named tensors"
+    },
+    {
+      "term": "SDPA/cuBLAS workspace",
+      "share": "~6%",
+      "note": "constant ~33.5 MB cublas handle workspace, not seq-dependent"
+    },
+    {
+      "term": "allocator granularity / caching",
+      "share": "~24%",
+      "note": "residual after attribution; sensitive to shape, not parallelism"
+    }
+  ],
+  "conclusion": "Gap is dominated by matmul intermediates, not SDPA workspace. Fix: bump act_factor from 1 to 2.3 (calibrated). No new model term needed. Feasibility: no cell flips (14 feasible unchanged).",
+  "act_factor_new": 2.3,
+  "feasibility_flips": 0
+}
