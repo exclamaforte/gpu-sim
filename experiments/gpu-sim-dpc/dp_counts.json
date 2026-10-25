@@ -1,0 +1,36 @@
+{
+  "zero=1": {
+    "ops_per_step": {
+      "allreduce": 37.3,
+      "allgather": 37.0
+    },
+    "mb_per_step": {
+      "allreduce": 32.27,
+      "allgather": 64.54
+    }
+  },
+  "zero=2": {
+    "ops_per_step": {
+      "reducescatter": 1.0,
+      "allgather": 37.0,
+      "allreduce": 0.3
+    },
+    "mb_per_step": {
+      "reducescatter": 16.14,
+      "allgather": 64.54,
+      "allreduce": 0.0
+    }
+  },
+  "zero=3": {
+    "ops_per_step": {
+      "allgather": 1.0,
+      "reducescatter": 1.0,
+      "allreduce": 0.3
+    },
+    "mb_per_step": {
+      "allgather": 32.27,
+      "reducescatter": 16.14,
+      "allreduce": 0.0
+    }
+  }
+}
