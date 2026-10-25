@@ -878,11 +878,11 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
         int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[32];
-        double pred = fg_nccl_predict(t, "ring_allgather", count, datatype, nr, &bl, regime, sizeof(regime));
+        double pred = fg_nccl_predict(t, "ring_allgather", count * (size_t)nr, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * (size_t)nr * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime);
+        fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * (size_t)nr * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime);
         return ncclSuccess;
     }
     int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
@@ -927,9 +927,9 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
         int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : (int)fg_cfg()->num_devices;
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[32];
-        double pred = fg_nccl_predict(t, "ring_reduce_scatter", rc, datatype, nr, &bl, regime, sizeof(regime));
+        double pred = fg_nccl_predict(t, "ring_reduce_scatter", rc * (size_t)nr, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
-        size_t bytes = rc * fg_dtype_size(datatype);
+        size_t bytes = rc * (size_t)nr * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, bytes);
         fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime);
         return ncclSuccess;
