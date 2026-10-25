@@ -15,11 +15,13 @@ Runner-up is (tp=2, pp=1, cp=1, dp=4, zero=3) at 91.37 ms. CP does not pay AT SE
 K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
 not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
 logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear
-activation/logits term, not the quadratic attention term. The crossover is a BAND, not a
-point, because it also depends on which fabric path prices the table: at N=8 the best config
-has cp>1 from seq 16384 on the spec/topology path but only from 32768 on the legacy
-single-fabric path (a 2 ms difference on a 200 ms step, i.e. inside the model's error); at N=16
-both paths agree on 32768. By seq 65536 (N=8) only 7 configs are feasible and by 131072 none
+activation/logits term, not the quadratic attention term. The global S_best (smallest seq where
+the overall best config has cp>1) is 32768 on BOTH fabric paths at N=8 (legacy: 32768; spec:
+32768) -- the paths agree. A within-group comparison at seq 16384 does show the spec path
+pricing cp=2 (4,1,2,1) at 200.09 ms vs cp=1 (2,1,1,4) at 201.98 ms, but FSDP (1,1,1,8)
+at 164.71 ms is still the global winner there, so it does not move S_best. The 2 ms
+difference is inside the model's error. At N=16 both paths agree on 65536. By seq 65536 (N=8)
+only 7 configs are feasible and by 131072 none
 are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
 cp_grad_mode and the act_factor alongside every threshold. At 70B on 32
