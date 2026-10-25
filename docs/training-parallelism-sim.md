@@ -46,11 +46,16 @@ own memory column says 68.5 GB for the tp=2 cp=4 row and 32.7 GB for the FSDP ro
 completed memory model, gpu-sim-6y1). MEMORY FEASIBILITY IS MODELLED, not measured: the
 model now carries params, grads, fp32 master, optimizer, per-tensor activations (FFN at
 d_ff), logits and CP buffers. The QUADRATIC score-storage term is calibrated on a 5090
-(d=512, 6 layers, seq 4096-8192: the model is 22-32% HIGH in materialized mode). The
-DEFAULT flash/SDPA regime is the opposite direction and is NOT calibrated: the same runs
-put the model's linear term 2.6-3.2x BELOW the measured memory, i.e. a LOWER bound, so a
-phase-map cell the model places within ~15% under the 80 GB limit may be infeasible in
-reality. Closing that gap is gpu-sim-6bi's rework. Everything else in the feasibility column is arithmetic on
+(d=512, 6 layers, seq 4096-8192: the model is 15-20% HIGH in materialized mode, 40% low at
+seq 1024 where the measurement is a few hundred MB). The DEFAULT flash/SDPA regime is the
+opposite direction and is NOT calibrated: with a constant baseline the same runs put the
+model's linear activation term 2.6-3.2x BELOW the measured memory, i.e. a LOWER bound.
+gpu-sim-6bi closes by DECLARING that gap rather than fitting it, so the feasibility column
+is optimistic in flash mode. Concretely at 8B/seq8192: the FSDP row is 32.7 GB modelled
+(~56-63 GB with the measured flash factor, still 20-30% under 80 GB), but the tp=2 cp=4 row
+is 68.5 GB modelled (~71-72 GB, within 10% of the limit) and should be treated as
+borderline. Anything the model puts within ~25% of the limit belongs in that borderline
+set. Everything else in the feasibility column is arithmetic on
 bytes that do not depend on the device. What IS validated on this host: the
 per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
 gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model
