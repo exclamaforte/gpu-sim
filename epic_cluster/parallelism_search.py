@@ -173,6 +173,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
     else:  # full
         act_factor = 1.0
         layers_act = 1.0   # only one layer's activations live at a time
+    # gpu-sim-54m: allow hw to override the activation factor (default: recompute-based)
+    act_factor = hw.get("act_factor", act_factor)
     act_bytes = layers_act * seq_per_cp * dtype_bytes * per_token_width * act_factor
 
     # attention workspace (scores): [heads/tp, seq/cp, seq] if not flash

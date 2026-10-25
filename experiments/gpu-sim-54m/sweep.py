@@ -9,36 +9,24 @@ MODELS = {
 }
 SEQS = [8192, 16384, 32768, 65536, 131072]
 NS = [8, 16, 32]
-FABRIC = {8: (None, None), 16: (None, "specs/h100_rack.json"), 32: (None, "specs/h100_rack_4node.json")}
 
-def hw_for(N, path="legacy", cp_grad_mode="crude"):
-    if path == "legacy" or N == 8:
+def hw_for(N, path="legacy", cp_grad_mode="crude", act_factor=None):
+    if N == 8 and path == "legacy":
         hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "cp_grad_mode": cp_grad_mode}
+    elif N == 8:
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": "specs/h100_rack.json", "cp_grad_mode": cp_grad_mode}
+    elif N <= 16:
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": "specs/h100_rack.json", "cp_grad_mode": cp_grad_mode}
     else:
-        spec = "specs/h100_rack.json" if N <= 16 else "specs/h100_rack_4node.json"
-        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": spec, "cp_grad_mode": cp_grad_mode}
+        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": "specs/h100_rack_4node.json", "cp_grad_mode": cp_grad_mode}
+    if act_factor is not None:
+        hw["act_factor"] = act_factor
     return hw
 
-def make_score(act_factor):
-    orig = ps.score
-    def patched(tp, pp, cp, dp, zero, hw, m):
-        r = orig(tp, pp, cp, dp, zero, hw, m)
-        # scale act_bytes by act_factor/2.3 (model uses 2.3 internally)
-        if hasattr(r, "mem_act_gb"):
-            r.mem_act_gb = r.mem_act_gb * (act_factor / 2.3)
-            r.memory_gb = r.memory_gb + r.mem_act_gb * (act_factor/2.3 - 1)
-        return r
-    return patched
-
 def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor, path="legacy"):
-    base = dict(MODELS[model_name]); base["seq"] = seq
-    m = base
-    hw = hw_for(N, path, cp_grad_mode)
-    ps.score = make_score(act_factor)
+    m = dict(MODELS[model_name]); m["seq"] = seq
+    hw = hw_for(N, path, cp_grad_mode, act_factor)
     _, feas = ps.search(N, hw, m=m, rank_by=rank_by)
-    ps.score = ps.score.__wrapped__ if hasattr(ps.score, "__wrapped__") else ps.score
-    # restore original
-    import importlib; importlib.reload(ps)
     if not feas:
         return {"feasible": False, "feasible_configs": 0, "cp1_feasible": False,
                 "best": None, "top5": []}
@@ -54,9 +42,8 @@ def run_one(N, model_name, seq, rank_by, cp_grad_mode, act_factor, path="legacy"
                   "step_ms":round(c.step_sum*1000,2)} for c in feas[:5]],
     }
 
-# Run grid, compact summary only
+# Run grid
 summary = {}
-thresholds = {}
 for path in ("legacy", "spec"):
     for cp_grad_mode in ("crude", "production"):
         for act_factor in (2.3, 1.0):
@@ -79,9 +66,15 @@ for path in ("legacy", "spec"):
                     thr[f"N{N}_{model_name}"] = {"S_best": s_best, "S_required": s_req, "cells": cells}
             summary[key] = thr
             print(f"done {key}")
-        print(f"done {key}")
 
-# Save compact (thresholds + per-cell best, not top5)
+# Assert legacy and spec differ at 16384 for N=8/8B under default knobs (act=2.3, crude)
+leg = summary["path=legacy_cpgrad=crude_act=2.3"]["N8_8b"]["cells"][16384]["best"]
+spec = summary["path=spec_cpgrad=crude_act=2.3"]["N8_8b"]["cells"][16384]["best"]
+assert leg["cp"] == 1, f"legacy cp at 16384 should be 1, got {leg['cp']}"
+assert spec["cp"] > 1, f"spec cp at 16384 should be >1, got {spec['cp']}"
+print(f"ASSERT OK: legacy cp={leg['cp']} (FSDP) vs spec cp={spec['cp']} at 16384")
+
+# Save compact
 compact = {}
 for key, thr in summary.items():
     compact[key] = {}
@@ -93,8 +86,7 @@ for key, thr in summary.items():
 
 json.dump({"thresholds_summary": compact}, open("experiments/gpu-sim-54m/sweep.json","w"), indent=2)
 print("written compact sweep.json")
-# print thresholds
 for key in sorted(compact):
-    for nk in ("N8_8b","N16_8b","N32_8b"):
+    for nk in ("N8_8b",):
         v = compact[key][nk]
         print(f"{key} {nk}: S_best={v['S_best']} S_required={v['S_required']}")

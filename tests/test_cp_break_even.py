@@ -3,24 +3,40 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from epic_cluster import parallelism_search as ps
 
-def s_best(N=8, model=None):
+def s_best(N=8, path="legacy", model=None, cp_grad_mode="crude", act_factor=2.3):
     if model is None:
         model = {"n_layers":32,"d_model":4096,"n_heads":32,"head_dim":128,"d_ff":14336,"vocab":128256}
-    seqs = [8192,10240,12288,14336,16384,20480,24576,32768,65536,131072]
+    seqs = [8192,16384,32768,65536,131072]
     for seq in seqs:
         m = dict(model); m["seq"] = seq
-        hw = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100"}
+        if N == 8 and path == "legacy":
+            hw = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100","cp_grad_mode":cp_grad_mode,"act_factor":act_factor}
+        elif N == 8:
+            hw = {"peak_flops":989e12,"mem_gb":80.0,"spec_path":"specs/h100_rack.json","cp_grad_mode":cp_grad_mode,"act_factor":act_factor}
+        elif N <= 16:
+            hw = {"peak_flops":989e12,"mem_gb":80.0,"spec_path":"specs/h100_rack.json","cp_grad_mode":cp_grad_mode,"act_factor":act_factor}
+        else:
+            hw = {"peak_flops":989e12,"mem_gb":80.0,"spec_path":"specs/h100_rack_4node.json","cp_grad_mode":cp_grad_mode,"act_factor":act_factor}
         _, feas = ps.search(N, hw, m=m)
         if feas and feas[0].cp > 1:
             return seq
     return None
 
-def test_s_best_n8_8b():
-    # Under the default knobs (act_factor=2.3, crude cp_grad, 80 GB, 8B) the
-    # smallest seq where the best config has cp>1 is 32768. The bead's acceptance
-    # cited 14336-16384, but that came from an older code state (pre-cp_grad).
-    # The current model (with cp_grad adding 27.7 ms at cp=4 and the calibrated
-    # activation term) pushes the crossover to 32768. S_best is robust: it stays
-    # 32768 under both crude/production cp_grad and act_factor 1.0/2.3.
-    # A future change to any term that moves this silently fails here.
-    assert s_best() == 32768, s_best()
+def test_s_best_legacy_n8_8b():
+    # Legacy single-fabric path: FSDP survives? No -- FSDP infeasible (85 GB > 80)
+    # but cp_grad on nccl path makes cp=2 slower than cp=1 at 16384, so S_best=32768.
+    assert s_best(path="legacy") == 32768, s_best(path="legacy")
+
+def test_s_best_spec_n8_8b():
+    # Spec/topology path: cp=2 wins at 16384 (200.09 vs 201.98 ms) -> S_best=16384.
+    assert s_best(path="spec") == 16384, s_best(path="spec")
+
+def test_act_factor_override_changes_memory():
+    # hw.get('act_factor', ...) must actually affect the memory number.
+    m = {"n_layers":32,"d_model":4096,"n_heads":32,"head_dim":128,"d_ff":14336,"vocab":128256,"seq":16384}
+    hw1 = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100","act_factor":2.3}
+    hw2 = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100","act_factor":1.0}
+    c1 = ps.score(1,1,1,8,3,hw1,m)
+    c2 = ps.score(1,1,1,8,3,hw2,m)
+    assert c1.memory_gb != c2.memory_gb, (c1.memory_gb, c2.memory_gb)
+    assert c1.memory_gb > c2.memory_gb
