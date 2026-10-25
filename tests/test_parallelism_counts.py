@@ -16,10 +16,13 @@ def test_tp_bytes_count():
     # tp_comm should be L*4*pred (not L*2)
     # Just ensure tp_comm > 0 and finite
     assert c2.tp_comm > 0
-    # Source check: TP comm now sums over tp_scales (4 all-reduces per layer)
-    import inspect
-    src = inspect.getsource(ps.score)
-    assert "tp_scales" in src
+    # Convention check: tp_comm changes across tp_payload modes
+    m2 = ps.MODEL
+    hw_meg = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "tp_payload": "megatron"}
+    hw_har = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "tp_payload": "harness"}
+    c_meg = ps.score(2, 1, 1, 4, 3, hw_meg, m2)
+    c_har = ps.score(2, 1, 1, 4, 3, hw_har, m2)
+    assert c_meg.tp_comm != c_har.tp_comm, (c_meg.tp_comm, c_har.tp_comm)
 
 def test_cp_bytes_count():
     c = _cfg(1, 1, 4, 2, 3)
