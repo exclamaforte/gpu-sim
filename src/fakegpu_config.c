@@ -74,3 +74,25 @@ struct fg_config *fg_cfg(void)
     if (!g_init) fg_config_reload();
     return &g_cfg;
 }
+
+fg_topo_t *fg_topo(void)
+{
+    if (!g_init) fg_config_reload();
+    return g_topo;
+}
+
+/* ---- per-device cost resolver (gpu-sim-m3d.12) -------------------------- */
+#define FG_MAX_DEVICES 64
+static fg_cost_resolver_fn g_dev_resolvers[FG_MAX_DEVICES];
+
+fg_cost_resolver_fn fg_cost_resolver_for(int device_id)
+{
+    if (device_id < 0 || device_id >= FG_MAX_DEVICES) return NULL;
+    return g_dev_resolvers[device_id];
+}
+
+void fg_set_cost_resolver_for(int device_id, fg_cost_resolver_fn resolver)
+{
+    if (device_id < 0 || device_id >= FG_MAX_DEVICES) return;
+    g_dev_resolvers[device_id] = resolver;
+}

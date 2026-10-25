@@ -13,6 +13,7 @@
  *     integer handles from a shared registry, stored as cast pointers.
  */
 #include "fakegpu.h"
+#include "fakegpu_topology.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -55,19 +56,24 @@ void fg_pool_init(void)
     g_pools = (struct fg_pool *)calloc((size_t)n, sizeof(*g_pools));
     if (!g_pools) return; /* caller treats failures gracefully */
 
-    size_t cap = c->device_mem_mb * 1024 * 1024;
     /* Hint an address in the upper half so pointers look device-like. */
     char *hint_base = (char *)0x700000000000ULL; /* x86-64 upper canonical */
 
+    fg_topo_t *topo = fg_topo();
+
     for (int i = 0; i < n; i++) {
         struct fg_pool *p = &g_pools[i];
-        p->cap = cap;
-        p->base = mmap(hint_base + (size_t)i * (cap + (1ULL << 32)),  /* sparse hints */
-                       cap,
+        size_t dev_cap = c->device_mem_mb * 1024 * 1024;
+        if (topo && i < topo->n_dev && topo->devs[i].mem_bytes > 0) {
+            dev_cap = (size_t)topo->devs[i].mem_bytes;
+        }
+        p->cap = dev_cap;
+        p->base = mmap(hint_base + (size_t)i * (dev_cap + (1ULL << 32)),  /* sparse hints */
+                       dev_cap,
                        PROT_READ | PROT_WRITE,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         if (p->base == MAP_FAILED) {
-            p->base = mmap(NULL, cap, PROT_READ | PROT_WRITE,
+            p->base = mmap(NULL, dev_cap, PROT_READ | PROT_WRITE,
                            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         }
         p->brk = p->base;

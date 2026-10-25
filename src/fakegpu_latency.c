@@ -10,6 +10,7 @@
  * CI can stay speedy by default.
  */
 #include "fakegpu.h"
+#include "fakegpu_topology.h"
 
 #include <errno.h>
 #include <time.h>
@@ -54,12 +55,17 @@ void fg_simulate_kernel_resolved(const char *kernel_name,
                                  unsigned int sharedMem)
 {
     const struct fg_config *c = fg_cfg();
+    /* Per-device resolver (gpu-sim-m3d.12): device id from active device. */
+    int dev = c->current_device;
+    if (dev < 0 || dev >= c->num_devices) dev = 0;
+    fg_cost_resolver_fn resolver = fg_cost_resolver_for(dev);
+    if (!resolver) resolver = c->cost_resolver;
     /* Resolved path: the resolver owns the number. Its return flows only
      * into fg_sleep_ns -- there is no record, no artifact, no writeback
      * anywhere downstream (D_GPUSIM: consume, never produce). */
-    if (c->cost_resolver && kernel_name) {
-        long ns = c->cost_resolver(kernel_name, gridX, gridY, gridZ,
-                                   blockX, blockY, blockZ, sharedMem);
+    if (resolver && kernel_name) {
+        long ns = resolver(kernel_name, gridX, gridY, gridZ,
+                           blockX, blockY, blockZ, sharedMem);
         if (ns > 0) g_have_any_latency = 1;
         fg_sleep_ns(ns);
         return;

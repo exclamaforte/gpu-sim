@@ -6,6 +6,7 @@
 
 #include "cuda_runtime.h"
 #include "nccl.h"
+#include "fakegpu_topology.h"
 
 /*
  * Shared internal definitions for libfakegpu.so.
@@ -44,6 +45,14 @@ struct fg_config {
 
 void   fg_config_reload(void);          /* (re)read env into the config cache */
 struct fg_config *fg_cfg(void);         /* accessor (lazy init) */
+fg_topo_t *fg_topo(void);               /* topology accessor (may be NULL) */
+/* ---- per-device cost resolver (gpu-sim-m3d.12) -------------------------- */
+typedef long (*fg_cost_resolver_fn)(const char *kernel_name,
+                                    int gridX, int gridY, int gridZ,
+                                    int blockX, int blockY, int blockZ,
+                                    unsigned int sharedMem);
+fg_cost_resolver_fn fg_cost_resolver_for(int device_id);
+void fg_set_cost_resolver_for(int device_id, fg_cost_resolver_fn resolver);
 
 /* ---- random -------------------------------------------------------------- */
 

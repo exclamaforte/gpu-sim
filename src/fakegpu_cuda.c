@@ -21,7 +21,7 @@ cudaError_t cudaMalloc(void **devPtr, size_t size)
 {
     if (!devPtr) return cudaErrorInvalidValue;
     void *p = fg_pool_alloc(size ? size : 1);
-    if (!p) return (cudaError_t)cudaErrorInvalidDevice;
+    if (!p) return (cudaError_t)cudaErrorMemoryAllocation;
     *devPtr = p;
     return cudaSuccess;
 }
@@ -42,7 +42,7 @@ cudaError_t cudaMallocHost(void **ptr, size_t size)
 {
     if (!ptr) return cudaErrorInvalidValue;
     void *p = fg_pool_alloc(size ? size : 1);
-    if (!p) return (cudaError_t)cudaErrorInvalidDevice;
+    if (!p) return (cudaError_t)cudaErrorMemoryAllocation;
     *ptr = p;
     return cudaSuccess;
 }
