@@ -11,7 +11,9 @@
 #include "nccl.h"
 #include "fakegpu_topology.h"
 #include "fakegpu_fabric.h"
+#include <fcntl.h>
 #include <math.h>
+#include <unistd.h>
 
 /* Named refusal: model has no measured P for this (n, S); not a duration. */
 
@@ -694,19 +696,45 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
     char path[4096];
     if (p && *p) snprintf(path, sizeof(path), "%s", p);
     else snprintf(path, sizeof(path), "gpusim_trace.jsonl");
-    FILE *f = fopen(path, "a");
-    if (!f) return;
+    /* gpu-sim-wtorn: N ranks append to ONE trace file. fopen+fprintf+fflush wrote
+     * through stdio, which can split a line across several write() calls, so a dp=8
+     * run produced torn lines (1 in 3186) and any per-rank comparison silently
+     * dropped records. Build the whole line in a buffer and hand it to a single
+     * write() on an O_APPEND descriptor: POSIX makes the offset update atomic and a
+     * single write() of a regular file lands contiguously, so lines from concurrent
+     * processes interleave only at line boundaries. */
+    char line[1024];
+    int n;
     struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
     long long ts_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
     if (predicted == FG_NCCL_REFUSED) {
-        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":", ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype, bytes, algo);
+        n = snprintf(line, sizeof line,
+                     "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":%s,\"regime\":\"%s\"}\n",
+                     ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype,
+                     bytes, algo, bottleneck >= 0 ? "" : "null", regime);
+        if (bottleneck >= 0)
+            n = snprintf(line, sizeof line,
+                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                         ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count,
+                         dtype, bytes, algo, bottleneck, regime);
     } else {
-        fprintf(f, "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":", ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype, bytes, algo, predicted);
+        n = snprintf(line, sizeof line,
+                     "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                     ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype,
+                     bytes, algo, predicted, bottleneck, regime);
+        if (bottleneck < 0)
+            n = snprintf(line, sizeof line,
+                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":null,\"regime\":\"%s\"}\n",
+                         ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count,
+                         dtype, bytes, algo, predicted, regime);
     }
-    if (bottleneck >= 0) fprintf(f, "%d", bottleneck); else fprintf(f, "null");
-    fprintf(f, ",\"regime\":\"%s\"}\n", regime);
-    fflush(f);
-    fclose(f);
+    if (n <= 0) return;
+    if ((size_t)n >= sizeof line) n = (int)sizeof line - 1;
+    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (fd < 0) return;
+    ssize_t w = write(fd, line, (size_t)n);
+    (void)w;
+    close(fd);
 }
 
 /* ---- byte conventions (gpu-sim-smt7, complete as of 2026-10-25) -----------
