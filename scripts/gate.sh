@@ -13,6 +13,20 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+# gpu-sim-gtree: say WHICH tree this gate is evaluating. With ~80 worktrees under
+# .lab/wt/ all sharing this script, a red gate reported by a background session was
+# indistinguishable from a stale worktree running an old copy of the checks -- twice in
+# one day the lab chased a RED that did not exist in the main tree. Every line of the
+# verdict now carries the tree and commit it applies to.
+gate_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+gate_head="$(git -C "$gate_root" log -1 --format='%h %s' 2>/dev/null | cut -c1-60)"
+echo "GATE TREE: ${gate_root}"
+echo "GATE HEAD: ${gate_head:-<no commit>}"
+if [ "$gate_root" != "$(cd "$(dirname "$0")/.." && pwd)" ]; then
+    echo "GATE WARNING: evaluating a DIFFERENT tree than this script lives in -- a red result"
+    echo "              here does not describe the main working copy."
+fi
+
 FAST=0
 [ "${1:-}" = "--fast" ] && FAST=1
 
