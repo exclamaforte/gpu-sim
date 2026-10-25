@@ -55,8 +55,8 @@ tie at 51.6 ms weight-only while their dp differs eightfold.
 
 Absolute step
 times remain modelled -- one 5090 cannot hold Llama-3-8B at any decomposition (the search's
-own memory column says 68.5 GB for the tp=2 cp=4 row and 32.7 GB for the FSDP row with the
-completed memory model, gpu-sim-6y1). MEMORY FEASIBILITY IS MODELLED, not measured: the
+own memory column says 68.5 GB for the tp=2 cp=4 row and 50.8 GB for the FSDP row with the
+completed memory model and the calibrated activation factor, gpu-sim-6y1/-4nf). MEMORY FEASIBILITY IS MODELLED, not measured: the
 model now carries params, grads, fp32 master, optimizer, per-tensor activations (FFN at
 d_ff), logits and CP buffers. The QUADRATIC score-storage term is calibrated on a 5090
 (d=512, 6 layers, seq 4096-8192: the model is 15-20% HIGH in materialized mode, 40% low at
@@ -67,12 +67,16 @@ gpu-sim-6bi declared that gap; gpu-sim-4nf attributes it: a torch memory snapsho
 (d=512, 6 layers, seq 8192, flash/SDPA) shows ~70% matmul intermediates (per-layer peak
 2.3x the per-tensor-width estimate: qkv, attention output and FFN pre-activation live
 beyond the 4 named tensors), ~6% cuBLAS workspace, ~24% allocator granularity. Fix: act_factor
-1 -> 2.3 (calibrated). No new model term. The flash path is now calibrated (factor 2.3) and
-is no longer a lower bound; the linear residual term remains an upper bound at small seq.
-Concretely at 8B/seq8192: the FSDP row is 50.8 GB modelled (~56-63 GB with the measured flash
-factor, still 20-30% under 80 GB), but the tp=2 cp=4 row is 68.5 GB modelled (~71-72 GB,
-within 10% of the limit) and should be treated as borderline. Anything the model puts within
-~25% of the limit belongs in that borderline set. Everything else in the feasibility column is arithmetic on
+1 -> 2.3. It is a FIT AT ONE SHAPE, not a law: it bundles tensor intermediates (~70% of the
+gap) with allocator granularity (~24%) and a constant cuBLAS workspace (~6%). The tensor
+part alone would be ~1.9x, and the allocator share is shape-dependent, so at another shape
+the model can be 20% either side. It also over-charges the non-flash path, where factor 1
+was already 15-20% high: with 2.3 that path is ~29% high, which is immaterial only because
+the S^2 score term dominates there whenever seq is large (12.9 of 13.2 GB at the calibration
+shape), so a materialized 8B run is infeasible either way. Concretely at 8B/seq8192 with
+flash on: the FSDP row is 50.8 GB modelled and the tp=2 cp=4 row is 68.5 GB modelled, i.e.
+within 15% of the 80 GB limit and therefore BORDERLINE -- anything the model puts within
+~25% of the limit belongs in that set. Everything else in the feasibility column is arithmetic on
 bytes that do not depend on the device. What IS validated on this host: the
 per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
 gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model
