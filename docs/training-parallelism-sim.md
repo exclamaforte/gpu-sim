@@ -25,9 +25,12 @@ that decides it is inside the model's error. With the uncalibrated activation fa
 FSDP survives 16384 at 48.7 GB and wins outright at 164.71 ms, which pushes S_best to 32768
 on BOTH paths. gpu-sim-54m now reads hw["act_factor"] in score() (so 1.0 vs 2.3 changes the
 memory number) and passes spec_path per row, so its sweep shows S_best=16384 (spec) vs
-32768 (legacy) under act=2.3/crude, and 32768 on both paths under act=1.0. At N=16
-the legacy path gives 65536; the spec path cannot be evaluated beyond N=8 with the 8-rank
-spec and needs specs/h100_rack_4node.json. By seq 65536 (N=8)
+32768 (legacy) under act=2.3/crude, and 32768 on both paths under act=1.0. At N=16 both paths
+agree on 32768 with the shipped factor (65536 at factor 1.0), and at N=8 production-mode
+cp_grad pulls the legacy answer forward to 16384 -- i.e. the sync model moves the threshold
+too, not just memo and path. The 8-rank spec covers N=8 fully and N=16 for all groups; N=32
+RAISES ('rank 16 cannot be placed on spec'), so 32-GPU cells must pass
+specs/h100_rack_4node.json explicitly or they silently fall back to the legacy path. By seq 65536 (N=8)
 only 7 configs are feasible and by 131072 none
 are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
