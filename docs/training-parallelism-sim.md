@@ -34,8 +34,12 @@ every cp>1 row pays a full all-reduce of P/(tp*pp) params over cp ranks (+9 to +
 so cp rows drop well behind FSDP; the winner stays pure FSDP at N=8/16/32 (36.81 ms at N=16,
 18.48 ms at N=32 for 8B/8192). The runner-up at N=8 is now (tp=2, pp=1, cp=1, dp=4, zero=3)
 at 91.37 ms, and the recommendation does not depend on how the cp sync is modelled: with the
-production reduce-scatter variant (cp_grad_mode="production") the tp=2 cp=4 row comes back to
-81.03 ms, still behind FSDP's 73.05 ms. What DOES depend on it is the size of the CP penalty
+production variant (cp_grad_mode="production") the tp=2 cp=4 row comes back to 81.03 ms,
+still behind FSDP's 73.05 ms. That mode is HYPOTHETICAL for now -- it assumes an optimizer
+that never reconstructs the gradient. The harness's reduce-scatter path (gpu-sim-fzd) still
+all-gathers the gradient, so ring-allreduce == reduce-scatter + all-gather: its measured
+traffic equals the crude path byte for byte, and the production figure is unreachable until
+a sharded optimizer exists (gpu-sim-fzd rework). What DOES depend on it is the size of the CP penalty
 (+27.7 ms crude vs +3.5 ms production at tp=2 cp=4), which is why the harness must state
 which sync it does before any CP claim is quoted. gpu-sim-fzd (P2) makes the harness do the
 production sync by default (--cp-grad-sync=reducescatter; crude kept via --cp-grad-sync=allreduce);
