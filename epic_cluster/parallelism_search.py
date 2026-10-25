@@ -48,6 +48,7 @@ class Config:
     compute: float
     tp_comm: float
     cp_comm: float
+    cp_grad: float
     pp_comm: float
     dp_comm: float
     memory_gb: float = 0.0
@@ -256,6 +257,39 @@ def score(tp, pp, cp, dp, zero, hw, m):
             pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
             cp_comm = m["n_layers"] * 2 * pred.total_s
 
+    # CP gradient sync (gpu-sim-olg): 8jg added dist.all_reduce(prm.grad, SUM, cp_group)
+    # then div_(cp) per parameter. Crude: full all-reduce of P/(tp*pp) params over cp
+    # ranks. Production alternative: reduce-scatter the sequence-sharded shards
+    # (~2*(cp-1)/cp * bytes/cp). Harness does crude.
+    cp_grad = 0.0
+    cp_grad_kind = None
+    cp_grad_mode = hw.get("cp_grad_mode", "crude")
+    if cp > 1:
+        grad_bytes = (P / (tp * pp)) * dtype_bytes
+        if cp_grad_mode == "production":
+            msg_bytes = grad_bytes / cp
+            algo = "reducescatter"
+        else:
+            msg_bytes = grad_bytes
+            algo = "allreduce"
+        if spec is not None:
+            group = [((0 * tp + c) * cp + 0) * dp + 0 for c in range(cp)] if False else [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
+            if algo == "allreduce":
+                pred = link_model.predict(spec, "ring_allreduce", int(msg_bytes // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                cp_grad = pred["duration_s"]
+                cp_grad_kind = pred["bottleneck"]["kind"]
+            else:
+                pred = link_model.predict(spec, "ring_reduce_scatter", int(msg_bytes // dtype_bytes), "float32", ranks=group, pieces_per_phase=1)
+                cp_grad = pred["duration_s"]
+                cp_grad_kind = pred["bottleneck"]["kind"]
+        else:
+            if algo == "allreduce":
+                pred = nccl_cost.predict("allreduce", cp, msg_bytes, fabric=fabric)
+            else:
+                pred = nccl_cost.predict("reducescatter", cp, msg_bytes, fabric=fabric)
+            cp_grad = pred.total_s
+            cp_grad_kind = getattr(pred, "kind", None)
+
     # PP comm
     pp_comm = 0.0
     pp_kind = None
@@ -301,18 +335,18 @@ def score(tp, pp, cp, dp, zero, hw, m):
                 pred2 = nccl_cost.predict("allgather", dp, int(param_bytes), fabric=fabric)
                 dp_comm = pred1.total_s + pred2.total_s
 
-    comms = tp_comm + cp_comm + pp_comm + dp_comm
+    comms = tp_comm + cp_comm + cp_grad + pp_comm + dp_comm
     step_compute = compute + bubble
     step_sum = step_compute + comms
     step_max = max(step_compute, comms)
 
-    terms = {"compute": step_compute, "tp": tp_comm, "cp": cp_comm, "pp": pp_comm, "dp": dp_comm}
+    terms = {"compute": step_compute, "tp": tp_comm, "cp": cp_comm, "cp_grad": cp_grad, "pp": pp_comm, "dp": dp_comm}
     dominant = max(terms, key=lambda k: terms[k])
 
     kinds = {"tp": tp_kind, "cp": cp_kind, "pp": pp_kind, "dp": dp_kind}
     if spec is None:
         kinds = {"tp": fabric, "cp": fabric, "pp": fabric, "dp": fabric}
-    return Config(tp, pp, cp, dp, zero, step_sum, step_max, compute, tp_comm, cp_comm, pp_comm, dp_comm,
+    return Config(tp, pp, cp, dp, zero, step_sum, step_max, compute, tp_comm, cp_comm, cp_grad, pp_comm, dp_comm,
                   total_mem_bytes / 1e9, feasible, reason, dominant, kinds,
                   param_bytes/1e9, grad_bytes/1e9, master_bytes/1e9, opt_bytes/1e9,
                   act_bytes/1e9, attn_ws_bytes/1e9, logits_bytes/1e9, cp_buf_bytes/1e9)
