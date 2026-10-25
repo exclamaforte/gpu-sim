@@ -18,7 +18,7 @@ if [[ ! -f "$runsh" ]]; then
     exit 1
 fi
 # GPU-hinted skip rule (gpu-sim-jvs): if run.sh is marked GPU-hinted, skip.
-if grep -qiE "gpu.hinted|gpu-hinted|# *GPU|ts --max-runtime|gpqueue" "$runsh"; then
+if head -n 1 "$runsh" | grep -qi "GPU-HINTED" || grep -qiE "gpu.hinted|gpu-hinted|# *GPU-HINTED|ts --max-runtime|gpqueue" "$runsh"; then
     echo "verify_committed_run: SKIP (GPU-hinted): $bead @ $commit"
     exit 0
 fi

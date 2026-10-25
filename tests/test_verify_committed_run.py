@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Regression test for gpu-sim-jvs: verify_committed_run detects uncommitted deps."""
-import subprocess, os, sys, tempfile
+import subprocess, os, sys, shutil
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT = os.path.join(REPO, "scripts", "verify_committed_run.sh")
@@ -17,16 +17,44 @@ def test_missing_bead_fails():
     assert r.returncode != 0
 
 def test_gpu_hinted_skips():
-    # Create a temp commit with a GPU-hinted run.sh to verify skip rule.
-    # We test by checking a real bead whose run.sh contains a GPU hint.
-    # gpu-sim-4x8 run.sh references ts (gpqueue) -> should skip.
-    r = run(["bash", SCRIPT, "HEAD", "gpu-sim-4x8"])
-    # Either skip (0) or fail (no run.sh) is acceptable; skip is preferred.
-    # Just ensure it doesn't crash.
-    assert r.returncode in (0, 1)
+    branch = "test-jvs-gpuhinted"
+    run(["git", "checkout", "-b", branch])
+    try:
+        os.makedirs(os.path.join(REPO, "experiments", "gpu-sim-gpuhint"), exist_ok=True)
+        with open(os.path.join(REPO, "experiments", "gpu-sim-gpuhint", "run.sh"), "w") as f:
+            f.write("#!/bin/bash\n# GPU-HINTED\nts --max-runtime 10m python3 -c 'print(1)'\n")
+        run(["git", "add", "experiments/gpu-sim-gpuhint/run.sh"])
+        run(["git", "commit", "-m", "test: gpu hinted"])
+        r = run(["bash", SCRIPT, "HEAD", "gpu-sim-gpuhint"])
+        assert r.returncode == 0, r.stderr + r.stdout
+        assert "SKIP" in r.stdout
+    finally:
+        run(["git", "checkout", "lab/gpu-sim-jvs"])
+        run(["git", "branch", "-D", branch])
+        import shutil
+        shutil.rmtree(os.path.join(REPO, "experiments", "gpu-sim-gpuhint"), ignore_errors=True)
+
+def test_uncommitted_dependency_fails():
+    # Create a commit whose run.sh needs an uncommitted file.
+    branch = "test-jvs-uncommitted"
+    run(["git", "checkout", "-b", branch])
+    try:
+        os.makedirs(os.path.join(REPO, "experiments", "gpu-sim-testdep"), exist_ok=True)
+        with open(os.path.join(REPO, "experiments", "gpu-sim-testdep", "run.sh"), "w") as f:
+            f.write("#!/bin/bash\nset -e\ncat experiments/gpu-sim-testdep/MISSING_FILE.txt\n")
+        run(["git", "add", "experiments/gpu-sim-testdep/run.sh"])
+        run(["git", "commit", "-m", "test: uncommitted dep"])
+        # Do NOT commit MISSING_FILE.txt (uncommitted dependency)
+        r = run(["bash", SCRIPT, "HEAD", "gpu-sim-testdep"])
+        assert r.returncode != 0, "expected failure for uncommitted dependency"
+    finally:
+        run(["git", "checkout", "lab/gpu-sim-jvs"])
+        run(["git", "branch", "-D", branch])
+        shutil.rmtree(os.path.join(REPO, "experiments", "gpu-sim-testdep"), ignore_errors=True)
 
 if __name__ == "__main__":
     test_self_contained_passes()
     test_missing_bead_fails()
     test_gpu_hinted_skips()
+    test_uncommitted_dependency_fails()
     print("OK")
