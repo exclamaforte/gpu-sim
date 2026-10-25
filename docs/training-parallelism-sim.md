@@ -45,12 +45,12 @@ times remain modelled -- one 5090 cannot hold Llama-3-8B at any decomposition (t
 own memory column says 68.5 GB for the tp=2 cp=4 row and 32.7 GB for the FSDP row with the
 completed memory model, gpu-sim-6y1). MEMORY FEASIBILITY IS MODELLED, not measured: the
 model now carries params, grads, fp32 master, optimizer, per-tensor activations (FFN at
-d_ff), logits and CP buffers, but its LINEAR residual activation term is still an unvalidated upper bound (torch
-frees buffers during backward). The QUADRATIC score-storage term is now calibrated on a
-5090 at d=512, 6 layers, seq 4096-8192 (materialized mode within ~25-30%; flash/SDPA
-mode shows measured growth exceeding the linear term, so flash-path memory is an upper
-bound between linear and quadratic). A phase-map cell within ~15% of the 80 GB limit may
-still flip when the linear term is calibrated. Everything else in the feasibility column is arithmetic on
+d_ff), logits and CP buffers. The QUADRATIC score-storage term is calibrated on a 5090
+(d=512, 6 layers, seq 4096-8192: the model is 22-32% HIGH in materialized mode). The
+DEFAULT flash/SDPA regime is the opposite direction and is NOT calibrated: the same runs
+put the model's linear term 2.1-2.3x BELOW the measured memory, i.e. a LOWER bound, so a
+phase-map cell the model places within ~15% under the 80 GB limit may be infeasible in
+reality. Closing that gap is gpu-sim-6bi's rework. Everything else in the feasibility column is arithmetic on
 bytes that do not depend on the device. What IS validated on this host: the
 per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
 gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model
