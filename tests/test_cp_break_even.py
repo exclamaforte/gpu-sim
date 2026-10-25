@@ -28,8 +28,15 @@ def test_s_best_legacy_n8_8b():
     assert s_best(path="legacy") == 32768, s_best(path="legacy")
 
 def test_s_best_spec_n8_8b():
-    # Spec/topology path: cp=2 wins at 16384 (200.09 vs 201.98 ms) -> S_best=16384.
-    assert s_best(path="spec") == 16384, s_best(path="spec")
+    # REVISED after the DP-comm audit (gpu-sim-qk9). The original expectation here was
+    # S_best=16384 on the spec path (cp=2 at 200.09 vs cp=1 at 201.98 ms). bf16 DP
+    # payloads + real ZeRO semantics moved the cp=1 rows, and the spec path now agrees
+    # with legacy: cp=1 wins at 16384 and S_best is 32768. Production cp-grad still
+    # pulls it in to 16384 -- asserted separately so the knob keeps its meaning.
+    assert s_best(path="spec") == 32768, s_best(path="spec")
+    assert s_best(path="spec", cp_grad_mode="production") == 16384, \
+        s_best(path="spec", cp_grad_mode="production")
+    assert s_best(path="legacy") == 32768, s_best(path="legacy")
 
 def test_act_factor_override_changes_memory():
     # hw.get('act_factor', ...) must actually affect the memory number.

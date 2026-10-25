@@ -9,26 +9,38 @@ project's premise is the opposite of that, and the draft was wrong.
 Read this first if you are picking the work up from disk rather than from a briefing.
 
 **CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
-recommendation is (tp=1 pp=1 cp=1 dp=8 zero=2): 66.99 ms per step at 8192 and
-428 ms at 32768, never worse than any other split and strictly best under the sum policy.
+recommendation is (tp=1 pp=1 cp=1 dp=8 zero=2): 66.99 ms per step at 8192, strictly
+best under the sum policy there. That config does NOT carry to 32768: at that sequence it
+is memory-infeasible (>80 GB, params are not dp-sharded at zero=2) and the best feasible
+config is (tp=2 pp=1 cp=2 dp=2 zero=2) at 460.46 ms -- so the recommendation is a function
+of sequence, and the 8192 answer is not the 32768 answer.
 Runner-up is (tp=1 pp=1 cp=1 dp=8 zero=3) at 69.02 ms (FSDP, now 2nd after the DP audit). CP does not pay AT SEQ 8192: its
 K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
 not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
 logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear
 activation/logits term, not the quadratic attention term. S_best (smallest seq where the
-overall best FEASIBLE config has cp>1) is NOT a single number at N=8: with the shipped
-activation factor (2.3) FSDP is memory-infeasible at seq 16384 (85.0 GB > 80), so the pivot
-is which surviving config wins, and that depends on the pricing path -- legacy picks the
-cp=1 config (2,1,1,4,3) at 202.11 ms while the spec/topology path picks cp=2 (4,1,2,1) at
-200.09 ms. So S_best is 16384 on the spec path and 32768 on the legacy path, and the 2 ms
-that decides it is inside the model's error. With the uncalibrated activation factor 1.0,
-FSDP survives 16384 at 48.7 GB and wins outright at 164.71 ms, which pushes S_best to 32768
-on BOTH paths. gpu-sim-54m now reads hw["act_factor"] in score() (so 1.0 vs 2.3 changes the
-memory number) and passes spec_path per row, so its sweep shows S_best=16384 (spec) vs
-32768 (legacy) under act=2.3/crude, and 32768 on both paths under act=1.0. At N=16 both paths
-agree on 32768 with the shipped factor (65536 at factor 1.0), and at N=8 production-mode
-cp_grad pulls the legacy answer forward to 16384 -- i.e. the sync model moves the threshold
-too, not just memo and path. The 8-rank spec covers N=8 fully and N=16 for all groups; N=32
+overall best FEASIBLE config has cp>1), re-measured after the DP-comm audit (gpu-sim-qk9)
+on the 8B model at N=8/16/32 and seq 8192..65536:
+
+* crude cp gradient sync, shipped activation factor 2.3: S_best = 32768 at N=8 and N=16,
+  65536 at N=32 (cp=1 wins at every smaller seq).
+* production cp gradient sync (no gradient reconstruction): N=8 comes IN to 16384 (cp=4
+  wins there); N=16 stays 32768; N=32 stays 65536.
+* activation factor 1.0: N=8 32768; N=16 moves OUT to 65536; N=32 never pivots up to
+  65536 (no feasible cp>1 config).
+
+The pricing path NO LONGER MATTERS, and that is a correction of what gpu-sim-54m originally
+reported: before the DP audit the legacy and spec paths disagreed at 16384 (legacy picked
+cp=1 at 202.11 ms, spec picked cp=2 at 200.09 ms, a 2 ms gap inside the model's error), so
+S_best read 16384 spec / 32768 legacy. With bf16 DP payloads and real ZeRO semantics both
+paths now pick cp=1 at 16384 and agree on 32768, and the remaining driver of the threshold
+is the CP gradient-sync model (a cp>1 row saves compute but pays an all-reduce of
+P/(tp*pp) params over cp ranks), not the fabric pricing. FSDP/zero=2 rows still go
+memory-infeasible first (FSDP at act 2.3: 85.0 GB at 16384 > 80), which is why the pivot is
+WHICH surviving config wins rather than whether one exists. gpu-sim-54m's sweep.py now
+asserts the post-qk9 facts (cp=1 on both paths at 16384; S_best 32768 crude both paths,
+16384 under production) so the next model change that moves them breaks the run.
+The 8-rank spec covers N=8 fully and N=16 for all groups; N=32
 RAISES ('rank 16 cannot be placed on spec'), so 32-GPU cells must pass
 specs/h100_rack_4node.json explicitly or they silently fall back to the legacy path. By seq 65536 (N=8)
 only 7 configs are feasible and by 131072 none
@@ -55,7 +67,7 @@ below for the derivation of each number; nothing here is a measured duration.
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
 | calibration | **counts** validated on hardware (gpu-sim-5o4.7): 16 tp all-reduces and 24 cp K/V sends per rank per step match the plan exactly. Byte SIZES are not validated: the harness's tp all-reduce carries a 3d/tp qkv tensor while the cost model assumes Megatron's full-d row-parallel payload, so the model's byte magnitudes are Megatron-form and modelled-only. Absolute durations modelled (gpu-sim-wv2, blocked: needs 2-4 real GPUs). |
-| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner stays pure FSDP (verified by direct re-run: 73.06 ms at S=8192, 428.05 ms at S=32768; compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
+| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) at 66.99 ms and FSDP is second at 69.02 ms, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=2 pp=1 cp=2 dp=2 zero=2) at 460.46 ms (compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
 | rank layout (read before touching groups) | rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank. TP groups are stride cp*dp, PP neighbours keep (tp_rank, cp_rank, dp_rank) fixed. gpu-sim-x7h found tp groups built with stride 1 and no cp term, which silently disabled tp all-reduce on every rank with cp_rank>0; fixed in 4e8d65c. `tools/torch_parallel/validate_trace.py` now refuses a run whose ranks have unequal collective counts (stage-aware, and invalid rows yield no step time). |
 
 THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
@@ -65,16 +77,19 @@ at seq=8192 and +107% at 32768, crossover at seq ~= P/(2*L*d) = 30.6k for 8B/d40
 the invariance. So every pp=1 row reports the same compute -- 51.63 ms weight-only, 64.97 ms
 with attention at seq=8192 -- and the ORDER is decided entirely by the comm terms, not by
 the dominant column, which reads compute everywhere. With the corrected terms (TP 4
-all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the winner is pure FSDP
-(tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms weight-only, 73.06 ms with attention on the spec path and
-73.05 ms on the legacy single-fabric path, the same 0.013 ms path delta as 5o4.5 reported), with tp=2 cp=4
-second at 64.23 ms weight-only. gpu-sim-olg (P1) adds the CP gradient sync (8jg) to the cost model:
-every cp>1 row pays a full all-reduce of P/(tp*pp) params over cp ranks (+9 to +55 ms at cp=2/4),
-so cp rows drop well behind FSDP; the winner stays pure FSDP at N=8/16/32 (36.81 ms at N=16,
-18.48 ms at N=32 for 8B/8192). The runner-up at N=8 is now (tp=2, pp=1, cp=1, dp=4, zero=3)
-at 91.37 ms, and the recommendation does not depend on how the cp sync is modelled: with the
-production variant (cp_grad_mode="production") the tp=2 cp=4 row comes back to 81.03 ms,
-still behind FSDP's 73.05 ms. That mode is HYPOTHETICAL for now -- it assumes an optimizer
+all-reduces per layer per step; CP 2*(cp-1) K/V sends per layer) the ranking is the one in
+section 0, and it was RE-RANKED by the DP-comm audit (gpu-sim-qk9: bf16 payloads, real ZeRO
+semantics, one flat collective per op): (tp=1 pp=1 cp=1 dp=8 zero=2) first at 66.99 ms,
+(tp=1 pp=1 cp=1 dp=8 zero=3, FSDP) second at 69.02 ms, (tp=2 pp=1 cp=1 dp=4 zero=2) third at
+76.50 ms -- all at 8B/8192, attention on, spec path. The pre-audit text quoted FSDP at
+73.06 ms (spec) / 73.05 ms (legacy) and tp=2 cp=4 second; those numbers are superseded, not
+merely rounded, because the audit changed which config WINS. gpu-sim-olg (P1) adds the CP
+gradient sync (8jg) to the cost model: every cp>1 row pays a full all-reduce of P/(tp*pp)
+params over cp ranks, so cp rows drop behind the dp=8 rows; the best cp>1 row at N=8 is
+(4,1,2,1,zero=0) at 79.96 ms. The winner is zero=2 at N=8/16/32 (66.99 / 47.02 / 26.50 ms,
+FSDP zero=3 second at 69.02 / 48.04 / 36.75 ms). The recommendation does not depend on how
+the cp sync is modelled: with the production variant (cp_grad_mode="production") the tp=2 cp=4
+row comes back to 73.12 ms, still behind the winner's 66.99 ms. That mode is HYPOTHETICAL for now -- it assumes an optimizer
 that never reconstructs the gradient. The harness's reduce-scatter path (gpu-sim-fzd) still
 all-gathers the gradient, so ring-allreduce == reduce-scatter + all-gather: its measured
 traffic equals the crude path byte for byte, and the production figure is unreachable until
@@ -90,8 +105,8 @@ still appear in the top-5 by step_sum because several tie at the max-overlap flo
 top-5 includes (4,1,2,1,0) at 93.77 ms with cp_grad 9.24 ms), but none is strictly better than
 FSDP. See experiments/gpu-sim-olg/top5.json. But ALL 24 feasible pp=1 configurations have identical
 max-overlap time (64.97 ms with attention; 22 of 24 at 51.63 ms weight-only, where two rows'
-comm exceeded the floor) while their SUM spans 73.06-129.62 ms with attention (59.71-98.80
-ms weight-only): under full overlap the
+comm exceeded the floor) while their SUM spans 66.99-113.59 ms with attention at N=8 (the pre-audit span
+73.06-129.62 ms superseded by gpu-sim-qk9): under full overlap the
 model cannot separate them at all. Numbers in this section are weight-only unless labelled;
 gpu-sim-i95 regenerates every table with the attention term. gpu-sim-5o4.5 quantified the
 overlap question on the merged search: the min-comm config (pure FSDP) is the unique winner

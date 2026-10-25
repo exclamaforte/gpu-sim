@@ -67,12 +67,24 @@ for path in ("legacy", "spec"):
             summary[key] = thr
             print(f"done {key}")
 
-# Assert legacy and spec differ at 16384 for N=8/8B under default knobs (act=2.3, crude)
+# REVISED after the DP-comm audit (gpu-sim-qk9, 2026-10-25). The original assertion
+# here encoded 54m's headline: at 16384 under default knobs (act=2.3, crude) the legacy
+# path picks a cp=1 config while the spec path picks cp>1, so S_best was path-dependent
+# (16384 spec vs 32768 legacy). After bf16 DP payloads + real ZeRO semantics the two
+# paths AGREE: both pick cp=1 at 16384 and both put S_best at 32768. The remaining
+# driver is the cp gradient-sync mode, not the pricing path -- production pulls N=8
+# in to 16384. Assert the CURRENT fact, so the next model change breaks this line
+# again instead of silently rewriting the doc.
 leg = summary["path=legacy_cpgrad=crude_act=2.3"]["N8_8b"]["cells"][16384]["best"]
 spec = summary["path=spec_cpgrad=crude_act=2.3"]["N8_8b"]["cells"][16384]["best"]
-assert leg["cp"] == 1, f"legacy cp at 16384 should be 1, got {leg['cp']}"
-assert spec["cp"] > 1, f"spec cp at 16384 should be >1, got {spec['cp']}"
-print(f"ASSERT OK: legacy cp={leg['cp']} (FSDP) vs spec cp={spec['cp']} at 16384")
+assert leg["cp"] == 1, f"legacy cp at 16384 should be 1 after qk9, got {leg['cp']}"
+assert spec["cp"] == 1, f"spec cp at 16384 should be 1 after qk9, got {spec['cp']}"
+sb = {k: v["N8_8b"]["S_best"] for k, v in summary.items() if "N8_8b" in v}
+assert sb["path=legacy_cpgrad=crude_act=2.3"] == 32768, sb
+assert sb["path=spec_cpgrad=crude_act=2.3"] == 32768, sb
+assert sb["path=spec_cpgrad=production_act=2.3"] == 16384, sb
+print(f"ASSERT OK (post-qk9): cp=1 on BOTH paths at 16384; S_best 32768 crude on both, "
+      f"16384 under production cp-grad")
 
 # Save compact
 compact = {}
