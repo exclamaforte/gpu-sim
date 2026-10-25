@@ -32,11 +32,11 @@ second at 64.23 ms weight-only. But ALL 24 feasible pp=1 configurations have ide
 max-overlap time (64.97 ms with attention; 22 of 24 at 51.63 ms weight-only, where two rows'
 comm exceeded the floor) while their SUM spans 59.71-98.80 ms: under full overlap the
 model cannot separate them at all. Numbers in this section are weight-only unless labelled;
-gpu-sim-i95 regenerates every table with the attention term.
-model cannot separate 22 configurations at all. gpu-sim-5o4.5 quantified it on the merged
+gpu-sim-i95 regenerates every table with the attention term. gpu-sim-5o4.5 quantified the
+overlap question on the merged search: the min-comm config (pure FSDP) is the unique winner
+for overlap fraction f < 0.25,
 then TIES with a growing set (2 at f=0.25, 7 at f=0.55, 22 at f=1) at the 51.626 ms weight-only
-compute
-floor; no other config is ever strictly better and there are no rank swaps. The same
+compute floor; no other config is ever strictly better and there are no rank swaps. The same
 result holds on the legacy single-fabric path and the spec/topology path (59.708 vs
 59.721 ms), so it does not depend on which pricing path produced the table. Absolute step
 times remain modelled -- one 5090 cannot hold Llama-3-8B at any decomposition (the search's
