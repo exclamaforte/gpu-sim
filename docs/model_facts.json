@@ -8,45 +8,45 @@
     "N8": {
       "winner": {
         "config": [
-          2,
-          1,
           4,
+          1,
+          2,
           1,
           0
         ],
-        "step_ms": 88.22,
-        "mem_gb": 70.8
+        "step_ms": 79.96,
+        "mem_gb": 37.5
       },
       "top3": [
         {
           "config": [
-            2,
-            1,
-            4,
-            1,
-            0
-          ],
-          "step_ms": 88.22
-        },
-        {
-          "config": [
             4,
             1,
             2,
             1,
             0
           ],
-          "step_ms": 88.91
+          "step_ms": 79.96
         },
         {
           "config": [
-            2,
+            8,
             1,
-            2,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 83.46
+        },
+        {
+          "config": [
+            4,
+            1,
+            1,
             2,
             2
           ],
-          "step_ms": 96.88
+          "step_ms": 84.67
         }
       ],
       "fsdp_zero3_row": {
@@ -57,16 +57,26 @@
     "N16": {
       "winner": {
         "config": [
-          1,
           4,
+          2,
+          2,
           1,
-          4,
-          2
+          0
         ],
-        "step_ms": 59.34,
-        "mem_gb": 21.6
+        "step_ms": 58.69,
+        "mem_gb": 18.9
       },
       "top3": [
+        {
+          "config": [
+            4,
+            2,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 58.69
+        },
         {
           "config": [
             1,
@@ -86,16 +96,6 @@
             3
           ],
           "step_ms": 59.34
-        },
-        {
-          "config": [
-            1,
-            2,
-            1,
-            8,
-            2
-          ],
-          "step_ms": 62.18
         }
       ]
     },
@@ -134,26 +134,26 @@
         },
         {
           "config": [
-            1,
+            2,
+            4,
             4,
             1,
-            8,
             0
           ],
-          "step_ms": 51.51
+          "step_ms": 49.25
         }
       ]
     }
   },
   "fsdp_mem_16384_gb": 85.0,
   "legacy_path_steps": {
-    "8192": 105.66,
-    "16384": 220.78,
-    "32768": 562.37
+    "8192": 93.77,
+    "16384": 204.51,
+    "32768": 506.03
   },
   "spec_path_steps": {
-    "16384": 188.82,
-    "32768": 491.25
+    "16384": 181.15,
+    "32768": 463.59
   },
   "dp8_rows": {
     "zero=2": {
@@ -167,84 +167,82 @@
       "dp_comm_ms": 32.33
     }
   },
-  "tp_scale_3_over_tp": {
-    "N8": {
+  "tp_payload_winners": {
+    "four_d_N8": {
       "config": [
-        8,
-        1,
-        1,
-        1,
-        0
-      ],
-      "step_ms": 73.02,
-      "tp_comm_ms": 8.06
-    },
-    "N16": {
-      "config": [
-        8,
-        2,
-        1,
-        1,
-        0
-      ],
-      "step_ms": 54.06,
-      "tp_comm_ms": 8.06
-    },
-    "N32": {
-      "config": [
-        8,
         4,
         1,
+        2,
         1,
         0
       ],
-      "step_ms": 47.42,
-      "tp_comm_ms": 8.06
+      "step_ms": 79.96
+    },
+    "four_d_N16": {
+      "config": [
+        4,
+        2,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 58.69
+    },
+    "four_d_N32": {
+      "config": [
+        1,
+        4,
+        1,
+        8,
+        2
+      ],
+      "step_ms": 47.46
+    },
+    "megatron_N8": {
+      "config": [
+        2,
+        1,
+        4,
+        1,
+        0
+      ],
+      "step_ms": 88.22
+    },
+    "megatron_N16": {
+      "config": [
+        1,
+        4,
+        1,
+        4,
+        2
+      ],
+      "step_ms": 59.34
+    },
+    "megatron_N32": {
+      "config": [
+        1,
+        4,
+        1,
+        8,
+        2
+      ],
+      "step_ms": 47.46
     }
-  },
-  "tp_harness_steps": {
-    "8192": {
-      "step_ms": 73.02,
-      "cp": 1
-    },
-    "16384": {
-      "step_ms": 170.93,
-      "cp": 1
-    },
-    "32768": {
-      "step_ms": 446.8,
-      "cp": 1
-    },
-    "65536": {
-      "step_ms": 1318.72,
-      "cp": 1
-    }
-  },
-  "megatron_set_ratio": 2.25,
-  "megatron_set_n8": {
-    "config": [
-      2,
-      1,
-      4,
-      1,
-      0
-    ],
-    "step_ms": 88.22
   },
   "seq32768": {
     "best_config": [
-      2,
+      4,
       1,
       2,
-      2,
-      2
+      1,
+      0
     ],
-    "best_step_ms": 491.25,
+    "best_step_ms": 463.59,
     "dp8_zero2_feasible": false
   },
   "s_best": {
-    "path=legacy,cp_grad=crude,act=2.3,N=8": 12288,
-    "path=legacy,cp_grad=crude,act=1.0,N=8": 12288,
+    "path=legacy,cp_grad=crude,act=2.3,N=8": 8192,
+    "path=legacy,cp_grad=crude,act=1.0,N=8": 8192,
     "path=legacy,cp_grad=production,act=2.3,N=8": 8192,
     "path=legacy,cp_grad=production,act=1.0,N=8": 8192,
     "path=spec,cp_grad=crude,act=2.3,N=8": 8192,
@@ -255,7 +253,7 @@
   "compute_floor_8192_ms": 64.97,
   "compute_floor_32768_ms": 419.96,
   "llama3-70b_N32_seq32768_nconfigs": 161,
-  "llama3-70b_N32_seq32768_step_s": 1.97,
+  "llama3-70b_N32_seq32768_step_s": 1.55,
   "llama3-70b_N32_seq32768_mem_gb": 60.6,
   "llama3-70b_N32_seq32768_nfeasible": 6,
   "llama3-70b_N32_seq32768_config": [
@@ -287,14 +285,14 @@
           "logits": 0.26
         },
         "best_config": [
-          2,
-          1,
           4,
+          1,
+          2,
           1,
           0
         ],
-        "best_step_ms": 88.22,
-        "best_mem_gb": 70.81
+        "best_step_ms": 79.96,
+        "best_mem_gb": 37.53
       },
       "N16": {
         "n_ranks": 16,
@@ -316,14 +314,14 @@
           "logits": 0.26
         },
         "best_config": [
-          1,
           4,
+          2,
+          2,
           1,
-          4,
-          2
+          0
         ],
-        "best_step_ms": 59.34,
-        "best_mem_gb": 21.55
+        "best_step_ms": 58.69,
+        "best_mem_gb": 18.91
       }
     },
     "qwen2.5-32b": {
@@ -367,14 +365,14 @@
           "logits": 0.31
         },
         "best_config": [
-          1,
-          8,
-          1,
+          4,
           2,
-          2
+          2,
+          1,
+          0
         ],
-        "best_step_ms": 210.03,
-        "best_mem_gb": 54.46
+        "best_step_ms": 204.34,
+        "best_mem_gb": 76.15
       }
     },
     "llama2-34b": {

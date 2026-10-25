@@ -111,49 +111,23 @@ def compute_facts():
                             "dp_comm_ms": round(c.dp_comm * 1e3, 2)}
     facts["dp8_rows"] = dp8
 
-    # 1d) TP-payload sensitivity: the winner under the harness convention (3d/tp).
-    # Section 0 quotes both answers because the ranking is conditional on this term.
-    facts["tp_scale_3_over_tp"] = {}
-    for N in (8, 16, 32):
-        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[N],
-              "cp_grad_mode": "crude", "act_factor": ACT_FACTOR,
-              "tp_payload": "harness"}
-        m = dict(M8)
-        m["seq"] = 8192
-        _, f = ps.search(N, hw, m)
-        b = f[0]
-        facts["tp_scale_3_over_tp"][f"N{N}"] = {
-            "config": [b.tp, b.pp, b.cp, b.dp, b.zero],
-            "step_ms": round(b.step_sum * 1e3, 2),
-            "tp_comm_ms": round(b.tp_comm * 1e3, 2),
-        }
-
-    # 1e) the harness-payload column's S_best argument: cp=1 wins at every sequence,
-    # so "when does CP pay" inverts with the TP payload convention.
-    facts["tp_harness_steps"] = {}
-    for S in (8192, 16384, 32768, 65536):
-        mm = dict(M8)
-        mm["seq"] = S
-        hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[8],
-              "cp_grad_mode": "crude", "act_factor": ACT_FACTOR,
-              "tp_payload": "harness"}
-        _, ff = ps.search(8, hw, mm)
-        b = ff[0]
-        facts["tp_harness_steps"][str(S)] = {"step_ms": round(b.step_sum * 1e3, 2),
-                                            "cp": b.cp}
-
-    # 1f) Megatron's actual per-layer payload set (2d + 2d_ff = 2.25x the model's 4xd):
-    # the winner moves back to cp but at a different tp.
-    _d, _dff = M8["d_model"], M8["d_ff"]
-    facts["megatron_set_ratio"] = round((2 * _d + 2 * _dff) / (4 * _d), 2)
-    hw_ms = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[8],
-             "cp_grad_mode": "crude", "act_factor": ACT_FACTOR,
-             "tp_bytes_scale": facts["megatron_set_ratio"]}
-    mm = dict(M8)
-    mm["seq"] = 8192
-    _, fms = ps.search(8, hw_ms, mm)
-    facts["megatron_set_n8"] = {"config": [fms[0].tp, fms[0].pp, fms[0].cp, fms[0].dp, fms[0].zero],
-                                "step_ms": round(fms[0].step_sum * 1e3, 2)}
+    # 1d) TP payload conventions (gpu-sim-6wd): four_d is what the harness MEASURED
+    # (B*seq*d per all-reduce, identical at tp=2 and tp=4); megatron's real set carries
+    # d_ff on the MLP all-reduce (2.25x for 8B) and is unmeasured. Section 0 quotes both.
+    facts["tp_payload_winners"] = {}
+    for mode in ("four_d", "megatron"):
+        for N in (8, 16, 32):
+            hw = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": SPEC[N],
+                  "cp_grad_mode": "crude", "act_factor": ACT_FACTOR,
+                  "tp_payload": mode}
+            mm = dict(M8)
+            mm["seq"] = 8192
+            _, ff = ps.search(N, hw, mm)
+            b = ff[0]
+            facts["tp_payload_winners"][f"{mode}_N{N}"] = {
+                "config": [b.tp, b.pp, b.cp, b.dp, b.zero],
+                "step_ms": round(b.step_sum * 1e3, 2),
+            }
 
     # 2) seq 32768: the dp=8 zero=2 config must be infeasible, and name the best feasible
     _, feas32k = search(8, seq=32768)
@@ -311,12 +285,8 @@ def allowed_decimals(facts):
         add(v)
     for v in facts.get("spec_path_steps", {}).values():
         add(v)
-    add(facts["megatron_set_n8"]["step_ms"])
-    for v in facts.get("tp_harness_steps", {}).values():
+    for v in facts["tp_payload_winners"].values():
         add(v["step_ms"])
-    for v in facts.get("tp_scale_3_over_tp", {}).values():
-        add(v["step_ms"])
-        add(v["tp_comm_ms"])
     for v in facts.get("dp8_rows", {}).values():
         for k in ("step_ms", "mem_gb", "dp_comm_ms"):
             add(v[k])

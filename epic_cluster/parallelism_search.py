@@ -235,23 +235,37 @@ def score(tp, pp, cp, dp, zero, hw, m):
         bubble = compute * (pp - 1) / (micro_batches + pp - 1)
 
     # TP comm
-    # tp_bytes_scale: the TP all-reduce payload is MODELLED, not measured. The model
-    # assumes Megatron's row-parallel full-d payload (d elements per rank); the
-    # harness actually reduces a 3d/tp qkv tensor, i.e. 3/tp of that (gpu-sim-oez).
-    # 1.0 = Megatron choice, 3/tp = harness choice. Exposed so the SENSITIVITY of the
-    # published recommendation to this unvalidated term can be measured instead of
-    # argued (the DP term taught that lesson the hard way: gpu-sim-qk9 / 6r5).
-    # TP payload convention (gpu-sim-6wd): named list of 4 per-layer all-reduces.
-    # Megatron row-parallel: [d, d_ff, d, d_ff] (avg scale (1+d_ff/d)/2 = 2.25 for 8B).
-    # Harness (3d/tp qkv): [3d/tp, 3d/tp, 3d/tp, 3d/tp].
-    # Four-d: [d, d, d, d].
-    tp_payload_mode = hw.get("tp_payload", "megatron")
+    # TP payload convention (gpu-sim-6wd): a NAMED list of the 4 per-layer all-reduces,
+    # as multiples of d elements per rank per token. Which list is right is the last
+    # unmeasured load-bearing assumption in this model (it decides the winner), so the
+    # list is explicit and switchable rather than a magic scale factor.
+    #
+    #   four_d            [d, d, d, d]  -- what this model has always priced, and what
+    #                                       the harness MEASURED: its TP all-reduce moved
+    #                                       B*seq*d elements per call, B=8, seq=512, d=256
+    #                                       = 1048576, IDENTICAL at tp=2 and tp=4 (i.e.
+    #                                       d per token per rank, tp-independent).
+    #   megatron          [d, d_ff, d, d_ff] -- Megatron's real row-parallel set: the MLP
+    #                                       down-projection all-reduce carries d_ff, not d.
+    #                                       For 8B that is 2.25x the four_d set.
+    #   harness_3d_over_tp [3d/tp x4]  -- the convention inherited from gpu-sim-oez, now
+    #                                       REFUTED by the measurement above (a 3d/tp
+    #                                       payload would have halved between tp=2 and tp=4;
+    #                                       it did not). Kept so the refutation is
+    #                                       reproducible, not for use.
+    #
+    # Default four_d: it is the only one with a measurement behind it. NOTE the harness
+    # also runs fp32 (4 B/elem) where this model prices bf16, so compare ELEMENT COUNTS
+    # with the harness, not bytes.
+    tp_payload_mode = hw.get("tp_payload", "four_d")
     if tp_payload_mode == "harness":
         tp_scales = [3.0 / tp] * 4
-    elif tp_payload_mode == "four_d":
-        tp_scales = [1.0] * 4
-    else:  # megatron (default)
+    elif tp_payload_mode == "harness_3d_over_tp":
+        tp_scales = [3.0 / tp] * 4
+    elif tp_payload_mode == "megatron":
         tp_scales = [1.0, m["d_ff"] / d, 1.0, m["d_ff"] / d]
+    else:  # four_d (default)
+        tp_scales = [1.0] * 4
     tp_comm = 0.0
     tp_kind = None
     if tp > 1:
