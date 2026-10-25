@@ -15,12 +15,19 @@ Runner-up is (tp=2, pp=1, cp=1, dp=4, zero=3) at 91.37 ms. CP does not pay AT SE
 K/V ring plus the cp gradient sync cost more than the compute it shards. That is seq-specific,
 not general: as sequence grows, FSDP becomes MEMORY-infeasible first (its activations and
 logits are not sharded by dp) and a cp>1 config takes over -- the driver is the linear
-activation/logits term, not the quadratic attention term. The global S_best (smallest seq where
-the overall best config has cp>1) is 32768 on BOTH fabric paths at N=8 (legacy: 32768; spec:
-32768) -- the paths agree. A within-group comparison at seq 16384 does show the spec path
-pricing cp=2 (4,1,2,1) at 200.09 ms vs cp=1 (2,1,1,4) at 201.98 ms, but FSDP (1,1,1,8)
-at 164.71 ms is still the global winner there, so it does not move S_best. The 2 ms
-difference is inside the model's error. At N=16 both paths agree on 65536. By seq 65536 (N=8)
+activation/logits term, not the quadratic attention term. S_best (smallest seq where the
+overall best FEASIBLE config has cp>1) is NOT a single number at N=8: with the shipped
+activation factor (2.3) FSDP is memory-infeasible at seq 16384 (85.0 GB > 80), so the pivot
+is which surviving config wins, and that depends on the pricing path -- legacy picks the
+cp=1 config (2,1,1,4,3) at 202.11 ms while the spec/topology path picks cp=2 (4,1,2,1) at
+200.09 ms. So S_best is 16384 on the spec path and 32768 on the legacy path, and the 2 ms
+that decides it is inside the model's error. With the uncalibrated activation factor 1.0,
+FSDP survives 16384 at 48.7 GB and wins outright at 164.71 ms, which pushes S_best to 32768
+on BOTH paths. gpu-sim-54m's sweep reports 32768 everywhere because neither of its knobs is
+effective: score() does not read hw["act_factor"] (memory is 85.0 GB for {} and for
+{"act_factor": 1.0}) and its two path columns are byte-identical (bead reopened). At N=16
+the legacy path gives 65536; the spec path cannot be evaluated beyond N=8 with the 8-rank
+spec and needs specs/h100_rack_4node.json. By seq 65536 (N=8)
 only 7 configs are feasible and by 131072 none
 are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
