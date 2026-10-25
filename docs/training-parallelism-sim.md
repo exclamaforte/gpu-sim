@@ -26,12 +26,17 @@ everywhere. With the corrected terms (TP 4 all-reduces per layer per step; CP 2*
 sends per layer) the winner is pure FSDP (tp=1 pp=1 cp=1 dp=8 zero=3, 59.71 ms), with
 tp=2 cp=4 second at 64.23 ms. But 22 of the 24 feasible pp=1 configurations have IDENTICAL
 max-overlap time (51.63 ms) while their SUM spans 59.71-98.80 ms: under full overlap the
-model cannot separate 22 configurations at all. Conditional advice until gpu-sim-5o4.5
-quantifies it: use pure FSDP if comm does not overlap compute; otherwise this model does
-not resolve the choice. Absolute step times remain modelled -- one 5090 cannot hold
-Llama-3-8B at any decomposition (the search's own memory column says 50.4 GB for the cp=4
-row), so the only quantity validated on this host is per-rank collective BYTES AND COUNTS
-(gpu-sim-5o4.4), never wall time.
+model cannot separate 22 configurations at all. gpu-sim-5o4.5 quantified it on the merged
+search: the min-comm config (pure FSDP) is the unique winner for overlap fraction f < 0.25,
+then TIES with a growing set (2 at f=0.25, 7 at f=0.55, 22 at f=1) at the 51.626 ms compute
+floor; no other config is ever strictly better and there are no rank swaps. The same
+result holds on the legacy single-fabric path and the spec/topology path (59.708 vs
+59.721 ms), so it does not depend on which pricing path produced the table. Absolute step
+times remain modelled -- one 5090 cannot hold Llama-3-8B at any decomposition (the search's
+own memory column says 50.4 GB for the cp=4 row). What IS validated on this host: the
+per-rank collective COUNTS (16 tp all-reduces and 24 cp K/V sends per rank per step,
+gpu-sim-5o4.7). What is NOT: the byte SIZES (harness reduces a 3d/tp qkv tensor, the model
+assumes Megatron's full-d payload -- gpu-sim-oez) and wall time, ever.
 
 ## 1. Premise
 
