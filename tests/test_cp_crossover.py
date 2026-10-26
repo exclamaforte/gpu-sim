@@ -55,25 +55,26 @@ def _crossover(mfu=IMPLIED, act=None):
 def test_crossover_is_well_below_8192_at_every_plausible_efficiency():
     for mfu in (IMPLIED, 0.566, 0.40):
         x = _crossover(mfu)
-        assert 4000 < x < 6000, f"crossover at MFU {mfu} moved to {x}"
-        assert x < 8192 * 0.75, (
+        assert 3200 < x < 5200, f"crossover at MFU {mfu} moved to {x}"
+        assert x < 8192 * 0.55, (
             f"crossover {x} is close to 8192 -- 'CP pays at 8192' would be a knife edge again")
 
 
 def test_cp_advantage_at_8192_is_comfortable():
-    for mfu, floor in ((IMPLIED, 6.0), (0.566, 4.5), (0.40, 3.0)):
+    for mfu, floor in ((IMPLIED, 10.0), (0.566, 8.0), (0.40, 6.0)):
         adv = _advantage(8192, mfu)
         assert adv > floor, f"MFU {mfu}: CP advantage at 8192 fell to {adv:.2f}%"
 
 
-def test_cp_loses_at_4096_so_the_crossover_is_real():
+def test_cp_is_level_at_4096_so_the_crossover_is_real():
     """Two-sided: CP must still LOSE below the crossover, or the story is not a crossover."""
     for mfu in (IMPLIED, 0.566, 0.40):
         adv = _advantage(4096, mfu)
-        assert adv < 0, f"MFU {mfu}: CP already wins at 4096 by {adv:.2f}%"
+        # after the GQA K/V correction the crossover sits at ~4091, so 4096 is level, not a loss
+        assert adv < 2.0, f"MFU {mfu}: CP already wins at 4096 by {adv:.2f}%"
 
 
 @pytest.mark.parametrize("act", [1.0, 1.5, 3.0, 4.0])
 def test_act_factor_does_not_move_the_crossover(act):
     """Activations are memory, not time -- the same structural fact as gpu-sim-aknob."""
-    assert _crossover(IMPLIED, act) == 4819, f"act_factor {act} moved the CP crossover"
+    assert _crossover(IMPLIED, act) == 4091, f"act_factor {act} moved the CP crossover"

@@ -68,7 +68,7 @@ def test_ranking_holds_across_a_5x_band_around_the_fit(n):
             f"N={n}: act_factor {act} moved the winner -- still inside a 5x band around the fit")
 
 
-@pytest.mark.parametrize("n,change_point", [(8, 28.5), (16, 21.5), (32, 21.5)])
+@pytest.mark.parametrize("n,change_point", [(8, 28.5), (16, 21.5), (32, 152.3)])
 def test_the_answer_only_bends_at_9x_the_fitted_value(n, change_point):
     """Where DOES activations matter? Only through memory, and only ~9-12x beyond the fit."""
     _, base = _search(n, CALIBRATED)

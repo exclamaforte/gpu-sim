@@ -40,9 +40,13 @@ def test_implied_mfu_is_seventy_six_and_a_half_percent():
         f"compute term implies {implied:.3f} of dense peak, not {MODEL_IMPLIED_MFU}")
 
 
-@pytest.mark.parametrize("n", [8, 16, 32])
+@pytest.mark.parametrize("n", [8, 32])
 def test_winner_shape_is_invariant_to_mfu(n):
-    """Measured 5090 (0.566) and a pessimistic H100 training (0.40) must not move the winner."""
+    """Measured 5090 (0.566) and a pessimistic H100 training (0.40) must not move the winner.
+
+    N=16 is excluded deliberately: after the GQA K/V correction (gpu-sim-kvcp) its winner DOES move
+    with efficiency, from (2,2,4,1) to (2,1,8,1) -- see test_n16_answer_has_a_measured_crossover.
+    """
     shapes = {}
     for mfu in (MODEL_IMPLIED_MFU, 0.566, 0.40):
         _, feasible = ps.search(n, _hw(mfu, n), ps.MODEL)
@@ -72,20 +76,19 @@ def test_margin_never_collapses_for_the_robust_answers(n):
 
 
 def test_n16_answer_has_a_measured_crossover():
-    """'No TP at N=16' is a near-tie: it holds only above ~0.349 MFU (gpu-sim-mfum)."""
-    def wins_without_tp(mfu):
+    """At N=16 the model does not pick a stable answer: it is a tie with a crossover near MFU 0.40."""
+    def shape_at(mfu):
         _, feas = ps.search(16, _hw(mfu, 16), ps.MODEL)
-        return feas[0].tp == 1
+        b = feas[0]
+        return (b.tp, b.pp, b.cp, b.dp, b.zero)
 
-    assert wins_without_tp(0.765), "the published answer must hold at the model's own efficiency"
-    assert wins_without_tp(0.40), "and at a pessimistic-but-plausible H100 efficiency"
-    assert not wins_without_tp(0.30), "below the crossover TP returns -- the answer is a near-tie"
-
-    lo, hi = 0.25, 0.40
-    for _ in range(20):
-        mid = (lo + hi) / 2
-        if wins_without_tp(mid):
-            hi = mid
-        else:
-            lo = mid
-    assert hi == pytest.approx(0.349, abs=0.005), f"crossover moved to {hi:.3f}"
+    shapes = {mfu: shape_at(mfu) for mfu in (0.765, 0.566, 0.40, 0.30)}
+    assert len(set(shapes.values())) >= 2, (
+        f"N=16 now has one stable answer {shapes} -- the tie documented in section 0 is gone")
+    # and every one of those choices wins by almost nothing
+    for mfu in (0.765, 0.566, 0.40):
+        _, feas = ps.search(16, _hw(mfu, 16), ps.MODEL)
+        b = feas[0]
+        alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != (b.tp, b.pp, b.cp, b.dp))
+        margin = 100 * (alt.step_sum / b.step_sum - 1)
+        assert margin < 2.5, f"N=16 at MFU {mfu} is no longer a tie: {margin:.2f}%"
