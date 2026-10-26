@@ -65,7 +65,23 @@ def compute_facts():
     import subprocess, json as _json
     _rad = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sensitivity_radius.py"), "--json"],
                           capture_output=True, text=True, check=True)
+    # gpu-sim-cpgqa: measured convention gap between the model's ring CP and the harness's all_gather CP.
+    def _gap(seq, kv, name):
+        rows = [json.loads(l) for l in open(os.path.join(ROOT, "experiments", "gpu-sim-cpgqa", name))
+                if l.strip()]
+        counts = {}
+        for r in rows:
+            if r["op"] == "allgather" and r["rank"] == 0:
+                counts[r["bytes"]] = counts.get(r["bytes"], 0) + 1
+        size = [b for b, n in counts.items() if n == 4][0]      # 2 layers x (K,V)
+        return round(size / ((seq // 2) * kv * 4), 4)
+
+    _cp_gap = {"seq512_kv256": _gap(512, 256, "cp2gqa.jsonl"),
+               "seq256_kv256": _gap(256, 256, "cp2s256.jsonl"),
+               "seq512_kv1024": _gap(512, 1024, "cp2gqa8.jsonl")}
+
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
+             "cp_convention_gap": _cp_gap,
              "sensitivity_radius": _json.loads(_rad.stdout),
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
              "pricing_path": "spec/topology", "rank_by": "sum", "rows": {}}
@@ -563,6 +579,9 @@ def allowed_decimals(facts):
     for v in facts["s_best"].values():
         if v is not None:
             add(v)
+    for v in facts["cp_convention_gap"].values():
+        add(v)
+        add(round(v, 2))
     for row in facts["sensitivity_radius"].values():
         for key in ("flip_cp", "flip_pp"):
             if row.get(key) is not None:

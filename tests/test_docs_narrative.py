@@ -97,6 +97,18 @@ def test_radius_sentence_reflects_gqa_availability():
     assert "counterpart" in para, "the paragraph must say the decisive parameter has a counterpart"
 
 
+def test_convention_gap_sentence_carries_the_measured_ratio_and_the_consequence():
+    """gpu-sim-cpgqa: the CP convention gap is measured, and it exceeds the radius."""
+    gaps = list(FACTS["cp_convention_gap"].values())
+    para = _para("the convention gap is 1.99x")
+    for g in gaps:
+        assert f"{g:.2f}x" in para, f"the paragraph does not carry the measured gap {g:.2f}x"
+    radius = FACTS["sensitivity_radius"]["N8_seq8192"]["flip_cp"]
+    assert min(gaps) > radius, (
+        f"the measured gap {min(gaps):.2f}x is now inside the radius {radius}: re-derive the doc claim")
+    assert "conditional" in para, "the paragraph must state that the verdict is conditional on convention"
+
+
 def test_radius_sentence_carries_the_flip_factors():
     """Both verdicts must publish how wrong their decisive term can be."""
     rad = FACTS["sensitivity_radius"]

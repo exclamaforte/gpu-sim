@@ -144,6 +144,16 @@ be checked: `tools/torch_parallel` supports grouped-query attention (--n-kv-head
 `kv_dim = n_kv_heads x head_dim = 1024` -- the quantity the CP term is proportional to -- has a
 counterpart in the harness (gpu-sim-g8wc). The PP bubble remains unmeasured.
 
+**And that check was run the next hour: the convention gap is 1.99x, which is bigger than the radius.**
+Three frozen cp=2 traces (experiments/gpu-sim-cpgqa) give the same answer at kv_dim 256 and 1024 and at
+half the sequence: the harness gathers the FULL-sequence K/V on every rank and moves **1.99x** what the
+model's ring exchange prices (1.99x and 1.98x respectively). Ring and all_gather are both legitimate --
+one ships shards, the other replicates -- but **1.99x sits outside the 1.56x radius** of the N=8 verdict.
+If the deployed stack uses the all_gather convention, the model understates CP by more than the error it
+would take to overturn "TP+CP is right at 8 GPUs". Which convention production uses is not something this
+repository can answer: the recommendation is **conditional** on that choice, and the document should say
+so rather than quote a single margin.
+
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
 instrumented measurement and the model itself calls it "unvalidated for exact fit", so it deserved
 the same suspicion. It turns out not to be a time knob at all: activations enter MEMORY, while the CP
