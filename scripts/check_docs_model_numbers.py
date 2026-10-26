@@ -61,7 +61,12 @@ def search(N, seq=8192, path="spec", cpg="crude", act=ACT_FACTOR, peak=None):
 
 
 def compute_facts():
+    # gpu-sim-radius: how wrong the un-checkable terms can be before the answer changes.
+    import subprocess, json as _json
+    _rad = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sensitivity_radius.py"), "--json"],
+                          capture_output=True, text=True, check=True)
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
+             "sensitivity_radius": _json.loads(_rad.stdout),
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
              "pricing_path": "spec/topology", "rank_by": "sum", "rows": {}}
 
@@ -558,6 +563,12 @@ def allowed_decimals(facts):
     for v in facts["s_best"].values():
         if v is not None:
             add(v)
+    for row in facts["sensitivity_radius"].values():
+        for key in ("flip_cp", "flip_pp"):
+            if row.get(key) is not None:
+                add(row[key])
+                add(round(row[key], 2))
+                add(round(row[key], 1))
     return vals
 
 

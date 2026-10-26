@@ -9,8 +9,8 @@ project's premise is the opposite of that, and the draft was wrong.
 Read this first if you are picking the work up from disk rather than from a briefing.
 
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
-CP cost scaled by k in [0, 5.65] and PP cost by any k (never flips). CP -- the least-verified
-term -- tolerates a 5.6x overestimate before the answer becomes tp=1 pp=8; it never flips on an
+CP cost scaled by k in [0, 1.5566] and PP cost by any k (never flips). CP -- the least-verified
+term -- tolerates a 1.56x overestimate before the answer becomes tp=1 pp=8; it never flips on an
 underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
@@ -123,12 +123,23 @@ N=8 now comfortably, N=32 by a thinner but real margin. (These numbers are produ
 register below, not typed by hand; when the CP payload was corrected to the GQA K/V width the N=8
 margin roughly doubled while N=32 lost its old 4-14% cushion.)
 
-**N=16 is not a verdict at any efficiency.** The leading answer wins by **5.09%** at the model's
-implied 76.5%, **3.55%** at the measured 56.6% and **2.23%** at 40% -- and the winner itself changes
-with efficiency, (tp=2 pp=2 cp=4 dp=1) giving way to (tp=2 pp=1 cp=8 dp=1) as MFU drops. So at 16 GPUs
-on one node this model does not distinguish the candidates, and any config quoted for N=16 must carry
-that caveat. At N=8 the same question is decided by 6.10-6.45%, which is why "TP+CP is right at 8" is
-a much stronger claim than anything this document can say about 16.
+**N=16 became a verdict when the PP payload was priced correctly, and N=32 stopped being one.**
+At 16 GPUs the answer is (tp=1 pp=16 cp=1 dp=1) -- a two-layers-per-GPU pipeline with no data
+parallelism at all -- and it is the SAME config at 76.5%, 56.6% and 40% (5.09% / 3.55% / 2.23%), so it
+is stable rather than a near-tie. At 32 GPUs the margins are 5.32% / 4.18% / 3.12% at seq 8192, but the
+31k/32k cells fall to 1.15% / 1.13% / 0.10%: the model cannot separate the candidates there.
+
+**Decisiveness depends on sequence length at least as much as on GPU count.** At 8 GPUs the headline
+answer is decided by 6.45% / 8.06% / 6.10% at seq 8192 and 1.65% / 1.27% / 0.93% at 32768, but seq 16384
+is a tie (0.10% / 0.08% / 0.06%). Any statement of the form "TP+CP is right at 8" is therefore a
+statement about seq 8192 and 32768, not about 8 GPUs in general.
+
+**How wrong would the decisive term have to be?** The N=8 verdict is decided by the CP term, which the
+harness cannot check by construction; the N=16 verdict is decided by the PP bubble, which no measurement
+covers. Re-running the production model with that one term scaled, the N=8 answer is unchanged for CP
+error up to **1.56x** (and 4.73x at seq 32768), and the N=16 answer for PP-bubble error up to **1.90x**.
+Those are the honest confidence bounds on the two verdicts: one term error of that size overturns the
+answer, and a 4x CP error has already been found on this axis once.
 
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
 instrumented measurement and the model itself calls it "unvalidated for exact fit", so it deserved
@@ -136,7 +147,8 @@ the same suspicion. It turns out not to be a time knob at all: activations enter
 term prices a ring exchange of K/V chunks and the DP/TP terms price parameters and messages, so
 sweeping act_factor 1.0 to 12.0 -- a 5x band around the fit -- leaves every step time bit-identical
 and every winner unmoved at N=8, 16 and 32. It bites only as a memory ceiling, and only far outside
-the fitted value: the ranking first bends at act_factor ~28.5 (N=8) and ~20.9 (N=16, N=32), i.e. 9-12x
+the fitted value: the ranking first bends at act_factor ~28.5 (N=8) and never bends at all below 200 at N=16 and
+N=32, i.e. 9-12x
 the calibrated number, and the model stops being feasible at all beyond ~36 / ~82 / ~174. The
 recommendation therefore does not rest on this fit
 (tests/test_act_factor_knob.py).
@@ -821,7 +833,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
 | CP byte accounting | **UNVALIDATED** | harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; different algorithms, not reconciled by construction | tests/test_cp_payload_structure.py |
-| CP cost robustness radius (N=8) | **STRUCTURAL** | winner unchanged for CP cost scaled by k in [0, 5.65]; never flips below; PP never flips | tests/test_sensitivity_radius.py |
+| CP cost robustness radius (N=8) | **STRUCTURAL** | winner unchanged for CP cost scaled by k in [0, 1.5566]; never flips below; PP never flips | tests/test_sensitivity_radius.py |
 | Absolute communication durations | **UNVALIDATED** | rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU | no test possible here |
 
 <!-- CLAIMS-REGISTER:END -->

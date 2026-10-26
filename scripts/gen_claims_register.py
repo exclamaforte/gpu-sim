@@ -71,6 +71,7 @@ def render(facts):
     cross = facts["cp_crossover"]
     head = facts["headroom_sensitivity"]["grid"]["N16_seq32768"]
     apc = facts["alpha_piece_charging"]
+    sr = facts["sensitivity_radius"]
 
     rows = [
         _row(f"N=8 winner {_cfg(facts['rows']['N8']['winner']['config'])}, seq 8192",
@@ -131,7 +132,7 @@ def render(facts):
              "different algorithms, not reconciled by construction",
              "tests/test_cp_payload_structure.py"),
         _row("CP cost robustness radius (N=8)", "STRUCTURAL",
-             "winner unchanged for CP cost scaled by k in [0, 5.65]; never flips below; "
+             f"winner unchanged for CP cost scaled by k in [0, {sr['N8_seq8192']['flip_cp']}]; never flips below; "
              "PP never flips",
              "tests/test_sensitivity_radius.py"),
         _row("Absolute communication durations", "UNVALIDATED",
