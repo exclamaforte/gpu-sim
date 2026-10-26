@@ -120,3 +120,28 @@ Consequence for the boundary this project cares about, 405B x 80 GPUs (5.07e9 pa
 
 Which means "does 405B fit on 80 GPUs" is a question about the optimizer implementation AND the moment
 precision, not about the hardware alone -- and the honest model answer names both.
+
+## The GQA check: 1.25x transfers, alpha does NOT (measure_ckpt_gqa.py)
+
+Llama-3 is GQA, not MHA, so the calibration the model charges (alpha=0.67, 1.25x) was measured on the wrong
+attention type. Measured on a GQA block (d=2048, 16 heads, 2 KV heads, hd=128, SwiGLU ff=8192, 8 layers,
+SDPA with enable_gqa):
+
+| seq | time ratio | peak retained | implied alpha |
+|---|---|---|---|
+| 2048 | 1.241 | **0.824** | 0.176 |
+| 4096 | 1.257 | **0.580** | 0.420 |
+| 8192 | 1.265 | **0.406** | 0.594 |
+
+Two conclusions:
+* **The 1.25x time charge transfers** (1.241-1.265 across three sequence lengths, same as MHA). That number is
+  safe to keep.
+* **alpha does not.** At seq 8192 GQA retains 0.406 (alpha 0.594), not the 0.332 (alpha 0.67) the MHA
+  measurement gave; and the sequence dependence is much steeper than the MHA numbers suggested. At seq 2048 a
+  single alpha=0.67 says the model keeps 0.33 where the rig keeps 0.82 -- an OPTIMISTIC error of 0.49 in the
+  retained fraction, i.e. it under-predicts memory exactly where a small model at short sequence would look
+  comfortably feasible.
+
+So the constant is fine at the one operating point the bead was validated on (seq 8192, where 0.406 vs 0.332
+still leaves the recorded acceptance intact) and wrong elsewhere in the optimistic direction. The honest fix is
+alpha(seq) or a table, not a constant.
