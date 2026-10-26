@@ -1,0 +1,26 @@
+diff --git i/epic_cluster/parallelism_search.py w/epic_cluster/parallelism_search.py
+index f547089..c37a6f2 100644
+--- i/epic_cluster/parallelism_search.py
++++ w/epic_cluster/parallelism_search.py
+@@ -363,7 +363,11 @@ def score(tp, pp, cp, dp, zero, hw, m):
+     pp_kind = None
+     if pp > 1:
+         microbatches = max(pp, 1)
+-        act_size = seq * d * dtype_bytes
++        # gpu-sim-ppcp: the pipeline sends the LOCAL activation chunk. CP split the sequence
++        # across cp ranks before PP stages hand off, so the tensor on the wire is (seq/cp) x d,
++        # not seq x d. Using the full sequence overstated PP traffic by cp for every config
++        # with both pp>1 and cp>1 -- the same species of width error as gpu-sim-kvcp.
++        act_size = (seq / cp) * d * dtype_bytes
+         if spec is not None:
+             def stage_rank(i):
+                 return (((i * tp + 0) * cp + 0) * dp + 0)
+@@ -501,7 +505,7 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
+     # PP send/recv
+     if pp > 1:
+         microbatches = max(pp, 1)
+-        act_size = seq * d * dtype_bytes
++        act_size = (seq / cp) * d * dtype_bytes   # CP-local chunk (gpu-sim-ppcp)
+         out["pp_sendrecv"] += microbatches * 2 * (pp - 1) * act_size
+ 
+     # DP/FSDP
