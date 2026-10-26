@@ -12,6 +12,7 @@ Every caveat this project has established still applies and is printed with the 
   * absolute durations are bounded to 1.28-1.69x by measurement, not predictions.
 
 Usage: python3 scripts/scaleout_answers.py [--json] [--nodes 10,100,1000]
+       [--recompute 0.0..1.0] [--models llama3-8b,llama3-70b,llama3-405b]
 """
 from __future__ import annotations
 
@@ -83,9 +84,10 @@ MAX_TP = 8          # TP needs NVLink-class all-to-all per layer; one node is th
                     # (the raw search will happily return tp=16 across nodes -- that is a model artefact)
 
 
-def answer(spec: dict, model: dict, n: int, cp_scale: float, batch: int = 1) -> dict | None:
+def answer(spec: dict, model: dict, n: int, cp_scale: float, batch: int = 1,
+            recompute: float = 0.0) -> dict | None:
     hw = {"peak_flops": PEAK, "mem_gb": HBM_GB, "spec": spec, "term_scale": {"cp": cp_scale},
-          "batch": batch}
+          "batch": batch, "recompute": recompute}
     _, feas = ps.search(n, hw, model)
     # Two constraints the raw search does not apply, both of which remove configs no one would run:
     #   tp <= 8   : beyond a node, TP's per-layer all-to-all crosses the NIC
@@ -110,18 +112,30 @@ def main() -> int:
     nodes_list = [10, 100, 1000]
     if "--nodes" in sys.argv:
         nodes_list = [int(x) for x in sys.argv[sys.argv.index("--nodes") + 1].split(",")]
+    # gpu-sim-hz3u: sweep the activation-recompute knob (float 0.0..1.0, default 0.0,
+    # so every published number is bit-identical; 1.0 = full checkpointing, measured
+    # 1.25x compute and 0.45x retained activations -- see experiments/gpu-sim-recompute/).
+    recompute = 0.0
+    if "--recompute" in sys.argv:
+        recompute = float(sys.argv[sys.argv.index("--recompute") + 1])
+        assert 0.0 <= recompute <= 1.0, f"recompute must be in [0, 1], got {recompute}"
+    want = None
+    if "--models" in sys.argv:
+        want = set(sys.argv[sys.argv.index("--models") + 1].split(","))
+    models = {k: v for k, v in MODELS.items() if want is None or k in want}
     out = {}
     batches = [1, 8]          # 1 = every published number; 8 = a realistic per-rank micro-batch
     for nodes in nodes_list:
         n = nodes * 8
         spec = build_spec(nodes)
         out[f"{nodes}x8"] = {"n_gpus": n, "models": {}}
-        for name, model in MODELS.items():
+        for name, model in models.items():
             out[f"{nodes}x8"]["models"][name] = {}
             for batch in batches:
                 for cname, scale in CONVENTIONS.items():
                     key = cname if batch == 1 else f"{cname}, batch={batch}"
-                    out[f"{nodes}x8"]["models"][name][key] = answer(spec, model, n, scale, batch)
+                    out[f"{nodes}x8"]["models"][name][key] = answer(spec, model, n, scale,
+                                                                      batch, recompute)
     if "--json" in sys.argv:
         print(json.dumps(out, indent=2))
         return 0

@@ -171,6 +171,58 @@ def compute_facts():
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
              "pricing_path": "spec/topology", "rank_by": "sum", "rows": {}}
 
+    # gpu-sim-hz3u: the 405B matrix with FULL activation recompute, under the measured knob
+    # (float 1.0: keep 1-0.67 of activations, 1.25x compute -- experiments/gpu-sim-recompute/).
+    # Default stays 0.0, so every number above is untouched; these facts record the
+    # sensitivity, not a revision.
+    _sof = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "scaleout_answers.py"),
+                           "--nodes", "10,100,1000", "--models", "llama3-405b",
+                           "--recompute", "1.0", "--json"],
+                          capture_output=True, text=True, check=True)
+    _full = _json2.loads(_sof.stdout)
+
+    def _sof_cell(fabric, conv):
+        return _full[fabric]["models"]["llama3-405b"][conv]
+
+    def _row(cell):
+        if cell is None:
+            return {"feasible": False}
+        return {"feasible": True, "config": cell["config"],
+                "step_s": cell["step_s"], "margin_pct": cell["margin_pct"],
+                "mem_gb": cell["mem_gb"]}
+
+    facts["recompute_sensitivity_405b"] = {
+        "setting": ("float 0.0..1.0, default 0.0; 1.0 keeps (1-0.67) of activations + "
+                    "1.25x compute (measured, experiments/gpu-sim-recompute/)"),
+        "feasible_80_full": _sof_cell("10x8", "default all_gather") is not None,
+        "winner_800_full": {c: _row(_sof_cell("100x8", c))
+                              for c in ("ring all_to_all", "default all_gather")},
+        "winner_8000_full": {c: _row(_sof_cell("1000x8", c))
+                               for c in ("ring all_to_all", "default all_gather")},
+    }
+
+    # gpu-sim-hz3u acceptance cell (one GPU-count, one batch, both settings, same model on
+    # both sides so the comparison carries the same time charge): 70B at 80 GPUs, batch=32.
+    # With no recompute this must reproduce the old pp=4 row; with full recompute the model
+    # must stop buying pipeline stages and buy data parallelism instead (pure FSDP).
+    from scripts.scaleout_answers import build_spec as _build_spec
+    from scripts.scaleout_answers import MODELS as _SO_MODELS
+    _spec10 = _build_spec(10)
+    _r70 = {}
+    for _rec in (0.0, 1.0):
+        _res, _feas = ps.search(80, {"peak_flops": PEAK, "mem_gb": 80.0, "spec": _spec10,
+                                     "term_scale": {"cp": 1.9922}, "batch": 32,
+                                     "recompute": _rec}, _SO_MODELS["llama3-70b"])
+        _feas = [c for c in _feas if c.tp <= 8 and c.pp <= _SO_MODELS["llama3-70b"]["n_layers"]]
+        _b = _feas[0]
+        _a = next(c for c in _feas
+                  if (c.tp, c.pp, c.cp, c.dp) != (_b.tp, _b.pp, _b.cp, _b.dp))
+        _r70[str(_rec)] = {"config": f"tp={_b.tp} pp={_b.pp} cp={_b.cp} dp={_b.dp} zero={_b.zero}",
+                           "step_s": round(_b.step_sum, 3),
+                           "margin_pct": round(100 * (_a.step_sum / _b.step_sum - 1), 2),
+                           "mem_gb": round(_b.memory_gb, 1)}
+    facts["recompute_70b_b32_80"] = _r70
+
     # gpu-sim-wv2 (partial): the compute term divides FLOPs by peak with no efficiency
     # factor. Record the implied MFU and the step at a measured (0.566) and pessimistic
     # (0.40) efficiency, so the doc can quote them and the numbers are reproducible here.
@@ -682,6 +734,23 @@ def allowed_decimals(facts):
     for _k, _v in facts["scaleout"].items():
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
+    # gpu-sim-hz3u: every with-recompute number the paragraph quotes -- 405B winners at
+    # 800/8000 (ms with one decimal, margins/mems as stored) and the 70B/batch-32
+    # acceptance cell at 80 GPUs, both settings (steps quoted in seconds as stored,
+    # plus ms, margins, mems).
+    _rs = facts.get("recompute_sensitivity_405b", {})
+    for _w in (_rs.get("winner_800_full", {}), _rs.get("winner_8000_full", {})):
+        for _row in _w.values():
+            if _row.get("feasible"):
+                add(round(1000 * _row["step_s"], 1))
+                add(_row["step_s"])
+                add(_row["margin_pct"])
+                add(_row["mem_gb"])
+    for _row in facts.get("recompute_70b_b32_80", {}).values():
+        add(round(1000 * _row["step_s"], 1))
+        add(_row["step_s"])
+        add(_row["margin_pct"])
+        add(_row["mem_gb"])
     for _n_rows in facts["micro_batches_sensitivity"].values():
         for _row in _n_rows.values():
             add(_row["step_ms"])

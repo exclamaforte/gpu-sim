@@ -66,7 +66,13 @@ over 80 GPUs is 5.06e9 parameters per GPU however you decompose them -- 70.9 GB 
 single activation. Recomputation cannot close a gap that size; only more GPUs (7.1 GB of the same state at
 800) or lower-precision optimizer states, which this model does not support, can. At 800 GPUs the binding
 term does become activations, which is why the answer there wants pp=100 (2.58%) and why recomputation is
-the right next modelling step -- for that regime, not for 80 GPUs. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
+the right next modelling step -- for that regime, not for 80 GPUs. The knob now exists in the model:
+hw['recompute'] is a float 0.0..1.0, default 0.0, keeping (1 - 0.67*recompute) of the stored activations and
+charging 1.25x compute when fully on -- both numbers measured on this host's 5090
+(experiments/gpu-sim-recompute/), not cited. The 0.67 is the seq-8192 value on an MHA block; a GQA re-measure
+(commit 03ad3e4) gives 0.594 there and 0.176 at seq 2048, so short-seq recompute fits need their own
+calibration (gpu-sim-4qcx). The knob changes no published number: it defaults off, and for 405B the 80-GPU
+verdict is unchanged. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is

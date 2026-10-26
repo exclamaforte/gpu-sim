@@ -113,6 +113,33 @@ def test_scaleout_paragraph_carries_the_computed_answers():
         "the paragraph must carry the computed optimizer floor at 80 GPUs")
     assert "recomputation cannot close a gap" in para.lower(), (
         "the paragraph must say recomputation is not the fix at this scale")
+    # gpu-sim-hz3u: the paragraph states the knob setting each number assumes and carries the
+    # acceptance cell (70B/batch-32/80-GPU both settings) plus the 405B-full confirmation.
+    rs = FACTS["recompute_sensitivity_405b"]
+    assert "hw['recompute']" in para and "default 0.0" in para, (
+        "the paragraph must state the knob and which setting the quoted rows assume")
+    assert rs["feasible_80_full"] is False, (
+        "405B is feasible at 80 GPUs with full recompute: something is shimming optimizer state")
+    r70 = FACTS["recompute_70b_b32_80"]
+    assert r70["0.0"]["config"] == "tp=1 pp=4 cp=1 dp=20 zero=3", (
+        "no-recompute 70B/batch-32/80-GPU winner moved: re-derive the paragraph")
+    assert r70["1.0"]["config"] == "tp=1 pp=1 cp=1 dp=80 zero=3", (
+        "full-recompute 70B/batch-32/80-GPU is not pure FSDP: the memory term is not seeing the knob")
+    assert r70["1.0"]["step_s"] > 2.474, "full-recompute step must exceed the chargeless proxy 2.474 s"
+    for tag in ("0.0", "1.0"):
+        row = r70[tag]
+        assert f"{row['step_s']:.3f}" in para, f"paragraph missing 70B/batch-32 step {row['step_s']:.3f}"
+        assert f"{row['margin_pct']:.2f}%" in para, f"paragraph missing 70B/batch-32 margin {row['margin_pct']}"
+        assert f"{row['mem_gb']:.1f} GB" in para, f"paragraph missing 70B/batch-32 mem {row['mem_gb']}"
+    for fab in ("winner_800_full", "winner_8000_full"):
+        for conv, row in rs[fab].items():
+            assert row["feasible"], f"405B {fab} {conv} infeasible under full recompute: rewrite the paragraph"
+            assert f"{row['step_s']:.3f}" in para, f"paragraph missing 405B-full step {row['step_s']:.3f}"
+    # gpu-sim-hz3u close: the paragraph names the optimizer style the rows price and the measured
+    # alternative, in the same byte convention as the floor -- one mechanism, not two.
+    assert "16 B/param" in para, "the paragraph must name the all-in byte convention the rows price"
+    assert "bf16 AdamW" in para, "the paragraph must name the measured plain-bf16 optimizer style"
+    assert "gpu-sim-scup" in para, "the paragraph must point at the bead that owns the boundary move"
 
 
 def test_bubble_default_is_stated_as_pessimistic_and_winners_are_stable():

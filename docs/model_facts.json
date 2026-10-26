@@ -548,6 +548,56 @@
       ]
     }
   },
+  "recompute_sensitivity_405b": {
+    "setting": "float 0.0..1.0, default 0.0; 1.0 keeps (1-0.67) of activations + 1.25x compute (measured, experiments/gpu-sim-recompute/)",
+    "feasible_80_full": false,
+    "winner_800_full": {
+      "ring all_to_all": {
+        "feasible": true,
+        "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+        "step_s": 0.138,
+        "margin_pct": 6.67,
+        "mem_gb": 65.9
+      },
+      "default all_gather": {
+        "feasible": true,
+        "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+        "step_s": 0.18,
+        "margin_pct": 2.42,
+        "mem_gb": 65.9
+      }
+    },
+    "winner_8000_full": {
+      "ring all_to_all": {
+        "feasible": true,
+        "config": "tp=8 pp=40 cp=25 dp=1 zero=0",
+        "step_s": 0.063,
+        "margin_pct": 1.02,
+        "mem_gb": 20.4
+      },
+      "default all_gather": {
+        "feasible": true,
+        "config": "tp=8 pp=40 cp=25 dp=1 zero=0",
+        "step_s": 0.092,
+        "margin_pct": 0.6,
+        "mem_gb": 20.4
+      }
+    }
+  },
+  "recompute_70b_b32_80": {
+    "0.0": {
+      "config": "tp=1 pp=4 cp=1 dp=20 zero=3",
+      "step_s": 2.515,
+      "margin_pct": 0.53,
+      "mem_gb": 56.3
+    },
+    "1.0": {
+      "config": "tp=1 pp=1 cp=1 dp=80 zero=3",
+      "step_s": 2.639,
+      "margin_pct": 14.35,
+      "mem_gb": 69.2
+    }
+  },
   "mfu_sensitivity": {
     "implied_0.786": {
       "mfu": null,

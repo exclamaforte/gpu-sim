@@ -131,9 +131,20 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # states in fp32. flash_attn (default True) avoids O(S^2) score storage.
     mixed_precision = hw.get("mixed_precision", True)
     flash_attn = hw.get("flash_attn", True)
-    # recompute knob reduces activation term (gpu-sim-ooj): none=store all,
-    # selective=recompute attention (store residuals only), full=recompute all.
-    recompute = hw.get("recompute", "none")
+    # recompute knob (gpu-sim-hz3u): float 0.0..1.0, default 0.0. 0 = keep all
+    # activations, 1 = full per-layer checkpointing (keep only layer boundaries).
+    # Legacy strings "none"/"full" map to 0.0/1.0 so older callers
+    # (experiments/gpu-sim-6bi/calibrate.py passes "none") keep working bit-identically;
+    # anything else, including the retired ooj "selective", raises -- one knob, not two APIs.
+    _rec = hw.get("recompute", 0.0)
+    if isinstance(_rec, str):
+        if _rec not in ("none", "full"):
+            raise ValueError(
+                f"hw['recompute']={_rec!r} retired (gpu-sim-hz3u): use float 0.0..1.0")
+        _rec = 0.0 if _rec == "none" else 1.0
+    recompute = float(_rec)
+    if not 0.0 <= recompute <= 1.0:
+        raise ValueError(f"hw['recompute'] must be in [0, 1], got {recompute!r}")
     # gpu-sim-qk9: DP/FSDP comm audit knobs
     dp_dtype_str = "bfloat16" if hw.get("dp_dtype", "bf16") == "bf16" else "float32"
     dp_count_mode = hw.get("dp_count_mode", "flat")  # "flat" or "per_param"
@@ -189,18 +200,28 @@ def score(tp, pp, cp, dp, zero, hw, m):
     d_ff_tp = m["d_ff"] // tp
     # per-tensor widths: residual(d) + attn_out(d) + ffn_intermediate(d_ff) + ffn_out(d)
     per_token_width = 3 * d_tp + d_ff_tp
-    if recompute == "none":
-        act_factor = 2.3   # calibrated (gpu-sim-4nf): instrumented per-layer peak shows ~2.3x the per-tensor-width estimate (matmul intermediates, gradients in backward)
-        layers_act = layers_per_stage
-    elif recompute == "selective":
-        act_factor = 0.5   # residuals only; attention recomputed
-        layers_act = layers_per_stage
-    else:  # full
-        act_factor = 1.0
-        layers_act = 1.0   # only one layer's activations live at a time
-    # gpu-sim-54m: allow hw to override the activation factor (default: recompute-based)
+    # gpu-sim-4nf calibration: instrumented per-layer peak shows ~2.3x the per-tensor-width
+    # estimate (matmul intermediates, gradients in backward).
+    act_factor = 2.3
+    # gpu-sim-54m: allow hw to override the activation factor
     act_factor = hw.get("act_factor", act_factor)
-    act_bytes = layers_act * seq_per_cp * dtype_bytes * per_token_width * act_factor
+    # recompute scales the STORED activation term (gpu-sim-hz3u): retained fraction
+    # (1 - ALPHA*recompute) with ALPHA = 0.67, from MEASUREMENT not citation -- full
+    # per-block checkpointing on the lab 5090 retains 0.33 at seq 8192 (alpha 0.67) and
+    # 0.49 at seq 4096 same width (experiments/gpu-sim-recompute/; the 0.63 wide-model row
+    # is weights-contaminated, see that README). ALPHA is constant at the seq-8192 operating
+    # point of every grid this bead touches; it OVERSTATES the saving at shorter sequence
+    # (model keeps 0.33 where the rig keeps 0.49 at seq 4096 -- optimistic direction, so do
+    # not quote short-seq recompute fits without refitting). A seq-dependent fit on two
+    # clean points was considered and rejected as overfit. NOTE on the value: the 0.55
+    # fallback under-predicts retention at seq 8192 (model keeps 0.45, rig keeps 0.33) and
+    # provably misses this bead's falsifiable target -- with 0.55 the 70B/batch-32/80-GPU
+    # cell picks pp=2 at 2.25% margin instead of the measured (1,1,1,80,3) at ~10.6%.
+    # 0.67 is the top of the measured 0.5..0.67 range and the seq-8192 value, and it hits it.
+    # Applies to act_bytes only -- logits, CP ring buffers and the (flash-disabled)
+    # attention workspace are not checkpointed activations.
+    act_retained = 1.0 - 0.67 * recompute
+    act_bytes = layers_per_stage * seq_per_cp * dtype_bytes * per_token_width * act_factor * act_retained
 
     # attention workspace (scores): [heads/tp, seq/cp, seq] if not flash
     if flash_attn:
@@ -240,13 +261,14 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # Ring assumption: local queries attend all keys (gathered via ring).
     attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (tp * pp * cp * dp) * batch
     flops_per_gpu = flops_per_gpu + attn_flops
-    # recompute knob
-    recompute = hw.get("recompute", "none")
-    if recompute == "full":
-        flops_per_gpu = flops_per_gpu + (6 * (P / (tp * pp)) * tokens_per_gpu) + attn_flops
-    elif recompute == "selective":
-        flops_per_gpu = flops_per_gpu + attn_flops
+    # recompute time charge (gpu-sim-hz3u): full per-layer checkpointing MEASURED at
+    # 1.24-1.27x step time on the lab 5090 (experiments/gpu-sim-recompute/, MHA stack,
+    # per-block checkpointing -- the 1.33x forward-FLOP rule is slightly pessimistic, so the
+    # model charges the measured 1.25x, scaled linearly: compute *= (1 + 0.25*recompute).
+    # Applied to the compute term only; comm terms are untouched. The PP bubble derives from
+    # stage compute time, so it scales with it -- a recomputed stage is slower to drain.
     compute = flops_per_gpu / peak
+    compute *= 1.0 + 0.25 * recompute
     # PP bubble (GPipe): idle time, NOT FLOPs. Kept out of `compute` so the
     # compute term stays invariant across pp splits (gpu-sim-i95 conservation).
     bubble = 0.0
