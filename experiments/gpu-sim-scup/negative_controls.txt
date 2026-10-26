@@ -1,0 +1,9 @@
+# gpu-sim-scup v2 negative controls: new/updated assertions vs the pre-knob code.
+# Run: source reverted to HEAD in scratch (cp aside, git show HEAD:...), then the tests.
+# Result: 3 failed, 1 passed.
+#   FAILED test_style_peak_totals_match_the_rig_table (old code ignores keys: no delta)
+#   FAILED test_fused_and_default_differ_in_composition_not_just_total (no mem_temps_gb split)
+#   FAILED test_unknown_style_or_peak_raises_instead_of_silently_pricing_fp32 (no ValueError)
+#   PASSED test_default_is_fp32_master_and_bit_identical_at_every_peak_mode (by design)
+# Narrative extension fails pre-regen with KeyError 'scaleout_opt' (facts carry the verdict).
+# v1 branch (lab/gpu-sim-scup-v1design @ 32e1c94, pre-a5ro 2-style design) archived, not deleted.

@@ -85,9 +85,11 @@ MAX_TP = 8          # TP needs NVLink-class all-to-all per layer; one node is th
 
 
 def answer(spec: dict, model: dict, n: int, cp_scale: float, batch: int = 1,
-            recompute: float = 0.0) -> dict | None:
+            recompute: float = 0.0, opt_state: str = "fp32_master",
+            opt_peak: str = "default") -> dict | None:
     hw = {"peak_flops": PEAK, "mem_gb": HBM_GB, "spec": spec, "term_scale": {"cp": cp_scale},
-          "batch": batch, "recompute": recompute}
+          "batch": batch, "recompute": recompute,
+          "opt_state": opt_state, "opt_peak": opt_peak}
     _, feas = ps.search(n, hw, model)
     # Two constraints the raw search does not apply, both of which remove configs no one would run:
     #   tp <= 8   : beyond a node, TP's per-layer all-to-all crosses the NIC
@@ -119,6 +121,14 @@ def main() -> int:
     if "--recompute" in sys.argv:
         recompute = float(sys.argv[sys.argv.index("--recompute") + 1])
         assert 0.0 <= recompute <= 1.0, f"recompute must be in [0, 1], got {recompute}"
+    # gpu-sim-scup: sweep the optimizer-style knob (both default to fp32_master +
+    # default peak, i.e. today's behaviour, so the default matrix is bit-identical).
+    opt_state = "fp32_master"
+    if "--opt-state" in sys.argv:
+        opt_state = sys.argv[sys.argv.index("--opt-state") + 1]
+    opt_peak = "default"
+    if "--opt-peak" in sys.argv:
+        opt_peak = sys.argv[sys.argv.index("--opt-peak") + 1]
     want = None
     if "--models" in sys.argv:
         want = set(sys.argv[sys.argv.index("--models") + 1].split(","))
@@ -135,7 +145,8 @@ def main() -> int:
                 for cname, scale in CONVENTIONS.items():
                     key = cname if batch == 1 else f"{cname}, batch={batch}"
                     out[f"{nodes}x8"]["models"][name][key] = answer(spec, model, n, scale,
-                                                                      batch, recompute)
+                                                                      batch, recompute,
+                                                                      opt_state, opt_peak)
     if "--json" in sys.argv:
         print(json.dumps(out, indent=2))
         return 0

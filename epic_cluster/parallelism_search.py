@@ -70,6 +70,7 @@ class Config:
     mem_grads_gb: float = 0.0
     mem_master_gb: float = 0.0
     mem_opt_gb: float = 0.0
+    mem_temps_gb: float = 0.0
     mem_act_gb: float = 0.0
     mem_attn_ws_gb: float = 0.0
     mem_logits_gb: float = 0.0
@@ -147,6 +148,35 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # states in fp32. flash_attn (default True) avoids O(S^2) score storage.
     mixed_precision = hw.get("mixed_precision", True)
     flash_attn = hw.get("flash_attn", True)
+    # optimizer style (gpu-sim-scup): the 405B feasibility verdict belongs to the
+    # style, so it is an explicit choice, priced from MEASUREMENT not constants.
+    # Rig table (experiments/gpu-sim-recompute/measure_opt_styles.py + fused-peak
+    # runs): totals in B/param, peak is what OOMs and what feasibility prices.
+    #   bf16_moments: plain bf16 AdamW, no master. steady 6.0 (params 2 + bf16
+    #     moments 4), peak 10.0 (+ bf16 grads 2 + fused-step temps 2).
+    #   fp32_moments: AMP-style fp32 params + fp32 moments. steady 12.0 (params 4
+    #     + moments 8), peak 20.0 default (+ grads 2 + impl temps 6) / 16.0 fused
+    #     (+ grads 2 + temps 2). The default-impl temps (6) is the remainder of
+    #     the measured 20 after the accounted components, not an independent
+    #     measurement; the fused temps (2) match the bf16 row's.
+    #   fp32_master: the legacy flat 14 (master 4 + moments 8 + grads 2) at EVERY
+    #     peak mode. It approximates fp32_moments steady state plus a 2 B/param
+    #     margin and UNDERESTIMATES peak -- kept so the default path is
+    #     bit-identical to every published number.
+    # opt_peak: 'default' prices peak with the default impl, 'fused' with the
+    # fused impl, 'none' prices steady state only and is OPTIMISTIC (a scheduler
+    # is limited by peak). Unknown styles/modes raise instead of silently pricing
+    # fp32_master: ignoring an unknown key would publish the wrong regime's answer.
+    _OPT_STYLES = ("bf16_moments", "fp32_moments", "fp32_master")
+    _OPT_PEAKS = ("default", "fused", "none")
+    opt_state = hw.get("opt_state", "fp32_master")
+    if opt_state not in _OPT_STYLES:
+        raise ValueError(f"hw['opt_state']={opt_state!r} unknown (gpu-sim-scup): "
+                         f"expected one of {_OPT_STYLES}")
+    opt_peak = hw.get("opt_peak", "default")
+    if opt_peak not in _OPT_PEAKS:
+        raise ValueError(f"hw['opt_peak']={opt_peak!r} unknown (gpu-sim-scup): "
+                         f"expected one of {_OPT_PEAKS}")
     # recompute knob (gpu-sim-hz3u): float 0.0..1.0, default 0.0. 0 = keep all
     # activations, 1 = full per-layer checkpointing (keep only layer boundaries).
     # Legacy strings "none"/"full" map to 0.0/1.0 so older callers
@@ -179,23 +209,45 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # params_per_gpu_full: ZeRO-1/2 keep full params (no shard), used for the
     # param all-gather that the harness issues for zero in (1,2).
     params_per_gpu_full = P / (tp * pp)
-    # fp32 master weights: ZeRO-1 shards optimizer state (incl. master) across dp
+    # fp32 master weights: ZeRO-1 shards optimizer state (incl. master) across dp.
+    # gpu-sim-scup: the moment styles re-price params (fp32_moments keeps fp32
+    # params, 4 B/param), drop the master, and add peak-only fused-step temps;
+    # opt_peak='none' prices steady state (grads + temps freed) and is optimistic.
+    # fp32_master ignores opt_peak: the legacy flat 14 at every mode.
+    _moments_b = {"fp32_master": 8, "bf16_moments": 4, "fp32_moments": 8}[opt_state]
+    _temps_b = 0
+    if opt_state != "fp32_master" and opt_peak != "none":
+        if opt_state == "bf16_moments":
+            _temps_b = 2
+        elif opt_peak == "fused":
+            _temps_b = 2
+        else:
+            _temps_b = 6
+    _param_dtype = 4 if opt_state == "fp32_moments" else dtype_bytes
+    _grads_live = not (opt_peak == "none" and opt_state != "fp32_master")
     if mixed_precision:
         master_per_gpu = (P / (tp * pp))
         if zero >= 1 and dp > 1:
             master_per_gpu = master_per_gpu / dp
     else:
         master_per_gpu = 0.0
+    if opt_state != "fp32_master":
+        master_per_gpu = 0.0
     # optimizer state m+v in fp32 (8 B/param), ZeRO-1 shards across dp
-    opt_per_gpu = (P / (tp * pp)) * 8
+    opt_per_gpu = (P / (tp * pp)) * _moments_b
     if zero >= 1 and dp > 1:
         opt_per_gpu = opt_per_gpu / dp
+    # peak-only fused-step temporaries live on the local shard, like moments
+    temps_per_gpu = (P / (tp * pp)) * _temps_b
+    if zero >= 1 and dp > 1:
+        temps_per_gpu = temps_per_gpu / dp
 
-    param_bytes = params_per_gpu * dtype_bytes
-    param_bytes_full = params_per_gpu_full * dtype_bytes
-    grad_bytes = grads_per_gpu * dtype_bytes
+    param_bytes = params_per_gpu * _param_dtype
+    param_bytes_full = params_per_gpu_full * _param_dtype
+    grad_bytes = grads_per_gpu * dtype_bytes if _grads_live else 0.0
     master_bytes = master_per_gpu * 4.0
-    opt_bytes = opt_per_gpu  # already in bytes (8 B/param)
+    opt_bytes = opt_per_gpu  # already in bytes
+    temps_bytes = temps_per_gpu
 
     # activations: per-tensor widths (gpu-sim-6y1 rework).
     # A transformer layer stores, for backward, four tensors per token:
@@ -258,7 +310,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
         cp_buf_bytes = 0.0
 
     total_mem_bytes = (param_bytes + grad_bytes + master_bytes + opt_bytes
-                       + act_bytes + attn_ws_bytes + logits_bytes + cp_buf_bytes)
+                       + temps_bytes + act_bytes + attn_ws_bytes + logits_bytes + cp_buf_bytes)
     total_mem_gb = total_mem_bytes / 1e9
 
     feasible = total_mem_bytes <= mem_limit
@@ -515,6 +567,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     return Config(tp, pp, cp, dp, zero, step_sum, step_max, compute, tp_comm, cp_comm, cp_grad, pp_comm, dp_comm,
                   total_mem_bytes / 1e9, feasible, reason, dominant, kinds,
                   param_bytes/1e9, grad_bytes/1e9, master_bytes/1e9, opt_bytes/1e9,
+                  temps_bytes/1e9,
                   act_bytes/1e9, attn_ws_bytes/1e9, logits_bytes/1e9, cp_buf_bytes/1e9)
 
 

@@ -12,6 +12,46 @@
     "opt_state_floor_gb_405b_at_800": 7.1,
     "n405b_800gpus_ag_margin": 2.58
   },
+  "scaleout_opt": {
+    "style_bytes": {
+      "bf16_moments": {
+        "steady": 6.0,
+        "peak_default": 10.0,
+        "peak_fused": 10.0
+      },
+      "fp32_moments": {
+        "steady": 12.0,
+        "peak_default": 20.0,
+        "peak_fused": 16.0
+      },
+      "fp32_master": {
+        "steady": 16.0,
+        "peak_default": 16.0,
+        "peak_fused": 16.0
+      }
+    },
+    "floor_gb_405b_at_80": {
+      "bf16_moments_peak": 50.7,
+      "fp32_moments_steady": 60.9,
+      "fp32_moments_fused": 81.2,
+      "fp32_moments_default": 101.5
+    },
+    "fp32mom_fused_over_pct": 1.5,
+    "bf16_80_feasible": true,
+    "fp32mom_fused_80_feasible": false,
+    "fp32mom_default_80_feasible": false,
+    "fp32mom_steady_80_feasible": true,
+    "bf16_80_best_config": [
+      1,
+      40,
+      1,
+      2,
+      2
+    ],
+    "bf16_80_best_step_ms": 504,
+    "bf16_80_best_mem_gb": 75.1,
+    "bf16_80_margin": 3.52
+  },
   "micro_batches_sensitivity": {
     "N8": {
       "x1": {

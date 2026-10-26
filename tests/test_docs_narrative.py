@@ -113,6 +113,31 @@ def test_scaleout_paragraph_carries_the_computed_answers():
         "the paragraph must carry the computed optimizer floor at 80 GPUs")
     assert "recomputation cannot close a gap" in para.lower(), (
         "the paragraph must say recomputation is not the fix at this scale")
+    # gpu-sim-scup: the feasibility verdict belongs to the optimizer style. All three
+    # style names plus the peak-mode names must appear, the default-regime
+    # infeasibility above is unchanged, and the per-style floors, the bf16 best
+    # row, and the optimistic-'none' label must come from the recomputed facts.
+    for _name in ("bf16_moments", "fp32_moments", "fp32_master",
+                  "fused", "'none'", "optimistic"):
+        assert _name in para, f"the paragraph must name {_name} (style verdict)"
+    _opt = FACTS["scaleout_opt"]
+    assert _opt["bf16_80_feasible"] is True, "bf16_moments should fit 405B at 80"
+    assert _opt["fp32mom_fused_80_feasible"] is False, "fused fp32 peak 81.2 > 80"
+    assert _opt["fp32mom_default_80_feasible"] is False, "default fp32 peak 101.5 > 80"
+    for _style, (_s, _d, _f) in ({"bf16_moments": ("steady", "peak_default", "peak_fused"),
+                                  "fp32_moments": ("steady", "peak_default", "peak_fused")}.items()):
+        _t = _opt["style_bytes"][_style]
+        assert f"{_t[_s]:.1f}" in para and f"{_t[_d]:.1f}" in para, (
+            f"the paragraph must quote {_style} steady/peak from facts")
+    for _fl in _opt["floor_gb_405b_at_80"].values():
+        assert f"{_fl:.1f} GB" in para, f"the paragraph must carry the {_fl} GB style floor"
+    assert f"{_opt['fp32mom_fused_over_pct']:.1f}% over" in para, (
+        "the paragraph must say the best fp32 configuration is over the line")
+    _cfg = _opt["bf16_80_best_config"]
+    assert f"(tp={_cfg[0]} pp={_cfg[1]} cp={_cfg[2]} dp={_cfg[3]} z{_cfg[4]})" in para, (
+        "the paragraph must name the bf16 405B@80 config")
+    assert f"{_opt['bf16_80_best_mem_gb']} GB" in para, (
+        "the paragraph must carry the bf16 405B@80 footprint")
     # gpu-sim-hz3u: the paragraph states the knob setting each number assumes and carries the
     # acceptance cell (70B/batch-32/80-GPU both settings) plus the 405B-full confirmation.
     rs = FACTS["recompute_sensitivity_405b"]

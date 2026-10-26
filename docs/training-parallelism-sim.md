@@ -60,11 +60,20 @@ pipeline-dominant, with 70B a real 4.85% verdict under the ring convention (tp=1
 and a 0.11% tie under the default one (111.0 ms at tp=1 pp=20 cp=1 dp=4 z2); 8B at the same scale
 is a 2.05% near-tie that the default convention breaks toward dp=5; 800 GPUs is decided by efficiency
 and convention rather than by structure; and at 8000 GPUs the margins run 0.61% to 5.09%, so most cells
-are ties the model cannot separate. 405B does not fit at 80 GPUs at all, and the reason is NOT activations: the model
-assumes fp32 master weights plus fp32 Adam m/v plus bf16 grads, i.e. 14 B per parameter, and 405B spread
-over 80 GPUs is 5.06e9 parameters per GPU however you decompose them -- 70.9 GB of optimizer state before a
-single activation. Recomputation cannot close a gap that size; only more GPUs (7.1 GB of the same state at
-800) or lower-precision optimizer states, which this model does not support, can. At 800 GPUs the binding
+are ties the model cannot separate. 405B does not fit at 80 GPUs at all under the default fp32_master
+optimizer style, and the reason is NOT activations: that style assumes fp32 master weights plus fp32 Adam m/v
+plus bf16 grads, i.e. 14 B per parameter, and 405B spread over 80 GPUs is 5.06e9 parameters per GPU however
+you decompose them -- 70.9 GB of optimizer state before a single activation. Recomputation cannot close a gap
+that size; only more GPUs (7.1 GB of the same state at 800) or a different optimizer style can. The style is
+now an explicit choice, hw['opt_state'] in {bf16_moments, fp32_moments, fp32_master} with hw['opt_peak'] in
+{default, fused, none}, priced from measurement: bf16 moments reside at 6.0 B/param and peak at 10.0, fp32
+moments at 12.0 steady with a 20.0 default peak and 16.0 fused peak, while fp32_master is the flat legacy 14
+at every peak mode (it approximates fp32_moments steady plus a 2 B margin and underestimates peak). 'none'
+prices steady state only and is optimistic: a scheduler is limited by peak. Under bf16 moments the 80-GPU floor
+is 50.7 GB and 405B FITS: (tp=1 pp=40 cp=1 dp=2 z2) at 504 ms and 75.1 GB, a 3.52% tie, so the feasibility
+verdict belongs to the style, not the model. With fp32 moments the same floor is 60.9 GB steady (which fits,
+but steady is not what OOMs), 81.2 GB fused peak -- 1.5% over the line with no allocator overhead left -- and
+101.5 GB default peak, clearly out. At 800 GPUs the binding
 term does become activations, which is why the answer there wants pp=100 (2.58%) and why recomputation is
 the right next modelling step -- for that regime, not for 80 GPUs. The knob now exists in the model:
 hw['recompute'] is a float 0.0..1.0, default 0.0, keeping (1 - alpha(seq)*recompute) of the stored activations and

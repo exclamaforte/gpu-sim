@@ -142,6 +142,79 @@ def compute_facts():
     def _so_cell(fabric, model, conv):
         return _scaleout[fabric]["models"][model][conv]
 
+    def _opt_styles():
+        # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
+        # deltas against the default 16 B/param total) plus the 405B@80 rows per
+        # style. Floors use the ACTUAL GQA-aware P (a5ro), not the nominal 405e9
+        # of the fp32_master stem: the sentence quotes per-style floors.
+        import importlib as _il
+        _ps = _il.import_module("epic_cluster.parallelism_search")
+        from scripts.scaleout_answers import MODELS as _m
+        _m8 = _m["llama3-8b"]
+        _p8 = _ps.total_params(_m8)
+        _p405 = _ps.total_params(_m["llama3-405b"])
+        _base = _ps.score(4, 1, 1, 1, 0,
+                          {"peak_flops": 989e12, "mem_gb": 80.0,
+                           "spec_path": os.path.join(ROOT, "specs/h100_rack.json")}, _m8).memory_gb
+
+        def _total(state, peak):
+            # dp=1, tp=4: the delta sits on the P/4 shard, so divide by that.
+            got = _ps.score(4, 1, 1, 1, 0,
+                             {"peak_flops": 989e12, "mem_gb": 80.0,
+                              "spec_path": os.path.join(ROOT, "specs/h100_rack.json"),
+                              "opt_state": state, "opt_peak": peak}, _m8).memory_gb
+            return round(16 + (got - _base) / (_p8 / 4) * 1e9, 1)
+
+        def _run(state, peak):
+            _o = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "scaleout_answers.py"),
+                                 "--nodes", "10", "--models", "llama3-405b",
+                                 "--opt-state", state, "--opt-peak", peak, "--json"],
+                                capture_output=True, text=True, check=True)
+            return _json2.loads(_o.stdout)
+
+        def _row(db, conv):
+            return db["10x8"]["models"]["llama3-405b"][conv]
+
+        _bf16 = _run("bf16_moments", "default")
+        _fused = _run("fp32_moments", "fused")
+        _dflt = _run("fp32_moments", "default")
+        _stdy = _run("fp32_moments", "none")
+        _bcell = _row(_bf16, "default all_gather")
+        _f81 = round(16 * _p405 / 80 / 1e9, 1)
+        out = {
+            # measured rig totals, recomputed from the model (dp=1 deltas):
+            # bf16 6/10, fp32 moments 12 steady, 20 default-peak, 16 fused-peak.
+            "style_bytes": {
+                "bf16_moments": {"steady": _total("bf16_moments", "none"),
+                                   "peak_default": _total("bf16_moments", "default"),
+                                   "peak_fused": _total("bf16_moments", "fused")},
+                "fp32_moments": {"steady": _total("fp32_moments", "none"),
+                                   "peak_default": _total("fp32_moments", "default"),
+                                   "peak_fused": _total("fp32_moments", "fused")},
+                "fp32_master": {"steady": _total("fp32_master", "none"),
+                                  "peak_default": _total("fp32_master", "default"),
+                                  "peak_fused": _total("fp32_master", "fused")},
+            },
+            "floor_gb_405b_at_80": {
+                "bf16_moments_peak": round(10 * _p405 / 80 / 1e9, 1),
+                "fp32_moments_steady": round(12 * _p405 / 80 / 1e9, 1),
+                "fp32_moments_fused": round(16 * _p405 / 80 / 1e9, 1),
+                "fp32_moments_default": round(20 * _p405 / 80 / 1e9, 1),
+            },
+            "fp32mom_fused_over_pct": round((_f81 - 80) / 80 * 100, 1),
+            "bf16_80_feasible": _bcell is not None,
+            "fp32mom_fused_80_feasible": _row(_fused, "default all_gather") is not None,
+            "fp32mom_default_80_feasible": _row(_dflt, "default all_gather") is not None,
+            "fp32mom_steady_80_feasible": _row(_stdy, "default all_gather") is not None,
+        }
+        if _bcell is not None:
+            out["bf16_80_best_config"] = [_bcell["tp"], _bcell["pp"], _bcell["cp"],
+                                             _bcell["dp"], _bcell["zero"]]
+            out["bf16_80_best_step_ms"] = round(1000 * _bcell["step_s"])
+            out["bf16_80_best_mem_gb"] = _bcell["mem_gb"]
+            out["bf16_80_margin"] = _bcell["margin_pct"]
+        return out
+
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
              "scaleout": {
                  "n70b_80gpus_ring_margin": _so_cell("10x8", "llama3-70b", "ring all_to_all")["margin_pct"],
@@ -163,6 +236,7 @@ def compute_facts():
                  "opt_state_floor_gb_405b_at_800": round(14 * 405e9 / 800 / 1e9, 1),
                  "n405b_800gpus_ag_margin": _so_cell("100x8", "llama3-405b", "default all_gather")["margin_pct"],
              },
+             "scaleout_opt": _opt_styles(),
              "micro_batches_sensitivity": _mb,
              "retracted_values": RETRACTED,
              "cp_convention_answers": _conv,
@@ -732,6 +806,15 @@ def allowed_decimals(facts):
         if v is not None:
             add(v)
     for _k, _v in facts["scaleout"].items():
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    # gpu-sim-scup: every style byte count, floor, and best-row number the paragraph quotes.
+    for _v in facts.get("scaleout_opt", {}).get("style_bytes", {}).values():
+        for _b in _v.values():
+            add(_b)
+    for _k, _v in facts.get("scaleout_opt", {}).items():
+        if _k in ("style_bytes", "bf16_80_best_config"):
+            continue
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
     # gpu-sim-hz3u: every with-recompute number the paragraph quotes -- 405B winners at
