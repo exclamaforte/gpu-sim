@@ -26,3 +26,24 @@ after 2 warmup.
 One GPU, bf16, no TP/PP/CP, one PyTorch version, and `nn.MultiheadAttention` rather than a fused attention
 kernel. A production stack with flash-attention recomputes less attention memory and shows a smaller
 memory saving than the seq=8192 row here. The TIME ratio is the more transferable of the two.
+
+## Where recomputation actually changes an answer (proxy probe)
+
+`proxy_probe.py` scales `act_factor` by the measured retained fraction (0.33) -- faithful for the MEMORY
+term, but it does not charge the 1.25x time, so recompute rows are optimistic in step time.
+
+Result: across 70B/405B x {80, 800} GPUs x batch {8, 32}, recomputation changes NOTHING for 405B (same
+config, same margin, 0.2-0.8 GB less memory) because 405B is optimizer-state bound at pp=100/dp=1
+(14 B/param x 4.05e9 = 56.7 GB/rank). It changes exactly one answer in the whole grid:
+
+  70B, 80 GPUs, batch=32, no recompute : (tp=1 pp=4 cp=1 dp=20 z3) 2.769 s  58.0 GB  margin 0.45%
+  70B, 80 GPUs, batch=32, recompute   : (tp=1 pp=1 cp=1 dp=80 z3) 2.474 s  70.9 GB  margin 10.6%
+
+With recomputation the model stops buying pipeline stages purely to hold activations and buys DATA
+parallelism instead: no PP at all, FSDP across all 80 GPUs, 10.6% faster and far better separated (0.45% ->
+10.6%). That is the regime real frontier training lives in -- large per-rank batch on a small model -- and
+it is the one where the knob earns its place.
+
+I got this wrong twice before measuring: first I said recompute would make 405B feasible at 80 GPUs
+(it is optimizer-bound, 70.9 GB floor), then that it would relax pp=100 at 800 (also optimizer-bound). The
+proxy grid is what settled it.
