@@ -69,3 +69,30 @@ Caveats, so this is not over-read: one tensor, no sharding, defaults only, and p
 as resident footprint (fragmentation, allocator caching). The first version of this script measured
 22.0 B/param because its forward ran in fp32 and materialised a full fp32 copy of the parameter -- a real
 bf16 model does not pay that. Both numbers are kept in the commit history for that reason.
+
+## CORRECTION: peak vs steady state, and where the model's 14 B/param actually sits (measure_opt_styles.py)
+
+My earlier note claimed the model's 14 B/param overestimates. Measuring all three real styles, separating
+steady state (what training RESIDES at) from peak (what OOMs), says something more useful:
+
+| style | steady B/param | peak B/param | what is resident |
+|---|---|---|---|
+| bf16 AdamW, bf16 params, fp32 NOT forced | **6.0** | 10.0 | p 2 + bf16 moments 2+2 -- PyTorch keeps Adam states in the PARAMETER dtype |
+| AMP classic (fp32 params, autocast bf16, GradScaler) | **12.0** | 20.0 | p 4 + fp32 moments 4+4 |
+| bf16 params + explicit fp32 master (DeepSpeed/FSDP style) | **12.0** | 24.0 | p 2 + master 4 + fp32 moments 4+4 = 14 arithmetic, 12 measured steady |
+
+So the model's 14 B/param is:
+* slightly ABOVE the fp32-moment steady state (12) -- conservative by 2 B/param, i.e. by ~17%;
+* BELOW the measured peak for every fp32-moment style (20-24), because AdamW's fused kernels allocate
+  parameter-sized temporaries. Peak is what actually OOMs.
+
+Consequence for the 405B question, with GQA-aware params (405.8e9):
+* bf16 moments (6 B steady, 10 B peak): 30 GB steady, 51 GB peak -> FITS at 80 GPUs;
+* fp32 moments (12 steady, 20 peak): 61 GB steady, 101 GB peak -> does NOT fit at 80 GPUs.
+
+That is the honest resolution of the "is 405B feasible at 80 GPUs" question: it depends on the optimizer
+style, and the model's single 14 B/param number lands between two real regimes whose answers differ.
+
+Two measurement bugs are kept in the history because they were both mine and both instructive: an fp32
+forward that materialised an fp32 copy of the parameter (22.0 B/param), and a duplicate optimizer in the
+bf16_master row that counted two sets of moments (24.0 peak, though the steady figure survived).
