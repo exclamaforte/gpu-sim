@@ -96,3 +96,27 @@ style, and the model's single 14 B/param number lands between two real regimes w
 Two measurement bugs are kept in the history because they were both mine and both instructive: an fp32
 forward that materialised an fp32 copy of the parameter (22.0 B/param), and a duplicate optimizer in the
 bf16_master row that counted two sets of moments (24.0 peak, though the steady figure survived).
+
+## The peak is partly a CHOICE: fused AdamW cuts it 20 -> 16 B/param (measure_adamw_variants.py)
+
+At fixed fp32 params and fp32 moments (steady 12.0 B/param in every variant):
+
+| AdamW variant | peak B/param | peak GB (5e8 params) |
+|---|---|---|
+| default (`foreach=True`) | 20.01 | 10.00 |
+| `foreach=False` | **24.01** | 12.00 |
+| `fused=True` | **16.01** | 8.00 |
+| `fused=True, foreach=False` | 16.01 | 8.00 |
+
+So the gap between steady state (12) and peak (20-24) is not physics -- it is the optimizer implementation.
+Fused AdamW removes half of it (8 -> 4 B/param), and the plain Python-loop variant is the worst of the three.
+
+Consequence for the boundary this project cares about, 405B x 80 GPUs (5.07e9 params per GPU with GQA-aware
+`total_params`):
+* steady only:            12 B ->  60.9 GB   fits
+* fused AdamW peak:       16 B ->  81.2 GB   infeasible by 1.5%
+* default AdamW peak:     20 B -> 101.4 GB   clearly infeasible
+* foreach=False peak:     24 B -> 121.7 GB   worst
+
+Which means "does 405B fit on 80 GPUs" is a question about the optimizer implementation AND the moment
+precision, not about the hardware alone -- and the honest model answer names both.
