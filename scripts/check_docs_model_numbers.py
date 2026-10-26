@@ -158,6 +158,10 @@ def compute_facts():
                      for m in ("llama3-8b", "llama3-70b", "llama3-405b")
                      for c in ("ring all_to_all", "default all_gather")),
                  "n405b_80gpus_feasible": _so_cell("10x8", "llama3-405b", "default all_gather") is not None,
+                 # why 405B does not fit at 80 GPUs: fp32 master + fp32 Adam m/v + bf16 grads = 14 B/param,
+                 # and P/N is fixed by the GPU count no matter how the 80 GPUs are decomposed.
+                 "opt_state_floor_gb_405b_at_80": round(14 * 405e9 / 80 / 1e9, 1),
+                 "opt_state_floor_gb_405b_at_800": round(14 * 405e9 / 800 / 1e9, 1),
                  "n405b_800gpus_ag_margin": _so_cell("100x8", "llama3-405b", "default all_gather")["margin_pct"],
              },
              "micro_batches_sensitivity": _mb,

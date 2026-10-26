@@ -106,8 +106,13 @@ def test_scaleout_paragraph_carries_the_computed_answers():
     assert f"{so['worst_margin_8000']:.2f}%" in para and f"{so['best_margin_8000']:.2f}%" in para, (
         "the 8000-GPU margins must be quoted as a range")
     assert so["n405b_80gpus_feasible"] is False, "405B is feasible at 80 GPUs now: rewrite the paragraph"
-    assert "NO activation recomputation" in para, (
-        "the paragraph must say WHY 405B does not fit, or a reader will read it as a hardware limit")
+    # The reason must be the one that is actually binding. An earlier version blamed the absence of
+    # activation recomputation; at 80 GPUs the optimizer state alone is 70.9 GB, so recompute cannot help.
+    assert "optimizer state" in para, "the paragraph must name the binding term (optimizer state)"
+    assert f"{so['opt_state_floor_gb_405b_at_80']:.2f} GB" in para or f"{so['opt_state_floor_gb_405b_at_80']:.1f} GB" in para, (
+        "the paragraph must carry the computed optimizer floor at 80 GPUs")
+    assert "recomputation cannot close a gap" in para.lower(), (
+        "the paragraph must say recomputation is not the fix at this scale")
 
 
 def test_bubble_default_is_stated_as_pessimistic_and_winners_are_stable():
