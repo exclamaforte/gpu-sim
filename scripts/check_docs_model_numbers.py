@@ -111,9 +111,8 @@ def compute_facts():
     RETRACTED = {
         "109.8 MB": "retracted CP byte comparison (different quantities, direction was backwards)",
         "21.0 MB of": "retracted CP byte comparison",
-        "79.96": "pre-link-rate fix step time; recomputed as 90.54",
-        "30.3": "bubble quoted without the micro-batch term",
-        "4091": "pre-kvcp CP crossover; now 5833",
+        "79.96": "pre-link-rate fix step time; recomputed as 88.49",
+        "4091": "pre-kvcp CP crossover; now 5956",
     }
 
     # gpu-sim-bubble: is the PP-heavy answer an artifact of the pessimistic micro_batches default?
@@ -177,8 +176,8 @@ def compute_facts():
     # (0.40) efficiency, so the doc can quote them and the numbers are reproducible here.
     facts["mfu_sensitivity"] = {}
     _implied = None
-    for tag, mfu in (("implied_0.765", None), ("measured_5090", 0.566), ("typical_h100", 0.40)):
-        peak = PEAK if mfu is None else PEAK * mfu / 0.765
+    for tag, mfu in (("implied_0.786", None), ("measured_5090", 0.566), ("typical_h100", 0.40)):
+        peak = PEAK if mfu is None else PEAK * mfu / 0.786
         _, feas = search(8, peak=peak)
         b = feas[0]
         facts["mfu_sensitivity"][tag] = {"mfu": round(mfu, 3) if mfu else None,
@@ -191,14 +190,14 @@ def compute_facts():
             _base = b.step_sum
     for tag, key in (("measured_5090", "ratio_at_measured"), ("typical_h100", "ratio_at_typical")):
         facts["mfu_sensitivity"][key] = round(
-            facts["mfu_sensitivity"][tag]["step_ms"] / facts["mfu_sensitivity"]["implied_0.765"]["step_ms"], 2)
+            facts["mfu_sensitivity"][tag]["step_ms"] / facts["mfu_sensitivity"]["implied_0.786"]["step_ms"], 2)
 
     # gpu-sim-mfum: how DECISIVE is each winner? The margin against the best config with a
     # different (tp,pp,cp,dp) shape, and where the N=16 answer stops holding. A tie between
     # zero policies (same shape, zero=2 vs zero=3) is not a fragile win, so the runner-up is
     # taken over shapes, not over rows.
     def _winner(n, mfu):
-        _, feas = search(n, peak=PEAK * mfu / 0.765)
+        _, feas = search(n, peak=PEAK * mfu / 0.786)
         best = feas[0]
         shape = (best.tp, best.pp, best.cp, best.dp)
         alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != shape)
@@ -210,7 +209,7 @@ def compute_facts():
     # Exactly one cell changes: N=16 seq 32768, whose winner otherwise occupies 94% of HBM.
     facts["headroom_sensitivity"] = {"note": "winner at required free-HBM fraction 0 / 0.10 / 0.20, "
                                              "evaluated at the MEASURED 0.566 efficiency (the "
-                                             "implied 0.765 winner already has headroom)",
+                                             "implied 0.786 winner already has headroom)",
                                      "grid": {}}
     for n in (8, 16, 32):
         for seq in (8192, 16384, 32768):
@@ -218,7 +217,7 @@ def compute_facts():
             for hr in (0.0, 0.10, 0.20):
                 m = dict(M8)
                 m["seq"] = seq
-                hwv = {"peak_flops": PEAK * 0.566 / 0.765, "mem_gb": 80.0,
+                hwv = {"peak_flops": PEAK * 0.566 / 0.786, "mem_gb": 80.0,
                        "spec_path": SPEC[n], "mem_headroom": hr}
                 _, feas = ps.search(n, hwv, m)
                 cell[f"hr{hr:.2f}"] = ({"config": [feas[0].tp, feas[0].pp, feas[0].cp,
@@ -237,7 +236,7 @@ def compute_facts():
     def _cp_advantage(seq, mfu):
         m = dict(M8)
         m["seq"] = seq
-        hwv = {"peak_flops": PEAK * mfu / 0.765, "mem_gb": 80.0,
+        hwv = {"peak_flops": PEAK * mfu / 0.786, "mem_gb": 80.0,
                "spec_path": "specs/h100_rack.json"}
         _, feas = ps.search(8, hwv, m)
         cp1 = [c for c in feas if c.cp == 1]
@@ -247,7 +246,7 @@ def compute_facts():
         return 100 * (min(c.step_sum for c in cp1) / min(c.step_sum for c in cpg) - 1)
 
     facts["cp_crossover"] = {}
-    for tag, mfu in (("implied", 0.765), ("measured", 0.566), ("typical", 0.40)):
+    for tag, mfu in (("implied", 0.786), ("measured", 0.566), ("typical", 0.40)):
         lo, hi = 2048, 8192
         for _ in range(22):
             mid = (lo + hi) / 2
@@ -271,10 +270,10 @@ def compute_facts():
     for n in (8, 16, 32):
         for seq in (8192, 16384, 32768):
             cell = {}
-            for tag, mfu in (("implied", 0.765), ("measured", 0.566), ("typical", 0.40)):
+            for tag, mfu in (("implied", 0.786), ("measured", 0.566), ("typical", 0.40)):
                 m = dict(M8)
                 m["seq"] = seq
-                hwv = {"peak_flops": PEAK * mfu / 0.765, "mem_gb": 80.0, "spec_path": SPEC[n]}
+                hwv = {"peak_flops": PEAK * mfu / 0.786, "mem_gb": 80.0, "spec_path": SPEC[n]}
                 _, feas = ps.search(n, hwv, m)
                 if not feas:
                     cell[tag] = None
@@ -327,7 +326,7 @@ def compute_facts():
     facts["mfu_margin_sweep"] = {"note": "margin = best config with a different shape"}
     for n in (8, 16, 32):
         row = {}
-        for tag, mfu in (("implied", 0.765), ("measured", 0.566), ("typical_h100", 0.40)):
+        for tag, mfu in (("implied", 0.786), ("measured", 0.566), ("typical_h100", 0.40)):
             w, ms, alt, alt_ms = _winner(n, mfu)
             row[tag] = {"mfu": mfu, "config": list(w), "step_ms": round(ms * 1e3, 2),
                         "runner_shape": list(alt), "margin_pct": round(100 * (alt_ms / ms - 1), 2)}
@@ -391,6 +390,17 @@ def compute_facts():
                             "mem_gb": round(c.memory_gb, 1),
                             "dp_comm_ms": round(c.dp_comm * 1e3, 2)}
     facts["dp8_rows"] = dp8
+
+    # 1c2) the rows the CURRENT ANSWER paragraph quotes beside the winner: the runner-up
+    # (best non-winning config) and the best config with dp>1 at N=8, both under hw_for(8).
+    _, _f8 = ps.search(8, hw_for(8), dict(M8, seq=8192))
+    _ru, _dp1 = _f8[1], next(c for c in _f8 if c.dp > 1)
+    facts["n8_runnerup"] = {"config": [_ru.tp, _ru.pp, _ru.cp, _ru.dp, _ru.zero],
+                              "step_ms": round(_ru.step_sum * 1e3, 2),
+                              "mem_gb": round(_ru.memory_gb, 1)}
+    facts["n8_dp1_best"] = {"config": [_dp1.tp, _dp1.pp, _dp1.cp, _dp1.dp, _dp1.zero],
+                               "step_ms": round(_dp1.step_sum * 1e3, 2),
+                               "mem_gb": round(_dp1.memory_gb, 1)}
 
     # 1d) TP payload (gpu-sim-6wd): four_d is MEASURED on the harness (B*seq*d per
     # all-reduce, identical at tp=2 and tp=4) and derived for Megatron (d_ff never
@@ -651,6 +661,10 @@ def allowed_decimals(facts):
     for v in facts.get("dp8_rows", {}).values():
         for k in ("step_ms", "mem_gb", "dp_comm_ms"):
             add(v[k])
+    for v in (facts.get("n8_runnerup"), facts.get("n8_dp1_best")):
+        if v:
+            add(v["step_ms"])
+            add(v["mem_gb"])
     for row in facts.get("sweep", {}).values():
         for k, v in row.items():
             if isinstance(v, dict):

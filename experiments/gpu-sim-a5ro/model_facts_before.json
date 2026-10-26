@@ -1,0 +1,1751 @@
+{
+  "generated_by": "scripts/check_docs_model_numbers.py",
+  "scaleout": {
+    "n70b_80gpus_ring_margin": 6.1,
+    "n70b_80gpus_ag_margin": 1.42,
+    "n70b_80gpus_ag_step_ms": 120.0,
+    "n8b_80gpus_ag_margin": 2.51,
+    "worst_margin_8000": 0.13,
+    "best_margin_8000": 5.48,
+    "n405b_80gpus_feasible": false,
+    "opt_state_floor_gb_405b_at_80": 70.9,
+    "opt_state_floor_gb_405b_at_800": 7.1,
+    "n405b_800gpus_ag_margin": 2.75
+  },
+  "micro_batches_sensitivity": {
+    "N8": {
+      "x1": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 96.38,
+        "margin_pct": 3.92
+      },
+      "x2": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 85.9,
+        "margin_pct": 7.57
+      },
+      "x4": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 77.9,
+        "margin_pct": 9.07
+      },
+      "x8": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 72.86,
+        "margin_pct": 10.23
+      },
+      "x16": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 70.28,
+        "margin_pct": 10.64
+      }
+    },
+    "N16": {
+      "x1": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "margin_pct": 5.09
+      },
+      "x2": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 46.92,
+        "margin_pct": 5.33
+      },
+      "x4": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 43.36,
+        "margin_pct": 5.06
+      },
+      "x8": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 41.88,
+        "margin_pct": 3.42
+      },
+      "x16": {
+        "config": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 42.56,
+        "margin_pct": 0.63
+      }
+    },
+    "N32": {
+      "x1": {
+        "config": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 32.71,
+        "margin_pct": 3.66
+      },
+      "x2": {
+        "config": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 30.51,
+        "margin_pct": 6.18
+      },
+      "x4": {
+        "config": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 29.37,
+        "margin_pct": 6.42
+      },
+      "x8": {
+        "config": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 29.91,
+        "margin_pct": 2.99
+      },
+      "x16": {
+        "config": [
+          1,
+          8,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 31.46,
+        "margin_pct": 4.75
+      }
+    }
+  },
+  "retracted_values": {
+    "109.8 MB": "retracted CP byte comparison (different quantities, direction was backwards)",
+    "21.0 MB of": "retracted CP byte comparison",
+    "79.96": "pre-link-rate fix step time; recomputed as 90.54",
+    "30.3": "bubble quoted without the micro-batch term",
+    "4091": "pre-kvcp CP crossover; now 5833"
+  },
+  "cp_convention_answers": {
+    "N8_seq8192": {
+      "ring_all_to_all": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 90.54,
+        "margin_pct": 6.45
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 96.38,
+        "margin_pct": 3.92
+      }
+    },
+    "N8_seq32768": {
+      "ring_all_to_all": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 492.06,
+        "margin_pct": 1.65
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 506.03,
+        "margin_pct": 3.41
+      }
+    },
+    "N16_seq8192": {
+      "ring_all_to_all": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "margin_pct": 5.09
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "margin_pct": 5.09
+      }
+    },
+    "N32_seq8192": {
+      "ring_all_to_all": {
+        "config": [
+          1,
+          16,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 31.06,
+        "margin_pct": 5.32
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 32.71,
+        "margin_pct": 3.66
+      }
+    },
+    "N32_seq32768": {
+      "ring_all_to_all": {
+        "config": [
+          1,
+          8,
+          4,
+          1,
+          0
+        ],
+        "step_ms": 173.07,
+        "margin_pct": 1.15
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          8,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 179.59,
+        "margin_pct": 1.26
+      }
+    }
+  },
+  "cp_convention_gap": {
+    "seq512_kv256": 1.9922,
+    "seq256_kv256": 1.9844,
+    "seq512_kv1024": 1.9922
+  },
+  "sensitivity_radius": {
+    "N16_seq8192": {
+      "flip_cp": null,
+      "flip_pp": 1.8989,
+      "step_ms": 51.95,
+      "winner": [
+        1,
+        16,
+        1,
+        1,
+        0
+      ],
+      "winner_at_high_pp": [
+        2,
+        1,
+        8,
+        1,
+        0
+      ]
+    },
+    "N32_seq8192": {
+      "flip_cp": 1.4634,
+      "flip_pp": 2.2885,
+      "step_ms": 31.06,
+      "winner": [
+        1,
+        16,
+        2,
+        1,
+        0
+      ],
+      "winner_at_high_cp": [
+        1,
+        16,
+        1,
+        2,
+        2
+      ],
+      "winner_at_high_pp": [
+        4,
+        1,
+        8,
+        1,
+        0
+      ]
+    },
+    "N8_seq32768": {
+      "flip_cp": 4.726,
+      "flip_pp": null,
+      "step_ms": 492.06,
+      "winner": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "winner_at_high_cp": [
+        4,
+        1,
+        1,
+        2,
+        2
+      ]
+    },
+    "N8_seq8192": {
+      "flip_cp": 1.5566,
+      "flip_pp": null,
+      "step_ms": 90.54,
+      "winner": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "winner_at_high_cp": [
+        1,
+        8,
+        1,
+        1,
+        0
+      ]
+    }
+  },
+  "model": "llama3-8b",
+  "act_factor": 2.3,
+  "pricing_path": "spec/topology",
+  "rank_by": "sum",
+  "rows": {
+    "N8": {
+      "winner": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 90.54,
+        "mem_gb": 37.5
+      },
+      "top3": [
+        {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 90.54
+        },
+        {
+          "config": [
+            1,
+            8,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 96.38
+        },
+        {
+          "config": [
+            2,
+            1,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 99.68
+        }
+      ],
+      "fsdp_zero3_row": {
+        "step_ms": 129.62,
+        "mem_gb": 50.8
+      }
+    },
+    "N16": {
+      "winner": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "mem_gb": 12.4
+      },
+      "top3": [
+        {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 51.95
+        },
+        {
+          "config": [
+            1,
+            8,
+            1,
+            2,
+            2
+          ],
+          "step_ms": 54.6
+        },
+        {
+          "config": [
+            1,
+            8,
+            1,
+            2,
+            3
+          ],
+          "step_ms": 54.6
+        }
+      ]
+    },
+    "N32": {
+      "winner": {
+        "config": [
+          1,
+          16,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 31.06,
+        "mem_gb": 10.4
+      },
+      "top3": [
+        {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 31.06
+        },
+        {
+          "config": [
+            1,
+            16,
+            1,
+            2,
+            2
+          ],
+          "step_ms": 32.71
+        },
+        {
+          "config": [
+            1,
+            16,
+            1,
+            2,
+            3
+          ],
+          "step_ms": 32.71
+        }
+      ]
+    }
+  },
+  "mfu_sensitivity": {
+    "implied_0.765": {
+      "mfu": null,
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 90.54,
+      "implied_mfu": 0.765
+    },
+    "implied_mfu_pct": 76.5,
+    "measured_5090": {
+      "mfu": 0.566,
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 113.39
+    },
+    "typical_h100": {
+      "mfu": 0.4,
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 149.83
+    },
+    "ratio_at_measured": 1.25,
+    "ratio_at_typical": 1.65
+  },
+  "headroom_sensitivity": {
+    "note": "winner at required free-HBM fraction 0 / 0.10 / 0.20, evaluated at the MEASURED 0.566 efficiency (the implied 0.765 winner already has headroom)",
+    "grid": {
+      "N8_seq8192": {
+        "hr0.00": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 113.39,
+          "mem_gb": 37.5
+        },
+        "hr0.10": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 113.39,
+          "mem_gb": 37.5
+        },
+        "hr0.20": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 113.39,
+          "mem_gb": 37.5
+        },
+        "changes": false
+      },
+      "N8_seq16384": {
+        "hr0.00": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 252.77,
+          "mem_gb": 41.8
+        },
+        "hr0.10": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 252.77,
+          "mem_gb": 41.8
+        },
+        "hr0.20": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 252.77,
+          "mem_gb": 41.8
+        },
+        "changes": false
+      },
+      "N8_seq32768": {
+        "hr0.00": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 639.72,
+          "mem_gb": 50.4
+        },
+        "hr0.10": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 639.72,
+          "mem_gb": 50.4
+        },
+        "hr0.20": {
+          "config": [
+            4,
+            1,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 639.72,
+          "mem_gb": 50.4
+        },
+        "changes": false
+      },
+      "N16_seq8192": {
+        "hr0.00": {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 68.9,
+          "mem_gb": 12.4
+        },
+        "hr0.10": {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 68.9,
+          "mem_gb": 12.4
+        },
+        "hr0.20": {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 68.9,
+          "mem_gb": 12.4
+        },
+        "changes": false
+      },
+      "N16_seq16384": {
+        "hr0.00": {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 164.23,
+          "mem_gb": 16.5
+        },
+        "hr0.10": {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 164.23,
+          "mem_gb": 16.5
+        },
+        "hr0.20": {
+          "config": [
+            1,
+            16,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 164.23,
+          "mem_gb": 16.5
+        },
+        "changes": false
+      },
+      "N16_seq32768": {
+        "hr0.00": {
+          "config": [
+            2,
+            1,
+            8,
+            1,
+            0
+          ],
+          "step_ms": 412.12,
+          "mem_gb": 75.3
+        },
+        "hr0.10": {
+          "config": [
+            2,
+            2,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 420.31,
+          "mem_gb": 42.5
+        },
+        "hr0.20": {
+          "config": [
+            2,
+            2,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 420.31,
+          "mem_gb": 42.5
+        },
+        "changes": true
+      },
+      "N32_seq8192": {
+        "hr0.00": {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 39.53,
+          "mem_gb": 10.4
+        },
+        "hr0.10": {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 39.53,
+          "mem_gb": 10.4
+        },
+        "hr0.20": {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 39.53,
+          "mem_gb": 10.4
+        },
+        "changes": false
+      },
+      "N32_seq16384": {
+        "hr0.00": {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 89.58,
+          "mem_gb": 12.6
+        },
+        "hr0.10": {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 89.58,
+          "mem_gb": 12.6
+        },
+        "hr0.20": {
+          "config": [
+            1,
+            16,
+            2,
+            1,
+            0
+          ],
+          "step_ms": 89.58,
+          "mem_gb": 12.6
+        },
+        "changes": false
+      },
+      "N32_seq32768": {
+        "hr0.00": {
+          "config": [
+            1,
+            8,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 227.2,
+          "mem_gb": 23.1
+        },
+        "hr0.10": {
+          "config": [
+            1,
+            8,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 227.2,
+          "mem_gb": 23.1
+        },
+        "hr0.20": {
+          "config": [
+            1,
+            8,
+            4,
+            1,
+            0
+          ],
+          "step_ms": 227.2,
+          "mem_gb": 23.1
+        },
+        "changes": false
+      }
+    }
+  },
+  "cp_crossover": {
+    "implied_seq": 5833,
+    "advantage_at_8192_implied_pct": 6.45,
+    "advantage_at_4096_implied_pct": -7.75,
+    "measured_seq": 3788,
+    "advantage_at_8192_measured_pct": 8.48,
+    "advantage_at_4096_measured_pct": 1.17,
+    "typical_seq": 3788,
+    "advantage_at_8192_typical_pct": 6.42,
+    "advantage_at_4096_typical_pct": 0.91
+  },
+  "fragility_map": {
+    "note": "margin = best config with a different shape; <2% = coin flip",
+    "grid": {
+      "N8_seq8192": {
+        "implied": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 90.54,
+          "margin_pct": 6.45
+        },
+        "measured": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 113.39,
+          "margin_pct": 8.06
+        },
+        "typical": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 149.83,
+          "margin_pct": 6.1
+        }
+      },
+      "N8_seq16384": {
+        "implied": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 197.7,
+          "margin_pct": 0.1
+        },
+        "measured": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 252.77,
+          "margin_pct": 0.08
+        },
+        "typical": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 340.61,
+          "margin_pct": 0.06
+        }
+      },
+      "N8_seq32768": {
+        "implied": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 492.06,
+          "margin_pct": 1.65
+        },
+        "measured": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 639.72,
+          "margin_pct": 1.27
+        },
+        "typical": {
+          "config": [
+            4,
+            1,
+            2,
+            1
+          ],
+          "step_ms": 875.28,
+          "margin_pct": 0.93
+        }
+      },
+      "N16_seq8192": {
+        "implied": {
+          "config": [
+            1,
+            16,
+            1,
+            1
+          ],
+          "step_ms": 51.95,
+          "margin_pct": 5.09
+        },
+        "measured": {
+          "config": [
+            1,
+            16,
+            1,
+            1
+          ],
+          "step_ms": 68.9,
+          "margin_pct": 3.55
+        },
+        "typical": {
+          "config": [
+            1,
+            16,
+            1,
+            1
+          ],
+          "step_ms": 95.93,
+          "margin_pct": 2.23
+        }
+      },
+      "N16_seq16384": {
+        "implied": {
+          "config": [
+            1,
+            16,
+            1,
+            1
+          ],
+          "step_ms": 123.38,
+          "margin_pct": 0.54
+        },
+        "measured": {
+          "config": [
+            1,
+            16,
+            1,
+            1
+          ],
+          "step_ms": 164.23,
+          "margin_pct": 0.12
+        },
+        "typical": {
+          "config": [
+            2,
+            2,
+            4,
+            1
+          ],
+          "step_ms": 227.79,
+          "margin_pct": 0.46
+        }
+      },
+      "N16_seq32768": {
+        "implied": {
+          "config": [
+            1,
+            4,
+            1,
+            4
+          ],
+          "step_ms": 320.42,
+          "margin_pct": 0.38
+        },
+        "measured": {
+          "config": [
+            2,
+            1,
+            8,
+            1
+          ],
+          "step_ms": 412.12,
+          "margin_pct": 1.97
+        },
+        "typical": {
+          "config": [
+            2,
+            1,
+            8,
+            1
+          ],
+          "step_ms": 529.9,
+          "margin_pct": 8.94
+        }
+      },
+      "N32_seq8192": {
+        "implied": {
+          "config": [
+            1,
+            16,
+            2,
+            1
+          ],
+          "step_ms": 31.06,
+          "margin_pct": 5.32
+        },
+        "measured": {
+          "config": [
+            1,
+            16,
+            2,
+            1
+          ],
+          "step_ms": 39.53,
+          "margin_pct": 4.18
+        },
+        "typical": {
+          "config": [
+            1,
+            16,
+            2,
+            1
+          ],
+          "step_ms": 53.05,
+          "margin_pct": 3.12
+        }
+      },
+      "N32_seq16384": {
+        "implied": {
+          "config": [
+            1,
+            16,
+            2,
+            1
+          ],
+          "step_ms": 69.16,
+          "margin_pct": 2.11
+        },
+        "measured": {
+          "config": [
+            1,
+            16,
+            2,
+            1
+          ],
+          "step_ms": 89.58,
+          "margin_pct": 1.37
+        },
+        "typical": {
+          "config": [
+            1,
+            16,
+            2,
+            1
+          ],
+          "step_ms": 122.17,
+          "margin_pct": 0.69
+        }
+      },
+      "N32_seq32768": {
+        "implied": {
+          "config": [
+            1,
+            8,
+            4,
+            1
+          ],
+          "step_ms": 173.07,
+          "margin_pct": 1.15
+        },
+        "measured": {
+          "config": [
+            1,
+            8,
+            4,
+            1
+          ],
+          "step_ms": 227.2,
+          "margin_pct": 1.13
+        },
+        "typical": {
+          "config": [
+            1,
+            8,
+            4,
+            1
+          ],
+          "step_ms": 313.58,
+          "margin_pct": 0.1
+        }
+      }
+    }
+  },
+  "act_factor_knob": {
+    "calibrated": 2.3,
+    "band_tested": [
+      1.0,
+      12.0
+    ],
+    "bend_point": {
+      "N8": 28.5,
+      "N16": null,
+      "N32": null
+    },
+    "infeasible_above": {
+      "N8": 36.2,
+      "N16": 82.0,
+      "N32": 173.7
+    }
+  },
+  "mfu_margin_sweep": {
+    "note": "margin = best config with a different shape",
+    "N8": {
+      "implied": {
+        "mfu": 0.765,
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 90.54,
+        "runner_shape": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "margin_pct": 6.45
+      },
+      "measured": {
+        "mfu": 0.566,
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 113.39,
+        "runner_shape": [
+          2,
+          1,
+          4,
+          1,
+          0
+        ],
+        "margin_pct": 8.06
+      },
+      "typical_h100": {
+        "mfu": 0.4,
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 149.83,
+        "runner_shape": [
+          2,
+          1,
+          4,
+          1,
+          0
+        ],
+        "margin_pct": 6.1
+      }
+    },
+    "N16": {
+      "implied": {
+        "mfu": 0.765,
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "runner_shape": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 5.09
+      },
+      "measured": {
+        "mfu": 0.566,
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 68.9,
+        "runner_shape": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 3.55
+      },
+      "typical_h100": {
+        "mfu": 0.4,
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 95.93,
+        "runner_shape": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 2.23
+      }
+    },
+    "N32": {
+      "implied": {
+        "mfu": 0.765,
+        "config": [
+          1,
+          16,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 31.06,
+        "runner_shape": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 5.32
+      },
+      "measured": {
+        "mfu": 0.566,
+        "config": [
+          1,
+          16,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 39.53,
+        "runner_shape": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 4.18
+      },
+      "typical_h100": {
+        "mfu": 0.4,
+        "config": [
+          1,
+          16,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 53.05,
+        "runner_shape": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 3.12
+      }
+    },
+    "N16_crossover_mfu": 0.25
+  },
+  "fsdp_mem_16384_gb": 85.0,
+  "legacy_path_steps": {
+    "8192": 90.19,
+    "16384": 197.35,
+    "32768": 491.71
+  },
+  "spec_path_steps": {
+    "16384": 197.7,
+    "32768": 492.06
+  },
+  "dp8_rows": {
+    "zero=2": {
+      "step_ms": 129.62,
+      "mem_gb": 65.4,
+      "dp_comm_ms": 64.65
+    },
+    "zero=3": {
+      "step_ms": 129.62,
+      "mem_gb": 50.8,
+      "dp_comm_ms": 64.65
+    }
+  },
+  "tp_payload_winners": {
+    "N8": {
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 90.54
+    },
+    "N16": {
+      "config": [
+        1,
+        16,
+        1,
+        1,
+        0
+      ],
+      "step_ms": 51.95
+    },
+    "N32": {
+      "config": [
+        1,
+        16,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 31.06
+    }
+  },
+  "alpha_piece_charging": {
+    "1": {
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 90.54,
+      "runner_up_ms": 96.38
+    },
+    "4": {
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 92.85,
+      "runner_up_ms": 96.38
+    },
+    "8": {
+      "config": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 95.93,
+      "runner_up_ms": 96.38
+    }
+  },
+  "seq32768": {
+    "best_config": [
+      4,
+      1,
+      2,
+      1,
+      0
+    ],
+    "best_step_ms": 492.06,
+    "dp8_zero2_feasible": false
+  },
+  "s_best": {
+    "path=legacy,cp_grad=crude,act=2.3,N=8": 8192,
+    "path=legacy,cp_grad=crude,act=1.0,N=8": 8192,
+    "path=legacy,cp_grad=production,act=2.3,N=8": 8192,
+    "path=legacy,cp_grad=production,act=1.0,N=8": 8192,
+    "path=spec,cp_grad=crude,act=2.3,N=8": 8192,
+    "path=spec,cp_grad=crude,act=1.0,N=8": 8192,
+    "path=spec,cp_grad=production,act=2.3,N=8": 8192,
+    "path=spec,cp_grad=production,act=1.0,N=8": 8192
+  },
+  "compute_floor_8192_ms": 64.97,
+  "compute_floor_32768_ms": 419.96,
+  "llama3-70b_N32_seq32768_nconfigs": 161,
+  "llama3-70b_N32_seq32768_step_s": 1.2,
+  "llama3-70b_N32_seq32768_mem_gb": 67.9,
+  "llama3-70b_N32_seq32768_nfeasible": 6,
+  "llama3-70b_N32_seq32768_config": [
+    1,
+    32,
+    1,
+    1,
+    0
+  ],
+  "sweep": {
+    "llama3-8b": {
+      "N8": {
+        "n_ranks": 8,
+        "min_mem_gb": 20.9,
+        "margin_gb": -59.1,
+        "min_mem_config": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 2.08,
+          "grads": 2.08,
+          "master": 4.16,
+          "opt": 8.31,
+          "act": 4.01,
+          "logits": 0.26
+        },
+        "best_config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "best_step_ms": 90.54,
+        "best_mem_gb": 37.53
+      },
+      "N16": {
+        "n_ranks": 16,
+        "min_mem_gb": 10.58,
+        "margin_gb": -69.42,
+        "min_mem_config": [
+          8,
+          2,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 1.04,
+          "grads": 1.04,
+          "master": 2.08,
+          "opt": 4.16,
+          "act": 2.01,
+          "logits": 0.26
+        },
+        "best_config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "best_step_ms": 51.95,
+        "best_mem_gb": 12.42
+      }
+    },
+    "qwen2.5-32b": {
+      "N8": {
+        "n_ranks": 8,
+        "min_mem_gb": 82.62,
+        "margin_gb": 2.62,
+        "min_mem_config": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 8.67,
+          "grads": 8.67,
+          "master": 17.33,
+          "opt": 34.67,
+          "act": 12.97,
+          "logits": 0.31
+        }
+      },
+      "N16": {
+        "n_ranks": 16,
+        "min_mem_gb": 41.46,
+        "margin_gb": -38.54,
+        "min_mem_config": [
+          8,
+          2,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 4.33,
+          "grads": 4.33,
+          "master": 8.67,
+          "opt": 17.33,
+          "act": 6.48,
+          "logits": 0.31
+        },
+        "best_config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "best_step_ms": 189.15,
+        "best_mem_gb": 43.64
+      }
+    },
+    "llama2-34b": {
+      "N8": {
+        "n_ranks": 8,
+        "min_mem_gb": 88.84,
+        "margin_gb": 8.84,
+        "min_mem_config": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 9.78,
+          "grads": 9.78,
+          "master": 19.56,
+          "opt": 39.12,
+          "act": 10.53,
+          "logits": 0.07
+        }
+      },
+      "N16": {
+        "n_ranks": 16,
+        "min_mem_gb": 44.45,
+        "margin_gb": -35.55,
+        "min_mem_config": [
+          8,
+          2,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 4.89,
+          "grads": 4.89,
+          "master": 9.78,
+          "opt": 19.56,
+          "act": 5.27,
+          "logits": 0.07
+        },
+        "best_config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "best_step_ms": 217.18,
+        "best_mem_gb": 44.91
+      }
+    },
+    "llama3-70b": {
+      "N8": {
+        "n_ranks": 8,
+        "min_mem_gb": 178.12,
+        "margin_gb": 98.12,
+        "min_mem_config": [
+          8,
+          1,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 19.72,
+          "grads": 19.72,
+          "master": 39.45,
+          "opt": 78.9,
+          "act": 20.07,
+          "logits": 0.26
+        }
+      },
+      "N16": {
+        "n_ranks": 16,
+        "min_mem_gb": 89.19,
+        "margin_gb": 9.19,
+        "min_mem_config": [
+          8,
+          2,
+          1,
+          1,
+          0
+        ],
+        "breakdown_gb": {
+          "params": 9.86,
+          "grads": 9.86,
+          "master": 19.72,
+          "opt": 39.45,
+          "act": 10.03,
+          "logits": 0.26
+        }
+      }
+    }
+  }
+}

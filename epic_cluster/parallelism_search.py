@@ -35,10 +35,19 @@ MODEL = {
 
 
 def total_params(m):
+    # gpu-sim-a5ro: GQA-aware parameter count, calibrated against published totals
+    # (experiments/gpu-sim-a5ro/reference_params.json: within 0.81% across the Llama-3
+    # family and Qwen2.5-32B). q,o at full d width; k,v at kv_dim; MLP 3*d*ff (gated:
+    # up, gate, down). No bias or final-norm terms: the reference validation closes
+    # without them. Embeddings: Llama-3 and Qwen2.5 do NOT tie input/output, so count
+    # 2*V*d. Every model dict in this repo is untied, so there is no tied flag -- a
+    # tied-embeddings model must add one rather than silently halve. (The old formula
+    # charged K/V at full width with one embedding: +15.6% at 405B, +16.2% at 70B,
+    # +3.6% at 8B where the two mistakes partly cancelled.)
     d = m["d_model"]; ff = m["d_ff"]; V = m["vocab"]; L = m["n_layers"]
-    per_layer = 4 * d * d + 3 * d * ff + 2 * d
-    emb = V * d
-    return L * per_layer + emb + d  # final norm
+    kv_dim = min(m.get("n_kv_heads", m["n_heads"]) * m["head_dim"], d)
+    per_layer = 2 * d * d + 2 * d * kv_dim + 3 * d * ff
+    return L * per_layer + 2 * V * d
 
 
 @dataclass

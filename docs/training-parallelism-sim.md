@@ -14,57 +14,58 @@ _context_parallel/_attention.py`, the `_RotateMethod.ALL_GATHER` default), whose
 "Allgather the kv and return only the required kv" -- that is, it gathers the FULL sequence K/V on every
 rank. The model prices the opt-in ring form instead (`_AllToAllRotater`, "Use all_to_all to send the kv
 to the next rank"). Measured on the harness, the all_gather form moves 1.99x the bytes the model charges
-for. Because 1.99x exceeds the 1.56x radius of the TP+CP answer, the two conventions do not share a
+for. Because 1.99x exceeds the 1.52x radius of the TP+CP answer, the two conventions do not share a
 recommendation:
 
 Only ONE recommended config survives both conventions, and it is not the headline one:
 
 | cell | ring `all_to_all` | PyTorch default `all_gather` |
 |---|---|---|
-| N=8, seq 8192 | (tp=4 pp=1 cp=2 dp=1) 90.54 ms, 6.45% | (tp=1 pp=8 cp=1 dp=1) 96.38 ms, 3.92% |
-| N=8, seq 32768 | (tp=4 pp=1 cp=2 dp=1) 492.06 ms, 1.65% | (tp=4 pp=1 cp=2 dp=1) 506.03 ms, 3.41% |
-| N=16, seq 8192 | (tp=1 pp=16 cp=1 dp=1) 51.95 ms, 5.09% | (tp=1 pp=16 cp=1 dp=1) 51.95 ms, 5.09% |
-| N=32, seq 8192 | (tp=1 pp=16 cp=2 dp=1) 31.06 ms, 5.32% | (tp=1 pp=16 cp=1 dp=2 z2) 32.71 ms, 3.66% |
-| N=32, seq 32768 | (tp=1 pp=8 cp=4 dp=1) 173.07 ms, 1.15% | (tp=1 pp=8 cp=1 dp=4 z2) 179.59 ms, 1.26% |
+| N=8, seq 8192 | (tp=4 pp=1 cp=2 dp=1) 88.49 ms, 6.03% | (tp=1 pp=8 cp=1 dp=1) 93.83 ms, 4.89% |
+| N=8, seq 32768 | (tp=4 pp=1 cp=2 dp=1) 484.79 ms, 1.48% | (tp=4 pp=1 cp=2 dp=1) 498.44 ms, 3.21% |
+| N=16, seq 8192 | (tp=1 pp=16 cp=1 dp=1) 50.66 ms, 4.94% | (tp=1 pp=16 cp=1 dp=1) 50.66 ms, 4.94% |
+| N=32, seq 8192 | (tp=1 pp=16 cp=2 dp=1) 30.33 ms, 5.45% | (tp=1 pp=16 cp=1 dp=2 z2) 31.99 ms, 3.98% |
+| N=32, seq 32768 | (tp=1 pp=8 cp=4 dp=1) 170.28 ms, 1.24% | (tp=1 pp=8 cp=1 dp=4 z2) 176.80 ms, 1.35% |
 
 The N=16 answer is convention-INDEPENDENT because it uses no context parallelism at all (cp=1), which is
 the strongest single reason to trust it. At 8 GPUs the config flips at seq 8192 but survives at 32768: the
-ring answer's own margin there is thin (1.65%), and under all_gather the same config wins by more (3.41%)
+ring answer's own margin there is thin (1.48%), and under all_gather the same config wins by more (3.21%)
 because its rival is priced differently. At 32 GPUs the config changes at both lengths.
 
 So "TP+CP is right at 8 GPUs" holds only if CP rotates K/V with all_to_all. Under the default stack the
-best choice at seq 8192 is a pure pipeline with no tensor and no context parallelism at all -- 6.4%
+best choice at seq 8192 is a pure pipeline with no tensor and no context parallelism at all -- 6.0%
 slower in absolute terms, because the model is not the only thing that changed: the cheaper config became
 expensive, not the other way round. Any config quoted from this document must therefore carry both its
 batch assumption (below) and its CP convention.
 
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
-CP cost scaled by k in [0, 1.5566] and PP cost by any k (never flips). CP -- the least-verified
-term -- tolerates a 1.56x overestimate before the answer becomes tp=1 pp=8; it never flips on an
+CP cost scaled by k in [0, 1.52] and PP cost by any k (never flips). CP -- the least-verified
+term -- tolerates a 1.52x overestimate before the answer becomes tp=1 pp=8; it never flips on an
 underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
 
 **The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which
 shrinks the bubble (bubble = compute x (pp-1)/(micro_batches+pp-1)). Sweeping that ratio under the default
 all_gather convention at seq 8192, the winners do not move for micro_batches/pp in [1, 8] and their
-margins IMPROVE: N=8 stays (tp=1 pp=8 cp=1 dp=1) at 96.38 -> 72.86 ms and 3.92% -> 10.23%; N=16 stays
-(tp=1 pp=16 cp=1 dp=1) at 51.95 -> 41.88 ms; N=32 stays (tp=1 pp=16 cp=1 dp=2 z2) at 32.71 -> 29.91 ms,
-6.42% at the best setting. Only an extreme 16x (16 micro-batches per stage at pp=16) moves the shape, and
-then the margin collapses to 0.63% -- a tie, not a different answer. So the unmeasured bubble term biases
+margins IMPROVE: N=8 stays (tp=1 pp=8 cp=1 dp=1) at 93.83 -> 70.95 ms and 4.89% -> 10.1%; N=16 stays
+(tp=1 pp=16 cp=1 dp=1) at 50.66 -> 40.92 ms; N=32 stays (tp=1 pp=16 cp=1 dp=2 z2) at 31.99 -> 29.36 ms,
+6.29% at the best setting. Only an extreme 16x (16 micro-batches per stage at pp=16) moves the shape --
+N=16 drops to (tp=1 pp=8 cp=1 dp=2 z2) at 41.49 ms, still a 1.02% tie rather than a different answer. So the unmeasured bubble term biases
 the model AGAINST the pipeline answers it recommends: giving it a realistic value makes them cheaper, not
 more expensive.
 
 **Beyond one rack (gpu-sim-scaleout).** The same model run on generated fabrics at 10, 100 and 1000 nodes
 of 8x H100 (80 / 800 / 8000 GPUs, NVLink inside a node, one NDR NIC per GPU across) says: 80 GPUs is
-pipeline-dominant, with 70B at pp~40 a real 6.10% verdict under the ring convention and 1.42% under the
-default one (120.0 ms); 8B at the same scale is a 2.51% near-tie; 800 GPUs is decided by efficiency and
-convention (3-5%) rather than by structure; and at 8000 GPUs the margins run 0.13% to 5.48%, so most cells
+pipeline-dominant, with 70B a real 4.85% verdict under the ring convention (tp=1 pp=40 cp=2 dp=1)
+and a 0.11% tie under the default one (111.0 ms at tp=1 pp=20 cp=1 dp=4 z2); 8B at the same scale
+is a 2.05% near-tie that the default convention breaks toward dp=5; 800 GPUs is decided by efficiency
+and convention rather than by structure; and at 8000 GPUs the margins run 0.61% to 5.09%, so most cells
 are ties the model cannot separate. 405B does not fit at 80 GPUs at all, and the reason is NOT activations: the model
 assumes fp32 master weights plus fp32 Adam m/v plus bf16 grads, i.e. 14 B per parameter, and 405B spread
 over 80 GPUs is 5.06e9 parameters per GPU however you decompose them -- 70.9 GB of optimizer state before a
 single activation. Recomputation cannot close a gap that size; only more GPUs (7.1 GB of the same state at
 800) or lower-precision optimizer states, which this model does not support, can. At 800 GPUs the binding
-term does become activations, which is why the answer there wants pp=100 (2.75%) and why recomputation is
+term does become activations, which is why the answer there wants pp=100 (2.58%) and why recomputation is
 the right next modelling step -- for that regime, not for 80 GPUs. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
@@ -84,15 +85,17 @@ NDR IB "400 Gb/s = 50 GB/s per GPU NIC" is already per-direction. Halving both -
 of this fix -- would have made the IB links half as fast as the hardware.
 
 The correction is validated by the two pricing paths converging: at N=8 the spec path now reads
-**92.85 ms** against the legacy path's **90.19 ms** (0.4% apart; before the fix they were 79.96 vs
+**88.49 ms** against the legacy path's **88.14 ms** (0.4% apart; before the fix they were 79.96 vs
 90.19, 15% apart). Consequences are NOT cosmetic:
 
-  * N=8 keeps (tp=4 pp=1 cp=2 dp=1 z0) but 92.85 ms instead of 79.96, and the best dp>1 row is now
-    (tp=4 pp=1 cp=1 dp=2 z2) at 99.7 ms;
-  * **N=16 FLIPS**: the winner is (tp=1 pp=4 cp=1 dp=4 z2/z3) at 67.9 ms, i.e. NO tensor
-    parallelism -- the same shape that won at N=32 all along (now 54.6 ms);
-  * the 70B-on-32-GPUs best feasible moves 1.55 s -> 1.97 s;
-  * every comm term doubles, so the DP term of a dp=8 row is 64.65 ms, not 32.30.
+  * N=8 keeps (tp=4 pp=1 cp=2 dp=1 z0) but 88.49 ms instead of 79.96, and the best dp>1 row is now
+    (tp=1 pp=4 cp=1 dp=2 z2) at 99.71 ms;
+  * **N=16 runs no tensor parallelism**: the winner is (tp=1 pp=16 cp=1 dp=1) at 50.66 ms, a
+    two-layers-per-GPU pipeline with no data parallelism and no ZeRO -- and N=32 runs the same
+    pp=16 shape with cp=2 (tp=1 pp=16 cp=2 dp=1) at 30.33 ms;
+  * the 70B-on-32-GPUs best feasible moves 1.55 s -> 1.12 s, because the search now promotes a pp=32
+    pipeline over the old dp-sharded answer (the DP term of a dp=8 row is 62.47 ms);
+  * every comm term doubles, so the DP term of a dp=8 row is 62.47 ms, not 32.30.
 
 That TP stops paying at 16 GPUs is the substantive result: once the link rate is honest, TP's
 all-reduce costs more than the pipeline bubbles it removes except at 8 GPUs, where cp=2 absorbs the
@@ -100,11 +103,11 @@ long-sequence cost.
 
 **CURRENT ANSWER (one screen).** For Llama-3-8B on 8xH100 at seq 8192-32768 the
 recommendation is **(tp=4 pp=1 cp=2 dp=1 zero=0)** -- tensor parallelism 4 by context
-parallelism 2, NO data parallelism and NO ZeRO -- at **92.85 ms/step at 8192**, 197.70 at
-16384 and 492.06 at 32768 on the spec/topology path (legacy single-fabric: 90.19 / 197.35 /
-492.06). Runner-up at 8192 is (tp=8 pp=1 cp=1 dp=1 zero=0) at 99.7 ms; the best dp>1 row is
-(tp=4 pp=1 cp=1 dp=2 zero=2) at 99.7 ms and the best dp=8 zero=2 row ties it on time
-and loses on memory (65.4 vs 50.8 GB).
+parallelism 2, NO data parallelism and NO ZeRO -- at **88.49 ms/step at 8192**, 193.48 at
+16384 and 484.79 at 32768 on the spec/topology path (legacy single-fabric: 88.14 / 193.56 /
+484.44). Runner-up at 8192 is (tp=1 pp=8 cp=1 dp=1 zero=0) at 93.83 ms; the best dp>1 row is
+(tp=1 pp=4 cp=1 dp=2 zero=2) at 99.71 ms; and the best dp=8 rows (zero=2 and zero=3) tie
+on time at 125.7 ms, with zero=2 losing on memory (64.3 vs 50.3 GB).
 
 **CP PAYS AT SEQ 8192** (cp=2 is in the winner), so S_best -- the smallest seq where the
 overall best feasible config has cp>1 -- is **8192 on both pricing paths** and under every
@@ -116,7 +119,7 @@ it, were artifacts of an understated DP term (below).
 the DP term passed the dp-SHARD to a cost function whose `count` is the TOTAL payload
 (`link_model._bw_factor = (n-1)/n * S/B`), making every dp>=2 collective dp x too cheap; and
 it omitted the param all-gather that ZeRO-1/2 actually issue (the harness issues one per
-parameter -- 37 per step at 4 layers, measured). Corrected, a dp=8 row pays 64.65 ms of DP
+parameter -- 37 per step at 4 layers, measured). Corrected, a dp=8 row pays 62.47 ms of DP
 comm at 8192, while a dp=1 row pays none, so dp-heavy splits lose to tp/cp splits. This is
 the strongest evidence yet that the previous recommendation was an accounting artifact, not a
 property of the hardware.
@@ -142,56 +145,57 @@ that the MLP all-reduce carries `d_ff` (2.25x), is refuted by the column/row pai
 kept in the code as `df_allreduce_hypothesis` so the error stays reproducible. Consequences: the
 `tp=8 cp=1` column and the claim that CP never pays up to 65536 rested on those refuted premises
 and are gone; **`four_d` is the default**, the winner is **(tp=4 pp=1 cp=2 dp=1 z0)** at
-**92.85 ms** (N=8), 67.9 (N=16), 54.6 (N=32), and **S_best = 8192** stands on TP grounds.
+**88.49 ms** (N=8), 50.66 (N=16), 30.33 (N=32), and **S_best = 8192** stands on TP grounds.
 
 **Alpha granularity does not move the winner (gpu-sim-8nt follow-up).** The model charges
 alpha once per *logical transfer* while a real NIC charges per *piece* (measured P=4-8 for
 payloads >= 256 KiB), so it under-charges alpha on big payloads. Paying alpha P times instead
 (`experiments/gpu-sim-8nt/alpha_piece_charging.py`) leaves the winner at (tp=4 pp=1 cp=2 dp=1 z0)
-for P=1/4/8 at **92.85 / 95.93 / 99.68 ms**, and the reason is structural: ring alpha is
-2*(n-1)*lat, so a wider TP group pays more of it -- at P>=4 the tp=8 runner-up is displaced by
-(tp=8 cp=1) 99.7 ms. The ranking is robust; the absolute duration is not (+6.0% at P=8).
+for P=1/4 at **88.49 / 90.8 ms**, and the reason is structural: ring alpha is
+2*(n-1)*lat, so a wider TP group pays more of it -- at P=8 the pp=8 config takes the lead at 93.83 ms
+against 93.88 ms for the tp=4 answer, a tie for ranking purposes. The ranking holds through P=4;
+the absolute duration is not (+2.6% at P=4, +6.0% at P=8).
 
 What is still NOT settled about this row: absolute durations (gpu-sim-wv2 needs real GPUs), and the
 harness runs fp32 where the model prices bf16 -- compare element counts with the harness, not bytes.
 
 **How much the absolute durations are worth, measured rather than assumed (gpu-sim-wv2, partial).**
 The compute term divides 6*P*T FLOPs by dense peak with NO efficiency factor, which works out to an
-implied **76.5% MFU** at this row. That is unrealistically high, and it is now measured rather than
+implied **78.6% MFU** at this row. That is unrealistically high, and it is now measured rather than
 argued: on the shapes this model prices (8192x4096x4096 plus the MLP pair), a real GPU reaches
 **52-57%** of its dense bf16 peak -- 229/237/218 TFLOP/s on an RTX 5090 (scripts/measure_mfu.py), and
-published large-model bf16 training runs sit at 35-50%. Feeding those back in, N=8 reads **113.39 ms**
-at 0.566 and **149.830 ms** at 0.40, i.e. the absolute number carries a factor-1.25-to-1.65 uncertainty.
+published large-model bf16 training runs sit at 35-50%. Feeding those back in, N=8 reads **113.07 ms**
+at 0.566 and **149.5 ms** at 0.40, i.e. the absolute number carries a factor-1.28-to-1.69 uncertainty.
 
 The reason this does not undermine the answer: **the winner is invariant across the whole range.**
-(tp=4 pp=1 cp=2 dp=1 z0) wins at N=8, (tp=1 pp=4 cp=1 dp=4 z2) at N=16 and (tp=1 pp=4 cp=1 dp=8 z2)
-at N=32 at 0.765, 0.566 AND 0.40 MFU -- three different efficiencies, one ranking
+(tp=4 pp=1 cp=2 dp=1 z0) wins at N=8, (tp=1 pp=16 cp=1 dp=1) at N=16 and (tp=1 pp=16 cp=2 dp=1)
+at N=32 at 0.786, 0.566 AND 0.40 MFU -- three different efficiencies, one ranking
 (tests/test_mfu_sensitivity.py). Absolute comm durations still rest on the model: only a 2-4 GPU
 NVLink run can validate those.
 
 **The margins are what matter, not just the argmin.** Measured against the best config with a
-DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **6.45%**
-at the model's implied 76.5%, **8.06%** at the measured 56.6% and **6.10%** at a pessimistic 40%; at
-N=32 it is **5.32% / 4.18% / 3.12%**. Both answers hold across the whole plausible efficiency range --
+DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **6.03%**
+at the model's implied 78.6%, **7.53%** at the measured 56.6% and **5.70%** at a pessimistic 40%; at
+N=32 it is **5.45% / 4.19% / 3.12%**. Both answers hold across the whole plausible efficiency range --
 N=8 now comfortably, N=32 by a thinner but real margin. (These numbers are produced by the claims
 register below, not typed by hand; when the CP payload was corrected to the GQA K/V width the N=8
 margin roughly doubled while N=32 lost its old 4-14% cushion.)
 
 **N=16 became a verdict when the PP payload was priced correctly, and N=32 stopped being one.**
 At 16 GPUs the answer is (tp=1 pp=16 cp=1 dp=1) -- a two-layers-per-GPU pipeline with no data
-parallelism at all -- and it is the SAME config at 76.5%, 56.6% and 40% (5.09% / 3.55% / 2.23%), so it
-is stable rather than a near-tie. At 32 GPUs the margins are 5.32% / 4.18% / 3.12% at seq 8192, but the
-31k/32k cells fall to 1.15% / 1.13% / 0.10%: the model cannot separate the candidates there.
+parallelism at all -- and it is the SAME config at 78.6%, 56.6% and 40% (4.94% / 3.33% / 2.06%), so it
+is stable rather than a near-tie. At 32 GPUs the margins are 5.45% / 4.19% / 3.12% at seq 8192, but the
+31k/32k cells fall to 1.24% / 0.96% / 0.02%: the model cannot separate the candidates there.
 
 **Decisiveness depends on sequence length at least as much as on GPU count.** At 8 GPUs the headline
-answer is decided by 6.45% / 8.06% / 6.10% at seq 8192 and 1.65% / 1.27% / 0.93% at 32768, but seq 16384
-is a tie (0.10% / 0.08% / 0.06%). Any statement of the form "TP+CP is right at 8" is therefore a
+answer is decided by 6.03% / 7.53% / 5.70% at seq 8192 and 1.48% / 1.11% / 0.81% at 32768, but seq 16384
+is a tie (0.22% / 0.17% / 0.13%). Any statement of the form "TP+CP is right at 8" is therefore a
 statement about seq 8192 and 32768, not about 8 GPUs in general.
 
 **How wrong would the decisive term have to be?** The N=8 verdict is decided by the CP term, which the
 harness cannot check by construction; the N=16 verdict is decided by the PP bubble, which no measurement
 covers. Re-running the production model with that one term scaled, the N=8 answer is unchanged for CP
-error up to **1.56x** (and 4.73x at seq 32768), and the N=16 answer for PP-bubble error up to **1.90x**.
+error up to **1.52x** (and 4.81x at seq 32768), and the N=16 answer for PP-bubble error up to **1.86x**.
 Those are the honest confidence bounds on the two verdicts: one term error of that size overturns the
 answer, and a 4x CP error has already been found on this axis once. The CP term can now in principle
 be checked: `tools/torch_parallel` supports grouped-query attention (--n-kv-heads), so
@@ -202,7 +206,7 @@ counterpart in the harness (gpu-sim-g8wc). The PP bubble remains unmeasured.
 Three frozen cp=2 traces (experiments/gpu-sim-cpgqa) give the same answer at kv_dim 256 and 1024 and at
 half the sequence: the harness gathers the FULL-sequence K/V on every rank and moves **1.99x** what the
 model's ring exchange prices (1.99x and 1.98x respectively). Ring and all_gather are both legitimate --
-one ships shards, the other replicates -- but **1.99x sits outside the 1.56x radius** of the N=8 verdict.
+one ships shards, the other replicates -- but **1.99x sits outside the 1.52x radius** of the N=8 verdict.
 Which convention production uses is now answerable from source, not measurement:
 - **PyTorch CP** (`torch.distributed.tensor.experimental._context_parallel`, default `rotate_method =
   ALL_GATHER`) gathers the full K/V on every rank via `ft_c.all_gather_single` (see `_AllGatherRotater`).
@@ -213,7 +217,7 @@ Which convention production uses is now answerable from source, not measurement:
   needed slice.
 So the verdict is **conditional in a way the reader can resolve from their stack**: PyTorch-default
 deployments get the larger CP cost (and "TP+CP is right at 8 GPUs" may not survive); Megatron-style
-deployments keep the 1.56x radius. The document no longer has to say "we cannot answer" -- it says
+deployments keep the 1.52x radius. The document no longer has to say "we cannot answer" -- it says
 "check which one your stack is". Citation: PyTorch `_context_parallel/_attention.py`, lines ~273-295
 (`_AllGatherRotater`) and `set_rotate_method` (default `ALL_GATHER`); harness side `tools/torch_parallel/model.py`
 Block CP path uses `torch.distributed.nn.all_gather`.
@@ -235,45 +239,49 @@ config with a different shape, over N x sequence length x efficiency:
 
 | N | seq 8192 | seq 16384 | seq 32768 |
 |---|---|---|---|
-| 8 | 6.42 / 5.27 / 4.01% | **1.97 / 1.30 / 1.04%** | **1.60 / 1.25 / 0.91%** |
-| 16 | 4.90 / 3.10 / **0.80%** | 2.30 / **0.31%** / **1.65%** | 4.0 / **1.97%** / 9.78% |
-| 32 | 5.30 / 4.89 / 4.160% | 12.97 / 12.00 / 9.78% | 10.6 / 9.20 / 4.33% |
+| 8 | 6.03 / 7.53 / 5.70% | **0.22 / 0.17 / 0.13%** | **1.48 / 1.11 / 0.81%** |
+| 16 | 4.94 / 3.33 / 2.06% | **0.45 / 0.02 / 0.64%** | **0.34** / 2.20 / 9.15% |
+| 32 | 5.45 / 4.19 / 3.12% | **1.95 / 1.18 / 0.56%** | **1.24 / 0.96 / 0.02%** |
 
-(76.5% / 56.6% / 40% MFU; bold is a margin under 2%.) Two things fall out and neither was visible in
+(78.6% / 56.6% / 40% MFU; bold is a margin under 2%.) Two things fall out and neither was visible in
 the single-cell analysis. First, the fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk: at
 8192 only N=16 at a pessimistic efficiency is tight, but from 16384 the N=8 answer itself wins by
-about 1%, and at 32768 it is 0.91% at 40% MFU. The config does not change there -- (tp=4 cp=2 dp=1)
-wins at all three lengths -- so the recommendation stands, but at long sequences it is not decisively
-separated from the alternative. Second, N=16 at 16384 is a genuine three-way tangle: the winner moves
-from (tp=1 pp=4) to (tp=1 pp=2) as efficiency drops, and the margin never exceeds 2.30%. N=32 is the
-only cell family that is decisive everywhere (4-14%).
+about 0.2%, and at 32768 it is 0.81% at 40% MFU. The config changes there -- (tp=4 cp=2 dp=1)
+wins at 8192 and 32768 but (tp=2 cp=4 dp=1) at 16384 -- so the recommendation stands, but at long
+sequences it is not decisively separated from the alternative. Second, N=16 at 16384 is a genuine
+three-way tangle: the winner moves from (tp=1 pp=16) to (tp=2 pp=2 cp=4) as efficiency drops, and the
+margin never exceeds 0.64%. N=32 is solid at 8192 (5.45% / 4.19% / 3.12%) but both longer sequences
+contain ties -- 0.56% at 16384/typical and 1.24% / 0.96% / 0.02% at 32768.
 
-**Where does CP actually start paying? At seq ~5833, not 8192.** "CP pays at 8192" has always read
+**Where does CP actually start paying? At seq ~5956, not 8192.** "CP pays at 8192" has always read
 like a boundary, but 8192 was simply the smallest grid point that was tried. Bisecting the sequence
-length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **5833**
-tokens at the model's implied efficiency (**3788** at the measured 56.6% and at 40%), and act_factor
+length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **5956**
+tokens at the model's implied efficiency (**3658** at the measured 56.6% and **3646** at 40%), and act_factor
 does not move it at all (activations are memory, not time). So S_best=8192 is not a knife edge -- it
-is twice the crossover, where the CP advantage is already **6.45%** (**8.48% / 6.42%** at
-measured/pessimistic efficiency). At seq 4096 the two are level (**0.0%** at the implied efficiency),
-which is what a crossover looks like. The K/V correction pushed the crossover down from 4819 and made
-CP look better everywhere above it, so the honest wording is "CP pays from ~4k tokens, and 8192 is the
+is above the crossover, where the CP advantage is already **6.03%** (**8.78% / 6.64%** at
+measured/pessimistic efficiency). At seq 4096 the answer brackets zero (**-8.16%** at the implied efficiency,
+**1.73% / 1.35%** at measured/pessimistic), which is what a crossover looks like. The K/V correction moved
+the crossover up from its pre-correction value, and the parameter correction moved it to 5956 with it,
+so the honest wording is "CP pays from ~6k tokens, and 8192 is the
 first conventional length above that".
 
-**And one cell recommends a config nobody would deploy.** The model treats HBM as a hard fit, so a
-config at 94% of capacity looks as good as one at 65%. Requiring a mere 10% of HBM to stay free --
+**Two cells recommend a config nobody would deploy.** The model treats HBM as a hard fit, so a
+config at 91% of capacity looks as good as one at 52%. Requiring a mere 10% of HBM to stay free --
 room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
-**one** cell in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **75.3 of
-80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **42.5 GB** for **420.310 vs 412.12 ms**. That
-is 4.3% slower, and after the K/V correction the replacement is also the config that wins at N=16 for
-seq 16384, so the headroom requirement does not cost a real recommendation -- it removes an artifact. Every other cell
+**two** cells in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **73.0 of
+80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **41.4 GB** for **423.78 vs 413.98 ms**; and N=8
+at seq 16384, where (tp=2 cp=4 dp=1) at **72.9 GB** gives way to (tp=4 cp=2 dp=1 z0) at **40.7 GB** for
+**253.43 vs 253.00 ms**. Both cost about 2% or less, and the N=16 replacement is also the config that
+wins at N=16 for seq 16384 at pessimistic efficiency, so the headroom requirement does not cost a real
+recommendation -- it removes artifacts. Every other cell
 is unchanged at 10% and even at 20% headroom. The model's default stays a hard fit (headroom 0.0),
 because that is what the published numbers assume; `mem_headroom` is an hw knob and this is the
 sensitivity it produces.
 
-**N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 67.9 ms (best
-dp>1 row: the same config with zero=3, also 67.9 ms -> the two policies tie exactly). At
-N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 54.6 ms, because pp=4 finally makes
-the per-rank state small enough that a dp=8 ring is affordable.
+**N=16 and N=32.** At N=16 the winner is (tp=1 pp=16 cp=1 dp=1) at 50.66 ms -- a pure pipeline with
+no data parallelism and no ZeRO to tie. At N=32 the winner adds cp=2 to the same pp=16 pipeline
+(tp=1 pp=16 cp=2 dp=1) at 30.33 ms: a second split of the sequence dimension instead of a return
+to data parallelism, because the DP term still costs more than the GQA-priced K/V exchange.
 
 **What this does NOT say.** TP comm is priced from the same bytes-only ring formulas (per-step
 TP message COUNT is harness-validated, sizes are Megatron-form: gpu-sim-5o4.7 / gpu-sim-oez),
@@ -288,9 +296,9 @@ only 7 configs are feasible and by 131072 none
 are, so CP goes from optional to mandatory somewhere in between. All of these are modelled,
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
 cp_grad_mode and the act_factor alongside every threshold. At 70B on 32
-GPUs the answer is still decided by MEMORY: only 6 of 161 configs fit at seq 32768, and the
-best of them is (tp=8, pp=4, cp=1, dp=1, zero=0) at 1.97 s/step and 56.600 GB (a pipeline over
-tp=8, not a dp-sharded optimizer -- with 70B the optimizer state per rank dominates before
+GPUs the answer is still decided by MEMORY: only 10 of 161 configs fit at seq 32768, and the
+best of them is (tp=1, pp=32, cp=1, dp=1, zero=0) at 1.12 s/step and 63.7 GB (a full-depth pipeline,
+not a dp-sharded optimizer -- with 70B the optimizer state per rank dominates before
 replication does). 70B on 8-16 GPUs is infeasible outright.
 
 **CONFIDENCE.** Validated on hardware: collective COUNTS (exact, 16 tp all-reduces + 24 cp
@@ -310,7 +318,7 @@ below for the derivation of each number; nothing here is a measured duration.
 | 5D search | `epic_cluster/parallelism_search.py` ranks (tp,pp,cp,dp,zero) at fixed N by predicted step time: compute+comm SUM (no overlap), with max-overlap reported separately. Those two policies disagree completely -- see below -- so the ranking is conditional. |
 | Perfetto | `tools/torch_parallel/merge_profile.py` merges torch.profiler kernels/Python with the interposer's collectives; three rows per rank. |
 | calibration | **counts** validated on hardware (gpu-sim-5o4.7): 16 tp all-reduces and 24 cp K/V sends per rank per step match the plan exactly. Byte SIZES are not validated: the harness's tp all-reduce carries a 3d/tp qkv tensor while the cost model assumes Megatron's full-d row-parallel payload, so the model's byte magnitudes are Megatron-form and modelled-only. Absolute durations modelled (gpu-sim-wv2, blocked: needs 2-4 real GPUs). |
-| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) see gpu-sim-6r5, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=4 pp=1 cp=2 dp=1 zero=0) at 492.06 ms (compute floor 64.97 / 419.96 ms; all 24 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
+| attention FLOPs | gpu-sim-ooj added attention (seq^2) fwd+bwd, 12*L*S^2*d per sequence. **The delivered scaling was wrong and its headline claim is WITHDRAWN (PI, gpu-sim-i95):** it divided by cp*tp but not pp*dp, while the weight term beside it divides by tp*pp*cp*dp, so compute stopped being split-invariant and tp/cp configs got a spurious discount -- which is where the 'cp=4 wins at S>=8192' result came from. Scaled like the weight term, 12*L*S^2*d/(tp*pp*cp*dp) = (12*L*S*d)*S/N, the term is split-invariant, raises every config's compute by ~27% at S=8192 and ~107% at S=32768, and the winner was claimed as pure FSDP pre-audit (73.06 ms at S=8192); after the DP audit the winner is (tp=1 pp=1 cp=1 dp=8 zero=2) see gpu-sim-6r5, while at S=32768 neither dp=8 config fits -- the best feasible is (tp=4 pp=1 cp=2 dp=1 zero=0) at 484.79 ms (compute floor 63.23 / 412.99 ms at 8192/32768; all 40 pp=1 rows tie at the max-overlap floor). Crossover where attention equals the weight FLOPs is S ~= P/(2*L*d) = 30.6k for 8B/d4096. Conservation test (compute identical for all configs with equal N) tracked in gpu-sim-i95. |
 | rank layout (read before touching groups) | rank = ((pp_idx*tp + tp_rank)*cp + cp_rank)*dp + dp_rank. TP groups are stride cp*dp, PP neighbours keep (tp_rank, cp_rank, dp_rank) fixed. gpu-sim-x7h found tp groups built with stride 1 and no cp term, which silently disabled tp all-reduce on every rank with cp_rank>0; fixed in 4e8d65c. `tools/torch_parallel/validate_trace.py` now refuses a run whose ranks have unequal collective counts (stage-aware, and invalid rows yield no step time). |
 
 THE RANKING IS A NO-OVERLAP RANKING, and that is the open question, not a footnote.
@@ -410,15 +418,16 @@ params+grads, fp32 master, fp32 Adam m,v):
 
 | model | N=8 | N=16 |
 | --- | --- | --- |
-| llama3-8b | see gpu-sim-6r5 (model under revision) |
-| qwen2.5-32b | MISS by 2.62 GB (min 82.62 at tp=8) | FIT (1,4,1,4,z2) 200.09 ms, 64.97 GB |
-| llama2-34b | MISS by 8.84 GB | FIT (1,4,1,4,z2) 202.11 ms, 56.600 GB |
-| llama3-70b | MISS by 98.1 GB | MISS by 9.19 GB (min 89.19 at tp=8,pp=2) |
+| llama3-8b | FIT (4,1,2,1,0) 88.49 ms | FIT (1,16,1,1,0) 50.66 ms |
+| qwen2.5-32b | FIT (8,1,1,1,0) 323.98 ms, 78.8 GB | FIT (1,16,1,1,0) 180.36 ms, 41.74 GB |
+| llama2-34b | MISS by 9.36 GB | FIT (1,16,1,1,0) 218.38 ms, 45.17 GB |
+| llama3-70b | MISS by 81.43 GB | MISS by 0.85 GB (min 80.85 at tp=8,pp=2) |
 
-The 8B row reproduces the audited answer exactly (the sweep asserts it). The boundary is
-set by OPTIMIZER STATE, not by activations or compute: for the binding 32B config
-(tp=8,pp=1,cp=1,dp=1) the footprint is 82.62 GB = master 17.33 + opt 34.67 (52 GB, 63%) +
-params 8.67 + grads 8.67 + act 12.97 + logits 0.31. So the model's "70B does not fit 16
+The 8B row reproduces the audited answer exactly: (tp=4 pp=1 cp=2 dp=1) at 88.49 ms for N=8 and
+(tp=1 pp=16 cp=1 dp=1) at 50.66 ms for N=16. The boundary is
+set by OPTIMIZER STATE, not by activations or compute: for the binding 34B config
+(tp=8,pp=1,cp=1,dp=1) the footprint is 89.36 GB = master 19.69 + opt 39.38 (59 GB, 66%) +
+params 9.85 + grads 9.85 + act 10.53 + logits 0.07. So the model's "70B does not fit 16
 H100s" is a statement about fp32 Adam states with a separate fp32 master, NOT about the
 architecture: bf16 moments or sharded/offloaded optimizer state move this boundary by tens
 of GB. Nothing here is measured; the accounting is the deliverable and the caveat.
@@ -899,22 +908,22 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 
 | claim | status | evidence | guard |
 |---|---|---|---|
-| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 90.54 ms; margin 6.45% at the implied MFU, 6.10% at 40% | tests/test_fragility_map.py |
-| Same config at seq 16384 / 32768 | **TIE** | margin only 0.10% / 1.65% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
-| N=16 winner (tp=1 pp=16 cp=1 dp=1 z0), seq 8192 | **VERDICT** | 2.23% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
-| N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (1,2,1,8) at 40%, margins 0.54% / 0.46% | tests/test_fragility_map.py |
-| N=16 at seq 32768 (hard-fit memory) | **TIE** | 1.97% margin and 94% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 42.5 GB (+1.9%) | tests/test_memory_headroom.py |
-| N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.10% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
-| Absolute step durations | **BOUNDED** | model implies 0.765 MFU; a real GPU reached 0.566, so absolutes carry 1.25-1.65x | tests/test_mfu_sensitivity.py |
+| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 88.49 ms; margin 6.03% at the implied MFU, 5.70% at 40% | tests/test_fragility_map.py |
+| Same config at seq 16384 / 32768 | **TIE** | margin only 0.22% / 1.48% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
+| N=16 winner (tp=1 pp=16 cp=1 dp=1 z0), seq 8192 | **VERDICT** | 2.06% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
+| N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (tp=2 pp=2 cp=4 dp=1 z0) at 40%, margins 0.45% / 0.64% | tests/test_fragility_map.py |
+| N=16 at seq 32768 (hard-fit memory) | **TIE** | 2.20% margin and 91% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 41.4 GB (+2.4%) | tests/test_memory_headroom.py |
+| N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.02% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
+| Absolute step durations | **BOUNDED** | model implies 0.786 MFU; a real GPU reached 0.566, so absolutes carry 1.28-1.69x | tests/test_mfu_sensitivity.py |
 | act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) | tests/test_act_factor_knob.py |
-| S_best = 8192 | **VALIDATED** | CP crossover is seq 5833 (3788 measured), so 8192 is the first conventional length above it, +6.45% | tests/test_cp_crossover.py |
+| S_best = 8192 | **VALIDATED** | CP crossover is seq 5956 (3658 measured), so 8192 is the first conventional length above it, +6.03% | tests/test_cp_crossover.py |
 | Alpha piece-charging granularity | **BOUNDED** | +6.0% at P=8, winner unmoved | docs section 0 (alpha piece charging) |
 | Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
 | CP byte accounting | **CONDITIONAL** | K/V gather moves 1.98x-1.99x the model's ring message (measured, 3 frozen cp=2 traces); ring vs all_gather are different algorithms, so bytes bound the CONVENTION gap, not a validation | tests/test_cp_gather_bytes.py |
 | Absolute communication durations | **UNVALIDATED** | rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU | no test possible here |
-| CP term is decisive for the N=8 verdict | **BOUNDED** | winner unchanged for CP error <= 1.56x, flips above | scripts/sensitivity_radius.py |
-| PP bubble is decisive for the N=16 verdict | **BOUNDED** | winner unchanged for bubble error <= 1.90x; bubble is UNMEASURED | scripts/sensitivity_radius.py |
+| CP term is decisive for the N=8 verdict | **BOUNDED** | winner unchanged for CP error <= 1.52x, flips above | scripts/sensitivity_radius.py |
+| PP bubble is decisive for the N=16 verdict | **BOUNDED** | winner unchanged for bubble error <= 1.86x; bubble is UNMEASURED | scripts/sensitivity_radius.py |
 
 <!-- CLAIMS-REGISTER:END -->

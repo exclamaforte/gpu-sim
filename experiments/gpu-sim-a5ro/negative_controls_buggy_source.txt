@@ -1,0 +1,195 @@
+# gpu-sim-a5ro negative control: new/updated assertions vs the OLD (buggy) total_params.
+# Run: source reverted to HEAD (git show HEAD:epic_cluster/parallelism_search.py),
+# then the 7 new/rewritten test selections below. Expect RED (the assertions must have
+# teeth: they fail without the GQA fix). Result: 11 failed, 3 passed.
+# The 3 passes are expected: test_payload_convention_rs_full_p pins the dp payload
+# convention (independent of total_params; its own teeth shown separately below) and
+# two selections whose old-model values coincide.
+#
+# Separate run (same file, AR payload halved in scratch): test_payload_convention_rs_full_p
+# FAILED as required (ratio moved off 1.5), then passed after restore. That mutation output:
+#   tests/test_dp_comm_audit.py:113: AssertionError / 1 failed in 0.02s
+#   (restored: 1 passed)
+#
+---
+FFFF...FFFFFFF                                                           [100%]
+=================================== FAILURES ===================================
+________________________ test_matches_published_counts _________________________
+
+    def test_matches_published_counts():
+        # bead acceptance: within 1% of the real published counts.
+>       assert abs(ps.total_params(_m8()) - 8.03e9) / 8.03e9 < 0.01, ps.total_params(_m8())
+E       AssertionError: 8310231040
+E       assert (280231040.0 / 8030000000.0) < 0.01
+E        +  where 280231040.0 = abs((8310231040 - 8030000000.0))
+E        +    where 8310231040 = <function total_params at 0x7f52ebef9640>({'n_layers': 32, 'd_model': 4096, 'n_heads': 32, 'n_kv_heads': 8, ...})
+E        +      where <function total_params at 0x7f52ebef9640> = ps.total_params
+E        +      and   {'n_layers': 32, 'd_model': 4096, 'n_heads': 32, 'n_kv_heads': 8, ...} = _m8()
+
+tests/test_total_params_gqa.py:32: AssertionError
+_________________________ test_matches_reference_table _________________________
+
+    def test_matches_reference_table():
+        # the committed reference table is the convention; the model must reproduce its
+        # two-embedding column (llama2-34b has no official count and is excluded by design).
+>       assert abs(ps.total_params(_m8()) - REF["llama3-8b"]["two_embeddings"] * 1e9) / 8.03e9 < 0.01
+E       AssertionError: assert (280231040.00000095 / 8030000000.0) < 0.01
+E        +  where 280231040.00000095 = abs((8310231040 - (8.03 * 1000000000.0)))
+E        +    where 8310231040 = <function total_params at 0x7f52ebef9640>({'n_layers': 32, 'd_model': 4096, 'n_heads': 32, 'n_kv_heads': 8, ...})
+E        +      where <function total_params at 0x7f52ebef9640> = ps.total_params
+E        +      and   {'n_layers': 32, 'd_model': 4096, 'n_heads': 32, 'n_kv_heads': 8, ...} = _m8()
+
+tests/test_total_params_gqa.py:39: AssertionError
+___________________________ test_gqa_aware_kv_width ____________________________
+
+    def test_gqa_aware_kv_width():
+        # the defect was K/V at full width: varying n_kv_heads must move the count, and
+        # full-width kv must cost exactly the old 4*d*d attention term.
+        m = _m405()
+        p_gqa = ps.total_params(m)
+        m_mha = dict(m, n_kv_heads=128)
+        p_mha = ps.total_params(m_mha)
+>       assert p_gqa < p_mha
+E       assert 467169918976 < 467169918976
+
+tests/test_total_params_gqa.py:50: AssertionError
+_____________________ test_untied_embeddings_counted_twice _____________________
+
+    def test_untied_embeddings_counted_twice():
+        # Llama-3 does not tie: dropping one embedding must lose exactly V*d.
+        m = _m8()
+>       assert ps.total_params(m) - (32 * (2 * 4096 * 4096 + 2 * 4096 * 1024 + 3 * 4096 * 14336)
+                                     + 128256 * 4096) == 128256 * 4096
+E       AssertionError: assert (8310231040 - ((32 * ((((2 * 4096) * 4096) + ((2 * 4096) * 1024)) + ((3 * 4096) * 14336))) + (128256 * 4096))) == (128256 * 4096)
+E        +  where 8310231040 = <function total_params at 0x7f52ebef9640>({'n_layers': 32, 'd_model': 4096, 'n_heads': 32, 'n_kv_heads': 8, ...})
+E        +    where <function total_params at 0x7f52ebef9640> = ps.total_params
+
+tests/test_total_params_gqa.py:58: AssertionError
+___ test_long_sequence_n8_is_known_tight_but_never_switches[8-16384-shape1] ____
+
+n = 8, seq = 16384, shape = (2, 1, 4, 1)
+
+    @pytest.mark.parametrize("n,seq,shape", [(8, 32768, (4, 1, 2, 1)), (8, 16384, (2, 1, 4, 1))])
+    def test_long_sequence_n8_is_known_tight_but_never_switches(n, seq, shape):
+        """The N=8 answer is a tie at long sequences -- documented as a tie, not as a verdict."""
+        shapes = set()
+        margins = []
+        for mfu in (IMPLIED_MFU, 0.566, 0.40):
+            s, margin = _cell(n, seq, mfu)
+            shapes.add(s)
+            margins.append(margin)
+>       assert shapes == {shape}, f"N={n} seq={seq}: the answer stopped being {shape}: {shapes}"
+E       AssertionError: N=8 seq=16384: the answer stopped being (2, 1, 4, 1): {(4, 1, 2, 1)}
+E       assert {(4, 1, 2, 1)} == {(2, 1, 4, 1)}
+E         
+E         Extra items in the left set:
+E         (4, 1, 2, 1)
+E         Extra items in the right set:
+E         (2, 1, 4, 1)
+E         Use -v to get more diff
+
+tests/test_fragility_map.py:76: AssertionError
+_______________ test_act_factor_does_not_move_the_crossover[1.0] _______________
+
+act = 1.0
+
+    @pytest.mark.parametrize("act", [1.0, 1.5, 3.0, 4.0])
+    def test_act_factor_does_not_move_the_crossover(act):
+        """Activations are memory, not time -- the same structural fact as gpu-sim-aknob."""
+>       assert _crossover(IMPLIED, act) == 5956, f"act_factor {act} moved the CP crossover"
+E       AssertionError: act_factor 1.0 moved the CP crossover
+E       assert 5833 == 5956
+E        +  where 5833 = _crossover(0.786, 1.0)
+
+tests/test_cp_crossover.py:82: AssertionError
+_______________ test_act_factor_does_not_move_the_crossover[1.5] _______________
+
+act = 1.5
+
+    @pytest.mark.parametrize("act", [1.0, 1.5, 3.0, 4.0])
+    def test_act_factor_does_not_move_the_crossover(act):
+        """Activations are memory, not time -- the same structural fact as gpu-sim-aknob."""
+>       assert _crossover(IMPLIED, act) == 5956, f"act_factor {act} moved the CP crossover"
+E       AssertionError: act_factor 1.5 moved the CP crossover
+E       assert 5833 == 5956
+E        +  where 5833 = _crossover(0.786, 1.5)
+
+tests/test_cp_crossover.py:82: AssertionError
+_______________ test_act_factor_does_not_move_the_crossover[3.0] _______________
+
+act = 3.0
+
+    @pytest.mark.parametrize("act", [1.0, 1.5, 3.0, 4.0])
+    def test_act_factor_does_not_move_the_crossover(act):
+        """Activations are memory, not time -- the same structural fact as gpu-sim-aknob."""
+>       assert _crossover(IMPLIED, act) == 5956, f"act_factor {act} moved the CP crossover"
+E       AssertionError: act_factor 3.0 moved the CP crossover
+E       assert 5833 == 5956
+E        +  where 5833 = _crossover(0.786, 3.0)
+
+tests/test_cp_crossover.py:82: AssertionError
+_______________ test_act_factor_does_not_move_the_crossover[4.0] _______________
+
+act = 4.0
+
+    @pytest.mark.parametrize("act", [1.0, 1.5, 3.0, 4.0])
+    def test_act_factor_does_not_move_the_crossover(act):
+        """Activations are memory, not time -- the same structural fact as gpu-sim-aknob."""
+>       assert _crossover(IMPLIED, act) == 5956, f"act_factor {act} moved the CP crossover"
+E       AssertionError: act_factor 4.0 moved the CP crossover
+E       assert 5833 == 5956
+E        +  where 5833 = _crossover(0.786, 4.0)
+
+tests/test_cp_crossover.py:82: AssertionError
+___________________ test_headroom_changes_exactly_two_cells ____________________
+
+    def test_headroom_changes_exactly_two_cells():
+        changed = []
+        for n in (8, 16, 32):
+            for seq in (8192, 16384, 32768):
+                base, _, _ = _winner(n, seq, 0.0)
+                roomy, _, _ = _winner(n, seq, 0.10)
+                if base != roomy:
+                    changed.append((n, seq))
+>       assert changed == [(8, 16384), (16, 32768)], f"headroom changed unexpected cells: {changed}"
+E       AssertionError: headroom changed unexpected cells: [(16, 32768)]
+E       assert [(16, 32768)] == [(8, 16384), (16, 32768)]
+E         
+E         At index 0 diff: (16, 32768) != (8, 16384)
+E         Right contains one more item: (16, 32768)
+E         Use -v to get more diff
+
+tests/test_memory_headroom.py:55: AssertionError
+_____________ test_implied_mfu_is_seventy_eight_point_six_percent ______________
+
+    def test_implied_mfu_is_seventy_eight_point_six_percent():
+        """Pin the implicit efficiency: if the compute model changes, this number moves."""
+        _, feasible = ps.search(8, _hw(MODEL_IMPLIED_MFU, 8), ps.MODEL)
+        best = feasible[0]
+        tokens = ps.MODEL["seq"]
+        flops = 6 * 8e9 * tokens                     # 8B params, fwd + bwd
+        assert best.tp == 4 and best.cp == 2                   # the published winner
+        implied = (flops / (8 * PEAK)) / best.compute
+>       assert implied == pytest.approx(MODEL_IMPLIED_MFU, abs=0.01), (
+            f"compute term implies {implied:.3f} of dense peak, not {MODEL_IMPLIED_MFU}")
+E       AssertionError: compute term implies 0.765 of dense peak, not 0.786
+E       assert 0.7649854904896025 == 0.786 ± 0.01
+E         
+E         comparison failed
+E         Obtained: 0.7649854904896025
+E         Expected: 0.786 ± 0.01
+
+tests/test_mfu_sensitivity.py:39: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_total_params_gqa.py::test_matches_published_counts - Assert...
+FAILED tests/test_total_params_gqa.py::test_matches_reference_table - Asserti...
+FAILED tests/test_total_params_gqa.py::test_gqa_aware_kv_width - assert 46716...
+FAILED tests/test_total_params_gqa.py::test_untied_embeddings_counted_twice
+FAILED tests/test_fragility_map.py::test_long_sequence_n8_is_known_tight_but_never_switches[8-16384-shape1]
+FAILED tests/test_cp_crossover.py::test_act_factor_does_not_move_the_crossover[1.0]
+FAILED tests/test_cp_crossover.py::test_act_factor_does_not_move_the_crossover[1.5]
+FAILED tests/test_cp_crossover.py::test_act_factor_does_not_move_the_crossover[3.0]
+FAILED tests/test_cp_crossover.py::test_act_factor_does_not_move_the_crossover[4.0]
+FAILED tests/test_memory_headroom.py::test_headroom_changes_exactly_two_cells
+FAILED tests/test_mfu_sensitivity.py::test_implied_mfu_is_seventy_eight_point_six_percent
+11 failed, 3 passed in 2.37s

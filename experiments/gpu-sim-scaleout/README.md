@@ -33,19 +33,21 @@ between these two extremes.
    `default all_gather` (PyTorch's `rotate_method` default, measured on the harness to move 1.99x the bytes
    the model charges). Where the two disagree, the default one is the one to plan with.
 3. **No activation recomputation.** Memory is factored by pp only, so 405B on 80 GPUs comes out INFEASIBLE
-   and 405B on 800 needs pp=100 at ~76 GB/GPU. Real 405B training uses full activation checkpointing with
+   and 405B on 800 needs pp=100 at ~66 GB/GPU. Real 405B training uses full activation checkpointing with
    pp=8-16. The 405B rows are therefore a statement about this memory model, not about practice.
 4. **Margins, not just winners.** At 8000 GPUs most margins are < 1%: the model cannot separate the top
    candidates. Those cells are ties, not recommendations.
 5. **Absolutes are bounded, not predicted.** Measured on an RTX 5090, the model's implied MFU is optimistic
-   by 1.25-1.65x, so treat `step (s)` as a lower bound.
+   by 1.28-1.69x, so treat `step (s)` as a lower bound.
 
 ## Headline reading
 
-* 80 GPUs: pipeline-dominant. 70B wants pp~40 (6.1% margin, a real verdict); 8B is a near-tie among
-  pp~16-20 configs; 405B does not fit this model's memory accounting at all.
-* 800 GPUs: 8B and 70B are decided by efficiency and convention rather than by structure (3-5% margins,
-  and the winner flips between PP+CP and DP+ZeRO-2 depending on both). 405B fits only at pp=100.
-* 8000 GPUs: everything is a tie (margins 0.1-3%). The structural shape is stable -- full-node TP (tp=8),
-  deep PP (25-50), wide CP (20-50), dp=1-2 for the large models, dp=500+ZeRO-2 for the small one -- but no
-  single config is separable from its neighbours, and the CP convention alone reverses some orderings.
+* 80 GPUs: pipeline-dominant. 70B wants pp~40 under the ring convention (4.85% margin, a real
+  verdict) and is a 0.11% tie under the default one; 8B is a near-tie among pp~16-20 configs
+  (0.87% ring / 2.05% default); 405B does not fit this model's memory accounting at all.
+* 800 GPUs: 8B and 70B are decided by efficiency and convention rather than by structure (0.26-4.1%
+  margins, and the winner flips between PP+CP and DP+ZeRO-2 depending on both). 405B fits only at pp=100.
+* 8000 GPUs: most cells are ties (margins 0.61-5.09%; the 70B ring cell is a 5.09% verdict at
+  tp=8 pp=25 cp=20 dp=2 z2). The structural shape is stable -- full-node TP (tp=8), deep PP (20-40),
+  wide CP (16-25), dp=1-2 for the large models, dp=500+ZeRO-2 for the small one -- but most configs
+  are not separable from their neighbours, and the CP convention alone reverses some orderings.
