@@ -126,10 +126,15 @@ def render(facts):
         _row("TP byte counts / payload", "VALIDATED",
              "message count matches the plan exactly; payload B*seq*d is tp-independent",
              "tests/test_parallelism_counts.py"),
-        _row("CP byte accounting", "UNVALIDATED",
-             "harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; "
-             "different algorithms, not reconciled by construction",
-             "tests/test_cp_payload_structure.py"),
+        # gpu-sim-cpgqa: the old row quoted 109.8 MB/step vs 21.0 MB of ring p2p. That comparison was
+        # RETRACTED (it compared different quantities on different models and had the direction backwards
+        # once the K/V width was fixed). It is replaced by the measurement that does exist: the size of the
+        # convention gap on the K/V gather itself, at the width the model prices.
+        _row("CP byte accounting", "CONDITIONAL",
+             f"K/V gather moves {min(facts['cp_convention_gap'].values()):.2f}x-{max(facts['cp_convention_gap'].values()):.2f}x the model's ring "
+             f"message (measured, 3 frozen cp=2 traces); ring vs all_gather are different algorithms, so "
+             f"bytes bound the CONVENTION gap, not a validation",
+             "tests/test_cp_gather_bytes.py"),
         _row("Absolute communication durations", "UNVALIDATED",
              "rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU",
              "no test possible here"),

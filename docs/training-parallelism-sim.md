@@ -149,10 +149,20 @@ Three frozen cp=2 traces (experiments/gpu-sim-cpgqa) give the same answer at kv_
 half the sequence: the harness gathers the FULL-sequence K/V on every rank and moves **1.99x** what the
 model's ring exchange prices (1.99x and 1.98x respectively). Ring and all_gather are both legitimate --
 one ships shards, the other replicates -- but **1.99x sits outside the 1.56x radius** of the N=8 verdict.
-If the deployed stack uses the all_gather convention, the model understates CP by more than the error it
-would take to overturn "TP+CP is right at 8 GPUs". Which convention production uses is not something this
-repository can answer: the recommendation is **conditional** on that choice, and the document should say
-so rather than quote a single margin.
+Which convention production uses is now answerable from source, not measurement:
+- **PyTorch CP** (`torch.distributed.tensor.experimental._context_parallel`, default `rotate_method =
+  ALL_GATHER`) gathers the full K/V on every rank via `ft_c.all_gather_single` (see `_AllGatherRotater`).
+  That is the **all_gather** convention -- the same one this harness implements -- so the harness matches
+  the PyTorch default and the model understates CP by the measured 1.99x.
+- **Megatron-LM** context parallelism uses ring rotation (point-to-point exchange of K/V shards), i.e.
+  the **ring** convention the model prices; DeepSpeed-Ulysses also shards K/V and gathers only the
+  needed slice.
+So the verdict is **conditional in a way the reader can resolve from their stack**: PyTorch-default
+deployments get the larger CP cost (and "TP+CP is right at 8 GPUs" may not survive); Megatron-style
+deployments keep the 1.56x radius. The document no longer has to say "we cannot answer" -- it says
+"check which one your stack is". Citation: PyTorch 2.4 `_context_parallel/_attention.py`, lines ~273-295
+(`_AllGatherRotater`) and `set_rotate_method` (default `ALL_GATHER`); harness side `tools/torch_parallel/model.py`
+Block CP path uses `torch.distributed.nn.all_gather`.
 
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
 instrumented measurement and the model itself calls it "unvalidated for exact fit", so it deserved
@@ -845,7 +855,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
-| CP byte accounting | **UNVALIDATED** | harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; different algorithms, not reconciled by construction | tests/test_cp_payload_structure.py |
+| CP byte accounting | **CONDITIONAL** | K/V gather moves 1.98x-1.99x the model's ring message (measured, 3 frozen cp=2 traces); ring vs all_gather are different algorithms, so bytes bound the CONVENTION gap, not a validation | tests/test_cp_gather_bytes.py |
 | Absolute communication durations | **UNVALIDATED** | rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU | no test possible here |
 | CP term is decisive for the N=8 verdict | **BOUNDED** | winner unchanged for CP error <= 1.56x, flips above | scripts/sensitivity_radius.py |
 | PP bubble is decisive for the N=16 verdict | **BOUNDED** | winner unchanged for bubble error <= 1.90x; bubble is UNMEASURED | scripts/sensitivity_radius.py |
