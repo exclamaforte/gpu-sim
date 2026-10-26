@@ -43,6 +43,17 @@ CP cost scaled by k in [0, 1.5566] and PP cost by any k (never flips). CP -- the
 term -- tolerates a 1.56x overestimate before the answer becomes tp=1 pp=8; it never flips on an
 underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
 
+**The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
+each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which
+shrinks the bubble (bubble = compute x (pp-1)/(micro_batches+pp-1)). Sweeping that ratio under the default
+all_gather convention at seq 8192, the winners do not move for micro_batches/pp in [1, 8] and their
+margins IMPROVE: N=8 stays (tp=1 pp=8 cp=1 dp=1) at 96.38 -> 72.86 ms and 3.92% -> 10.23%; N=16 stays
+(tp=1 pp=16 cp=1 dp=1) at 51.95 -> 41.88 ms; N=32 stays (tp=1 pp=16 cp=1 dp=2 z2) at 32.71 -> 29.91 ms,
+6.42% at the best setting. Only an extreme 16x (16 micro-batches per stage at pp=16) moves the shape, and
+then the margin collapses to 0.63% -- a tie, not a different answer. So the unmeasured bubble term biases
+the model AGAINST the pipeline answers it recommends: giving it a realistic value makes them cheaper, not
+more expensive.
+
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is
 charged per STEP (once per step regardless of batch size) while tp/cp/pp payload comm scales with

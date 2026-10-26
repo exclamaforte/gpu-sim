@@ -116,7 +116,26 @@ def compute_facts():
         "4091": "pre-kvcp CP crossover; now 5833",
     }
 
+    # gpu-sim-bubble: is the PP-heavy answer an artifact of the pessimistic micro_batches default?
+    def _mb_row(n, seq, mult):
+        import importlib
+        _ps = importlib.import_module("epic_cluster.parallelism_search")
+        spec = "specs/h100_rack.json" if n <= 16 else "specs/h100_rack_4node.json"
+        h = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": os.path.join(ROOT, spec),
+             "term_scale": {"cp": 1.9922}, "micro_batches_mult": mult}
+        _, feas = _ps.search(n, h, dict(_ps.MODEL, seq=seq))
+        best = feas[0]
+        alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != (best.tp, best.pp, best.cp, best.dp))
+        return {"config": [best.tp, best.pp, best.cp, best.dp, best.zero],
+                "step_ms": round(best.step_sum * 1e3, 2),
+                "margin_pct": round(100 * (alt.step_sum / best.step_sum - 1), 2)}
+
+    _mb = {}
+    for _n in (8, 16, 32):
+        _mb[f"N{_n}"] = {f"x{m}": _mb_row(_n, 8192, m) for m in (1, 2, 4, 8, 16)}
+
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
+             "micro_batches_sensitivity": _mb,
              "retracted_values": RETRACTED,
              "cp_convention_answers": _conv,
              "cp_convention_gap": _cp_gap,
@@ -617,6 +636,10 @@ def allowed_decimals(facts):
     for v in facts["s_best"].values():
         if v is not None:
             add(v)
+    for _n_rows in facts["micro_batches_sensitivity"].values():
+        for _row in _n_rows.values():
+            add(_row["step_ms"])
+            add(_row["margin_pct"])
     for _cell in facts["cp_convention_answers"].values():
         for _row in _cell.values():
             add(_row["step_ms"])

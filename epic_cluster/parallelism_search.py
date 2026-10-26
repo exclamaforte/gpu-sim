@@ -217,7 +217,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
 
     # compute
     batch = hw.get("batch", 1)
-    micro_batches = hw.get("micro_batches", pp)
+    # gpu-sim-bubble: micro_batches defaults to pp (1x). Deployments pick micro_batches as large as
+    # memory allows, which shrinks the bubble; micro_batches_mult asks "what if" without changing it.
+    micro_batches = hw.get("micro_batches", pp * hw.get("micro_batches_mult", 1))
     tokens_per_gpu = (batch * seq) / (cp * dp)
     flops_per_gpu = 6 * (P / (tp * pp)) * tokens_per_gpu
     # attention FLOPs (fwd+bwd): 12 * L * S^2 * d / (tp*pp*cp*dp)
@@ -480,7 +482,9 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
     P = total_params(m)
     seq_per_cp = seq // cp
     batch = hw.get("batch", 1)
-    micro_batches = hw.get("micro_batches", pp)
+    # gpu-sim-bubble: micro_batches defaults to pp (1x). Deployments pick micro_batches as large as
+    # memory allows, which shrinks the bubble; micro_batches_mult asks "what if" without changing it.
+    micro_batches = hw.get("micro_batches", pp * hw.get("micro_batches_mult", 1))
     tp_payload_mode = hw.get("tp_payload", "four_d")
     if tp_payload_mode == "harness" or tp_payload_mode == "harness_3d_over_tp":
         tp_scales = [3.0 / tp] * 4

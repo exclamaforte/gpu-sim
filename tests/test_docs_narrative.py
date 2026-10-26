@@ -97,6 +97,25 @@ def test_radius_sentence_reflects_gqa_availability():
     assert "counterpart" in para, "the paragraph must say the decisive parameter has a counterpart"
 
 
+def test_bubble_default_is_stated_as_pessimistic_and_winners_are_stable():
+    """gpu-sim-bubble: micro_batches=pp is a pessimistic default; winners must be stable over 1x-8x."""
+    mb = FACTS["micro_batches_sensitivity"]
+    para = _para("The PP bubble default is pessimistic")
+    stable = 0
+    for n, rows in mb.items():
+        shapes = {tuple(rows[k]["config"]) for k in ("x1", "x2", "x4", "x8")}
+        if len(shapes) == 1:
+            stable += 1
+        for k in ("x1", "x8"):
+            assert f"{rows[k]['step_ms']:.2f}" in para, (
+                f"N={n}: paragraph is missing the {k} step time {rows[k]['step_ms']:.2f}")
+    assert stable == 3, f"only {stable}/3 GPU counts keep their winner from 1x to 8x: rewrite the paragraph"
+    # the direction claim: more micro-batches must never make the winner more expensive
+    for n, rows in mb.items():
+        assert rows["x4"]["step_ms"] <= rows["x1"]["step_ms"], (
+            f"N={n}: raising micro_batches made the winner slower, so 'pessimistic' is the wrong word")
+
+
 def test_headline_states_both_conventions_for_every_cell():
     """gpu-sim-9oz8: the answer depends on the CP rotate method everywhere cp>1 is used."""
     conv = FACTS["cp_convention_answers"]
