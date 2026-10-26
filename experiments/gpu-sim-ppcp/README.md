@@ -44,3 +44,27 @@ paragraphs, refresh pinned tests, regenerate the claims register. `model_fix.dif
 It should be verified against a harness trace before being trusted at N>=16: the crude
 `microbatches = max(pp,1)` message count is a separate modelling assumption that this audit did NOT
 validate, and the new winners lean on PP harder than the old ones did.
+
+## Harness check (run after filing) -- the fix should NOT be applied alone
+
+Two findings, both from a real pp=4 / cp=1 trace now frozen in `harness/pp4_cp1.jsonl`:
+
+**1. The harness refuses cp>1 together with pp>1.** tools/torch_parallel/train.py exits with
+"--cp>1 with --pp>1 not verified in v1". Every config the width fix promotes at N>=16 -- (1,8,2,1,0),
+(1,4,4,1,0), (1,2,8,1,0), (1,4,8,1,0) -- is exactly that combination. So the ppcp fix would put the
+published answer at N>=16 onto a code path this harness has never executed, and it cannot be validated
+here by construction.
+
+**2. The PP message SIZE is also wrong, and the fix does not address it.** Measured at pp=4/d=256/
+seq=512/batch=8: middle ranks send 6 messages per step (3 boundaries x 2 microbatches, over 2 steps),
+each of 2,097,152 B. That is `mb(4) x seq x d_model x 4B` -- the harness splits the BATCH into
+microbatches, so the wire carries a slice of rows. The model has **no batch dimension at all**; it
+prices `seq x d` and assumes `microbatches = max(pp, 1)`. The message COUNT happens to match
+(3 boundaries x 4 assumed microbatches = 12 per step per direction for middle ranks... against 6
+measured per step, so even the count is off by the microbatch convention), and the payload is off by
+the micro-batch size.
+
+**Ruling:** the PP term needs a batch/microbatch-aware redesign validated against the frozen pp=4
+trace, not a one-line width fix. Applying `model_fix.diff` alone would promote exactly the configs
+whose traffic this harness cannot measure, while leaving the payload error in place -- two wrongs that
+partly cancel in the current numbers and would not cancel in the new ones.
