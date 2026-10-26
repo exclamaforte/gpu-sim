@@ -30,7 +30,8 @@ rule of thumb -- are what the model now charges:
   because the charge lands unevenly on compute-heavy shapes; the config, the memory, and the
   direction are identical.
 - 405B: full recompute changes NOTHING. 80 GPUs stays INFEASIBLE (optimizer state alone is
-  70.9 GB -- recomputation cannot close a gap that size); the 800/8000 winners do not move
+  70.9 GB -- 14 B/param on the nominal 405e9, fp32 master + fp32 Adam + bf16 grads -- and
+  recomputation cannot close a gap that size); the 800/8000 winners do not move
   (still pp=100 at 800: 0.150 s ring / 0.197 s default; same configs at 8000: 0.065 / 0.096 s).
 - Default (recompute=0.0) regenerates the committed scaleout matrix bit-identically
   (parsed-JSON diff 0), model_facts.json carries no changed value, gate 8/8.

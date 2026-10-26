@@ -135,6 +135,11 @@ def test_scaleout_paragraph_carries_the_computed_answers():
         for conv, row in rs[fab].items():
             assert row["feasible"], f"405B {fab} {conv} infeasible under full recompute: rewrite the paragraph"
             assert f"{row['step_s']:.3f}" in para, f"paragraph missing 405B-full step {row['step_s']:.3f}"
+    # gpu-sim-hz3u close: the paragraph names the optimizer style the rows price and the measured
+    # alternative, in the same byte convention as the floor -- one mechanism, not two.
+    assert "16 B/param" in para, "the paragraph must name the all-in byte convention the rows price"
+    assert "bf16 AdamW" in para, "the paragraph must name the measured plain-bf16 optimizer style"
+    assert "gpu-sim-scup" in para, "the paragraph must point at the bead that owns the boundary move"
 
 
 def test_bubble_default_is_stated_as_pessimistic_and_winners_are_stable():

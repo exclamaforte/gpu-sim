@@ -74,7 +74,11 @@ from (tp=1 pp=4 cp=1 dp=20 z3) at 2.769 s (0.45%, 58.0 GB) without recompute to 
 2.920 s (14.07%, 70.9 GB) with full recompute -- no pipeline at all, pure FSDP across all 80 GPUs, above the
 2.474 s the chargeless proxy reported by the 1.25x charge, and far better separated than the tie it replaces.
 For 405B the knob changes nothing: 80 GPUs stays infeasible with full recompute, and the 800/8000 winners do
-not move (still pp=100 at 800 at 0.150 s ring / 0.197 s default, and the same winners at 8000 at 0.065 s / 0.096 s). Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
+not move (still pp=100 at 800 at 0.150 s ring / 0.197 s default, and the same winners at 8000 at 0.065 s / 0.096 s).
+Those rows price one optimizer style: fp32 master plus fp32 Adam, 16 B/param all-in with the bf16 weights and
+grads. Plain bf16 AdamW keeps no separate master copy and measures 10 B/param on this host
+(experiments/gpu-sim-recompute/); under that style the 80-GPU boundary moves, which is a separate bead
+(gpu-sim-scup), not a correction to these rows. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is
