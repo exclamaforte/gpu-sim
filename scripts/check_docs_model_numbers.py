@@ -593,8 +593,14 @@ def allowed_decimals(facts):
 
 def main():
     facts = compute_facts()
-    with open(FACTS_JSON, "w") as fh:
+    # Atomic write: the gate runs several checks that READ docs/model_facts.json, and a plain open("w")
+    # truncates it first, so a concurrent reader sees a partial file and the check goes red for no reason.
+    # That produced three phantom RED gates in one day. Write beside it and rename.
+    _tmp = FACTS_JSON + ".tmp"
+    with open(_tmp, "w") as fh:
         json.dump(facts, fh, indent=2)
+        fh.write("\n")
+    os.replace(_tmp, FACTS_JSON)
 
     grand = os.path.join(ROOT, "scripts/docs_model_numbers_grandfathered.txt")
     grandfathered = set()
