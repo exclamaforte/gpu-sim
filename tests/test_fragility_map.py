@@ -49,6 +49,21 @@ def test_decisive_cells_stay_decisive(n, seq):
         assert margin > TIGHT, f"N={n} seq={seq} MFU={mfu}: margin fell to {margin:.2f}%"
 
 
+@pytest.mark.parametrize("n,seq", [(32, 16384), (32, 32768)])
+def test_n32_long_sequence_is_no_longer_decisive(n, seq):
+    """After the batch/PP correction these cells LOST their decisive margins.
+
+    gpu-sim-8pwl review item 3: they used to be the document's only 4-14% cells and the fix dropped
+    them to 0.10-2.11%. The test asserts the loss rather than dropping the cells from the suite, so a
+    future change that restores decisiveness has to come with an explanation.
+    """
+    margins = [_cell(n, seq, mfu)[1] for mfu in (IMPLIED_MFU, 0.566, 0.40)]
+    assert min(margins) < TIGHT, (
+        f"N={n} seq={seq} is decisive again ({min(margins):.2f}%): re-derive the docs claim")
+    shape, _ = _cell(n, seq, IMPLIED_MFU)
+    assert shape[1] >= 8, f"N={n} seq={seq}: expected a deep-PP winner, got {shape}"
+
+
 @pytest.mark.parametrize("n,seq", [(8, 32768), (8, 16384)])
 def test_long_sequence_n8_is_known_tight_but_never_switches(n, seq):
     """The N=8 answer is ~1% at long sequences -- documented as a tie, not as a verdict."""
