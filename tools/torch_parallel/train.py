@@ -87,6 +87,8 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--seq", type=int, default=512)
     p.add_argument("--d-model", type=int, default=256)
     p.add_argument("--layers", type=int, default=4)
+    p.add_argument("--n-heads", type=int, default=4)
+    p.add_argument("--n-kv-heads", type=int, default=None)
     p.add_argument("--cp-grad-sync", type=str, default="reducescatter", choices=["allreduce", "reducescatter"],
                    help="cp gradient sync mode: allreduce (crude) or reducescatter (equivalence-preserving; same byte cost as allreduce in this harness because all_gather reconstructs full grad; true production reduce-scatter needs sharded optimizer)")
     p.add_argument("--optim", type=str, default="adamw", choices=["adamw", "sgd"],
@@ -206,8 +208,10 @@ def main() -> int:
         if dp < 2:
             raise SystemExit(f"--zero {zero} needs dp>1 (world {world})")
 
+    _n_kv = args.n_kv_heads if args.n_kv_heads is not None else args.n_heads
     spec = ModelSpec(vocab=args.vocab, seq=args.seq, d_model=args.d_model,
-                     n_layers=args.layers, n_heads=4, d_ff=args.d_model * 4)
+                     n_layers=args.layers, n_heads=args.n_heads,
+                     n_kv_heads=_n_kv, d_ff=args.d_model * 4)
     tp_group = dp_group = None
     cp_group = None
     if dp > 1:

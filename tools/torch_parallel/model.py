@@ -54,10 +54,19 @@ def _seed_block(blk, spec: ModelSpec, seed: int, layer_idx: int,
     would hand rank 0 all of q plus half of k (measured: 0.13 fwd err).
     """
     d, d_ff = spec.d_model, spec.d_ff
+    n_kv = getattr(spec, "n_kv_heads", 0) or spec.n_heads
+    hd = d // spec.n_heads
+    kv_dim = n_kv * hd
     n = d // tp_size if tp_size > 1 else d
-    qkv_groups = ([(j * d + tp_rank * n, j * d + (tp_rank + 1) * n)
-                   for j in range(3)] if tp_size > 1 else None)
-    for name, shape, sdim, groups in (("qkv", (3 * d, d), 0, qkv_groups),
+    kv_n = kv_dim // tp_size if tp_size > 1 else kv_dim
+    # qkv layout: [q (d), k (kv_dim), v (kv_dim)], each section sliced by tp
+    qkv_groups = None
+    if tp_size > 1:
+        qkv_groups = [(0 * (d + 2*kv_dim) + tp_rank * n,
+                       0 * (d + 2*kv_dim) + (tp_rank + 1) * n),
+                      (d + tp_rank * kv_n, d + (tp_rank + 1) * kv_n),
+                      (d + kv_dim + tp_rank * kv_n, d + kv_dim + (tp_rank + 1) * kv_n)]
+    for name, shape, sdim, groups in (("qkv", (d + 2 * kv_dim, d), 0, qkv_groups),
                                       ("proj", (d, d), 1, None),
                                       ("ff1", (d_ff, d), 0, None),
                                       ("ff2", (d, d_ff), 1, None)):
@@ -80,8 +89,17 @@ class ModelSpec:
     d_model: int = 256
     n_layers: int = 4
     n_heads: int = 4
+    n_kv_heads: int = 0  # 0 -> n_heads (MHA)
     d_ff: int = 1024
     dropout: float = 0.0
+
+    def __post_init__(self):
+        if self.n_kv_heads == 0:
+            self.n_kv_heads = self.n_heads
+
+    @property
+    def kv_dim(self) -> int:
+        return self.n_kv_heads * (self.d_model // self.n_heads)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -102,7 +120,10 @@ class Block(nn.Module):
         self.cp_group = cp_group
         d = spec.d_model
         self.n_heads = spec.n_heads
-        self.qkv = nn.Linear(d, 3 * d, bias=False)
+        self.n_kv_heads = spec.n_kv_heads if spec.n_kv_heads else spec.n_heads
+        self.head_dim = d // self.n_heads
+        self.kv_dim = self.n_kv_heads * self.head_dim
+        self.qkv = nn.Linear(d, d + 2 * self.kv_dim, bias=False)
         self.proj = nn.Linear(d, d, bias=False)
         self.ff1 = nn.Linear(d, spec.d_ff, bias=False)
         self.ff2 = nn.Linear(spec.d_ff, d, bias=False)
@@ -113,16 +134,22 @@ class Block(nn.Module):
     def forward(self, x):
         b, s, d = x.shape
         h = self.ln1(x)
-        qkv = self.qkv(h).view(b, s, 3, self.n_heads, d // self.n_heads)
-        q, k, v = qkv.unbind(dim=2)
+        qkv = self.qkv(h)
+        q = qkv[..., :d].view(b, s, self.n_heads, self.head_dim)
+        k = qkv[..., d:d + self.kv_dim].view(b, s, self.n_kv_heads, self.head_dim)
+        v = qkv[..., d + self.kv_dim:].view(b, s, self.n_kv_heads, self.head_dim)
         hd = d // self.n_heads
         if self.cp_size <= 1:
             # Use the same manual softmax as the CP path so cp=1 and cp>1
             # agree numerically (SDPA's flash backend differs by ~1e-2).
-            hd = d // self.n_heads
+            hd = self.head_dim
             qh = q.transpose(1, 2)
             kh = k.transpose(1, 2)
             vh = v.transpose(1, 2)
+            if self.n_kv_heads != self.n_heads:
+                rep = self.n_heads // self.n_kv_heads
+                kh = kh.repeat_interleave(rep, dim=1)
+                vh = vh.repeat_interleave(rep, dim=1)
             scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
             mask = torch.arange(s, device=x.device)[None, None, None, :] <= torch.arange(s, device=x.device)[None, None, :, None]
             scores = scores.masked_fill(~mask, float("-inf"))
@@ -150,6 +177,10 @@ class Block(nn.Module):
             qh = q.transpose(1, 2)
             kh = full_k.permute(0, 2, 1, 3)
             vh = full_v.permute(0, 2, 1, 3)
+            if self.n_kv_heads != self.n_heads:
+                rep = self.n_heads // self.n_kv_heads
+                kh = kh.repeat_interleave(rep, dim=1)
+                vh = vh.repeat_interleave(rep, dim=1)
             scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
             mask = torch.arange(seq_full, device=x.device)[None, None, None, :] <= qpos[None, None, :, None]
             scores = scores.masked_fill(~mask, float("-inf"))
@@ -320,7 +351,10 @@ class BlockTP(nn.Module):
         d, d_ff = spec.d_model, spec.d_ff
         self.n_heads = spec.n_heads // tp_size
         self.head_dim = d // spec.n_heads
-        self.qkv = _Col(d, 3 * d // tp_size, group)
+        n_kv = getattr(spec, "n_kv_heads", 0) or spec.n_heads
+        self.n_kv_heads = n_kv // tp_size
+        self.kv_dim = self.n_kv_heads * self.head_dim
+        self.qkv = _Col(d, (d + 2 * n_kv * self.head_dim) // tp_size, group)
         self.proj = _Row(d // tp_size, d, group)
         self.ff1 = _Col(d, d_ff // tp_size, group)
         self.ff2 = _Row(d_ff // tp_size, d, group)
@@ -340,14 +374,20 @@ class BlockTP(nn.Module):
     def forward(self, x):
         b, s, d = x.shape
         h = self.ln1(x)
-        qkv = self.qkv(h).view(b, s, 3, self.n_heads, self.head_dim)
-        q, k, v = qkv.unbind(dim=2)
+        qkv = self.qkv(h)
         hd = self.head_dim
+        q = qkv[..., :self.n_heads * hd].view(b, s, self.n_heads, hd)
+        k = qkv[..., self.n_heads * hd:self.n_heads * hd + self.n_kv_heads * hd].view(b, s, self.n_kv_heads, hd)
+        v = qkv[..., self.n_heads * hd + self.n_kv_heads * hd:].view(b, s, self.n_kv_heads, hd)
         cp = self.cp_size
         if cp <= 1:
             qh = q.transpose(1, 2)
             kh = k.transpose(1, 2)
             vh = v.transpose(1, 2)
+            if self.n_kv_heads != self.n_heads:
+                rep = self.n_heads // self.n_kv_heads
+                kh = kh.repeat_interleave(rep, dim=1)
+                vh = vh.repeat_interleave(rep, dim=1)
             scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
             mask = torch.arange(s, device=x.device)[None, None, None, :] <= torch.arange(s, device=x.device)[None, None, :, None]
             scores = scores.masked_fill(~mask, float("-inf"))
@@ -369,6 +409,10 @@ class BlockTP(nn.Module):
             qh = q.transpose(1, 2)
             kh = full_k.permute(0, 2, 1, 3)
             vh = full_v.permute(0, 2, 1, 3)
+            if self.n_kv_heads != self.n_heads:
+                rep = self.n_heads // self.n_kv_heads
+                kh = kh.repeat_interleave(rep, dim=1)
+                vh = vh.repeat_interleave(rep, dim=1)
             scores = (qh @ kh.transpose(-2, -1)) / (hd ** 0.5)
             mask = torch.arange(seq_full, device=x.device)[None, None, None, :] <= qpos[None, None, :, None]
             scores = scores.masked_fill(~mask, float("-inf"))
