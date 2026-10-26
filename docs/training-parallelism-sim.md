@@ -160,7 +160,7 @@ Which convention production uses is now answerable from source, not measurement:
 So the verdict is **conditional in a way the reader can resolve from their stack**: PyTorch-default
 deployments get the larger CP cost (and "TP+CP is right at 8 GPUs" may not survive); Megatron-style
 deployments keep the 1.56x radius. The document no longer has to say "we cannot answer" -- it says
-"check which one your stack is". Citation: PyTorch 2.4 `_context_parallel/_attention.py`, lines ~273-295
+"check which one your stack is". Citation: PyTorch `_context_parallel/_attention.py`, lines ~273-295
 (`_AllGatherRotater`) and `set_rotate_method` (default `ALL_GATHER`); harness side `tools/torch_parallel/model.py`
 Block CP path uses `torch.distributed.nn.all_gather`.
 
