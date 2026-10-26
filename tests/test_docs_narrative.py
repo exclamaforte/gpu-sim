@@ -83,6 +83,20 @@ def test_n8_decisiveness_is_stated_per_sequence_length():
     assert f"{tie:.2f}%" in para, f"the paragraph does not carry the seq-16384 tie margin {tie:.2f}%"
 
 
+def test_radius_sentence_reflects_gqa_availability():
+    """The radius sentence must track whether the harness supports GQA (gpu-sim-g8wc).
+
+    Guard: fail if GQA support is lost (regression). The sentence should state that the CP term can now
+    be checked because the harness supports grouped-query attention.
+    """
+    src = (ROOT / "tools" / "torch_parallel").rglob("*.py")
+    has_gqa = any("n_kv_heads" in p.read_text() for p in src)
+    assert has_gqa, "GQA support was lost from tools/torch_parallel (gpu-sim-g8wc regression)"
+    para = _para("How wrong would the decisive term have to be")
+    assert "supports grouped-query" in para, "the paragraph must say the harness supports GQA"
+    assert "counterpart" in para, "the paragraph must say the decisive parameter has a counterpart"
+
+
 def test_radius_sentence_carries_the_flip_factors():
     """Both verdicts must publish how wrong their decisive term can be."""
     rad = FACTS["sensitivity_radius"]

@@ -139,7 +139,10 @@ harness cannot check by construction; the N=16 verdict is decided by the PP bubb
 covers. Re-running the production model with that one term scaled, the N=8 answer is unchanged for CP
 error up to **1.56x** (and 4.73x at seq 32768), and the N=16 answer for PP-bubble error up to **1.90x**.
 Those are the honest confidence bounds on the two verdicts: one term error of that size overturns the
-answer, and a 4x CP error has already been found on this axis once.
+answer, and a 4x CP error has already been found on this axis once. The CP term can now in principle
+be checked: `tools/torch_parallel` supports grouped-query attention (--n-kv-heads), so
+`kv_dim = n_kv_heads x head_dim = 1024` -- the quantity the CP term is proportional to -- has a
+counterpart in the harness (gpu-sim-g8wc). The PP bubble remains unmeasured.
 
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
 instrumented measurement and the model itself calls it "unvalidated for exact fit", so it deserved
