@@ -804,10 +804,10 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 |---|---|---|---|
 | N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 90.54 ms; margin 6.45% at the implied MFU, 6.10% at 40% | tests/test_fragility_map.py |
 | Same config at seq 16384 / 32768 | **TIE** | margin only 0.10% / 1.65% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
-| N=16 winner (tp=1 pp=4 cp=1 dp=4 z2), seq 8192 | **TIE** | 2.23% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
+| N=16 winner (tp=1 pp=16 cp=1 dp=1 z0), seq 8192 | **VERDICT** | 2.23% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
 | N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (1,2,1,8) at 40%, margins 0.54% / 0.46% | tests/test_fragility_map.py |
 | N=16 at seq 32768 (hard-fit memory) | **TIE** | 1.97% margin and 94% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 42.5 GB (+1.9%) | tests/test_memory_headroom.py |
-| N=32 winner (tp=1 pp=4 cp=1 dp=8 z2) | **VERDICT** | margin 0.10% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
+| N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.10% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
 | Absolute step durations | **BOUNDED** | model implies 0.765 MFU; a real GPU reached 0.566, so absolutes carry 1.25-1.65x | tests/test_mfu_sensitivity.py |
 | act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) | tests/test_act_factor_knob.py |
 | S_best = 8192 | **VALIDATED** | CP crossover is seq 5833 (3788 measured), so 8192 is the first conventional length above it, +6.45% | tests/test_cp_crossover.py |
