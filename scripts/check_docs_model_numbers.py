@@ -104,7 +104,20 @@ def compute_facts():
         _conv[f"N{_n}_seq{_seq}"] = {"ring_all_to_all": _answer(_n, _seq, 1.0),
                                      "pytorch_default_all_gather": _answer(_n, _seq, 1.9922)}
 
+    # gpu-sim: RETRACTED values, kept here as a tripwire. Section 0 is recomputed on every run, but prose
+    # outside it is not, and a retraction that only reaches section 0 leaves the old claim alive elsewhere
+    # (that is exactly what happened: the 109.8-vs-21.0 CP comparison survived in section 4 after being
+    # retracted, and the claims register kept publishing it too). Any occurrence anywhere in the doc fails.
+    RETRACTED = {
+        "109.8 MB": "retracted CP byte comparison (different quantities, direction was backwards)",
+        "21.0 MB of": "retracted CP byte comparison",
+        "79.96": "pre-link-rate fix step time; recomputed as 90.54",
+        "30.3": "bubble quoted without the micro-batch term",
+        "4091": "pre-kvcp CP crossover; now 5833",
+    }
+
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
+             "retracted_values": RETRACTED,
              "cp_convention_answers": _conv,
              "cp_convention_gap": _cp_gap,
              "sensitivity_radius": _json.loads(_rad.stdout),
@@ -640,6 +653,32 @@ def main():
                 grandfathered.add(ln.split()[0])
 
     text = open(DOC).read()
+
+    # Retraction tripwire: scan the WHOLE document, not just section 0. A retracted claim that survives
+    # outside the recomputed section is indistinguishable from a current one to a reader.
+    # A retracted value may still APPEAR if the paragraph it sits in flags it as history -- documenting a
+    # retraction is the opposite of hiding one. Asserting it as current is what must fail.
+    OK_CONTEXT = ("retract", "earlier version", "superseded", "before the fix", "previously")
+
+    def _para_of(txt, needle):
+        i = txt.index(needle)
+        start = txt.rfind("\n\n", 0, i) + 2
+        end = txt.find("\n\n", i)
+        return txt[start:end if end > 0 else len(txt)].lower()
+
+    hits = []
+    for val, why in facts["retracted_values"].items():
+        if val in text:
+            para = _para_of(text, val)
+            if not any(marker in para for marker in OK_CONTEXT):
+                hits.append((val, why))
+    if hits:
+        print("RETRACTED VALUES PRESENT IN THE DOCUMENT:")
+        for val, why in hits:
+            print(f"  {val!r}: {why}")
+        print("Remove or rewrite these; a retraction that only reaches section 0 leaves the claim alive.")
+        return 1
+
     block = section0(text)
     allowed = allowed_decimals(facts) | STRUCTURAL | grandfathered
     # Acceptance is EXACT at the token's own precision: a decimal with d places is fine
