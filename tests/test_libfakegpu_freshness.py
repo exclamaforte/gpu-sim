@@ -49,31 +49,40 @@ def test_freshness_logic_missing_so():
 
 
 def test_guard_fires_on_stale_binary():
-    """Touch a real source so the .so becomes stale, expect pytest to fail."""
-    src = REPO / "src" / "fakegpu_config.c"
+    """The conftest guard must RAISE when the binary is stale -- tested without touching the real tree.
+
+    REWRITTEN (2026-10-26). The original version bumped the mtime of the REAL src/fakegpu_config.c, ran a nested
+    pytest to watch conftest refuse to start, then restored the mtime in a finally block. That is poisonous in
+    three ways, and all three fired:
+      * a run killed inside the try left the source bumped, and the next run captured the BUMPED mtime as
+        "old", so the restore ratcheted the tree permanently stale;
+      * because conftest asserts freshness at STARTUP, a poisoned tree makes every later pytest run die with
+        INTERNALERROR before a single test executes -- the suite cannot repair itself;
+      * the restore called `make`, which does not rebuild when only a source mtime moved and the objects are
+        already newer, so "restore then rebuild" did not restore.
+    A guard is tested by calling it, not by sabotaging the repository it protects.
+    """
+    from scripts.check_libfakegpu_fresh import assert_fresh
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d)
+        src, so = d / "a.c", d / "lib.so"
+        src.write_text("x")
+        so.write_text("y")
+        old = time.time() - 100
+        os.utime(so, (old, old))
+        try:
+            assert_fresh(str(so), [str(src)])
+        except RuntimeError as e:
+            assert "freshness guard" in str(e)
+        else:
+            raise AssertionError("guard did not fire on a stale binary")
+
+
+def test_repo_binary_is_fresh_without_mutating_it():
+    """Read-only check of the real tree: the guard must pass and must leave every mtime alone."""
     so = REPO / "libfakegpu.so"
-    # make .so older
-    old_mtime = src.stat().st_mtime
-    # gpu-sim-x1v rework (PI): the staleness condition is "source newer than the
-    # .so", so base the bumped mtime on the .so, not on the source. src+10s is
-    # only stale when the last build happened <10s after the checkout and stops
-    # the guard from firing on a normally-built tree (red on master 02954b0).
-    new_mtime = so.stat().st_mtime + 60
-    os.utime(src, (new_mtime, new_mtime))
+    before = {p: p.stat().st_mtime for p in [so, REPO / "src" / "fakegpu_config.c"]}
     fresh, msg = freshness(str(so), str(REPO / "src" / "*.c"))
-    assert not fresh, "test setup did not make the binary stale: " + msg
-    try:
-        r = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/test_model_fault.py", "-q"],
-            cwd=str(REPO), capture_output=True, text=True, timeout=120)
-        assert r.returncode != 0, "guard did not fire"
-        assert "freshness guard" in (r.stdout + r.stderr), r.stdout + r.stderr
-    finally:
-        # restore source mtime and rebuild
-        os.utime(src, (old_mtime, old_mtime))
-        subprocess.run(["make"], cwd=str(REPO), capture_output=True, timeout=300)
-        # verify fresh again
-        r2 = subprocess.run(
-            [sys.executable, "scripts/check_libfakegpu_fresh.py"],
-            cwd=str(REPO), capture_output=True, text=True)
-        assert r2.returncode == 0, r2.stdout + r2.stderr
+    assert fresh, msg + " (run `make`)"
+    after = {p: p.stat().st_mtime for p in before}
+    assert before == after, "the freshness test modified a real file's mtime"

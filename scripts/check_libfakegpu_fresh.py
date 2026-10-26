@@ -38,7 +38,14 @@ def srcs_from_makefile(path="Makefile"):
 
 
 def freshness(so_path, srcs):
-    """Return (fresh: bool, message: str). `srcs` is an explicit list of paths, not a glob."""
+    """Return (fresh: bool, message: str).
+
+    `srcs` is an explicit list of paths, or a glob string for the legacy callers (tests/test_libfakegpu_freshness
+    and conftest used to pass "src/*.c"). Accepting both keeps the strict Makefile-SRCS list as the default
+    without breaking a caller that was written against the glob API.
+    """
+    if isinstance(srcs, str):
+        srcs = glob.glob(srcs)
     srcs = sorted(srcs)
     if not srcs:
         return True, "no sources found"
