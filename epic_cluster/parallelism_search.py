@@ -216,7 +216,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
     reason = "" if feasible else f"mem {total_mem_bytes/1e9:.1f}GB > {mem_limit/1e9:.1f}GB"
 
     # compute
-    tokens_per_gpu = seq / (cp * dp)  # batch 1 sequence
+    batch = hw.get("batch", 1)
+    micro_batches = hw.get("micro_batches", pp)
+    tokens_per_gpu = (batch * seq) / (cp * dp)
     flops_per_gpu = 6 * (P / (tp * pp)) * tokens_per_gpu
     # attention FLOPs (fwd+bwd): 12 * L * S^2 * d / (tp*pp*cp*dp)
     # Derivation: per layer, per rank: local queries (S/cp) x all keys (S) x
@@ -225,7 +227,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # sample; sharded across pp stages (layers/pp) and dp ranks (batch slice)
     # gives /pp and /dp. Equivalently (12*L*S*d)*S/N with N=tp*pp*cp*dp.
     # Ring assumption: local queries attend all keys (gathered via ring).
-    attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (tp * pp * cp * dp)
+    attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (tp * pp * cp * dp) * batch
     flops_per_gpu = flops_per_gpu + attn_flops
     # recompute knob
     recompute = hw.get("recompute", "none")
@@ -238,7 +240,6 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # compute term stays invariant across pp splits (gpu-sim-i95 conservation).
     bubble = 0.0
     if pp > 1:
-        micro_batches = hw.get("micro_batches", pp)
         bubble = compute * (pp - 1) / (micro_batches + pp - 1)
 
     # TP comm
@@ -362,8 +363,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
     pp_comm = 0.0
     pp_kind = None
     if pp > 1:
-        microbatches = max(pp, 1)
-        act_size = seq * d * dtype_bytes
+        microbatches = micro_batches
+        act_size = (batch / micro_batches) * (seq / cp) * d * dtype_bytes
         if spec is not None:
             def stage_rank(i):
                 return (((i * tp + 0) * cp + 0) * dp + 0)
@@ -466,6 +467,8 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
     dp_dtype_bytes = 4 if _dp_dtype == "float32" else 2
     P = total_params(m)
     seq_per_cp = seq // cp
+    batch = hw.get("batch", 1)
+    micro_batches = hw.get("micro_batches", pp)
     tp_payload_mode = hw.get("tp_payload", "four_d")
     if tp_payload_mode == "harness" or tp_payload_mode == "harness_3d_over_tp":
         tp_scales = [3.0 / tp] * 4
@@ -501,8 +504,8 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
     # PP send/recv
     if pp > 1:
         microbatches = max(pp, 1)
-        act_size = seq * d * dtype_bytes
-        out["pp_sendrecv"] += microbatches * 2 * (pp - 1) * act_size
+        act_size = (batch / micro_batches) * (seq / cp) * d * dtype_bytes
+        out["pp_sendrecv"] += micro_batches * 2 * (pp - 1) * act_size
 
     # DP/FSDP
     if dp > 1:
