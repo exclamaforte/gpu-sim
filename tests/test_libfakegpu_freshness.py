@@ -80,9 +80,17 @@ def test_guard_fires_on_stale_binary():
 
 def test_repo_binary_is_fresh_without_mutating_it():
     """Read-only check of the real tree: the guard must pass and must leave every mtime alone."""
+    from scripts.check_libfakegpu_fresh import srcs_from_makefile
     so = REPO / "libfakegpu.so"
     before = {p: p.stat().st_mtime for p in [so, REPO / "src" / "fakegpu_config.c"]}
-    fresh, msg = freshness(str(so), str(REPO / "src" / "*.c"))
+    # The guard's source list is the Makefile's SRCS, NOT a src/*.c glob: the glob includes
+    # src/fakegpu_fabric.c, which SRCS does not compile into the .so (test binaries link it
+    # directly). Asserting the glob against the real tree fails in any worktree whose .so
+    # predates a fabric.c checkout, even though the gate is green -- the test must check what
+    # the gate checks. (gpu-sim-4qcx review found this: worktree .so 12:39 vs fabric.c 13:12.)
+    srcs = [str(REPO / x) for x in srcs_from_makefile(str(REPO / "Makefile"))]
+    assert srcs, "SRCS did not parse: the guard would silently check nothing"
+    fresh, msg = freshness(str(so), srcs)
     assert fresh, msg + " (run `make`)"
     after = {p: p.stat().st_mtime for p in before}
     assert before == after, "the freshness test modified a real file's mtime"
