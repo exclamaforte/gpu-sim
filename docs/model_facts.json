@@ -1,5 +1,90 @@
 {
   "generated_by": "scripts/check_docs_model_numbers.py",
+  "sensitivity_radius": {
+    "N16_seq8192": {
+      "flip_cp": null,
+      "flip_pp": 1.8989,
+      "step_ms": 51.95,
+      "winner": [
+        1,
+        16,
+        1,
+        1,
+        0
+      ],
+      "winner_at_high_pp": [
+        2,
+        1,
+        8,
+        1,
+        0
+      ]
+    },
+    "N32_seq8192": {
+      "flip_cp": 1.4634,
+      "flip_pp": 2.2885,
+      "step_ms": 31.06,
+      "winner": [
+        1,
+        16,
+        2,
+        1,
+        0
+      ],
+      "winner_at_high_cp": [
+        1,
+        16,
+        1,
+        2,
+        2
+      ],
+      "winner_at_high_pp": [
+        4,
+        1,
+        8,
+        1,
+        0
+      ]
+    },
+    "N8_seq32768": {
+      "flip_cp": 4.726,
+      "flip_pp": null,
+      "step_ms": 492.06,
+      "winner": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "winner_at_high_cp": [
+        4,
+        1,
+        1,
+        2,
+        2
+      ]
+    },
+    "N8_seq8192": {
+      "flip_cp": 1.5566,
+      "flip_pp": null,
+      "step_ms": 90.54,
+      "winner": [
+        4,
+        1,
+        2,
+        1,
+        0
+      ],
+      "winner_at_high_cp": [
+        1,
+        8,
+        1,
+        1,
+        0
+      ]
+    }
+  },
   "model": "llama3-8b",
   "act_factor": 2.3,
   "pricing_path": "spec/topology",

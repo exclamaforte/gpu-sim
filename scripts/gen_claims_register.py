@@ -130,6 +130,10 @@ def render(facts):
              "harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; "
              "different algorithms, not reconciled by construction",
              "tests/test_cp_payload_structure.py"),
+        _row("CP cost robustness radius (N=8)", "STRUCTURAL",
+             "winner unchanged for CP cost scaled by k in [0, 5.65]; never flips below; "
+             "PP never flips",
+             "tests/test_sensitivity_radius.py"),
         _row("Absolute communication durations", "UNVALIDATED",
              "rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU",
              "no test possible here"),

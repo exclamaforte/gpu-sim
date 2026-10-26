@@ -8,6 +8,11 @@ project's premise is the opposite of that, and the draft was wrong.
 
 Read this first if you are picking the work up from disk rather than from a briefing.
 
+**Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
+CP cost scaled by k in [0, 5.65] and PP cost by any k (never flips). CP -- the least-verified
+term -- tolerates a 5.6x overestimate before the answer becomes tp=1 pp=8; it never flips on an
+underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
+
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is
 charged per STEP (once per step regardless of batch size) while tp/cp/pp payload comm scales with
@@ -816,6 +821,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
 | CP byte accounting | **UNVALIDATED** | harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; different algorithms, not reconciled by construction | tests/test_cp_payload_structure.py |
+| CP cost robustness radius (N=8) | **STRUCTURAL** | winner unchanged for CP cost scaled by k in [0, 5.65]; never flips below; PP never flips | tests/test_sensitivity_radius.py |
 | Absolute communication durations | **UNVALIDATED** | rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU | no test possible here |
 
 <!-- CLAIMS-REGISTER:END -->
