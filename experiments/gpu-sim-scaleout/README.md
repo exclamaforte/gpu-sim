@@ -32,9 +32,13 @@ between these two extremes.
 2. **CP convention.** Two rows per cell: `ring all_to_all` (what the model prices) and
    `default all_gather` (PyTorch's `rotate_method` default, measured on the harness to move 1.99x the bytes
    the model charges). Where the two disagree, the default one is the one to plan with.
-3. **No activation recomputation.** Memory is factored by pp only, so 405B on 80 GPUs comes out INFEASIBLE
+3. **No activation recomputation in the quoted rows.** Memory is factored by pp only, so 405B on 80 GPUs comes out INFEASIBLE
    and 405B on 800 needs pp=100 at ~76 GB/GPU. Real 405B training uses full activation checkpointing with
    pp=8-16. The 405B rows are therefore a statement about this memory model, not about practice.
+   The with-full-recompute sensitivity is measured, not assumed: see `experiments/gpu-sim-hz3u/` -- 405B@80
+   stays infeasible even with full recompute (weights/master/optimizer floor 93.4 GB > 80 GB HBM), and the
+   800/8000 winners do not move. The script takes `--recompute none|selective|full` (`none` is the default
+   behind every number above).
 4. **Margins, not just winners.** At 8000 GPUs most margins are < 1%: the model cannot separate the top
    candidates. Those cells are ties, not recommendations.
 5. **Absolutes are bounded, not predicted.** Measured on an RTX 5090, the model's implied MFU is optimistic

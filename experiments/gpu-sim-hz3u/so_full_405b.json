@@ -1,0 +1,131 @@
+{
+  "10x8": {
+    "n_gpus": 80,
+    "models": {
+      "llama3-405b": {
+        "ring all_to_all": null,
+        "default all_gather": null,
+        "ring all_to_all, batch=8": null,
+        "default all_gather, batch=8": null
+      }
+    }
+  },
+  "100x8": {
+    "n_gpus": 800,
+    "models": {
+      "llama3-405b": {
+        "ring all_to_all": {
+          "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+          "tp": 1,
+          "pp": 100,
+          "cp": 8,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.154,
+          "margin_pct": 5.97,
+          "mem_gb": 75.7,
+          "n_feasible": 409,
+          "constrained": true
+        },
+        "default all_gather": {
+          "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+          "tp": 1,
+          "pp": 100,
+          "cp": 8,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.201,
+          "margin_pct": 2.52,
+          "mem_gb": 75.7,
+          "n_feasible": 409,
+          "constrained": true
+        },
+        "ring all_to_all, batch=8": {
+          "config": "tp=1 pp=50 cp=8 dp=2 zero=3",
+          "tp": 1,
+          "pp": 50,
+          "cp": 8,
+          "dp": 2,
+          "zero": 3,
+          "step_s": 0.687,
+          "margin_pct": 0.72,
+          "mem_gb": 75.7,
+          "n_feasible": 409,
+          "constrained": true
+        },
+        "default all_gather, batch=8": {
+          "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+          "tp": 1,
+          "pp": 100,
+          "cp": 8,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.739,
+          "margin_pct": 4.2,
+          "mem_gb": 75.7,
+          "n_feasible": 409,
+          "constrained": true
+        }
+      }
+    }
+  },
+  "1000x8": {
+    "n_gpus": 8000,
+    "models": {
+      "llama3-405b": {
+        "ring all_to_all": {
+          "config": "tp=8 pp=40 cp=25 dp=1 zero=0",
+          "tp": 8,
+          "pp": 40,
+          "cp": 25,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.066,
+          "margin_pct": 2.53,
+          "mem_gb": 23.4,
+          "n_feasible": 1434,
+          "constrained": true
+        },
+        "default all_gather": {
+          "config": "tp=8 pp=50 cp=20 dp=1 zero=0",
+          "tp": 8,
+          "pp": 50,
+          "cp": 20,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.096,
+          "margin_pct": 0.13,
+          "mem_gb": 18.8,
+          "n_feasible": 1434,
+          "constrained": true
+        },
+        "ring all_to_all, batch=8": {
+          "config": "tp=1 pp=100 cp=80 dp=1 zero=0",
+          "tp": 1,
+          "pp": 100,
+          "cp": 80,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.171,
+          "margin_pct": 1.85,
+          "mem_gb": 75.3,
+          "n_feasible": 1434,
+          "constrained": true
+        },
+        "default all_gather, batch=8": {
+          "config": "tp=2 pp=80 cp=50 dp=1 zero=0",
+          "tp": 2,
+          "pp": 80,
+          "cp": 50,
+          "dp": 1,
+          "zero": 0,
+          "step_s": 0.239,
+          "margin_pct": 0.85,
+          "mem_gb": 47.0,
+          "n_feasible": 1434,
+          "constrained": true
+        }
+      }
+    }
+  }
+}

@@ -549,6 +549,45 @@
       ]
     }
   },
+  "recompute_sensitivity_405b": {
+    "setting": "full (keep only layer boundaries + one extra forward pass); default none unchanged",
+    "feasible_80_full": false,
+    "winner_800_full": {
+      "ring all_to_all": {
+        "feasible": true,
+        "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+        "step_s": 0.154,
+        "margin_pct": 5.97,
+        "mem_gb": 75.7
+      },
+      "default all_gather": {
+        "feasible": true,
+        "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
+        "step_s": 0.201,
+        "margin_pct": 2.52,
+        "mem_gb": 75.7
+      }
+    },
+    "winner_8000_full": {
+      "ring all_to_all": {
+        "feasible": true,
+        "config": "tp=8 pp=40 cp=25 dp=1 zero=0",
+        "step_s": 0.066,
+        "margin_pct": 2.53,
+        "mem_gb": 23.4
+      },
+      "default all_gather": {
+        "feasible": true,
+        "config": "tp=8 pp=50 cp=20 dp=1 zero=0",
+        "step_s": 0.096,
+        "margin_pct": 0.13,
+        "mem_gb": 18.8
+      }
+    },
+    "min_mem_80_none_gb": 99.5,
+    "min_mem_80_full_gb": 93.5,
+    "weights_floor_80_gb": 93.4
+  },
   "mfu_sensitivity": {
     "implied_0.765": {
       "mfu": null,

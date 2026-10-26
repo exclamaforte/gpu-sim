@@ -231,10 +231,17 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # Ring assumption: local queries attend all keys (gathered via ring).
     attn_flops = 12.0 * m["n_layers"] * (seq ** 2) * d / (tp * pp * cp * dp) * batch
     flops_per_gpu = flops_per_gpu + attn_flops
-    # recompute knob
+    # recompute knob (gpu-sim-hz3u): full checkpointing replays one forward pass per
+    # step, so the honest charge is the FORWARD FLOPs only -- 2P of the 6P total for the
+    # matmuls and 1/3 of attn_flops for attention (fwd is 4*S^2*d of the 12*S^2*d total;
+    # bwd is 2x fwd because it recomputes scores). That is ~+33% of the compute term, the
+    # standard figure for full checkpointing (Chen et al. 2016 sublinear-memory paper;
+    # Megatron-LM/DeepSpeed activation-checkpointing docs quote ~30%). The previous charge
+    # added the FULL 6P+attn a second time (+100%), overstating recompute cost ~3x. Nothing
+    # published used recompute != none, so no published number moves with this correction.
     recompute = hw.get("recompute", "none")
     if recompute == "full":
-        flops_per_gpu = flops_per_gpu + (6 * (P / (tp * pp)) * tokens_per_gpu) + attn_flops
+        flops_per_gpu = flops_per_gpu + (2 * (P / (tp * pp)) * tokens_per_gpu) + attn_flops / 3.0
     elif recompute == "selective":
         flops_per_gpu = flops_per_gpu + attn_flops
     compute = flops_per_gpu / peak

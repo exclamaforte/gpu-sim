@@ -172,6 +172,52 @@ def compute_facts():
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
              "pricing_path": "spec/topology", "rank_by": "sum", "rows": {}}
 
+    # gpu-sim-hz3u: the same matrix with FULL activation recompute (405B only -- the
+    # model whose rows the lack of recompute decides). Default stays none, so every
+    # number above is untouched; these facts record the sensitivity, not a revision.
+    _sof = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "scaleout_answers.py"),
+                           "--nodes", "10,100,1000", "--models", "llama3-405b",
+                           "--recompute", "full", "--json"],
+                          capture_output=True, text=True, check=True)
+    _full = _json2.loads(_sof.stdout)
+
+    def _sof_cell(fabric, conv):
+        return _full[fabric]["models"]["llama3-405b"][conv]
+
+    def _row(cell):
+        if cell is None:
+            return {"feasible": False}
+        return {"feasible": True, "config": cell["config"],
+                "step_s": cell["step_s"], "margin_pct": cell["margin_pct"],
+                "mem_gb": cell["mem_gb"]}
+
+    facts["recompute_sensitivity_405b"] = {
+        "setting": "full (keep only layer boundaries + one extra forward pass); default none unchanged",
+        "feasible_80_full": _sof_cell("10x8", "default all_gather") is not None,
+        "winner_800_full": {c: _row(_sof_cell("100x8", c))
+                              for c in ("ring all_to_all", "default all_gather")},
+        "winner_8000_full": {c: _row(_sof_cell("1000x8", c))
+                               for c in ("ring all_to_all", "default all_gather")},
+    }
+
+    # memory floor at 80 GPUs: the min over ALL scored layouts (feasible or not -- a lower
+    # bound no deployable layout can beat) under none vs full, plus the analytic weights-only
+    # floor (params+grads bf16 + master+optimizer fp32 = 16 B/param over 80 GPUs). If 405B
+    # cannot fit even at full recompute, this says whether activations were ever the blocker.
+    from scripts.scaleout_answers import build_spec as _build_spec
+    from scripts.scaleout_answers import MODELS as _SO_MODELS
+    _spec10 = _build_spec(10)
+    _mfloor = {}
+    for _rec in ("none", "full"):
+        _r, _ = ps.search(80, {"peak_flops": PEAK, "mem_gb": 80.0, "spec": _spec10,
+                               "term_scale": {"cp": 1.9922}, "batch": 1, "recompute": _rec},
+                          _SO_MODELS["llama3-405b"])
+        _mfloor[_rec] = round(min(c.memory_gb for c in _r), 1)
+    facts["recompute_sensitivity_405b"]["min_mem_80_none_gb"] = _mfloor["none"]
+    facts["recompute_sensitivity_405b"]["min_mem_80_full_gb"] = _mfloor["full"]
+    facts["recompute_sensitivity_405b"]["weights_floor_80_gb"] = round(
+        ps.total_params(_SO_MODELS["llama3-405b"]) * 16 / 80 / 1e9, 1)
+
     # gpu-sim-wv2 (partial): the compute term divides FLOPs by peak with no efficiency
     # factor. Record the implied MFU and the step at a measured (0.566) and pessimistic
     # (0.40) efficiency, so the doc can quote them and the numbers are reproducible here.
@@ -668,6 +714,19 @@ def allowed_decimals(facts):
     for _k, _v in facts["scaleout"].items():
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
+    # gpu-sim-hz3u: the with-recompute 405B numbers the paragraph quotes (ms with one decimal,
+    # margins/mems as stored) plus the 80-GPU memory floors.
+    _rs = facts.get("recompute_sensitivity_405b", {})
+    for _w in (_rs.get("winner_800_full", {}), _rs.get("winner_8000_full", {})):
+        for _row in _w.values():
+            if _row.get("feasible"):
+                add(round(1000 * _row["step_s"], 1))
+                add(_row["step_s"])
+                add(_row["margin_pct"])
+                add(_row["mem_gb"])
+    for _k in ("min_mem_80_none_gb", "min_mem_80_full_gb", "weights_floor_80_gb"):
+        if _k in _rs:
+            add(_rs[_k])
     for _n_rows in facts["micro_batches_sensitivity"].values():
         for _row in _n_rows.values():
             add(_row["step_ms"])
