@@ -134,7 +134,32 @@ def compute_facts():
     for _n in (8, 16, 32):
         _mb[f"N{_n}"] = {f"x{m}": _mb_row(_n, 8192, m) for m in (1, 2, 4, 8, 16)}
 
+    # gpu-sim-scaleout: the answers beyond one rack, computed by the same script that publishes them.
+    import subprocess, json as _json2
+    _so = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "scaleout_answers.py"),
+                          "--nodes", "10,100,1000", "--json"], capture_output=True, text=True, check=True)
+    _scaleout = _json2.loads(_so.stdout)
+
+    def _so_cell(fabric, model, conv):
+        return _scaleout[fabric]["models"][model][conv]
+
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
+             "scaleout": {
+                 "n70b_80gpus_ring_margin": _so_cell("10x8", "llama3-70b", "ring all_to_all")["margin_pct"],
+                 "n70b_80gpus_ag_margin": _so_cell("10x8", "llama3-70b", "default all_gather")["margin_pct"],
+                 "n70b_80gpus_ag_step_ms": round(1000 * _so_cell("10x8", "llama3-70b", "default all_gather")["step_s"], 1),
+                 "n8b_80gpus_ag_margin": _so_cell("10x8", "llama3-8b", "default all_gather")["margin_pct"],
+                 "worst_margin_8000": min(
+                     (_so_cell("1000x8", m, c)["margin_pct"] or 0.0)
+                     for m in ("llama3-8b", "llama3-70b", "llama3-405b")
+                     for c in ("ring all_to_all", "default all_gather")),
+                 "best_margin_8000": max(
+                     (_so_cell("1000x8", m, c)["margin_pct"] or 0.0)
+                     for m in ("llama3-8b", "llama3-70b", "llama3-405b")
+                     for c in ("ring all_to_all", "default all_gather")),
+                 "n405b_80gpus_feasible": _so_cell("10x8", "llama3-405b", "default all_gather") is not None,
+                 "n405b_800gpus_ag_margin": _so_cell("100x8", "llama3-405b", "default all_gather")["margin_pct"],
+             },
              "micro_batches_sensitivity": _mb,
              "retracted_values": RETRACTED,
              "cp_convention_answers": _conv,
@@ -636,6 +661,9 @@ def allowed_decimals(facts):
     for v in facts["s_best"].values():
         if v is not None:
             add(v)
+    for _k, _v in facts["scaleout"].items():
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
     for _n_rows in facts["micro_batches_sensitivity"].values():
         for _row in _n_rows.values():
             add(_row["step_ms"])

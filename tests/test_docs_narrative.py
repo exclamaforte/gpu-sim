@@ -97,6 +97,19 @@ def test_radius_sentence_reflects_gqa_availability():
     assert "counterpart" in para, "the paragraph must say the decisive parameter has a counterpart"
 
 
+def test_scaleout_paragraph_carries_the_computed_answers():
+    """gpu-sim-scaleout: the beyond-a-rack claims must match what the script computes."""
+    so = FACTS["scaleout"]
+    para = _para("Beyond one rack")
+    assert f"{so['n70b_80gpus_ring_margin']:.2f}%" in para, "missing the 80-GPU ring margin"
+    assert f"{so['n70b_80gpus_ag_margin']:.2f}%" in para, "missing the 80-GPU default-convention margin"
+    assert f"{so['worst_margin_8000']:.2f}%" in para and f"{so['best_margin_8000']:.2f}%" in para, (
+        "the 8000-GPU margins must be quoted as a range")
+    assert so["n405b_80gpus_feasible"] is False, "405B is feasible at 80 GPUs now: rewrite the paragraph"
+    assert "NO activation recomputation" in para, (
+        "the paragraph must say WHY 405B does not fit, or a reader will read it as a hardware limit")
+
+
 def test_bubble_default_is_stated_as_pessimistic_and_winners_are_stable():
     """gpu-sim-bubble: micro_batches=pp is a pessimistic default; winners must be stable over 1x-8x."""
     mb = FACTS["micro_batches_sensitivity"]

@@ -54,6 +54,15 @@ then the margin collapses to 0.63% -- a tie, not a different answer. So the unme
 the model AGAINST the pipeline answers it recommends: giving it a realistic value makes them cheaper, not
 more expensive.
 
+**Beyond one rack (gpu-sim-scaleout).** The same model run on generated fabrics at 10, 100 and 1000 nodes
+of 8x H100 (80 / 800 / 8000 GPUs, NVLink inside a node, one NDR NIC per GPU across) says: 80 GPUs is
+pipeline-dominant, with 70B at pp~40 a real 6.10% verdict under the ring convention and 1.42% under the
+default one (120.0 ms); 8B at the same scale is a 2.51% near-tie; 800 GPUs is decided by efficiency and
+convention (3-5%) rather than by structure; and at 8000 GPUs the margins run 0.13% to 5.48%, so most cells
+are ties the model cannot separate. 405B does not fit at 80 GPUs and needs pp=100 at 800 (2.75%) --
+because this memory model has NO activation recomputation, which is a property of the model rather than of
+405B. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
+
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is
 charged per STEP (once per step regardless of batch size) while tp/cp/pp payload comm scales with
