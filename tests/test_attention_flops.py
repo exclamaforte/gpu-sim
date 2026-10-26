@@ -27,8 +27,8 @@ def test_attention_flops_formula():
 
 def test_recompute_knob():
     m = dict(ps.MODEL); m["seq"] = 2048
-    hw_none = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "recompute": "none"}
-    hw_full = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "recompute": "full"}
+    hw_none = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "recompute": 0.0}
+    hw_full = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "recompute": 1.0}
     c_none = ps.score(2, 1, 1, 1, 0, hw_none, m)
     c_full = ps.score(2, 1, 1, 1, 0, hw_full, m)
     assert c_full.compute > c_none.compute

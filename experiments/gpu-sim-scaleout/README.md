@@ -36,8 +36,8 @@ between these two extremes.
    and 405B on 800 needs pp=100 at ~76 GB/GPU. Real 405B training uses full activation checkpointing with
    pp=8-16. The 405B rows are therefore a statement about this memory model, not about practice.
    The with-full-recompute sensitivity is measured, not assumed: see `experiments/gpu-sim-hz3u/` -- 405B@80
-   stays infeasible even with full recompute (weights/master/optimizer floor 93.4 GB > 80 GB HBM), and the
-   800/8000 winners do not move. The script takes `--recompute none|selective|full` (`none` is the default
+   stays infeasible even with full recompute (70.9 GB of optimizer state alone, which recomputation cannot
+   touch), and the 800/8000 winners do not move. The script takes `--recompute 0.0..1.0` (`0.0` is the default
    behind every number above).
 4. **Margins, not just winners.** At 8000 GPUs most margins are < 1%: the model cannot separate the top
    candidates. Those cells are ties, not recommendations.

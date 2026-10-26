@@ -65,7 +65,16 @@ over 80 GPUs is 5.06e9 parameters per GPU however you decompose them -- 70.9 GB 
 single activation. Recomputation cannot close a gap that size; only more GPUs (7.1 GB of the same state at
 800) or lower-precision optimizer states, which this model does not support, can. At 800 GPUs the binding
 term does become activations, which is why the answer there wants pp=100 (2.75%) and why recomputation is
-the right next modelling step -- for that regime, not for 80 GPUs. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
+the right next modelling step -- for that regime, not for 80 GPUs. The knob is now in the model: hw['recompute']
+is a float 0.0..1.0, default 0.0, keeping (1 - 0.67*recompute) of the stored activations and charging 1.25x
+compute when fully on -- both numbers measured on this host's 5090 (experiments/gpu-sim-recompute/), not cited.
+The 0.67 is the seq-8192 value; at shorter sequence it overstates the saving, so short-seq recompute fits need
+their own calibration. Where the knob matters is where activations bind: 70B at 80 GPUs with batch=32 goes
+from (tp=1 pp=4 cp=1 dp=20 z3) at 2.769 s (0.45%, 58.0 GB) without recompute to (tp=1 pp=1 cp=1 dp=80 z3) at
+2.920 s (14.07%, 70.9 GB) with full recompute -- no pipeline at all, pure FSDP across all 80 GPUs, above the
+2.474 s the chargeless proxy reported by the 1.25x charge, and far better separated than the tie it replaces.
+For 405B the knob changes nothing: 80 GPUs stays infeasible with full recompute, and the 800/8000 winners do
+not move (still pp=100 at 800 at 0.150 s ring / 0.197 s default, and the same winners at 8000 at 0.065 s / 0.096 s). Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is

@@ -12,7 +12,7 @@ Every caveat this project has established still applies and is printed with the 
   * absolute durations are bounded to 1.25-1.65x by measurement, not predictions.
 
 Usage: python3 scripts/scaleout_answers.py [--json] [--nodes 10,100,1000]
-       [--recompute none|selective|full] [--models llama3-8b,llama3-70b,llama3-405b]
+       [--recompute 0.0..1.0] [--models llama3-8b,llama3-70b,llama3-405b]
 """
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ MAX_TP = 8          # TP needs NVLink-class all-to-all per layer; one node is th
 
 
 def answer(spec: dict, model: dict, n: int, cp_scale: float, batch: int = 1,
-            recompute: str = "none") -> dict | None:
+            recompute: float = 0.0) -> dict | None:
     hw = {"peak_flops": PEAK, "mem_gb": HBM_GB, "spec": spec, "term_scale": {"cp": cp_scale},
           "batch": batch, "recompute": recompute}
     _, feas = ps.search(n, hw, model)
@@ -112,12 +112,13 @@ def main() -> int:
     nodes_list = [10, 100, 1000]
     if "--nodes" in sys.argv:
         nodes_list = [int(x) for x in sys.argv[sys.argv.index("--nodes") + 1].split(",")]
-    # gpu-sim-hz3u: sweep the activation-recompute knob (default none, so every published
-    # number is bit-identical; full = keep only layer boundaries + one extra forward pass).
-    recompute = "none"
+    # gpu-sim-hz3u: sweep the activation-recompute knob (float 0.0..1.0, default 0.0,
+    # so every published number is bit-identical; 1.0 = full checkpointing, measured
+    # 1.25x compute and 0.45x retained activations -- see experiments/gpu-sim-recompute/).
+    recompute = 0.0
     if "--recompute" in sys.argv:
-        recompute = sys.argv[sys.argv.index("--recompute") + 1]
-        assert recompute in ("none", "selective", "full"), f"unknown recompute {recompute}"
+        recompute = float(sys.argv[sys.argv.index("--recompute") + 1])
+        assert 0.0 <= recompute <= 1.0, f"recompute must be in [0, 1], got {recompute}"
     want = None
     if "--models" in sys.argv:
         want = set(sys.argv[sys.argv.index("--models") + 1].split(","))

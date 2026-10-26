@@ -550,21 +550,21 @@
     }
   },
   "recompute_sensitivity_405b": {
-    "setting": "full (keep only layer boundaries + one extra forward pass); default none unchanged",
+    "setting": "float 0.0..1.0, default 0.0; 1.0 keeps (1-0.67) of activations + 1.25x compute (measured, experiments/gpu-sim-recompute/)",
     "feasible_80_full": false,
     "winner_800_full": {
       "ring all_to_all": {
         "feasible": true,
         "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
-        "step_s": 0.154,
-        "margin_pct": 5.97,
+        "step_s": 0.15,
+        "margin_pct": 6.13,
         "mem_gb": 75.7
       },
       "default all_gather": {
         "feasible": true,
         "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
-        "step_s": 0.201,
-        "margin_pct": 2.52,
+        "step_s": 0.197,
+        "margin_pct": 2.58,
         "mem_gb": 75.7
       }
     },
@@ -572,9 +572,9 @@
       "ring all_to_all": {
         "feasible": true,
         "config": "tp=8 pp=40 cp=25 dp=1 zero=0",
-        "step_s": 0.066,
-        "margin_pct": 2.53,
-        "mem_gb": 23.4
+        "step_s": 0.065,
+        "margin_pct": 2.54,
+        "mem_gb": 23.5
       },
       "default all_gather": {
         "feasible": true,
@@ -583,10 +583,21 @@
         "margin_pct": 0.13,
         "mem_gb": 18.8
       }
+    }
+  },
+  "recompute_70b_b32_80": {
+    "0.0": {
+      "config": "tp=1 pp=4 cp=1 dp=20 zero=3",
+      "step_s": 2.769,
+      "margin_pct": 0.45,
+      "mem_gb": 58.0
     },
-    "min_mem_80_none_gb": 99.5,
-    "min_mem_80_full_gb": 93.5,
-    "weights_floor_80_gb": 93.4
+    "1.0": {
+      "config": "tp=1 pp=1 cp=1 dp=80 zero=3",
+      "step_s": 2.92,
+      "margin_pct": 14.07,
+      "mem_gb": 70.9
+    }
   },
   "mfu_sensitivity": {
     "implied_0.765": {
