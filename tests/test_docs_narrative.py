@@ -126,6 +126,13 @@ def test_scaleout_paragraph_carries_the_computed_answers():
     assert r70["1.0"]["config"] == "tp=1 pp=1 cp=1 dp=80 zero=3", (
         "full-recompute 70B/batch-32/80-GPU is not pure FSDP: the memory term is not seeing the knob")
     assert r70["1.0"]["step_s"] > 2.474, "full-recompute step must exceed the chargeless proxy 2.474 s"
+    # gpu-sim-4qcx: the fit is seq-dependent now, so the paragraph must name the sequence
+    # each quoted alpha was measured at -- a bare alpha without its seq is the old error.
+    for _a, _s in (("0.176", "seq 2048"), ("0.420", "seq 4096"), ("0.594", "seq 8192")):
+        assert _a in para and _s in para, (
+            f"the paragraph must quote alpha {_a} with its measurement sequence ({_s})")
+    assert "0.67" in para and "seq 8192" in para, (
+        "the paragraph must state the at/above-8192 default alpha and its sequence")
     for tag in ("0.0", "1.0"):
         row = r70[tag]
         assert f"{row['step_s']:.3f}" in para, f"paragraph missing 70B/batch-32 step {row['step_s']:.3f}"

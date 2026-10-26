@@ -3,7 +3,8 @@
 The knob is hw['recompute'], a float 0.0..1.0 defaulting to 0.0 (legacy "none"/"full"
 strings map to 0.0/1.0; anything else raises). At 1.0 the model keeps (1-0.67) of the
 stored activations and scales the compute term by 1.25 -- both numbers MEASURED on the
-lab 5090 (experiments/gpu-sim-recompute/), not rules of thumb.
+lab 5090 (experiments/gpu-sim-recompute/), not rules of thumb. Since gpu-sim-4qcx the kept
+fraction is (1-alpha(seq)*recompute): 0.67 at/above seq 8192, the GQA fit below.
 """
 import os
 import sys
@@ -44,10 +45,11 @@ def test_full_charges_measured_1_25x_compute():
     assert c1.compute == c0.compute * 1.25
 
 
-def test_full_keeps_measured_0_33x_activations():
-    # memory delta between r=0 and r=1 is exactly the 0.67 alpha on the activation term:
-    # total(r=1) - total(r=0) == -(0.67 * act_bytes(r=0)), verified by recomputing act
-    # from the model's own geometry (not by retyping a number).
+def test_full_keeps_measured_fraction_of_activations():
+    # memory delta between r=0 and r=1 is exactly the seq-dependent alpha on the
+    # activation term: total(r=1) - total(r=0) == -(alpha(seq) * act_bytes(r=0)),
+    # verified by recomputing act from the model's own geometry (not by retyping
+    # a number). _cfg runs seq 2048, so this pins the GQA alpha 0.176 end to end.
     (tp, pp, cp, dp, zero), m = _cfg()
     c0 = ps.score(tp, pp, cp, dp, zero, _hw(0.0), m)
     c1 = ps.score(tp, pp, cp, dp, zero, _hw(1.0), m)
@@ -57,7 +59,7 @@ def test_full_keeps_measured_0_33x_activations():
     d = m["d_model"]
     per_token_width = 3 * (d // tp) + m["d_ff"] // tp
     act0 = (m["n_layers"] / pp) * (m["seq"] / cp) * dtype_bytes * per_token_width * 2.3 / 1e9
-    assert abs((c1.memory_gb - c0.memory_gb) - (-0.67 * act0)) < 1e-9
+    assert abs((c1.memory_gb - c0.memory_gb) - (-ps._recompute_alpha(m["seq"]) * act0)) < 1e-9
 
 
 def test_legacy_strings_and_garbage():
