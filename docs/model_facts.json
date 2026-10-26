@@ -30,6 +30,16 @@
         },
         {
           "config": [
+            1,
+            8,
+            1,
+            1,
+            0
+          ],
+          "step_ms": 96.38
+        },
+        {
+          "config": [
             2,
             1,
             4,
@@ -37,16 +47,6 @@
             0
           ],
           "step_ms": 99.68
-        },
-        {
-          "config": [
-            8,
-            1,
-            1,
-            1,
-            0
-          ],
-          "step_ms": 100.16
         }
       ],
       "fsdp_zero3_row": {
@@ -58,89 +58,89 @@
       "winner": {
         "config": [
           1,
-          4,
+          16,
           1,
-          4,
-          2
+          1,
+          0
         ],
-        "step_ms": 66.86,
-        "mem_gb": 21.6
+        "step_ms": 51.95,
+        "mem_gb": 12.4
       },
       "top3": [
         {
           "config": [
             1,
-            4,
+            16,
             1,
-            4,
-            2
-          ],
-          "step_ms": 66.86
-        },
-        {
-          "config": [
-            1,
-            4,
-            1,
-            4,
-            3
-          ],
-          "step_ms": 66.86
-        },
-        {
-          "config": [
-            2,
-            2,
-            4,
             1,
             0
           ],
-          "step_ms": 66.87
+          "step_ms": 51.95
+        },
+        {
+          "config": [
+            1,
+            8,
+            1,
+            2,
+            2
+          ],
+          "step_ms": 54.6
+        },
+        {
+          "config": [
+            1,
+            8,
+            1,
+            2,
+            3
+          ],
+          "step_ms": 54.6
         }
       ]
     },
     "N32": {
       "winner": {
         "config": [
+          1,
+          16,
           2,
-          4,
-          4,
           1,
           0
         ],
-        "step_ms": 53.31,
-        "mem_gb": 17.9
+        "step_ms": 31.06,
+        "mem_gb": 10.4
       },
       "top3": [
         {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1,
             0
           ],
-          "step_ms": 53.31
+          "step_ms": 31.06
         },
         {
           "config": [
             1,
-            4,
+            16,
             1,
-            8,
+            2,
             2
           ],
-          "step_ms": 55.54
+          "step_ms": 32.71
         },
         {
           "config": [
             1,
-            4,
+            16,
             1,
-            8,
+            2,
             3
           ],
-          "step_ms": 55.54
+          "step_ms": 32.71
         }
       ]
     }
@@ -298,72 +298,72 @@
       "N16_seq8192": {
         "hr0.00": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1,
             0
           ],
-          "step_ms": 82.1,
-          "mem_gb": 35.6
+          "step_ms": 68.9,
+          "mem_gb": 12.4
         },
         "hr0.10": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1,
             0
           ],
-          "step_ms": 82.1,
-          "mem_gb": 35.6
+          "step_ms": 68.9,
+          "mem_gb": 12.4
         },
         "hr0.20": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1,
             0
           ],
-          "step_ms": 82.1,
-          "mem_gb": 35.6
+          "step_ms": 68.9,
+          "mem_gb": 12.4
         },
         "changes": false
       },
       "N16_seq16384": {
         "hr0.00": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1,
             0
           ],
-          "step_ms": 173.93,
-          "mem_gb": 37.9
+          "step_ms": 164.23,
+          "mem_gb": 16.5
         },
         "hr0.10": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1,
             0
           ],
-          "step_ms": 173.93,
-          "mem_gb": 37.9
+          "step_ms": 164.23,
+          "mem_gb": 16.5
         },
         "hr0.20": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1,
             0
           ],
-          "step_ms": 173.93,
-          "mem_gb": 37.9
+          "step_ms": 164.23,
+          "mem_gb": 16.5
         },
         "changes": false
       },
@@ -387,7 +387,7 @@
             1,
             0
           ],
-          "step_ms": 429.71,
+          "step_ms": 420.31,
           "mem_gb": 42.5
         },
         "hr0.20": {
@@ -398,7 +398,7 @@
             1,
             0
           ],
-          "step_ms": 429.71,
+          "step_ms": 420.31,
           "mem_gb": 42.5
         },
         "changes": true
@@ -406,36 +406,36 @@
       "N32_seq8192": {
         "hr0.00": {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1,
             0
           ],
-          "step_ms": 61.47,
-          "mem_gb": 17.9
+          "step_ms": 39.53,
+          "mem_gb": 10.4
         },
         "hr0.10": {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1,
             0
           ],
-          "step_ms": 61.47,
-          "mem_gb": 17.9
+          "step_ms": 39.53,
+          "mem_gb": 10.4
         },
         "hr0.20": {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1,
             0
           ],
-          "step_ms": 61.47,
-          "mem_gb": 17.9
+          "step_ms": 39.53,
+          "mem_gb": 10.4
         },
         "changes": false
       },
@@ -443,35 +443,35 @@
         "hr0.00": {
           "config": [
             1,
-            4,
+            16,
+            2,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 124.05,
-          "mem_gb": 28.0
+          "step_ms": 89.58,
+          "mem_gb": 12.6
         },
         "hr0.10": {
           "config": [
             1,
-            4,
+            16,
+            2,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 124.05,
-          "mem_gb": 28.0
+          "step_ms": 89.58,
+          "mem_gb": 12.6
         },
         "hr0.20": {
           "config": [
             1,
-            4,
+            16,
+            2,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 124.05,
-          "mem_gb": 28.0
+          "step_ms": 89.58,
+          "mem_gb": 12.6
         },
         "changes": false
       },
@@ -479,44 +479,44 @@
         "hr0.00": {
           "config": [
             1,
+            8,
             4,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 283.38,
-          "mem_gb": 48.3
+          "step_ms": 227.2,
+          "mem_gb": 23.1
         },
         "hr0.10": {
           "config": [
             1,
+            8,
             4,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 283.38,
-          "mem_gb": 48.3
+          "step_ms": 227.2,
+          "mem_gb": 23.1
         },
         "hr0.20": {
           "config": [
             1,
+            8,
             4,
             1,
-            8,
-            2
+            0
           ],
-          "step_ms": 283.38,
-          "mem_gb": 48.3
+          "step_ms": 227.2,
+          "mem_gb": 23.1
         },
         "changes": false
       }
     }
   },
   "cp_crossover": {
-    "implied_seq": 4091,
-    "advantage_at_8192_implied_pct": 10.62,
-    "advantage_at_4096_implied_pct": 0.03,
+    "implied_seq": 5833,
+    "advantage_at_8192_implied_pct": 6.45,
+    "advantage_at_4096_implied_pct": -7.75,
     "measured_seq": 3788,
     "advantage_at_8192_measured_pct": 8.48,
     "advantage_at_4096_measured_pct": 1.17,
@@ -536,7 +536,7 @@
             1
           ],
           "step_ms": 90.54,
-          "margin_pct": 10.09
+          "margin_pct": 6.45
         },
         "measured": {
           "config": [
@@ -627,76 +627,76 @@
         "implied": {
           "config": [
             1,
-            4,
+            16,
             1,
-            4
+            1
           ],
-          "step_ms": 66.86,
-          "margin_pct": 0.02
+          "step_ms": 51.95,
+          "margin_pct": 5.09
         },
         "measured": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1
           ],
-          "step_ms": 82.1,
-          "margin_pct": 0.11
+          "step_ms": 68.9,
+          "margin_pct": 3.55
         },
         "typical": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1
           ],
-          "step_ms": 106.39,
-          "margin_pct": 0.09
+          "step_ms": 95.93,
+          "margin_pct": 2.23
         }
       },
       "N16_seq16384": {
         "implied": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1
           ],
-          "step_ms": 137.22,
-          "margin_pct": 1.21
+          "step_ms": 123.38,
+          "margin_pct": 0.54
         },
         "measured": {
           "config": [
-            2,
-            2,
-            4,
+            1,
+            16,
+            1,
             1
           ],
-          "step_ms": 173.93,
-          "margin_pct": 2.46
+          "step_ms": 164.23,
+          "margin_pct": 0.12
         },
         "typical": {
           "config": [
             2,
-            1,
-            8,
+            2,
+            4,
             1
           ],
-          "step_ms": 230.95,
-          "margin_pct": 0.67
+          "step_ms": 227.79,
+          "margin_pct": 0.46
         }
       },
       "N16_seq32768": {
         "implied": {
           "config": [
-            2,
-            2,
+            1,
             4,
-            1
+            1,
+            4
           ],
-          "step_ms": 331.27,
-          "margin_pct": 0.17
+          "step_ms": 320.42,
+          "margin_pct": 0.38
         },
         "measured": {
           "config": [
@@ -706,7 +706,7 @@
             1
           ],
           "step_ms": 412.12,
-          "margin_pct": 4.27
+          "margin_pct": 1.97
         },
         "typical": {
           "config": [
@@ -716,103 +716,103 @@
             1
           ],
           "step_ms": 529.9,
-          "margin_pct": 10.73
+          "margin_pct": 8.94
         }
       },
       "N32_seq8192": {
         "implied": {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1
           ],
-          "step_ms": 53.31,
-          "margin_pct": 4.19
+          "step_ms": 31.06,
+          "margin_pct": 5.32
         },
         "measured": {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1
           ],
-          "step_ms": 61.47,
-          "margin_pct": 3.63
+          "step_ms": 39.53,
+          "margin_pct": 4.18
         },
         "typical": {
           "config": [
+            1,
+            16,
             2,
-            4,
-            4,
             1
           ],
-          "step_ms": 74.48,
-          "margin_pct": 3.0
+          "step_ms": 53.05,
+          "margin_pct": 3.12
         }
       },
       "N32_seq16384": {
         "implied": {
           "config": [
             1,
-            4,
-            1,
-            8
+            16,
+            2,
+            1
           ],
-          "step_ms": 104.38,
-          "margin_pct": 4.15
+          "step_ms": 69.16,
+          "margin_pct": 2.11
         },
         "measured": {
           "config": [
             1,
-            4,
-            1,
-            8
+            16,
+            2,
+            1
           ],
-          "step_ms": 124.05,
-          "margin_pct": 3.49
+          "step_ms": 89.58,
+          "margin_pct": 1.37
         },
         "typical": {
           "config": [
             1,
-            4,
-            1,
-            8
+            16,
+            2,
+            1
           ],
-          "step_ms": 155.42,
-          "margin_pct": 2.78
+          "step_ms": 122.17,
+          "margin_pct": 0.69
         }
       },
       "N32_seq32768": {
         "implied": {
           "config": [
             1,
+            8,
             4,
-            1,
-            8
+            1
           ],
-          "step_ms": 230.64,
-          "margin_pct": 3.81
+          "step_ms": 173.07,
+          "margin_pct": 1.15
         },
         "measured": {
           "config": [
             1,
+            8,
             4,
-            1,
-            8
+            1
           ],
-          "step_ms": 283.38,
-          "margin_pct": 3.1
+          "step_ms": 227.2,
+          "margin_pct": 1.13
         },
         "typical": {
           "config": [
-            4,
             1,
             8,
+            4,
             1
           ],
-          "step_ms": 358.45,
-          "margin_pct": 2.53
+          "step_ms": 313.58,
+          "margin_pct": 0.1
         }
       }
     }
@@ -825,8 +825,8 @@
     ],
     "bend_point": {
       "N8": 28.5,
-      "N16": 21.5,
-      "N32": 152.3
+      "N16": null,
+      "N32": null
     },
     "infeasible_above": {
       "N8": 36.2,
@@ -848,13 +848,13 @@
         ],
         "step_ms": 90.54,
         "runner_shape": [
-          2,
           1,
-          4,
+          8,
+          1,
           1,
           0
         ],
-        "margin_pct": 10.09
+        "margin_pct": 6.45
       },
       "measured": {
         "mfu": 0.566,
@@ -900,120 +900,120 @@
         "mfu": 0.765,
         "config": [
           1,
-          4,
+          16,
           1,
-          4,
-          2
-        ],
-        "step_ms": 66.86,
-        "runner_shape": [
-          2,
-          2,
-          4,
           1,
           0
         ],
-        "margin_pct": 0.02
+        "step_ms": 51.95,
+        "runner_shape": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ],
+        "margin_pct": 5.09
       },
       "measured": {
         "mfu": 0.566,
         "config": [
-          2,
-          2,
-          4,
+          1,
+          16,
+          1,
           1,
           0
         ],
-        "step_ms": 82.1,
+        "step_ms": 68.9,
         "runner_shape": [
-          4,
-          2,
-          2,
           1,
-          0
+          8,
+          1,
+          2,
+          2
         ],
-        "margin_pct": 0.11
+        "margin_pct": 3.55
       },
       "typical_h100": {
         "mfu": 0.4,
         "config": [
-          2,
-          2,
-          4,
+          1,
+          16,
+          1,
           1,
           0
         ],
-        "step_ms": 106.39,
+        "step_ms": 95.93,
         "runner_shape": [
-          4,
-          2,
-          2,
           1,
-          0
+          8,
+          1,
+          2,
+          2
         ],
-        "margin_pct": 0.09
+        "margin_pct": 2.23
       }
     },
     "N32": {
       "implied": {
         "mfu": 0.765,
         "config": [
+          1,
+          16,
           2,
-          4,
-          4,
           1,
           0
         ],
-        "step_ms": 53.31,
+        "step_ms": 31.06,
         "runner_shape": [
           1,
-          4,
+          16,
           1,
-          8,
+          2,
           2
         ],
-        "margin_pct": 4.19
+        "margin_pct": 5.32
       },
       "measured": {
         "mfu": 0.566,
         "config": [
+          1,
+          16,
           2,
-          4,
-          4,
           1,
           0
         ],
-        "step_ms": 61.47,
+        "step_ms": 39.53,
         "runner_shape": [
           1,
-          4,
+          16,
           1,
-          8,
+          2,
           2
         ],
-        "margin_pct": 3.63
+        "margin_pct": 4.18
       },
       "typical_h100": {
         "mfu": 0.4,
         "config": [
+          1,
+          16,
           2,
-          4,
-          4,
           1,
           0
         ],
-        "step_ms": 74.48,
+        "step_ms": 53.05,
         "runner_shape": [
           1,
-          4,
+          16,
           1,
-          8,
+          2,
           2
         ],
-        "margin_pct": 3.0
+        "margin_pct": 3.12
       }
     },
-    "N16_crossover_mfu": 0.4
+    "N16_crossover_mfu": 0.25
   },
   "fsdp_mem_16384_gb": 85.0,
   "legacy_path_steps": {
@@ -1051,22 +1051,22 @@
     "N16": {
       "config": [
         1,
-        4,
+        16,
         1,
-        4,
-        2
-      ],
-      "step_ms": 66.86
-    },
-    "N32": {
-      "config": [
-        2,
-        4,
-        4,
         1,
         0
       ],
-      "step_ms": 53.31
+      "step_ms": 51.95
+    },
+    "N32": {
+      "config": [
+        1,
+        16,
+        2,
+        1,
+        0
+      ],
+      "step_ms": 31.06
     }
   },
   "alpha_piece_charging": {
@@ -1079,7 +1079,7 @@
         0
       ],
       "step_ms": 90.54,
-      "runner_up_ms": 99.68
+      "runner_up_ms": 96.38
     },
     "4": {
       "config": [
@@ -1090,7 +1090,7 @@
         0
       ],
       "step_ms": 92.85,
-      "runner_up_ms": 100.47
+      "runner_up_ms": 96.38
     },
     "8": {
       "config": [
@@ -1101,7 +1101,7 @@
         0
       ],
       "step_ms": 95.93,
-      "runner_up_ms": 101.52
+      "runner_up_ms": 96.38
     }
   },
   "seq32768": {
@@ -1128,12 +1128,12 @@
   "compute_floor_8192_ms": 64.97,
   "compute_floor_32768_ms": 419.96,
   "llama3-70b_N32_seq32768_nconfigs": 161,
-  "llama3-70b_N32_seq32768_step_s": 1.88,
-  "llama3-70b_N32_seq32768_mem_gb": 60.6,
+  "llama3-70b_N32_seq32768_step_s": 1.2,
+  "llama3-70b_N32_seq32768_mem_gb": 67.9,
   "llama3-70b_N32_seq32768_nfeasible": 6,
   "llama3-70b_N32_seq32768_config": [
-    8,
-    4,
+    1,
+    32,
     1,
     1,
     0
@@ -1190,13 +1190,13 @@
         },
         "best_config": [
           1,
-          4,
+          16,
           1,
-          4,
-          2
+          1,
+          0
         ],
-        "best_step_ms": 66.86,
-        "best_mem_gb": 21.55
+        "best_step_ms": 51.95,
+        "best_mem_gb": 12.42
       }
     },
     "qwen2.5-32b": {
@@ -1241,13 +1241,13 @@
         },
         "best_config": [
           1,
-          8,
+          16,
           1,
-          2,
-          2
+          1,
+          0
         ],
-        "best_step_ms": 224.13,
-        "best_mem_gb": 54.46
+        "best_step_ms": 189.15,
+        "best_mem_gb": 43.64
       }
     },
     "llama2-34b": {
@@ -1292,13 +1292,13 @@
         },
         "best_config": [
           1,
-          8,
+          16,
           1,
-          2,
-          2
+          1,
+          0
         ],
-        "best_step_ms": 265.19,
-        "best_mem_gb": 55.07
+        "best_step_ms": 217.18,
+        "best_mem_gb": 44.91
       }
     },
     "llama3-70b": {

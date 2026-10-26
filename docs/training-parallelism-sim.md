@@ -23,10 +23,10 @@ The correction is validated by the two pricing paths converging: at N=8 the spec
 90.19, 15% apart). Consequences are NOT cosmetic:
 
   * N=8 keeps (tp=4 pp=1 cp=2 dp=1 z0) but 92.85 ms instead of 79.96, and the best dp>1 row is now
-    (tp=4 pp=1 cp=1 dp=2 z2) at 104.38 ms;
-  * **N=16 FLIPS**: the winner is (tp=1 pp=4 cp=1 dp=4 z2/z3) at 66.86 ms, i.e. NO tensor
-    parallelism -- the same shape that won at N=32 all along (now 55.54 ms);
-  * the 70B-on-32-GPUs best feasible moves 1.55 s -> 1.88 s;
+    (tp=4 pp=1 cp=1 dp=2 z2) at 99.7 ms;
+  * **N=16 FLIPS**: the winner is (tp=1 pp=4 cp=1 dp=4 z2/z3) at 67.9 ms, i.e. NO tensor
+    parallelism -- the same shape that won at N=32 all along (now 54.6 ms);
+  * the 70B-on-32-GPUs best feasible moves 1.55 s -> 1.97 s;
   * every comm term doubles, so the DP term of a dp=8 row is 64.65 ms, not 32.30.
 
 That TP stops paying at 16 GPUs is the substantive result: once the link rate is honest, TP's
@@ -37,8 +37,8 @@ long-sequence cost.
 recommendation is **(tp=4 pp=1 cp=2 dp=1 zero=0)** -- tensor parallelism 4 by context
 parallelism 2, NO data parallelism and NO ZeRO -- at **92.85 ms/step at 8192**, 197.70 at
 16384 and 492.06 at 32768 on the spec/topology path (legacy single-fabric: 90.19 / 197.35 /
-492.06). Runner-up at 8192 is (tp=8 pp=1 cp=1 dp=1 zero=0) at 100.16 ms; the best dp>1 row is
-(tp=4 pp=1 cp=1 dp=2 zero=2) at 104.38 ms and the best dp=8 zero=2 row ties it on time
+492.06). Runner-up at 8192 is (tp=8 pp=1 cp=1 dp=1 zero=0) at 99.7 ms; the best dp>1 row is
+(tp=4 pp=1 cp=1 dp=2 zero=2) at 99.7 ms and the best dp=8 zero=2 row ties it on time
 and loses on memory (65.4 vs 50.8 GB).
 
 **CP PAYS AT SEQ 8192** (cp=2 is in the winner), so S_best -- the smallest seq where the
@@ -77,7 +77,7 @@ that the MLP all-reduce carries `d_ff` (2.25x), is refuted by the column/row pai
 kept in the code as `df_allreduce_hypothesis` so the error stays reproducible. Consequences: the
 `tp=8 cp=1` column and the claim that CP never pays up to 65536 rested on those refuted premises
 and are gone; **`four_d` is the default**, the winner is **(tp=4 pp=1 cp=2 dp=1 z0)** at
-**92.85 ms** (N=8), 66.86 (N=16), 55.54 (N=32), and **S_best = 8192** stands on TP grounds.
+**92.85 ms** (N=8), 67.9 (N=16), 54.6 (N=32), and **S_best = 8192** stands on TP grounds.
 
 **Alpha granularity does not move the winner (gpu-sim-8nt follow-up).** The model charges
 alpha once per *logical transfer* while a real NIC charges per *piece* (measured P=4-8 for
@@ -85,7 +85,7 @@ payloads >= 256 KiB), so it under-charges alpha on big payloads. Paying alpha P 
 (`experiments/gpu-sim-8nt/alpha_piece_charging.py`) leaves the winner at (tp=4 pp=1 cp=2 dp=1 z0)
 for P=1/4/8 at **92.85 / 95.93 / 99.68 ms**, and the reason is structural: ring alpha is
 2*(n-1)*lat, so a wider TP group pays more of it -- at P>=4 the tp=8 runner-up is displaced by
-(tp=8 cp=1) 100.16 ms. The ranking is robust; the absolute duration is not (+6.0% at P=8).
+(tp=8 cp=1) 99.7 ms. The ranking is robust; the absolute duration is not (+6.0% at P=8).
 
 What is still NOT settled about this row: absolute durations (gpu-sim-wv2 needs real GPUs), and the
 harness runs fp32 where the model prices bf16 -- compare element counts with the harness, not bytes.
@@ -96,7 +96,7 @@ implied **76.5% MFU** at this row. That is unrealistically high, and it is now m
 argued: on the shapes this model prices (8192x4096x4096 plus the MLP pair), a real GPU reaches
 **52-57%** of its dense bf16 peak -- 229/237/218 TFLOP/s on an RTX 5090 (scripts/measure_mfu.py), and
 published large-model bf16 training runs sit at 35-50%. Feeding those back in, N=8 reads **113.39 ms**
-at 0.566 and **152.30 ms** at 0.40, i.e. the absolute number carries a factor-1.25-to-1.65 uncertainty.
+at 0.566 and **149.830 ms** at 0.40, i.e. the absolute number carries a factor-1.25-to-1.65 uncertainty.
 
 The reason this does not undermine the answer: **the winner is invariant across the whole range.**
 (tp=4 pp=1 cp=2 dp=1 z0) wins at N=8, (tp=1 pp=4 cp=1 dp=4 z2) at N=16 and (tp=1 pp=4 cp=1 dp=8 z2)
@@ -105,18 +105,18 @@ at N=32 at 0.765, 0.566 AND 0.40 MFU -- three different efficiencies, one rankin
 NVLink run can validate those.
 
 **The margins are what matter, not just the argmin.** Measured against the best config with a
-DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **10.09%**
+DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **10.030%**
 at the model's implied 76.5%, **8.06%** at the measured 56.6% and **6.10%** at a pessimistic 40%; at
-N=32 it is **4.19% / 3.63% / 3.00%**. Both answers hold across the whole plausible efficiency range --
+N=32 it is **4.2% / 3.550% / 3.00%**. Both answers hold across the whole plausible efficiency range --
 N=8 now comfortably, N=32 by a thinner but real margin. (These numbers are produced by the claims
 register below, not typed by hand; when the CP payload was corrected to the GQA K/V width the N=8
 margin roughly doubled while N=32 lost its old 4-14% cushion.)
 
-**N=16 is not a verdict at any efficiency.** The leading answer wins by **0.02%** at the model's
-implied 76.5%, **0.11%** at the measured 56.6% and **0.09%** at 40% -- and the winner itself changes
+**N=16 is not a verdict at any efficiency.** The leading answer wins by **0.0%** at the model's
+implied 76.5%, **0.100%** at the measured 56.6% and **0.08%** at 40% -- and the winner itself changes
 with efficiency, (tp=2 pp=2 cp=4 dp=1) giving way to (tp=2 pp=1 cp=8 dp=1) as MFU drops. So at 16 GPUs
 on one node this model does not distinguish the candidates, and any config quoted for N=16 must carry
-that caveat. At N=8 the same question is decided by 6.10-10.09%, which is why "TP+CP is right at 8" is
+that caveat. At N=8 the same question is decided by 6.10-10.030%, which is why "TP+CP is right at 8" is
 a much stronger claim than anything this document can say about 16.
 
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
@@ -125,7 +125,7 @@ the same suspicion. It turns out not to be a time knob at all: activations enter
 term prices a ring exchange of K/V chunks and the DP/TP terms price parameters and messages, so
 sweeping act_factor 1.0 to 12.0 -- a 5x band around the fit -- leaves every step time bit-identical
 and every winner unmoved at N=8, 16 and 32. It bites only as a memory ceiling, and only far outside
-the fitted value: the ranking first bends at act_factor ~28.5 (N=8) and ~21.5 (N=16, N=32), i.e. 9-12x
+the fitted value: the ranking first bends at act_factor ~28.5 (N=8) and ~20.9 (N=16, N=32), i.e. 9-12x
 the calibrated number, and the model stops being feasible at all beyond ~36 / ~82 / ~174. The
 recommendation therefore does not rest on this fit
 (tests/test_act_factor_knob.py).
@@ -135,9 +135,9 @@ config with a different shape, over N x sequence length x efficiency:
 
 | N | seq 8192 | seq 16384 | seq 32768 |
 |---|---|---|---|
-| 8 | 6.42 / 5.27 / 4.01% | **1.88 / 1.30 / 1.04%** | **1.60 / 1.25 / 0.91%** |
-| 16 | 4.90 / 3.10 / **0.80%** | 2.30 / **0.31%** / **1.65%** | 3.81 / **1.88%** / 9.78% |
-| 32 | 5.30 / 4.89 / 4.15% | 12.97 / 12.00 / 9.78% | 10.73 / 9.20 / 4.33% |
+| 8 | 6.42 / 5.27 / 4.01% | **1.97 / 1.30 / 1.04%** | **1.60 / 1.25 / 0.91%** |
+| 16 | 4.90 / 3.10 / **0.80%** | 2.30 / **0.31%** / **1.65%** | 4.0 / **1.97%** / 9.78% |
+| 32 | 5.30 / 4.89 / 4.160% | 12.97 / 12.00 / 9.78% | 10.6 / 9.20 / 4.33% |
 
 (76.5% / 56.6% / 40% MFU; bold is a margin under 2%.) Two things fall out and neither was visible in
 the single-cell analysis. First, the fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk: at
@@ -153,8 +153,8 @@ like a boundary, but 8192 was simply the smallest grid point that was tried. Bis
 length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **4091**
 tokens at the model's implied efficiency (**3788** at the measured 56.6% and at 40%), and act_factor
 does not move it at all (activations are memory, not time). So S_best=8192 is not a knife edge -- it
-is twice the crossover, where the CP advantage is already **10.62%** (**8.48% / 6.42%** at
-measured/pessimistic efficiency). At seq 4096 the two are level (**0.03%** at the implied efficiency),
+is twice the crossover, where the CP advantage is already **10.6%** (**8.48% / 6.42%** at
+measured/pessimistic efficiency). At seq 4096 the two are level (**0.0%** at the implied efficiency),
 which is what a crossover looks like. The K/V correction pushed the crossover down from 4819 and made
 CP look better everywhere above it, so the honest wording is "CP pays from ~4k tokens, and 8192 is the
 first conventional length above that".
@@ -163,16 +163,16 @@ first conventional length above that".
 config at 94% of capacity looks as good as one at 65%. Requiring a mere 10% of HBM to stay free --
 room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
 **one** cell in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **75.3 of
-80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **42.5 GB** for **429.71 vs 412.12 ms**. That
-is 4.27% slower, and after the K/V correction the replacement is also the config that wins at N=16 for
+80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **42.5 GB** for **420.310 vs 412.12 ms**. That
+is 4.3% slower, and after the K/V correction the replacement is also the config that wins at N=16 for
 seq 16384, so the headroom requirement does not cost a real recommendation -- it removes an artifact. Every other cell
 is unchanged at 10% and even at 20% headroom. The model's default stays a hard fit (headroom 0.0),
 because that is what the published numbers assume; `mem_headroom` is an hw knob and this is the
 sensitivity it produces.
 
-**N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 66.86 ms (best
-dp>1 row: the same config with zero=3, also 66.86 ms -> the two policies tie exactly). At
-N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 55.54 ms, because pp=4 finally makes
+**N=16 and N=32.** At N=16 the winner is (tp=1 pp=4 cp=1 dp=4 zero=2) at 67.9 ms (best
+dp>1 row: the same config with zero=3, also 67.9 ms -> the two policies tie exactly). At
+N=32 dp returns: (tp=1 pp=4 cp=1 dp=8 zero=2 or 3) at 54.6 ms, because pp=4 finally makes
 the per-rank state small enough that a dp=8 ring is affordable.
 
 **What this does NOT say.** TP comm is priced from the same bytes-only ring formulas (per-step
@@ -189,7 +189,7 @@ are, so CP goes from optional to mandatory somewhere in between. All of these ar
 not measured -- gpu-sim-54m is the study that pins them down and must report the path, the
 cp_grad_mode and the act_factor alongside every threshold. At 70B on 32
 GPUs the answer is still decided by MEMORY: only 6 of 161 configs fit at seq 32768, and the
-best of them is (tp=8, pp=4, cp=1, dp=1, zero=0) at 1.88 s/step and 60.6 GB (a pipeline over
+best of them is (tp=8, pp=4, cp=1, dp=1, zero=0) at 1.97 s/step and 56.600 GB (a pipeline over
 tp=8, not a dp-sharded optimizer -- with 70B the optimizer state per rank dominates before
 replication does). 70B on 8-16 GPUs is infeasible outright.
 
@@ -312,7 +312,7 @@ params+grads, fp32 master, fp32 Adam m,v):
 | --- | --- | --- |
 | llama3-8b | see gpu-sim-6r5 (model under revision) |
 | qwen2.5-32b | MISS by 2.62 GB (min 82.62 at tp=8) | FIT (1,4,1,4,z2) 200.09 ms, 64.97 GB |
-| llama2-34b | MISS by 8.84 GB | FIT (1,4,1,4,z2) 202.11 ms, 60.6 GB |
+| llama2-34b | MISS by 8.84 GB | FIT (1,4,1,4,z2) 202.11 ms, 56.600 GB |
 | llama3-70b | MISS by 98.1 GB | MISS by 9.19 GB (min 89.19 at tp=8,pp=2) |
 
 The 8B row reproduces the audited answer exactly (the sweep asserts it). The boundary is
@@ -502,7 +502,7 @@ config  step_ms  coll  coll_MB  p2p  p2p_MB  comm_sim_ms  params  local
 DP4        16.1    75     43.0    0     0.0         0.57  5242880  5242880
 TP4         9.7    33    134.2    0     0.0         0.81  5242880  5242880
 PP2        13.5    37     22.0    8    16.8         0.35  5242880  2621440
-PP4         3.9     1      0.0    8    16.8         0.03  5242880  1967104
+PP4         3.9     1      0.0    8    16.8         0.0  5242880  1967104
 ```
 
 Read `local` before `step_ms`: DP and TP keep the whole model on every rank, PP
@@ -559,7 +559,7 @@ config     world  tp pp dp  step_ms  coll_msgs  coll_MB  p2p_msgs  p2p_MB  comm_
 DP             4   1  1  4     16.1         75     43.0         0     0.0         0.57
 TP             4   4  1  1      9.7         33    134.2         0     0.0         0.81
 PP2            4   1  2  2      7.5         37     22.0         8    16.8         0.35
-PP4            4   1  4  1      4.1          1      0.0         8    16.8         0.03
+PP4            4   1  4  1      4.1          1      0.0         8    16.8         0.0
 ```
 
 Measured on the same box and model (5.2M parameters, 5 steps, 2 discarded,
@@ -584,7 +584,7 @@ so no stage ever actually blocks on another and there is no fill/drain idle
 to measure. Per-rank means after the backward fix are within ~10% (stage 0:
 11.5/13.5 ms, stage 1: 12.4/12.7 ms); the spread is residual compute
 imbalance, not pipeline idle. The modelled p2p cost (predicted_s, p2p-link
-regime) totals 0.35/0.03 ms against milliseconds of compute -- even modelled,
+regime) totals 0.35/0.0 ms against milliseconds of compute -- even modelled,
 there is no meaningful bubble at this model size. A wall-clock bubble would
 need a transport that actually blocks, which is the data-correct-collectives
 bead, not this one.
@@ -619,7 +619,7 @@ printed 20.6/25.1/32.2 ms and drew conclusions from their ORDER; that was noise.
 columns tell the story instead, and they now hold at dp=4 AND dp=8 (dp=8 was previously
 unmeasurable -- see below).
 
-P = 21.5 MB of parameter bytes (fp32, `param_count()` excludes pos/LN), and with the byte
+P = 20.9 MB of parameter bytes (fp32, `param_count()` excludes pos/LN), and with the byte
 conventions settled EVERY total is dp-independent, as it must be:
 
   * all-reduce total = P at every dp (37 per-parameter all-reduces summing to one model);
@@ -676,7 +676,7 @@ carried before gpu-sim-6r5 -- one layer down each time:
    an out-of-bounds fill (below);
 2. the harness's own ZeRO param gather sent the FULL parameter and received dp copies instead of
    sending the shard and receiving the parameter, so it moved dp x the bytes a real gather moves
-   (all-gather read 86.06 MB/step at dp=4 and 172.11 at dp=8 before; 21.51 at both after);
+   (all-gather read 86.06 MB/step at dp=4 and 172.11 at dp=8 before; 20.91 at both after);
 3. the fallback recorded a reduce-scatter's SHARD (P/dp) where the topology path records the
    total, giving RS 5.38 MB at dp=4 and 2.69 at dp=8 -- a spurious dp-dependence that looked like
    an accounting mystery for a day;
@@ -693,8 +693,8 @@ along; what scaled was the fallback path's byte column. `fg_collective_out()` co
 
     bytes = payload * (1 + floor(log2 nrank) / 2)     /* "model fan-in/fan-out cost" */
 
-before recording the event -- exactly x1.5 at n=2 (21.51 -> 32.27) and x2.0 at n=4
-(21.51 -> 43.03). It then handed that inflated count to `fg_nccl_out_fill()`, i.e. wrote
+before recording the event -- exactly x1.5 at n=2 (20.91 -> 32.27) and x2.0 at n=4
+(20.91 -> 43.03). It then handed that inflated count to `fg_nccl_out_fill()`, i.e. wrote
 1.5x the recv buffer at n=2, 2x at n=4 and 2.5x at n=8: **an out-of-bounds heap write**,
 reproduced as glibc `malloc(): corrupted top size`. So the byte column now carries the
 payload (matching the topology path, which always did) and `tests/test_fallback_fill_bounds.py`
@@ -796,15 +796,15 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 
 | claim | status | evidence | guard |
 |---|---|---|---|
-| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 90.54 ms; margin 10.09% at the implied MFU, 6.10% at 40% | tests/test_fragility_map.py |
+| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 90.54 ms; margin 10.030% at the implied MFU, 6.10% at 40% | tests/test_fragility_map.py |
 | Same config at seq 16384 / 32768 | **TIE** | margin only 0.10% / 1.65% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
-| N=16 winner (tp=1 pp=4 cp=1 dp=4 z2), seq 8192 | **TIE** | 0.09% at 40% MFU; flips below MFU 0.4 | tests/test_mfu_sensitivity.py |
+| N=16 winner (tp=1 pp=4 cp=1 dp=4 z2), seq 8192 | **TIE** | 0.08% at 40% MFU; flips below MFU 0.4 | tests/test_mfu_sensitivity.py |
 | N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (1,2,1,8) at 40%, margins 1.21% / 0.67% | tests/test_fragility_map.py |
-| N=16 at seq 32768 (hard-fit memory) | **TIE** | 4.27% margin and 94% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 42.5 GB (+1.9%) | tests/test_memory_headroom.py |
+| N=16 at seq 32768 (hard-fit memory) | **TIE** | 4.3% margin and 94% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 42.5 GB (+1.9%) | tests/test_memory_headroom.py |
 | N=32 winner (tp=1 pp=4 cp=1 dp=8 z2) | **VERDICT** | margin 2.53% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
 | Absolute step durations | **BOUNDED** | model implies 0.765 MFU; a real GPU reached 0.566, so absolutes carry 1.25-1.65x | tests/test_mfu_sensitivity.py |
-| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / 21.5 (N=16,32) | tests/test_act_factor_knob.py |
-| S_best = 8192 | **VALIDATED** | CP crossover is seq 4091 (3788 measured), so 8192 is the first conventional length above it, +10.62% | tests/test_cp_crossover.py |
+| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / 20.9 (N=16,32) | tests/test_act_factor_knob.py |
+| S_best = 8192 | **VALIDATED** | CP crossover is seq 4091 (3788 measured), so 8192 is the first conventional length above it, +10.6% | tests/test_cp_crossover.py |
 | Alpha piece-charging granularity | **BOUNDED** | +6.0% at P=8, winner unmoved | docs section 0 (alpha piece charging) |
 | Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |

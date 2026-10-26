@@ -289,13 +289,13 @@ def score(tp, pp, cp, dp, zero, hw, m):
         if spec is not None:
             group = [((0 * tp + t) * cp + 0) * dp + 0 for t in range(tp)]
             for sc in tp_scales:
-                msg_count = int(d * seq_per_cp * sc)
+                msg_count = int(d * seq_per_cp * sc * batch)
                 pred = link_model.predict(spec, "ring_allreduce", msg_count, "bfloat16", ranks=group, pieces_per_phase=1)
                 tp_comm += m["n_layers"] * pred["duration_s"]
                 tp_kind = pred["bottleneck"]["kind"]
         else:
             for sc in tp_scales:
-                msg = d * seq_per_cp * sc * dtype_bytes
+                msg = d * seq_per_cp * sc * batch * dtype_bytes
                 pred = nccl_cost.predict("allreduce", tp, int(msg), fabric=fabric)
                 tp_comm += m["n_layers"] * pred.total_s
 
@@ -304,7 +304,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     cp_kind = None
     if cp > 1:
         kv_dim = (m.get("n_kv_heads", m["n_heads"])) * m["head_dim"]
-        msg_bytes = seq_per_cp * min(kv_dim, d) * dtype_bytes
+        msg_bytes = seq_per_cp * min(kv_dim, d) * batch * dtype_bytes
         if spec is not None:
             group = [((0 * tp + 0) * cp + c) * dp + 0 for c in range(cp)]
             total = 0.0
@@ -484,12 +484,12 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
     # TP: 4 all-reduces per layer, n_layers layers
     if tp > 1:
         for sc in tp_scales:
-            out["tp_allreduce"] += m["n_layers"] * int(d * seq_per_cp * sc * dtype_bytes)
+            out["tp_allreduce"] += m["n_layers"] * int(d * seq_per_cp * sc * batch * dtype_bytes)
 
     # CP exchange: 2 directions * (cp-1) hops * msg_bytes per layer * n_layers
     if cp > 1:
         kv_dim = (m.get("n_kv_heads", m["n_heads"])) * m["head_dim"]
-        msg_bytes = seq_per_cp * min(kv_dim, d) * dtype_bytes
+        msg_bytes = seq_per_cp * min(kv_dim, d) * batch * dtype_bytes
         out["cp_exchange"] += m["n_layers"] * 2 * (cp - 1) * msg_bytes
 
     # CP grad sync
