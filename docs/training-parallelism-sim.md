@@ -8,6 +8,12 @@ project's premise is the opposite of that, and the draft was wrong.
 
 Read this first if you are picking the work up from disk rather than from a briefing.
 
+**BATCH=1 per rank for every published number.** All published step times, margins, and winners
+assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is
+charged per STEP (once per step regardless of batch size) while tp/cp/pp payload comm scales with
+BATCH (per token), so `batch=1` flatters DP-avoiding configs: a real batch>1 run shifts the
+optimum toward more DP. Re-derive with `batch>1` before quoting any number for a production run.
+
 **LINK RATE CORRECTED: the spec's 900 GB/s is AGGREGATE BIDIRECTIONAL, and every collective here
 runs one way (gpu-sim-smt8).** `specs/h100_rack.json` says it in its own provenance string ("NVLink
 4: 900 GB/s per GPU (aggregate bidirectional)"), but `link_model` used it as a per-direction rate --
@@ -105,18 +111,18 @@ at N=32 at 0.765, 0.566 AND 0.40 MFU -- three different efficiencies, one rankin
 NVLink run can validate those.
 
 **The margins are what matter, not just the argmin.** Measured against the best config with a
-DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **10.030%**
+DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **6.45%**
 at the model's implied 76.5%, **8.06%** at the measured 56.6% and **6.10%** at a pessimistic 40%; at
-N=32 it is **4.2% / 3.550% / 3.00%**. Both answers hold across the whole plausible efficiency range --
+N=32 it is **5.32% / 4.18% / 3.12%**. Both answers hold across the whole plausible efficiency range --
 N=8 now comfortably, N=32 by a thinner but real margin. (These numbers are produced by the claims
 register below, not typed by hand; when the CP payload was corrected to the GQA K/V width the N=8
 margin roughly doubled while N=32 lost its old 4-14% cushion.)
 
-**N=16 is not a verdict at any efficiency.** The leading answer wins by **0.0%** at the model's
-implied 76.5%, **0.100%** at the measured 56.6% and **0.08%** at 40% -- and the winner itself changes
+**N=16 is not a verdict at any efficiency.** The leading answer wins by **5.09%** at the model's
+implied 76.5%, **3.55%** at the measured 56.6% and **2.23%** at 40% -- and the winner itself changes
 with efficiency, (tp=2 pp=2 cp=4 dp=1) giving way to (tp=2 pp=1 cp=8 dp=1) as MFU drops. So at 16 GPUs
 on one node this model does not distinguish the candidates, and any config quoted for N=16 must carry
-that caveat. At N=8 the same question is decided by 6.10-10.030%, which is why "TP+CP is right at 8" is
+that caveat. At N=8 the same question is decided by 6.10-6.45%, which is why "TP+CP is right at 8" is
 a much stronger claim than anything this document can say about 16.
 
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
@@ -148,12 +154,12 @@ separated from the alternative. Second, N=16 at 16384 is a genuine three-way tan
 from (tp=1 pp=4) to (tp=1 pp=2) as efficiency drops, and the margin never exceeds 2.30%. N=32 is the
 only cell family that is decisive everywhere (4-14%).
 
-**Where does CP actually start paying? At seq ~4091, not 8192.** "CP pays at 8192" has always read
+**Where does CP actually start paying? At seq ~5833, not 8192.** "CP pays at 8192" has always read
 like a boundary, but 8192 was simply the smallest grid point that was tried. Bisecting the sequence
-length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **4091**
+length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **5833**
 tokens at the model's implied efficiency (**3788** at the measured 56.6% and at 40%), and act_factor
 does not move it at all (activations are memory, not time). So S_best=8192 is not a knife edge -- it
-is twice the crossover, where the CP advantage is already **10.6%** (**8.48% / 6.42%** at
+is twice the crossover, where the CP advantage is already **6.45%** (**8.48% / 6.42%** at
 measured/pessimistic efficiency). At seq 4096 the two are level (**0.0%** at the implied efficiency),
 which is what a crossover looks like. The K/V correction pushed the crossover down from 4819 and made
 CP look better everywhere above it, so the honest wording is "CP pays from ~4k tokens, and 8192 is the
@@ -796,15 +802,15 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 
 | claim | status | evidence | guard |
 |---|---|---|---|
-| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 90.54 ms; margin 10.030% at the implied MFU, 6.10% at 40% | tests/test_fragility_map.py |
+| N=8 winner (tp=4 pp=1 cp=2 dp=1 z0), seq 8192 | **VERDICT** | 90.54 ms; margin 6.45% at the implied MFU, 6.10% at 40% | tests/test_fragility_map.py |
 | Same config at seq 16384 / 32768 | **TIE** | margin only 0.10% / 1.65% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
-| N=16 winner (tp=1 pp=4 cp=1 dp=4 z2), seq 8192 | **TIE** | 0.08% at 40% MFU; flips below MFU 0.4 | tests/test_mfu_sensitivity.py |
-| N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (1,2,1,8) at 40%, margins 1.21% / 0.67% | tests/test_fragility_map.py |
-| N=16 at seq 32768 (hard-fit memory) | **TIE** | 4.3% margin and 94% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 42.5 GB (+1.9%) | tests/test_memory_headroom.py |
-| N=32 winner (tp=1 pp=4 cp=1 dp=8 z2) | **VERDICT** | margin 2.53% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
+| N=16 winner (tp=1 pp=16 cp=1 dp=1 z0), seq 8192 | **VERDICT** | 2.23% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
+| N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (1,2,1,8) at 40%, margins 0.54% / 0.46% | tests/test_fragility_map.py |
+| N=16 at seq 32768 (hard-fit memory) | **TIE** | 1.97% margin and 94% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 42.5 GB (+1.9%) | tests/test_memory_headroom.py |
+| N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.10% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
 | Absolute step durations | **BOUNDED** | model implies 0.765 MFU; a real GPU reached 0.566, so absolutes carry 1.25-1.65x | tests/test_mfu_sensitivity.py |
-| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / 20.9 (N=16,32) | tests/test_act_factor_knob.py |
-| S_best = 8192 | **VALIDATED** | CP crossover is seq 4091 (3788 measured), so 8192 is the first conventional length above it, +10.6% | tests/test_cp_crossover.py |
+| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) | tests/test_act_factor_knob.py |
+| S_best = 8192 | **VALIDATED** | CP crossover is seq 5833 (3788 measured), so 8192 is the first conventional length above it, +6.45% | tests/test_cp_crossover.py |
 | Alpha piece-charging granularity | **BOUNDED** | +6.0% at P=8, winner unmoved | docs section 0 (alpha piece charging) |
 | Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |

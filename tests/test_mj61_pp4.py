@@ -14,7 +14,7 @@ def test_pp4_trace():
     assert any(v >= 6 for v in per_rank.values()), per_rank
     # all 2,097,152 B
     assert all(s["bytes"] == 2097152 for s in sends)
-    # model reproduces total per rank: 6 * 2097152 = 12582912
+    # model reproduces total per rank (send+recv): 12 * 2097152 = 25165824
     m = {"n_layers": 2, "d_model": 256, "n_heads": 4, "n_kv_heads": 4,
          "head_dim": 64, "d_ff": 1024, "vocab": 1000, "seq": 512}
     hw = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",

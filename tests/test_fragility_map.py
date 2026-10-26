@@ -41,7 +41,7 @@ def _cell(n, seq, mfu):
     return (b.tp, b.pp, b.cp, b.dp), 100 * (alt.step_sum / b.step_sum - 1)
 
 
-@pytest.mark.parametrize("n,seq", [(8, 8192), (32, 8192), (32, 16384), (32, 32768)])
+@pytest.mark.parametrize("n,seq", [(8, 8192), (32, 8192)])
 def test_decisive_cells_stay_decisive(n, seq):
     """These cells are comfortably separated at every plausible efficiency."""
     for mfu in (IMPLIED_MFU, 0.566, 0.40):
@@ -72,3 +72,11 @@ def test_n16_seq16384_is_the_three_way_tangle():
     assert len({v[0] for v in shapes.values()}) >= 2, "the tangle collapsed to one answer"
     assert max(v[1] for v in shapes.values()) < 2.5, "the tangle gained a clear winner"
     assert all(v[0][2] >= 1 for v in shapes.values()), "CP should stay in the picture at N=16/16384"
+
+
+@pytest.mark.parametrize("n,seq", [(32, 16384), (32, 32768)])
+def test_n32_long_sequences_are_no_longer_decisive(n, seq):
+    """After the batch/PP fix these cells lost their decisive margin (margin < 2%)."""
+    for mfu in (IMPLIED_MFU, 0.566, 0.40):
+        _, margin = _cell(n, seq, mfu)
+        assert margin < 2.5, f"N={n} seq={seq} MFU={mfu}: margin {margin:.2f}% is still decisive"
