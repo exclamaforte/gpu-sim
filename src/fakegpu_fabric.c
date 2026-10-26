@@ -323,8 +323,22 @@ int fg_fab_barrier(fg_fab_t *f) {
     return FG_FAB_OK;
 }
 
+/* Liveness contract (gpu-sim-mp7r): each branch covers one failure mode, and the
+   reading is conservative -- ambiguous evidence means alive, never dead, so a
+   slow peer is tolerated and only a proven-dead peer errors.  attached==0 means
+   the peer has not arrived yet (slow start) or has cleanly detached; either
+   way the waiter blocks until the timeout rather than failing fast, so a
+   genuine attach failure surfaces as ETIMEDOUT, not EPEERDEAD.  pid<=0, a
+   failed kill (peer reaped), and a missing /proc entry all mean there is no
+   process left to wait on (EPEERDEAD).  State Z is the SIGKILLed-but-unreaped
+   zombie: kill(2) succeeds on zombies, so without the stat check the survivor
+   would wait forever instead of surfacing the death.  EPERM (foreign uid) and
+   an unparseable stat line report alive: the process exists as far as we can
+   tell.  A peer killed mid-run therefore still reads dead within the timeout;
+   see the slowstart/neverstart fabric tests. */
 static int peer_alive(fg_fab_t *f, int peer) {
     if (peer < 0 || peer >= f->nranks) return 0;
+    if (atomic_load_explicit(&f->slots[peer].attached, memory_order_acquire) == 0) return 1;
     pid_t pid = (pid_t)f->slots[peer].pid;
     if (pid <= 0) return 0;
     if (kill(pid, 0) != 0) return (errno == EPERM);

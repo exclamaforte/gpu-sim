@@ -144,7 +144,7 @@ guard-build-inputs:
 .PHONY: test-fabric
 test-fabric: $(FABRIC_TEST_BIN)
 	@echo "--- fabric multi-process tests ---"
-	@for t in basic barrier8 killpeer stale size; do \
+	@for t in basic barrier8 killpeer stale size reg slowstart neverstart; do \
 	  ./$(FABRIC_TEST_BIN) $$t || exit 1; \
 	done
 	@echo "fabric tests PASS"
