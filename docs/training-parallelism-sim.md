@@ -17,15 +17,26 @@ to the next rank"). Measured on the harness, the all_gather form moves 1.99x the
 for. Because 1.99x exceeds the 1.56x radius of the TP+CP answer, the two conventions do not share a
 recommendation:
 
-| CP convention | N=8 answer | step | margin |
-|---|---|---|---|
-| ring `all_to_all` (what the model prices) | (tp=4 pp=1 cp=2 dp=1) | 90.54 ms | 6.45% |
-| PyTorch default `all_gather` | (tp=1 pp=8 cp=1 dp=1) | 96.38 ms | 3.92% |
+Only ONE recommended config survives both conventions, and it is not the headline one:
+
+| cell | ring `all_to_all` | PyTorch default `all_gather` |
+|---|---|---|
+| N=8, seq 8192 | (tp=4 pp=1 cp=2 dp=1) 90.54 ms, 6.45% | (tp=1 pp=8 cp=1 dp=1) 96.38 ms, 3.92% |
+| N=8, seq 32768 | (tp=4 pp=1 cp=2 dp=1) 492.06 ms, 1.65% | (tp=4 pp=1 cp=2 dp=1) 506.03 ms, 3.41% |
+| N=16, seq 8192 | (tp=1 pp=16 cp=1 dp=1) 51.95 ms, 5.09% | (tp=1 pp=16 cp=1 dp=1) 51.95 ms, 5.09% |
+| N=32, seq 8192 | (tp=1 pp=16 cp=2 dp=1) 31.06 ms, 5.32% | (tp=1 pp=16 cp=1 dp=2 z2) 32.71 ms, 3.66% |
+| N=32, seq 32768 | (tp=1 pp=8 cp=4 dp=1) 173.07 ms, 1.15% | (tp=1 pp=8 cp=1 dp=4 z2) 179.59 ms, 1.26% |
+
+The N=16 answer is convention-INDEPENDENT because it uses no context parallelism at all (cp=1), which is
+the strongest single reason to trust it. At 8 GPUs the config flips at seq 8192 but survives at 32768: the
+ring answer's own margin there is thin (1.65%), and under all_gather the same config wins by more (3.41%)
+because its rival is priced differently. At 32 GPUs the config changes at both lengths.
 
 So "TP+CP is right at 8 GPUs" holds only if CP rotates K/V with all_to_all. Under the default stack the
-best choice is a pure pipeline with no tensor and no context parallelism at all -- 6.4% slower in
-absolute terms, because the model is not the only thing that changed: the cheaper config became
-expensive, not the other way round.
+best choice at seq 8192 is a pure pipeline with no tensor and no context parallelism at all -- 6.4%
+slower in absolute terms, because the model is not the only thing that changed: the cheaper config became
+expensive, not the other way round. Any config quoted from this document must therefore carry both its
+batch assumption (below) and its CP convention.
 
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
 CP cost scaled by k in [0, 1.5566] and PP cost by any k (never flips). CP -- the least-verified

@@ -1,27 +1,125 @@
 {
   "generated_by": "scripts/check_docs_model_numbers.py",
   "cp_convention_answers": {
-    "ring_all_to_all": {
-      "config": [
-        4,
-        1,
-        2,
-        1,
-        0
-      ],
-      "step_ms": 90.54,
-      "margin_pct": 6.45
+    "N8_seq8192": {
+      "ring_all_to_all": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 90.54,
+        "margin_pct": 6.45
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 96.38,
+        "margin_pct": 3.92
+      }
     },
-    "pytorch_default_all_gather": {
-      "config": [
-        1,
-        8,
-        1,
-        1,
-        0
-      ],
-      "step_ms": 96.38,
-      "margin_pct": 3.92
+    "N8_seq32768": {
+      "ring_all_to_all": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 492.06,
+        "margin_pct": 1.65
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 506.03,
+        "margin_pct": 3.41
+      }
+    },
+    "N16_seq8192": {
+      "ring_all_to_all": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "margin_pct": 5.09
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ],
+        "step_ms": 51.95,
+        "margin_pct": 5.09
+      }
+    },
+    "N32_seq8192": {
+      "ring_all_to_all": {
+        "config": [
+          1,
+          16,
+          2,
+          1,
+          0
+        ],
+        "step_ms": 31.06,
+        "margin_pct": 5.32
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          16,
+          1,
+          2,
+          2
+        ],
+        "step_ms": 32.71,
+        "margin_pct": 3.66
+      }
+    },
+    "N32_seq32768": {
+      "ring_all_to_all": {
+        "config": [
+          1,
+          8,
+          4,
+          1,
+          0
+        ],
+        "step_ms": 173.07,
+        "margin_pct": 1.15
+      },
+      "pytorch_default_all_gather": {
+        "config": [
+          1,
+          8,
+          1,
+          4,
+          2
+        ],
+        "step_ms": 179.59,
+        "margin_pct": 1.26
+      }
     }
   },
   "cp_convention_gap": {

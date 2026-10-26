@@ -85,19 +85,24 @@ def compute_facts():
     # _context_parallel/_attention.py line 77) which uses _AllGatherRotater: "Allgather the kv and return
     # only the required kv" -- the full-sequence K/V gather this harness also does. _AllToAllRotater
     # ("Use all_to_all to send the kv to the next rank") is the opt-in ring form the model prices.
-    def _n8_answer(k):
+    def _answer(n, seq, k):
         import importlib
         _ps = importlib.import_module("epic_cluster.parallelism_search")
-        h = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": os.path.join(ROOT, "specs/h100_rack.json"),
+        spec = "specs/h100_rack.json" if n <= 16 else "specs/h100_rack_4node.json"
+        h = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": os.path.join(ROOT, spec),
              "term_scale": {"cp": k}}
-        _, feas = _ps.search(8, h, dict(_ps.MODEL, seq=8192))
+        _, feas = _ps.search(n, h, dict(_ps.MODEL, seq=seq))
         best = feas[0]
         alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != (best.tp, best.pp, best.cp, best.dp))
         return {"config": [best.tp, best.pp, best.cp, best.dp, best.zero],
                 "step_ms": round(best.step_sum * 1e3, 2),
                 "margin_pct": round(100 * (alt.step_sum / best.step_sum - 1), 2)}
 
-    _conv = {"ring_all_to_all": _n8_answer(1.0), "pytorch_default_all_gather": _n8_answer(1.9922)}
+    _CELLS = [(8, 8192), (8, 32768), (16, 8192), (32, 8192), (32, 32768)]
+    _conv = {}
+    for _n, _seq in _CELLS:
+        _conv[f"N{_n}_seq{_seq}"] = {"ring_all_to_all": _answer(_n, _seq, 1.0),
+                                     "pytorch_default_all_gather": _answer(_n, _seq, 1.9922)}
 
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
              "cp_convention_answers": _conv,
@@ -599,9 +604,10 @@ def allowed_decimals(facts):
     for v in facts["s_best"].values():
         if v is not None:
             add(v)
-    for _row in facts["cp_convention_answers"].values():
-        add(_row["step_ms"])
-        add(_row["margin_pct"])
+    for _cell in facts["cp_convention_answers"].values():
+        for _row in _cell.values():
+            add(_row["step_ms"])
+            add(_row["margin_pct"])
     for v in facts["cp_convention_gap"].values():
         add(v)
         add(round(v, 2))
