@@ -833,7 +833,8 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | DP byte counts / payload | **VALIDATED** | reconciles against harness traces to 2.5%, residual = param_count() pos/LN exclusion | tests/test_reconcile_bytes.py |
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
 | CP byte accounting | **UNVALIDATED** | harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; different algorithms, not reconciled by construction | tests/test_cp_payload_structure.py |
-| CP cost robustness radius (N=8) | **STRUCTURAL** | winner unchanged for CP cost scaled by k in [0, 1.5566]; never flips below; PP never flips | tests/test_sensitivity_radius.py |
 | Absolute communication durations | **UNVALIDATED** | rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU | no test possible here |
+| CP term is decisive for the N=8 verdict | **BOUNDED** | winner unchanged for CP error <= 1.56x, flips above | scripts/sensitivity_radius.py |
+| PP bubble is decisive for the N=16 verdict | **BOUNDED** | winner unchanged for bubble error <= 1.90x; bubble is UNMEASURED | scripts/sensitivity_radius.py |
 
 <!-- CLAIMS-REGISTER:END -->

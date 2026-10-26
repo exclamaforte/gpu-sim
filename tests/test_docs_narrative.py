@@ -48,13 +48,49 @@ def test_n32_margin_sentence_carries_current_margins():
         assert val in para, f"N=32 margin sentence does not carry {tag} margin {val}"
 
 
-def test_n16_sentence_says_it_is_a_tie_with_current_numbers():
-    grid = FACTS["fragility_map"]["grid"]["N16_seq8192"]
-    para = _para("N=16 is not a verdict at any efficiency")
+def test_n16_sentence_carries_the_current_verdict_not_the_old_tie():
+    """The N=16 claim INVERTED when the PP payload was priced correctly.
+
+    gp·-8pwl: before the fix the prose said "N=16 is not a verdict at any efficiency" and the winner moved
+    with MFU. After it, the winner is stable across all three efficiencies and the register calls it a
+    VERDICT. The old test asserted the old property, which is why it kept passing while the prose and the
+    facts disagreed. Now the test recomputes BOTH facts it depends on and requires the prose to state
+    them: the winner must be identical at all three efficiencies, and only then may the prose claim
+    stability.
+    """
+    grid = FACTS["fragility_map"]["grid"]
+    cells = [grid[f"N16_seq{seq}"] for seq in (8192,)]
+    winners = {tuple(cell[tag]["config"]) for cell in cells for tag in ("implied", "measured", "typical")}
+    assert len(winners) == 1, f"N=16 winner is not stable across efficiency: {winners}"
+    para = _para("N=16 became a verdict")
     for tag in ("implied", "measured", "typical"):
-        val = f"{grid[tag]['margin_pct']:.2f}%"
-        assert val in para, f"N=16 paragraph does not carry {tag} margin {val}"
-    assert "tie" in para.lower() or "does not distinguish" in para.lower()
+        val = f"{grid['N16_seq8192'][tag]['margin_pct']:.2f}%"
+        assert val in para, f"N=16 paragraph does not carry the {tag} margin {val}"
+    assert "same config" in para.lower(), "the paragraph must say the winner does not move with efficiency"
+
+
+def test_prose_does_not_revive_the_old_n16_tie_claim():
+    """Negative control: the sentence this repo used to publish must be gone."""
+    assert "not a verdict at any efficiency" not in DOC
+
+
+def test_n8_decisiveness_is_stated_per_sequence_length():
+    """N=8 is decisive at 8192/32768 and a tie at 16384 -- the prose used to average that away."""
+    grid = FACTS["fragility_map"]["grid"]
+    tie = grid["N8_seq16384"]["typical"]["margin_pct"]
+    assert tie < 2.0, f"N=8 seq16384 is no longer a tie ({tie}%), rewrite this test"
+    para = _para("Decisiveness depends on sequence length")
+    assert f"{tie:.2f}%" in para, f"the paragraph does not carry the seq-16384 tie margin {tie:.2f}%"
+
+
+def test_radius_sentence_carries_the_flip_factors():
+    """Both verdicts must publish how wrong their decisive term can be."""
+    rad = FACTS["sensitivity_radius"]
+    para = _para("How wrong would the decisive term have to be")
+    for cell, key in (("N8_seq8192", "flip_cp"), ("N16_seq8192", "flip_pp")):
+        k = rad[cell][key]
+        assert k is not None, f"{cell} {key} is None: the term is no longer decisive, rewrite this test"
+        assert f"{k:.2f}x" in para, f"the radius paragraph does not carry {cell} {key} = {k:.2f}x"
 
 
 def test_cp_crossover_sentence_carries_the_bisected_crossover():

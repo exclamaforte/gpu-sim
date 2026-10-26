@@ -242,6 +242,13 @@ def score(tp, pp, cp, dp, zero, hw, m):
     if pp > 1:
         bubble = compute * (pp - 1) / (micro_batches + pp - 1)
 
+    # gpu-sim-radius: multiplicative error weights for the two terms the harness cannot check
+    # (CP by construction, PP bubble by absence of a measurement). term_scale={} is a no-op, so every
+    # published number is unchanged; it exists so "how wrong can this term be before the answer
+    # changes" is answered by the production model rather than by a reimplementation of it.
+    _ts = hw.get("term_scale") or {}
+    bubble *= _ts.get("pp", 1.0)
+
     # TP comm
     # TP payload convention (gpu-sim-6wd): a NAMED list of the 4 per-layer all-reduces,
     # as multiples of d elements per rank per token. Which list is right is the last
@@ -319,6 +326,8 @@ def score(tp, pp, cp, dp, zero, hw, m):
             msg = seq_per_cp * min(kv_dim, d) * dtype_bytes
             pred = nccl_cost.ring_exchange(msg, hops=cp - 1, fabric=fabric)
             cp_comm = m["n_layers"] * 2 * pred.total_s
+
+    cp_comm *= _ts.get("cp", 1.0)
 
     # CP gradient sync (gpu-sim-olg): 8jg added dist.all_reduce(prm.grad, SUM, cp_group)
     # then div_(cp) per parameter. Crude: full all-reduce of P/(tp*pp) params over cp
@@ -437,6 +446,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
             _probe = nccl_cost.predict("allreduce", dp, 1, fabric=fabric)
             _per_lat = _probe.total_s
         dp_comm = dp_comm + (dp_param_tensors - 1) * _per_lat
+    cp_grad *= _ts.get("cp", 1.0)
+    pp_comm *= _ts.get("pp", 1.0)
+
     comms = tp_comm + cp_comm + cp_grad + pp_comm + dp_comm
     step_compute = compute + bubble
     step_sum = step_compute + comms

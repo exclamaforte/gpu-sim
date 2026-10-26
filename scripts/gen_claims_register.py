@@ -71,7 +71,6 @@ def render(facts):
     cross = facts["cp_crossover"]
     head = facts["headroom_sensitivity"]["grid"]["N16_seq32768"]
     apc = facts["alpha_piece_charging"]
-    sr = facts["sensitivity_radius"]
 
     rows = [
         _row(f"N=8 winner {_cfg(facts['rows']['N8']['winner']['config'])}, seq 8192",
@@ -131,14 +130,21 @@ def render(facts):
              "harness moves 109.8 MB/step (AG+RS) where the model prices 21.0 MB of ring p2p; "
              "different algorithms, not reconciled by construction",
              "tests/test_cp_payload_structure.py"),
-        _row("CP cost robustness radius (N=8)", "STRUCTURAL",
-             f"winner unchanged for CP cost scaled by k in [0, {sr['N8_seq8192']['flip_cp']}]; never flips below; "
-             "PP never flips",
-             "tests/test_sensitivity_radius.py"),
         _row("Absolute communication durations", "UNVALIDATED",
              "rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU",
              "no test possible here"),
     ]
+    _rad = facts["sensitivity_radius"]
+    _cp = _rad["N8_seq8192"]["flip_cp"]
+    _pp = _rad["N16_seq8192"]["flip_pp"]
+    if _cp is not None:
+        rows.append(_row("CP term is decisive for the N=8 verdict", "BOUNDED",
+                     f"winner unchanged for CP error <= {_cp:.2f}x, flips above",
+                     "scripts/sensitivity_radius.py"))
+    if _pp is not None:
+        rows.append(_row("PP bubble is decisive for the N=16 verdict", "BOUNDED",
+                     f"winner unchanged for bubble error <= {_pp:.2f}x; bubble is UNMEASURED",
+                     "scripts/sensitivity_radius.py"))
     out = [BEGIN, "", "| claim | status | evidence | guard |", "|---|---|---|---|"]
     out += rows
     out += ["", END]
