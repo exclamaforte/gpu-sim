@@ -47,3 +47,25 @@ it is the one where the knob earns its place.
 I got this wrong twice before measuring: first I said recompute would make 405B feasible at 80 GPUs
 (it is optimizer-bound, 70.9 GB floor), then that it would relax pp=100 at 800 (also optimizer-bound). The
 proxy grid is what settled it.
+
+## The model's 14 B/param optimizer assumption is probably too high (measure_opt_state_bytes.py)
+
+The 405B feasibility boundary at 80 GPUs rests entirely on the model charging **14 B/param** of optimizer
+state (fp32 master 4 + fp32 Adam m/v 8 + bf16 grads 2). Measured on this GPU with a real AdamW step:
+
+  params 5e8, bf16 storage, AdamW defaults, one fwd/bwd/step
+  peak allocated 5.00 GB  ->  **10.0 B/param**   (model assumes 14.0)
+
+PyTorch's bf16 AdamW keeps the bf16 parameter AS the master copy; there is no separate fp32 master tensor
+unless an AMP-style optimizer adds one. So the 4 B/param the model charges for master weights may not exist
+in a real bf16 training loop.
+
+Implication, which is uncomfortable because it would undo part of what §0 currently says: at 10 B/param the
+405B state floor at 80 GPUs is 50.6 GB instead of 70.9 GB, and with ~19 GB of activations at pp=10 that is
+~70 GB against an 80 GB card -- i.e. 405B@80 may be FEASIBLE, and "infeasible" is an artifact of the model's
+optimizer accounting rather than a property of the hardware.
+
+Caveats, so this is not over-read: one tensor, no sharding, defaults only, and peak allocation is not the same
+as resident footprint (fragmentation, allocator caching). The first version of this script measured
+22.0 B/param because its forward ran in fp32 and materialised a full fp32 copy of the parameter -- a real
+bf16 model does not pay that. Both numbers are kept in the commit history for that reason.
