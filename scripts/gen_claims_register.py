@@ -62,7 +62,7 @@ def render(facts):
     m8_32k, _ = cell(8, 32768)
     m16_8k_typ, _ = cell(16, 8192, "typical")
     m16_16k, _ = cell(16, 16384)
-    m16_16k_typ, _ = cell(16, 16384, "typical")
+    m16_16k_typ, cfg16_16k_typ = cell(16, 16384, "typical")
     m16_32k, _ = cell(16, 32768, "measured")
     m32_worst = min(frag[f"N32_seq{s}"][t]["margin_pct"]
                     for s in (8192, 16384, 32768) for t in ("implied", "measured", "typical"))
@@ -87,20 +87,22 @@ def render(facts):
              f"{m16_8k_typ:.2f}% at 40% MFU; flips below MFU {facts['mfu_margin_sweep']['N16_crossover_mfu']}",
              "tests/test_mfu_sensitivity.py"),
         _row("N=16 at seq 16384", "TIE",
-             f"three-way tangle: winner moves to (1,2,1,8) at 40%, margins "
+             f"three-way tangle: winner moves to {_cfg(cfg16_16k_typ)} at 40%, margins "
              f"{m16_16k:.2f}% / {m16_16k_typ:.2f}%",
              "tests/test_fragility_map.py"),
         _row("N=16 at seq 32768 (hard-fit memory)", "TIE",
-             f"{m16_32k:.2f}% margin and 94% of HBM; 10% headroom swaps it to "
+             f"{m16_32k:.2f}% margin and {head['hr0.00']['mem_gb'] / 80 * 100:.0f}% of HBM; "
+             f"10% headroom swaps it to "
              f"({', '.join(str(x) for x in head['hr0.10']['config'])}) at "
-             f"{head['hr0.10']['mem_gb']} GB (+1.9%)",
+             f"{head['hr0.10']['mem_gb']} GB "
+             f"(+{head['hr0.10']['step_ms'] / head['hr0.00']['step_ms'] - 1:.1%})",
              "tests/test_memory_headroom.py"),
         _row(f"N=32 winner {_cfg(facts['rows']['N32']['winner']['config'])}, seq 8192",
              _status([m32_worst]),
              f"margin {m32_worst:.2f}% at worst over every seq and efficiency tested",
              "tests/test_fragility_map.py"),
         _row("Absolute step durations", "BOUNDED",
-             f"model implies {mfu['implied_0.765']['implied_mfu']:.3f} MFU; a real GPU reached "
+             f"model implies {mfu['implied_0.786']['implied_mfu']:.3f} MFU; a real GPU reached "
              f"{mfu['measured_5090']['mfu']:.3f}, so absolutes carry "
              f"{mfu['ratio_at_measured']}-{mfu['ratio_at_typical']}x",
              "tests/test_mfu_sensitivity.py"),

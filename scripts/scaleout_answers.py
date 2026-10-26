@@ -9,7 +9,7 @@ Every caveat this project has established still applies and is printed with the 
     configs -- real training at scale uses far larger batches and will shift these answers toward DP);
   * the CP term is quoted under BOTH conventions, because PyTorch's default rotate method (all_gather)
     moves 1.99x what the model's ring pricing assumes;
-  * absolute durations are bounded to 1.25-1.65x by measurement, not predictions.
+  * absolute durations are bounded to 1.28-1.69x by measurement, not predictions.
 
 Usage: python3 scripts/scaleout_answers.py [--json] [--nodes 10,100,1000]
 """

@@ -187,7 +187,7 @@ def test_cp_crossover_sentence_carries_the_bisected_crossover():
 
 def test_headroom_sentence_names_the_config_the_model_now_picks():
     cell = FACTS["headroom_sensitivity"]["grid"]["N16_seq32768"]["hr0.10"]
-    para = _para("And one cell recommends a config nobody would deploy")
+    para = _para("Two cells recommend a config nobody would deploy")
     tp, pp, cp, dp, zero = cell["config"]
     expected = f"(tp={tp} pp={pp} cp={cp} dp={dp} z{zero})"
     assert expected in para, f"headroom paragraph should name {expected}"

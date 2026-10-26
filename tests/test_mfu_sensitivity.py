@@ -1,7 +1,7 @@
 """The recommendation must not depend on the MFU assumption nobody could validate (gpu-sim-wv2).
 
 The cost model divides 6*P*T FLOPs by dense peak with NO efficiency factor, which for the
-published answer works out to an implied 76.5% MFU (test_implied_mfu below). Real bf16 GEMMs
+published answer works out to an implied 78.6% MFU (test_implied_mfu below). Real bf16 GEMMs
 do not reach that: a measured 52-57% on the shapes this model prices (scripts/measure_mfu.py,
 real RTX 5090, 8192x4096x4096 and the MLP pair), and published large-model training runs sit
 at 35-50%.
@@ -19,7 +19,7 @@ import pytest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from epic_cluster import parallelism_search as ps
 
-MODEL_IMPLIED_MFU = 0.765          # 6*P*T / (N*peak) / compute_term, see test below
+MODEL_IMPLIED_MFU = 0.786          # 6*P*T / (N*peak) / compute_term, see test below
 PEAK = 989e12
 
 
@@ -28,7 +28,7 @@ def _hw(mfu, n):
     return {"mem_gb": 80.0, "spec_path": spec, "peak_flops": PEAK * mfu / MODEL_IMPLIED_MFU}
 
 
-def test_implied_mfu_is_seventy_six_and_a_half_percent():
+def test_implied_mfu_is_seventy_eight_point_six_percent():
     """Pin the implicit efficiency: if the compute model changes, this number moves."""
     _, feasible = ps.search(8, _hw(MODEL_IMPLIED_MFU, 8), ps.MODEL)
     best = feasible[0]
@@ -60,7 +60,7 @@ def test_absolute_durations_move_but_by_a_bounded_factor():
     _, base = ps.search(8, _hw(MODEL_IMPLIED_MFU, 8), ps.MODEL)
     _, slow = ps.search(8, _hw(0.40, 8), ps.MODEL)
     ratio = slow[0].step_sum / base[0].step_sum
-    assert 1.4 < ratio < 1.9, f"degrading MFU 0.765->0.40 scaled the step by {ratio:.2f}x"
+    assert 1.4 < ratio < 1.9, f"degrading MFU 0.786->0.40 scaled the step by {ratio:.2f}x"
 
 
 @pytest.mark.parametrize("n", [8, 32])
@@ -82,5 +82,5 @@ def test_n16_answer_is_now_stable():
         b = feas[0]
         return (b.tp, b.pp, b.cp, b.dp, b.zero)
 
-    shapes = {mfu: shape_at(mfu) for mfu in (0.765, 0.566, 0.40, 0.30)}
+    shapes = {mfu: shape_at(mfu) for mfu in (0.786, 0.566, 0.40, 0.30)}
     assert len(set(shapes.values())) == 1, f"N=16 is no longer stable: {shapes}"

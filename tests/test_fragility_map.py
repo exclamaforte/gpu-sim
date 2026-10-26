@@ -5,13 +5,13 @@ number that decides whether a recommendation is a verdict or a tie. Doing this p
 N x sequence length x efficiency turned up two things the single-cell analysis could not show:
 
   1. Fragility is a LONG-SEQUENCE phenomenon, not an N=16 quirk. At seq 8192 only (N=16, 40% MFU)
-     is under 2%. From 16384 the N=8 answer itself wins by ~1%, and at 32768 it is 0.91% at 40%.
-     The CONFIG does not change there -- (tp=4 cp=2 dp=1) wins at 8192, 16384 and 32768 -- so the
-     recommendation stands, it is just not decisively separated.
-  2. N=16 at 16384 is a three-way tangle: the winner moves from (tp=1 pp=4) to (tp=1 pp=2) as
-     efficiency drops and the margin never exceeds 2.33%.
+     is under 2%. From 16384 the N=8 answer itself wins by ~0.2%, and at 32768 it is 0.81% at 40%.
+     The CONFIG changes there -- (tp=4 cp=2 dp=1) wins at 8192 and 32768 but (tp=2 cp=4 dp=1)
+     takes 16384 -- so the recommendation stands, it is just not decisively separated.
+  2. N=16 at 16384 is a three-way tangle: the winner moves from (tp=1 pp=16) to (tp=2 pp=2 cp=4) as
+     efficiency drops and the margin never exceeds 0.64%.
 
-N=32 is the only family that is decisive in every cell (4-14%).
+N=32 is solid at 8192 but develops ties at longer sequences (down to 0.02% at 32768/typical).
 
 These tests pin the cells so a model change cannot silently turn a decisive answer into a tie,
 or quietly repair a tie that the docs warn about.
@@ -25,7 +25,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from epic_cluster import parallelism_search as ps
 
 PEAK = 989e12
-IMPLIED_MFU = 0.765
+IMPLIED_MFU = 0.786
 TIGHT = 2.0
 
 
@@ -64,16 +64,16 @@ def test_n32_long_sequence_is_no_longer_decisive(n, seq):
     assert shape[1] >= 8, f"N={n} seq={seq}: expected a deep-PP winner, got {shape}"
 
 
-@pytest.mark.parametrize("n,seq", [(8, 32768), (8, 16384)])
-def test_long_sequence_n8_is_known_tight_but_never_switches(n, seq):
-    """The N=8 answer is ~1% at long sequences -- documented as a tie, not as a verdict."""
+@pytest.mark.parametrize("n,seq,shape", [(8, 32768, (4, 1, 2, 1)), (8, 16384, (2, 1, 4, 1))])
+def test_long_sequence_n8_is_known_tight_but_never_switches(n, seq, shape):
+    """The N=8 answer is a tie at long sequences -- documented as a tie, not as a verdict."""
     shapes = set()
     margins = []
     for mfu in (IMPLIED_MFU, 0.566, 0.40):
-        shape, margin = _cell(n, seq, mfu)
-        shapes.add(shape)
+        s, margin = _cell(n, seq, mfu)
+        shapes.add(s)
         margins.append(margin)
-    assert shapes == {(4, 1, 2, 1)}, f"N={n} seq={seq}: the answer stopped being the same shape"
+    assert shapes == {shape}, f"N={n} seq={seq}: the answer stopped being {shape}: {shapes}"
     assert max(margins) < TIGHT, f"N={n} seq={seq}: margin grew to {max(margins):.2f}%"
     assert min(margins) > 0.0, f"N={n} seq={seq}: margin collapsed to {min(margins):.2f}%"
 

@@ -103,8 +103,11 @@ def test_payload_convention_rs_full_p():
     hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "dp_dtype": "bf16"}
     c_ar = ps.score(1, 1, 1, 4, 1, hw, m)   # zero=1: AR(grads) + AG(params)
     c_z3 = ps.score(1, 1, 1, 4, 3, hw, m)   # zero=3: RS(grads) + AG(params)
-    # RS component should be ~half of AR (ring factor (n-1)/n vs (n-1)/n*2)
-    # AR = RS + AG where RS==AG (same payload), so AR = 2*RS, RS = AR/2
-    rs_approx = c_z3.dp_comm / 2  # RS is half of (RS+AG) when RS==AG
-    ar_approx = c_ar.dp_comm / 2  # AR = RS+AG, RS component = AR/2
-    assert abs(rs_approx - ar_approx) / max(rs_approx, 1e-12) < 0.5, (rs_approx, ar_approx)
+    # With full-P payloads AR(grads) = 2X and RS(grads) = AG(params) = X, so the two
+    # DP totals stand in a structural 3X:2X ratio (1.5). The old assertion compared
+    # half-totals with a < 0.5 bound, which passed on float dust (0.4999) and went red
+    # the moment the ratio landed exactly on the boundary -- the bound was testing
+    # rounding, not the convention. Pin the ratio instead: under the broken sharded-P
+    # convention the RS term would be dp x cheaper and the ratio would not be 1.5.
+    ratio = c_ar.dp_comm / c_z3.dp_comm
+    assert abs(ratio - 1.5) < 0.02, (c_ar.dp_comm, c_z3.dp_comm)
