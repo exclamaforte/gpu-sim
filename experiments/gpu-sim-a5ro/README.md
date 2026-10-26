@@ -9,12 +9,16 @@ totals:
 
 | model | current formula | two-embedding, GQA-aware | published | error today | error with fix |
 |---|---|---|---|---|---|
-| llama3-8b | 8.30 | 8.03 | 8.03 B | +3.5% | -0.00% |
-| llama3-70b | 82.0 | 70.55 | 70.6 B | +16.2% | -0.07% |
-| llama3-405b | 467.2 | 405.85 | ~405 B | +15.4% | +0.21% |
-| qwen2.5-32b | 34.4 | 32.76 | 32.5 B | +5.8% | +0.81% |
+| llama3-8b | 8.31 | 8.03 | 8.03 B | +3.5% | +0.00% |
+| llama3-70b | 78.90 | 70.55 | 70.6 B | +11.8% | -0.10% |
+| llama3-405b | 467.17 | 405.85 | ~405 B | +15.4% | +0.20% |
+| qwen2.5-32b | 34.67 | 32.76 | 32.5 B | +6.7% | +0.80% |
 
-The two-embedding convention is the one that reproduces published totals within 0.81% across the family.
+CORRECTION: the first version of this table carried a hand-computed "today" column (82.0 for 70B, +16.2%). The
+actual output of `total_params()` is 78.90 B, so the 70B error is +11.8%, not +16.2%. Every number above is now
+the model's own output, re-derivable with `param_counts.json`.
+
+The two-embedding convention is the one that reproduces published totals within 0.80% across the family.
 One embedding is 6.5% low at 8B, because Llama-3/Qwen2.5 do NOT tie their input and output embeddings.
 
     per_layer = 2*d*d + 2*d*kv_dim + 3*d*ff     # q,o full width; k,v at kv_dim = n_kv_heads*head_dim
