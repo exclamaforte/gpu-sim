@@ -12,6 +12,7 @@ for 445.57 vs 437.17 ms. That is 1.9% slower and is the config that wins at N=16
 sequence lengths, so the requirement costs no real recommendation -- it removes an artifact.
 Nothing else changes even at 20% headroom.
 """
+import json
 import pathlib
 import sys
 

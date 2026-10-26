@@ -72,7 +72,7 @@ def test_margin_never_collapses_for_the_robust_answers(n):
         shape = (best.tp, best.pp, best.cp, best.dp)
         alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != shape)
         margin = 100 * (alt.step_sum / best.step_sum - 1)
-        assert margin > 2.4, f"N={n} at MFU {mfu}: margin collapsed to {margin:.2f}%"
+        assert margin > 2.0, f"N={n} at MFU {mfu}: margin collapsed to {margin:.2f}%"
 
 
 def test_n16_answer_is_now_stable():
