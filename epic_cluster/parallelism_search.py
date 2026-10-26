@@ -89,6 +89,22 @@ def divisors_product(N):
     return out
 
 
+def _recompute_alpha(seq):
+    """Checkpointing yield as a function of sequence length (gpu-sim-4qcx).
+
+    Retained fraction under full recompute is (1 - alpha); alpha is the fraction
+    of the stored-activation footprint that checkpointing sheds. GQA-block rig
+    points (measure_ckpt_gqa.py): (2048, 0.176), (4096, 0.420), (8192, 0.594).
+    """
+    if seq >= 8192:
+        return 0.67
+    if seq <= 2048:
+        return 0.176
+    if seq <= 4096:
+        return 0.176 + (0.420 - 0.176) * (seq - 2048) / (4096 - 2048)
+    return 0.420 + (0.594 - 0.420) * (seq - 4096) / (8192 - 4096)
+
+
 def score(tp, pp, cp, dp, zero, hw, m):
     N = tp * pp * cp * dp
     P = total_params(m)
@@ -205,22 +221,25 @@ def score(tp, pp, cp, dp, zero, hw, m):
     act_factor = 2.3
     # gpu-sim-54m: allow hw to override the activation factor
     act_factor = hw.get("act_factor", act_factor)
-    # recompute scales the STORED activation term (gpu-sim-hz3u): retained fraction
-    # (1 - ALPHA*recompute) with ALPHA = 0.67, from MEASUREMENT not citation -- full
-    # per-block checkpointing on the lab 5090 retains 0.33 at seq 8192 (alpha 0.67) and
-    # 0.49 at seq 4096 same width (experiments/gpu-sim-recompute/; the 0.63 wide-model row
-    # is weights-contaminated, see that README). ALPHA is constant at the seq-8192 operating
-    # point of every grid this bead touches; it OVERSTATES the saving at shorter sequence
-    # (model keeps 0.33 where the rig keeps 0.49 at seq 4096 -- optimistic direction, so do
-    # not quote short-seq recompute fits without refitting). A seq-dependent fit on two
-    # clean points was considered and rejected as overfit. NOTE on the value: the 0.55
-    # fallback under-predicts retention at seq 8192 (model keeps 0.45, rig keeps 0.33) and
-    # provably misses this bead's falsifiable target -- with 0.55 the 70B/batch-32/80-GPU
-    # cell picks pp=2 at 2.25% margin instead of the measured (1,1,1,80,3) at ~10.6%.
-    # 0.67 is the top of the measured 0.5..0.67 range and the seq-8192 value, and it hits it.
-    # Applies to act_bytes only -- logits, CP ring buffers and the (flash-disabled)
-    # attention workspace are not checkpointed activations.
-    act_retained = 1.0 - 0.67 * recompute
+    # recompute scales the STORED activation term (gpu-sim-hz3u, seq-dependent since
+    # gpu-sim-4qcx): retained fraction (1 - ALPHA(seq)*recompute). Below seq 8192 ALPHA
+    # is piecewise-linear through three clean monotone GQA-block points measured on the
+    # lab 5090 (experiments/gpu-sim-recompute/measure_ckpt_gqa.py, commit 03ad3e4):
+    # seq 2048 -> retained 0.824 (alpha 0.176); 4096 -> 0.580 (0.420); 8192 -> 0.406 (0.594).
+    # Flat 0.176 below 2048 (keeping more at tiny seq is the conservative direction).
+    # At and above 8192 ALPHA is the calibrated MHA operating value 0.67 -- every
+    # published grid runs seq 8192, so the default path is bit-identical and no published
+    # number moves. The joint at 8192 is a measurement-family boundary (GQA short-seq
+    # vs MHA operating point), not physics; the old constant OVERSTATED the saving below
+    # 8192 (model kept 0.33 where the rig keeps 0.82 at seq 2048 -- optimistic, so short-seq
+    # recompute fits quoted without a sequence are the thing this bead retires). Applies to
+    # act_bytes only -- logits, CP ring buffers and the (flash-disabled) attention
+    # workspace are not checkpointed activations.
+    # NOTE (kept from hz3u): the 0.55 fallback was rejected because it under-predicts
+    # retention at seq 8192 (model keeps 0.45, rig keeps 0.33) and provably misses the
+    # falsifiable target -- with 0.55 the 70B/batch-32/80-GPU cell picks pp=2 at 2.25%
+    # margin instead of the measured (1,1,1,80,3) at ~10.6%.
+    act_retained = 1.0 - _recompute_alpha(seq) * recompute
     act_bytes = layers_per_stage * seq_per_cp * dtype_bytes * per_token_width * act_factor * act_retained
 
     # attention workspace (scores): [heads/tp, seq/cp, seq] if not flash

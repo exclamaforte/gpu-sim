@@ -67,21 +67,21 @@ single activation. Recomputation cannot close a gap that size; only more GPUs (7
 800) or lower-precision optimizer states, which this model does not support, can. At 800 GPUs the binding
 term does become activations, which is why the answer there wants pp=100 (2.58%) and why recomputation is
 the right next modelling step -- for that regime, not for 80 GPUs. The knob now exists in the model:
-hw['recompute'] is a float 0.0..1.0, default 0.0, keeping (1 - 0.67*recompute) of the stored activations and
+hw['recompute'] is a float 0.0..1.0, default 0.0, keeping (1 - alpha(seq)*recompute) of the stored activations and
 charging 1.25x compute when fully on -- both numbers measured on this host's 5090
-(experiments/gpu-sim-recompute/), not cited. The 0.67 is the seq-8192 value on an MHA block; a GQA re-measure
-(commit 03ad3e4) gives 0.594 there and 0.176 at seq 2048, so short-seq recompute fits need their own
-calibration (gpu-sim-4qcx). Where the knob matters is where activations bind: 70B at 80 GPUs with batch=32
-goes from (tp=1 pp=4 cp=1 dp=20 z3) at 2.515 s (0.53%, 56.3 GB) without recompute to (tp=1 pp=1 cp=1 dp=80 z3)
-at 2.639 s (14.35%, 69.2 GB) with it -- no pipeline at all, pure FSDP across all 80 GPUs, and far better
-separated than the tie it replaces; the runner-up got worse, not better, which is why the margin widens. The
-knob changes no published number: it defaults off. For 405B the 80-GPU verdict is unchanged with full
-recompute, and the 800/8000 winners do not move: still pp=100 at 800 at 0.138 s ring / 0.180 s default, and
-(tp=8 pp=40 cp=25) at 8000 at 0.063 s / 0.092 s. Those rows price one optimizer style: fp32 master plus fp32
-Adam, 16 B/param all-in with the bf16 weights and grads. Plain bf16 AdamW keeps no separate master copy and
-measures 10 B/param on this host (experiments/gpu-sim-recompute/); under that style the 80-GPU boundary moves,
-which is a separate bead (gpu-sim-scup), not a correction to these rows. Full tables, both conventions and
-batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
+(experiments/gpu-sim-recompute/), not cited. alpha is 0.67 at seq 8192 and above (the MHA-block operating value
+every published grid runs at, so the default path is unchanged); below 8192 it follows the GQA re-measure
+(commit 03ad3e4): 0.176 at seq 2048, 0.420 at seq 4096, 0.594 at seq 8192, linear between, flat below 2048. Where
+the knob matters is where activations bind: 70B at 80 GPUs with batch=32 goes from (tp=1 pp=4 cp=1 dp=20 z3)
+at 2.515 s (0.53%, 56.3 GB) without recompute to (tp=1 pp=1 cp=1 dp=80 z3) at 2.639 s (14.35%, 69.2 GB) with
+full recompute -- no pipeline at all, pure FSDP across all 80 GPUs, above the 2.474 s the chargeless proxy
+reported by the 1.25x charge, and far better separated than the tie it replaces. For 405B the knob changes
+nothing at 80 GPUs (still infeasible with full recompute); at 800 the winners do not move (still pp=100 at
+0.138 s ring / 0.180 s default) and at 8000 the same winners hold at 0.063 s / 0.092 s. Those rows price one
+optimizer style: fp32 master plus fp32 Adam, 16 B/param all-in with the bf16 weights and grads. Plain
+bf16 AdamW keeps no separate master copy and measures 10 B/param on this host (experiments/gpu-sim-recompute/);
+under that style the 80-GPU boundary moves, which belongs to gpu-sim-scup. The knob changes no published
+number: it defaults off, and for 405B the 80-GPU verdict is unchanged. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is
