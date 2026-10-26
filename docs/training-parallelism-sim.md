@@ -8,6 +8,25 @@ project's premise is the opposite of that, and the draft was wrong.
 
 Read this first if you are picking the work up from disk rather than from a briefing.
 
+**The headline answer depends on a convention, and the default one changes it.** PyTorch's context
+parallel defaults to `rotate_method=ALL_GATHER` (`torch/distributed/tensor/experimental/
+_context_parallel/_attention.py`, the `_RotateMethod.ALL_GATHER` default), whose rotater is documented as
+"Allgather the kv and return only the required kv" -- that is, it gathers the FULL sequence K/V on every
+rank. The model prices the opt-in ring form instead (`_AllToAllRotater`, "Use all_to_all to send the kv
+to the next rank"). Measured on the harness, the all_gather form moves 1.99x the bytes the model charges
+for. Because 1.99x exceeds the 1.56x radius of the TP+CP answer, the two conventions do not share a
+recommendation:
+
+| CP convention | N=8 answer | step | margin |
+|---|---|---|---|
+| ring `all_to_all` (what the model prices) | (tp=4 pp=1 cp=2 dp=1) | 90.54 ms | 6.45% |
+| PyTorch default `all_gather` | (tp=1 pp=8 cp=1 dp=1) | 96.38 ms | 3.92% |
+
+So "TP+CP is right at 8 GPUs" holds only if CP rotates K/V with all_to_all. Under the default stack the
+best choice is a pure pipeline with no tensor and no context parallelism at all -- 6.4% slower in
+absolute terms, because the model is not the only thing that changed: the cheaper config became
+expensive, not the other way round.
+
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
 CP cost scaled by k in [0, 1.5566] and PP cost by any k (never flips). CP -- the least-verified
 term -- tolerates a 1.56x overestimate before the answer becomes tp=1 pp=8; it never flips on an

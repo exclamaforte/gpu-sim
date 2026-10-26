@@ -97,6 +97,21 @@ def test_radius_sentence_reflects_gqa_availability():
     assert "counterpart" in para, "the paragraph must say the decisive parameter has a counterpart"
 
 
+def test_headline_states_both_conventions_and_their_answers():
+    """gpu-sim-9oz8: the N=8 ANSWER depends on the CP rotate method, so the doc must show both."""
+    conv = FACTS["cp_convention_answers"]
+    ring, ag = conv["ring_all_to_all"], conv["pytorch_default_all_gather"]
+    assert ring["config"] != ag["config"], "the two conventions no longer give different answers: rewrite"
+    # the table sits after a blank line, so span the whole block up to the radius paragraph
+    start = DOC.index("The headline answer depends on a convention")
+    para = DOC[start:DOC.index("**Robustness radius", start)]
+    for row in (ring, ag):
+        assert f"{row['step_ms']:.2f} ms" in para, f"the table is missing {row['step_ms']} ms"
+        assert f"{row['margin_pct']:.2f}%" in para, f"the table is missing {row['margin_pct']}%"
+    assert "all_to_all" in para and "all_gather" in para, "both conventions must be named"
+    assert str(tuple(ag["config"][:4])) not in para  # sanity: configs are written as tp=/pp= text
+
+
 def test_convention_gap_sentence_carries_the_measured_ratio_and_the_consequence():
     """gpu-sim-cpgqa: the CP convention gap is measured, and it exceeds the radius."""
     gaps = list(FACTS["cp_convention_gap"].values())

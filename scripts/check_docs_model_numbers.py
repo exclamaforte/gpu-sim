@@ -80,7 +80,27 @@ def compute_facts():
                "seq256_kv256": _gap(256, 256, "cp2s256.jsonl"),
                "seq512_kv1024": _gap(512, 1024, "cp2gqa8.jsonl")}
 
+    # gpu-sim-9oz8: which CP convention production uses changes the N=8 ANSWER, not just its margin.
+    # PyTorch CP defaults to rotate_method=ALL_GATHER (torch/distributed/tensor/experimental/
+    # _context_parallel/_attention.py line 77) which uses _AllGatherRotater: "Allgather the kv and return
+    # only the required kv" -- the full-sequence K/V gather this harness also does. _AllToAllRotater
+    # ("Use all_to_all to send the kv to the next rank") is the opt-in ring form the model prices.
+    def _n8_answer(k):
+        import importlib
+        _ps = importlib.import_module("epic_cluster.parallelism_search")
+        h = {"peak_flops": 989e12, "mem_gb": 80.0, "spec_path": os.path.join(ROOT, "specs/h100_rack.json"),
+             "term_scale": {"cp": k}}
+        _, feas = _ps.search(8, h, dict(_ps.MODEL, seq=8192))
+        best = feas[0]
+        alt = next(c for c in feas if (c.tp, c.pp, c.cp, c.dp) != (best.tp, best.pp, best.cp, best.dp))
+        return {"config": [best.tp, best.pp, best.cp, best.dp, best.zero],
+                "step_ms": round(best.step_sum * 1e3, 2),
+                "margin_pct": round(100 * (alt.step_sum / best.step_sum - 1), 2)}
+
+    _conv = {"ring_all_to_all": _n8_answer(1.0), "pytorch_default_all_gather": _n8_answer(1.9922)}
+
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
+             "cp_convention_answers": _conv,
              "cp_convention_gap": _cp_gap,
              "sensitivity_radius": _json.loads(_rad.stdout),
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
@@ -579,6 +599,9 @@ def allowed_decimals(facts):
     for v in facts["s_best"].values():
         if v is not None:
             add(v)
+    for _row in facts["cp_convention_answers"].values():
+        add(_row["step_ms"])
+        add(_row["margin_pct"])
     for v in facts["cp_convention_gap"].values():
         add(v)
         add(round(v, 2))
