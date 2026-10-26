@@ -105,16 +105,19 @@ at N=32 at 0.765, 0.566 AND 0.40 MFU -- three different efficiencies, one rankin
 NVLink run can validate those.
 
 **The margins are what matter, not just the argmin.** Measured against the best config with a
-DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **6.42%**
-at the model's implied 76.5%, **5.27%** at the measured 56.6% and **4.01%** at a pessimistic 40%; at
-N=32 it is **5.30% / 4.89% / 4.15%**. Both answers hold across the whole plausible efficiency range.
+DIFFERENT shape (a zero=2/zero=3 tie is the same answer, not a rival): at N=8 the margin is **10.09%**
+at the model's implied 76.5%, **8.06%** at the measured 56.6% and **6.10%** at a pessimistic 40%; at
+N=32 it is **4.19% / 3.63% / 3.00%**. Both answers hold across the whole plausible efficiency range --
+N=8 now comfortably, N=32 by a thinner but real margin. (These numbers are produced by the claims
+register below, not typed by hand; when the CP payload was corrected to the GQA K/V width the N=8
+margin roughly doubled while N=32 lost its old 4-14% cushion.)
 
-**N=16 is the exception and it needs to be quoted with its margin.** The "no tensor parallelism"
-answer wins by **4.90%** at 76.5% but only **0.80%** at 40%, and the crossover is at **MFU 0.310**:
-below that, (tp=4 pp=2 cp=2 dp=1) takes over and TP returns. So the N=16 recommendation is a
-near-tie, not a verdict -- it is the right call if H100 training runs at 35-50% MFU, and it is within
-noise of the alternative at the low end. At N=8 the same question is decided by 4.01-6.42%, which is
-why "TP is not worth it at 16 GPUs" is a much weaker statement than "TP+CP is right at 8".
+**N=16 is not a verdict at any efficiency.** The leading answer wins by **0.02%** at the model's
+implied 76.5%, **0.11%** at the measured 56.6% and **0.09%** at 40% -- and the winner itself changes
+with efficiency, (tp=2 pp=2 cp=4 dp=1) giving way to (tp=2 pp=1 cp=8 dp=1) as MFU drops. So at 16 GPUs
+on one node this model does not distinguish the candidates, and any config quoted for N=16 must carry
+that caveat. At N=8 the same question is decided by 6.10-10.09%, which is why "TP+CP is right at 8" is
+a much stronger claim than anything this document can say about 16.
 
 **The other fitted constant, checked the same way.** `act_factor` (2.3) came from a single-shape
 instrumented measurement and the model itself calls it "unvalidated for exact fit", so it deserved
@@ -145,24 +148,24 @@ separated from the alternative. Second, N=16 at 16384 is a genuine three-way tan
 from (tp=1 pp=4) to (tp=1 pp=2) as efficiency drops, and the margin never exceeds 2.30%. N=32 is the
 only cell family that is decisive everywhere (4-14%).
 
-**Where does CP actually start paying? At seq ~4819, not 8192.** "CP pays at 8192" has always read
+**Where does CP actually start paying? At seq ~4091, not 8192.** "CP pays at 8192" has always read
 like a boundary, but 8192 was simply the smallest grid point that was tried. Bisecting the sequence
-length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **4819**
-tokens at the model's implied efficiency (**4735** at the measured 56.6% and at 40%), and act_factor
+length at which the best cp>1 config overtakes the best cp=1 config puts the crossover at **4091**
+tokens at the model's implied efficiency (**3788** at the measured 56.6% and at 40%), and act_factor
 does not move it at all (activations are memory, not time). So S_best=8192 is not a knife edge -- it
-is the smallest standard sequence length above a crossover that is 40% lower, where the CP advantage
-is already **6.42%** (**5.27% / 4.01%** at measured/pessimistic efficiency) and at seq 4096 CP still
-loses by 3.63%. The published claim survives with room; what changes is that it can now be stated as
-"CP pays from ~4.8k tokens, and 8192 is the first conventional length above that" instead of implying
-the boundary is at 8192.
+is twice the crossover, where the CP advantage is already **10.62%** (**8.48% / 6.42%** at
+measured/pessimistic efficiency). At seq 4096 the two are level (**0.03%** at the implied efficiency),
+which is what a crossover looks like. The K/V correction pushed the crossover down from 4819 and made
+CP look better everywhere above it, so the honest wording is "CP pays from ~4k tokens, and 8192 is the
+first conventional length above that".
 
 **And one cell recommends a config nobody would deploy.** The model treats HBM as a hard fit, so a
 config at 94% of capacity looks as good as one at 65%. Requiring a mere 10% of HBM to stay free --
 room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
 **one** cell in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **75.3 of
-80 GB** and is replaced by (tp=1 pp=4 cp=1 dp=4 z2) at **50.8 GB** for **429.71 vs 429.71 ms**. That is
-1.9% slower and it is the same config that wins at N=16 for the other sequence lengths, so the
-headroom requirement does not cost a real recommendation -- it removes an artifact. Every other cell
+80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **42.5 GB** for **429.71 vs 412.12 ms**. That
+is 4.27% slower, and after the K/V correction the replacement is also the config that wins at N=16 for
+seq 16384, so the headroom requirement does not cost a real recommendation -- it removes an artifact. Every other cell
 is unchanged at 10% and even at 20% headroom. The model's default stays a hard fit (headroom 0.0),
 because that is what the published numbers assume; `mem_headroom` is an hw knob and this is the
 sensitivity it produces.
