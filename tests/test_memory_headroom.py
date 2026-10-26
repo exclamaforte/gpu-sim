@@ -61,8 +61,8 @@ def test_the_roomy_answer_costs_little_and_fixes_the_anomaly():
     assert roomy_ms / tight_ms - 1 < 0.06, "the replacement should cost well under 6% (4.27% after the K/V fix)"
     # and it is not a new invention: the same config wins at N=16 for the shorter sequences
     # after the GQA K/V correction the roomy choice is (2,2,4,1), which is also what wins at 16384
-    shape, _, _ = _winner(16, 16384, 0.0)
-    assert True
+    # headroom changes the winner at N=16 seq32768 (the whole point of the test)
+    assert tight != roomy, "headroom did not change the N=16 seq32768 winner"
 
 
 @pytest.mark.parametrize("headroom", [0.0, 0.10, 0.20])

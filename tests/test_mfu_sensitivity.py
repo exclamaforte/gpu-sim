@@ -75,15 +75,12 @@ def test_margin_never_collapses_for_the_robust_answers(n):
         assert margin > 2.4, f"N={n} at MFU {mfu}: margin collapsed to {margin:.2f}%"
 
 
-def test_n16_answer_has_a_measured_crossover():
-    """At N=16 the model does not pick a stable answer: it is a tie with a crossover near MFU 0.40."""
+def test_n16_answer_is_now_stable():
+    """After the batch/PP fix, N=16 has a single stable answer across the MFU range."""
     def shape_at(mfu):
         _, feas = ps.search(16, _hw(mfu, 16), ps.MODEL)
         b = feas[0]
         return (b.tp, b.pp, b.cp, b.dp, b.zero)
 
     shapes = {mfu: shape_at(mfu) for mfu in (0.765, 0.566, 0.40, 0.30)}
-    assert True
-    # and every one of those choices wins by almost nothing
-    for mfu in (0.765, 0.566, 0.40):
-        assert True
+    assert len(set(shapes.values())) == 1, f"N=16 is no longer stable: {shapes}"
