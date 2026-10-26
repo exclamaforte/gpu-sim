@@ -1,0 +1,63 @@
+{
+  "llama3-8b": {
+    "layers": 32,
+    "d_model": 4096,
+    "kv_dim": 1024,
+    "per_layer": 218.1,
+    "one_embedding": 7.5,
+    "two_embeddings": 8.03,
+    "official_B": 8.03,
+    "err_one_pct": -6.54,
+    "err_two_pct": -0.0
+  },
+  "llama3-70b": {
+    "layers": 80,
+    "d_model": 8192,
+    "kv_dim": 1024,
+    "per_layer": 855.6,
+    "one_embedding": 69.5,
+    "two_embeddings": 70.55,
+    "official_B": 70.6,
+    "err_one_pct": -1.56,
+    "err_two_pct": -0.07
+  },
+  "llama3-405b": {
+    "layers": 126,
+    "d_model": 16384,
+    "kv_dim": 1024,
+    "per_layer": 3187.7,
+    "one_embedding": 403.75,
+    "two_embeddings": 405.85,
+    "official_B": 405.0,
+    "err_one_pct": -0.31,
+    "err_two_pct": 0.21
+  },
+  "qwen2.5-32b": {
+    "layers": 64,
+    "d_model": 5120,
+    "kv_dim": 1024,
+    "per_layer": 487.6,
+    "one_embedding": 31.98,
+    "two_embeddings": 32.76,
+    "official_B": 32.5,
+    "err_one_pct": -1.59,
+    "err_two_pct": 0.81
+  },
+  "llama2-34b": {
+    "layers": 60,
+    "d_model": 8192,
+    "kv_dim": 8192,
+    "per_layer": 809.5,
+    "one_embedding": 48.83,
+    "two_embeddings": 49.09,
+    "official_B": null,
+    "err_one_pct": null,
+    "err_two_pct": null,
+    "note": "no official 'Llama-2 34B' exists (Llama-2 shipped 7/13/70B). The sweep entry is a stand-in; do NOT fit the formula to it. Its per-layer arithmetic (MHA, ff=22016) gives 49.1e9 with two embeddings."
+  },
+  "_convention": {
+    "per_layer": "2*d^2 + 2*d*kv_dim + 3*d*ff  (q,o at full width; k,v at kv_dim = n_kv_heads*head_dim)",
+    "embeddings": "Llama-3 and Qwen2.5 have UNTIED input/output embeddings: count 2*V*d",
+    "verification": "two-embedding convention matches published totals within 0.81% for all four Llama-3/Qwen2.5 models; one-embedding is 6.5% low at 8B"
+  }
+}
