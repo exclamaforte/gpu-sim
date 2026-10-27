@@ -251,7 +251,7 @@ def dominant_op(spec_path, eff_name=None, eff_value=None):
         return "none"
     return max(comps, key=lambda c: c["seconds"])["op"]
 
-def main():
+def compute():
     ranked = []
     for p in PARAMS:
         name = p["name"]
@@ -303,6 +303,7 @@ def main():
                 "range": [lo, hi],
                 "base_verdict": [str(x) for x in base_verdict],
                 "current_margin": margin,
+                "margin_basis": ("at default" if flip is not None else "worst over range"),
                 "flip_value": flip,
                 "flip_up": flip_up,
                 "flip_down": flip_down,
@@ -327,7 +328,9 @@ def main():
     def _sort_key(r):
         f = r["fraction_one_sided"]
         if f is None:
-            return (1, 0.0, 0.0)
+            cm = r.get("current_margin")
+            cm = 0.0 if cm is None else cm
+            return (1, cm, 0.0)
         return (0, f, -(abs(r["elasticity"]) if r["elasticity"] is not None else 0))
     ranked.sort(key=_sort_key)
 
@@ -374,11 +377,17 @@ def main():
             "flip_value": flip,
             "fraction_of_range_consumed": (None if frac is None else round(frac, 6)),
             "fraction_one_sided": (None if frac_os is None else round(frac_os, 6)),
+            "measured_sides": [],
             "elasticity": None,
             "ranked": False,
         })
 
     result = {"ranked": ranked, "unranked": unranked}
+
+    return ranked, unranked, result
+
+def main():
+    ranked, unranked, result = compute()
 
     if "--json" in sys.argv:
         print(json.dumps(result, indent=2, sort_keys=True))

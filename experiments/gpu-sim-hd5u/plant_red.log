@@ -1,0 +1,16 @@
+........F                                                                [100%]
+=================================== FAILURES ===================================
+_____________________ TestErrorBudgetRanking.test_top_row ______________________
+
+self = <test_error_budget_ranking.TestErrorBudgetRanking testMethod=test_top_row>
+
+    def test_top_row(self):
+>       self.assertEqual(self.ranked[0]["parameter"], "microbatch_factor")
+E       AssertionError: 'term_scale_pp' != 'microbatch_factor'
+E       - term_scale_pp
+E       + microbatch_factor
+
+tests/test_error_budget_ranking.py:31: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_error_budget_ranking.py::TestErrorBudgetRanking::test_top_row
+1 failed, 8 passed in 244.42s (0:04:04)
