@@ -1,0 +1,31 @@
+.....F.                                                                  [100%]
+=================================== FAILURES ===================================
+____________________________ test_sweep_reproduces _____________________________
+
+    def test_sweep_reproduces():
+        out = {}
+        for n in (8, 16):
+            rows = []
+            prev = None
+            trans = 0
+            first = None
+            for factor in ms.FACTORS:
+                h = ms.hw(n, factor)
+                m = dict(ms.MODEL, seq=8192)
+                _, feas = __import__("epic_cluster.parallelism_search", fromlist=["x"]).search(n, h, m)
+                shape = [feas[0].tp, feas[0].pp, feas[0].cp, feas[0].dp, feas[0].zero] if feas else None
+                is_trans = prev is not None and shape != prev
+                if is_trans:
+                    trans += 1
+                    if first is None:
+                        first = factor
+                rows.append({"factor": factor, "verdict": shape})
+                prev = shape
+            assert trans == METRICS[f"N{n}"]["transitions"]
+>           assert first == METRICS[f"N{n}"]["first_transition_factor"]
+E           assert 4 == 2
+
+tests/test_microbatch_sweep.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_microbatch_sweep.py::test_sweep_reproduces - assert 4 == 2
+1 failed, 6 passed in 0.10s

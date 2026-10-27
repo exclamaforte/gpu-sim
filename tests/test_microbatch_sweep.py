@@ -52,3 +52,33 @@ def test_sweep_reproduces():
             prev = shape
         assert trans == METRICS[f"N{n}"]["transitions"]
         assert first == METRICS[f"N{n}"]["first_transition_factor"]
+
+
+def _parse_doc_table():
+    import re
+    doc = (ROOT / "docs" / "training-parallelism-sim.md").read_text()
+    # find the micro-batch table
+    start = doc.index("| micro-batches/stage |")
+    end = doc.index("\n\n", start)
+    block = doc[start:end]
+    rows = {}
+    for line in block.splitlines():
+        m = re.match(r"\|\s*(\d+)\s*\|\s*\(([^)]+)\)\s*\|\s*\(([^)]+)\)\s*\|", line)
+        if m:
+            factor = int(m.group(1))
+            n8 = [int(x) for x in m.group(2).split(",")]
+            n16 = [int(x) for x in m.group(3).split(",")]
+            rows[factor] = (n8, n16)
+    return rows
+
+
+def test_doc_table_matches_metrics():
+    rows = _parse_doc_table()
+    m = METRICS
+    for factor in (1, 2, 4, 8, 16, 32):
+        assert factor in rows, f"missing row for factor {factor}"
+        n8_doc, n16_doc = rows[factor]
+        n8_met = m["N8"]["rows"][[r["factor"] for r in m["N8"]["rows"]].index(factor)]["verdict"]
+        n16_met = m["N16"]["rows"][[r["factor"] for r in m["N16"]["rows"]].index(factor)]["verdict"]
+        assert n8_doc == n8_met, f"N8 mismatch at factor {factor}: doc {n8_doc} vs metrics {n8_met}"
+        assert n16_doc == n16_met, f"N16 mismatch at factor {factor}: doc {n16_doc} vs metrics {n16_met}"
