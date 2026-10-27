@@ -8,6 +8,8 @@ production model (epic_cluster.parallelism_search) via knobs; defaults are no-op
 Usage: python3 scripts/error_budget.py [--json]
 """
 from __future__ import annotations
+import contextlib
+import io
 import json, math, sys, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -24,9 +26,12 @@ MODELS = {
              "d_ff": 53248, "vocab": 128256, "seq": 8192},
 }
 
-def hw_base(n, opt_state="fp32_master"):
+RECOMPUTE_PARAMS = {"recompute_charge", "alpha_scale"}
+
+def hw_base(n, opt_state="fp32_master", recompute=0.0):
     h = {"peak_flops": PEAK, "mem_gb": 80.0, "spec_path": SPECS[n],
-         "opt_state": opt_state, "opt_peak": "default", "seq": 8192}
+         "opt_state": opt_state, "opt_peak": "default", "seq": 8192,
+         "recompute": recompute}
     return h
 
 def set_param(hw, name, value):
@@ -61,9 +66,11 @@ PARAMS = [
     {"name": "recompute", "default": 0.0, "lo": 0.0, "hi": 1.0,
      "provenance": "measured (1.24-1.27x, gpu-sim-recompute)"},
     {"name": "recompute_charge", "default": 0.25, "lo": 0.20, "hi": 0.35,
-     "provenance": "measured (1.24-1.27x, gpu-sim-recompute)"},
-    {"name": "alpha_scale", "default": 1.0, "lo": 0.5, "hi": 2.0,
-     "provenance": "measured on one RTX 5090 (0.176/0.420/0.594)"},
+     "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+     "recompute": 1.0},
+    {"name": "alpha_scale", "default": 1.0, "lo": 0.5, "hi": 1.684,
+     "provenance": "measured on one RTX 5090 (0.176/0.420/0.594); effective range capped at 1/0.594",
+     "recompute": 1.0},
     {"name": "microbatch_factor", "default": 1.0, "lo": 1.0, "hi": 8.0,
      "provenance": "assumed (no measurement)"},
     {"name": "act_factor", "default": 2.3, "lo": 1.0, "hi": 4.0,
@@ -74,20 +81,28 @@ PARAMS = [
      "provenance": "assumed (no measurement)"},
     {"name": "mem_charge", "default": 1.0, "lo": 1.0, "hi": 1.25,
      "provenance": "measured (scup 1.25x memory charge)"},
-    # cy0 eff classes: no discrete verdict in parallelism_search; included for coverage
-    {"name": "eff_gemm", "default": 0.50, "lo": 0.30, "hi": 0.70,
-     "provenance": "published-spec (H100 whitepaper/Megatron)"},
-    {"name": "eff_attention", "default": 0.35, "lo": 0.20, "hi": 0.55,
-     "provenance": "published-spec"},
-    {"name": "eff_layernorm", "default": 0.20, "lo": 0.10, "hi": 0.40,
-     "provenance": "published-spec"},
-    {"name": "eff_elementwise", "default": 0.30, "lo": 0.15, "hi": 0.50,
-     "provenance": "published-spec"},
 ]
 
-CY0_NAMES = {"eff_gemm", "eff_attention", "eff_layernorm", "eff_elementwise"}
+EFF_PARAMS = ["eff_gemm", "eff_attention", "eff_layernorm", "eff_elementwise"]
 EFF_MAP = {"eff_gemm": "gemm", "eff_attention": "attention",
            "eff_layernorm": "layernorm", "eff_elementwise": "elementwise"}
+EFF_DEFAULTS = {"eff_gemm": 0.50, "eff_attention": 0.35,
+                "eff_layernorm": 0.20, "eff_elementwise": 0.30}
+EFF_RANGES = {"eff_gemm": (0.30, 0.70), "eff_attention": (0.20, 0.55),
+              "eff_layernorm": (0.10, 0.40), "eff_elementwise": (0.15, 0.50)}
+
+CELLS = [
+    ("N8_winner", 8, 8192, "8b", "winner", None),
+    ("N16_winner", 16, 8192, "8b", "winner", None),
+    ("N32_winner", 32, 8192, "8b", "winner", None),
+    ("405B_bf16_feasible", 80, 8192, "405b", "feasible", "bf16_moments"),
+    ("405B_fp32master_feasible", 80, 8192, "405b", "feasible", "fp32_master"),
+]
+
+RECOMPUTE_CELLS = [
+    ("N8_winner_recompute1", 8, 8192, "8b", "winner", None),
+    ("N16_winner_recompute1", 16, 8192, "8b", "winner", None),
+]
 
 def winner_cell(N, seq, model, hw):
     m = dict(model, seq=seq)
@@ -108,17 +123,20 @@ def feas_cell(N, seq, model, hw, opt_state):
         mem_limit = h["mem_gb"] * 1e9 * (1.0 - h.get("mem_headroom", 0.0))
         margin_gb = mem_limit / 1e9 - w.memory_gb
         return True, w, margin_gb
-    # no feasible: use lowest-memory config
     results, _ = ps.search(N, h, m)
     best = min(results, key=lambda c: c.memory_gb)
     mem_limit = h["mem_gb"] * 1e9 * (1.0 - h.get("mem_headroom", 0.0))
     margin_gb = mem_limit / 1e9 - best.memory_gb
     return False, best, margin_gb
 
+def recompute_for(param):
+    return 1.0 if param in RECOMPUTE_PARAMS else 0.0
+
 def verdict_for(param, value, cell):
-    _cname, N, seq, model_key, kind, opt_state = cell
+    cname, N, seq, model_key, kind, opt_state = cell
     model = MODELS[model_key]
-    hw = hw_base(N)
+    hw = hw_base(N, opt_state=opt_state if opt_state else "fp32_master",
+                 recompute=recompute_for(param))
     if opt_state:
         hw["opt_state"] = opt_state
     hw = set_param(hw, param, value)
@@ -130,9 +148,10 @@ def verdict_for(param, value, cell):
         return (flag,)
 
 def margin_for(param, value, cell):
-    _cname, N, seq, model_key, kind, opt_state = cell
+    cname, N, seq, model_key, kind, opt_state = cell
     model = MODELS[model_key]
-    hw = hw_base(N)
+    hw = hw_base(N, opt_state=opt_state if opt_state else "fp32_master",
+                 recompute=recompute_for(param))
     if opt_state:
         hw["opt_state"] = opt_state
     hw = set_param(hw, param, value)
@@ -143,20 +162,22 @@ def margin_for(param, value, cell):
         _, _, margin_gb = feas_cell(N, seq, model, hw, opt_state)
         return margin_gb
 
-CELLS = [
-    ("N8_winner", 8, 8192, "8b", "winner", None),
-    ("N16_winner", 16, 8192, "8b", "winner", None),
-    ("N32_winner", 32, 8192, "8b", "winner", None),
-    ("405B_bf16_feasible", 80, 8192, "405b", "feasible", "bf16_moments"),
-    ("405B_fp32master_feasible", 80, 8192, "405b", "feasible", "fp32_master"),
-]
+def winner_config(param, value, cell):
+    """Return the winning config tuple for a winner cell at a given param value."""
+    cname, N, seq, model_key, kind, opt_state = cell
+    model = MODELS[model_key]
+    hw = hw_base(N, opt_state=opt_state if opt_state else "fp32_master",
+                 recompute=recompute_for(param))
+    if opt_state:
+        hw["opt_state"] = opt_state
+    hw = set_param(hw, param, value)
+    v, w, _ = winner_cell(N, seq, model, hw)
+    return v
 
 def bisect_flip(param, cell, default_val, lo, hi):
     base = verdict_for(param, default_val, cell)
-    # upward
     if verdict_for(param, hi, cell) != base:
         a, b = default_val, hi
-        # ensure a<b
         if a > b:
             a, b = b, a
         for _ in range(60):
@@ -166,7 +187,6 @@ def bisect_flip(param, cell, default_val, lo, hi):
             else:
                 b = mid
         return round(b, 6)
-    # downward
     if verdict_for(param, lo, cell) != base:
         a, b = lo, default_val
         if a > b:
@@ -181,14 +201,16 @@ def bisect_flip(param, cell, default_val, lo, hi):
     return None
 
 def elasticity(param, cell, default_val, lo, hi):
-    eps = (hi - lo) * 1e-4
-    if eps == 0:
+    step = (hi - lo) * 0.05
+    if step == 0:
         return 0.0
     try:
         m0 = margin_for(param, default_val, cell)
-        mp = margin_for(param, min(hi, default_val + eps), cell)
-        mm = margin_for(param, max(lo, default_val - eps), cell)
-        denom = (min(hi, default_val + eps) - max(lo, default_val - eps))
+        vp = min(hi, default_val + step)
+        vm = max(lo, default_val - step)
+        mp = margin_for(param, vp, cell)
+        mm = margin_for(param, vm, cell)
+        denom = vp - vm
         if denom == 0:
             return 0.0
         dmdx = (mp - mm) / denom
@@ -196,101 +218,154 @@ def elasticity(param, cell, default_val, lo, hi):
         return 0.0
     if m0 == 0:
         return float("inf")
-    return dmdx * (default_val / m0)
+    return dmdx * (default_val / m0) if default_val != 0 else dmdx
 
+def one_sided_fraction(default_val, flip, lo, hi):
+    if flip is None:
+        return 1.0
+    if flip < default_val:
+        denom = default_val - lo
+    else:
+        denom = hi - default_val
+    if denom == 0:
+        return 1.0
+    return abs(default_val - flip) / denom
 
 def dominant_op(spec_path, eff_name=None, eff_value=None):
-    import copy
     base = dict(cy0_l1.EFF_CLASS)
     if eff_name is not None:
         base[EFF_MAP[eff_name]] = eff_value
+    saved = dict(cy0_l1.EFF_CLASS)
     cy0_l1.EFF_CLASS.clear()
     cy0_l1.EFF_CLASS.update(base)
-    res = cy0_l1.predict_layer(spec_path, tp=2)
+    try:
+        res = cy0_l1.predict_layer(spec_path, tp=2)
+    finally:
+        cy0_l1.EFF_CLASS.clear()
+        cy0_l1.EFF_CLASS.update(saved)
     comps = [c for c in res["components"] if c.get("kind") == "compute"]
     if not comps:
         return "none"
     return max(comps, key=lambda c: c["seconds"])["op"]
 
 def main():
-    rows = []
+    ranked = []
     for p in PARAMS:
         name = p["name"]
-        if name in CY0_NAMES:
-            spec_path = "specs/h100_rack.json"
-            base_verdict = dominant_op(spec_path, name, p["default"])
-            # bisect flip (linear, since eff in [0,1])
-            flip = None
-            lo, hi = p["lo"], p["hi"]
-            if dominant_op(spec_path, name, hi) != base_verdict:
-                a, b = p["default"], hi
-                for _ in range(60):
-                    mid = (a+b)/2
-                    if dominant_op(spec_path, name, mid) == base_verdict:
-                        a = mid
-                    else:
-                        b = mid
-                flip = round(b, 6)
-            elif dominant_op(spec_path, name, lo) != base_verdict:
-                a, b = lo, p["default"]
-                for _ in range(60):
-                    mid = (a+b)/2
-                    if dominant_op(spec_path, name, mid) == base_verdict:
-                        b = mid
-                    else:
-                        a = mid
-                flip = round(a, 6)
-            if flip is None:
-                frac = 1.0
-            else:
-                frac = abs(p["default"] - flip) / (hi - lo) if (hi-lo)>0 else 1.0
-            rows.append({
-                "parameter": name,
-                "affected_verdict": "cy0_dominant_op",
-                "provenance": p["provenance"],
-                "default": p["default"],
-                "range": [p["lo"], p["hi"]],
-                "base_verdict": [base_verdict],
-                "current_margin": None,
-                "flip_value": flip,
-                "fraction_of_range_consumed": round(frac, 6),
-                "elasticity": None,
-            })
-            continue
-        for cell in CELLS:
+        lo, hi = p["lo"], p["hi"]
+        default_val = p["default"]
+        recompute = p.get("recompute", 0.0)
+        cells = RECOMPUTE_CELLS if name in RECOMPUTE_PARAMS else CELLS
+        for cell in cells:
             cname = cell[0]
-            base_verdict = verdict_for(name, p["default"], cell)
-            flip = bisect_flip(name, cell, p["default"], p["lo"], p["hi"])
+            base_verdict = verdict_for(name, default_val, cell)
+            flip = bisect_flip(name, cell, default_val, lo, hi)
             if flip is None:
                 frac = 1.0
+                frac_os = 1.0
             else:
-                frac = abs(p["default"] - flip) / (p["hi"] - p["lo"]) if (p["hi"] - p["lo"]) > 0 else 1.0
-            margin = margin_for(name, p["default"], cell)
-            elast = elasticity(name, cell, p["default"], p["lo"], p["hi"])
-            rows.append({
+                frac = abs(default_val - flip) / (hi - lo) if (hi - lo) > 0 else 1.0
+                frac_os = one_sided_fraction(default_val, flip, lo, hi)
+            margin = margin_for(name, default_val, cell)
+            elast = elasticity(name, cell, default_val, lo, hi)
+            row = {
                 "parameter": name,
                 "affected_verdict": cname,
                 "provenance": p["provenance"],
-                "default": p["default"],
-                "range": [p["lo"], p["hi"]],
+                "default": default_val,
+                "range": [lo, hi],
                 "base_verdict": [str(x) for x in base_verdict],
                 "current_margin": margin,
                 "flip_value": flip,
                 "fraction_of_range_consumed": round(frac, 6),
+                "fraction_one_sided": round(frac_os, 6),
                 "elasticity": (None if (isinstance(elast, float) and math.isnan(elast)) else round(elast, 4)),
-            })
-    # rank by fraction ascending (most sensitive first), then elasticity desc
-    rows.sort(key=lambda r: (r["fraction_of_range_consumed"], -(abs(r["elasticity"]) if r["elasticity"] is not None else 0)))
+            }
+            # bracketing pair
+            if flip is not None and cname.startswith("N") and "winner" in cname:
+                try:
+                    below = winner_config(name, flip * 0.999, cell) if flip > default_val else winner_config(name, default_val, cell)
+                    above = winner_config(name, flip * 1.001, cell) if flip > default_val else winner_config(name, flip * 0.999, cell)
+                    row["bracket_below"] = [str(x) for x in below]
+                    row["bracket_above"] = [str(x) for x in above]
+                except Exception:
+                    pass
+            ranked.append(row)
+
+    ranked.sort(key=lambda r: (r["fraction_of_range_consumed"],
+                              -(abs(r["elasticity"]) if r["elasticity"] is not None else 0)))
+
+    # unranked (no discrete published verdict)
+    unranked = []
+    for name in EFF_PARAMS:
+        lo, hi = EFF_RANGES[name]
+        default_val = EFF_DEFAULTS[name]
+        base_verdict = dominant_op("specs/h100_rack.json", name, default_val)
+        # try flip in both directions
+        flip = None
+        if dominant_op("specs/h100_rack.json", name, hi) != base_verdict:
+            a, b = default_val, hi
+            for _ in range(60):
+                mid = (a + b) / 2
+                if dominant_op("specs/h100_rack.json", name, mid) == base_verdict:
+                    a = mid
+                else:
+                    b = mid
+            flip = round(b, 6)
+        elif dominant_op("specs/h100_rack.json", name, lo) != base_verdict:
+            a, b = lo, default_val
+            for _ in range(60):
+                mid = (a + b) / 2
+                if dominant_op("specs/h100_rack.json", name, mid) == base_verdict:
+                    b = mid
+                else:
+                    a = mid
+            flip = round(a, 6)
+        if flip is None:
+            frac = 1.0
+            frac_os = 1.0
+        else:
+            frac = abs(default_val - flip) / (hi - lo) if (hi - lo) > 0 else 1.0
+            frac_os = one_sided_fraction(default_val, flip, lo, hi)
+        unranked.append({
+            "parameter": name,
+            "affected_verdict": "cy0 single-layer dominant op (not a published verdict)",
+            "provenance": "published-spec",
+            "default": default_val,
+            "range": [lo, hi],
+            "base_verdict": [base_verdict],
+            "current_margin": None,
+            "flip_value": flip,
+            "fraction_of_range_consumed": round(frac, 6),
+            "fraction_one_sided": round(frac_os, 6),
+            "elasticity": None,
+            "ranked": False,
+        })
+
+    result = {"ranked": ranked, "unranked": unranked}
+
     if "--json" in sys.argv:
-        print(json.dumps(rows, indent=2, sort_keys=True))
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
-    print(f"{'parameter':24s} {'verdict':30s} {'frac':>8s} {'flip':>10s} {'margin':>12s}")
-    for r in rows:
-        print(f"{r['parameter']:24s} {r['affected_verdict']:30s} {r['fraction_of_range_consumed']:8.4f} {str(r['flip_value']):>10s} {str(r['current_margin']):>12s}")
+
+    print(f"{'parameter':24s} {'verdict':32s} {'frac':>8s} {'1side':>8s} {'flip':>10s} {'margin':>12s}")
+    for r in ranked:
+        print(f"{r['parameter']:24s} {r['affected_verdict']:32s} {r['fraction_of_range_consumed']:8.4f} {r['fraction_one_sided']:8.4f} {str(r['flip_value']):>10s} {str(r['current_margin']):>12s}")
     print()
-    if rows:
-        top = rows[0]
+    print("Unranked (no discrete published verdict):")
+    for r in unranked:
+        print(f"  {r['parameter']:24s} {r['affected_verdict']}")
+    print()
+    if ranked:
+        top = ranked[0]
         print(f"TOP: {top['parameter']} on {top['affected_verdict']} (fraction {top['fraction_of_range_consumed']})")
+    # bracketing pairs
+    print()
+    print("Bracketing pairs (config below flip -> config above flip):")
+    for r in ranked:
+        if "bracket_below" in r:
+            print(f"  {r['parameter']} @ {r['flip_value']} on {r['affected_verdict']}: "
+                  f"{r['bracket_below']} -> {r['bracket_above']}")
     return 0
 
 if __name__ == "__main__":

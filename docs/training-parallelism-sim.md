@@ -39,18 +39,25 @@ expensive, not the other way round. Any config quoted from this document must th
 batch assumption (below) and its CP convention.
 
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
-CP cost scaled by k in [0, 1.52] and PP cost by any k (never flips). CP -- the least-verified
-term -- tolerates a 1.52x overestimate before the answer becomes tp=1 pp=8; it never flips on an
-underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
+CP cost scaled by k in [0, 1.52] (tolerates a 1.52x overestimate before becoming tp=1 pp=8; never
+flips on an underestimate) and for PP cost scaled UPWARD by any k tested (never flips). The CP
+term is the least-verified one. The PP bubble is direction-asymmetric: it is robust to overestimation
+of its cost (k>8) but a 17% UNDERESTIMATE (k=0.82) flips the ring-convention N=8 verdict from
+(tp=4 pp=1 cp=2) to (tp=1 pp=8 cp=1) -- the error budget (gpu-sim-hd5u) is what surfaced this.
+The radius is computed by `scripts/sensitivity_radius.py` (upward sweep only).
 
 **Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
-(`docs/model_facts.json` -> `error_budget`). The two tightest margins are the PP bubble cost
-(`term_scale_pp`, 4.65% of its range on the N=8 verdict) and the PP micro-batch count
-(`microbatch_factor`, 5.95%); both say the same thing: the PP bubble is the measurement that
-would buy the most certainty, ahead of the CP term. Everything else (recompute, bandwidth, memory
-charge, eff classes) sits at 100% of its range -- the published verdicts do not flip on it.
+(`docs/model_facts.json` -> `error_budget`), ranked by fraction of the plausible range consumed
+(full-width; a one-sided column is published too, and the ordering is definition-dependent). The
+tightest margins are `term_scale_pp` (4.65% full-width / 23.3% one-sided) and `microbatch_factor`
+(5.95% both ways) on the N=8 ring-convention verdict. Under the full-width reading the PP bubble
+leads; under the one-sided reading the CP term leads on two cells. The table publishes both so the
+wv2 program can see the verdict is definition-dependent rather than settle it in prose. Recompute,
+bandwidth, memory charge and the eff classes sit at 100% of their range -- the published verdicts
+do not flip on them.
 
-**The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
+**The PP bubble default is pessimistic, and every winner survives a realistic one (all_gather
+convention).** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which
 shrinks the bubble (bubble = compute x (pp-1)/(micro_batches+pp-1)). Sweeping that ratio under the default
 all_gather convention at seq 8192, the winners do not move for micro_batches/pp in [1, 8] and their
