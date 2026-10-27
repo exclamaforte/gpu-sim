@@ -3,8 +3,8 @@
 import json, sys
 
 REQUIRED = ["ts_ns","rank","nranks","op","count","dtype","bytes","algorithm","predicted_s","bottleneck_link","regime"]
-OPS = {"allreduce","broadcast","allgather","reducescatter","alltoall","reduce","send","recv",
-       "forward_layer","backward_layer","optimizer","bubble","tp_allreduce","dp_allreduce"}
+COLLECTIVE_OPS = {"allreduce","broadcast","allgather","reducescatter","alltoall","reduce","send","recv"}
+OPS = COLLECTIVE_OPS | {"forward_layer","backward_layer","optimizer","bubble","tp_allreduce","dp_allreduce"}
 OPS_PREFIX_OK = True
 ALGOS = {"ring_allreduce","ring_allgather","ring_reduce_scatter","ring_alltoall","tree_bcast","p2p",
          "p2p->0","p2p->1","fallback"}
@@ -35,7 +35,7 @@ def validate(path):
                 assert isinstance(obj["ts_ns"], int)
                 assert isinstance(obj["rank"], int) and obj["rank"] >= 0
                 assert isinstance(obj["nranks"], int) and obj["nranks"] >= 1
-                assert obj["op"] in OPS
+                assert obj["op"] in COLLECTIVE_OPS
                 assert isinstance(obj["count"], int) and obj["count"] >= 0
                 assert obj["dtype"] in DTYPES
                 assert isinstance(obj["bytes"], int) and obj["bytes"] >= 0
@@ -45,6 +45,8 @@ def validate(path):
                 bl = obj["bottleneck_link"]
                 assert bl is None or (isinstance(bl,int) and bl >= 0)
                 assert obj["regime"] in REGIMES
+                if "kind" in obj:
+                    assert obj["kind"] in COMPUTE_KINDS
                 n += 1
                 continue
             # Compute/idle shape: additive extension
@@ -54,7 +56,7 @@ def validate(path):
                 assert isinstance(obj["nranks"], int) and obj["nranks"] >= 1
                 assert isinstance(obj["op"], str)
                 assert obj["kind"] in COMPUTE_KINDS
-                assert isinstance(obj["phase"], str)
+                assert isinstance(obj["phase"], str) and obj["phase"].strip()
                 dur = obj.get("seconds", obj.get("predicted_s", 0))
                 assert isinstance(dur, (int,float)) and dur >= 0
                 n += 1
