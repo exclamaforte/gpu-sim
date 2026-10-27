@@ -20,8 +20,11 @@ cd "$(dirname "$0")/.."
 # verdict now carries the tree and commit it applies to.
 gate_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 gate_head="$(git -C "$gate_root" log -1 --format='%h %s' 2>/dev/null | cut -c1-60)"
+gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 echo "GATE TREE: ${gate_root}"
+echo "GATE TIP: ${gate_tip}"
 echo "GATE HEAD: ${gate_head:-<no commit>}"
+echo "GATE DIRTY-AT-START: $(tr '\n' ' ' < "$dirty_start_file" | sed 's/ $//')"
 if [ "$gate_root" != "$(cd "$(dirname "$0")/.." && pwd)" ]; then
     echo "GATE WARNING: evaluating a DIFFERENT tree than this script lives in -- a red result"
     echo "              here does not describe the main working copy."
@@ -41,6 +44,10 @@ declare -a FAILED=() ADVISED=()
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
 mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
 GATE_LOG="$GATE_TMP/gate.$$.out"
+dirty_start_file="$GATE_TMP/dirty_start.$$"
+git -C "$gate_root" diff --name-only 2>/dev/null > "$dirty_start_file"
+git -C "$gate_root" diff --cached --name-only 2>/dev/null >> "$dirty_start_file"
+sort -u -o "$dirty_start_file" "$dirty_start_file"
 if ! : > "$GATE_LOG" 2>/dev/null; then
   echo "gate: cannot write $GATE_LOG (filesystem full or read-only)" >&2
   exit 1
@@ -89,6 +96,7 @@ run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
 run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
 run_hard "claims register" python3 scripts/gen_claims_register.py --check
 run_hard "no vacuous assertions" python3 scripts/check_no_vacuous_asserts.py
+run_hard "gate citations" python3 scripts/check_gate_citations.py
 run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
@@ -126,6 +134,17 @@ if [ $manifest_fail -ne 0 ]; then
   exit 1
 fi
 
+dirty_end_file="$GATE_TMP/dirty_end.$$"
+git -C "$gate_root" diff --name-only 2>/dev/null > "$dirty_end_file"
+git -C "$gate_root" diff --cached --name-only 2>/dev/null >> "$dirty_end_file"
+sort -u -o "$dirty_end_file" "$dirty_end_file"
+echo "GATE DIRTY-AT-END: $(tr '\n' ' ' < "$dirty_end_file" | sed 's/ $//')"
+grew=$(comm -13 "$dirty_start_file" "$dirty_end_file")
+if [ -n "$grew" ]; then
+  echo "FAIL: dirty tracked set grew during the run: $grew"
+  fail=$((fail+1)); FAILED+=("dirty set grew")
+fi
+rm -f "$dirty_start_file" "$dirty_end_file"
 echo
 echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
 if [ $fail -ne 0 ]; then

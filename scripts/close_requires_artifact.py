@@ -33,6 +33,7 @@ import json
 import re
 import subprocess
 import sys
+import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -306,13 +307,30 @@ def apply_coverage_gate(rec: dict, coverage: dict) -> dict:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--write", action="store_true",
+                    help="write the audit to the tracked path (main-only regeneration)")
+    args = ap.parse_args()
     issues, coverage = gather_with_proven_coverage()
     rec = apply_coverage_gate(audit(issues), coverage)
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(rec, indent=2) + "\n")
+    text = json.dumps(rec, indent=2) + "\n"
     print(json.dumps({k: v for k, v in rec.items()
                       if k not in ("verdicts",)}, indent=2))
-    print(f"\nwrote {OUT.relative_to(REPO)}")
+    if args.write:
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        OUT.write_text(text)
+        print(f"\nwrote {OUT.relative_to(REPO)}")
+    else:
+        # Never mutate the tracked artifact during a check: write to a temp
+        # path and compare against the tracked blob.
+        tracked = OUT.read_text() if OUT.exists() else None
+        if tracked is None:
+            print(f"\nNOTE: {OUT.relative_to(REPO)} absent; audit would be created with --write")
+        elif tracked != text:
+            print(f"\nNOTE: {OUT.relative_to(REPO)} differs from the audit this run would "
+                  f"produce (regenerate on main with --write).")
+        else:
+            print(f"\nOK: {OUT.relative_to(REPO)} matches the audit this run produces.")
     if not coverage["coverage_proven"]:
         print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
         return 1
