@@ -28,6 +28,8 @@ def per_rank(path):
         if not line.strip():
             continue
         rec = json.loads(line)
+        if "rank" not in rec:
+            continue
         out[rec["rank"]].append(tuple(rec.get(f) for f in FIELDS))
     return {rank: tuple(recs) for rank, recs in out.items()}
 
@@ -36,6 +38,19 @@ def main(argv) -> int:
     if len(argv) != 3:
         print(__doc__)
         return 2
+    # Guard: exactly one rank-less record per file, and it must be the header.
+    for path in (argv[1], argv[2]):
+        headerless = 0
+        for line in open(path):
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            if "rank" in rec:
+                continue
+            headerless += 1
+            assert rec.get("type") == "header", f"rank-less record is not a header: {rec}"
+        if headerless > 0:
+            assert headerless == 1, f"{path}: expected at most one header record, got {headerless}"
     a, b = per_rank(argv[1]), per_rank(argv[2])
     if sorted(a) != sorted(b):
         print(f"DIFFERENT RANKS: {sorted(a)} vs {sorted(b)}")

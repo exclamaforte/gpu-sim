@@ -135,3 +135,13 @@ inherited error.
   intra-node, so the net-plugin seam may never be reached. `gpu-sim-m3d.8`
   resolves this first (fake PCI domains + `NCCL_TOPO_FILE`, else the P2P seam)
   and the gate requires one config that provably uses NET.
+
+## Analytical predictor trace (cy0-L6)
+
+Run `python3 cy0_l3.py --spec specs/h100_rack.json --dp 2 --tp 2 --pp 1 --seq 8192 --batch 16 --trace out.jsonl`
+to emit a rank-resolved training-step trace in the shared JSONL schema: a header record
+(placement + reconciliation rule) followed by per-rank compute, collective (m3d.7 fields
+populated from link_model.predict), idle and hidden-overlap records with synthesized ts_ns.
+Validate with `python3 scripts/validate_trace.py out.jsonl`; determinism with
+`python3 scripts/check_trace_determinism.py run1.jsonl run2.jsonl`. The `--json` output
+(components) is unchanged.

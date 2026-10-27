@@ -1,0 +1,50 @@
+{
+ "bead": "gpu-sim-1ly7",
+ "configs_traced": [
+  {
+   "name": "8xH100 DP8 seq512",
+   "dp": 8,
+   "tp": 1,
+   "pp": 1,
+   "layers": 2,
+   "seq": 512,
+   "batch": 16,
+   "trace": "experiments/gpu-sim-1ly7/traces/cfg1.jsonl",
+   "total_seconds": 0.00989533985321141,
+   "world_size": 8,
+   "records": 49,
+   "validator": "PASS",
+   "determinism": "PASS (cfg1 vs cfg1_run2)"
+  },
+  {
+   "name": "TP2/PP2 4-layer",
+   "dp": 2,
+   "tp": 2,
+   "pp": 2,
+   "layers": 4,
+   "seq": 8192,
+   "batch": 16,
+   "trace": "experiments/gpu-sim-1ly7/traces/cfg2.jsonl",
+   "total_seconds": 0.4832776485355963,
+   "world_size": 8,
+   "records": 97,
+   "validator": "PASS"
+  }
+ ],
+ "legacy_trace_validator": "PASS (experiments/gpu-sim-5o4.7/raw/trace.jsonl, 2568 records)",
+ "determinism": "PASS (scripts/check_trace_determinism.py: 8 ranks, identical per-rank sequences)",
+ "reconciliation_delta": 0.0,
+ "provenance_tally": {
+  "cfg1": {
+   "header": 1,
+   "published-spec": 48
+  },
+  "cfg2": {
+   "header": 1,
+   "published-spec": 96
+  }
+ },
+ "negative_control": "cy0_l3 --json output (components) unchanged; only additive timeline/trace + --trace flag",
+ "gate": "scripts/gate.sh 8/8 PASS (run rmvqiz1ei2, exit 0)",
+ "rework": "validate_trace.py membership asserts restored (OPS/ALGOS/REGIMES); header detection tightened (type==header + subset of HEADER_KEYS, no rank); header gains pp_sends clause; determinism guard added (rank-less records must be single header); planted bad records now rejected; legacy trace still passes."
+}

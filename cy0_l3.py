@@ -75,7 +75,7 @@ def plan(model_cfg: Dict[str, Any], spec_path: str, dp: int, tp: int, pp: int,
     micro_batch = max(1, batch // max(1, dp * pp))
     cfg = StepConfig(n_layers=model_cfg.get("n_layers", 2),
                      n_microbatches=batch,
-                     dp=dp, tp=tp, pp=pp,
+                     dp=dp, tp=tp, pp=pp, ep=ep,
                      overlap=True,
                      hidden=model_cfg.get("hidden", cy0_l1.HIDDEN),
                      ffn=model_cfg.get("ffn", cy0_l1.FFN_DIM),
@@ -97,6 +97,8 @@ def plan(model_cfg: Dict[str, Any], spec_path: str, dp: int, tp: int, pp: int,
         "dp_seconds": result["dp_seconds"],
         "overlapped_seconds": result["overlapped_seconds"],
         "components": result["components"],
+        "timeline": result.get("timeline", result.get("trace", [])),
+        "trace": result.get("trace", result.get("timeline", [])),
         "config": {
             "dp": dp, "tp": tp, "pp": pp, "ep": ep,
             "zero_stage": zero_stage, "seq": seq, "batch": batch,
@@ -123,6 +125,7 @@ def main():
     parser.add_argument("--hidden", type=int, default=None)
     parser.add_argument("--ffn", type=int, default=None)
     parser.add_argument("--json", default=None)
+    parser.add_argument("--trace", default=None)
     args = parser.parse_args()
 
     import cy0_l1
@@ -148,6 +151,9 @@ def main():
     if args.json:
         Path(args.json).write_text("\n".join(json.dumps(c) for c in result["components"]) + "\n")
         print(f"trace written to {args.json}", file=sys.stderr)
+    if args.trace:
+        Path(args.trace).write_text("\n".join(json.dumps(c) for c in result.get("timeline", result.get("trace", []))) + "\n")
+        print(f"trace written to {args.trace}", file=sys.stderr)
 
 
 if __name__ == "__main__":
