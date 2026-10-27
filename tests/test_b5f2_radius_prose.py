@@ -61,3 +61,10 @@ def test_radius_paragraph_built_from_artifact_not_typed():
     rad16 = FACTS["sensitivity_radius"]["N16_seq8192"]
     pp_up = rad16["flip_pp_up"]
     assert f"{pp_up:.3g}" in DOC
+
+
+def test_n16_pp_down_is_unbounded_not_sweep_floor():
+    rad = FACTS["sensitivity_radius"]["N16_seq8192"]
+    assert rad["flip_pp_down"] is None
+    assert "unbounded below" in DOC, "N16 pp has no downward flip: must say 'unbounded below'"
+    assert "[0.05x, 1.86x]" not in DOC, "sweep floor must not be published as a measured bound"
