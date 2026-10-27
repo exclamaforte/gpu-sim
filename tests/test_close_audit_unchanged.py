@@ -61,12 +61,18 @@ class TestModifiedFails(BaseRepo):
     def test_modified_value_fails(self):
         p = self.repo / REL
         p.write_text('{"primary_rows": 999}\n')
+        git(self.repo, "checkout", "-b", "feature")
+        git(self.repo, "add", REL)
+        git(self.repo, "commit", "-qm", "modify")
         rc, out = self.run_guard()
         self.assertEqual(rc, 1)
         self.assertIn("differs from its base blob", out)
 
     def test_deleted_fails(self):
         (self.repo / REL).unlink()
+        git(self.repo, "checkout", "-b", "feature")
+        git(self.repo, "rm", "-q", REL)
+        git(self.repo, "commit", "-qm", "delete")
         rc, out = self.run_guard()
         self.assertEqual(rc, 1)
         self.assertIn("deleted on this branch", out)

@@ -44,12 +44,13 @@ def main() -> int:
     base_blob = run("show", f"{base}:{PATH}")
     base_exists = base_blob.returncode == 0
 
-    cur_path = REPO / PATH
-    cur_exists = cur_path.exists()
+    # Compare the COMMITTED blob (HEAD), never the working tree.
+    head_blob = run("show", f"HEAD:{PATH}")
+    head_exists = head_blob.returncode == 0
 
-    if base_exists == cur_exists:
+    if base_exists == head_exists:
         if base_exists:
-            if base_blob.stdout == cur_path.read_text():
+            if base_blob.stdout == head_blob.stdout:
                 print("check_close_audit_unchanged: OK (unchanged vs base)")
                 return 0
             print(f"INVALID: {PATH} differs from its base blob ({base[:7]}).")
@@ -57,9 +58,9 @@ def main() -> int:
             print("check_close_audit_unchanged: OK (absent on both sides)")
             return 0
     # one side missing
-    if base_exists and not cur_exists:
+    if base_exists and not head_exists:
         print(f"INVALID: {PATH} deleted on this branch; restore it unchanged.")
-    elif (not base_exists) and cur_exists:
+    elif (not base_exists) and head_exists:
         print(f"INVALID: {PATH} added on this branch; it is main-only state.")
     print("Convention: close_audit.json is regenerated on main as its own commit.")
     print("See experiments/gpu-sim-u2o.15/README.md.")
