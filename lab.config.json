@@ -1,5 +1,7 @@
 {
-  "daemon": { "pollSeconds": 20 },
+  "daemon": {
+    "pollSeconds": 20
+  },
   "gpqueue": {
     "ts": "~/.local/bin/ts",
     "gpqueuePy": "~/Documents/gpqueue/gpqueue.py"
@@ -26,5 +28,14 @@
       "prompt": ".lab/prompts/reviewer.md",
       "tools": null
     }
+  },
+  "tests": {
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "tests/"
+    ],
+    "timeout": 1200
   }
 }
