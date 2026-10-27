@@ -47,14 +47,14 @@ of its cost (k>8) but a 17% UNDERESTIMATE (k=0.82) flips the ring-convention N=8
 The radius is computed by `scripts/sensitivity_radius.py` (upward sweep only).
 
 **Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
-(`docs/model_facts.json` -> `error_budget`), ranked by fraction of the plausible range consumed
-(full-width; a one-sided column is published too, and the ordering is definition-dependent). The
-tightest margins are `term_scale_pp` (4.65% full-width / 23.3% one-sided) and `microbatch_factor`
-(5.95% both ways) on the N=8 ring-convention verdict. Under the full-width reading the PP bubble
-leads; under the one-sided reading the CP term leads on two cells. The table publishes both so the
-wv2 program can see the verdict is definition-dependent rather than settle it in prose. Recompute,
-bandwidth, memory charge and the eff classes sit at 100% of their range -- the published verdicts
-do not flip on them.
+(`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fraction of the plausible range
+consumed (the full-width fraction is published alongside; the two orderings disagree, so both
+columns are kept). The tightest margin is `microbatch_factor` (5.95%); then `term_scale_cp` at N=32
+(15.79%) and N=8 (17.48%); then `term_scale_pp` at N=8 (23.26%). `achieved_bw_scale` also flips the
+N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
+parameter. Rows that do not flip (`recompute`, `mem_headroom`, `mem_charge`, `act_factor` and the
+eff classes) are reported with their worst-case margin over the whole range instead of a flip value,
+so they are not empty.
 
 **The PP bubble default is pessimistic, and every winner survives a realistic one (all_gather
 convention).** The model splits

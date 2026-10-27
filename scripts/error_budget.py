@@ -225,7 +225,7 @@ def elasticity(param, cell, default_val, lo, hi):
 
 def one_sided_fraction(default_val, flip, lo, hi):
     if flip is None:
-        return 1.0
+        return None
     if flip < default_val:
         denom = default_val - lo
     else:
@@ -261,21 +261,39 @@ def main():
         cells = RECOMPUTE_CELLS if name in RECOMPUTE_PARAMS else CELLS
         for cell in cells:
             cname = cell[0]
+            if name in RECOMPUTE_PARAMS:
+                cname = cname + " (recompute=1.0, conditional)"
             base_verdict = verdict_for(name, default_val, cell)
             flip_up, flip_down = bisect_flips(name, cell, default_val, lo, hi)
-            # primary flip = nearer of the two (smaller fraction)
-            candidates = [x for x in (flip_up, flip_down) if x is not None]
-            if candidates:
-                flip = min(candidates, key=lambda x: abs(default_val - x) / (hi - lo) if (hi-lo)>0 else 1.0)
+            fw_candidates = [(x, abs(default_val - x) / (hi - lo) if (hi - lo) > 0 else 1.0)
+                            for x in (flip_up, flip_down) if x is not None]
+            if fw_candidates:
+                flip_full = min(fw_candidates, key=lambda t: t[1])[0]
+                frac = min(t[1] for t in fw_candidates)
             else:
-                flip = None
+                flip_full = None
+                frac = None
+            os_candidates = [(x, one_sided_fraction(default_val, x, lo, hi))
+                            for x in (flip_up, flip_down) if x is not None]
+            os_candidates = [(x, f) for x, f in os_candidates if f is not None]
+            if os_candidates:
+                flip_os = min(os_candidates, key=lambda t: t[1])[0]
+                frac_os = min(t[1] for t in os_candidates)
+            else:
+                flip_os = None
+                frac_os = None
+            flip = flip_os
             if flip is None:
-                frac = 1.0
-                frac_os = 1.0
+                frac = None
+                frac_os = None
+            if flip is None:
+                m_lo = margin_for(name, lo, cell)
+                m_hi = margin_for(name, hi, cell)
+                # worst (smallest) margin across the range
+                cands = [x for x in (m_lo, m_hi) if x is not None]
+                margin = min(cands) if cands else None
             else:
-                frac = abs(default_val - flip) / (hi - lo) if (hi - lo) > 0 else 1.0
-                frac_os = one_sided_fraction(default_val, flip, lo, hi)
-            margin = margin_for(name, default_val, cell)
+                margin = margin_for(name, default_val, cell)
             elast = elasticity(name, cell, default_val, lo, hi)
             row = {
                 "parameter": name,
@@ -288,9 +306,11 @@ def main():
                 "flip_value": flip,
                 "flip_up": flip_up,
                 "flip_down": flip_down,
-                "measured_sides": (["up"] if flip_up is not None else []) + (["down"] if flip_down is not None else []),
-                "fraction_of_range_consumed": round(frac, 6),
-                "fraction_one_sided": round(frac_os, 6),
+                "measured_sides": sorted((["up"] if flip_up is not None else []) + (["down"] if flip_down is not None else [])),
+                "flip_full": flip_full,
+                "flip_one_sided": flip_os,
+                "fraction_of_range_consumed": (None if frac is None else round(frac, 6)),
+                "fraction_one_sided": (None if frac_os is None else round(frac_os, 6)),
                 "elasticity": (None if (isinstance(elast, float) and math.isnan(elast)) else round(elast, 4)),
             }
             # bracketing pair
@@ -304,8 +324,12 @@ def main():
                     pass
             ranked.append(row)
 
-    ranked.sort(key=lambda r: (r["fraction_of_range_consumed"],
-                              -(abs(r["elasticity"]) if r["elasticity"] is not None else 0)))
+    def _sort_key(r):
+        f = r["fraction_one_sided"]
+        if f is None:
+            return (1, 0.0, 0.0)
+        return (0, f, -(abs(r["elasticity"]) if r["elasticity"] is not None else 0))
+    ranked.sort(key=_sort_key)
 
     # unranked (no discrete published verdict)
     unranked = []
@@ -334,8 +358,8 @@ def main():
                     a = mid
             flip = round(a, 6)
         if flip is None:
-            frac = 1.0
-            frac_os = 1.0
+            frac = None
+            frac_os = None
         else:
             frac = abs(default_val - flip) / (hi - lo) if (hi - lo) > 0 else 1.0
             frac_os = one_sided_fraction(default_val, flip, lo, hi)
@@ -348,8 +372,8 @@ def main():
             "base_verdict": [base_verdict],
             "current_margin": None,
             "flip_value": flip,
-            "fraction_of_range_consumed": round(frac, 6),
-            "fraction_one_sided": round(frac_os, 6),
+            "fraction_of_range_consumed": (None if frac is None else round(frac, 6)),
+            "fraction_one_sided": (None if frac_os is None else round(frac_os, 6)),
             "elasticity": None,
             "ranked": False,
         })
@@ -362,7 +386,11 @@ def main():
 
     print(f"{'parameter':24s} {'verdict':32s} {'frac':>8s} {'1side':>8s} {'flip':>10s} {'margin':>12s}")
     for r in ranked:
-        print(f"{r['parameter']:24s} {r['affected_verdict']:32s} {r['fraction_of_range_consumed']:8.4f} {r['fraction_one_sided']:8.4f} {str(r['flip_value']):>10s} {str(r['current_margin']):>12s}")
+        f = r['fraction_of_range_consumed']
+        o = r['fraction_one_sided']
+        fs = f"{f:8.4f}" if f is not None else "     n/a"
+        os_ = f"{o:8.4f}" if o is not None else "     n/a"
+        print(f"{r['parameter']:24s} {r['affected_verdict']:32s} {fs} {os_} {str(r['flip_value']):>10s} {str(r['current_margin']):>12s}")
     print()
     print("Unranked (no discrete published verdict):")
     for r in unranked:
