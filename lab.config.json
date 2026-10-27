@@ -31,5 +31,16 @@
       "prompt": ".lab/prompts/reviewer.md",
       "tools": null
     }
+  },
+  "tests": {
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "tests/"
+    ],
+    "build": [
+      "make"
+    ]
   }
 }
