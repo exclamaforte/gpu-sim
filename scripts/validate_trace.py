@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Validate a gpu-sim JSONL trace against the m3d.7 schema."""
-import json, sys
+import json, math, sys
 
 REQUIRED = ["ts_ns","rank","nranks","op","count","dtype","bytes","algorithm","predicted_s","bottleneck_link","regime"]
 COLLECTIVE_OPS = {"allreduce","broadcast","allgather","reducescatter","alltoall","reduce","send","recv"}
-OPS = COLLECTIVE_OPS | {"forward_layer","backward_layer","optimizer","bubble","tp_allreduce","dp_allreduce"}
-OPS_PREFIX_OK = True
 ALGOS = {"ring_allreduce","ring_allgather","ring_reduce_scatter","ring_alltoall","tree_bcast","p2p",
          "p2p->0","p2p->1","fallback"}
 REGIMES = {"latency","bandwidth","p2p-unmodelled","unmodelled"}
@@ -54,11 +52,13 @@ def validate(path):
                 assert isinstance(obj["ts_ns"], int)
                 assert isinstance(obj["rank"], int) and obj["rank"] >= 0
                 assert isinstance(obj["nranks"], int) and obj["nranks"] >= 1
-                assert isinstance(obj["op"], str)
+                assert isinstance(obj["op"], str) and obj["op"].strip()
                 assert obj["kind"] in COMPUTE_KINDS
                 assert isinstance(obj["phase"], str) and obj["phase"].strip()
-                dur = obj.get("seconds", obj.get("predicted_s", 0))
-                assert isinstance(dur, (int,float)) and dur >= 0
+                if "seconds" not in obj and "predicted_s" not in obj:
+                    raise ValueError("compute record missing duration (seconds/predicted_s)")
+                dur = obj.get("seconds", obj.get("predicted_s"))
+                assert isinstance(dur, (int,float)) and math.isfinite(dur) and dur >= 0
                 n += 1
                 continue
             raise ValueError(f"unrecognized record shape: keys={sorted(obj.keys())}")

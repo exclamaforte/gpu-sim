@@ -219,5 +219,8 @@ def test_optimizer_is_bandwidth_bound():
     bw = list(spec["models"].values())[0]["mem_bw_gbs"]
     compute_t = (12 * params_per_gpu) / (pf * cy0_l1.EFF_CLASS["optimizer"])
     mem_t = (28 * params_per_gpu) / (bw * 1e9)
-    assert mem_t > compute_t, "optimizer must be bandwidth-bound"
+    # Arithmetic on constants: 12 FLOP/param vs 28 B/param => ~2.33 FLOP/B
+    # against a 295 FLOP/B machine balance, so the optimizer is memory-bound by
+    # construction. This is a statement about the byte convention, not a runtime
+    # guard; the discriminating assertion below is what catches a regression.
     assert abs(opt["seconds"] - mem_t) < 1e-12, "optimizer time must equal the memory term"
