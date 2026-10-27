@@ -893,7 +893,7 @@ def allowed_decimals(facts):
         add(v)
         add(round(v, 2))
     for row in facts["sensitivity_radius"].values():
-        for key in ("flip_cp", "flip_pp"):
+        for key in ("flip_cp_up", "flip_cp_down", "flip_pp_up", "flip_pp_down"):
             if row.get(key) is not None:
                 add(row[key])
                 add(round(row[key], 2))

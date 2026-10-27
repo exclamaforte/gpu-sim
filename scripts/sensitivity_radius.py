@@ -51,25 +51,38 @@ def shape(c) -> tuple:
     return (c.tp, c.pp, c.cp, c.dp, c.zero)
 
 
-def flip_point(n: int, seq: int, term: str, lo: float = 0.05, hi: float = 8.0) -> float | None:
-    """Smallest k at which the winner changes, or None if it never changes up to hi.
+def flip_points(n: int, seq: int, term: str, lo: float = 0.05, hi: float = 8.0):
+    """Return (flip_up, flip_down) for a term.
 
-    Bisection in log space: the term cost enters the step time linearly, so the flip set is monotone in k
-    for the configs that are separated by that term alone.
+    flip_up: smallest k > 1 at which the winner changes, or None.
+    flip_down: largest k < 1 at which the winner changes, or None.
+    Bisection in log space.
     """
-    base = shape(winner(n, seq))
-    if shape(winner(n, seq, term, hi)) == base:
-        return None
     import math
-
-    a, b = math.log(lo), math.log(hi)
-    for _ in range(60):
-        mid = (a + b) / 2
-        if shape(winner(n, seq, term, math.exp(mid))) == base:
-            a = mid
-        else:
-            b = mid
-    return round(math.exp(b), 4)
+    base = shape(winner(n, seq))
+    flip_up = None
+    flip_down = None
+    # upward
+    if shape(winner(n, seq, term, hi)) != base:
+        a, b = 1.0, hi
+        for _ in range(60):
+            mid = (a + b) / 2
+            if shape(winner(n, seq, term, mid)) == base:
+                a = mid
+            else:
+                b = mid
+        flip_up = round(b, 4)
+    # downward
+    if shape(winner(n, seq, term, lo)) != base:
+        a, b = lo, 1.0
+        for _ in range(60):
+            mid = (a + b) / 2
+            if shape(winner(n, seq, term, mid)) == base:
+                b = mid
+            else:
+                a = mid
+        flip_down = round(a, 4)
+    return flip_up, flip_down
 
 
 def main() -> int:
@@ -78,21 +91,30 @@ def main() -> int:
         base = winner(n, seq)
         row = {"winner": list(shape(base)), "step_ms": round(base.step_sum * 1e3, 2)}
         for term in ("cp", "pp"):
-            k = flip_point(n, seq, term)
-            row[f"flip_{term}"] = k
-            if k is not None:
-                row[f"winner_at_high_{term}"] = list(shape(winner(n, seq, term, 8.0)))
+            up, down = flip_points(n, seq, term)
+            row[f"flip_{term}_up"] = up
+            row[f"flip_{term}_down"] = down
+            sides = []
+            if up is not None:
+                sides.append("up")
+            if down is not None:
+                sides.append("down")
+            row[f"measured_sides_{term}"] = sides
+            if term == "cp":
+                row["winner_at_high_cp"] = list(shape(winner(n, seq, term, 8.0)))
         out[f"N{n}_seq{seq}"] = row
     if "--json" in sys.argv:
         print(json.dumps(out, indent=2, sort_keys=True))
         return 0
     print("Robustness radius: how large a multiplicative error in one term before the winner flips")
-    print(f"{'cell':16s} {'winner':22s} {'flip_cp':>9s} {'flip_pp':>9s}")
+    print(f"{'cell':16s} {'winner':22s} {'cp_up':>9s} {'cp_down':>9s} {'pp_up':>9s} {'pp_down':>9s}")
     for key, row in out.items():
         w = "".join(str(x) for x in row["winner"])
-        fc = row["flip_cp"] if row["flip_cp"] is not None else ">8"
-        fp = row["flip_pp"] if row["flip_pp"] is not None else ">8"
-        print(f"{key:16s} {w:22s} {str(fc):>9s} {str(fp):>9s}")
+        cpu = row["flip_cp_up"] if row["flip_cp_up"] is not None else ">8"
+        cpd = row["flip_cp_down"] if row["flip_cp_down"] is not None else "<.05"
+        ppu = row["flip_pp_up"] if row["flip_pp_up"] is not None else ">8"
+        ppd = row["flip_pp_down"] if row["flip_pp_down"] is not None else "<.05"
+        print(f"{key:16s} {w:22s} {str(cpu):>9s} {str(cpd):>9s} {str(ppu):>9s} {str(ppd):>9s}")
     print()
     print("Reading it: the N=8 verdict survives a CP error up to the listed factor and no further;")
     print("k > 8 means the term is not decisive at that cell at all.")

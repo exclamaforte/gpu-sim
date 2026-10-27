@@ -1,0 +1,36 @@
+..........FF.                                                            [100%]
+=================================== FAILURES ===================================
+_____________________ test_n8_cp_seq32768_interval_present _____________________
+
+    def test_n8_cp_seq32768_interval_present():
+        rad = FACTS["sensitivity_radius"]["N8_seq32768"]
+        lo = f"{rad['flip_cp_down']:.2f}x"
+        hi = f"{rad['flip_cp_up']:.2f}x"
+>       assert f"[{lo}, {hi}]" in DOC
+E       AssertionError: assert '[0.20x, 4.81x]' in '# Training-run parallelism simulator — current design\n\nWritten 2026-10-23. Describes what exists and how to run it....w, 1.86x]; bubble is UNMEASURED; one side measured | scripts/sensitivity_radius.py |\n\n<!-- CLAIMS-REGISTER:END -->\n'
+
+tests/test_b5f2_radius_prose.py:106: AssertionError
+____________________ test_discovery_of_two_number_intervals ____________________
+
+    def test_discovery_of_two_number_intervals():
+        """Widened discovery: every 2-number bracket must be registered."""
+        found = set(_re.findall(r"\[\s*[\d.]+x?\s*,\s*[\d.]+x?\s*\]", DOC))
+        allowed = {
+            "[0.5415, 1.5244]",
+            "[0.54x, 1.52x]",
+            "[0.20x, 4.81x]",
+            "[1, 8]",
+            "[1,8]",
+            "[2, 3]",
+            "[2,3]",
+        }
+        unexpected = found - allowed
+>       assert not unexpected, f"unregistered 2-number interval(s): {unexpected}"
+E       AssertionError: unregistered 2-number interval(s): {'[0.54x, 4.81x]'}
+E       assert not {'[0.54x, 4.81x]'}
+
+tests/test_b5f2_radius_prose.py:122: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_b5f2_radius_prose.py::test_n8_cp_seq32768_interval_present
+FAILED tests/test_b5f2_radius_prose.py::test_discovery_of_two_number_intervals
+2 failed, 11 passed in 0.03s

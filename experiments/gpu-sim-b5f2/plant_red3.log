@@ -1,0 +1,25 @@
+...........F.                                                            [100%]
+=================================== FAILURES ===================================
+____________________ test_discovery_of_two_number_intervals ____________________
+
+    def test_discovery_of_two_number_intervals():
+        """Widened discovery: every 2-number bracket must be registered."""
+        found = set(_re.findall(r"\[\s*[\d.]+x?\s*,\s*[\d.]+x?\s*\]", DOC))
+        allowed = {
+            "[0.5415, 1.5244]",
+            "[0.54x, 1.52x]",
+            "[0.20x, 4.81x]",
+            "[1, 8]",
+            "[1,8]",
+            "[2, 3]",
+            "[2,3]",
+        }
+        unexpected = found - allowed
+>       assert not unexpected, f"unregistered 2-number interval(s): {unexpected}"
+E       AssertionError: unregistered 2-number interval(s): {'[0.99x, 1.01x]'}
+E       assert not {'[0.99x, 1.01x]'}
+
+tests/test_b5f2_radius_prose.py:122: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_b5f2_radius_prose.py::test_discovery_of_two_number_intervals
+1 failed, 12 passed in 0.02s

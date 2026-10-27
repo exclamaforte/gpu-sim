@@ -58,7 +58,7 @@ def test_harness_cp_message_is_twice_the_model_message():
 def test_the_gap_exceeds_the_robustness_radius():
     """The whole point: 2.0x is bigger than the error budget that would overturn the N=8 verdict."""
     facts = json.loads((ROOT / "docs" / "model_facts.json").read_text())
-    radius = facts["sensitivity_radius"]["N8_seq8192"]["flip_cp"]
+    radius = facts["sensitivity_radius"]["N8_seq8192"]["flip_cp_up"]
     size = _kv_gather_size(TRACES / "cp2gqa.jsonl")
     gap = size / ((512 // 2) * 256 * 4)
     assert gap > radius, f"gap {gap:.2f}x is inside the radius {radius}: update the doc claim"
