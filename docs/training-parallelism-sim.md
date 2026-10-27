@@ -38,26 +38,13 @@ slower in absolute terms, because the model is not the only thing that changed: 
 expensive, not the other way round. Any config quoted from this document must therefore carry both its
 batch assumption (below) and its CP convention.
 
-**Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
-CP cost scaled by k in [0, 1.52] (tolerates a 1.52x overestimate before becoming tp=1 pp=8; never
-flips on an underestimate) and for PP cost scaled UPWARD by any k tested (never flips). The CP
-term is the least-verified one. The PP bubble is direction-asymmetric: it is robust to overestimation
-of its cost (k>8) but a 17% UNDERESTIMATE (k=0.82) flips the ring-convention N=8 verdict from
-(tp=4 pp=1 cp=2) to (tp=1 pp=8 cp=1) -- the error budget (gpu-sim-hd5u) is what surfaced this.
-The radius is computed by `scripts/sensitivity_radius.py` (upward sweep only).
+**Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for CP
+cost scaled by k in [0.5415, 1.5244] (two-sided: a 0.54x underestimate flips to (2,1,4,1,0), a
+1.52x overestimate flips to (1,8,1,1,0)); the N=16 verdict is unchanged for PP-bubble cost scaled
+by k in [0.8255, inf) (upward never flips; a 0.83x underestimate flips to (1,8,2,1,0)). CP is the
+least-verified term. The radius is computed by `scripts/sensitivity_radius.py`.
 
-**Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
-(`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fraction of the plausible range
-consumed (the full-width fraction is published alongside; the two orderings disagree, so both
-columns are kept). The tightest margin is `microbatch_factor` (5.95%); then `term_scale_cp` at N=32
-(15.79%) and N=8 (17.48%); then `term_scale_pp` at N=8 (23.26%). `achieved_bw_scale` also flips the
-N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
-parameter. Rows that do not flip (`recompute`, `mem_headroom`, `mem_charge`, `act_factor` and the
-eff classes) are reported with their worst-case margin over the whole range instead of a flip value,
-so they are not empty.
-
-**The PP bubble default is pessimistic, and every winner survives a realistic one (all_gather
-convention).** The model splits
+**The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which
 shrinks the bubble (bubble = compute x (pp-1)/(micro_batches+pp-1)). Sweeping that ratio under the default
 all_gather convention at seq 8192, the winners do not move for micro_batches/pp in [1, 8] and their
@@ -237,7 +224,8 @@ statement about seq 8192 and 32768, not about 8 GPUs in general.
 **How wrong would the decisive term have to be?** The N=8 verdict is decided by the CP term, which the
 harness cannot check by construction; the N=16 verdict is decided by the PP bubble, which no measurement
 covers. Re-running the production model with that one term scaled, the N=8 answer is unchanged for CP
-error up to **1.52x** (and 4.81x at seq 32768), and the N=16 answer for PP-bubble error up to **1.86x**.
+error in **[0.54x, 1.52x]** (and [0.54x, 4.81x] at seq 32768), and the N=16 answer for PP-bubble
+error in **[0.05x, 1.86x]** (1.86x upward).
 Those are the honest confidence bounds on the two verdicts: one term error of that size overturns the
 answer, and a 4x CP error has already been found on this axis once. The CP term can now in principle
 be checked: `tools/torch_parallel` supports grouped-query attention (--n-kv-heads), so
