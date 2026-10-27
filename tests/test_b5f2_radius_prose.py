@@ -17,17 +17,30 @@ def _para(anchor):
     return DOC[start:end if end > 0 else len(DOC)]
 
 
-def test_radius_paragraph_carries_both_sides_from_artifact():
+def test_radius_paragraph_carries_n8_cp_both_sides_from_artifact():
     rad = FACTS["sensitivity_radius"]["N8_seq8192"]
     flip_down = rad["flip_cp_down"]
     flip_up = rad["flip_cp_up"]
     para = _para("Robustness radius")
-    lo = f"{flip_down:.4g}"
-    hi = f"{flip_up:.4g}"
-    assert lo in para, f"radius paragraph missing downward bound {lo}"
-    assert hi in para, f"radius paragraph missing upward bound {hi}"
-    assert "two-sided" in para.lower() or "underestimate" in para.lower(), (
-        "radius paragraph must name the downward side")
+    assert f"{flip_down:.4g}" in para, f"missing downward bound {flip_down:.4g}"
+    assert f"{flip_up:.4g}" in para, f"missing upward bound {flip_up:.4g}"
+
+
+def test_radius_paragraph_carries_n16_pp_up_from_artifact():
+    rad = FACTS["sensitivity_radius"]["N16_seq8192"]
+    pp_up = rad["flip_pp_up"]
+    pp_down = rad["flip_pp_down"]
+    assert pp_down is None, "N16 pp_down should be None"
+    para = _para("Robustness radius")
+    assert f"{pp_up:.3g}" in para, f"missing N16 pp upward bound {pp_up:.3g}"
+
+
+def test_radius_paragraph_n16_clause_has_no_n8_pp_value():
+    # slice on 'the N=16 verdict' so a correct mention of 0.8255 for N8 is allowed
+    idx = DOC.index("the N=16 verdict")
+    clause = DOC[idx:idx + 400]
+    assert "0.8255" not in clause, "N16 clause must not carry N8's pp_down 0.8255"
+    assert "0.83x" not in clause, "N16 clause must not carry N8's 0.83x"
 
 
 def test_radius_paragraph_no_sentinel_lower_bound():
@@ -43,7 +56,8 @@ def test_radius_paragraph_built_from_artifact_not_typed():
     rad = FACTS["sensitivity_radius"]["N8_seq8192"]
     flip_down = rad["flip_cp_down"]
     flip_up = rad["flip_cp_up"]
-    lo = f"{flip_down:.4g}"
-    hi = f"{flip_up:.4g}"
-    assert lo in DOC, f"artifact-derived lower bound {lo} not found in doc"
-    assert hi in DOC, f"artifact-derived upper bound {hi} not found in doc"
+    assert f"{flip_down:.4g}" in DOC
+    assert f"{flip_up:.4g}" in DOC
+    rad16 = FACTS["sensitivity_radius"]["N16_seq8192"]
+    pp_up = rad16["flip_pp_up"]
+    assert f"{pp_up:.3g}" in DOC

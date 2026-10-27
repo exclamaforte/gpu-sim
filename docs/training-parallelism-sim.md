@@ -41,7 +41,7 @@ batch assumption (below) and its CP convention.
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for CP
 cost scaled by k in [0.5415, 1.5244] (two-sided: a 0.54x underestimate flips to (2,1,4,1,0), a
 1.52x overestimate flips to (1,8,1,1,0)); the N=16 verdict is unchanged for PP-bubble cost scaled
-by k in [0.8255, inf) (upward unbounded; a 0.83x underestimate flips to (1,8,2,1,0)). CP is the
+downward (no flip within the sweep); it flips UP at 1.86x to (1,8,2,1,0). CP is the
 least-verified term. The radius is computed by `scripts/sensitivity_radius.py`.
 
 **Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
