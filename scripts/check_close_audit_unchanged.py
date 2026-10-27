@@ -10,7 +10,7 @@ rebase produced a spurious diff.
 So a branch may NOT change this path relative to its merge-base with `main`/`master`.
 Regenerate it on main only.
 
-Exit 0 if unchanged (or if there is no base to compare against), 1 otherwise.
+Exit 0 if unchanged, 1 otherwise (including when no base can be resolved).
 """
 from __future__ import annotations
 import subprocess

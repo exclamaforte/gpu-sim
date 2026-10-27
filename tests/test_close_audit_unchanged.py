@@ -78,6 +78,29 @@ class TestModifiedFails(BaseRepo):
         self.assertIn("deleted on this branch", out)
 
 
+class TestHeadVsWorktree(BaseRepo):
+    def test_committed_churn_detected_even_if_worktree_restored(self):
+        """HEAD carries the churn; restoring the worktree to the base blob must
+        NOT hide it, because the guard reads the committed (HEAD) blob."""
+        p = self.repo / REL
+        p.write_text('{"primary_rows": 999}\n')
+        git(self.repo, "checkout", "-b", "feature")
+        git(self.repo, "add", REL)
+        git(self.repo, "commit", "-qm", "modify")
+        # restore the worktree copy to the base blob (HEAD still churned)
+        git(self.repo, "checkout", "master", "--", REL)
+        rc, out = self.run_guard()
+        self.assertEqual(rc, 1)
+        self.assertIn("differs from its base blob", out)
+
+    def test_clean_head_with_dirty_worktree_passes(self):
+        """A dirty working tree on top of a clean HEAD is not a branch change."""
+        p = self.repo / REL
+        p.write_text('{"primary_rows": 999}\n')
+        rc, out = self.run_guard()
+        self.assertEqual(rc, 0)
+
+
 class TestNoMergeBaseFailsClosed(BaseRepo):
     def test_no_master_main_ref_fails(self):
         # rename master away so no merge-base resolves
