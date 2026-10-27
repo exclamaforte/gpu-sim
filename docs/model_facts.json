@@ -484,9 +484,14 @@
         "current_margin": 5.339521356138521,
         "default": 1.0,
         "elasticity": 4.0541,
+        "flip_down": 0.825536,
+        "flip_up": null,
         "flip_value": 0.825536,
         "fraction_of_range_consumed": 0.046524,
         "fraction_one_sided": 0.232619,
+        "measured_sides": [
+          "down"
+        ],
         "parameter": "term_scale_pp",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -520,14 +525,103 @@
         "current_margin": 5.339521356138521,
         "default": 1.0,
         "elasticity": -2.473,
+        "flip_down": null,
+        "flip_up": 1.416498,
         "flip_value": 1.416498,
         "fraction_of_range_consumed": 0.0595,
         "fraction_one_sided": 0.0595,
+        "measured_sides": [
+          "up"
+        ],
         "parameter": "microbatch_factor",
         "provenance": "assumed (no measurement)",
         "range": [
           1.0,
           8.0
+        ]
+      },
+      {
+        "affected_verdict": "N32_winner",
+        "base_verdict": [
+          "1",
+          "16",
+          "2",
+          "1",
+          "0"
+        ],
+        "bracket_above": [
+          "1",
+          "32",
+          "1",
+          "1",
+          "0"
+        ],
+        "bracket_below": [
+          "1",
+          "16",
+          "2",
+          "1",
+          "0"
+        ],
+        "current_margin": 1.653004302222219,
+        "default": 1.0,
+        "elasticity": 1.7593,
+        "flip_down": 0.543921,
+        "flip_up": 2.229006,
+        "flip_value": 0.543921,
+        "fraction_of_range_consumed": 0.121621,
+        "fraction_one_sided": 0.608105,
+        "measured_sides": [
+          "up",
+          "down"
+        ],
+        "parameter": "term_scale_pp",
+        "provenance": "assumed (no measurement)",
+        "range": [
+          0.25,
+          4.0
+        ]
+      },
+      {
+        "affected_verdict": "N8_winner",
+        "base_verdict": [
+          "4",
+          "1",
+          "2",
+          "1",
+          "0"
+        ],
+        "bracket_above": [
+          "2",
+          "1",
+          "4",
+          "1",
+          "0"
+        ],
+        "bracket_below": [
+          "4",
+          "1",
+          "2",
+          "1",
+          "0"
+        ],
+        "current_margin": 5.339521356138521,
+        "default": 1.0,
+        "elasticity": -0.8009,
+        "flip_down": 0.541452,
+        "flip_up": 1.524446,
+        "flip_value": 0.541452,
+        "fraction_of_range_consumed": 0.122279,
+        "fraction_one_sided": 0.611397,
+        "measured_sides": [
+          "up",
+          "down"
+        ],
+        "parameter": "term_scale_cp",
+        "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
+        "range": [
+          0.25,
+          4.0
         ]
       },
       {
@@ -556,9 +650,14 @@
         "current_margin": 2.5041830372857232,
         "default": 1.0,
         "elasticity": 0.9967,
+        "flip_down": 0.538343,
+        "flip_up": null,
         "flip_value": 0.538343,
         "fraction_of_range_consumed": 0.123109,
         "fraction_one_sided": 0.615543,
+        "measured_sides": [
+          "down"
+        ],
         "parameter": "term_scale_cp",
         "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
         "range": [
@@ -592,9 +691,14 @@
         "current_margin": 5.339521356138521,
         "default": 1.0,
         "elasticity": 4.4049,
+        "flip_down": 0.814132,
+        "flip_up": null,
         "flip_value": 0.814132,
         "fraction_of_range_consumed": 0.123912,
         "fraction_one_sided": 0.371736,
+        "measured_sides": [
+          "down"
+        ],
         "parameter": "achieved_bw_scale",
         "provenance": "published-spec (datasheet, not measured here)",
         "range": [
@@ -628,45 +732,15 @@
         "current_margin": 1.653004302222219,
         "default": 1.0,
         "elasticity": -1.4352,
+        "flip_down": 0.44863,
+        "flip_up": 1.473694,
         "flip_value": 1.473694,
         "fraction_of_range_consumed": 0.126318,
         "fraction_one_sided": 0.157898,
-        "parameter": "term_scale_cp",
-        "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
-        "range": [
-          0.25,
-          4.0
-        ]
-      },
-      {
-        "affected_verdict": "N8_winner",
-        "base_verdict": [
-          "4",
-          "1",
-          "2",
-          "1",
-          "0"
+        "measured_sides": [
+          "up",
+          "down"
         ],
-        "bracket_above": [
-          "1",
-          "8",
-          "1",
-          "1",
-          "0"
-        ],
-        "bracket_below": [
-          "4",
-          "1",
-          "2",
-          "1",
-          "0"
-        ],
-        "current_margin": 5.339521356138521,
-        "default": 1.0,
-        "elasticity": -0.8009,
-        "flip_value": 1.524446,
-        "fraction_of_range_consumed": 0.139852,
-        "fraction_one_sided": 0.174815,
         "parameter": "term_scale_cp",
         "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
         "range": [
@@ -700,45 +774,14 @@
         "current_margin": 2.5041830372857232,
         "default": 1.0,
         "elasticity": -0.861,
+        "flip_down": null,
+        "flip_up": 1.857551,
         "flip_value": 1.857551,
         "fraction_of_range_consumed": 0.22868,
         "fraction_one_sided": 0.28585,
-        "parameter": "term_scale_pp",
-        "provenance": "assumed (no measurement)",
-        "range": [
-          0.25,
-          4.0
-        ]
-      },
-      {
-        "affected_verdict": "N32_winner",
-        "base_verdict": [
-          "1",
-          "16",
-          "2",
-          "1",
-          "0"
+        "measured_sides": [
+          "up"
         ],
-        "bracket_above": [
-          "1",
-          "8",
-          "4",
-          "1",
-          "0"
-        ],
-        "bracket_below": [
-          "1",
-          "16",
-          "2",
-          "1",
-          "0"
-        ],
-        "current_margin": 1.653004302222219,
-        "default": 1.0,
-        "elasticity": 1.7593,
-        "flip_value": 2.229006,
-        "fraction_of_range_consumed": 0.327735,
-        "fraction_one_sided": 0.409669,
         "parameter": "term_scale_pp",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -754,9 +797,12 @@
         "current_margin": 21.089951743999997,
         "default": 0.0,
         "elasticity": -80.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_headroom",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -772,9 +818,12 @@
         "current_margin": -7.2594145279999935,
         "default": 0.0,
         "elasticity": -80.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_headroom",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -790,9 +839,12 @@
         "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": 12.0202,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_charge",
         "provenance": "measured (scup 1.25x memory charge)",
         "range": [
@@ -812,9 +864,12 @@
         "current_margin": 5.339521356138521,
         "default": 0.0,
         "elasticity": 7.3764,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -830,9 +885,12 @@
         "current_margin": 21.089951743999997,
         "default": 0.0,
         "elasticity": 4.072,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -848,9 +906,12 @@
         "current_margin": -7.2594145279999935,
         "default": 0.0,
         "elasticity": 4.0624,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -866,9 +927,12 @@
         "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": -2.7933,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_charge",
         "provenance": "measured (scup 1.25x memory charge)",
         "range": [
@@ -888,9 +952,12 @@
         "current_margin": 2.5041830372857232,
         "default": 1.0,
         "elasticity": -1.3124,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "achieved_bw_scale",
         "provenance": "published-spec (datasheet, not measured here)",
         "range": [
@@ -910,9 +977,12 @@
         "current_margin": 1.653004302222219,
         "default": 1.0,
         "elasticity": -1.0434,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "achieved_bw_scale",
         "provenance": "published-spec (datasheet, not measured here)",
         "range": [
@@ -928,9 +998,12 @@
         "current_margin": -7.2594145279999935,
         "default": 2.3,
         "elasticity": 0.8352,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "act_factor",
         "provenance": "measured (gpu-sim-4nf, 2.3x)",
         "range": [
@@ -946,9 +1019,12 @@
         "current_margin": 21.089951743999997,
         "default": 2.3,
         "elasticity": -0.2882,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "act_factor",
         "provenance": "measured (gpu-sim-4nf, 2.3x)",
         "range": [
@@ -968,9 +1044,12 @@
         "current_margin": 2.5041830372857232,
         "default": 0.0,
         "elasticity": -0.136,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -990,9 +1069,12 @@
         "current_margin": 2.5041830372857232,
         "default": 1.0,
         "elasticity": -0.0668,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "microbatch_factor",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1012,9 +1094,12 @@
         "current_margin": 2.368213329940479,
         "default": 0.25,
         "elasticity": -0.0574,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute_charge",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -1030,9 +1115,12 @@
         "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "term_scale_cp",
         "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
         "range": [
@@ -1048,9 +1136,12 @@
         "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "term_scale_cp",
         "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
         "range": [
@@ -1066,9 +1157,12 @@
         "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "term_scale_pp",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1084,9 +1178,12 @@
         "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "term_scale_pp",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1106,9 +1203,12 @@
         "current_margin": 1.653004302222219,
         "default": 0.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -1128,9 +1228,12 @@
         "current_margin": 8.516584817777783,
         "default": 0.25,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "recompute_charge",
         "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
         "range": [
@@ -1150,9 +1253,12 @@
         "current_margin": 8.516584817777783,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "alpha_scale",
         "provenance": "measured on one RTX 5090 (0.176/0.420/0.594); effective range capped at 1/0.594",
         "range": [
@@ -1172,9 +1278,12 @@
         "current_margin": 2.368213329940479,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "alpha_scale",
         "provenance": "measured on one RTX 5090 (0.176/0.420/0.594); effective range capped at 1/0.594",
         "range": [
@@ -1194,9 +1303,12 @@
         "current_margin": 1.653004302222219,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "microbatch_factor",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1212,9 +1324,12 @@
         "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "microbatch_factor",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1230,9 +1345,12 @@
         "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "microbatch_factor",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1252,9 +1370,12 @@
         "current_margin": 5.339521356138521,
         "default": 2.3,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "act_factor",
         "provenance": "measured (gpu-sim-4nf, 2.3x)",
         "range": [
@@ -1274,9 +1395,12 @@
         "current_margin": 2.5041830372857232,
         "default": 2.3,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "act_factor",
         "provenance": "measured (gpu-sim-4nf, 2.3x)",
         "range": [
@@ -1296,9 +1420,12 @@
         "current_margin": 1.653004302222219,
         "default": 2.3,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "act_factor",
         "provenance": "measured (gpu-sim-4nf, 2.3x)",
         "range": [
@@ -1314,9 +1441,12 @@
         "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "achieved_bw_scale",
         "provenance": "published-spec (datasheet, not measured here)",
         "range": [
@@ -1332,9 +1462,12 @@
         "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "achieved_bw_scale",
         "provenance": "published-spec (datasheet, not measured here)",
         "range": [
@@ -1354,9 +1487,12 @@
         "current_margin": 5.339521356138521,
         "default": 0.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_headroom",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1376,9 +1512,12 @@
         "current_margin": 2.5041830372857232,
         "default": 0.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_headroom",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1398,9 +1537,12 @@
         "current_margin": 1.653004302222219,
         "default": 0.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_headroom",
         "provenance": "assumed (no measurement)",
         "range": [
@@ -1420,9 +1562,12 @@
         "current_margin": 5.339521356138521,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_charge",
         "provenance": "measured (scup 1.25x memory charge)",
         "range": [
@@ -1442,9 +1587,12 @@
         "current_margin": 2.5041830372857232,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_charge",
         "provenance": "measured (scup 1.25x memory charge)",
         "range": [
@@ -1464,9 +1612,12 @@
         "current_margin": 1.653004302222219,
         "default": 1.0,
         "elasticity": 0.0,
+        "flip_down": null,
+        "flip_up": null,
         "flip_value": null,
         "fraction_of_range_consumed": 1.0,
         "fraction_one_sided": 1.0,
+        "measured_sides": [],
         "parameter": "mem_charge",
         "provenance": "measured (scup 1.25x memory charge)",
         "range": [

@@ -174,8 +174,11 @@ def winner_config(param, value, cell):
     v, w, _ = winner_cell(N, seq, model, hw)
     return v
 
-def bisect_flip(param, cell, default_val, lo, hi):
+def bisect_flips(param, cell, default_val, lo, hi):
+    """Return (flip_up, flip_down)."""
     base = verdict_for(param, default_val, cell)
+    flip_up = None
+    flip_down = None
     if verdict_for(param, hi, cell) != base:
         a, b = default_val, hi
         if a > b:
@@ -186,7 +189,7 @@ def bisect_flip(param, cell, default_val, lo, hi):
                 a = mid
             else:
                 b = mid
-        return round(b, 6)
+        flip_up = round(b, 6)
     if verdict_for(param, lo, cell) != base:
         a, b = lo, default_val
         if a > b:
@@ -197,8 +200,8 @@ def bisect_flip(param, cell, default_val, lo, hi):
                 b = mid
             else:
                 a = mid
-        return round(a, 6)
-    return None
+        flip_down = round(a, 6)
+    return flip_up, flip_down
 
 def elasticity(param, cell, default_val, lo, hi):
     step = (hi - lo) * 0.05
@@ -259,7 +262,13 @@ def main():
         for cell in cells:
             cname = cell[0]
             base_verdict = verdict_for(name, default_val, cell)
-            flip = bisect_flip(name, cell, default_val, lo, hi)
+            flip_up, flip_down = bisect_flips(name, cell, default_val, lo, hi)
+            # primary flip = nearer of the two (smaller fraction)
+            candidates = [x for x in (flip_up, flip_down) if x is not None]
+            if candidates:
+                flip = min(candidates, key=lambda x: abs(default_val - x) / (hi - lo) if (hi-lo)>0 else 1.0)
+            else:
+                flip = None
             if flip is None:
                 frac = 1.0
                 frac_os = 1.0
@@ -277,6 +286,9 @@ def main():
                 "base_verdict": [str(x) for x in base_verdict],
                 "current_margin": margin,
                 "flip_value": flip,
+                "flip_up": flip_up,
+                "flip_down": flip_down,
+                "measured_sides": (["up"] if flip_up is not None else []) + (["down"] if flip_down is not None else []),
                 "fraction_of_range_consumed": round(frac, 6),
                 "fraction_one_sided": round(frac_os, 6),
                 "elasticity": (None if (isinstance(elast, float) and math.isnan(elast)) else round(elast, 4)),
