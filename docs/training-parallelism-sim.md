@@ -41,8 +41,18 @@ batch assumption (below) and its CP convention.
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for CP
 cost scaled by k in [0.5415, 1.5244] (two-sided: a 0.54x underestimate flips to (2,1,4,1,0), a
 1.52x overestimate flips to (1,8,1,1,0)); the N=16 verdict is unchanged for PP-bubble cost scaled
-by k in [0.8255, inf) (upward never flips; a 0.83x underestimate flips to (1,8,2,1,0)). CP is the
+by k in [0.8255, inf) (upward unbounded; a 0.83x underestimate flips to (1,8,2,1,0)). CP is the
 least-verified term. The radius is computed by `scripts/sensitivity_radius.py`.
+
+**Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
+(`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fraction of the plausible range
+consumed (the full-width fraction is published alongside; the two orderings disagree, so both
+columns are kept). The tightest margin is `microbatch_factor` (5.95%); then `term_scale_cp` at N=32
+(15.79%) and N=8 (17.48%); then `term_scale_pp` at N=8 (23.26%). `achieved_bw_scale` also flips the
+N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
+parameter. Rows that do not flip (`recompute`, `mem_headroom`, `mem_charge`, `act_factor` and the
+eff classes) are reported with their worst-case margin over the whole range instead of a flip value,
+so they are not empty.
 
 **The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which

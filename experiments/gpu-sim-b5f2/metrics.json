@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-b5f2",
+  "gate": "scripts/gate.sh 8/8 PASS (run handle rmvqv3cne1, tip 23668fe, 2026-10-27)",
+  "checks": [
+    "scripts/check_radius_directions.py deleted",
+    "grep 'radius directions' scripts/gate.sh == 0",
+    "gen_claims_register --check passes",
+    "tests/test_b5f2_radius_prose.py passes"
+  ]
+}
