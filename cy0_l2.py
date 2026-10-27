@@ -275,6 +275,7 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
         "placement": "TP group on one node, ranks contiguous per cy0_l3 (ranks 0..world_size-1).",
         "reconciliation": "sum of record seconds per rank excluding kind=hidden equals total_seconds; overlapped TP comm is reported hidden and not double-counted.",
         "provenance_policy": "published-spec | measured:<artifact> | fitted:<trace>",
+        "pp_sends": "not modelled: cy0_l2 has no pipeline-send cost term; absence of send/recv records means unmodelled, not absent.",
         "predicted": True,
     })
 
@@ -333,7 +334,7 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
                              "algorithm": "ring_allreduce", "predicted_s": overlapped_total,
                              "seconds": overlapped_total, "bottleneck_link": tp_bl,
                              "regime": tp_regime, "predicted": True,
-                             "provenance": "published-spec: link_model.predict ring_allreduce (hidden)"})
+                             "provenance": "published-spec: seconds from cy0_l2 overlapped_seconds (layer_tp_comm_time); bytes/count/bottleneck_link/regime from link_model.predict (tp_allreduce_detail)"})
 
     return {
         "total_seconds": total,

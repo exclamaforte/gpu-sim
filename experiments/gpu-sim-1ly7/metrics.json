@@ -45,5 +45,6 @@
   }
  },
  "negative_control": "cy0_l3 --json output (components) unchanged; only additive timeline/trace + --trace flag",
- "gate": "scripts/gate.sh 8/8 PASS (run rmvqh58qf0, exit 0)"
+ "gate": "scripts/gate.sh 8/8 PASS (run rmvqiz1ei2, exit 0)",
+ "rework": "validate_trace.py membership asserts restored (OPS/ALGOS/REGIMES); header detection tightened (type==header + subset of HEADER_KEYS, no rank); header gains pp_sends clause; determinism guard added (rank-less records must be single header); planted bad records now rejected; legacy trace still passes."
 }

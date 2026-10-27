@@ -6,14 +6,16 @@ REQUIRED = ["ts_ns","rank","nranks","op","count","dtype","bytes","algorithm","pr
 OPS = {"allreduce","broadcast","allgather","reducescatter","alltoall","reduce","send","recv",
        "forward_layer","backward_layer","optimizer","bubble","tp_allreduce","dp_allreduce"}
 OPS_PREFIX_OK = True
-ALGOS = {"ring_allreduce","ring_allgather","ring_reduce_scatter","ring_alltoall","tree_bcast","p2p"}
-REGIMES = {"latency","bandwidth"}
+ALGOS = {"ring_allreduce","ring_allgather","ring_reduce_scatter","ring_alltoall","tree_bcast","p2p",
+         "p2p->0","p2p->1","fallback"}
+REGIMES = {"latency","bandwidth","p2p-unmodelled","unmodelled"}
 DTYPES = {"int8","uint8","float16","bfloat16","int32","uint32","float32","int64","uint64","float64"}
 COMPUTE_KINDS = {"compute","comm","idle","hidden"}
 COMPUTE_REQUIRED = ["ts_ns","rank","nranks","op","kind","phase"]
+HEADER_KEYS = {"type","world_size","placement","reconciliation","provenance_policy","pp_sends","predicted"}
 
 def _is_header(obj):
-    return obj.get("type") == "header" or "header" in obj
+    return obj.get("type") == "header"
 
 def validate(path):
     n = 0
@@ -23,7 +25,9 @@ def validate(path):
             if not line:
                 continue
             obj = json.loads(line)
-            if _is_header(obj):
+            if obj.get("type") == "header":
+                assert "rank" not in obj, "header must not carry a rank"
+                assert set(obj.keys()) <= HEADER_KEYS, f"unknown header keys: {set(obj.keys()) - HEADER_KEYS}"
                 n += 1
                 continue
             # Collective shape: all m3d.7 required present (superset allowed)
@@ -31,17 +35,16 @@ def validate(path):
                 assert isinstance(obj["ts_ns"], int)
                 assert isinstance(obj["rank"], int) and obj["rank"] >= 0
                 assert isinstance(obj["nranks"], int) and obj["nranks"] >= 1
-                # op may be a collective op or a prefixed compute name; allow any str
-                assert isinstance(obj["op"], str)
+                assert obj["op"] in OPS
                 assert isinstance(obj["count"], int) and obj["count"] >= 0
                 assert obj["dtype"] in DTYPES
                 assert isinstance(obj["bytes"], int) and obj["bytes"] >= 0
-                assert isinstance(obj["algorithm"], str) and obj["algorithm"]
+                assert obj["algorithm"] in ALGOS
                 ps = obj["predicted_s"]
                 assert ps is None or (isinstance(ps, (int,float)) and ps >= 0)
                 bl = obj["bottleneck_link"]
                 assert bl is None or (isinstance(bl,int) and bl >= 0)
-                assert isinstance(obj["regime"], str) and obj["regime"]
+                assert obj["regime"] in REGIMES
                 n += 1
                 continue
             # Compute/idle shape: additive extension
