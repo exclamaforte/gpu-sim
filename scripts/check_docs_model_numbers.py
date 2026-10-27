@@ -65,6 +65,8 @@ def compute_facts():
     import subprocess, json as _json
     _rad = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sensitivity_radius.py"), "--json"],
                           capture_output=True, text=True, check=True)
+    _eb = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "error_budget.py"), "--json"],
+                         capture_output=True, text=True, check=True)
     # gpu-sim-cpgqa: measured convention gap between the model's ring CP and the harness's all_gather CP.
     def _gap(seq, kv, name):
         rows = [json.loads(l) for l in open(os.path.join(ROOT, "experiments", "gpu-sim-cpgqa", name))
@@ -281,6 +283,7 @@ def compute_facts():
              "cp_convention_answers": _conv,
              "cp_convention_gap": _cp_gap,
              "sensitivity_radius": _json.loads(_rad.stdout),
+             "error_budget": _json.loads(_eb.stdout),
              "model": "llama3-8b", "act_factor": ACT_FACTOR,
              "pricing_path": "spec/topology", "rank_by": "sum", "rows": {}}
 

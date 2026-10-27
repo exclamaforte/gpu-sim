@@ -39,11 +39,25 @@ expensive, not the other way round. Any config quoted from this document must th
 batch assumption (below) and its CP convention.
 
 **Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for
-CP cost scaled by k in [0, 1.52] and PP cost by any k (never flips). CP -- the least-verified
-term -- tolerates a 1.52x overestimate before the answer becomes tp=1 pp=8; it never flips on an
-underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
+CP cost scaled by k in [0, 1.52] (tolerates a 1.52x overestimate before becoming tp=1 pp=8; never
+flips on an underestimate) and for PP cost scaled UPWARD by any k tested (never flips). The CP
+term is the least-verified one. The PP bubble is direction-asymmetric: it is robust to overestimation
+of its cost (k>8) but a 17% UNDERESTIMATE (k=0.82) flips the ring-convention N=8 verdict from
+(tp=4 pp=1 cp=2) to (tp=1 pp=8 cp=1) -- the error budget (gpu-sim-hd5u) is what surfaced this.
+The radius is computed by `scripts/sensitivity_radius.py` (upward sweep only).
 
-**The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
+**Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
+(`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fraction of the plausible range
+consumed (the full-width fraction is published alongside; the two orderings disagree, so both
+columns are kept). The tightest margin is `microbatch_factor` (5.95%); then `term_scale_cp` at N=32
+(15.79%) and N=8 (17.48%); then `term_scale_pp` at N=8 (23.26%). `achieved_bw_scale` also flips the
+N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
+parameter. Rows that do not flip (`recompute`, `mem_headroom`, `mem_charge`, `act_factor` and the
+eff classes) are reported with their worst-case margin over the whole range instead of a flip value,
+so they are not empty.
+
+**The PP bubble default is pessimistic, and every winner survives a realistic one (all_gather
+convention).** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which
 shrinks the bubble (bubble = compute x (pp-1)/(micro_batches+pp-1)). Sweeping that ratio under the default
 all_gather convention at seq 8192, the winners do not move for micro_batches/pp in [1, 8] and their

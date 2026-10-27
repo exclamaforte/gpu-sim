@@ -127,20 +127,30 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # (the topology path reads its parameters from the spec).
     _alpha_override = hw.get("alpha_s")
     _bw_override = hw.get("bw_gbps")
-    if spec_path is None and (_alpha_override is not None or _bw_override is not None):
-        base = nccl_cost.FABRICS.get(fabric, {"alpha_s": 1.5e-6, "bw_gbps": 450.0})
-        ov = dict(base)
-        if _alpha_override is not None:
-            ov["alpha_s"] = _alpha_override
-        if _bw_override is not None:
-            ov["bw_gbps"] = _bw_override
-        nccl_cost.FABRICS["__ov__"] = ov
-        fabric = "__ov__"
+    _bw_scale = hw.get("bw_scale", hw.get("achieved_bw_scale", 1.0))
+    if spec_path is None:
+        if (_alpha_override is not None or _bw_override is not None or _bw_scale not in (None, 1.0)):
+            base = nccl_cost.FABRICS.get(fabric, {"alpha_s": 1.5e-6, "bw_gbps": 450.0})
+            ov = dict(base)
+            if _alpha_override is not None:
+                ov["alpha_s"] = _alpha_override
+            if _bw_override is not None:
+                ov["bw_gbps"] = _bw_override
+            if _bw_scale not in (None, 1.0):
+                ov["bw_gbps"] = ov["bw_gbps"] * _bw_scale
+                ov["alpha_s"] = ov["alpha_s"] / _bw_scale
+            nccl_cost.FABRICS["__ov__"] = ov
+            fabric = "__ov__"
     spec = None
     if spec_path:
         import json
         with open(spec_path) as _f:
             spec = json.load(_f)
+        _bw_scale = hw.get("achieved_bw_scale", hw.get("bw_scale", 1.0))
+        if _bw_scale is not None and _bw_scale != 1.0:
+            for _lk in spec.get("links", []):
+                if "bw_gbps" in _lk:
+                    _lk["bw_gbps"] = _lk["bw_gbps"] * _bw_scale
 
     # ---- Per-rank memory model (gpu-sim-6y1) ----
     # Assumptions stated per term. Mixed precision (bf16/fp16) is assumed:
@@ -291,7 +301,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # retention at seq 8192 (model keeps 0.45, rig keeps 0.33) and provably misses the
     # falsifiable target -- with 0.55 the 70B/batch-32/80-GPU cell picks pp=2 at 2.25%
     # margin instead of the measured (1,1,1,80,3) at ~10.6%.
-    act_retained = 1.0 - _recompute_alpha(seq) * recompute
+    _alpha = _recompute_alpha(seq) * hw.get("alpha_scale", hw.get("recompute_alpha_scale", 1.0))
+    _alpha = max(0.0, min(1.0, _alpha))
+    act_retained = 1.0 - _alpha * recompute
     act_bytes = layers_per_stage * seq_per_cp * dtype_bytes * per_token_width * act_factor * act_retained
 
     # attention workspace (scores): [heads/tp, seq/cp, seq] if not flash
@@ -311,6 +323,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
 
     total_mem_bytes = (param_bytes + grad_bytes + master_bytes + opt_bytes
                        + temps_bytes + act_bytes + attn_ws_bytes + logits_bytes + cp_buf_bytes)
+    total_mem_bytes = total_mem_bytes * hw.get("mem_charge", 1.0)
     total_mem_gb = total_mem_bytes / 1e9
 
     feasible = total_mem_bytes <= mem_limit
@@ -320,7 +333,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     batch = hw.get("batch", 1)
     # gpu-sim-bubble: micro_batches defaults to pp (1x). Deployments pick micro_batches as large as
     # memory allows, which shrinks the bubble; micro_batches_mult asks "what if" without changing it.
-    micro_batches = hw.get("micro_batches", pp * hw.get("micro_batches_mult", 1))
+    micro_batches = hw.get("micro_batches", pp * hw.get("microbatch_factor", hw.get("micro_batches_mult", 1)))
     tokens_per_gpu = (batch * seq) / (cp * dp)
     flops_per_gpu = 6 * (P / (tp * pp)) * tokens_per_gpu
     # attention FLOPs (fwd+bwd): 12 * L * S^2 * d / (tp*pp*cp*dp)
@@ -339,7 +352,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     # Applied to the compute term only; comm terms are untouched. The PP bubble derives from
     # stage compute time, so it scales with it -- a recomputed stage is slower to drain.
     compute = flops_per_gpu / peak
-    compute *= 1.0 + 0.25 * recompute
+    compute *= 1.0 + hw.get("recompute_charge", 0.25) * recompute
     # PP bubble (GPipe): idle time, NOT FLOPs. Kept out of `compute` so the
     # compute term stays invariant across pp splits (gpu-sim-i95 conservation).
     bubble = 0.0
@@ -587,7 +600,7 @@ def comm_bytes(tp, pp, cp, dp, zero, hw, m):
     batch = hw.get("batch", 1)
     # gpu-sim-bubble: micro_batches defaults to pp (1x). Deployments pick micro_batches as large as
     # memory allows, which shrinks the bubble; micro_batches_mult asks "what if" without changing it.
-    micro_batches = hw.get("micro_batches", pp * hw.get("micro_batches_mult", 1))
+    micro_batches = hw.get("micro_batches", pp * hw.get("microbatch_factor", hw.get("micro_batches_mult", 1)))
     tp_payload_mode = hw.get("tp_payload", "four_d")
     if tp_payload_mode == "harness" or tp_payload_mode == "harness_3d_over_tp":
         tp_scales = [3.0 / tp] * 4
