@@ -101,7 +101,7 @@ rm -f "$GATE_LOG"
 # what was supposed to run, so a missing check looks exactly like a passing one. The manifest
 # below is that comparison: if a check is dropped, renamed, or silently fails to start, the
 # gate now FAILS instead of shrinking.
-EXPECTED_HARD=8
+EXPECTED_HARD=9
 EXPECTED_ADVISORY=3
 # --fast skips exactly one hard check (the test suite), so the manifest must track the mode
 if [ $FAST -eq 1 ]; then

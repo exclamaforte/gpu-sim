@@ -234,7 +234,7 @@ statement about seq 8192 and 32768, not about 8 GPUs in general.
 **How wrong would the decisive term have to be?** The N=8 verdict is decided by the CP term, which the
 harness cannot check by construction; the N=16 verdict is decided by the PP bubble, which no measurement
 covers. Re-running the production model with that one term scaled, the N=8 answer is unchanged for CP
-error in **[0.54x, 1.52x]** (and [0.54x, 4.81x] at seq 32768), and the N=16 answer for PP-bubble
+error in **[0.54x, 1.52x]** (and [0.20x, 4.81x] at seq 32768), and the N=16 answer for PP-bubble
 error in **[unbounded below (no flip down to the 0.05x sweep floor), 1.86x upward]**.
 Those are the honest confidence bounds on the two verdicts: one term error of that size overturns the
 answer, and a 4x CP error has already been found on this axis once. The CP term can now in principle

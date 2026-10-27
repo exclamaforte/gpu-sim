@@ -1,0 +1,28 @@
+.F.....F.                                                                [100%]
+=================================== FAILURES ===================================
+_____________________ test_n8_cp_seq32768_interval_present _____________________
+
+    def test_n8_cp_seq32768_interval_present():
+        rad = FACTS["sensitivity_radius"]["N8_seq32768"]
+        lo = f"{rad['flip_cp_down']:.2f}x"
+        hi = f"{rad['flip_cp_up']:.2f}x"
+>       assert f"[{lo}, {hi}]" in DOC
+E       AssertionError: assert '[0.20x, 4.81x]' in '# Training-run parallelism simulator — current design\n\nWritten 2026-10-23. Describes what exists and how to run it....w, 1.86x]; bubble is UNMEASURED; one side measured | scripts/sensitivity_radius.py |\n\n<!-- CLAIMS-REGISTER:END -->\n'
+
+tests/test_b5f2_radius_prose.py:48: AssertionError
+________________________ test_discovery_of_x_intervals _________________________
+
+    def test_discovery_of_x_intervals():
+        # discover every bracket carrying an 'x' and require it be in the allow-list
+        found = set(re.findall(r"\[[^\]]*x[^\]]*\]", DOC))
+        allowed = _interval_strings()
+        unexpected = found - allowed
+>       assert not unexpected, f"unregistered interval-shaped claim(s): {unexpected}"
+E       AssertionError: unregistered interval-shaped claim(s): {'[0.54x, 4.81x]'}
+E       assert not {'[0.54x, 4.81x]'}
+
+tests/test_b5f2_radius_prose.py:83: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_b5f2_radius_prose.py::test_n8_cp_seq32768_interval_present
+FAILED tests/test_b5f2_radius_prose.py::test_discovery_of_x_intervals - Asser...
+2 failed, 7 passed in 0.03s
