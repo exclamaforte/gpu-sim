@@ -138,15 +138,14 @@ else
 fi
 manifest_fail=0
 if [ "${#RAN[@]}" -ne "$EXPECTED_TOTAL" ]; then
-  echo "MANIFEST: ${#RAN[@]} checks ran, expected $EXPECTED_TOTAL"
+  echo "MANIFEST: checks MISSING: ${#RAN[@]} ran, expected $EXPECTED_TOTAL"
   manifest_fail=1
 fi
 if [ "$pass" -ne "$EXPECTED_HARD_NOW" ]; then
-  echo "MANIFEST: $pass hard checks passed, expected $EXPECTED_HARD_NOW"
+  echo "MANIFEST FAILED: $pass passed, expected $EXPECTED_HARD_NOW"
   manifest_fail=1
 fi
 if [ $manifest_fail -ne 0 ]; then
-  echo "MANIFEST FAILED: the gate did not run the checks it advertises"
   printf 'ran: %s\n' "${RAN[*]}"
   exit 1
 fi
