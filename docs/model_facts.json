@@ -373,8 +373,16 @@
   },
   "sensitivity_radius": {
     "N16_seq8192": {
-      "flip_cp": null,
-      "flip_pp": 1.8576,
+      "flip_cp_down": 0.5383,
+      "flip_cp_up": null,
+      "flip_pp_down": null,
+      "flip_pp_up": 1.8576,
+      "measured_sides_cp": [
+        "down"
+      ],
+      "measured_sides_pp": [
+        "up"
+      ],
       "step_ms": 50.66,
       "winner": [
         1,
@@ -383,17 +391,27 @@
         1,
         0
       ],
-      "winner_at_high_pp": [
-        2,
+      "winner_at_high_cp": [
         1,
-        8,
+        16,
+        1,
         1,
         0
       ]
     },
     "N32_seq8192": {
-      "flip_cp": 1.4737,
-      "flip_pp": 2.229,
+      "flip_cp_down": 0.4486,
+      "flip_cp_up": 1.4737,
+      "flip_pp_down": 0.5439,
+      "flip_pp_up": 2.229,
+      "measured_sides_cp": [
+        "up",
+        "down"
+      ],
+      "measured_sides_pp": [
+        "up",
+        "down"
+      ],
       "step_ms": 30.33,
       "winner": [
         1,
@@ -408,18 +426,20 @@
         1,
         2,
         2
-      ],
-      "winner_at_high_pp": [
-        4,
-        1,
-        8,
-        1,
-        0
       ]
     },
     "N8_seq32768": {
-      "flip_cp": 4.8104,
-      "flip_pp": null,
+      "flip_cp_down": 0.1964,
+      "flip_cp_up": 4.8104,
+      "flip_pp_down": 0.3645,
+      "flip_pp_up": null,
+      "measured_sides_cp": [
+        "up",
+        "down"
+      ],
+      "measured_sides_pp": [
+        "down"
+      ],
       "step_ms": 484.79,
       "winner": [
         4,
@@ -437,8 +457,17 @@
       ]
     },
     "N8_seq8192": {
-      "flip_cp": 1.5244,
-      "flip_pp": null,
+      "flip_cp_down": 0.5415,
+      "flip_cp_up": 1.5244,
+      "flip_pp_down": 0.8255,
+      "flip_pp_up": null,
+      "measured_sides_cp": [
+        "up",
+        "down"
+      ],
+      "measured_sides_pp": [
+        "down"
+      ],
       "step_ms": 88.49,
       "winner": [
         4,

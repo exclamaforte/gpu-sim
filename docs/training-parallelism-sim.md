@@ -965,7 +965,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | TP byte counts / payload | **VALIDATED** | message count matches the plan exactly; payload B*seq*d is tp-independent | tests/test_parallelism_counts.py |
 | CP byte accounting | **CONDITIONAL** | K/V gather moves 1.98x-1.99x the model's ring message (measured, 3 frozen cp=2 traces); ring vs all_gather are different algorithms, so bytes bound the CONVENTION gap, not a validation | tests/test_cp_gather_bytes.py |
 | Absolute communication durations | **UNVALIDATED** | rest on the model's ring alpha/bw; needs a 2-4 GPU NVLink run, unavailable on one GPU | no test possible here |
-| CP term is decisive for the N=8 verdict | **BOUNDED** | winner unchanged for CP error <= 1.52x, flips above | scripts/sensitivity_radius.py |
-| PP bubble is decisive for the N=16 verdict | **BOUNDED** | winner unchanged for bubble error <= 1.86x; bubble is UNMEASURED | scripts/sensitivity_radius.py |
+| CP term is decisive for the N=8 verdict | **BOUNDED** | winner unchanged for CP error in [0.54x, 1.52x]; both sides measured | scripts/sensitivity_radius.py |
+| PP bubble is decisive for the N=16 verdict | **BOUNDED** | winner unchanged for bubble error in [unbounded below, 1.86x]; bubble is UNMEASURED; one side measured | scripts/sensitivity_radius.py |
 
 <!-- CLAIMS-REGISTER:END -->

@@ -142,15 +142,25 @@ def render(facts):
              "no test possible here"),
     ]
     _rad = facts["sensitivity_radius"]
-    _cp = _rad["N8_seq8192"]["flip_cp"]
-    _pp = _rad["N16_seq8192"]["flip_pp"]
-    if _cp is not None:
+    _cp_up = _rad["N8_seq8192"].get("flip_cp_up")
+    _cp_down = _rad["N8_seq8192"].get("flip_cp_down")
+    _pp_up = _rad["N16_seq8192"].get("flip_pp_up")
+    _pp_down = _rad["N16_seq8192"].get("flip_pp_down")
+    _cp_sides = _rad["N8_seq8192"].get("measured_sides_cp", [])
+    _pp_sides = _rad["N16_seq8192"].get("measured_sides_pp", [])
+    if _cp_up is not None or _cp_down is not None:
+        lo_s = f"{_cp_down:.2f}x" if _cp_down is not None else "unbounded below"
+        hi_s = f"{_cp_up:.2f}x" if _cp_up is not None else "unbounded above"
+        side_note = "both sides measured" if (len(_cp_sides) == 2) else "one side measured"
         rows.append(_row("CP term is decisive for the N=8 verdict", "BOUNDED",
-                     f"winner unchanged for CP error <= {_cp:.2f}x, flips above",
+                     f"winner unchanged for CP error in [{lo_s}, {hi_s}]; {side_note}",
                      "scripts/sensitivity_radius.py"))
-    if _pp is not None:
+    if _pp_up is not None or _pp_down is not None:
+        lo_s = f"{_pp_down:.2f}x" if _pp_down is not None else "unbounded below"
+        hi_s = f"{_pp_up:.2f}x" if _pp_up is not None else "unbounded above"
+        side_note = "both sides measured" if (len(_pp_sides) == 2) else "one side measured"
         rows.append(_row("PP bubble is decisive for the N=16 verdict", "BOUNDED",
-                     f"winner unchanged for bubble error <= {_pp:.2f}x; bubble is UNMEASURED",
+                     f"winner unchanged for bubble error in [{lo_s}, {hi_s}]; bubble is UNMEASURED; {side_note}",
                      "scripts/sensitivity_radius.py"))
     out = [BEGIN, "", "| claim | status | evidence | guard |", "|---|---|---|---|"]
     out += rows
