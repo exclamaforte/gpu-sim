@@ -1,0 +1,171 @@
+{
+  "N16": {
+    "first_transition_factor": 16,
+    "rows": [
+      {
+        "factor": 1,
+        "step_ms": 50.66,
+        "total_micro_batches": 16,
+        "transition": false,
+        "verdict": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 2,
+        "step_ms": 45.77,
+        "total_micro_batches": 32,
+        "transition": false,
+        "verdict": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 4,
+        "step_ms": 42.33,
+        "total_micro_batches": 64,
+        "transition": false,
+        "verdict": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 8,
+        "step_ms": 40.92,
+        "total_micro_batches": 128,
+        "transition": false,
+        "verdict": [
+          1,
+          16,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 16,
+        "step_ms": 41.49,
+        "total_micro_batches": 128,
+        "transition": true,
+        "verdict": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "factor": 32,
+        "step_ms": 42.23,
+        "total_micro_batches": 256,
+        "transition": false,
+        "verdict": [
+          1,
+          8,
+          1,
+          2,
+          2
+        ]
+      }
+    ],
+    "transitions": 1
+  },
+  "N8": {
+    "first_transition_factor": 2,
+    "rows": [
+      {
+        "factor": 1,
+        "step_ms": 88.49,
+        "total_micro_batches": 1,
+        "transition": false,
+        "verdict": [
+          4,
+          1,
+          2,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 2,
+        "step_ms": 83.62,
+        "total_micro_batches": 16,
+        "transition": true,
+        "verdict": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 4,
+        "step_ms": 75.84,
+        "total_micro_batches": 32,
+        "transition": false,
+        "verdict": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 8,
+        "step_ms": 70.95,
+        "total_micro_batches": 64,
+        "transition": false,
+        "verdict": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 16,
+        "step_ms": 68.44,
+        "total_micro_batches": 128,
+        "transition": false,
+        "verdict": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "factor": 32,
+        "step_ms": 67.74,
+        "total_micro_batches": 256,
+        "transition": false,
+        "verdict": [
+          1,
+          8,
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    "transitions": 1
+  },
+  "gate": "scripts/gate.sh 9/9 PASS (unverifiable: gate.sh emits no GATE TIP handle; merged tree covered by master batch gate run (pending))"
+}

@@ -44,6 +44,28 @@ cost scaled by k in [0.5415, 1.5244] (two-sided: a 0.54x underestimate flips to 
 downward (no flip within the sweep); it flips UP at 1.86x to (1,8,2,1,0). CP is the
 least-verified term. The radius is computed by `scripts/sensitivity_radius.py`.
 
+**Micro-batch count (gpu-sim-oggn).** The default `micro_batches = pp` (one micro-batch per
+stage) is the pessimistic edge of the realistic band and is unmeasured (provenance
+"assumed (no measurement)"). Sweeping micro-batches per stage (factor = micro_batches/pp) over
+{1,2,4,8,16,32}:
+
+| micro-batches/stage | N=8 verdict | N=16 verdict |
+|---|---|---|
+| 1 | (4,1,2,1,0) | (1,16,1,1,0) |
+| 2 | (1,8,1,1,0) | (1,16,1,1,0) |
+| 4 | (1,8,1,1,0) | (1,16,1,1,0) |
+| 8 | (1,8,1,1,0) | (1,16,1,1,0) |
+| 16 | (1,8,1,1,0) | (1,8,1,2,2) |
+| 32 | (1,8,1,1,0) | (1,8,1,2,2) |
+
+N=8 flips at 2 micro-batches/stage; N=16 holds for up to 8 micro-batches/stage (flips at 16). The published N=8 ring recommendation
+therefore holds only for 1 micro-batch per stage (factor 1); at 2+ the winner becomes
+(tp=1 pp=8 cp=1 dp=1). The realistic default is ungrounded: no repository config documents a
+grad-accum/micro-batch setting for these models, and the only documented value is the model
+default `micro_batches = pp` (parallelism_search.py:334-336), so the headline verdict is
+conditional on that assumption. The table is `scripts/microbatch_sweep.py` /
+`experiments/gpu-sim-oggn/metrics.json`.
+
 **Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
 (`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fraction of the plausible range
 consumed (the full-width fraction is published alongside; the two orderings disagree, so both
