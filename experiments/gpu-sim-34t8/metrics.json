@@ -1,0 +1,48 @@
+{
+ "bead": "gpu-sim-34t8",
+ "byte_convention": "fp32_master: 28 B/param (read+write {p,m,v,g}); ZeRO-1 shards across dp",
+ "configs": [
+  {
+   "n_layers": 2,
+   "dp": 8,
+   "seq": 8192,
+   "batch": 16,
+   "params_B": 0.405,
+   "old_opt_s": 1.6362974002318266e-05,
+   "new_opt_s": 0.0004228734853731343,
+   "ratio_old_new": 25.8,
+   "total_s": 0.6415421379014213,
+   "fwd_s": 0.31735557403913517,
+   "bwd_s": 0.31735557403913517,
+   "dp_s": 0.006408116337777778,
+   "bubble_s": 0.0,
+   "tp_hidden_s": 0.01921674353777778,
+   "opt_compute_t": 2.0453717502897833e-06,
+   "opt_mem_t": 0.0004228734853731343
+  },
+  {
+   "n_layers": 32,
+   "dp": 8,
+   "seq": 8192,
+   "batch": 16,
+   "params_B": 6.476,
+   "old_opt_s": 0.00026180758403709226,
+   "new_opt_s": 0.006765975765970149,
+   "ratio_old_new": 25.8,
+   "total_s": 10.262994206422741,
+   "fwd_s": 5.077689184626163,
+   "bwd_s": 5.077689184626163,
+   "dp_s": 0.10084986140444445,
+   "bubble_s": 0.0,
+   "tp_hidden_s": 0.30746789660444446,
+   "opt_compute_t": 3.272594800463653e-05,
+   "opt_mem_t": 0.006765975765970149
+  }
+ ],
+ "legacy_formula_reproduced_exactly": true,
+ "other_terms_byte_identical": true,
+ "bandwidth_bound_test": "tests/test_cy0_l2.py::test_optimizer_is_bandwidth_bound (mem_t > compute_t; RED on pre-change code which had no memory term)",
+ "fail_before_pass_after": "pre-change: optimizer seconds = 12*total_params/(pf*0.30) compute-only, no mem_t; post-change: max(compute_t,mem_t)=mem_t. Test would fail pre-change because opt seconds != mem_t.",
+ "published_scaleout_changed": false,
+ "gate": "scripts/gate.sh 8/8 PASS (run rmvqhabsg1, exit 0)"
+}

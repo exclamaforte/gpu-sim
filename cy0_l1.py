@@ -24,6 +24,7 @@ EFF_CLASS: Dict[str, float] = {
     "attention": 0.35,
     "layernorm": 0.20,
     "elementwise": 0.30,
+    "optimizer": 0.30,  # elementwise default; memory term in cy0_l2 makes the number right
 }
 EFF_PROVENANCE = "published-spec assumption: H100 dense-transformer MFU ~0.45-0.55 for GEMM, lower for memory-bound ops (NVIDIA H100 whitepaper; Megatron-LM profiling). Refit from real traces in L4."
 
