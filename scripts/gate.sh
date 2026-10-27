@@ -124,6 +124,7 @@ run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
 run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
 run_hard "claims register" python3 scripts/gen_claims_register.py --check
+run_hard "radius prose" python3 scripts/render_radius_prose.py --check
 run_hard "no vacuous assertions" python3 scripts/check_no_vacuous_asserts.py
 run_hard "gate citations" python3 scripts/check_gate_citations.py
 run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
