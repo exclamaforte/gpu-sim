@@ -193,17 +193,23 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
     else:
         bwd_layer = lc + tp_comm
 
-    # Optimizer: Adam, ~12 FLOPs per parameter per step
-    # params per layer = 4*H^2 + 3*H*F (QKV, output, gate, up, down, norms)
+    # Optimizer: Adam, roofline (memory-bound). 12 FLOP/param vs 28 B/param
+    # (fp32_master: read+write {p,m,v,g}); ZeRO-1 shards across dp.
     H = cy0_l1.HIDDEN
     F = cy0_l1.FFN_DIM
     params_per_layer = 4 * H * H + 3 * H * F
-    opt_flops = 12 * params_per_layer * cfg.n_layers
-    # peak_flops from spec (FLOPS)
+    total_params = params_per_layer * cfg.n_layers
+    params_per_gpu = total_params / max(1, cfg.dp)  # ZeRO-1 shard
+    opt_flops = 12 * params_per_gpu
+    bytes_per_param = 28  # fp32_master convention (scup vocabulary)
+    opt_bytes = int(bytes_per_param * params_per_gpu)
+    opt_op = cy0_l1.Op(name="optimizer", kind="compute", flops=opt_flops,
+                       bytes=opt_bytes, op_class="optimizer",
+                       provenance="analytic: Adam fp32_master 12 FLOP/param, 28 B/param (read+write p,m,v,g), ZeRO-1 shard across dp")
     spec = load_spec(spec_path)
     pf = cy0_l1.peak_flops(spec) * 1e12
-    eff = 0.30  # elementwise efficiency (assumption, refit in L4)
-    opt_time = opt_flops / (pf * eff)
+    achieved_bw = list(spec["models"].values())[0]["mem_bw_gbs"]
+    opt_time = cy0_l1.compute_time(opt_op, pf, achieved_bw)
 
     # DP allreduce: after backward, gradient sync
     # Gradient size = dtype_bytes (fp32=4) * params_per_layer * n_layers

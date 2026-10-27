@@ -201,3 +201,23 @@ def test_pp_bubble_never_exceeds_the_step():
         r = cy0_l3.plan({"n_layers": nl}, "specs/h100_rack.json", 1, 1, pp,
                         seq=2048, batch=8)
         assert 0.0 <= r["bubble_seconds"] <= r["total_seconds"], (nl, pp, r)
+
+
+def test_optimizer_is_bandwidth_bound():
+    """Adam optimizer step must be memory-bound, not compute-bound (gpu-sim-34t8)."""
+    import cy0_l1
+    cfg = StepConfig(n_layers=2, n_microbatches=4, dp=2, tp=2, pp=1, seq=8192, batch=16)
+    result = predict_step(str(SPEC_PATH), cfg)
+    opt = [c for c in result["components"] if c["component"] == "optimizer"][0]
+    # Recompute the two roofline terms independently from the published constants.
+    H = cy0_l1.HIDDEN; F = cy0_l1.FFN_DIM
+    params_per_layer = 4 * H * H + 3 * H * F
+    total_params = params_per_layer * cfg.n_layers
+    params_per_gpu = total_params / max(1, cfg.dp)
+    spec = __import__("epic_cluster.spec", fromlist=["load"]).load(str(SPEC_PATH))
+    pf = cy0_l1.peak_flops(spec) * 1e12
+    bw = list(spec["models"].values())[0]["mem_bw_gbs"]
+    compute_t = (12 * params_per_gpu) / (pf * cy0_l1.EFF_CLASS["optimizer"])
+    mem_t = (28 * params_per_gpu) / (bw * 1e9)
+    assert mem_t > compute_t, "optimizer must be bandwidth-bound"
+    assert abs(opt["seconds"] - mem_t) < 1e-12, "optimizer time must equal the memory term"
