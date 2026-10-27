@@ -82,6 +82,7 @@ if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
 fi
 run_hard "docs section 0 vs model" python3 scripts/check_docs_model_numbers.py
+run_hard "close_audit unchanged" python3 scripts/check_close_audit_unchanged.py
 run_hard "close audit (concrete artifacts)" python3 scripts/close_requires_artifact.py
 run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
@@ -100,7 +101,7 @@ rm -f "$GATE_LOG"
 # what was supposed to run, so a missing check looks exactly like a passing one. The manifest
 # below is that comparison: if a check is dropped, renamed, or silently fails to start, the
 # gate now FAILS instead of shrinking.
-EXPECTED_HARD=8
+EXPECTED_HARD=9
 EXPECTED_ADVISORY=3
 # --fast skips exactly one hard check (the test suite), so the manifest must track the mode
 if [ $FAST -eq 1 ]; then
