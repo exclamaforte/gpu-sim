@@ -1,22 +1,22 @@
 {
- "bead": "gpu-sim-th56",
- "fixes": [
-  "compute record with no seconds/predicted_s now rejected (was defaulting to 0)",
-  "op='' on compute record now rejected (non-empty)",
-  "seconds=inf now rejected (finite check)",
-  "dead OPS/OPS_PREFIX_OK removed; COLLECTIVE_OPS is the only vocabulary",
-  "test_cy0_l2 tautological mem_t>compute_t assert removed; 2.33-vs-295 arithmetic kept as comment",
-  "34t8 metrics wording: 'removed from branch' -> 'restored to main blob'"
- ],
- "plants": {
-  "no_duration": "exit 1",
-  "empty_op": "exit 1",
-  "inf_seconds": "exit 1"
- },
- "traces_still_valid": [
-  "cfg1 49",
-  "cfg2 97",
-  "legacy 2568"
- ],
- "gate": "scripts/gate.sh 8/8 PASS (tip 43bba6d, exit 0)"
+  "bead": "gpu-sim-th56",
+  "fixes": [
+    "compute record with no seconds/predicted_s now rejected (was defaulting to 0)",
+    "op='' on compute record now rejected (non-empty)",
+    "seconds=inf now rejected (finite check)",
+    "dead OPS/OPS_PREFIX_OK removed; COLLECTIVE_OPS is the only vocabulary",
+    "test_cy0_l2 tautological mem_t>compute_t assert removed; 2.33-vs-295 arithmetic kept as comment",
+    "34t8 metrics wording: 'removed from branch' -> 'restored to main blob'"
+  ],
+  "plants": {
+    "no_duration": "exit 1",
+    "empty_op": "exit 1",
+    "inf_seconds": "exit 1"
+  },
+  "traces_still_valid": [
+    "cfg1 49",
+    "cfg2 97",
+    "legacy 2568"
+  ],
+  "gate": "scripts/gate.sh 8/8 PASS (tip unverifiable: prior citation rmvqk4xovb predated tip; marked unverifiable per gpu-sim-mwlm)"
 }
