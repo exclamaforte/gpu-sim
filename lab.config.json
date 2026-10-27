@@ -1,5 +1,7 @@
 {
-  "daemon": { "pollSeconds": 20 },
+  "daemon": {
+    "pollSeconds": 20
+  },
   "gpqueue": {
     "ts": "~/.local/bin/ts",
     "gpqueuePy": "~/Documents/gpqueue/gpqueue.py"
@@ -8,21 +10,24 @@
     "pi": {
       "sessionId": "lab-pi",
       "name": "Lab PI",
-      "model": "muse-spark-1.3-contributor",
+      "model": "deepseek-v4.1-flash",
       "prompt": ".lab/prompts/pi.md",
+      "thinking": "max",
       "tools": null
     },
     "implementer": {
       "sessionId": "lab-implementer",
       "name": "Lab Implementer",
-      "model": "muse-spark-1.3-contributor",
+      "model": "Beam-501B-A23B",
+      "thinking": "max",
       "prompt": ".lab/prompts/implementer.md",
       "tools": null
     },
     "reviewer": {
       "sessionId": "lab-reviewer",
       "name": "Lab Reviewer",
-      "model": "muse-spark-1.3-contributor",
+      "model": "deepseek-v4.1-flash",
+      "thinking": "max",
       "prompt": ".lab/prompts/reviewer.md",
       "tools": null
     }
