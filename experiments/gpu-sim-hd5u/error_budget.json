@@ -1,0 +1,1040 @@
+[
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 1.0,
+    "elasticity": 5.7319,
+    "flip_value": 0.825536,
+    "fraction_of_range_consumed": 0.046524,
+    "parameter": "term_scale_pp",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 1.0,
+    "elasticity": -2.9355,
+    "flip_value": 1.416498,
+    "fraction_of_range_consumed": 0.0595,
+    "parameter": "microbatch_factor",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      1.0,
+      8.0
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": 0.538343,
+    "fraction_of_range_consumed": 0.123109,
+    "parameter": "term_scale_cp",
+    "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 1.0,
+    "elasticity": 4.3802,
+    "flip_value": 0.814132,
+    "fraction_of_range_consumed": 0.123912,
+    "parameter": "achieved_bw_scale",
+    "provenance": "published-spec (datasheet, not measured here)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 1.0,
+    "elasticity": -2.1111,
+    "flip_value": 1.473694,
+    "fraction_of_range_consumed": 0.126318,
+    "parameter": "term_scale_cp",
+    "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 1.0,
+    "elasticity": -1.9068,
+    "flip_value": 1.524446,
+    "fraction_of_range_consumed": 0.139852,
+    "parameter": "term_scale_cp",
+    "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 1.0,
+    "elasticity": -0.7831,
+    "flip_value": 1.857551,
+    "fraction_of_range_consumed": 0.22868,
+    "parameter": "term_scale_pp",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 1.0,
+    "elasticity": 1.7593,
+    "flip_value": 2.229006,
+    "fraction_of_range_consumed": 0.327735,
+    "parameter": "term_scale_pp",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 1.0,
+    "elasticity": 12.0202,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_charge",
+    "provenance": "measured (scup 1.25x memory charge)",
+    "range": [
+      1.0,
+      1.25
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 1.0,
+    "elasticity": -2.7933,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_charge",
+    "provenance": "measured (scup 1.25x memory charge)",
+    "range": [
+      1.0,
+      1.25
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 1.0,
+    "elasticity": -1.305,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "achieved_bw_scale",
+    "provenance": "published-spec (datasheet, not measured here)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 1.0,
+    "elasticity": -1.0375,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "achieved_bw_scale",
+    "provenance": "published-spec (datasheet, not measured here)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 2.3,
+    "elasticity": 0.8352,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "act_factor",
+    "provenance": "measured (gpu-sim-4nf, 2.3x)",
+    "range": [
+      1.0,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 2.3,
+    "elasticity": -0.2882,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "act_factor",
+    "provenance": "measured (gpu-sim-4nf, 2.3x)",
+    "range": [
+      1.0,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 1.0,
+    "elasticity": -0.0787,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "microbatch_factor",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      1.0,
+      8.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "term_scale_cp",
+    "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 1.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "term_scale_cp",
+    "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "term_scale_pp",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 1.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "term_scale_pp",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.25,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 0.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 0.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.0,
+      1.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 0.25,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute_charge",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.2,
+      0.35
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 0.25,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute_charge",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.2,
+      0.35
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 0.25,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute_charge",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.2,
+      0.35
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 0.25,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute_charge",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.2,
+      0.35
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 0.25,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "recompute_charge",
+    "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+    "range": [
+      0.2,
+      0.35
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "alpha_scale",
+    "provenance": "measured on one RTX 5090 (0.176/0.420/0.594)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "alpha_scale",
+    "provenance": "measured on one RTX 5090 (0.176/0.420/0.594)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "alpha_scale",
+    "provenance": "measured on one RTX 5090 (0.176/0.420/0.594)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "alpha_scale",
+    "provenance": "measured on one RTX 5090 (0.176/0.420/0.594)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 1.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "alpha_scale",
+    "provenance": "measured on one RTX 5090 (0.176/0.420/0.594)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "microbatch_factor",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      1.0,
+      8.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "microbatch_factor",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      1.0,
+      8.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 1.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "microbatch_factor",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      1.0,
+      8.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 2.3,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "act_factor",
+    "provenance": "measured (gpu-sim-4nf, 2.3x)",
+    "range": [
+      1.0,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 2.3,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "act_factor",
+    "provenance": "measured (gpu-sim-4nf, 2.3x)",
+    "range": [
+      1.0,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 2.3,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "act_factor",
+    "provenance": "measured (gpu-sim-4nf, 2.3x)",
+    "range": [
+      1.0,
+      4.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "achieved_bw_scale",
+    "provenance": "published-spec (datasheet, not measured here)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 1.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "achieved_bw_scale",
+    "provenance": "published-spec (datasheet, not measured here)",
+    "range": [
+      0.5,
+      2.0
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_headroom",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.0,
+      0.2
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_headroom",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.0,
+      0.2
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_headroom",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.0,
+      0.2
+    ]
+  },
+  {
+    "affected_verdict": "405B_bf16_feasible",
+    "base_verdict": [
+      "True"
+    ],
+    "current_margin": 21.089951743999997,
+    "default": 0.0,
+    "elasticity": -0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_headroom",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.0,
+      0.2
+    ]
+  },
+  {
+    "affected_verdict": "405B_fp32master_feasible",
+    "base_verdict": [
+      "False"
+    ],
+    "current_margin": -7.2594145279999935,
+    "default": 0.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_headroom",
+    "provenance": "assumed (no measurement)",
+    "range": [
+      0.0,
+      0.2
+    ]
+  },
+  {
+    "affected_verdict": "N8_winner",
+    "base_verdict": [
+      "4",
+      "1",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 5.339521356138521,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_charge",
+    "provenance": "measured (scup 1.25x memory charge)",
+    "range": [
+      1.0,
+      1.25
+    ]
+  },
+  {
+    "affected_verdict": "N16_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "1",
+      "1",
+      "0"
+    ],
+    "current_margin": 2.5041830372857232,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_charge",
+    "provenance": "measured (scup 1.25x memory charge)",
+    "range": [
+      1.0,
+      1.25
+    ]
+  },
+  {
+    "affected_verdict": "N32_winner",
+    "base_verdict": [
+      "1",
+      "16",
+      "2",
+      "1",
+      "0"
+    ],
+    "current_margin": 1.653004302222219,
+    "default": 1.0,
+    "elasticity": 0.0,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "mem_charge",
+    "provenance": "measured (scup 1.25x memory charge)",
+    "range": [
+      1.0,
+      1.25
+    ]
+  },
+  {
+    "affected_verdict": "cy0_dominant_op",
+    "base_verdict": [
+      "mlp1"
+    ],
+    "current_margin": null,
+    "default": 0.5,
+    "elasticity": null,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "eff_gemm",
+    "provenance": "published-spec (H100 whitepaper/Megatron)",
+    "range": [
+      0.3,
+      0.7
+    ]
+  },
+  {
+    "affected_verdict": "cy0_dominant_op",
+    "base_verdict": [
+      "mlp1"
+    ],
+    "current_margin": null,
+    "default": 0.35,
+    "elasticity": null,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "eff_attention",
+    "provenance": "published-spec",
+    "range": [
+      0.2,
+      0.55
+    ]
+  },
+  {
+    "affected_verdict": "cy0_dominant_op",
+    "base_verdict": [
+      "mlp1"
+    ],
+    "current_margin": null,
+    "default": 0.2,
+    "elasticity": null,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "eff_layernorm",
+    "provenance": "published-spec",
+    "range": [
+      0.1,
+      0.4
+    ]
+  },
+  {
+    "affected_verdict": "cy0_dominant_op",
+    "base_verdict": [
+      "mlp1"
+    ],
+    "current_margin": null,
+    "default": 0.3,
+    "elasticity": null,
+    "flip_value": null,
+    "fraction_of_range_consumed": 1.0,
+    "parameter": "eff_elementwise",
+    "provenance": "published-spec",
+    "range": [
+      0.15,
+      0.5
+    ]
+  }
+]

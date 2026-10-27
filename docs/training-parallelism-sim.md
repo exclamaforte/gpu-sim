@@ -43,6 +43,13 @@ CP cost scaled by k in [0, 1.52] and PP cost by any k (never flips). CP -- the l
 term -- tolerates a 1.52x overestimate before the answer becomes tp=1 pp=8; it never flips on an
 underestimate. PP never flips at all. The radius is computed by `scripts/sensitivity_radius.py`.
 
+**Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
+(`docs/model_facts.json` -> `error_budget`). The two tightest margins are the PP bubble cost
+(`term_scale_pp`, 4.65% of its range on the N=8 verdict) and the PP micro-batch count
+(`microbatch_factor`, 5.95%); both say the same thing: the PP bubble is the measurement that
+would buy the most certainty, ahead of the CP term. Everything else (recompute, bandwidth, memory
+charge, eff classes) sits at 100% of its range -- the published verdicts do not flip on it.
+
 **The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which
 shrinks the bubble (bubble = compute x (pp-1)/(micro_batches+pp-1)). Sweeping that ratio under the default
