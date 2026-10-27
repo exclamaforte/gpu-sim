@@ -90,7 +90,11 @@ nothing at 80 GPUs (still infeasible with full recompute); at 800 the winners do
 optimizer style: fp32 master plus fp32 Adam, 16 B/param all-in with the bf16 weights and grads. Plain
 bf16 AdamW keeps no separate master copy and measures 10 B/param on this host (experiments/gpu-sim-recompute/);
 under that style the 80-GPU boundary moves, which belongs to gpu-sim-scup. The knob changes no published
-number: it defaults off, and for 405B the 80-GPU verdict is unchanged. Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
+number: it defaults off, and for 405B the 80-GPU verdict is unchanged. Every published pp>1 row likewise prices full
+activation storage (recompute defaults off even where the spec assumes it on): all 31 fit at recompute=0, the
+tightest being 70B at 80 GPUs under the default convention (tp=1 pp=20 cp=1 dp=4 z2) at 8.03 GB/stage against
+the 80 GB budget -- so the published steps carry no recompute compute charge by demonstrated feasibility, not
+by omission (gpu-sim-vvty). Full tables, both conventions and batch=1/batch=8 in `experiments/gpu-sim-scaleout/`.
 
 **BATCH=1 per rank for every published number.** All published step times, margins, and winners
 assume `batch=1` token per rank per step (`MICRO_BATCHES=pp` for PP). The DP gradient sync is

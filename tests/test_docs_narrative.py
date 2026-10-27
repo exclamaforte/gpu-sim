@@ -172,6 +172,16 @@ def test_scaleout_paragraph_carries_the_computed_answers():
     assert "16 B/param" in para, "the paragraph must name the all-in byte convention the rows price"
     assert "bf16 AdamW" in para, "the paragraph must name the measured plain-bf16 optimizer style"
     assert "gpu-sim-scup" in para, "the paragraph must point at the bead that owns the boundary move"
+    # gpu-sim-vvty: pp>1 rows price full storage. The paragraph must say so with the
+    # tightest activation figure from recomputed facts -- silence was ruled out.
+    assert "gpu-sim-vvty" in para, "the paragraph must name the full-storage assumption's owner"
+    _pp1 = FACTS["pp1_act"]
+    assert _pp1["all_fit"] is True, "a pp>1 row no longer fits at full storage: charge it"
+    _t = _pp1["tightest"]
+    assert f"{_t['act_gb']:.2f} GB/stage" in para, (
+        "the paragraph must carry the tightest pp>1 activation figure")
+    assert f"all {_pp1['n_rows']} fit" in para, (
+        "the paragraph must state the full-storage verdict for every pp>1 row")
 
 
 def test_bubble_default_is_stated_as_pessimistic_and_winners_are_stable():

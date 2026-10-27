@@ -145,7 +145,39 @@ def compute_facts():
     # gpu-sim-gvg5: one P for every floor. The legacy pair below used nominal 405e9
     # (70.9) while scaleout_opt uses actual GQA-aware P (405.849e9); actual wins.
     from scripts.scaleout_answers import MODELS as _facts_models
+    from scripts.scaleout_answers import build_spec as _facts_spec
+    from scripts.scaleout_answers import PEAK as _facts_peak, HBM_GB as _facts_hbm
+    from scripts.scaleout_answers import CONVENTIONS as _facts_conv
     _p405_actual = ps.total_params(_facts_models["llama3-405b"])
+
+    def _pp1_act():
+        # gpu-sim-vvty: every published pp>1 winner re-scored through the production
+        # score path at recompute=0 (the published default). Activation GB/stage vs
+        # the per-GPU budget decides whether full storage is a demonstrated regime
+        # (document) or an infeasible one (charge required). Cells come from the
+        # already-computed _scaleout matrix -- no re-search, same winners.
+        _rows = []
+        for _fab, _blob in _scaleout.items():
+            _spec = _facts_spec(int(_fab.split("x")[0]))
+            for _mname, _cells in _blob["models"].items():
+                _model = _facts_models[_mname]
+                for _key, _r in _cells.items():
+                    if _r is None or _r.get("pp", 0) <= 1:
+                        continue
+                    _batch = int(_key.split("batch=")[1]) if "batch=" in _key else 1
+                    _conv = _key.split(", batch=")[0]
+                    _hw = {"peak_flops": _facts_peak, "mem_gb": _facts_hbm, "spec": _spec,
+                           "term_scale": {"cp": _facts_conv[_conv]},
+                           "batch": _batch, "recompute": 0.0}
+                    _c = ps.score(_r["tp"], _r["pp"], _r["cp"], _r["dp"], _r["zero"],
+                                  _hw, _model)
+                    _rows.append({"fabric": _fab, "model": _mname, "convention": _conv,
+                                  "batch": _batch, "config": _r["config"],
+                                  "act_gb": round(_c.mem_act_gb, 2),
+                                  "headroom_gb": round(_facts_hbm - _c.mem_act_gb, 2)})
+        _rows.sort(key=lambda _d: _d["headroom_gb"])
+        return {"n_rows": len(_rows), "all_fit": all(_d["headroom_gb"] > 0 for _d in _rows),
+                "tightest": _rows[0] if _rows else None}
 
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
@@ -243,6 +275,7 @@ def compute_facts():
                  "n405b_800gpus_ag_margin": _so_cell("100x8", "llama3-405b", "default all_gather")["margin_pct"],
              },
              "scaleout_opt": _opt_styles(),
+             "pp1_act": _pp1_act(),
              "micro_batches_sensitivity": _mb,
              "retracted_values": RETRACTED,
              "cp_convention_answers": _conv,
@@ -813,6 +846,11 @@ def allowed_decimals(facts):
             add(v)
     for _k, _v in facts["scaleout"].items():
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    # gpu-sim-vvty: the tightest pp>1 activation figure the prose quotes.
+    _tight = facts.get("pp1_act", {}).get("tightest", {}) or {}
+    for _v in (_tight.get("act_gb"), _tight.get("headroom_gb")):
+        if isinstance(_v, (int, float)):
             add(_v)
     # gpu-sim-scup: every style byte count, floor, and best-row number the paragraph quotes.
     for _v in facts.get("scaleout_opt", {}).get("style_bytes", {}).values():
