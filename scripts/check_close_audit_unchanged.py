@@ -33,8 +33,12 @@ def main() -> int:
             base = mb.stdout.strip()
             break
     if base is None:
-        print("check_close_audit_unchanged: no merge-base with master/main; skipping")
-        return 0
+        print("INVALID: check_close_audit_unchanged: no merge-base with master/main "
+              "could be resolved; cannot verify close_audit.json is unchanged. "
+              "Run inside a checkout that has the integration branch (master/main).")
+        print("Convention: close_audit.json is regenerated on main as its own commit.")
+        print("See experiments/gpu-sim-u2o.15/README.md.")
+        return 1
 
     # Blob at base (may be absent).
     base_blob = run("show", f"{base}:{PATH}")
