@@ -2,6 +2,12 @@
 """Validate a gpu-sim JSONL trace against the m3d.7 schema."""
 import json, math, sys
 
+def _is_int(x):
+    return isinstance(x, int) and not isinstance(x, bool)
+
+def _is_num(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool)
+
 REQUIRED = ["ts_ns","rank","nranks","op","count","dtype","bytes","algorithm","predicted_s","bottleneck_link","regime"]
 COLLECTIVE_OPS = {"allreduce","broadcast","allgather","reducescatter","alltoall","reduce","send","recv"}
 ALGOS = {"ring_allreduce","ring_allgather","ring_reduce_scatter","ring_alltoall","tree_bcast","p2p",
@@ -30,18 +36,18 @@ def validate(path):
                 continue
             # Collective shape: all m3d.7 required present (superset allowed)
             if all(k in obj for k in REQUIRED):
-                assert isinstance(obj["ts_ns"], int)
-                assert isinstance(obj["rank"], int) and obj["rank"] >= 0
-                assert isinstance(obj["nranks"], int) and obj["nranks"] >= 1
+                assert _is_int(obj["ts_ns"]) and obj["ts_ns"] >= 0
+                assert _is_int(obj["rank"]) and obj["rank"] >= 0
+                assert _is_int(obj["nranks"]) and obj["nranks"] >= 1
                 assert obj["op"] in COLLECTIVE_OPS
-                assert isinstance(obj["count"], int) and obj["count"] >= 0
+                assert _is_int(obj["count"]) and obj["count"] >= 0
                 assert obj["dtype"] in DTYPES
-                assert isinstance(obj["bytes"], int) and obj["bytes"] >= 0
+                assert _is_int(obj["bytes"]) and obj["bytes"] >= 0
                 assert obj["algorithm"] in ALGOS
                 ps = obj["predicted_s"]
-                assert ps is None or (isinstance(ps, (int,float)) and ps >= 0)
+                assert ps is None or (_is_num(ps) and ps >= 0)
                 bl = obj["bottleneck_link"]
-                assert bl is None or (isinstance(bl,int) and bl >= 0)
+                assert bl is None or (_is_int(bl) and bl >= 0)
                 assert obj["regime"] in REGIMES
                 if "kind" in obj:
                     assert obj["kind"] in COMPUTE_KINDS
@@ -49,16 +55,16 @@ def validate(path):
                 continue
             # Compute/idle shape: additive extension
             if all(k in obj for k in COMPUTE_REQUIRED):
-                assert isinstance(obj["ts_ns"], int)
-                assert isinstance(obj["rank"], int) and obj["rank"] >= 0
-                assert isinstance(obj["nranks"], int) and obj["nranks"] >= 1
+                assert _is_int(obj["ts_ns"]) and obj["ts_ns"] >= 0
+                assert _is_int(obj["rank"]) and obj["rank"] >= 0
+                assert _is_int(obj["nranks"]) and obj["nranks"] >= 1
                 assert isinstance(obj["op"], str) and obj["op"].strip()
                 assert obj["kind"] in COMPUTE_KINDS
                 assert isinstance(obj["phase"], str) and obj["phase"].strip()
                 if "seconds" not in obj and "predicted_s" not in obj:
                     raise ValueError("compute record missing duration (seconds/predicted_s)")
                 dur = obj.get("seconds", obj.get("predicted_s"))
-                assert isinstance(dur, (int,float)) and math.isfinite(dur) and dur >= 0
+                assert _is_num(dur) and math.isfinite(dur) and dur >= 0
                 n += 1
                 continue
             raise ValueError(f"unrecognized record shape: keys={sorted(obj.keys())}")
