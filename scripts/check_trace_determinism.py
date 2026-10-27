@@ -28,6 +28,8 @@ def per_rank(path):
         if not line.strip():
             continue
         rec = json.loads(line)
+        if "rank" not in rec:
+            continue
         out[rec["rank"]].append(tuple(rec.get(f) for f in FIELDS))
     return {rank: tuple(recs) for rank, recs in out.items()}
 

@@ -34,6 +34,7 @@ class StepConfig:
     dp: int = 2   # data parallelism degree
     tp: int = 2   # tensor parallelism degree
     pp: int = 1   # pipeline parallelism degree
+    ep: int = 1   # expert parallelism degree (trace world size)
     overlap: bool = True
     # Model shape as EXPLICIT fields (gpu-sim-cy4). These used to be read from
     # cy0_l1 module globals that cy0_l3 monkey-patched, which had no effect:
@@ -77,14 +78,65 @@ def layer_tp_comm_time(spec_path: str, tp: int, cfg: "StepConfig" = None) -> flo
 
 def dp_allreduce_time(spec_path: str, dp: int, grad_bytes: int) -> float:
     """DP gradient allreduce time (cross-node)."""
+    return dp_allreduce_detail(spec_path, dp, grad_bytes).get("duration_s", 0.0)
+
+
+def tp_allreduce_detail(spec_path: str, tp: int, cfg: "StepConfig" = None) -> Dict[str, Any]:
+    """Full link_model result for the TP allreduce (one collective)."""
+    if tp <= 1:
+        return {"duration_s": 0.0, "algorithm": "ring_allreduce",
+                "bottleneck": {"link_id": None, "kind": None},
+                "regime": "bandwidth", "bytes": 0}
+    kw = {}
+    if cfg is not None:
+        kw = {"hidden": cfg.hidden, "ffn": cfg.ffn, "seq": cfg.seq, "batch": cfg.batch}
+    result = cy0_l1.predict_layer(spec_path, tp=tp, **kw)
+    comm = [c for c in result["components"] if c["kind"] == "comm"]
+    ar_bytes = 0
+    # derive bytes from cy0_l1 layer ops (tp_allreduce)
+    try:
+        ops = cy0_l1.layer_ops(hidden=cfg.hidden if cfg else cy0_l1.HIDDEN,
+                               ffn=cfg.ffn if cfg else cy0_l1.FFN_DIM,
+                               seq=cfg.seq if cfg else cy0_l1.SEQ_LEN,
+                               batch=cfg.batch if cfg else cy0_l1.BATCH)
+        ar_bytes = [o.bytes for o in ops if o.name == "tp_allreduce"][0]
+    except Exception:
+        ar_bytes = 0
+    count = ar_bytes // 2 if ar_bytes else 0
+    # call link_model directly for bottleneck/regime
+    try:
+        spec = load_spec(spec_path)
+        res = predict_collective(spec, "ring_allreduce", count, "bfloat16",
+                                n_ranks=tp, pieces_per_phase=8)
+        res = dict(res)
+        res["bytes"] = ar_bytes
+        res["count"] = count
+        res["dtype"] = "bfloat16"
+        return res
+    except Exception:
+        return {"duration_s": comm[0]["seconds"] if comm else 0.0,
+                "algorithm": "ring_allreduce",
+                "bottleneck": {"link_id": None, "kind": None},
+                "regime": "bandwidth", "bytes": ar_bytes, "count": count,
+                "dtype": "bfloat16"}
+
+
+def dp_allreduce_detail(spec_path: str, dp: int, grad_bytes: int) -> Dict[str, Any]:
+    """Full link_model result for the DP allreduce."""
     if dp <= 1:
-        return 0.0
-    count = grad_bytes // 4  # float32
-    res = predict_collective(
-        load_spec(spec_path), "ring_allreduce", count, "float32",
-        n_ranks=dp, pieces_per_phase=8,
-    )
-    return res["duration_s"]
+        return {"duration_s": 0.0, "algorithm": "ring_allreduce",
+                "bottleneck": {"link_id": None, "kind": None},
+                "regime": "bandwidth", "bytes": grad_bytes, "count": grad_bytes // 4,
+                "dtype": "float32"}
+    count = grad_bytes // 4
+    spec = load_spec(spec_path)
+    res = predict_collective(spec, "ring_allreduce", count, "float32",
+                            n_ranks=dp, pieces_per_phase=8)
+    res = dict(res)
+    res["bytes"] = grad_bytes
+    res["count"] = count
+    res["dtype"] = "float32"
+    return res
 
 
 def pp_bubble_time(n_microbatches: int, n_stages: int, n_layers: int,
@@ -120,6 +172,7 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
     spec = load_spec(spec_path)
     lc = layer_compute_time(spec_path, cfg)
     tp_comm = layer_tp_comm_time(spec_path, cfg.tp, cfg)
+    tp_detail = tp_allreduce_detail(spec_path, cfg.tp, cfg)
 
     # Per-layer forward time
     if cfg.overlap and OVERLAP_POLICY["tp_allreduce_hidden"]:
@@ -158,7 +211,8 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
     F = cy0_l1.FFN_DIM
     params_per_layer = 4 * H * H + 3 * H * F
     grad_bytes = 4 * params_per_layer * cfg.n_layers  # fp32 gradients
-    dp_time = dp_allreduce_time(spec_path, cfg.dp, grad_bytes)
+    dp_detail = dp_allreduce_detail(spec_path, cfg.dp, grad_bytes)
+    dp_time = dp_detail.get("duration_s", 0.0)
     if cfg.overlap and OVERLAP_POLICY["dp_allreduce_exposed"]:
         dp_exposed = dp_time
     else:
@@ -202,6 +256,85 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
         records.append({"phase": "overlap", "component": "tp_allreduce_hidden", "kind": "hidden",
                         "seconds": overlapped_total, "predicted": True})
 
+    # --- cy0-L6: rank-resolved trace timeline (additive, does not change components) ---
+    ws = cfg.dp * cfg.tp * cfg.pp * getattr(cfg, "ep", 1)
+    tp_bl = (tp_detail.get("bottleneck") or {}).get("link_id")
+    tp_regime = tp_detail.get("regime", "bandwidth")
+    tp_bytes = int(tp_detail.get("bytes") or 0)
+    tp_count = int(tp_detail.get("count") or (tp_bytes // 2))
+    dp_bl = (dp_detail.get("bottleneck") or {}).get("link_id")
+    dp_regime = dp_detail.get("regime", "bandwidth")
+    dp_bytes_i = int(dp_detail.get("bytes") or grad_bytes)
+    dp_count_i = int(dp_detail.get("count") or (grad_bytes // 4))
+    dp_algo = "ring_allreduce"
+
+    timeline = []
+    timeline.append({
+        "type": "header",
+        "world_size": ws,
+        "placement": "TP group on one node, ranks contiguous per cy0_l3 (ranks 0..world_size-1).",
+        "reconciliation": "sum of record seconds per rank excluding kind=hidden equals total_seconds; overlapped TP comm is reported hidden and not double-counted.",
+        "provenance_policy": "published-spec | measured:<artifact> | fitted:<trace>",
+        "predicted": True,
+    })
+
+    def _ns(x):
+        return int(round(float(x) * 1e9))
+
+    for r in range(ws):
+        ts = 0
+        # forward layers in order
+        for i in range(cfg.n_layers):
+            dur = fwd_layer
+            timeline.append({"ts_ns": ts, "rank": r, "nranks": ws,
+                             "op": f"forward_layer_{i}", "kind": "compute",
+                             "phase": "forward", "seconds": dur, "predicted_s": dur,
+                             "predicted": True,
+                             "provenance": "published-spec: cy0_l2 fwd_layer"})
+            ts += _ns(dur)
+        # backward layers in reverse
+        for i in range(cfg.n_layers - 1, -1, -1):
+            dur = bwd_layer
+            timeline.append({"ts_ns": ts, "rank": r, "nranks": ws,
+                             "op": f"backward_layer_{i}", "kind": "compute",
+                             "phase": "backward", "seconds": dur, "predicted_s": dur,
+                             "predicted": True,
+                             "provenance": "published-spec: cy0_l2 bwd_layer"})
+            ts += _ns(dur)
+        # optimizer
+        timeline.append({"ts_ns": ts, "rank": r, "nranks": ws,
+                         "op": "optimizer", "kind": "compute", "phase": "optimizer",
+                         "seconds": opt_time, "predicted_s": opt_time,
+                         "predicted": True,
+                         "provenance": "published-spec: cy0_l2 optimizer (12 FLOP/param)"})
+        ts += _ns(opt_time)
+        # dp sync collective
+        timeline.append({"ts_ns": ts, "rank": r, "nranks": ws,
+                         "op": "allreduce", "kind": "comm", "phase": "dp_sync",
+                         "count": dp_count_i, "dtype": "float32", "bytes": dp_bytes_i,
+                         "algorithm": dp_algo, "predicted_s": dp_exposed,
+                         "seconds": dp_exposed, "bottleneck_link": dp_bl,
+                         "regime": dp_regime, "predicted": True,
+                         "provenance": "published-spec: link_model.predict ring_allreduce"})
+        ts += _ns(dp_exposed)
+        # bubble (idle)
+        if bubble > 0:
+            timeline.append({"ts_ns": ts, "rank": r, "nranks": ws,
+                             "op": "bubble", "kind": "idle", "phase": "pp",
+                             "seconds": bubble, "predicted_s": bubble,
+                             "predicted": True,
+                             "provenance": "published-spec: cy0_l2 pp_bubble"})
+            ts += _ns(bubble)
+        # hidden TP allreduce (overlapped, not on critical path -> no ts advance)
+        if overlapped_total > 0:
+            timeline.append({"ts_ns": ts, "rank": r, "nranks": ws,
+                             "op": "allreduce", "kind": "hidden", "phase": "overlap",
+                             "count": tp_count, "dtype": "bfloat16", "bytes": tp_bytes,
+                             "algorithm": "ring_allreduce", "predicted_s": overlapped_total,
+                             "seconds": overlapped_total, "bottleneck_link": tp_bl,
+                             "regime": tp_regime, "predicted": True,
+                             "provenance": "published-spec: link_model.predict ring_allreduce (hidden)"})
+
     return {
         "total_seconds": total,
         "overlapped_seconds": overlapped_total,
@@ -211,6 +344,8 @@ def predict_step(spec_path: str, cfg: StepConfig) -> Dict[str, Any]:
         "overlap_policy": OVERLAP_POLICY,
         "overlap_provenance": OVERLAP_PROVENANCE,
         "components": records,
+        "timeline": timeline,
+        "trace": timeline,
         "predicted": True,
     }
 
