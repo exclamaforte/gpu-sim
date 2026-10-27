@@ -58,7 +58,7 @@ stage) is the pessimistic edge of the realistic band and is unmeasured (provenan
 | 16 | (1,8,1,1,0) | (1,8,1,2,2) |
 | 32 | (1,8,1,1,0) | (1,8,1,2,2) |
 
-N=8 flips at 2 micro-batches/stage; N=16 flips at 16. The published N=8 ring recommendation
+N=8 flips at 2 micro-batches/stage; N=16 holds for up to 8 micro-batches/stage (flips at 16). The published N=8 ring recommendation
 therefore holds only for 1 micro-batch per stage (factor 1); at 2+ the winner becomes
 (tp=1 pp=8 cp=1 dp=1). The realistic default is ungrounded: no repository config documents a
 grad-accum/micro-batch setting for these models, and the only documented value is the model

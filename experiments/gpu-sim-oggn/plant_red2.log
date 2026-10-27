@@ -1,0 +1,24 @@
+......F                                                                  [100%]
+=================================== FAILURES ===================================
+________________________ test_doc_table_matches_metrics ________________________
+
+    def test_doc_table_matches_metrics():
+        rows = _parse_doc_table()
+        m = METRICS
+        for factor in (1, 2, 4, 8, 16, 32):
+            assert factor in rows, f"missing row for factor {factor}"
+            n8_doc, n16_doc = rows[factor]
+            n8_met = m["N8"]["rows"][[r["factor"] for r in m["N8"]["rows"]].index(factor)]["verdict"]
+            n16_met = m["N16"]["rows"][[r["factor"] for r in m["N16"]["rows"]].index(factor)]["verdict"]
+            assert n8_doc == n8_met, f"N8 mismatch at factor {factor}: doc {n8_doc} vs metrics {n8_met}"
+>           assert n16_doc == n16_met, f"N16 mismatch at factor {factor}: doc {n16_doc} vs metrics {n16_met}"
+E           AssertionError: N16 mismatch at factor 4: doc [1, 8, 1, 2, 2] vs metrics [1, 16, 1, 1, 0]
+E           assert [1, 8, 1, 2, 2] == [1, 16, 1, 1, 0]
+E             
+E             At index 1 diff: 8 != 16
+E             Use -v to get more diff
+
+tests/test_microbatch_sweep.py:84: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_microbatch_sweep.py::test_doc_table_matches_metrics - Asser...
+1 failed, 6 passed in 0.28s
