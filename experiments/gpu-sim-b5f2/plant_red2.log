@@ -1,16 +1,25 @@
-....F.......                                                             [100%]
+......F                                                                  [100%]
 =================================== FAILURES ===================================
-____________________ test_n16_pp_unbounded_below_in_clause _____________________
+________________ test_n16_pp_down_is_unbounded_not_sweep_floor _________________
 
-    def test_n16_pp_unbounded_below_in_clause():
+    def test_n16_pp_down_is_unbounded_not_sweep_floor():
         rad = FACTS["sensitivity_radius"]["N16_seq8192"]
         assert rad["flip_pp_down"] is None
-        clause = _slice("the N=16 answer for PP-bubble")
->       assert "unbounded below" in clause, "N16 pp has no downward flip: must say 'unbounded below' in its clause"
-E       AssertionError: N16 pp has no downward flip: must say 'unbounded below' in its clause
-E       assert 'unbounded below' in 'the N=16 answer for PP-bubble\nerror in **[bounded upward; it flips at 1.86x]**.\nThose are the honest confidence bou...be checked: `tools/torch_parallel` supports grouped-query attention (--n-kv-heads), so\n`kv_dim = n_kv_heads x head_di'
+        assert "unbounded below" in DOC, "N16 pp has no downward flip: must say 'unbounded below'"
+>       assert "[0.05x, 1.86x]" not in DOC, "sweep floor must not be published as a measured bound"
+E       AssertionError: sweep floor must not be published as a measured bound
+E       assert '[0.05x, 1.86x]' not in '# Training-...ER:END -->\n'
+E         
+E         '[0.05x, 1.86x]' is contained here:
+E           rror in **[0.05x, 1.86x]** (1.86x upward).
+E         ?           ++++++++++++++
+E           Those are the honest confidence bounds on the two verdicts: one term error of that size overturns the
+E           answer, and a 4x CP error has already been found on this axis once. The CP term can now in principle
+E           be checked: `tools/torch_parallel` supports grouped-query attention (--n-kv-heads), so...
+E         
+E         ...Full output truncated (728 lines hidden), use '-vv' to show
 
-tests/test_b5f2_radius_prose.py:90: AssertionError
+tests/test_b5f2_radius_prose.py:70: AssertionError
 =========================== short test summary info ============================
-FAILED tests/test_b5f2_radius_prose.py::test_n16_pp_unbounded_below_in_clause
-1 failed, 11 passed in 0.03s
+FAILED tests/test_b5f2_radius_prose.py::test_n16_pp_down_is_unbounded_not_sweep_floor
+1 failed, 6 passed in 0.02s
