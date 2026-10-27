@@ -117,6 +117,12 @@ def main() -> int:
     # gpu-sim-hz3u: sweep the activation-recompute knob (float 0.0..1.0, default 0.0,
     # so every published number is bit-identical; 1.0 = full checkpointing, measured
     # 1.25x compute and 0.45x retained activations -- see experiments/gpu-sim-recompute/).
+    # gpu-sim-vvty: the published matrix prices FULL activation storage everywhere,
+    # pp>1 included (recompute defaults 0.0 here and in answer()). That is a demonstrated
+    # regime, not an omission: all 31 published pp>1 winners fit their activations at
+    # recompute=0 (tightest: 70B@80 default convention, 8.03 GB/stage vs the 80 GB budget;
+    # see facts pp1_act), so no published row needs the recompute charge to be feasible
+    # and the published steps honestly carry no recompute compute term.
     recompute = 0.0
     if "--recompute" in sys.argv:
         recompute = float(sys.argv[sys.argv.index("--recompute") + 1])

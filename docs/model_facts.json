@@ -52,6 +52,19 @@
     "bf16_80_best_mem_gb": 75.1,
     "bf16_80_margin": 3.52
   },
+  "pp1_act": {
+    "n_rows": 31,
+    "all_fit": true,
+    "tightest": {
+      "fabric": "10x8",
+      "model": "llama3-70b",
+      "convention": "default all_gather",
+      "batch": 1,
+      "config": "tp=1 pp=20 cp=1 dp=4 zero=2",
+      "act_gb": 8.03,
+      "headroom_gb": 71.97
+    }
+  },
   "micro_batches_sensitivity": {
     "N8": {
       "x1": {
