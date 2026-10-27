@@ -1,39 +1,39 @@
-.FF...                                                                   [100%]
+F.F.......F.                                                             [100%]
 =================================== FAILURES ===================================
-____________ test_radius_paragraph_carries_n16_pp_up_from_artifact _____________
+____________________ test_n8_cp_para_carries_both_sides_4dp ____________________
 
-    def test_radius_paragraph_carries_n16_pp_up_from_artifact():
-        rad = FACTS["sensitivity_radius"]["N16_seq8192"]
-        pp_up = rad["flip_pp_up"]
-        pp_down = rad["flip_pp_down"]
-        assert pp_down is None, "N16 pp_down should be None"
+    def test_n8_cp_para_carries_both_sides_4dp():
+        rad = FACTS["sensitivity_radius"]["N8_seq8192"]
         para = _para("Robustness radius")
->       assert f"{pp_up:.3g}" in para, f"missing N16 pp upward bound {pp_up:.3g}"
-E       AssertionError: missing N16 pp upward bound 1.86
-E       assert '1.86' in '**Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for CP\ncost scaled by k in ...mate flips to (1,8,2,1,0)). CP is the\nleast-verified term. The radius is computed by `scripts/sensitivity_radius.py`.'
+>       assert f"{rad['flip_cp_down']:.4g}" in para
+E       AssertionError: assert '0.5415' in '**Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for CP\ncost scaled by k in ...UP at 1.86x to (1,8,2,1,0). CP is the\nleast-verified term. The radius is computed by `scripts/sensitivity_radius.py`.'
 
-tests/test_b5f2_radius_prose.py:35: AssertionError
-_____________ test_radius_paragraph_n16_clause_has_no_n8_pp_value ______________
+tests/test_b5f2_radius_prose.py:52: AssertionError
+_____________________ test_n8_cp_para_no_borrowed_pp_bound _____________________
 
-    def test_radius_paragraph_n16_clause_has_no_n8_pp_value():
-        # slice on 'the N=16 verdict' so a correct mention of 0.8255 for N8 is allowed
-        idx = DOC.index("the N=16 verdict")
-        clause = DOC[idx:idx + 400]
->       assert "0.8255" not in clause, "N16 clause must not carry N8's pp_down 0.8255"
-E       AssertionError: N16 clause must not carry N8's pp_down 0.8255
-E       assert '0.8255' not in 'the N=16 ve...ided fractio'
-E         
-E         '0.8255' is contained here:
-E           
-E           by k in [0.8255, inf) (upward unbounded; a 0.83x underestimate flips to (1,8,2,1,0)). CP is the
-E         ?          ++++++
-E           least-verified term. The radius is computed by `scripts/sensitivity_radius.py`.
-E           
-E           **Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
-E           (`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fractio
+    def test_n8_cp_para_no_borrowed_pp_bound():
+        # 0.8255 is N8's pp_down; it must not appear as the CP lower bound at :42
+        para = _para("Robustness radius")
+        # the CP lower bound line must contain 0.5415, not 0.8255
+>       assert "0.5415" in para
+E       AssertionError: assert '0.5415' in '**Robustness radius (gpu-sim-zj9a).** The N=8 verdict (tp=4 pp=1 cp=2 dp=1) is unchanged for CP\ncost scaled by k in ...UP at 1.86x to (1,8,2,1,0). CP is the\nleast-verified term. The radius is computed by `scripts/sensitivity_radius.py`.'
 
-tests/test_b5f2_radius_prose.py:42: AssertionError
+tests/test_b5f2_radius_prose.py:67: AssertionError
+____________________ test_discovery_of_two_number_intervals ____________________
+
+    def test_discovery_of_two_number_intervals():
+        found = set(re.findall(r"\[\s*[\d.]+x?\s*,\s*[\d.]+x?\s*\]", DOC))
+        allowed = _allowed_intervals()
+        # filter allowed to those matching the 2-number shape
+        allowed_2num = {a for a in allowed if re.fullmatch(r"\[\s*[\d.]+x?\s*,\s*[\d.]+x?\s*\]", a)}
+        unexpected = found - allowed_2num
+>       assert not unexpected, f"unregistered 2-number interval(s): {unexpected}"
+E       AssertionError: unregistered 2-number interval(s): {'[0.8255, 1.5244]'}
+E       assert not {'[0.8255, 1.5244]'}
+
+tests/test_b5f2_radius_prose.py:130: AssertionError
 =========================== short test summary info ============================
-FAILED tests/test_b5f2_radius_prose.py::test_radius_paragraph_carries_n16_pp_up_from_artifact
-FAILED tests/test_b5f2_radius_prose.py::test_radius_paragraph_n16_clause_has_no_n8_pp_value
-2 failed, 4 passed in 0.03s
+FAILED tests/test_b5f2_radius_prose.py::test_n8_cp_para_carries_both_sides_4dp
+FAILED tests/test_b5f2_radius_prose.py::test_n8_cp_para_no_borrowed_pp_bound
+FAILED tests/test_b5f2_radius_prose.py::test_discovery_of_two_number_intervals
+3 failed, 9 passed in 0.03s
