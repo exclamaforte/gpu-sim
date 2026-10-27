@@ -19,6 +19,30 @@ The implementer works on branch `lab/<id>` in worktree `.lab/wt/<id>` and names 
 - Confirm `git -C .lab/wt/<id> rev-parse --short HEAD` matches the comment. A hash mismatch is "not reviewable": verdict `needs-rework` naming it, nothing more. Do not re-verify cleanliness, re-run tests, or rebase — presubmit already did, and repeating it burns turns for zero signal.
 - READ THE COMMITTED CONTENT, NOT THE WORKTREE'S FILES, AND ADDRESS A TREE BY COMMIT, NOT BY A NAMED REF. The branch worktree is the implementer's MOVING input (their next edit lands there before their next commit), so a review that reads the worktree's files may judge a state that is not the tip's; and a ref NAME varies with the clone, so an artefact that builds its probe from `origin/lab/<id>` dies in a fresh clone fetched under another name ("fatal: 'origin/lab/<id>' is not a commit") while a sha does not. Both are the same discipline as the anchor rule: source the input from something the step cannot reach.
 
+## Gate provenance: a gate from pre-fix code proves nothing
+
+On 2026-10-27 (08:15Z and 08:37Z) two pre-submit gates ran the unit suite from
+worktrees / `paired-base` copies that predated the `gc_temp_labs` guard; under
+the sandboxed fixture HOME every real lab looked like an orphan fixture, so the
+gate closed all 11 real labs' herdr workspaces and SIGHUP'd all 30 workers.
+Accept a gate artifact only after checking its provenance:
+
+- The gate must run code that contains the fleet-kill guard (`gc` refuses the
+  orphan sweep when `_real_lab_basenames()` is empty) plus every landed guard
+  commit: `git merge-base --is-ancestor <guard-commit> <branch>`. A gate from a
+  stale worktree or `.lab/scratch/presubmit-*/paired-base-*` is INVALID →
+  `needs-rework` naming the missing commit; do not read its numbers.
+- Scan the gate window in `~/.config/herdr/herdr-server.log` for
+  `workspace.close` of real-lab workspace ids and `pane.exit ... signal=Hangup`
+  bursts. A close during the run means the gate damaged the fleet: say so,
+  quote the timestamps, and do not land.
+- A `/tmp/<lab>` host shield (added 01:44Z so even pre-fix copies skip real
+  labs) is an interim containment, not a gate credential: do not treat "no
+  fleet close" as branch evidence while stale worktrees or the shield exist.
+
+Land the guard first. Stale worktrees are landmines until landed, rebased or
+pruned; the shield is removed only after that.
+
 ## Semantic validation (single turn)
 
 Read the diff against the bead's design and acceptance criteria. Check:
@@ -52,6 +76,8 @@ Every verdict opens with exactly one line, then file:line evidence at the branch
 **The first line names the reviewed tip, as a bare hash in parentheses** -- `VERDICT: VALIDATED (abc1234)`. The daemon reads the reviewed tip from that line (verdict_tip_from_text): it takes a `tip: <sha>` marker line, else the first parenthesised hex on the first line, and NOTHING else -- prose is not a source. A first line like '... main is unchanged at 4078ff1 ...' used to be read as the reviewed tip, the land then refused a correct verdict with a false 'verdict tip mismatch', and the reviewer was paged to re-review a branch that never moved (p8pb). Name the tip; keep other hashes off the first line. A verdict that names no tip is recorded with NO tip, and the land then refuses with 'the verdict does not name a tip' -- so name the tip. THE DURABLE RULE: the recorded tip is in ONE form -- the branch's own full hash -- and every consumer compares in that one form.
 
 **When your verdict lands after the tip's commit, LEAD WITH THE TIMELINE and say what you could not have seen.** A verdict cannot judge an item that was ruled after the tip was committed: the implementer could not have addressed it, and a verdict that reads as an omission (or as a rebuke for a ruling they had not yet heard) sends them hunting for the wrong thing. State the times, then name the item as new. The same discipline in the other direction: a check that failed for the wrong reason (a malformed command, a stale path) is a check to RE-RUN before it is believed, not a finding to report.
+
+For a gate-bypassed tip, include the durable `gate bypassed: ... role=... reason=... tip=...` audit line in the verdict. `lab comment` appends it for the matching reviewed tip. A VALIDATED verdict also requires a nonempty `Bypass justification: <why independent evidence permits validation>` line; the daemon and landing gate refuse an unacknowledged bypass. Worker roles cannot authorize a bypass with `--authorized-by pi`.
 
 Labels, then land:
 
