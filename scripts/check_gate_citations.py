@@ -51,6 +51,16 @@ def run_log_gate_tip(handle):
     m = re.search(r"GATE TIP:\s*([0-9a-f]{7,40})", text)
     return m.group(1) if m else None
 
+def run_log_has_dirty_end(handle):
+    log = REPO / ".lab" / "runs" / handle / "run.log"
+    if not log.exists():
+        return None
+    try:
+        text = log.read_text(errors="replace")
+    except Exception:
+        return None
+    return "GATE DIRTY-AT-END:" in text
+
 
 def main() -> int:
     head = git("rev-parse", "HEAD").stdout.strip()
@@ -84,6 +94,13 @@ def main() -> int:
                 if not (rl_tip.startswith(tip) or tip.startswith(rl_tip)):
                     bad.append((metrics, f"run {handle} GATE TIP {rl_tip} != cited {tip}"))
                     continue
+        # dirty-at-end presence: a truncated/killed/old-format log must fail
+        if rm:
+            handle = rm.group(1)
+            has_end = run_log_has_dirty_end(handle)
+            if has_end is False:
+                bad.append((metrics, f"run {handle} log lacks GATE DIRTY-AT-END (truncated/killed)"))
+                continue
         # ancestor / diff rule
         if tip == head:
             pass

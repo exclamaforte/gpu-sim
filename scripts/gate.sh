@@ -51,6 +51,8 @@ echo "GATE PID: $$"
 echo "GATE START: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "GATE DIRTY-AT-START: ${start_digest}"
 echo "GATE DIRTY-AT-START PATHS: ${start_paths:-none}"
+echo "GATE DIFFSTAT-AT-START:"
+git -C "$gate_root" diff --stat HEAD 2>/dev/null | sed 's/^/  /' || true
 if [ "$gate_root" != "$(cd "$(dirname "$0")/.." && pwd)" ]; then
     echo "GATE WARNING: evaluating a DIFFERENT tree than this script lives in -- a red result"
     echo "              here does not describe the main working copy."
@@ -66,6 +68,8 @@ end_report() {
   echo "GATE END: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "GATE DIRTY-AT-END: ${end_digest}"
   echo "GATE DIRTY-AT-END PATHS: ${end_paths:-none}"
+  echo "GATE DIFFSTAT-AT-END:"
+  git -C "$gate_root" diff --stat HEAD 2>/dev/null | sed 's/^/  /' || true
   if [ -n "${start_digest:-}" ] && [ "$end_digest" != "$start_digest" ]; then
     echo "FAIL: dirty digest changed during the run (start=${start_digest} end=${end_digest})"
     rc=1

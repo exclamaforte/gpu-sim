@@ -1,0 +1,29 @@
+GATE TREE: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-mwlm
+GATE TIP: 8a3927df9047fc6f60a6e4fa16f9c55b20b32afe
+GATE HEAD: 8a3927d mwlm: item1 no-write check_docs; item3 contract test
+GATE PID: 1837385
+GATE START: 2026-10-27T17:38:32Z
+GATE DIRTY-AT-START: e972bf094b41daa77abe521d8cc58ca4aeafe4177fa3357a50f632bb56a49b0d
+GATE DIRTY-AT-START PATHS: experiments/gpu-sim-mwlm/case2_digest_changed.log experiments/gpu-sim-mwlm/case3_red_other.log scripts/check_docs_model_numbers.py
+=== gpu-sim gates 2026-10-27T17:38Z ===
+(fast mode: test suite skipped)
+docs section 0 vs model                    FAIL
+    OK: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-mwlm/docs/model_facts.json matches the facts this run produces.
+    section 0: 661 computed decimal values in the allowed set
+    INJECTED FAILURE for case 3
+close_audit unchanged                      PASS
+close audit (concrete artifacts)           PASS
+interposer guard uniqueness                PASS
+libfakegpu freshness                       PASS
+prose-number provenance                    PASS
+claims register                            PASS
+no vacuous assertions                      PASS
+gate citations                             PASS
+worktree hygiene (advisory)                PASS
+byte reconciliation (advisory)             PASS
+byte reconciliation cp (advisory)          PASS
+MANIFEST FAILED: 8 passed, expected 9
+ran: docs section 0 vs model close_audit unchanged close audit (concrete artifacts) interposer guard uniqueness libfakegpu freshness prose-number provenance claims register no vacuous assertions gate citations worktree hygiene byte reconciliation byte reconciliation cp
+GATE END: 2026-10-27T17:43:48Z
+GATE DIRTY-AT-END: e972bf094b41daa77abe521d8cc58ca4aeafe4177fa3357a50f632bb56a49b0d
+GATE DIRTY-AT-END PATHS: experiments/gpu-sim-mwlm/case2_digest_changed.log experiments/gpu-sim-mwlm/case3_red_other.log scripts/check_docs_model_numbers.py
