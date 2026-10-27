@@ -142,6 +142,11 @@ def compute_facts():
     def _so_cell(fabric, model, conv):
         return _scaleout[fabric]["models"][model][conv]
 
+    # gpu-sim-gvg5: one P for every floor. The legacy pair below used nominal 405e9
+    # (70.9) while scaleout_opt uses actual GQA-aware P (405.849e9); actual wins.
+    from scripts.scaleout_answers import MODELS as _facts_models
+    _p405_actual = ps.total_params(_facts_models["llama3-405b"])
+
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
         # deltas against the default 16 B/param total) plus the 405B@80 rows per
@@ -232,8 +237,9 @@ def compute_facts():
                  "n405b_80gpus_feasible": _so_cell("10x8", "llama3-405b", "default all_gather") is not None,
                  # why 405B does not fit at 80 GPUs: fp32 master + fp32 Adam m/v + bf16 grads = 14 B/param,
                  # and P/N is fixed by the GPU count no matter how the 80 GPUs are decomposed.
-                 "opt_state_floor_gb_405b_at_80": round(14 * 405e9 / 80 / 1e9, 1),
-                 "opt_state_floor_gb_405b_at_800": round(14 * 405e9 / 800 / 1e9, 1),
+                 # P is the actual GQA-aware count (gpu-sim-gvg5), like the scaleout_opt floors.
+                 "opt_state_floor_gb_405b_at_80": round(14 * _p405_actual / 80 / 1e9, 1),
+                 "opt_state_floor_gb_405b_at_800": round(14 * _p405_actual / 800 / 1e9, 1),
                  "n405b_800gpus_ag_margin": _so_cell("100x8", "llama3-405b", "default all_gather")["margin_pct"],
              },
              "scaleout_opt": _opt_styles(),

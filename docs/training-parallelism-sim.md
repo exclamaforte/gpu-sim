@@ -62,8 +62,8 @@ is a 2.05% near-tie that the default convention breaks toward dp=5; 800 GPUs is 
 and convention rather than by structure; and at 8000 GPUs the margins run 0.61% to 5.09%, so most cells
 are ties the model cannot separate. 405B does not fit at 80 GPUs at all under the default fp32_master
 optimizer style, and the reason is NOT activations: that style assumes fp32 master weights plus fp32 Adam m/v
-plus bf16 grads, i.e. 14 B per parameter, and 405B spread over 80 GPUs is 5.06e9 parameters per GPU however
-you decompose them -- 70.9 GB of optimizer state before a single activation. Recomputation cannot close a gap
+plus bf16 grads, i.e. 14 B per parameter, and 405B spread over 80 GPUs is 5.07e9 parameters per GPU however
+you decompose them -- 71.0 GB of optimizer state before a single activation. Recomputation cannot close a gap
 that size; only more GPUs (7.1 GB of the same state at 800) or a different optimizer style can. The style is
 now an explicit choice, hw['opt_state'] in {bf16_moments, fp32_moments, fp32_master} with hw['opt_peak'] in
 {default, fused, none}, priced from measurement: bf16 moments reside at 6.0 B/param and peak at 10.0, fp32
