@@ -132,7 +132,7 @@ run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace ex
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
 # gpu-sim-gman: manifest comparison.
-EXPECTED_HARD=10
+EXPECTED_HARD=11
 EXPECTED_ADVISORY=3
 if [ $FAST -eq 1 ]; then
   EXPECTED_TOTAL=$((EXPECTED_HARD - 1 + EXPECTED_ADVISORY))
