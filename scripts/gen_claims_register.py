@@ -153,7 +153,7 @@ def render(facts):
         hi_s = f"{_cp_up:.2f}x" if _cp_up is not None else "unbounded above"
         side_note = "both sides measured" if (len(_cp_sides) == 2) else "one side measured"
         rows.append(_row("CP term is decisive for the N=8 verdict", "BOUNDED",
-                     f"winner unchanged for CP error in [{lo_s}, {hi_s}]; {side_note}",
+                     f"winner unchanged for CP error in <!-- RADIUS-INLINE:BEGIN -->[{lo_s}, {hi_s}]<!-- RADIUS-INLINE:END -->; {side_note}",
                      "scripts/sensitivity_radius.py"))
     if _pp_up is not None or _pp_down is not None:
         lo_s = f"{_pp_down:.2f}x" if _pp_down is not None else "unbounded below"
