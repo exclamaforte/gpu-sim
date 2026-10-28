@@ -50,7 +50,29 @@
     ],
     "bf16_80_best_step_ms": 504,
     "bf16_80_best_mem_gb": 75.1,
-    "bf16_80_margin": 3.52
+    "bf16_80_margin": 3.52,
+    "measured_style_bytes": {
+      "source": "gpu-sim-37xk",
+      "device": "NVIDIA GeForce RTX 5090",
+      "torch": "2.13.0+cu132",
+      "n_params": 184594432,
+      "steps": 8,
+      "bf16_moments": {
+        "fused": 8.36,
+        "foreach_true": 10.36,
+        "foreach_false": 8.73,
+        "params_grads": 4.36
+      },
+      "fp32_moments": {
+        "fused": 16.36,
+        "foreach_true": 20.36,
+        "foreach_false": 17.09,
+        "params_grads": 8.36
+      },
+      "measured_floor_gb_405b_at_80": {
+        "fp32_moments_fused": 83.1
+      }
+    }
   },
   "pp1_act": {
     "n_rows": 31,
