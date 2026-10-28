@@ -146,13 +146,48 @@ def main() -> int:
     head = git("rev-parse", "HEAD").stdout.strip()
     bad = []
     unverifiable = []
+    # grandfathered set: metrics.json paths that lacked a 'gate' key at the
+    # time this bead landed. They are exempt UNLESS modified in this branch.
+    grand_path = REPO / "scripts" / "gate_citations_grandfathered.txt"
+    grandfathered = set()
+    if grand_path.exists():
+        for ln in grand_path.read_text().splitlines():
+            ln = ln.strip()
+            if ln:
+                grandfathered.add(ln)
+    # files modified in the current branch vs its merge base with master/main
+    modified = set()
+    base = git("merge-base", "HEAD", "master").stdout.strip()
+    if not base:
+        base = git("merge-base", "HEAD", "main").stdout.strip()
+    if base:
+        for n in (diff_names(base, head) or []):
+            modified.add(n)
+    # also treat uncommitted (working-tree / staged) changes as modified
+    for r in (git("diff", "--name-only"), git("diff", "--cached", "--name-only")):
+        for n in (r.stdout or "").split():
+            if n.strip():
+                modified.add(n.strip())
     for metrics in sorted((REPO / "experiments").glob("*/metrics.json")):
+        rel = str(metrics.relative_to(REPO))
         try:
             data = json.loads(metrics.read_text())
         except Exception:
             continue
         gate = data.get("gate")
         if not isinstance(gate, str):
+            # missing gate key
+            if rel in grandfathered and rel not in modified:
+                continue
+            bad.append((metrics, "missing 'gate' citation"))
+            continue
+        # declared-none form: 'gate: none -- <reason>' (reported, not failed)
+        gl = gate.lower()
+        if "none" in gl and ("--" in gate or "reason" in gl or ":" in gate):
+            if "gate.sh" not in gl and "PASS" not in gl.upper() and "TIP" not in gl.upper():
+                unverifiable.append((metrics, "declared none: " + gate))
+                continue
+        if "gate.sh" not in gate and "PASS" not in gate.upper() and "TIP" not in gate.upper():
             continue
         # only gate-run citations are in scope; other 'gate' fields (e.g.
         # entry-gate status strings) are not verifiable citations
@@ -277,12 +312,12 @@ def main() -> int:
             continue
 
     for m, msg in bad:
-        print(f"INVALID: {m}: {msg}")
+        print(f"INVALID: {m.relative_to(REPO)}: {msg}")
     for m, t in unverifiable:
         if isinstance(t, str) and t.startswith(("tip ", "handle ", "no ")):
-            print(f"UNVERIFIABLE: {m}: {t}")
+            print(f"UNVERIFIABLE: {m.relative_to(REPO)}: {t}")
         else:
-            print(f"UNVERIFIABLE: {m}: tip {t} is on an unrelated branch (no run record?)")
+            print(f"UNVERIFIABLE: {m.relative_to(REPO)}: tip {t} is on an unrelated branch (no run record?)")
     if bad:
         return 1
     print("check_gate_citations: OK")
