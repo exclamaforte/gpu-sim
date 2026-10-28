@@ -21,6 +21,12 @@ REPO = Path(__file__).resolve().parents[1]
 TIP_RE = re.compile(r"\btip\s+([0-9a-f]{7,40})\b", re.I)
 RUN_RE = re.compile(r"\brun\s+(?:handle\s+)?([A-Za-z0-9_-]+)", re.I)
 METRICS_ONLY = re.compile(r"^experiments/[^/]+/metrics\.json$")
+HANDLE_TOKEN_RE = re.compile(r"\bhandle\s+([A-Za-z0-9_-]+|none)\b", re.I)
+DELTA_RE = re.compile(r"\bdelta\b\s*[:=]?\s*(\S.*)$", re.I | re.M)
+# A run that predates GATE TIP output cannot be tied to any tip. Naming that
+# explicitly is a delta claim the checker can VERIFY (the run.log must really
+# lack GATE TIP), unlike an unqualified "unknown", which would be a loophole.
+LEGACY_DELTA = "delta unavailable: predates gate tip output"
 RETRY_ATTEMPTS = 3
 RETRY_DELAY_S = 0.2
 
@@ -71,6 +77,41 @@ def _run_log_path(handle):
     return candidates[0]
 
 
+def _resolve_run_log(handle, attempts=RETRY_ATTEMPTS):
+    """Resolve run.log with a bounded retry over EVERY candidate.
+
+    Two measured reasons not to poll one fixed path: (a) `.lab/runs` is
+    intermittently unreadable -- a listed, greppable handle then 12/12
+    consecutive -d false with no live process -- so one failed stat must not be
+    read as evidence loss; (b) in a worktree the worktree-local `.lab/runs` is
+    NOT the directory the gate wrote to, so a fixed candidates[0] retries the
+    wrong tree entirely. Re-resolving each attempt covers both.
+    """
+    for i in range(attempts):
+        path = _run_log_path(handle)
+        if path.exists():
+            return path
+        if i + 1 < attempts:
+            time.sleep(RETRY_DELAY_S)
+    return None
+
+
+def _tip_from_path(log):
+    try:
+        text = log.read_text(errors="replace")
+    except Exception:
+        return None
+    m = re.search(r"GATE TIP:\s*([0-9a-f]{7,40})", text)
+    return m.group(1) if m else None
+
+
+def _has_end_from_path(log):
+    try:
+        return "GATE DIRTY-AT-END:" in log.read_text(errors="replace")
+    except Exception:
+        return None
+
+
 def run_log_gate_tip(handle):
     log = _run_log_path(handle)
     if not log.exists():
@@ -113,39 +154,74 @@ def main() -> int:
         m = TIP_RE.search(gate)
         declared = "UNVERIFIABLE FOR THIS TIP" in gate.upper()
         if not m:
-            # no tip hash: a declared-unverifiable citation is reported, not failed
-            if "unverifiable" in gate.lower():
+            # no tip hash: allowed only as a declared citation (parts checked
+            # below), otherwise it is a silent evidence-free pass -> FAIL
+            if declared and HANDLE_TOKEN_RE.search(gate) and DELTA_RE.search(gate):
                 unverifiable.append((metrics, "no tip hash cited (declared unverifiable)"))
                 continue
-            bad.append((metrics, "no tip hash cited"))
+            missing = []
+            if declared:
+                if not HANDLE_TOKEN_RE.search(gate) and not RUN_RE.search(gate):
+                    missing.append("handle token")
+                if not DELTA_RE.search(gate):
+                    missing.append("delta listing")
+            bad.append((metrics, "no tip hash cited" + (
+                " (declared unverifiable but missing " + "; ".join(missing) + ")"
+                if missing else "")))
             continue
         tip = m.group(1)
+        # Form C (declared unverifiable) is a positive claim with three
+        # machine-checkable parts: the marker, a handle token (an id or
+        # 'none'), and a delta listing. Ancestry is deliberately NOT required:
+        # a rebase rewrites the tip, which is the very reason C exists.
+        if declared:
+            parts = []
+            if not HANDLE_TOKEN_RE.search(gate) and not RUN_RE.search(gate):
+                parts.append("handle token ('handle <id>' or 'handle none')")
+            legacy_claim = LEGACY_DELTA in gate.lower()
+            if not DELTA_RE.search(gate) and not legacy_claim:
+                parts.append("delta listing")
+            if parts:
+                bad.append((metrics, "declared unverifiable but missing " + "; ".join(parts)))
+                continue
+            if legacy_claim:
+                # the claim must be true of the run record it names
+                hm = HANDLE_TOKEN_RE.search(gate) or RUN_RE.search(gate)
+                if hm and _tip_from_path(_run_log_path(hm.group(1))) is not None:
+                    bad.append((metrics, "claims 'run predates GATE TIP' but the run.log carries one"))
+                    continue
         # existence
         r = git("cat-file", "-e", tip)
         if r.returncode != 0:
             bad.append((metrics, f"tip {tip} does not exist in this repo"))
             continue
-        # run.log comparison if handle present
-        rm = RUN_RE.search(gate)
-        if rm:
-            handle = rm.group(1)
+        # run.log comparison if a handle is cited: accept BOTH the
+        # 'handle <id>' token form and the legacy 'run <id>' form, and treat
+        # 'handle none' as no record at all rather than a handle named "none"
+        hm = HANDLE_TOKEN_RE.search(gate) or RUN_RE.search(gate)
+        if hm and hm.group(1).lower() == "none":
+            hm = None
+        if hm:
+            handle = hm.group(1)
             # missing run record -> retry briefly, then FAIL unless the
             # citation declares itself unverifiable (absent evidence must be
             # acknowledged, never silently passed)
-            rl_tip = run_log_gate_tip(handle)
-            log_path = _run_log_path(handle)
-            if _wait_for_path(log_path) is None:
+            log_path = _resolve_run_log(handle)
+            if log_path is None:
                 if declared:
-                    unverifiable.append((metrics, f"handle {handle}, run.log missing at {log_path} (declared unverifiable)"))
+                    unverifiable.append((metrics, f"handle {handle}, run.log missing (declared unverifiable)"))
                 else:
-                    bad.append((metrics, f"handle {handle}, run.log missing at {log_path}"))
+                    bad.append((metrics, f"handle {handle}, run.log missing at {_run_log_path(handle)}"))
                 continue
+            # re-read AFTER the wait: a pre-retry read can miss on the same
+            # transient that the retry was added to absorb
+            rl_tip = _tip_from_path(log_path)
             if rl_tip is not None and not (rl_tip.startswith(tip) or tip.startswith(rl_tip)):
                 bad.append((metrics, f"run {handle} GATE TIP {rl_tip} != cited {tip}"))
                 continue
             # dirty-at-end presence: a truncated/killed new-format log must fail;
             # legacy logs (no GATE TIP line) are unverifiable, not failed
-            has_end = run_log_has_dirty_end(handle)
+            has_end = _has_end_from_path(log_path)
             if has_end is False:
                 if rl_tip is None:
                     unverifiable.append((metrics, f"handle {handle}, legacy run.log (no GATE TIP/DIRTY-AT-END)"))

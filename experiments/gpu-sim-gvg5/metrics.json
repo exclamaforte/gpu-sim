@@ -10,5 +10,6 @@
   ],
   "test_comment_hygiene": "tests/test_docs_narrative.py:110 comment 70.9 -> 71.0 (comment only)",
   "negative_control": "default-regime scaleout answers.md regenerates byte-equal; narrative test FAILS on stale 70.9 prose (1 failed, 13 passed) and passes on 71.0 (14 passed)",
-  "base": "lab/gpu-sim-gvg5 on master 739fb8c"
+  "base": "lab/gpu-sim-gvg5 on master 739fb8c",
+  "gate": "scripts/gate.sh 8/8 PASS, GATE OK (run rmvqevlk40, exit 0); UNVERIFIABLE FOR THIS TIP: handle rmvqevlk40, delta unavailable: predates GATE TIP output; delta unavailable: predates GATE TIP output"
 }

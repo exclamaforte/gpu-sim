@@ -219,7 +219,7 @@ class TestContractDeclared(unittest.TestCase):
     def test_no_handle_declared_is_unverifiable(self):
         self._set_metrics(
             f"scripts/gate.sh 1/1 PASS (tip {self.head}); "
-            f"UNVERIFIABLE FOR THIS TIP: no run handle")
+            f"UNVERIFIABLE FOR THIS TIP: handle none, delta 0 files")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()
@@ -239,7 +239,50 @@ class TestContractDeclared(unittest.TestCase):
     def test_enoent_declared_is_unverifiable(self):
         self._set_metrics(
             f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head}); "
-            f"UNVERIFIABLE FOR THIS TIP: run record unreadable")
+            f"UNVERIFIABLE FOR THIS TIP: handle rnope, delta 0 files")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
+
+    def test_declared_without_handle_token_fails(self):
+        # form C is a positive claim: dropping the handle token must fail
+        self._set_metrics(
+            f"scripts/gate.sh 1/1 PASS (tip {self.head}); "
+            f"UNVERIFIABLE FOR THIS TIP: delta 12 files")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("handle token", buf.getvalue())
+
+    def test_declared_without_delta_fails(self):
+        # dropping the delta listing must fail
+        self._set_metrics(
+            f"scripts/gate.sh 1/1 PASS (tip {self.head}); "
+            f"UNVERIFIABLE FOR THIS TIP: handle none")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("delta listing", buf.getvalue())
+
+    def test_declared_nonancestor_tip_is_reported(self):
+        # ancestry is NOT required for form C: a rebase rewrites the tip
+        orphan_tip = self.head  # placeholder, replaced below by a real orphan
+        import subprocess as sp
+        env = {"GIT_AUTHOR_NAME":"t","GIT_AUTHOR_EMAIL":"t@t.com",
+               "GIT_COMMITTER_NAME":"t","GIT_COMMITTER_EMAIL":"t@t.com"}
+        (self.repo / "orphan2.txt").write_text("o\n")
+        sp.run(["git","-C",str(self.repo),"checkout","--orphan","orph2"],capture_output=True)
+        sp.run(["git","-C",str(self.repo),"add","orphan2.txt"],capture_output=True)
+        sp.run(["git","-C",str(self.repo),"commit","-q","-m","orphan2"],capture_output=True,env={**os.environ,**env})
+        orphan_tip = sp.run(["git","-C",str(self.repo),"rev-parse","HEAD"],capture_output=True,text=True).stdout.strip()
+        sp.run(["git","-C",str(self.repo),"checkout","-q",self.head],capture_output=True)
+        self._set_metrics(
+            f"scripts/gate.sh 1/1 PASS (tip {orphan_tip}); "
+            f"UNVERIFIABLE FOR THIS TIP: handle none, delta 3 files")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()
