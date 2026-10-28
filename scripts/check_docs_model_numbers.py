@@ -213,6 +213,37 @@ def compute_facts():
         return {"n_rows": len(_rows), "all_fit": all(_d["headroom_gb"] > 0 for _d in _rows),
                 "tightest": _rows[0] if _rows else None}
 
+    def _measured_opt_bytes():
+        # gpu-sim-z1cw: measured optimizer bytes from the 37xk GPU run, anchored
+        # alongside the assumed style_bytes. Source: experiments/gpu-sim-37xk/
+        # measured_opt_bytes.json. Keep in sync with that artifact.
+        import json as _j
+        _src = os.path.join(ROOT, "experiments", "gpu-sim-37xk", "measured_opt_bytes.json")
+        _d = _j.load(open(_src))
+        _m = _d["measured_bytes_per_param"]
+        return {
+            "source": "gpu-sim-37xk",
+            "device": _d["device"],
+            "torch": _d["torch_version"],
+            "n_params": _d["n_params"],
+            "steps": _d["steps"],
+            "bf16_moments": {
+                "fused": round(_m["bf16_moments"]["measured_peak_fused"], 2),
+                "foreach_true": round(_m["bf16_moments"]["measured_peak_foreach_true"], 2),
+                "foreach_false": round(_m["bf16_moments"]["measured_peak_foreach_false"], 2),
+                "params_grads": round(_m["bf16_moments"]["params_grads"], 2),
+            },
+            "fp32_moments": {
+                "fused": round(_m["fp32_moments"]["measured_peak_fused"], 2),
+                "foreach_true": round(_m["fp32_moments"]["measured_peak_foreach_true"], 2),
+                "foreach_false": round(_m["fp32_moments"]["measured_peak_foreach_false"], 2),
+                "params_grads": round(_m["fp32_moments"]["params_grads"], 2),
+            },
+            "measured_floor_gb_405b_at_80": {
+                "fp32_moments_fused": _d["recomputed_floors_gb"]["fp32_moments_fused"],
+            },
+        }
+
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
         # deltas against the default 16 B/param total) plus the 405B@80 rows per
@@ -284,6 +315,7 @@ def compute_facts():
             out["bf16_80_best_step_ms"] = round(1000 * _bcell["step_s"])
             out["bf16_80_best_mem_gb"] = _bcell["mem_gb"]
             out["bf16_80_margin"] = _bcell["margin_pct"]
+        out["measured_style_bytes"] = _measured_opt_bytes()
         return out
 
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
