@@ -231,7 +231,7 @@ class TestContractDeclared(unittest.TestCase):
 
     def test_enoent_fails(self):
         # after the bounded retry, a persistent absence FAILS unless declared
-        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head})")
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run rnope1, tip {self.head})")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()
@@ -241,8 +241,8 @@ class TestContractDeclared(unittest.TestCase):
 
     def test_enoent_declared_is_unverifiable(self):
         self._set_metrics(
-            f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head}); "
-            f"UNVERIFIABLE FOR THIS TIP: handle rnope, delta 0 files")
+            f"scripts/gate.sh 1/1 PASS (run rnope1, tip {self.head}); "
+            f"UNVERIFIABLE FOR THIS TIP: handle rnope1, delta 0 files")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()

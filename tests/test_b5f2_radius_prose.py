@@ -109,15 +109,16 @@ def test_n8_cp_seq32768_interval_present():
 def test_discovery_of_two_number_intervals():
     """Widened discovery: every 2-number bracket must be registered."""
     found = set(_re.findall(r"\[\s*[\d.]+x?\s*,\s*[\d.]+x?\s*\]", DOC))
-    allowed = {
-        "[0.5415, 1.5244]",
-        "[0.54x, 1.52x]",
-        "[0.20x, 4.81x]",
-        "[1, 8]",
-        "[1,8]",
-        "[2, 3]",
-        "[2,3]",
-    }
+    allowed = {"[1, 8]", "[1,8]", "[2, 3]", "[2,3]"}
+    # every sensitivity_radius cell's intervals are registered
+    sr = FACTS["sensitivity_radius"]
+    for row in sr.values():
+        for lo, hi in ((row.get("flip_cp_down"), row.get("flip_cp_up")),
+                       (row.get("flip_pp_down"), row.get("flip_pp_up"))):
+            if isinstance(lo, (int, float)) and isinstance(hi, (int, float)):
+                allowed.add(f"[{lo:.4f}, {hi:.4f}]")
+                allowed.add(f"[{lo}, {hi}]")
+                allowed.add(f"[{lo:.2f}x, {hi:.2f}x]")
     unexpected = found - allowed
     assert not unexpected, f"unregistered 2-number interval(s): {unexpected}"
 

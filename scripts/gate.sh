@@ -124,6 +124,7 @@ run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
 run_hard "libfakegpu freshness" python3 scripts/check_libfakegpu_fresh.py
 run_hard "prose-number provenance" python3 scripts/check_prose_numbers.py
 run_hard "claims register" python3 scripts/gen_claims_register.py --check
+run_hard "radius prose" python3 scripts/render_radius_prose.py --check
 run_hard "no vacuous assertions" python3 scripts/check_no_vacuous_asserts.py
 run_hard "gate citations" python3 scripts/check_gate_citations.py
 run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
@@ -131,7 +132,7 @@ run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace ex
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
 # gpu-sim-gman: manifest comparison.
-EXPECTED_HARD=10
+EXPECTED_HARD=11
 EXPECTED_ADVISORY=3
 if [ $FAST -eq 1 ]; then
   EXPECTED_TOTAL=$((EXPECTED_HARD - 1 + EXPECTED_ADVISORY))
