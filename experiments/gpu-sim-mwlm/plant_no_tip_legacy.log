@@ -1,0 +1,26 @@
+# plant: remove the no-tip legacy-claim verification (accept a false 'predates GATE TIP')
+# $ pytest tests/test_check_gate_citations.py::TestContractDeclared::test_no_tip_legacy_claim_false_fails
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ TestContractDeclared.test_no_tip_legacy_claim_false_fails ___________
+
+self = <test_check_gate_citations.TestContractDeclared testMethod=test_no_tip_legacy_claim_false_fails>
+
+    def test_no_tip_legacy_claim_false_fails(self):
+        # the old oggn line: names a handle whose run.log DOES carry a GATE TIP,
+        # so the "predates GATE TIP" claim is false even though there is no tip.
+        self._make_runlog("r1", self.head, with_end=True)
+        self._set_metrics(
+            "scripts/gate.sh 9/9 PASS (unverifiable); "
+            "UNVERIFIABLE FOR THIS TIP: handle r1, "
+            "delta unavailable: predates GATE TIP output")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+>       self.assertEqual(rc, 1)
+E       AssertionError: 0 != 1
+
+tests/test_check_gate_citations.py:306: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_check_gate_citations.py::TestContractDeclared::test_no_tip_legacy_claim_false_fails
+1 failed in 0.04s

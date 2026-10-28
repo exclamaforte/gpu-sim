@@ -292,6 +292,46 @@ class TestContractDeclared(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn("UNVERIFIABLE", buf.getvalue())
 
+    def test_no_tip_legacy_claim_false_fails(self):
+        # the old oggn line: names a handle whose run.log DOES carry a GATE TIP,
+        # so the "predates GATE TIP" claim is false even though there is no tip.
+        self._make_runlog("r1", self.head, with_end=True)
+        self._set_metrics(
+            "scripts/gate.sh 9/9 PASS (unverifiable); "
+            "UNVERIFIABLE FOR THIS TIP: handle r1, "
+            "delta unavailable: predates GATE TIP output")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("predates GATE TIP", buf.getvalue())
+
+    def test_no_tip_legacy_claim_true_passes(self):
+        # a handle whose run.log really lacks GATE TIP makes the claim true
+        legacy = self.repo / ".lab" / "runs" / "rold"
+        legacy.mkdir(parents=True, exist_ok=True)
+        (legacy / "run.log").write_text("old format log\n")
+        self._set_metrics(
+            "scripts/gate.sh 8/8 PASS (run rold); "
+            "UNVERIFIABLE FOR THIS TIP: handle rold, "
+            "delta unavailable: predates GATE TIP output")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
+
+    def test_handle_prose_token_is_not_a_handle(self):
+        # "handle for this run" must not parse as a handle called "for"
+        self._set_metrics(
+            "scripts/gate.sh 9/9 PASS (gate.sh emits no GATE TIP handle for this run); "
+            "UNVERIFIABLE FOR THIS TIP: handle none, delta 2 files (a.md, b.json)")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
+
     def test_missing_dirty_end_fails(self):
         self._make_runlog("r1", self.head, with_end=False)
         self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {self.head})")

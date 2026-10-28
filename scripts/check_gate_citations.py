@@ -21,7 +21,11 @@ REPO = Path(__file__).resolve().parents[1]
 TIP_RE = re.compile(r"\btip\s+([0-9a-f]{7,40})\b", re.I)
 RUN_RE = re.compile(r"\brun\s+(?:handle\s+)?([A-Za-z0-9_-]+)", re.I)
 METRICS_ONLY = re.compile(r"^experiments/[^/]+/metrics\.json$")
-HANDLE_TOKEN_RE = re.compile(r"\bhandle\s+([A-Za-z0-9_-]+|none)\b", re.I)
+# a handle token is an id-like token or the literal "none"; the length floor
+# keeps prose such as "no GATE TIP handle for this run" from parsing "for"
+# as a handle (reviewer, b8c23fb).
+HANDLE_TOKEN_RE = re.compile(r"\bhandle\s+(none|[A-Za-z0-9_-]+)\b\s*(?=[,;)]|$)",
+                            re.I | re.M)
 DELTA_RE = re.compile(r"\bdelta\b\s*[:=]?\s*(\S.*)$", re.I | re.M)
 # A run that predates GATE TIP output cannot be tied to any tip. Naming that
 # explicitly is a delta claim the checker can VERIFY (the run.log must really
