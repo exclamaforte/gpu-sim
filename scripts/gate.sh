@@ -5,7 +5,7 @@
 #   scripts/gate.sh            # full: pytest (~2 min) + every check
 #   scripts/gate.sh --fast     # skip the test suite (docs/model/audit checks only)
 #
-# Budget: full run ~10-13 min (11 hard checks + pytest ~982 tests); --fast ~seconds.
+# Budget: full run ~10-13 min (11 hard checks + pytest ~982 tests); --fast ~seconds (docs check reads committed artifact, no recompute).
 # The harness caps ci_gates.py at 300 s; full runs exceed it, so ci_gates.py
 # streams output and reports 'GATES NOT EVALUATED' on timeout.
 set -uo pipefail

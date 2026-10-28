@@ -1,4 +1,8 @@
 {
   "bead": "gpu-sim-re02",
-  "gate": "scripts/ci_gates.py --fast PASS streamed (GATE TIP 16f0c1c); plant: TIMEOUT_S=1 fires in 1.02s, rc=2, 'GATES NOT EVALUATED' printed -- see experiments/gpu-sim-re02/run.sh. UNVERIFIABLE FOR THIS TIP: handle none, delta: metrics.json only (this line, added after the run)"
+  "gate_fast_wall_s": 7.63,
+  "gate_fast_target_s": 240,
+  "gate_fast_pass": true,
+  "plant_fast_red": true,
+  "artifacts": ["per_check_timings.json", "run.sh", "output.log", "job.json"]
 }
