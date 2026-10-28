@@ -1,0 +1,37 @@
+GATE TREE: /home/gabe/Documents/gpu-sim
+GATE TIP: 7984a0b86455340f3506898cefc81fed07c2961d
+GATE HEAD: 7984a0b record: the six declared citations now name the merg
+GATE PID: 361869
+GATE START: 2026-10-28T14:39:28Z
+GATE DIRTY-AT-START: c89ef18e75fbe46d52b10e7a757be0b58c46a4f9d0de35782d8c6c2d4258d60c
+GATE DIRTY-AT-START PATHS: experiments/gpu-sim-re02/ scripts/ci_gates.py scripts/gate.sh
+GATE DIFFSTAT-AT-START:
+   scripts/ci_gates.py | 37 +++++++++++++++++++------------------
+   scripts/gate.sh     |  4 ++++
+   2 files changed, 23 insertions(+), 18 deletions(-)
+=== gpu-sim gates 2026-10-28T14:39Z ===
+(fast mode: test suite skipped)
+docs section 0 vs model                    PASS
+close_audit unchanged                      PASS
+close audit (concrete artifacts)           PASS
+interposer guard uniqueness                PASS
+libfakegpu freshness                       PASS
+prose-number provenance                    PASS
+claims register                            PASS
+radius prose                               PASS
+no vacuous assertions                      PASS
+gate citations                             PASS
+worktree hygiene (advisory)                PASS
+byte reconciliation (advisory)             PASS
+byte reconciliation cp (advisory)          PASS
+
+hard: 10 passed, 0 failed | advisory findings: 0
+GATE OK
+GATE END: 2026-10-28T14:45:02Z
+GATE DIRTY-AT-END: c89ef18e75fbe46d52b10e7a757be0b58c46a4f9d0de35782d8c6c2d4258d60c
+GATE DIRTY-AT-END PATHS: experiments/gpu-sim-re02/ scripts/ci_gates.py scripts/gate.sh
+GATE DIFFSTAT-AT-END:
+   scripts/ci_gates.py | 37 +++++++++++++++++++------------------
+   scripts/gate.sh     |  4 ++++
+   2 files changed, 23 insertions(+), 18 deletions(-)
+GATE PASS
