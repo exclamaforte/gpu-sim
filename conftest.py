@@ -40,6 +40,7 @@ def pytest_configure(config):
                   "finishes on a different branch than it started, a test mutated the shared "
                   "repository (see gpu-sim-ztree).", file=sys.stderr)
     config.addinivalue_line("markers", "slow: marks tests as slow (deselect with -m 'not slow')")
+    config.addinivalue_line("markers", "multiproc: marks tests that spawn multiple processes (skip under contention)")
 
 
 def _handler(signum, frame):

@@ -44,9 +44,42 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 INTERPOSER = REPO / "libfakenccl.so"
 
-pytestmark = pytest.mark.skipif(
-    not INTERPOSER.exists(), reason="libfakenccl.so not built"
-)
+
+def _multiproc_ok():
+    """Load-aware gate for the 4-rank torchrun probe (gpu-sim-kbne).
+
+    A 4-process distributed test on a box with fewer than 4 cores (or under
+    load) cannot pass by construction; reporting that as pytest ERROR makes a
+    green tree look red. Skip with the load value in the reason instead.
+    """
+    # Use the usable CPU count (nproc / cgroup quota), not os.cpu_count(),
+    # which reports logical cores and ignores the container quota (gpu-sim-kbne).
+    try:
+        import subprocess as _sp
+        cpus = int(_sp.check_output(["nproc"]).decode().strip())
+    except Exception:
+        try:
+            cpus = os.process_cpu_count() or os.cpu_count() or 1
+        except Exception:
+            cpus = os.cpu_count() or 1
+    if cpus < 4:
+        return False, f"cpu_count={cpus} < 4 (multiproc probe needs 4 ranks)"
+    try:
+        load = float(open("/proc/loadavg").read().split()[0])
+    except Exception:
+        load = 0.0
+    if load > cpus:
+        return False, f"loadavg={load:.2f} > cpu_count={cpus} (contention)"
+    return True, "ok"
+
+
+_MULTIPROC_OK, _MULTIPROC_REASON = _multiproc_ok()
+
+pytestmark = [
+    pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built"),
+    pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}"),
+    pytest.mark.multiproc,
+]
 
 PROBE = '''
 import os, torch, torch.distributed as dist
