@@ -76,9 +76,11 @@ At seq 32768 the ranking changes: the most fragile parameter is `term_scale_pp` 
 `microbatch_factor` is 15.57% at N=16 and does not flip at N=32. The 'weakest assumption is
 micro-batching' claim is therefore 8192-specific; at long sequences the CP/PP terms are tighter. `achieved_bw_scale` also flips the
 N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
-parameter. Rows that do not flip (`recompute`, `mem_headroom`, `mem_charge`, `act_factor` and the
-eff classes) are reported with their worst-case margin over the whole range instead of a flip value,
-so they are not empty.
+parameter. Rows that do not flip in either sequence (`mem_headroom`, `mem_charge`, the eff classes)
+are reported with their worst-case margin over the whole range instead of a flip value, so they are
+not empty. At seq 8192 `recompute` and `act_factor` do not flip; at seq 32768 both do --
+`recompute` at 0.015 (1.50% of its range) and `act_factor` at 2.277 (1.78%) at N=16 -- which is
+the other half of why the ranking changes.
 
 **The PP bubble default is pessimistic, and every winner survives a realistic one.** The model splits
 each step into `micro_batches = pp`; deployments pick `micro_batches` as large as memory allows, which

@@ -899,6 +899,13 @@ def allowed_decimals(facts):
                 add(row[key])
                 add(round(row[key], 2))
                 add(round(row[key], 1))
+    # gpu-sim-i5ze: allow error-budget flip values in prose.
+    _eb = facts.get("error_budget", {})
+    for _r in _eb.get("ranked", []) + _eb.get("unranked", []):
+        for _k in ("flip_value", "flip_up", "flip_down", "current_margin"):
+            _v = _r.get(_k)
+            if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                add(_v)
     return vals
 
 
