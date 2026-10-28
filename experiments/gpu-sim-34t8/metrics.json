@@ -46,5 +46,5 @@
   "published_scaleout_changed": false,
   "batch_semantics": "batch=16 is the per-rank MICRO-batch fed to StepConfig; the cy0_l3 CLI --batch is GLOBAL and divides by dp*pp (hence 8x at dp=8)",
   "rework": "metrics gained batch_semantics line; close_audit.json (live DB state) restored to main blob (zero diff); test discriminating assertion is abs(opt_seconds - mem_t) < 1e-12 (RED pre-change at 25.8x).",
-  "gate": "scripts/gate.sh 8/8 PASS (run rmvqhabsg1, exit 0); UNVERIFIABLE FOR THIS TIP: handle rmvqhabsg1, delta unavailable: predates GATE TIP output; delta unavailable: predates GATE TIP output"
+  "gate": "scripts/gate.sh 8/8 PASS (run rmvqhabsg1, exit 0); UNVERIFIABLE FOR THIS TIP: handle rmvqhabsg1, delta unavailable: predates GATE TIP output"
 }

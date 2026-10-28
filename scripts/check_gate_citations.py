@@ -156,7 +156,14 @@ def main() -> int:
         if not m:
             # no tip hash: allowed only as a declared citation (parts checked
             # below), otherwise it is a silent evidence-free pass -> FAIL
-            if declared and HANDLE_TOKEN_RE.search(gate) and DELTA_RE.search(gate):
+            if declared and (HANDLE_TOKEN_RE.search(gate) or RUN_RE.search(gate)) and (
+                    DELTA_RE.search(gate) or LEGACY_DELTA in gate.lower()):
+                if LEGACY_DELTA in gate.lower():
+                    hm0 = HANDLE_TOKEN_RE.search(gate) or RUN_RE.search(gate)
+                    if hm0 and hm0.group(1).lower() != "none" and \
+                            _tip_from_path(_run_log_path(hm0.group(1))) is not None:
+                        bad.append((metrics, "claims 'predates GATE TIP' but the named run.log carries one"))
+                        continue
                 unverifiable.append((metrics, "no tip hash cited (declared unverifiable)"))
                 continue
             missing = []
@@ -256,7 +263,10 @@ def main() -> int:
             if is_ancestor(head, tip):
                 bad.append((metrics, f"cited tip {tip} is ahead of HEAD {head}"))
                 continue
-            unverifiable.append((metrics, tip))
+            # Neither form A (tip match), B (ancestor, metrics-only delta) nor
+            # C (declared) holds. An unrelated tip with no declaration is a
+            # citation that cannot be tied to this branch at all -> FAIL.
+            bad.append((metrics, f"cited tip {tip} is on an unrelated branch and not declared unverifiable"))
             continue
 
     for m, msg in bad:

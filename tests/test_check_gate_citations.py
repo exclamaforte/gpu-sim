@@ -114,7 +114,7 @@ class TestContract(unittest.TestCase):
         shutil.rmtree(repo2, ignore_errors=True)
         self.assertEqual(rc, 0)
 
-    def test_unrelated_tip_returns_zero_unverifiable(self):
+    def test_unrelated_tip_without_marker_fails(self):
         # create an orphan commit unrelated to HEAD
         import subprocess as sp
         env = {"GIT_AUTHOR_NAME":"t","GIT_AUTHOR_EMAIL":"t@t.com",
@@ -135,13 +135,16 @@ class TestContract(unittest.TestCase):
         # rule at all (a missing run.log now FAILS unless declared), so create
         # it against the orphan tip: the point of this test is the unrelated
         # branch, not the missing record.
+        # under the three-form ruling an unrelated tip is NOT automatically
+        # unverifiable: it must be declared (form C) or it cannot be tied to
+        # this branch at all.
         self._make_runlog("r1", orphan, with_end=True)
         self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {orphan})")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()
-        self.assertEqual(rc, 0)
-        self.assertIn("UNVERIFIABLE", buf.getvalue())
+        self.assertEqual(rc, 1)
+        self.assertIn("unrelated branch", buf.getvalue())
 
     def test_runlog_mismatch_returns_one(self):
         run_dir = self.repo / ".lab" / "runs" / "r1"
