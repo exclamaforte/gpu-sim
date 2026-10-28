@@ -131,6 +131,11 @@ class TestContract(unittest.TestCase):
         branches = sp.run(["git","-C",str(self.repo),"branch"],capture_output=True,text=True).stdout
         # checkout the original HEAD's branch by hash
         sp.run(["git","-C",str(self.repo),"checkout","-q",self.head],capture_output=True)
+        # the run record must exist for the citation to reach the ancestor
+        # rule at all (a missing run.log now FAILS unless declared), so create
+        # it against the orphan tip: the point of this test is the unrelated
+        # branch, not the missing record.
+        self._make_runlog("r1", orphan, with_end=True)
         self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {orphan})")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
@@ -200,23 +205,46 @@ class TestContractDeclared(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn("INVALID", buf.getvalue())
 
-    def test_no_handle_unverifiable(self):
+    def test_no_handle_fails(self):
+        # PI ruling 2026-10-28: a tip with no handle skips the run-log contract.
+        # It FAILS unless the citation declares itself unverifiable.
         self._set_metrics(f"scripts/gate.sh 1/1 PASS (tip {self.head})")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()
-        self.assertEqual(rc, 0)
-        self.assertIn("UNVERIFIABLE", buf.getvalue())
+        self.assertEqual(rc, 1)
+        self.assertIn("INVALID", buf.getvalue())
         self.assertIn("no run handle", buf.getvalue())
 
-    def test_enoent_unverifiable(self):
-        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head})")
+    def test_no_handle_declared_is_unverifiable(self):
+        self._set_metrics(
+            f"scripts/gate.sh 1/1 PASS (tip {self.head}); "
+            f"UNVERIFIABLE FOR THIS TIP: no run handle")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             rc = cgc.main()
         self.assertEqual(rc, 0)
         self.assertIn("UNVERIFIABLE", buf.getvalue())
+
+    def test_enoent_fails(self):
+        # after the bounded retry, a persistent absence FAILS unless declared
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("INVALID", buf.getvalue())
         self.assertIn("run.log missing", buf.getvalue())
+
+    def test_enoent_declared_is_unverifiable(self):
+        self._set_metrics(
+            f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head}); "
+            f"UNVERIFIABLE FOR THIS TIP: run record unreadable")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
 
     def test_missing_dirty_end_fails(self):
         self._make_runlog("r1", self.head, with_end=False)

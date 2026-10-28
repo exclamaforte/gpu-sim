@@ -14,13 +14,15 @@ citation. Fail-closed rules:
     as UNVERIFIABLE rather than failed.
 """
 from __future__ import annotations
-import json, os, re, subprocess, sys
+import json, os, re, subprocess, sys, time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 TIP_RE = re.compile(r"\btip\s+([0-9a-f]{7,40})\b", re.I)
 RUN_RE = re.compile(r"\brun\s+(?:handle\s+)?([A-Za-z0-9_-]+)", re.I)
 METRICS_ONLY = re.compile(r"^experiments/[^/]+/metrics\.json$")
+RETRY_ATTEMPTS = 3
+RETRY_DELAY_S = 0.2
 
 
 def git(*args):
@@ -38,6 +40,18 @@ def diff_names(a, b):
     if r.returncode != 0:
         return None
     return [x for x in r.stdout.split() if x.strip()]
+
+def _wait_for_path(path, attempts=RETRY_ATTEMPTS):
+    """.lab/runs is intermittently unreadable (observed: a listed, greppable
+    handle then 12/12 consecutive -d false with no live process), so a single
+    failed stat must not be read as evidence loss. Retry briefly; a persistent
+    absence is real."""
+    for i in range(attempts):
+        if path.exists():
+            return path
+        if i + 1 < attempts:
+            time.sleep(RETRY_DELAY_S)
+    return None
 
 
 def _run_log_path(handle):
@@ -115,11 +129,16 @@ def main() -> int:
         rm = RUN_RE.search(gate)
         if rm:
             handle = rm.group(1)
-            # missing run record -> unverifiable, never silent pass
+            # missing run record -> retry briefly, then FAIL unless the
+            # citation declares itself unverifiable (absent evidence must be
+            # acknowledged, never silently passed)
             rl_tip = run_log_gate_tip(handle)
             log_path = _run_log_path(handle)
-            if not log_path.exists():
-                unverifiable.append((metrics, f"handle {handle}, run.log missing at {log_path}"))
+            if _wait_for_path(log_path) is None:
+                if declared:
+                    unverifiable.append((metrics, f"handle {handle}, run.log missing at {log_path} (declared unverifiable)"))
+                else:
+                    bad.append((metrics, f"handle {handle}, run.log missing at {log_path}"))
                 continue
             if rl_tip is not None and not (rl_tip.startswith(tip) or tip.startswith(rl_tip)):
                 bad.append((metrics, f"run {handle} GATE TIP {rl_tip} != cited {tip}"))
@@ -134,8 +153,12 @@ def main() -> int:
                 bad.append((metrics, f"run {handle} log lacks GATE DIRTY-AT-END (truncated/killed)"))
                 continue
         else:
-            # no handle cited -> unverifiable (handle is required)
-            unverifiable.append((metrics, f"no run handle cited for tip {tip}"))
+            # a tip with no handle skips the whole run-log contract; that is a
+            # failure unless the citation declares itself unverifiable
+            if declared:
+                unverifiable.append((metrics, f"no run handle cited for tip {tip} (declared unverifiable)"))
+            else:
+                bad.append((metrics, f"no run handle cited for tip {tip}"))
             continue
         # ancestor / diff rule; declared-unverifiable form is reported, not failed
         if declared:
