@@ -1,0 +1,38 @@
+{
+  "measured_bytes_per_param": {
+    "bf16_moments": {
+      "assumed_peak": 10.0,
+      "measured_peak_fused": 8.364147,
+      "measured_peak_foreach_true": 10.363905,
+      "measured_peak_foreach_false": 8.727497,
+      "params_grads": 4.363905
+    },
+    "fp32_moments": {
+      "assumed_peak_default": 20.0,
+      "assumed_peak_fused": 16.0,
+      "measured_peak_fused": 16.364679,
+      "measured_peak_foreach_true": 20.36426,
+      "measured_peak_foreach_false": 17.091444,
+      "params_grads": 8.36426
+    }
+  },
+  "assumed_floors_gb": {
+    "bf16_moments_peak": 50.7,
+    "fp32_moments_steady": 60.9,
+    "fp32_moments_fused": 81.2,
+    "fp32_moments_default": 101.5
+  },
+  "recomputed_floors_gb": {
+    "bf16_moments_peak_fused": 42.4,
+    "bf16_moments_peak_foreach_true": 52.5,
+    "fp32_moments_fused": 83.1,
+    "fp32_moments_default": 103.3
+  },
+  "torch_version": "2.13.0+cu132",
+  "device": "NVIDIA GeForce RTX 5090",
+  "n_params": 184594432,
+  "steps": 8,
+  "warmup": 2,
+  "method": "max_memory_allocated after params+grads, after optimizer init, peak over steps; median+max reported; first step discarded.",
+  "extrapolation_note": "Bytes/param is a storage property and hardware-independent; extrapolating a 5090 measurement to 80 H100-class GPUs is legitimate for bytes only, not for speed."
+}
