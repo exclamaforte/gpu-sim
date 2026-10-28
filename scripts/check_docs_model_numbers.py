@@ -906,24 +906,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true",
                     help="write the facts to the tracked path (main-only regeneration)")
+    ap.add_argument("--full", action="store_true",
+                    help="recompute all facts and compare to the committed artifact (slow)")
     args = ap.parse_args()
-    facts = compute_facts()
-    text = json.dumps(facts, indent=2) + "\n"
-    if args.write:
-        _tmp = FACTS_JSON + ".tmp"
-        with open(_tmp, "w") as fh:
-            fh.write(text)
-        os.replace(_tmp, FACTS_JSON)
-        print(f"wrote {FACTS_JSON}")
-    else:
-        tracked = open(FACTS_JSON).read() if os.path.exists(FACTS_JSON) else None
-        if tracked is None:
-            print(f"NOTE: {FACTS_JSON} absent; would be created with --write")
-        elif tracked != text:
-            print(f"NOTE: {FACTS_JSON} differs from the facts this run produces "
-                  f"(regenerate on main with --write).")
-        else:
-            print(f"OK: {FACTS_JSON} matches the facts this run produces.")
+    full = args.full or args.write or os.environ.get("CI_GATES_FULL") == "1"
 
     grand = os.path.join(ROOT, "scripts/docs_model_numbers_grandfathered.txt")
     grandfathered = set()
@@ -932,6 +918,33 @@ def main() -> int:
             ln = ln.split("#")[0].strip()
             if ln:
                 grandfathered.add(ln.split()[0])
+
+    if full:
+        facts = compute_facts()
+        jsontext = json.dumps(facts, indent=2) + "\n"
+        if args.write:
+            _tmp = FACTS_JSON + ".tmp"
+            with open(_tmp, "w") as fh:
+                fh.write(jsontext)
+            os.replace(_tmp, FACTS_JSON)
+            print(f"wrote {FACTS_JSON}")
+        else:
+            tracked = open(FACTS_JSON).read() if os.path.exists(FACTS_JSON) else None
+            if tracked is None:
+                print(f"NOTE: {FACTS_JSON} absent; would be created with --write")
+            elif tracked != jsontext:
+                print(f"NOTE: {FACTS_JSON} differs from the facts this run produces "
+                      f"(regenerate on main with --write).")
+            else:
+                print(f"OK: {FACTS_JSON} matches the facts this run produces.")
+    else:
+        # FAST: prose vs committed artifact only (cheap). No recompute.
+        if not os.path.exists(FACTS_JSON):
+            print(f"FAIL: {FACTS_JSON} missing; cannot check prose without committed artifact")
+            return 1
+        facts = json.load(open(FACTS_JSON))
+        print("FAST MODE: checking prose against committed docs/model_facts.json "
+              "(artifact-vs-code recompute skipped; set CI_GATES_FULL=1 for full).")
 
     text = open(DOC).read()
 

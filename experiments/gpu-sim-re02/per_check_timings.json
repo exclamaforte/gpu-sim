@@ -1,0 +1,32 @@
+{
+  "bead": "gpu-sim-re02",
+  "measured_on": "2026-10-28",
+  "cores": 2,
+  "load_note": "measured one check at a time on the box; nproc=2. Concurrent lab sessions are a performance variable on this host.",
+  "fast_gate_total_s": 7.63,
+  "fast_gate_target_s": 240,
+  "ci_gates_timeout_s": 290,
+  "harness_cap_s": 300,
+  "before_split": {
+    "docs_section_0_vs_model_s": 400,
+    "note": "check_docs_model_numbers.py recomputed all facts (spawning sensitivity_radius.py, error_budget.py, scaleout_answers.py); ~6m40s measured 2026-10-28."
+  },
+  "per_check_s": {
+    "docs section 0 vs model (fast: prose vs committed artifact)": 0.06,
+    "close_audit unchanged": 0.02,
+    "close audit (concrete artifacts)": 11.94,
+    "interposer guard uniqueness": 0.03,
+    "libfakegpu freshness": 0.09,
+    "prose-number provenance": 0.19,
+    "claims register": 0.03,
+    "radius prose": 0.02,
+    "no vacuous assertions": 0.28,
+    "gate citations": 0.19,
+    "worktree hygiene (advisory)": 0.20,
+    "byte reconciliation (advisory)": 0.03,
+    "byte reconciliation cp (advisory)": 0.04
+  },
+  "dominant_check_before": "docs section 0 vs model (recompute of every number), ~400s",
+  "fix": "split conjunction in check_docs_model_numbers.py: fast mode reads committed docs/model_facts.json and checks prose only (0.06s); full mode (CI_GATES_FULL=1) recomputes and compares artifact-vs-code.",
+  "plant": "changing a decimal in section 0 (0.566 -> 0.999) makes the fast check report 1 finding and exit 1; restored after."
+}
