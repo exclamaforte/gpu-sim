@@ -312,12 +312,12 @@ def main() -> int:
             continue
 
     for m, msg in bad:
-        print(f"INVALID: {m}: {msg}")
+        print(f"INVALID: {m.relative_to(REPO)}: {msg}")
     for m, t in unverifiable:
         if isinstance(t, str) and t.startswith(("tip ", "handle ", "no ")):
-            print(f"UNVERIFIABLE: {m}: {t}")
+            print(f"UNVERIFIABLE: {m.relative_to(REPO)}: {t}")
         else:
-            print(f"UNVERIFIABLE: {m}: tip {t} is on an unrelated branch (no run record?)")
+            print(f"UNVERIFIABLE: {m.relative_to(REPO)}: tip {t} is on an unrelated branch (no run record?)")
     if bad:
         return 1
     print("check_gate_citations: OK")
