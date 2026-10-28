@@ -314,7 +314,13 @@ def compute():
                 "flip_one_sided": flip_os,
                 "fraction_of_range_consumed": (None if frac is None else round(frac, 6)),
                 "fraction_one_sided": (None if frac_os is None else round(frac_os, 6)),
-                "elasticity": (None if (isinstance(elast, float) and math.isnan(elast)) else round(elast, 4)),
+                # json.dumps writes inf/NaN as bare tokens, which are NOT valid JSON
+                # (RFC 8259) and are rejected by jq / JSON.parse / serde. elasticity
+                # is float('inf') when the verdict has ZERO current margin -- a real
+                # and important case (any change flips it), so it is preserved as an
+                # explicit flag rather than silently nulled.
+                "elasticity": (None if (elast is None or (isinstance(elast, float) and (math.isnan(elast) or math.isinf(elast)))) else round(elast, 4)),
+                "elasticity_infinite": bool(isinstance(elast, float) and math.isinf(elast)),
             }
             # bracketing pair
             if flip is not None and cname.startswith("N") and "winner" in cname:
@@ -333,6 +339,10 @@ def compute():
             cm = r.get("current_margin")
             cm = 0.0 if cm is None else cm
             return (1, cm, 0.0)
+        # Infinite elasticity sorts FIRST (most sensitive) -- which is what
+        # -inf did before the value was made JSON-safe.
+        if r.get("elasticity_infinite"):
+            return (0, f, float("-inf"))
         return (0, f, -(abs(r["elasticity"]) if r["elasticity"] is not None else 0))
     ranked.sort(key=_sort_key)
 
