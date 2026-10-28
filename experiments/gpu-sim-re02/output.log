@@ -1,15 +1,18 @@
+=== fast path (CI_GATES_FULL=0) ===
 GATE TREE: /home/gabe/Documents/gpu-sim
-GATE TIP: 7984a0b86455340f3506898cefc81fed07c2961d
-GATE HEAD: 7984a0b record: the six declared citations now name the merg
-GATE PID: 361869
-GATE START: 2026-10-28T14:39:28Z
-GATE DIRTY-AT-START: c89ef18e75fbe46d52b10e7a757be0b58c46a4f9d0de35782d8c6c2d4258d60c
-GATE DIRTY-AT-START PATHS: experiments/gpu-sim-re02/ scripts/ci_gates.py scripts/gate.sh
+GATE TIP: 90718ea70a39bd846410e43f784e783c5add5053
+GATE HEAD: 90718ea land gpu-sim-re02: Split the docs check -- fast pros
+GATE PID: 2966727
+GATE START: 2026-10-28T18:52:57Z
+GATE DIRTY-AT-START: 282e1e79286b89abd781db0627ea296cff2485be70e68322fe01ea709c125675
+GATE DIRTY-AT-START PATHS: experiments/gpu-sim-re02/output.log experiments/gpu-sim-re02/run.sh .lab/comment-digest-cursor.json .lab/daemon_predecessor.json .lab/gates/ .lab/inbox/archive/implementer.md .lab/inbox/archive/pi.md .lab/inbox/archive/reviewer.md .lab/model-changes.jsonl .lab/model-guard.jsonl .lab/radius-pi-notes.patch .lab/review-request-guard.json .lab/role-models.json .lab/role-models.sha256 .lab/role-models.shadow.json .lab/worker-timeline.jsonl
 GATE DIFFSTAT-AT-START:
-   scripts/ci_gates.py | 37 +++++++++++++++++++------------------
-   scripts/gate.sh     |  4 ++++
-   2 files changed, 23 insertions(+), 18 deletions(-)
-=== gpu-sim gates 2026-10-28T14:39Z ===
+   .lab/comment-digest-cursor.json     |   2 +-
+   .lab/inbox/archive/pi.md            | 679 ++++++++++++++++++++++++++++++++++++
+   experiments/gpu-sim-re02/output.log |  58 ++-
+   experiments/gpu-sim-re02/run.sh     |  25 +-
+   4 files changed, 745 insertions(+), 19 deletions(-)
+=== gpu-sim gates 2026-10-28T18:52Z ===
 (fast mode: test suite skipped)
 docs section 0 vs model                    PASS
 close_audit unchanged                      PASS
@@ -27,11 +30,19 @@ byte reconciliation cp (advisory)          PASS
 
 hard: 10 passed, 0 failed | advisory findings: 0
 GATE OK
-GATE END: 2026-10-28T14:45:02Z
-GATE DIRTY-AT-END: c89ef18e75fbe46d52b10e7a757be0b58c46a4f9d0de35782d8c6c2d4258d60c
-GATE DIRTY-AT-END PATHS: experiments/gpu-sim-re02/ scripts/ci_gates.py scripts/gate.sh
+GATE END: 2026-10-28T18:53:08Z
+GATE DIRTY-AT-END: 282e1e79286b89abd781db0627ea296cff2485be70e68322fe01ea709c125675
+GATE DIRTY-AT-END PATHS: experiments/gpu-sim-re02/output.log experiments/gpu-sim-re02/run.sh .lab/comment-digest-cursor.json .lab/daemon_predecessor.json .lab/gates/ .lab/inbox/archive/implementer.md .lab/inbox/archive/pi.md .lab/inbox/archive/reviewer.md .lab/model-changes.jsonl .lab/model-guard.jsonl .lab/radius-pi-notes.patch .lab/review-request-guard.json .lab/role-models.json .lab/role-models.sha256 .lab/role-models.shadow.json .lab/worker-timeline.jsonl
 GATE DIFFSTAT-AT-END:
-   scripts/ci_gates.py | 37 +++++++++++++++++++------------------
-   scripts/gate.sh     |  4 ++++
-   2 files changed, 23 insertions(+), 18 deletions(-)
+   .lab/comment-digest-cursor.json     |   2 +-
+   .lab/inbox/archive/pi.md            | 679 ++++++++++++++++++++++++++++++++++++
+   experiments/gpu-sim-re02/output.log |  58 ++-
+   experiments/gpu-sim-re02/run.sh     |  25 +-
+   4 files changed, 745 insertions(+), 19 deletions(-)
 GATE PASS
+fast_wall_s=12
+=== full check (CI_GATES_FULL=1): artifact-vs-code recompute ===
+NOTE: /home/gabe/Documents/gpu-sim/docs/model_facts.json differs from the facts this run produces (regenerate on main with --write).
+section 0: 754 computed decimal values in the allowed set
+OK: every decimal in section 0 is a value computed from the current model
+full_check_wall_s=387

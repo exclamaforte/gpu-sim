@@ -4,5 +4,13 @@
   "gate_fast_target_s": 240,
   "gate_fast_pass": true,
   "plant_fast_red": true,
-  "artifacts": ["per_check_timings.json", "run.sh", "output.log", "job.json"]
+  "artifacts": [
+    "per_check_timings.json",
+    "run.sh",
+    "output.log",
+    "job.json"
+  ],
+  "gate": "scripts/ci_gates.py fast path GATE PASS in 12s at tip 90718ea (output.log); full check CI_GATES_FULL=1 387s in the same run -- an UPPER BOUND, taken on 2 cores with a second check_docs_model_numbers.py running concurrently; plant: the CURRENT ANSWER's 88.49 -> 77.77 is rejected in fast mode ('1 number(s) in section 0 that the current model does not produce'). UNVERIFIABLE FOR THIS TIP: handle none, delta: experiments/gpu-sim-re02/{metrics.json,output.log,run.sh} only (these lines are added after the run that produced output.log)",
+  "full_check_wall_s_upper_bound": 387,
+  "full_check_contended": true
 }
