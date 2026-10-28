@@ -31,8 +31,11 @@ fi
 snapshot_raw() {
   local raw="$1"
   {
-    git -C "$gate_root" status --porcelain=v1 2>/dev/null
-    git -C "$gate_root" diff HEAD 2>/dev/null
+    # Digest covers tracked paths plus untracked paths OUTSIDE .lab only;
+    # .lab runtime state is rewritten by the daemon/agent and is not part of
+    # what the dirty-digest assertion is meant to catch (gpu-sim-4l2s).
+    git -C "$gate_root" status --porcelain=v1 -- . ':!.lab' 2>/dev/null
+    git -C "$gate_root" diff HEAD -- . ':!.lab' 2>/dev/null
   } | sort > "$raw"
 }
 
