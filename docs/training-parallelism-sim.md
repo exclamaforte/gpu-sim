@@ -112,8 +112,20 @@ prices steady state only and is optimistic: a scheduler is limited by peak. Unde
 is 50.7 GB and 405B FITS: (tp=1 pp=40 cp=1 dp=2 z2) at 504 ms and 75.1 GB, a 3.52% tie, so the feasibility
 verdict belongs to the style, not the model. With fp32 moments the same floor is 60.9 GB steady (which fits,
 but steady is not what OOMs), 81.2 GB fused peak -- 1.5% over the line with no allocator overhead left -- and
-101.5 GB default peak, clearly out. At 800 GPUs the binding
-term does become activations, which is why the answer there wants pp=100 (2.58%) and why recomputation is
+101.5 GB default peak, clearly out.
+
+**Measured optimizer bytes (gpu-sim-37xk, RTX 5090, torch 2.13.0+cu132, 184.6M params, 8 steps median).**
+The assumed style_bytes are now anchored: bf16 moments peak 8.36 B/param fused (10.36 with foreach transient
+vs 10.0 assumed) and 4.36 params+grads; fp32 moments peak 16.36 B/param fused (20.36 foreach, 17.09 foreach=False)
+vs 16.0/20.0 assumed, and 8.36 params+grads. Recomputing the 405B @80 floor from the measured fused peak gives
+83.1 GB (was 81.2 assumed) -- still 3.9% over, so the 'does not fit' verdict holds and is now measurement-backed
+rather than assumption-backed; the bf16 verdict (50.7 GB) and the default-peak verdict (103.3 GB) are unchanged
+in direction. The fused-vs-foreach gap is real (10.36 vs 8.36 B/param for bf16, 20.36 vs 16.36 for fp32): a
+foreach implementation peaks higher, so the fused number is the optimistic (best case) floor. Bytes/param is a
+storage property, so extrapolating this 5090 measurement to 80 H100-class GPUs is legitimate for bytes only --
+it is NOT a claim about 405B speed or throughput.
+
+At 800 GPUs the binding term does become activations, which is why the answer there wants pp=100 (2.58%) and why recomputation is
 the right next modelling step -- for that regime, not for 80 GPUs. The knob now exists in the model:
 hw['recompute'] is a float 0.0..1.0, default 0.0, keeping (1 - alpha(seq)*recompute) of the stored activations and
 charging 1.25x compute when fully on -- both numbers measured on this host's 5090

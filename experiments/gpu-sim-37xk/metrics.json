@@ -1,0 +1,18 @@
+{
+  "bead": "gpu-sim-37xk",
+  "gpu_job_id": "20261028t190441-ca21ddad",
+  "device": "NVIDIA GeForce RTX 5090",
+  "torch_version": "2.13.0+cu132",
+  "n_params": 184594432,
+  "steps": 8,
+  "warmup": 2,
+  "measured_peak_bytes_per_param": {
+    "bf16_fused": 8.364147,
+    "bf16_foreach_true": 10.363905,
+    "fp32_fused": 16.364679,
+    "fp32_foreach_true": 20.36426,
+    "fp32_foreach_false": 17.091444
+  },
+  "recomputed_floor_fp32_fused_gb": 83.1,
+  "verdict": "fp32 fused 'does not fit' holds (83.1 GB vs 80 GB) and is now measurement-backed; bf16 fits (42.4/52.5 GB); default peak does not fit (103.3 GB)."
+}

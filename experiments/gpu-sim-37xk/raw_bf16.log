@@ -1,0 +1,171 @@
+{
+  "mode": "foreach_false",
+  "param_dtype": "torch.bfloat16",
+  "grad_dtype": "torch.bfloat16",
+  "n_params": 184594432,
+  "n_layers": 11,
+  "mem_params_grads_bytes": 805552640,
+  "mem_after_opt_init_bytes": 1543930368,
+  "peak_step_max_bytes": 1611047424,
+  "peak_step_median_bytes": 1611047424,
+  "bytes_per_param_params_grads": 4.363905,
+  "bytes_per_param_after_init": 8.363905,
+  "bytes_per_param_peak_max": 8.727497,
+  "bytes_per_param_peak_median": 8.727497,
+  "peak_steps": [
+    1611047424,
+    1611047424,
+    1611047424,
+    1611047424,
+    1611047424,
+    1611047424,
+    1611047424,
+    1611047424
+  ],
+  "master_weights_materialised": false,
+  "torch_version": "2.13.0+cu132"
+}
+{
+  "mode": "foreach_true",
+  "param_dtype": "torch.bfloat16",
+  "grad_dtype": "torch.bfloat16",
+  "n_params": 184594432,
+  "n_layers": 11,
+  "mem_params_grads_bytes": 805552640,
+  "mem_after_opt_init_bytes": 1543930368,
+  "peak_step_max_bytes": 1913119232,
+  "peak_step_median_bytes": 1913119232,
+  "bytes_per_param_params_grads": 4.363905,
+  "bytes_per_param_after_init": 8.363905,
+  "bytes_per_param_peak_max": 10.363905,
+  "bytes_per_param_peak_median": 10.363905,
+  "peak_steps": [
+    1913119232,
+    1913119232,
+    1913119232,
+    1913119232,
+    1913119232,
+    1913119232,
+    1913119232,
+    1913119232
+  ],
+  "master_weights_materialised": false,
+  "torch_version": "2.13.0+cu132"
+}
+{
+  "mode": "fused",
+  "param_dtype": "torch.bfloat16",
+  "grad_dtype": "torch.bfloat16",
+  "n_params": 184594432,
+  "n_layers": 11,
+  "mem_params_grads_bytes": 805552640,
+  "mem_after_opt_init_bytes": 1543941632,
+  "peak_step_max_bytes": 1543974912,
+  "peak_step_median_bytes": 1543974912,
+  "bytes_per_param_params_grads": 4.363905,
+  "bytes_per_param_after_init": 8.363966,
+  "bytes_per_param_peak_max": 8.364147,
+  "bytes_per_param_peak_median": 8.364147,
+  "peak_steps": [
+    1543974912,
+    1543974912,
+    1543974912,
+    1543974912,
+    1543974912,
+    1543974912,
+    1543974912,
+    1543974912
+  ],
+  "master_weights_materialised": false,
+  "torch_version": "2.13.0+cu132"
+}
+RESULT_JSON_START
+{
+  "n_params_target": 200000000,
+  "dtype": "bfloat16",
+  "steps": 8,
+  "modes": [
+    {
+      "mode": "foreach_false",
+      "param_dtype": "torch.bfloat16",
+      "grad_dtype": "torch.bfloat16",
+      "n_params": 184594432,
+      "n_layers": 11,
+      "mem_params_grads_bytes": 805552640,
+      "mem_after_opt_init_bytes": 1543930368,
+      "peak_step_max_bytes": 1611047424,
+      "peak_step_median_bytes": 1611047424,
+      "bytes_per_param_params_grads": 4.363905,
+      "bytes_per_param_after_init": 8.363905,
+      "bytes_per_param_peak_max": 8.727497,
+      "bytes_per_param_peak_median": 8.727497,
+      "peak_steps": [
+        1611047424,
+        1611047424,
+        1611047424,
+        1611047424,
+        1611047424,
+        1611047424,
+        1611047424,
+        1611047424
+      ],
+      "master_weights_materialised": false,
+      "torch_version": "2.13.0+cu132"
+    },
+    {
+      "mode": "foreach_true",
+      "param_dtype": "torch.bfloat16",
+      "grad_dtype": "torch.bfloat16",
+      "n_params": 184594432,
+      "n_layers": 11,
+      "mem_params_grads_bytes": 805552640,
+      "mem_after_opt_init_bytes": 1543930368,
+      "peak_step_max_bytes": 1913119232,
+      "peak_step_median_bytes": 1913119232,
+      "bytes_per_param_params_grads": 4.363905,
+      "bytes_per_param_after_init": 8.363905,
+      "bytes_per_param_peak_max": 10.363905,
+      "bytes_per_param_peak_median": 10.363905,
+      "peak_steps": [
+        1913119232,
+        1913119232,
+        1913119232,
+        1913119232,
+        1913119232,
+        1913119232,
+        1913119232,
+        1913119232
+      ],
+      "master_weights_materialised": false,
+      "torch_version": "2.13.0+cu132"
+    },
+    {
+      "mode": "fused",
+      "param_dtype": "torch.bfloat16",
+      "grad_dtype": "torch.bfloat16",
+      "n_params": 184594432,
+      "n_layers": 11,
+      "mem_params_grads_bytes": 805552640,
+      "mem_after_opt_init_bytes": 1543941632,
+      "peak_step_max_bytes": 1543974912,
+      "peak_step_median_bytes": 1543974912,
+      "bytes_per_param_params_grads": 4.363905,
+      "bytes_per_param_after_init": 8.363966,
+      "bytes_per_param_peak_max": 8.364147,
+      "bytes_per_param_peak_median": 8.364147,
+      "peak_steps": [
+        1543974912,
+        1543974912,
+        1543974912,
+        1543974912,
+        1543974912,
+        1543974912,
+        1543974912,
+        1543974912
+      ],
+      "master_weights_materialised": false,
+      "torch_version": "2.13.0+cu132"
+    }
+  ]
+}
+RESULT_JSON_END
