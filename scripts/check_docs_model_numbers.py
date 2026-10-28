@@ -801,7 +801,11 @@ def section0(text):
     cannot re-derive; those are covered by scripts/check_prose_numbers.py on their own
     results documents.
     """
-    table_start = text.index("| cell |")
+    # answers TABLE (the headline per-N winner/step-time/margin comparison) sits
+    # above '**CURRENT ANSWER' and was previously unchecked (gpu-sim-t5cu).
+    table_anchor = "| cell |"
+    table_start = text.index(table_anchor)
+    # table ends at the first blank line after the last row
     table_end = text.index("\n\n", table_start)
     table_block = text[table_start:table_end]
     s1 = text[text.index("**CURRENT ANSWER"):text.index("THE RANKING IS A NO-OVERLAP RANKING")]
