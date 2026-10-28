@@ -78,9 +78,14 @@ class TestClockIsCorroboratingOnly(unittest.TestCase):
         # .strip(): git log appends a newline and an isoformat parser rejects it.
         cls.dated = {}
         for c in mr.CACHE_COMMITS:
-            d = mr.git("log", "-1", "--format=%cI", c).strip()
+            try:
+                d = mr.git("log", "-1", "--format=%cI", c).strip()
+            except Exception:
+                continue
             if d:
                 cls.dated[c] = mr.parse_iso(d)
+        if len(cls.dated) < len(mr.CACHE_COMMITS):
+            raise unittest.SkipTest("cache commits unavailable in this checkout")
         cls.earliest = min(cls.dated.values(), key=lambda d: d)
 
     def test_the_cache_existed_elsewhere_at_sample_time(self):

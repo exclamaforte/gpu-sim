@@ -57,11 +57,20 @@ class TestContract(unittest.TestCase):
         cgc.REPO = self.old_repo
         shutil.rmtree(self.repo, ignore_errors=True)
 
+    def _make_runlog(self, handle, tip, with_end=True):
+        d = self.repo / ".lab" / "runs" / handle
+        d.mkdir(parents=True, exist_ok=True)
+        lines = [f"GATE TIP: {tip}"]
+        if with_end:
+            lines.append("GATE DIRTY-AT-END: abc123")
+        (d / "run.log").write_text("\n".join(lines) + "\n")
+
     def _set_metrics(self, gate_str):
         (self.repo / "experiments" / "x" / "metrics.json").write_text(
             json.dumps({"gate": gate_str}) + "\n")
 
     def test_tip_equals_head_returns_zero(self):
+        self._make_runlog("r1", self.head, with_end=True)
         self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {self.head})")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
@@ -77,6 +86,7 @@ class TestContract(unittest.TestCase):
         self.assertIn("INVALID", buf.getvalue())
 
     def test_ancestor_nonmetrics_returns_one(self):
+        self._make_runlog("r1", self.base, with_end=True)
         self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {self.base})")
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
@@ -91,6 +101,10 @@ class TestContract(unittest.TestCase):
         })
         old = cgc.REPO
         cgc.REPO = repo2
+        # create runlog in repo2
+        rd = repo2 / ".lab" / "runs" / "r1"
+        rd.mkdir(parents=True, exist_ok=True)
+        (rd / "run.log").write_text(f"GATE TIP: {base2}\nGATE DIRTY-AT-END: abc\n")
         (repo2 / "experiments" / "x" / "metrics.json").write_text(
             json.dumps({"gate": f"scripts/gate.sh 1/1 PASS (run r1, tip {base2})"}) + "\n")
         buf = io.StringIO()
@@ -142,3 +156,89 @@ class TestTipRegex(unittest.TestCase):
         m = cgc.TIP_RE.search("tip abc1234")
         self.assertIsNotNone(m)
         self.assertEqual(m.group(1), "abc1234")
+
+
+class TestContractDeclared(unittest.TestCase):
+    def setUp(self):
+        self.repo, self.base = _make_repo()
+        self.head = _commit(self.repo, "head", {
+            "code.py": "v2\n",
+            "experiments/x/metrics.json": json.dumps({"gate": "placeholder2"}) + "\n",
+        })
+        self.old_repo = cgc.REPO
+        cgc.REPO = self.repo
+
+    def tearDown(self):
+        cgc.REPO = self.old_repo
+        shutil.rmtree(self.repo, ignore_errors=True)
+
+    def _make_runlog(self, handle, tip, with_end=True):
+        d = self.repo / ".lab" / "runs" / handle
+        d.mkdir(parents=True, exist_ok=True)
+        lines = [f"GATE TIP: {tip}"]
+        if with_end:
+            lines.append("GATE DIRTY-AT-END: abc123")
+        (d / "run.log").write_text("\n".join(lines) + "\n")
+
+    def _set_metrics(self, gate_str):
+        (self.repo / "experiments" / "x" / "metrics.json").write_text(
+            json.dumps({"gate": gate_str}) + "\n")
+
+    def _make_runlog(self, handle, tip, with_end=True):
+        d = self.repo / ".lab" / "runs" / handle
+        d.mkdir(parents=True, exist_ok=True)
+        lines = [f"GATE TIP: {tip}"]
+        if with_end:
+            lines.append("GATE DIRTY-AT-END: abc123")
+        (d / "run.log").write_text("\n".join(lines) + "\n")
+
+    def test_no_tip_fails(self):
+        self._set_metrics("scripts/gate.sh 1/1 PASS (no tip here)")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("INVALID", buf.getvalue())
+
+    def test_no_handle_unverifiable(self):
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
+        self.assertIn("no run handle", buf.getvalue())
+
+    def test_enoent_unverifiable(self):
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
+        self.assertIn("run.log missing", buf.getvalue())
+
+    def test_missing_dirty_end_fails(self):
+        self._make_runlog("r1", self.head, with_end=False)
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("lacks GATE DIRTY-AT-END", buf.getvalue())
+
+    def test_matching_log_passes(self):
+        self._make_runlog("r1", self.head, with_end=True)
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+
+    def test_declared_unverifiable_passes(self):
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run r1, tip {self.head}); UNVERIFIABLE FOR THIS TIP: delta x")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("UNVERIFIABLE", buf.getvalue())
