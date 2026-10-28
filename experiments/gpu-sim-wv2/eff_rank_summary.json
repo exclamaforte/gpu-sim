@@ -1,0 +1,139 @@
+{
+ "question": "do the four eff_* efficiencies move any PUBLISHED winner verdict (N8/N16/N32 ring, seq 8192)?",
+ "method": "17 points per parameter across its stated range, winner_cell() from scripts/error_budget.py, compared against the default-valued winner",
+ "provider": "parallelism_search.search via scripts/error_budget.verdict_for",
+ "result": {
+  "eff_gemm": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   }
+  },
+  "eff_attention": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   }
+  },
+  "eff_layernorm": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   }
+  },
+  "eff_elementwise": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "n_flips": 0
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "n_flips": 0
+   }
+  }
+ },
+ "answer": "no flips: all four are verdict-inert across their stated ranges on all three cells",
+ "caveat_sampled": "17-point sampling, not a bisection; a flip between samples is possible but would need a sub-sample-sized coincidence",
+ "caveat_metric": "winner-stable is not metric-stable: step time can move without changing the ranking, so an absolute-time claim is not covered by this result",
+ "consequence": "grading eff_* on one GPU cannot change a published conclusion, so the single-GPU measurement I had flagged as the remaining opportunity is NOT worth GPU time; ranking first is what established that."
+}

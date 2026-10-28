@@ -1,0 +1,158 @@
+{
+ "eff_gemm": {
+  "default": 0.5,
+  "range": [
+   0.3,
+   0.7
+  ],
+  "cells": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   }
+  }
+ },
+ "eff_attention": {
+  "default": 0.35,
+  "range": [
+   0.2,
+   0.55
+  ],
+  "cells": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   }
+  }
+ },
+ "eff_layernorm": {
+  "default": 0.2,
+  "range": [
+   0.1,
+   0.4
+  ],
+  "cells": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   }
+  }
+ },
+ "eff_elementwise": {
+  "default": 0.3,
+  "range": [
+   0.15,
+   0.5
+  ],
+  "cells": {
+   "N8_winner": {
+    "base": [
+     4,
+     1,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N16_winner": {
+    "base": [
+     1,
+     16,
+     1,
+     1,
+     0
+    ],
+    "flips": []
+   },
+   "N32_winner": {
+    "base": [
+     1,
+     16,
+     2,
+     1,
+     0
+    ],
+    "flips": []
+   }
+  }
+ }
+}
