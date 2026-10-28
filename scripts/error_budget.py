@@ -95,6 +95,8 @@ CELLS = [
     ("N8_winner", 8, 8192, "8b", "winner", None),
     ("N16_winner", 16, 8192, "8b", "winner", None),
     ("N32_winner", 32, 8192, "8b", "winner", None),
+    ("N16_seq32768", 16, 32768, "8b", "winner", None),
+    ("N32_seq32768", 32, 32768, "8b", "winner", None),
     ("405B_bf16_feasible", 80, 8192, "405b", "feasible", "bf16_moments"),
     ("405B_fp32master_feasible", 80, 8192, "405b", "feasible", "fp32_master"),
 ]
