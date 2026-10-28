@@ -37,6 +37,37 @@ from epic_cluster import parallelism_search as ps  # noqa: E402
 DOC = os.path.join(ROOT, "docs/training-parallelism-sim.md")
 FACTS_JSON = os.path.join(ROOT, "docs/model_facts.json")
 
+
+def _diff_fact_keys(a, b):
+    """Key paths where two facts-JSON texts disagree, for a readable FAIL."""
+    try:
+        da, db = json.loads(a), json.loads(b)
+    except Exception:
+        return ["<unparseable facts; run with --write>"]
+    out = []
+
+    def walk(x, y, path):
+        if type(x) is not type(y):
+            out.append(path or "<root>")
+            return
+        if isinstance(x, dict):
+            for k in sorted(set(x) | set(y)):
+                p = f"{path}.{k}" if path else k
+                if k not in x or k not in y:
+                    out.append(p)
+                else:
+                    walk(x[k], y[k], p)
+        elif isinstance(x, list):
+            if len(x) != len(y):
+                out.append(f"{path} (len {len(x)} -> {len(y)})")
+            else:
+                for i, (xi, yi) in enumerate(zip(x, y)):
+                    walk(xi, yi, f"{path}[{i}]")
+        elif x != y:
+            out.append(path or "<root>")
+
+    walk(da, db, "")
+    return out or ["<contents differ but no key path isolated>"]
 M8 = {"n_layers": 32, "d_model": 4096, "n_heads": 32, "n_kv_heads": 8, "head_dim": 128,
       "d_ff": 14336, "vocab": 128256}
 SPEC = {8: "specs/h100_rack.json", 16: "specs/h100_rack.json", 32: "specs/h100_rack_4node.json"}
@@ -936,12 +967,29 @@ def main() -> int:
             os.replace(_tmp, FACTS_JSON)
             print(f"wrote {FACTS_JSON}")
         else:
-            tracked = open(FACTS_JSON).read() if os.path.exists(FACTS_JSON) else None
-            if tracked is None:
-                print(f"NOTE: {FACTS_JSON} absent; would be created with --write")
-            elif tracked != jsontext:
-                print(f"NOTE: {FACTS_JSON} differs from the facts this run produces "
-                      f"(regenerate on main with --write).")
+            tracked_text = open(FACTS_JSON).read() if os.path.exists(FACTS_JSON) else None
+            if tracked_text is None:
+                print(f"FAIL: {FACTS_JSON} absent; the committed facts are the artifact "
+                      f"every prose check reads. Regenerate with --write and commit.")
+                return 1
+            elif tracked_text != jsontext:
+                # This used to be a NOTE and exit 0, so the facts could be stale
+                # against the code that produces them while every gate stayed
+                # green -- exactly what happened after i5ze added budget cells and
+                # model_facts was never regenerated (found in review 2026-10-28).
+                # A drift that prints and passes is a comment, not a check: the
+                # expensive half of the split would be unobservable on the runs
+                # that pay for it.
+                drifted = _diff_fact_keys(tracked_text, jsontext)
+                print(f"FAIL: {FACTS_JSON} differs from the facts this run produces "
+                      f"in {len(drifted)} key path(s):")
+                for path in drifted[:20]:
+                    print(f"  {path}")
+                if len(drifted) > 20:
+                    print(f"  ... and {len(drifted) - 20} more")
+                print("Regenerate on main with --write and COMMIT the result; "
+                      "a run that regenerates is not a verified run.")
+                return 1
             else:
                 print(f"OK: {FACTS_JSON} matches the facts this run produces.")
     else:
