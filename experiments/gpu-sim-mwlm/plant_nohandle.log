@@ -1,0 +1,22 @@
+# plant: revert the fail-closed branch to a silent unverifiable (the defect)
+# $ pytest tests/test_check_gate_citations.py::TestContractDeclared::test_no_handle_fails
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________________ TestContractDeclared.test_no_handle_fails ___________________
+
+self = <test_check_gate_citations.TestContractDeclared testMethod=test_no_handle_fails>
+
+    def test_no_handle_fails(self):
+        # PI ruling 2026-10-28: a tip with no handle skips the run-log contract.
+        # It FAILS unless the citation declares itself unverifiable.
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+>       self.assertEqual(rc, 1)
+E       AssertionError: 0 != 1
+
+tests/test_check_gate_citations.py:215: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_check_gate_citations.py::TestContractDeclared::test_no_handle_fails
+1 failed in 0.04s

@@ -220,3 +220,50 @@ class TestScopeIsExactlyTheAuditLabel(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+import tempfile
+from pathlib import Path
+from unittest import mock
+
+
+class TestWriteMode(unittest.TestCase):
+    def setUp(self):
+        self.td = tempfile.TemporaryDirectory()
+        self.root = Path(self.td.name)
+        self.out = self.root / "experiments" / "gpu-sim-u2o.15" / "close_audit.json"
+        self.out.parent.mkdir(parents=True, exist_ok=True)
+        self._patches = [
+            mock.patch.object(g, "REPO", self.root),
+            mock.patch.object(g, "OUT", self.out),
+            mock.patch.object(g, "gather_with_proven_coverage",
+                             lambda: ([], {"coverage_proven": True,
+                                           "degraded_to_open_only_query": False})),
+            mock.patch.object(g, "audit",
+                             lambda issues: {"violations": [], "violations_unacknowledged": [],
+                                            "satisfies_the_acceptance": True}),
+        ]
+        for p in self._patches:
+            p.start()
+
+    def tearDown(self):
+        for p in self._patches:
+            p.stop()
+        self.td.cleanup()
+
+    def test_default_does_not_write_or_modify(self):
+        self.out.write_text('{"existing": true}\n')
+        before = self.out.read_text()
+        with mock.patch.object(sys, "argv", ["x"]):
+            rc = g.main()
+        self.assertEqual(rc, 0)
+        self.assertEqual(self.out.read_text(), before)
+
+    def test_write_creates_file(self):
+        if self.out.exists():
+            self.out.unlink()
+        with mock.patch.object(sys, "argv", ["x", "--write"]):
+            rc = g.main()
+        self.assertEqual(rc, 0)
+        self.assertTrue(self.out.exists())
+        data = __import__("json").loads(self.out.read_text())
+        self.assertIn("satisfies_the_acceptance", data)

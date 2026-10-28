@@ -1,0 +1,33 @@
+GATE TREE: /home/gabe/Documents/gpu-sim
+GATE TIP: e066b98e75b450c84644783d780cec040d504995
+GATE HEAD: e066b98 mwlm rework: fail-closed gate citations (no-tip, ENO
+GATE PID: 736839
+GATE START: 2026-10-28T05:19:08Z
+GATE DIRTY-AT-START: f67a0356b64f33e8b711ca7bf492d2ca727bcf78c0408f261a2e057b5c257b50
+GATE DIRTY-AT-START PATHS: scripts/check_gate_citations.py
+GATE DIFFSTAT-AT-START:
+   scripts/check_gate_citations.py | 5 ++++-
+   1 file changed, 4 insertions(+), 1 deletion(-)
+=== gpu-sim gates 2026-10-28T05:19Z ===
+pytest tests/                              PASS
+docs section 0 vs model                    PASS
+close_audit unchanged                      PASS
+close audit (concrete artifacts)           PASS
+interposer guard uniqueness                PASS
+libfakegpu freshness                       PASS
+prose-number provenance                    PASS
+claims register                            PASS
+no vacuous assertions                      PASS
+gate citations                             PASS
+worktree hygiene (advisory)                PASS
+byte reconciliation (advisory)             PASS
+byte reconciliation cp (advisory)          PASS
+
+hard: 10 passed, 0 failed | advisory findings: 0
+GATE OK
+GATE END: 2026-10-28T05:32:17Z
+GATE DIRTY-AT-END: f67a0356b64f33e8b711ca7bf492d2ca727bcf78c0408f261a2e057b5c257b50
+GATE DIRTY-AT-END PATHS: scripts/check_gate_citations.py
+GATE DIFFSTAT-AT-END:
+   scripts/check_gate_citations.py | 5 ++++-
+   1 file changed, 4 insertions(+), 1 deletion(-)

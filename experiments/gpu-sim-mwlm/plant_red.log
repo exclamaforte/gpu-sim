@@ -1,0 +1,18 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________________ TestContractDeclared.test_no_tip_fails ____________________
+
+self = <test_check_gate_citations.TestContractDeclared testMethod=test_no_tip_fails>
+
+    def test_no_tip_fails(self):
+        self._set_metrics("scripts/gate.sh 1/1 PASS (no tip here)")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+>       self.assertEqual(rc, 1)
+E       AssertionError: 0 != 1
+
+tests/test_check_gate_citations.py:200: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_check_gate_citations.py::TestContractDeclared::test_no_tip_fails
+1 failed in 0.04s

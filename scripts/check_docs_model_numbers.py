@@ -23,6 +23,7 @@ USAGE. python3 scripts/check_docs_model_numbers.py  (exit 1 on findings)
 The computed facts are written to docs/model_facts.json so the doc has a citable
 artifact for its numbers.
 """
+import argparse
 import json
 import os
 import re
@@ -901,16 +902,28 @@ def allowed_decimals(facts):
     return vals
 
 
-def main():
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--write", action="store_true",
+                    help="write the facts to the tracked path (main-only regeneration)")
+    args = ap.parse_args()
     facts = compute_facts()
-    # Atomic write: the gate runs several checks that READ docs/model_facts.json, and a plain open("w")
-    # truncates it first, so a concurrent reader sees a partial file and the check goes red for no reason.
-    # That produced three phantom RED gates in one day. Write beside it and rename.
-    _tmp = FACTS_JSON + ".tmp"
-    with open(_tmp, "w") as fh:
-        json.dump(facts, fh, indent=2)
-        fh.write("\n")
-    os.replace(_tmp, FACTS_JSON)
+    text = json.dumps(facts, indent=2) + "\n"
+    if args.write:
+        _tmp = FACTS_JSON + ".tmp"
+        with open(_tmp, "w") as fh:
+            fh.write(text)
+        os.replace(_tmp, FACTS_JSON)
+        print(f"wrote {FACTS_JSON}")
+    else:
+        tracked = open(FACTS_JSON).read() if os.path.exists(FACTS_JSON) else None
+        if tracked is None:
+            print(f"NOTE: {FACTS_JSON} absent; would be created with --write")
+        elif tracked != text:
+            print(f"NOTE: {FACTS_JSON} differs from the facts this run produces "
+                  f"(regenerate on main with --write).")
+        else:
+            print(f"OK: {FACTS_JSON} matches the facts this run produces.")
 
     grand = os.path.join(ROOT, "scripts/docs_model_numbers_grandfathered.txt")
     grandfathered = set()

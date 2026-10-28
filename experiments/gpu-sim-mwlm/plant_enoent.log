@@ -1,0 +1,21 @@
+# plant: unverifiable.append((metrics, f"handle {handle}, run.log missing at {_run_log_path(handle)}"))
+$ pytest tests/test_check_gate_citations.py::TestContractDeclared::test_enoent_fails
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________________ TestContractDeclared.test_enoent_fails ____________________
+
+self = <test_check_gate_citations.TestContractDeclared testMethod=test_enoent_fails>
+
+    def test_enoent_fails(self):
+        # after the bounded retry, a persistent absence FAILS unless declared
+        self._set_metrics(f"scripts/gate.sh 1/1 PASS (run rnope, tip {self.head})")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+>       self.assertEqual(rc, 1)
+E       AssertionError: 0 != 1
+
+tests/test_check_gate_citations.py:235: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_check_gate_citations.py::TestContractDeclared::test_enoent_fails
+1 failed in 0.44s
