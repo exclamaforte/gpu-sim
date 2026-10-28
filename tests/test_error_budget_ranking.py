@@ -28,8 +28,8 @@ class TestErrorBudgetRanking(unittest.TestCase):
         cls.ranked, cls.unranked, cls.result = error_budget.compute()
 
     def test_top_row(self):
-        self.assertEqual(self.ranked[0]["parameter"], "microbatch_factor")
-        self.assertEqual(self.ranked[0]["affected_verdict"], "N8_winner")
+        self.assertEqual(self.ranked[0]["parameter"], "term_scale_pp")
+        self.assertEqual(self.ranked[0]["affected_verdict"], "N16_seq32768")
 
     def test_cp_n8_both_crossings(self):
         r = _row(self.ranked, "term_scale_cp", "N8_winner")
@@ -55,6 +55,22 @@ class TestErrorBudgetRanking(unittest.TestCase):
     def test_bw_anchor(self):
         r = _row(self.ranked, "achieved_bw_scale", "N8_winner")
         self.assertAlmostEqual(r["flip_value"], 0.814132, places=5)
+
+    def test_pp_n16_seq32768_anchor(self):
+        r = _row(self.ranked, "term_scale_pp", "N16_seq32768")
+        self.assertAlmostEqual(r["flip_value"], 1.041858, places=5)
+
+    def test_cp_n16_seq32768_anchor(self):
+        r = _row(self.ranked, "term_scale_cp", "N16_seq32768")
+        self.assertAlmostEqual(r["flip_value"], 0.97326, places=5)
+
+    def test_cp_n32_seq32768_anchor(self):
+        r = _row(self.ranked, "term_scale_cp", "N32_seq32768")
+        self.assertAlmostEqual(r["flip_value"], 1.302365, places=5)
+
+    def test_microbatch_n16_seq32768_anchor(self):
+        r = _row(self.ranked, "microbatch_factor", "N16_seq32768")
+        self.assertAlmostEqual(r["flip_value"], 2.090181, places=5)
 
     def test_nulls_sorted_last(self):
         # all rows with no flip must come after every ranked flip row

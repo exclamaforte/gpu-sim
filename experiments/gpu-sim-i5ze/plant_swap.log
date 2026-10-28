@@ -1,0 +1,18 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________________ TestErrorBudgetRanking.test_top_row ______________________
+
+self = <test_error_budget_ranking.TestErrorBudgetRanking testMethod=test_top_row>
+
+    def test_top_row(self):
+>       self.assertEqual(self.ranked[0]["parameter"], "term_scale_pp")
+E       AssertionError: 'term_scale_cp' != 'term_scale_pp'
+E       - term_scale_cp
+E       ?            ^
+E       + term_scale_pp
+E       ?            ^
+
+tests/test_error_budget_ranking.py:31: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_error_budget_ranking.py::TestErrorBudgetRanking::test_top_row
+1 failed in 319.22s (0:05:19)

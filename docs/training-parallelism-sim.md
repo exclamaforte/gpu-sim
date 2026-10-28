@@ -69,8 +69,12 @@ conditional on that assumption. The table is `scripts/microbatch_sweep.py` /
 **Error budget (gpu-sim-hd5u).** The full per-parameter table is `scripts/error_budget.py`
 (`docs/model_facts.json` -> `error_budget`), ranked by the one-sided fraction of the plausible range
 consumed (the full-width fraction is published alongside; the two orderings disagree, so both
-columns are kept). The tightest margin is `microbatch_factor` (5.95%); then `term_scale_cp` at N=32
-(15.79%) and N=8 (17.48%); then `term_scale_pp` at N=8 (23.26%). `achieved_bw_scale` also flips the
+columns are kept). At seq 8192 the tightest margin is `microbatch_factor` (5.95%); then
+`term_scale_cp` at N=32 (15.79%) and N=8 (17.48%); then `term_scale_pp` at N=8 (23.26%).
+At seq 32768 the ranking changes: the most fragile parameter is `term_scale_pp` at N=16
+(1.40% one-sided), then `recompute` at N=16 (1.50%) and `act_factor` at N=16 (1.78%);
+`microbatch_factor` is 15.57% at N=16 and does not flip at N=32. The 'weakest assumption is
+micro-batching' claim is therefore 8192-specific; at long sequences the CP/PP terms are tighter. `achieved_bw_scale` also flips the
 N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
 parameter. Rows that do not flip (`recompute`, `mem_headroom`, `mem_charge`, `act_factor` and the
 eff classes) are reported with their worst-case margin over the whole range instead of a flip value,
