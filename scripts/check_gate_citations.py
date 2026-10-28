@@ -19,7 +19,10 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 TIP_RE = re.compile(r"\btip\s+([0-9a-f]{7,40})\b", re.I)
-RUN_RE = re.compile(r"\brun\s+(?:handle\s+)?([A-Za-z0-9_-]+)", re.I)
+# a run id is an id-like token containing a digit; this keeps prose such as
+# "run predates rebase" from parsing "predates" as a handle (same class as
+# the "handle for this run" fix).
+RUN_RE = re.compile(r"\brun\s+(?:handle\s+)?([A-Za-z0-9_-]*\d[A-Za-z0-9_-]*)", re.I)
 METRICS_ONLY = re.compile(r"^experiments/[^/]+/metrics\.json$")
 # a handle token is an id-like token or the literal "none"; the length floor
 # keeps prose such as "no GATE TIP handle for this run" from parsing "for"
