@@ -1,5 +1,12 @@
 {
   "gpu_jobs": [
     {"job_id": "20261028t190441-ca21ddad", "what": "measure optimizer bytes/param on 5090 (bf16+fp32, 3 modes)"}
+  ],
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= bash experiments/gpu-sim-37xk/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-37xk/output.log"
+    }
   ]
 }

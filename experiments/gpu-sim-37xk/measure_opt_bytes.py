@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Measure real optimizer bytes/param on a 5090 for AdamW modes."""
-import argparse, json, time, torch, torch.nn as nn
+import argparse, json, torch, torch.nn as nn
 
 def make_model(n_params_target, dtype):
     # stack Linear layers to ~n_params_target params
@@ -71,9 +71,8 @@ def run_mode(mode, dtype, n_params_target, steps=8, warmup=2):
     # master weights materialised? check optimizer state has 'params' with fp32 for bf16 model
     master_materialised = False
     # AdamW stores state per param; inspect first param state
-    st = opt.state[next(model.parameters())]
-    # if param dtype bf16 but state has no master, torch keeps bf16 params
-    master_materialised = (str(p0.dtype) != 'torch.bfloat16')  # heuristic: fp32 params => master==params
+    # master weights: torch AdamW does not materialise fp32 master weights for bf16 params
+    master_materialised = (str(p0.dtype) == 'torch.float32')
     result = {
         "mode": mode,
         "param_dtype": str(p0.dtype),
@@ -105,10 +104,8 @@ def main():
     dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
     out = {"n_params_target": args.n_params, "dtype": args.dtype, "steps": args.steps, "modes": []}
     for mode in ["foreach_false", "foreach_true", "fused"]:
-        # map names
-        m = {"foreach_false":"foreach_false","foreach_true":"foreach_true","fused":"fused"}[mode]
         # AdamW foreach flag: False/True/None(fused uses fused=True, foreach=None)
-        # We'll handle inside by passing mode string
+        # handled inside run_mode by mode string
         r = run_mode(mode, dtype, args.n_params, steps=args.steps)
         out["modes"].append(r)
         print(json.dumps(r, indent=2))
