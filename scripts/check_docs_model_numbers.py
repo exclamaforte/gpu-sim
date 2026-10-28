@@ -213,6 +213,37 @@ def compute_facts():
         return {"n_rows": len(_rows), "all_fit": all(_d["headroom_gb"] > 0 for _d in _rows),
                 "tightest": _rows[0] if _rows else None}
 
+    def _measured_opt_bytes():
+        # gpu-sim-z1cw: measured optimizer bytes from the 37xk GPU run, anchored
+        # alongside the assumed style_bytes. Source: experiments/gpu-sim-37xk/
+        # measured_opt_bytes.json. Keep in sync with that artifact.
+        import json as _j
+        _src = os.path.join(ROOT, "experiments", "gpu-sim-37xk", "measured_opt_bytes.json")
+        _d = _j.load(open(_src))
+        _m = _d["measured_bytes_per_param"]
+        return {
+            "source": "gpu-sim-37xk",
+            "device": _d["device"],
+            "torch": _d["torch_version"],
+            "n_params": _d["n_params"],
+            "steps": _d["steps"],
+            "bf16_moments": {
+                "fused": round(_m["bf16_moments"]["measured_peak_fused"], 2),
+                "foreach_true": round(_m["bf16_moments"]["measured_peak_foreach_true"], 2),
+                "foreach_false": round(_m["bf16_moments"]["measured_peak_foreach_false"], 2),
+                "params_grads": round(_m["bf16_moments"]["params_grads"], 2),
+            },
+            "fp32_moments": {
+                "fused": round(_m["fp32_moments"]["measured_peak_fused"], 2),
+                "foreach_true": round(_m["fp32_moments"]["measured_peak_foreach_true"], 2),
+                "foreach_false": round(_m["fp32_moments"]["measured_peak_foreach_false"], 2),
+                "params_grads": round(_m["fp32_moments"]["params_grads"], 2),
+            },
+            "measured_floor_gb_405b_at_80": {
+                "fp32_moments_fused": _d["recomputed_floors_gb"]["fp32_moments_fused"],
+            },
+        }
+
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
         # deltas against the default 16 B/param total) plus the 405B@80 rows per
@@ -284,6 +315,7 @@ def compute_facts():
             out["bf16_80_best_step_ms"] = round(1000 * _bcell["step_s"])
             out["bf16_80_best_mem_gb"] = _bcell["mem_gb"]
             out["bf16_80_margin"] = _bcell["margin_pct"]
+        out["measured_style_bytes"] = _measured_opt_bytes()
         return out
 
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
@@ -761,9 +793,12 @@ def section0(text):
     cannot re-derive; those are covered by scripts/check_prose_numbers.py on their own
     results documents.
     """
+    table_start = text.index("| cell |")
+    table_end = text.index("\n\n", table_start)
+    table_block = text[table_start:table_end]
     s1 = text[text.index("**CURRENT ANSWER"):text.index("THE RANKING IS A NO-OVERLAP RANKING")]
     s2 = text[text.index("**Does the answer generalize past 8B?"):text.index("## 1. Premise")]
-    return s1 + "\n" + s2
+    return table_block + "\n" + s1 + "\n" + s2
 
 
 # Structural integers the doc legitimately uses; not model outputs.
@@ -894,6 +929,16 @@ def allowed_decimals(facts):
     for _k, _v in facts.get("scaleout_opt", {}).items():
         if _k in ("style_bytes", "bf16_80_best_config"):
             continue
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    _msb = facts.get("scaleout_opt", {}).get("measured_style_bytes", {})
+    for _v in _msb.get("bf16_moments", {}).values():
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    for _v in _msb.get("fp32_moments", {}).values():
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    for _v in _msb.get("measured_floor_gb_405b_at_80", {}).values():
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
     # gpu-sim-hz3u: every with-recompute number the paragraph quotes -- 405B winners at
@@ -1060,6 +1105,42 @@ def main() -> int:
             near = sorted(allowed, key=lambda a: abs(float(a) - float(tok)) if re.match(r'^\d+\.\d+$', a) else 1e9)[:3]
             print(f"  line {lineno}: {tok}  (nearest computed: {', '.join(near)})  :: {ctx}")
         return 1
+    # gpu-sim-z1cw: measured-bytes paragraph must quote the committed measured values.
+    _msb = facts.get("scaleout_opt", {}).get("measured_style_bytes", {})
+    if _msb:
+        _mpara = text[text.index("**Beyond one rack"):text.index("**CURRENT ANSWER")]
+        _expected = []
+        for _v in _msb.get("bf16_moments", {}).values():
+            if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                _expected.append(_v)
+        for _v in _msb.get("fp32_moments", {}).values():
+            if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                _expected.append(_v)
+        for _v in _msb.get("measured_floor_gb_405b_at_80", {}).values():
+            if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                _expected.append(_v)
+        _pairs = [
+            ("8.36", _msb["bf16_moments"]["fused"]),
+            ("10.36", _msb["bf16_moments"]["foreach_true"]),
+            ("4.36", _msb["bf16_moments"]["params_grads"]),
+            ("16.36", _msb["fp32_moments"]["fused"]),
+            ("20.36", _msb["fp32_moments"]["foreach_true"]),
+            ("17.09", _msb["fp32_moments"]["foreach_false"]),
+            ("83.1", _msb["measured_floor_gb_405b_at_80"]["fp32_moments_fused"]),
+        ]
+        _missing = []
+        for _s, _v in _pairs:
+            _vs = f"{_v:g}"
+            if _s != _vs:
+                _missing.append((f"facts value {_vs} != expected {_s}", _s))
+                continue
+            if _s not in _mpara:
+                _missing.append((_v, _s))
+        if _missing:
+            print("\nmeasured-bytes paragraph is missing committed value(s):")
+            for _v, _s in _missing:
+                print(f"  {_s}  (from model_facts scaleout_opt.measured_style_bytes)")
+            return 1
     print("OK: every decimal in section 0 is a value computed from the current model")
     return 0
 
