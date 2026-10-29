@@ -26,6 +26,12 @@
       2.325
     ]
   },
-  "conclusion": "Measured act_factor 2.19-2.44 (median 2.33) consistent with assumed 2.3 within ~5-10% spread across dtype/batch/seq. act_factor bend point null for N=16 (ranking never moves), so N=16/seq32768 verdict not sensitive to act_factor; 1.78% fragility is theoretical. act_factor=2.3 validated.",
-  "gate": "gpu (RTX 5090)"
+  "conclusion": "Measured central value (median 2.33, range 2.189-2.435) is consistent with assumed 2.3. However, the error-budget flip point for N=16/seq32768 is 2.2769 (1.78% one-sided): measured median 2.33 is on the safe side, but the measured spread straddles it (fp32@8192 = 2.189 < 2.2769). The knob sweep's 'bend_point N16 = null' does NOT apply: it calls search(n) which defaults to seq=8192, while the flip point is for seq=32768. So 'not sensitive' is unsupported for the seq=32768 cell. act_factor=2.3 is consistent with measurement but the N=16/seq32768 fragility is real and measurement noise could cross the 2.2769 flip point. See bead for knob sweep seq bug.",
+  "gate": "gpu (RTX 5090)",
+  "error_budget_flip_point_n16_seq32768": 2.2769,
+  "measured_median": 2.329,
+  "measured_range": [
+    2.189,
+    2.435
+  ]
 }
