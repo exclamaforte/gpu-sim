@@ -72,6 +72,34 @@
       "measured_floor_gb_405b_at_80": {
         "fp32_moments_fused": 83.1
       }
+    },
+    "measured_act_factor": {
+      "source": "gpu-sim-mxaz",
+      "device": "NVIDIA GeForce RTX 5090",
+      "torch": "2.13.0+cu132",
+      "n_measurements": 7,
+      "assumed": 2.3,
+      "min": 2.189,
+      "median": 2.329,
+      "max": 2.435,
+      "flip_point_theory": 2.2769,
+      "seq_comparison": {
+        "bf16_8192": [
+          2.226,
+          2.329
+        ],
+        "bf16_32768": [
+          2.345,
+          2.353
+        ],
+        "fp32_8192": [
+          2.189,
+          2.435
+        ],
+        "fp32_32768": [
+          2.325
+        ]
+      }
     }
   },
   "pp1_act": {

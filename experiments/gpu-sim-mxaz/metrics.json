@@ -1,0 +1,37 @@
+{
+  "bead": "gpu-sim-mxaz",
+  "gpu_job_id": "20261028t234659-d45ecb2c",
+  "model_assumed_act_factor": 2.3,
+  "measured_implied_act_factor": {
+    "min": 2.189,
+    "max": 2.435,
+    "mean": 2.315,
+    "median": 2.329
+  },
+  "n_measurements": 7,
+  "seq_comparison": {
+    "bf16_8192": [
+      2.226,
+      2.329
+    ],
+    "bf16_32768": [
+      2.345,
+      2.353
+    ],
+    "fp32_8192": [
+      2.189,
+      2.435
+    ],
+    "fp32_32768": [
+      2.325
+    ]
+  },
+  "conclusion": "Measured central value (median 2.33, range 2.189-2.435) is consistent with assumed 2.3. However, the error-budget flip point for N=16/seq32768 is 2.2769 (1.78% one-sided): measured median 2.33 is on the safe side, but the measured spread straddles it (fp32@8192 = 2.189 < 2.2769). The knob sweep's 'bend_point N16 = null' does NOT apply: it calls search(n) which defaults to seq=8192, while the flip point is for seq=32768. So 'not sensitive' is unsupported for the seq=32768 cell. act_factor=2.3 is consistent with measurement but the N=16/seq32768 fragility is real and measurement noise could cross the 2.2769 flip point. See bead for knob sweep seq bug.",
+  "gate": "gpu (RTX 5090)",
+  "error_budget_flip_point_n16_seq32768": 2.2769,
+  "measured_median": 2.329,
+  "measured_range": [
+    2.189,
+    2.435
+  ]
+}
