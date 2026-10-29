@@ -1,5 +1,5 @@
 """Measure peak activation memory across sequence lengths on the 5090 (gpu-sim-7uz2)."""
-import argparse, json, time, subprocess, torch, torch.nn as nn
+import argparse, json, subprocess, torch, torch.nn as nn
 
 def make_block(d, d_ff, n_heads):
     class Block(nn.Module):
@@ -42,7 +42,6 @@ def neighbours():
 def run_one(seq, batch, n_layers, d, d_ff, n_heads, dtype, steps, warmup):
     torch.cuda.empty_cache()
     model = make_model(n_layers, d, d_ff, n_heads).to(dtype).cuda()
-    n_params = sum(p.numel() for p in model.parameters())
     x = torch.randn(batch, seq, d, device='cuda', dtype=dtype)
     for _ in range(warmup):
         model.zero_grad(set_to_none=True)
