@@ -76,10 +76,12 @@ At seq 32768 the ranking changes: the most fragile parameter is `term_scale_pp` 
 `microbatch_factor` is 15.57% at N=16 and does not flip at N=32. The 'weakest assumption is
 micro-batching' claim is therefore 8192-specific; at long sequences the CP/PP terms are tighter. `achieved_bw_scale` also flips the
 N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
-parameter. Extended to N=64 and N=128 (gpu-sim-afbg): at seq 8192 the tightest margin is still
-`microbatch_factor` at N=8 (5.95%); at seq 32768 `term_scale_pp` at N=16 (1.40%) remains the
-tightest and no new rank-1 appears, so the ranking is size-stable from N=8 to N=128 at each
-sequence. Rows that do not flip in either sequence (`mem_headroom`, `mem_charge`, the eff classes)
+parameter. Extended to N=64 and N=128 (gpu-sim-afbg): the N=8 and N=16 headline cells are unchanged
+(`microbatch_factor` 5.95% at seq 8192, `term_scale_pp` 1.40% at seq 32768), but the ranking is
+NOT size-stable. At seq 8192 the top row at both N=64 and N=128 is `term_scale_cp`; at seq 32768
+N=64 is also `term_scale_cp` and only N=128 is `term_scale_pp`. So a rank-1 claim has to name its
+N as well as its sequence, and at the largest sizes the brittle input is the fabric term -- the
+one input that cannot be calibrated on a single GPU. Rows that do not flip in either sequence (`mem_headroom`, `mem_charge`, the eff classes)
 are reported with their worst-case margin over the whole range instead of a flip value, so they are
 not empty. At seq 8192 `recompute` and `act_factor` do not flip; at seq 32768 both do --
 `recompute` at 0.015 (1.50% of its range) and `act_factor` at 2.277 (1.78%) at N=16 -- which is
