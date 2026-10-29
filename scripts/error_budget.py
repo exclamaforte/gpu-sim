@@ -403,6 +403,21 @@ def compute():
 
     return ranked, unranked, result
 
+
+
+def top_param_for_cell(ranked, cell):
+    """Return the rank-1 parameter for a given cell, from a ranked list."""
+    rows = [r for r in ranked if r["affected_verdict"] == cell]
+    flips = [r for r in rows if r.get("fraction_one_sided") is not None]
+    if flips:
+        return min(flips, key=lambda r: r["fraction_one_sided"])["parameter"]
+    if rows:
+        return min(rows, key=lambda r: (r.get("current_margin") if r.get("current_margin") is not None else 1e9))["parameter"]
+    return None
+
+def top_ranks_from_ranked(ranked, cells):
+    return {c: top_param_for_cell(ranked, c) for c in cells}
+
 def main():
     ranked, unranked, result = compute()
 
