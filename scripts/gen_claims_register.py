@@ -71,6 +71,10 @@ def render(facts):
     cross = facts["cp_crossover"]
     head = facts["headroom_sensitivity"]["grid"]["N16_seq32768"]
     apc = facts["alpha_piece_charging"]
+    # act_factor: the error-budget flip point and the measured range, both from facts
+    _act_meas = facts["scaleout_opt"]["measured_act_factor"]
+    _act_flip = next(r["flip_down"] for r in facts["error_budget"]["ranked"]
+                     if r["parameter"] == "act_factor" and r["affected_verdict"] == "N16_seq32768")
 
     rows = [
         _row(f"N=8 winner {_cfg(facts['rows']['N8']['winner']['config'])}, seq 8192",
@@ -106,9 +110,16 @@ def render(facts):
              f"{mfu['measured_5090']['mfu']:.3f}, so absolutes carry "
              f"{mfu['ratio_at_measured']}-{mfu['ratio_at_typical']}x",
              "tests/test_mfu_sensitivity.py"),
+        # gpu-sim-mxaz / gpu-sim-05uf: "no bend" is a STEP-TIME statement (the
+        # knob sweep runs at seq 8192); the seq-32768 N=16 verdict flips on
+        # FEASIBILITY, and the measured act_factor range straddles that point.
+        # Both values come from facts, never typed in here.
         _row("act_factor (2.3) fitted constant", "STRUCTURAL",
-             f"memory-only: 5x band changes no step time; ranking bends only at "
-             f"{knob['bend_point']['N8']} (N=8) / {knob['bend_point']['N16']} (N=16,32)",
+             f"memory-only for step time: 5x band changes no step time; ranking bends only at "
+             f"{knob['bend_point']['N8']} (N=8) / {knob['bend_point']['N16']} (N=16,32) at seq 8192; "
+             f"the seq-32768 N=16 verdict flips on feasibility at {_act_flip:.3f}, and the measured "
+             f"range {_act_meas['min']:.3f}-{_act_meas['max']:.3f} (median {_act_meas['median']:.3f}, "
+             f"{_act_meas['n_measurements']} measurements on a 5090) straddles it",
              "tests/test_act_factor_knob.py"),
         _row("S_best = 8192", "VALIDATED",
              f"CP crossover is seq {cross['implied_seq']} ({cross['measured_seq']} measured), so "
