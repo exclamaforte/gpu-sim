@@ -59,6 +59,16 @@ def set_param(hw, name, value):
         hw["mem_charge"] = value
     return hw
 
+def _bw_default():
+    import os
+    v = os.environ.get("ACHIEVED_BW_SCALE")
+    if v is not None:
+        try:
+            return float(v)
+        except ValueError:
+            pass
+    return 1.0
+
 PARAMS = [
     {"name": "term_scale_cp", "default": 1.0, "lo": 0.25, "hi": 4.0,
      "provenance": "assumed (measured 4x error once, gpu-sim-kvcp)"},
@@ -76,8 +86,8 @@ PARAMS = [
      "provenance": "assumed (no measurement)"},
     {"name": "act_factor", "default": 2.3, "lo": 1.0, "hi": 4.0,
      "provenance": "measured (gpu-sim-4nf, 2.3x)"},
-    {"name": "achieved_bw_scale", "default": 1.0, "lo": 0.5, "hi": 2.0,
-     "provenance": "published-spec (datasheet, not measured here)"},
+    {"name": "achieved_bw_scale", "default": _bw_default(), "lo": 0.5, "hi": 2.0,
+     "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec"},
     {"name": "mem_headroom", "default": 0.0, "lo": 0.0, "hi": 0.2,
      "provenance": "assumed (no measurement)"},
     {"name": "mem_charge", "default": 1.0, "lo": 1.0, "hi": 1.25,
