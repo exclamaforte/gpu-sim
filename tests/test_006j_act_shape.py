@@ -7,6 +7,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
+import error_budget
+
 
 class Test006jActShape(unittest.TestCase):
     @classmethod
@@ -38,11 +40,21 @@ class Test006jActShape(unittest.TestCase):
         for shape, seqs in curves.items():
             self.assertEqual(len(seqs), 5)
 
-    def test_deciding_cell_uses_orig_curve(self):
-        # The deciding cell (N16_seq32768) must use the original-shape curve,
-        # not a contrasting shape's. Planting a different value must fail.
+    def test_deciding_cell_value(self):
+        # Value check only: the deciding cell (N16_seq32768) measured value is
+        # 2.3448 (orig shape at 32768). The contract that error_budget actually
+        # uses this value (and not a contrasting shape's) is guarded separately
+        # by test_error_budget_curve_tied_to_facts.
         orig_32768 = self.mas["curve_act_factor_by_seq"]["8L_d1024_dff4096"]["32768"]
         self.assertAlmostEqual(orig_32768, 2.3448, places=3)
+
+    def test_error_budget_curve_tied_to_facts(self):
+        # Fast guard: scripts/error_budget.py::_ACT_FACTOR_BY_SEQ must equal the
+        # facts' original-shape curve (int keys in code vs str keys in facts).
+        # Planting a contrasting shape's value (e.g. 2.3373 at 32768) must fail.
+        orig = self.mas["curve_act_factor_by_seq"]["8L_d1024_dff4096"]
+        expected = {int(k): v for k, v in orig.items()}
+        self.assertEqual(error_budget._ACT_FACTOR_BY_SEQ, expected)
 
 
 if __name__ == "__main__":

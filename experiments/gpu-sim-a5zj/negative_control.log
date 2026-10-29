@@ -1,0 +1,41 @@
+GATE TREE: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-a5zj
+GATE TIP: aabb20c733fc127590e4c14a0b744c892c0e63c9
+GATE HEAD: aabb20c a5zj: tie error_budget curve to facts; correct occup
+GATE PID: 1143563
+GATE START: 2026-10-29T22:42:11Z
+GATE DIRTY-AT-START: 1d0537ec41e18b5b9e04d3da84127bb50a52db016141810936cad8fe1cda177c
+GATE DIRTY-AT-START PATHS: docs/model_facts.json scripts/check_docs_model_numbers.py scripts/error_budget.py
+GATE DIFFSTAT-AT-START:
+   docs/model_facts.json               |  4 ++--
+   scripts/check_docs_model_numbers.py | 17 +++++++++++++++++
+   scripts/error_budget.py             |  2 +-
+   3 files changed, 20 insertions(+), 3 deletions(-)
+=== gpu-sim gates 2026-10-29T22:42Z ===
+(fast mode: test suite skipped)
+docs section 0 vs model                    FAIL
+    FAST MODE: checking prose against committed docs/model_facts.json (artifact-vs-code recompute skipped; set CI_GATES_FULL=1 for full).
+    FAIL: error_budget._ACT_FACTOR_BY_SEQ != facts orig-shape curve
+      code:   {2048: 1.7347, 4096: 2.1279, 8192: 2.2263, 16384: 2.3291, 32768: 2.3373}
+      facts:  {2048: 1.7347, 4096: 2.1279, 8192: 2.2263, 16384: 2.3291, 32768: 2.3448}
+close_audit unchanged                      PASS
+close audit (concrete artifacts)           PASS
+interposer guard uniqueness                PASS
+libfakegpu freshness                       PASS
+prose-number provenance                    PASS
+claims register                            PASS
+radius prose                               PASS
+no vacuous assertions                      PASS
+gate citations                             PASS
+worktree hygiene (advisory)                PASS
+byte reconciliation (advisory)             PASS
+byte reconciliation cp (advisory)          PASS
+MANIFEST FAILED: 9 passed, expected 10
+ran: docs section 0 vs model close_audit unchanged close audit (concrete artifacts) interposer guard uniqueness libfakegpu freshness prose-number provenance claims register radius prose no vacuous assertions gate citations worktree hygiene byte reconciliation byte reconciliation cp
+GATE END: 2026-10-29T22:42:32Z
+GATE DIRTY-AT-END: 1d0537ec41e18b5b9e04d3da84127bb50a52db016141810936cad8fe1cda177c
+GATE DIRTY-AT-END PATHS: docs/model_facts.json scripts/check_docs_model_numbers.py scripts/error_budget.py
+GATE DIFFSTAT-AT-END:
+   docs/model_facts.json               |  4 ++--
+   scripts/check_docs_model_numbers.py | 17 +++++++++++++++++
+   scripts/error_budget.py             |  2 +-
+   3 files changed, 20 insertions(+), 3 deletions(-)

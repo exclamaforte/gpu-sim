@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-a5zj",
+  "changes": {
+    "test_006j_act_shape": "added test_error_budget_curve_tied_to_facts tying error_budget._ACT_FACTOR_BY_SEQ to facts orig-shape curve; renamed deciding-cell test to value-only check",
+    "model_facts_caveat": "corrected false 'neighbour occupancy was NOT recorded' to 'recorded in logs, not used by analysis' with occupancy numbers",
+    "doc": "added occupancy caveat next to 48.2% headline (docs/training-parallelism-sim.md)"
+  },
+  "negative_control": "experiments/gpu-sim-a5zj/negative_control.log (planted 32768 2.3448->2.3373 -> FAIL, restored)",
+  "gate": "run.sh (check_docs_model_numbers + test_006j_act_shape) green"
+}
