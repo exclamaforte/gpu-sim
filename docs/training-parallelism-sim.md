@@ -356,7 +356,7 @@ config at 91% of capacity looks as good as one at 52%. Requiring a mere 10% of H
 room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
 **two** cells in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **73.0 of
 80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **41.5 GB** for **423.78 vs 413.98 ms**; and N=8
-at seq 16384, where (tp=2 cp=4 dp=1) at **73.0 GB** gives way to (tp=4 cp=2 dp=1 z0) at **40.8 GB** for
+at seq 16384, where (tp=2 cp=4 dp=1) at **73.0 GB** gives way to (tp=4 cp=2 dp=1 z0) at **40.7 GB** for
 **253.43 vs 253.00 ms**. Both cost about 2% or less, and the N=16 replacement is also the config that
 wins at N=16 for seq 16384 at pessimistic efficiency, so the headroom requirement does not cost a real
 recommendation -- it removes artifacts. Every other cell

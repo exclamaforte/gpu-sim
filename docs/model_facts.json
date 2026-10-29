@@ -49,7 +49,7 @@
       2
     ],
     "bf16_80_best_step_ms": 504,
-    "bf16_80_best_mem_gb": 74.7,
+    "bf16_80_best_mem_gb": 75.1,
     "bf16_80_margin": 3.52,
     "measured_style_bytes": {
       "source": "gpu-sim-37xk",
@@ -236,8 +236,8 @@
       "convention": "default all_gather",
       "batch": 1,
       "config": "tp=1 pp=20 cp=1 dp=4 zero=2",
-      "act_gb": 7.77,
-      "headroom_gb": 72.23
+      "act_gb": 8.03,
+      "headroom_gb": 71.97
     }
   },
   "micro_batches_sensitivity": {
@@ -704,6 +704,37 @@
           "2"
         ],
         "current_margin": 0.0,
+        "default": 0.0,
+        "elasticity": null,
+        "elasticity_infinite": true,
+        "flip_down": null,
+        "flip_full": 0.014996,
+        "flip_one_sided": 0.014996,
+        "flip_up": 0.014996,
+        "flip_value": 0.014996,
+        "fraction_of_range_consumed": 0.014996,
+        "fraction_one_sided": 0.014996,
+        "margin_basis": "at default",
+        "measured_sides": [
+          "up"
+        ],
+        "parameter": "recompute",
+        "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
+        "range": [
+          0.0,
+          1.0
+        ]
+      },
+      {
+        "affected_verdict": "N16_seq32768",
+        "base_verdict": [
+          "1",
+          "4",
+          "1",
+          "4",
+          "2"
+        ],
+        "current_margin": 0.0,
         "default": 2.3448,
         "elasticity": null,
         "elasticity_infinite": true,
@@ -754,37 +785,6 @@
         "range": [
           0.25,
           4.0
-        ]
-      },
-      {
-        "affected_verdict": "N16_seq32768",
-        "base_verdict": [
-          "1",
-          "4",
-          "1",
-          "4",
-          "2"
-        ],
-        "current_margin": 0.0,
-        "default": 0.0,
-        "elasticity": null,
-        "elasticity_infinite": true,
-        "flip_down": null,
-        "flip_full": 0.043226,
-        "flip_one_sided": 0.043226,
-        "flip_up": 0.043226,
-        "flip_value": 0.043226,
-        "fraction_of_range_consumed": 0.043226,
-        "fraction_one_sided": 0.043226,
-        "margin_basis": "at default",
-        "measured_sides": [
-          "up"
-        ],
-        "parameter": "recompute",
-        "provenance": "measured (1.24-1.27x, gpu-sim-recompute)",
-        "range": [
-          0.0,
-          1.0
         ]
       },
       {
@@ -1602,9 +1602,9 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -28.83140654284803,
+        "current_margin": -29.074268160000003,
         "default": 1.0,
-        "elasticity": 12.3232,
+        "elasticity": 12.0202,
         "elasticity_infinite": false,
         "flip_down": null,
         "flip_full": null,
@@ -1627,7 +1627,7 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -23.065125234278412,
+        "current_margin": -23.259414527999994,
         "default": 0.0,
         "elasticity": -80.0,
         "elasticity_infinite": false,
@@ -1677,7 +1677,7 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -7.065125234278412,
+        "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
         "elasticity_infinite": false,
@@ -1702,7 +1702,7 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -7.065125234278412,
+        "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
         "elasticity_infinite": false,
@@ -1727,9 +1727,9 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -7.065125234278412,
+        "current_margin": -7.2594145279999935,
         "default": 0.0,
-        "elasticity": 3.9322,
+        "elasticity": 4.0624,
         "elasticity_infinite": false,
         "flip_down": null,
         "flip_full": null,
@@ -1752,7 +1752,7 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -7.065125234278412,
+        "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
         "elasticity_infinite": false,
@@ -1777,7 +1777,7 @@
         "base_verdict": [
           "False"
         ],
-        "current_margin": -7.065125234278412,
+        "current_margin": -7.2594145279999935,
         "default": 1.0,
         "elasticity": -0.0,
         "elasticity_infinite": false,
@@ -2958,6 +2958,56 @@
         ]
       },
       {
+        "affected_verdict": "405B_bf16_feasible",
+        "base_verdict": [
+          "True"
+        ],
+        "current_margin": 4.8661741568,
+        "default": 1.0,
+        "elasticity": 0.0,
+        "elasticity_infinite": false,
+        "flip_down": null,
+        "flip_full": null,
+        "flip_one_sided": null,
+        "flip_up": null,
+        "flip_value": null,
+        "fraction_of_range_consumed": null,
+        "fraction_one_sided": null,
+        "margin_basis": "worst over range",
+        "measured_sides": [],
+        "parameter": "term_scale_pp",
+        "provenance": "assumed (no measurement)",
+        "range": [
+          0.25,
+          4.0
+        ]
+      },
+      {
+        "affected_verdict": "405B_bf16_feasible",
+        "base_verdict": [
+          "True"
+        ],
+        "current_margin": 4.8661741568,
+        "default": 1.0,
+        "elasticity": 0.0,
+        "elasticity_infinite": false,
+        "flip_down": null,
+        "flip_full": null,
+        "flip_one_sided": null,
+        "flip_up": null,
+        "flip_value": null,
+        "fraction_of_range_consumed": null,
+        "fraction_one_sided": null,
+        "margin_basis": "worst over range",
+        "measured_sides": [],
+        "parameter": "microbatch_factor",
+        "provenance": "assumed (no measurement)",
+        "range": [
+          1.0,
+          8.0
+        ]
+      },
+      {
         "affected_verdict": "N128_seq32768",
         "base_verdict": [
           "1",
@@ -2991,57 +3041,7 @@
         "base_verdict": [
           "True"
         ],
-        "current_margin": 5.255665614848013,
-        "default": 1.0,
-        "elasticity": 0.0,
-        "elasticity_infinite": false,
-        "flip_down": null,
-        "flip_full": null,
-        "flip_one_sided": null,
-        "flip_up": null,
-        "flip_value": null,
-        "fraction_of_range_consumed": null,
-        "fraction_one_sided": null,
-        "margin_basis": "worst over range",
-        "measured_sides": [],
-        "parameter": "term_scale_pp",
-        "provenance": "assumed (no measurement)",
-        "range": [
-          0.25,
-          4.0
-        ]
-      },
-      {
-        "affected_verdict": "405B_bf16_feasible",
-        "base_verdict": [
-          "True"
-        ],
-        "current_margin": 5.255665614848013,
-        "default": 1.0,
-        "elasticity": 0.0,
-        "elasticity_infinite": false,
-        "flip_down": null,
-        "flip_full": null,
-        "flip_one_sided": null,
-        "flip_up": null,
-        "flip_value": null,
-        "fraction_of_range_consumed": null,
-        "fraction_one_sided": null,
-        "margin_basis": "worst over range",
-        "measured_sides": [],
-        "parameter": "microbatch_factor",
-        "provenance": "assumed (no measurement)",
-        "range": [
-          1.0,
-          8.0
-        ]
-      },
-      {
-        "affected_verdict": "405B_bf16_feasible",
-        "base_verdict": [
-          "True"
-        ],
-        "current_margin": 5.2846974730240035,
+        "current_margin": 5.089951743999997,
         "default": 0.0,
         "elasticity": -80.0,
         "elasticity_infinite": false,
@@ -3182,9 +3182,9 @@
         "base_verdict": [
           "True"
         ],
-        "current_margin": 6.605871841279992,
+        "current_margin": 6.362439679999994,
         "default": 1.0,
-        "elasticity": -2.7586,
+        "elasticity": -2.7933,
         "elasticity_infinite": false,
         "flip_down": null,
         "flip_full": null,
@@ -3435,7 +3435,7 @@
         "base_verdict": [
           "True"
         ],
-        "current_margin": 21.284697473024004,
+        "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": 0.0,
         "elasticity_infinite": false,
@@ -3460,9 +3460,9 @@
         "base_verdict": [
           "True"
         ],
-        "current_margin": 21.284697473024004,
+        "current_margin": 21.089951743999997,
         "default": 0.0,
-        "elasticity": 3.9415,
+        "elasticity": 4.072,
         "elasticity_infinite": false,
         "flip_down": null,
         "flip_full": null,
@@ -3485,7 +3485,7 @@
         "base_verdict": [
           "True"
         ],
-        "current_margin": 21.284697473024004,
+        "current_margin": 21.089951743999997,
         "default": 1.0,
         "elasticity": 0.0,
         "elasticity_infinite": false,
@@ -3775,13 +3775,13 @@
       "config": "tp=1 pp=4 cp=1 dp=20 zero=3",
       "step_s": 2.515,
       "margin_pct": 0.53,
-      "mem_gb": 55.1
+      "mem_gb": 56.3
     },
     "1.0": {
       "config": "tp=1 pp=1 cp=1 dp=80 zero=3",
       "step_s": 2.639,
       "margin_pct": 14.35,
-      "mem_gb": 67.5
+      "mem_gb": 69.2
     }
   },
   "mfu_sensitivity": {
@@ -3836,7 +3836,7 @@
             0
           ],
           "step_ms": 113.07,
-          "mem_gb": 36.3
+          "mem_gb": 36.4
         },
         "hr0.10": {
           "config": [
@@ -3847,7 +3847,7 @@
             0
           ],
           "step_ms": 113.07,
-          "mem_gb": 36.3
+          "mem_gb": 36.4
         },
         "hr0.20": {
           "config": [
@@ -3858,7 +3858,7 @@
             0
           ],
           "step_ms": 113.07,
-          "mem_gb": 36.3
+          "mem_gb": 36.4
         },
         "changes": false
       },
@@ -3872,7 +3872,7 @@
             0
           ],
           "step_ms": 253.0,
-          "mem_gb": 73.0
+          "mem_gb": 72.9
         },
         "hr0.10": {
           "config": [
@@ -3883,7 +3883,7 @@
             0
           ],
           "step_ms": 253.43,
-          "mem_gb": 40.8
+          "mem_gb": 40.7
         },
         "hr0.20": {
           "config": [
@@ -3894,7 +3894,7 @@
             0
           ],
           "step_ms": 253.43,
-          "mem_gb": 40.8
+          "mem_gb": 40.7
         },
         "changes": true
       },
@@ -3908,7 +3908,7 @@
             0
           ],
           "step_ms": 645.32,
-          "mem_gb": 49.6
+          "mem_gb": 49.3
         },
         "hr0.10": {
           "config": [
@@ -3919,7 +3919,7 @@
             0
           ],
           "step_ms": 645.32,
-          "mem_gb": 49.6
+          "mem_gb": 49.3
         },
         "hr0.20": {
           "config": [
@@ -3930,7 +3930,7 @@
             0
           ],
           "step_ms": 645.32,
-          "mem_gb": 49.6
+          "mem_gb": 49.3
         },
         "changes": false
       },
@@ -3980,7 +3980,7 @@
             0
           ],
           "step_ms": 164.96,
-          "mem_gb": 16.3
+          "mem_gb": 16.2
         },
         "hr0.10": {
           "config": [
@@ -3991,7 +3991,7 @@
             0
           ],
           "step_ms": 164.96,
-          "mem_gb": 16.3
+          "mem_gb": 16.2
         },
         "hr0.20": {
           "config": [
@@ -4002,7 +4002,7 @@
             0
           ],
           "step_ms": 164.96,
-          "mem_gb": 16.3
+          "mem_gb": 16.2
         },
         "changes": false
       },
@@ -4016,7 +4016,7 @@
             0
           ],
           "step_ms": 413.98,
-          "mem_gb": 73.2
+          "mem_gb": 73.0
         },
         "hr0.10": {
           "config": [
@@ -4027,7 +4027,7 @@
             0
           ],
           "step_ms": 423.78,
-          "mem_gb": 41.6
+          "mem_gb": 41.4
         },
         "hr0.20": {
           "config": [
@@ -4038,7 +4038,7 @@
             0
           ],
           "step_ms": 423.78,
-          "mem_gb": 41.6
+          "mem_gb": 41.4
         },
         "changes": true
       },
@@ -4052,7 +4052,7 @@
             0
           ],
           "step_ms": 39.45,
-          "mem_gb": 10.1
+          "mem_gb": 10.2
         },
         "hr0.10": {
           "config": [
@@ -4063,7 +4063,7 @@
             0
           ],
           "step_ms": 39.45,
-          "mem_gb": 10.1
+          "mem_gb": 10.2
         },
         "hr0.20": {
           "config": [
@@ -4074,7 +4074,7 @@
             0
           ],
           "step_ms": 39.45,
-          "mem_gb": 10.1
+          "mem_gb": 10.2
         },
         "changes": false
       },
@@ -4124,7 +4124,7 @@
             0
           ],
           "step_ms": 229.14,
-          "mem_gb": 22.7
+          "mem_gb": 22.6
         },
         "hr0.10": {
           "config": [
@@ -4135,7 +4135,7 @@
             0
           ],
           "step_ms": 229.14,
-          "mem_gb": 22.7
+          "mem_gb": 22.6
         },
         "hr0.20": {
           "config": [
@@ -4146,7 +4146,7 @@
             0
           ],
           "step_ms": 229.14,
-          "mem_gb": 22.7
+          "mem_gb": 22.6
         },
         "changes": false
       }
