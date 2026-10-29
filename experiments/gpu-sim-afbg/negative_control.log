@@ -1,0 +1,4 @@
+Negative control: remove N64_winner cell from CELLS, run test_top_row_n64_winner.
+Command: (edit scripts/error_budget.py to drop the N64_winner row; python -m unittest tests.test_error_budget_ranking.TestErrorBudgetRanking.test_top_row_n64_winner)
+Result: ValueError: min() iterable argument is empty (no rows for N64_winner), test ERROR.
+Restored scripts/error_budget.py from backup; verified N64_winner present.
