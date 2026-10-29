@@ -1,0 +1,4 @@
+Negative control: edit metrics.json top_ranks[N64_winner] to "microbatch_factor" (wrong), run test_top_ranks_matches_computed.
+Command: python -m unittest tests.test_afbg_metrics_top_ranks.TestAfbgMetricsTopRanks.test_top_ranks_matches_computed
+Result: FAILED: metrics top_ranks[N64_winner]='microbatch_factor' != computed 'term_scale_cp'
+Restored via scripts/gen_afbg_metrics.py; verified 2 tests pass.
