@@ -1,0 +1,60 @@
+{
+  "cells": [
+    "N64_winner",
+    "N128_winner",
+    "N64_seq32768",
+    "N128_seq32768"
+  ],
+  "fabric_precision_band": {
+    "N64_winner": {
+      "flip_down_ratio": 0.423747,
+      "flip_up_ratio": 1.763004,
+      "measured_sides": [
+        "down",
+        "up"
+      ],
+      "fraction_one_sided": 0.254335,
+      "next_rank1_if_pinned": "term_scale_pp",
+      "next_rank1_fraction_one_sided": 0.4533,
+      "band_description": "two-sided: fabric may range 0.424x to 1.763x of fitted before N64_winner verdict changes"
+    },
+    "N128_winner": {
+      "flip_down_ratio": null,
+      "flip_up_ratio": 1.911146,
+      "measured_sides": [
+        "up"
+      ],
+      "fraction_one_sided": 0.303715,
+      "next_rank1_if_pinned": "term_scale_pp",
+      "next_rank1_fraction_one_sided": 0.635672,
+      "band_description": "one-sided (up): fabric must stay below 1.911x of fitted; no lower flip (down to 0.25x)"
+    },
+    "N64_seq32768": {
+      "flip_down_ratio": null,
+      "flip_up_ratio": 1.233294,
+      "measured_sides": [
+        "up"
+      ],
+      "fraction_one_sided": 0.077765,
+      "next_rank1_if_pinned": "term_scale_pp",
+      "next_rank1_fraction_one_sided": 0.252219,
+      "band_description": "one-sided (up): fabric must stay below 1.233x of fitted; no lower flip (down to 0.25x)"
+    },
+    "N128_seq32768": {
+      "flip_down_ratio": null,
+      "flip_up_ratio": null,
+      "measured_sides": [],
+      "fraction_one_sided": null,
+      "next_rank1_if_pinned": "term_scale_pp",
+      "next_rank1_fraction_one_sided": null,
+      "band_description": "no flip within range [0.25, 4.0]: fabric not load-bearing for this cell"
+    }
+  },
+  "fitted_term_scale_cp": 1.0,
+  "range_tested": [
+    0.25,
+    4.0
+  ],
+  "method": "error_budget elasticity; term_scale_cp sweep over [0.25,4.0] per cell; flip ratios to fitted 1.0",
+  "gate": "n/a (CPU-only model sensitivity sweep, no GPU gate run); verified by gate --fast on the landing tree"
+}
