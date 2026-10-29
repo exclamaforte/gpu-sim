@@ -20,6 +20,7 @@ def main():
     cells = metrics["new_cells"]
     tr = error_budget.top_ranks_from_ranked(ranked, cells)
     metrics["top_ranks"] = tr
+    metrics["gate"] = "n/a (CPU-only model extension, no GPU gate run); numbers verified by the docs/model_facts recompute and tests/test_error_budget_ranking.py"
     METRICS.write_text(json.dumps(metrics, indent=2) + "\n")
     print("wrote top_ranks:", tr)
 

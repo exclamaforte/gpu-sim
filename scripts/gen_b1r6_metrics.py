@@ -47,6 +47,7 @@ def main():
         "fitted_term_scale_cp": 1.0,
         "range_tested": [0.25, 4.0],
         "method": "error_budget elasticity; term_scale_cp sweep over [0.25,4.0] per cell; flip ratios to fitted 1.0",
+        "gate": "n/a (CPU-only model sensitivity sweep, no GPU gate run); verified by gate --fast on the landing tree",
     }
     METRICS.parent.mkdir(parents=True, exist_ok=True)
     METRICS.write_text(json.dumps(metrics, indent=2) + "\n")
