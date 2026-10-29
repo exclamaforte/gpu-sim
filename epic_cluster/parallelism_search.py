@@ -280,12 +280,7 @@ def score(tp, pp, cp, dp, zero, hw, m):
     per_token_width = 3 * d_tp + d_ff_tp
     # gpu-sim-4nf calibration: instrumented per-layer peak shows ~2.3x the per-tensor-width
     # estimate (matmul intermediates, gradients in backward).
-    # gpu-sim-7uz2: measured peak activation memory across sequence lengths on the 5090
-    # (experiments/gpu-sim-7uz2/act_curve_raw.json). Spread at fixed length is 0.0, so the
-    # mxaz straddle is driven by SEQ LENGTH, not run-to-run noise. Use the seq-specific value
-    # when hw does not override it.
-    _ACT_FACTOR_BY_SEQ = {2048: 1.7347, 4096: 2.1279, 8192: 2.2263, 16384: 2.3291, 32768: 2.3448}
-    act_factor = _ACT_FACTOR_BY_SEQ.get(seq, 2.3)
+    act_factor = 2.3
     # gpu-sim-54m: allow hw to override the activation factor
     act_factor = hw.get("act_factor", act_factor)
     # recompute scales the STORED activation term (gpu-sim-hz3u, seq-dependent since
