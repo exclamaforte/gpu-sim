@@ -810,7 +810,57 @@ def compute_facts():
                 entry["best_mem_gb"] = round(b.memory_gb, 2)
             row[f"N{N}"] = entry
         facts["sweep"][name] = row
+    facts["fabric_precision"] = _fabric_precision(facts)
     return facts
+
+
+
+def _fabric_precision(facts):
+    """gpu-sim-b1r6: how wrong can the fitted fabric term (term_scale_cp=1.0) be
+    before the N64/N128 verdicts change? Derived from facts['error_budget']['ranked'].
+    Reported as ratios to fitted (fitted=1.0), with measured_sides preserved.
+    """
+    cells = ["N64_winner", "N128_winner", "N64_seq32768", "N128_seq32768"]
+    ranked = facts.get("error_budget", {}).get("ranked", [])
+    out = {}
+    for cell in cells:
+        rows = [r for r in ranked if r.get("affected_verdict") == cell]
+        tcp_rows = [r for r in rows if r.get("parameter") == "term_scale_cp"]
+        tcp = tcp_rows[0] if tcp_rows else None
+        # next rank-1 if term_scale_cp is pinned (removed from the ranking)
+        others = [r for r in rows if r.get("parameter") != "term_scale_cp"]
+        flips = [r for r in others if r.get("fraction_one_sided") is not None]
+        if flips:
+            nxt = min(flips, key=lambda r: r["fraction_one_sided"])
+            next_param = nxt["parameter"]
+            next_frac = nxt["fraction_one_sided"]
+        elif others:
+            nxt = min(others, key=lambda r: (r.get("current_margin") if r.get("current_margin") is not None else 1e9))
+            next_param = nxt["parameter"]
+            next_frac = None
+        else:
+            next_param = None
+            next_frac = None
+        if tcp is not None:
+            fd = tcp.get("flip_down")
+            fu = tcp.get("flip_up")
+            entry = {
+                "term_scale_cp_flip_down_ratio": fd,   # ratio to fitted 1.0
+                "term_scale_cp_flip_up_ratio": fu,
+                "term_scale_cp_measured_sides": tcp.get("measured_sides", []),
+                "term_scale_cp_fraction_one_sided": tcp.get("fraction_one_sided"),
+                "next_rank1_if_pinned": next_param,
+                "next_rank1_fraction_one_sided": next_frac,
+            }
+        else:
+            entry = {"term_scale_cp_flip_down_ratio": None,
+                     "term_scale_cp_flip_up_ratio": None,
+                     "term_scale_cp_measured_sides": [],
+                     "term_scale_cp_fraction_one_sided": None,
+                     "next_rank1_if_pinned": next_param,
+                     "next_rank1_fraction_one_sided": next_frac}
+        out[cell] = entry
+    return out
 
 
 def section0(text):
@@ -974,6 +1024,13 @@ def allowed_decimals(facts):
     for _v in _msb.get("measured_floor_gb_405b_at_80", {}).values():
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
+    # gpu-sim-b1r6: fabric precision band derived from error_budget.
+    _fp = facts.get("fabric_precision", {})
+    for _cell, _d in _fp.items():
+        if isinstance(_d, dict):
+            for _v in _d.values():
+                if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                    add(_v)
     # gpu-sim-mxaz: measured act_factor values from the 5090.
     _maf = facts.get("scaleout_opt", {}).get("measured_act_factor", {})
     for _k in ("min", "median", "max", "flip_point_theory", "assumed", "n_measurements"):
