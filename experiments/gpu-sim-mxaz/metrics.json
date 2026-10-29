@@ -1,0 +1,31 @@
+{
+  "bead": "gpu-sim-mxaz",
+  "gpu_job_id": "20261028t234659-d45ecb2c",
+  "model_assumed_act_factor": 2.3,
+  "measured_implied_act_factor": {
+    "min": 2.189,
+    "max": 2.435,
+    "mean": 2.315,
+    "median": 2.329
+  },
+  "n_measurements": 7,
+  "seq_comparison": {
+    "bf16_8192": [
+      2.226,
+      2.329
+    ],
+    "bf16_32768": [
+      2.345,
+      2.353
+    ],
+    "fp32_8192": [
+      2.189,
+      2.435
+    ],
+    "fp32_32768": [
+      2.325
+    ]
+  },
+  "conclusion": "Measured act_factor 2.19-2.44 (median 2.33) consistent with assumed 2.3 within ~5-10% spread across dtype/batch/seq. act_factor bend point null for N=16 (ranking never moves), so N=16/seq32768 verdict not sensitive to act_factor; 1.78% fragility is theoretical. act_factor=2.3 validated.",
+  "gate": "gpu (RTX 5090)"
+}

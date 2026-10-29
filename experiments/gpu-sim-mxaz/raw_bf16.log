@@ -1,0 +1,216 @@
+{
+  "seq": 8192,
+  "batch": 1,
+  "n_layers": 8,
+  "d": 1024,
+  "d_ff": 4096,
+  "n_params": 100771840,
+  "dtype": "torch.bfloat16",
+  "torch_version": "2.13.0+cu132",
+  "peak_max_bytes": 2595458560,
+  "peak_median_bytes": 2595458560,
+  "mem_params_grads_bytes": 503750656,
+  "activation_delta_peak_bytes": 2091707904,
+  "bytes_per_token_per_layer_peak": 31916.93,
+  "per_token_width_base": 7168,
+  "dtype_bytes": 2,
+  "implied_act_factor_peak": 2.226,
+  "peaks": [
+    2595458560,
+    2595458560,
+    2595458560,
+    2595458560,
+    2595458560
+  ]
+}
+{
+  "seq": 8192,
+  "batch": 2,
+  "n_layers": 8,
+  "d": 1024,
+  "d_ff": 4096,
+  "n_params": 100771840,
+  "dtype": "torch.bfloat16",
+  "torch_version": "2.13.0+cu132",
+  "peak_max_bytes": 4913860096,
+  "peak_median_bytes": 4913860096,
+  "mem_params_grads_bytes": 537305088,
+  "activation_delta_peak_bytes": 4376555008,
+  "bytes_per_token_per_layer_peak": 33390.46,
+  "per_token_width_base": 7168,
+  "dtype_bytes": 2,
+  "implied_act_factor_peak": 2.329,
+  "peaks": [
+    4913860096,
+    4913860096,
+    4913860096,
+    4913860096,
+    4913860096
+  ]
+}
+{
+  "seq": 32768,
+  "batch": 1,
+  "n_layers": 8,
+  "d": 1024,
+  "d_ff": 4096,
+  "n_params": 100771840,
+  "dtype": "torch.bfloat16",
+  "torch_version": "2.13.0+cu132",
+  "peak_max_bytes": 9416445440,
+  "peak_median_bytes": 9416445440,
+  "mem_params_grads_bytes": 604413952,
+  "activation_delta_peak_bytes": 8812031488,
+  "bytes_per_token_per_layer_peak": 33615.23,
+  "per_token_width_base": 7168,
+  "dtype_bytes": 2,
+  "implied_act_factor_peak": 2.345,
+  "peaks": [
+    9416445440,
+    9416445440,
+    9416445440,
+    9416445440,
+    9416445440
+  ]
+}
+{
+  "seq": 32768,
+  "batch": 2,
+  "n_layers": 8,
+  "d": 1024,
+  "d_ff": 4096,
+  "n_params": 100771840,
+  "dtype": "torch.bfloat16",
+  "torch_version": "2.13.0+cu132",
+  "peak_max_bytes": 18824695296,
+  "peak_median_bytes": 18824695296,
+  "mem_params_grads_bytes": 1141710848,
+  "activation_delta_peak_bytes": 17682984448,
+  "bytes_per_token_per_layer_peak": 33727.62,
+  "per_token_width_base": 7168,
+  "dtype_bytes": 2,
+  "implied_act_factor_peak": 2.353,
+  "peaks": [
+    18824695296,
+    18824695296,
+    18824695296,
+    18824695296,
+    18824695296
+  ]
+}
+RESULT_JSON_START
+{
+  "config": {
+    "n_layers": 8,
+    "d": 1024,
+    "d_ff": 4096,
+    "n_heads": 8,
+    "dtype": "bfloat16",
+    "steps": 5,
+    "warmup": 2
+  },
+  "results": [
+    {
+      "seq": 8192,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "n_params": 100771840,
+      "dtype": "torch.bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "peak_max_bytes": 2595458560,
+      "peak_median_bytes": 2595458560,
+      "mem_params_grads_bytes": 503750656,
+      "activation_delta_peak_bytes": 2091707904,
+      "bytes_per_token_per_layer_peak": 31916.93,
+      "per_token_width_base": 7168,
+      "dtype_bytes": 2,
+      "implied_act_factor_peak": 2.226,
+      "peaks": [
+        2595458560,
+        2595458560,
+        2595458560,
+        2595458560,
+        2595458560
+      ]
+    },
+    {
+      "seq": 8192,
+      "batch": 2,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "n_params": 100771840,
+      "dtype": "torch.bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "peak_max_bytes": 4913860096,
+      "peak_median_bytes": 4913860096,
+      "mem_params_grads_bytes": 537305088,
+      "activation_delta_peak_bytes": 4376555008,
+      "bytes_per_token_per_layer_peak": 33390.46,
+      "per_token_width_base": 7168,
+      "dtype_bytes": 2,
+      "implied_act_factor_peak": 2.329,
+      "peaks": [
+        4913860096,
+        4913860096,
+        4913860096,
+        4913860096,
+        4913860096
+      ]
+    },
+    {
+      "seq": 32768,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "n_params": 100771840,
+      "dtype": "torch.bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "peak_max_bytes": 9416445440,
+      "peak_median_bytes": 9416445440,
+      "mem_params_grads_bytes": 604413952,
+      "activation_delta_peak_bytes": 8812031488,
+      "bytes_per_token_per_layer_peak": 33615.23,
+      "per_token_width_base": 7168,
+      "dtype_bytes": 2,
+      "implied_act_factor_peak": 2.345,
+      "peaks": [
+        9416445440,
+        9416445440,
+        9416445440,
+        9416445440,
+        9416445440
+      ]
+    },
+    {
+      "seq": 32768,
+      "batch": 2,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "n_params": 100771840,
+      "dtype": "torch.bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "peak_max_bytes": 18824695296,
+      "peak_median_bytes": 18824695296,
+      "mem_params_grads_bytes": 1141710848,
+      "activation_delta_peak_bytes": 17682984448,
+      "bytes_per_token_per_layer_peak": 33727.62,
+      "per_token_width_base": 7168,
+      "dtype_bytes": 2,
+      "implied_act_factor_peak": 2.353,
+      "peaks": [
+        18824695296,
+        18824695296,
+        18824695296,
+        18824695296,
+        18824695296
+      ]
+    }
+  ],
+  "model_assumed_act_factor": 2.3
+}
+RESULT_JSON_END
