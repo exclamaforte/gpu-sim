@@ -1,0 +1,360 @@
+seq=2048 rep=0 af=1.9635 act_delta=461183488
+seq=2048 rep=1 af=1.9612 act_delta=460659200
+seq=2048 rep=2 af=1.9612 act_delta=460659200
+seq=4096 rep=0 af=2.1871 act_delta=1027414528
+seq=4096 rep=1 af=2.1849 act_delta=1026365952
+seq=4096 rep=2 af=2.1849 act_delta=1026365952
+seq=8192 rep=0 af=2.2972 act_delta=2158303744
+seq=8192 rep=1 af=2.2972 act_delta=2158303744
+seq=8192 rep=2 af=2.2972 act_delta=2158303744
+seq=16384 rep=0 af=2.3074 act_delta=4335667712
+seq=16384 rep=1 af=2.3096 act_delta=4339862016
+seq=16384 rep=2 af=2.3077 act_delta=4336192000
+seq=32768 rep=0 af=2.3373 act_delta=8783727104
+seq=32768 rep=1 af=2.3373 act_delta=8783727104
+seq=32768 rep=2 af=2.3373 act_delta=8783727104
+RESULT_JSON_START
+{
+  "config": {
+    "n_layers": 16,
+    "d": 512,
+    "d_ff": 2048,
+    "n_heads": 8,
+    "dtype": "bfloat16",
+    "batch": 1,
+    "steps": 5,
+    "warmup": 2,
+    "reps": 3,
+    "seqs": "2048,4096,8192,16384,32768"
+  },
+  "model_assumed_act_factor": 2.3,
+  "flip_point_N16_seq32768": 2.2769,
+  "results": [
+    {
+      "seq": 2048,
+      "batch": 1,
+      "n_layers": 16,
+      "d": 512,
+      "d_ff": 2048,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 742107648,
+          "peak_median_bytes": 742107648,
+          "mem_params_grads_bytes": 280924160,
+          "activation_delta_peak_bytes": 461183488,
+          "bytes_per_token_per_layer_peak": 14074.2,
+          "implied_act_factor_peak": 1.9635,
+          "peaks": [
+            742107648,
+            742107648,
+            742107648,
+            742107648,
+            742107648
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 960637440,
+          "peak_median_bytes": 960637440,
+          "mem_params_grads_bytes": 499978240,
+          "activation_delta_peak_bytes": 460659200,
+          "bytes_per_token_per_layer_peak": 14058.2,
+          "implied_act_factor_peak": 1.9612,
+          "peaks": [
+            960637440,
+            960637440,
+            960637440,
+            960637440,
+            960637440
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 960637440,
+          "peak_median_bytes": 960637440,
+          "mem_params_grads_bytes": 499978240,
+          "activation_delta_peak_bytes": 460659200,
+          "bytes_per_token_per_layer_peak": 14058.2,
+          "implied_act_factor_peak": 1.9612,
+          "peaks": [
+            960637440,
+            960637440,
+            960637440,
+            960637440,
+            960637440
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 1.9612,
+      "act_factor_min": 1.9612,
+      "act_factor_max": 1.9635,
+      "spread_fixed_len": 0.0022999999999999687,
+      "neighbours_before": "3894384, 96\n3895937, 16\n3688538, 804",
+      "neighbours_after": "3894384, 96\n3895937, 16\n3688538, 804\n3725251, 1636"
+    },
+    {
+      "seq": 4096,
+      "batch": 1,
+      "n_layers": 16,
+      "d": 512,
+      "d_ff": 2048,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 1312008704,
+          "peak_median_bytes": 1312008704,
+          "mem_params_grads_bytes": 284594176,
+          "activation_delta_peak_bytes": 1027414528,
+          "bytes_per_token_per_layer_peak": 15677.1,
+          "implied_act_factor_peak": 2.1871,
+          "peaks": [
+            1312008704,
+            1312008704,
+            1312008704,
+            1312008704,
+            1312008704
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 1318300160,
+          "peak_median_bytes": 1318300160,
+          "mem_params_grads_bytes": 291934208,
+          "activation_delta_peak_bytes": 1026365952,
+          "bytes_per_token_per_layer_peak": 15661.1,
+          "implied_act_factor_peak": 2.1849,
+          "peaks": [
+            1318300160,
+            1318300160,
+            1318300160,
+            1318300160,
+            1318300160
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 1534732800,
+          "peak_median_bytes": 1534732800,
+          "mem_params_grads_bytes": 508366848,
+          "activation_delta_peak_bytes": 1026365952,
+          "bytes_per_token_per_layer_peak": 15661.1,
+          "implied_act_factor_peak": 2.1849,
+          "peaks": [
+            1534732800,
+            1534732800,
+            1534732800,
+            1534732800,
+            1534732800
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.1849,
+      "act_factor_min": 2.1849,
+      "act_factor_max": 2.1871,
+      "spread_fixed_len": 0.002200000000000202,
+      "neighbours_before": "3894384, 96\n3895937, 16\n3688538, 804\n3725251, 1636",
+      "neighbours_after": "3894384, 96\n3895937, 16\n3688538, 804\n3725251, 1364"
+    },
+    {
+      "seq": 8192,
+      "batch": 1,
+      "n_layers": 16,
+      "d": 512,
+      "d_ff": 2048,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 2676632064,
+          "peak_median_bytes": 2676632064,
+          "mem_params_grads_bytes": 518328320,
+          "activation_delta_peak_bytes": 2158303744,
+          "bytes_per_token_per_layer_peak": 16466.55,
+          "implied_act_factor_peak": 2.2972,
+          "peaks": [
+            2676632064,
+            2676632064,
+            2676632064,
+            2676632064,
+            2676632064
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 2676632064,
+          "peak_median_bytes": 2676632064,
+          "mem_params_grads_bytes": 518328320,
+          "activation_delta_peak_bytes": 2158303744,
+          "bytes_per_token_per_layer_peak": 16466.55,
+          "implied_act_factor_peak": 2.2972,
+          "peaks": [
+            2676632064,
+            2676632064,
+            2676632064,
+            2676632064,
+            2676632064
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 2676632064,
+          "peak_median_bytes": 2676632064,
+          "mem_params_grads_bytes": 518328320,
+          "activation_delta_peak_bytes": 2158303744,
+          "bytes_per_token_per_layer_peak": 16466.55,
+          "implied_act_factor_peak": 2.2972,
+          "peaks": [
+            2676632064,
+            2676632064,
+            2676632064,
+            2676632064,
+            2676632064
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.2972,
+      "act_factor_min": 2.2972,
+      "act_factor_max": 2.2972,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 96\n3895937, 16\n3688538, 804\n3725251, 1364",
+      "neighbours_after": "3894384, 96\n3895937, 16\n3688538, 804\n3725251, 1496"
+    },
+    {
+      "seq": 16384,
+      "batch": 1,
+      "n_layers": 16,
+      "d": 512,
+      "d_ff": 2048,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 4870248960,
+          "peak_median_bytes": 4870248960,
+          "mem_params_grads_bytes": 534581248,
+          "activation_delta_peak_bytes": 4335667712,
+          "bytes_per_token_per_layer_peak": 16539.26,
+          "implied_act_factor_peak": 2.3074,
+          "peaks": [
+            4870248960,
+            4870248960,
+            4870248960,
+            4870248960,
+            4870248960
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 5082487296,
+          "peak_median_bytes": 5082487296,
+          "mem_params_grads_bytes": 742625280,
+          "activation_delta_peak_bytes": 4339862016,
+          "bytes_per_token_per_layer_peak": 16555.26,
+          "implied_act_factor_peak": 2.3096,
+          "peaks": [
+            5082487296,
+            5082487296,
+            5082487296,
+            5082487296,
+            5082487296
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 4648573440,
+          "peak_median_bytes": 4648573440,
+          "mem_params_grads_bytes": 312381440,
+          "activation_delta_peak_bytes": 4336192000,
+          "bytes_per_token_per_layer_peak": 16541.26,
+          "implied_act_factor_peak": 2.3077,
+          "peaks": [
+            4648573440,
+            4648573440,
+            4648573440,
+            4648573440,
+            4648573440
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.3077,
+      "act_factor_min": 2.3074,
+      "act_factor_max": 2.3096,
+      "spread_fixed_len": 0.002200000000000202,
+      "neighbours_before": "3894384, 96\n3895937, 16\n3688538, 804\n3725251, 1496",
+      "neighbours_after": "3894384, 96\n3895937, 16\n3725251, 1200"
+    },
+    {
+      "seq": 32768,
+      "batch": 1,
+      "n_layers": 16,
+      "d": 512,
+      "d_ff": 2048,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 9335609856,
+          "peak_median_bytes": 9335609856,
+          "mem_params_grads_bytes": 551882752,
+          "activation_delta_peak_bytes": 8783727104,
+          "bytes_per_token_per_layer_peak": 16753.63,
+          "implied_act_factor_peak": 2.3373,
+          "peaks": [
+            9335609856,
+            9335609856,
+            9335609856,
+            9335609856,
+            9335609856
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 9335609856,
+          "peak_median_bytes": 9335609856,
+          "mem_params_grads_bytes": 551882752,
+          "activation_delta_peak_bytes": 8783727104,
+          "bytes_per_token_per_layer_peak": 16753.63,
+          "implied_act_factor_peak": 2.3373,
+          "peaks": [
+            9335609856,
+            9335609856,
+            9335609856,
+            9335609856,
+            9335609856
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 9335609856,
+          "peak_median_bytes": 9335609856,
+          "mem_params_grads_bytes": 551882752,
+          "activation_delta_peak_bytes": 8783727104,
+          "bytes_per_token_per_layer_peak": 16753.63,
+          "implied_act_factor_peak": 2.3373,
+          "peaks": [
+            9335609856,
+            9335609856,
+            9335609856,
+            9335609856,
+            9335609856
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.3373,
+      "act_factor_min": 2.3373,
+      "act_factor_max": 2.3373,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 96\n3895937, 16\n3725251, 1200",
+      "neighbours_after": "3894384, 96\n3895937, 16\n3725251, 1298"
+    }
+  ]
+}
+RESULT_JSON_END
