@@ -244,6 +244,26 @@ def compute_facts():
             },
         }
 
+    def _measured_act_factor():
+        # gpu-sim-mxaz: measured activation bytes on the 5090, anchored alongside
+        # the assumed act_factor. Source: experiments/gpu-sim-mxaz/metrics.json.
+        import json as _j
+        _src = os.path.join(ROOT, "experiments", "gpu-sim-mxaz", "metrics.json")
+        _d = _j.load(open(_src))
+        _sc = _d["seq_comparison"]
+        return {
+            "source": "gpu-sim-mxaz",
+            "device": "NVIDIA GeForce RTX 5090",
+            "torch": "2.13.0+cu132",
+            "n_measurements": _d["n_measurements"],
+            "assumed": _d["model_assumed_act_factor"],
+            "min": _d["measured_implied_act_factor"]["min"],
+            "median": _d["measured_implied_act_factor"]["median"],
+            "max": _d["measured_implied_act_factor"]["max"],
+            "flip_point_theory": _d["error_budget_flip_point_n16_seq32768"],
+            "seq_comparison": _sc,
+        }
+
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
         # deltas against the default 16 B/param total) plus the 405B@80 rows per
@@ -316,6 +336,7 @@ def compute_facts():
             out["bf16_80_best_mem_gb"] = _bcell["mem_gb"]
             out["bf16_80_margin"] = _bcell["margin_pct"]
         out["measured_style_bytes"] = _measured_opt_bytes()
+        out["measured_act_factor"] = _measured_act_factor()
         return out
 
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
@@ -953,6 +974,18 @@ def allowed_decimals(facts):
     for _v in _msb.get("measured_floor_gb_405b_at_80", {}).values():
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
+    # gpu-sim-mxaz: measured act_factor values from the 5090.
+    _maf = facts.get("scaleout_opt", {}).get("measured_act_factor", {})
+    for _k in ("min", "median", "max", "flip_point_theory", "assumed", "n_measurements"):
+        _v = _maf.get(_k)
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    _sc = _maf.get("seq_comparison", {})
+    for _vals in _sc.values():
+        if isinstance(_vals, list):
+            for _v in _vals:
+                if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                    add(_v)
     # gpu-sim-hz3u: every with-recompute number the paragraph quotes -- 405B winners at
     # 800/8000 (ms with one decimal, margins/mems as stored) and the 70B/batch-32
     # acceptance cell at 80 GPUs, both settings (steps quoted in seconds as stored,

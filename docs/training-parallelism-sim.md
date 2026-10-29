@@ -303,10 +303,12 @@ instrumented measurement and the model itself calls it "unvalidated for exact fi
 the same suspicion. It turns out not to be a time knob at all: activations enter MEMORY, while the CP
 term prices a ring exchange of K/V chunks and the DP/TP terms price parameters and messages, so
 sweeping act_factor 1.0 to 12.0 -- a 5x band around the fit -- leaves every step time bit-identical
-and every winner unmoved at N=8, 16 and 32. It bites only as a memory ceiling, and only far outside
-the fitted value: the ranking first bends at act_factor ~28.5 (N=8) and never bends at all below 200 at N=16 and
-N=32, i.e. 9-12x
-the calibrated number, and the model stops being feasible at all beyond ~36 / ~82 / ~174. The
+and every winner unmoved at N=8, 16 and 32 (at seq 8192). "No bend" is a STEP-TIME statement: act_factor
+multiplies activation MEMORY, so it cannot enter a time term. It does bite on FEASIBILITY, and the
+seq-32768 N=16 verdict flips on feasibility when act_factor falls to 2.277, which is 1%
+below the fitted 2.3. A measured range of 2.189 to 2.435 (median 2.329, 7 measurements on a 5090)
+straddles that flip point, so the fragility is not theoretical. The model stops being feasible at all
+beyond ~36 / ~82 / ~174 at seq 8192. The
 recommendation therefore does not rest on this fit
 (tests/test_act_factor_knob.py).
 
@@ -991,7 +993,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | N=16 at seq 32768 (hard-fit memory) | **TIE** | 2.20% margin and 91% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 41.4 GB (+2.4%) | tests/test_memory_headroom.py |
 | N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.02% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
 | Absolute step durations | **BOUNDED** | model implies 0.786 MFU; a real GPU reached 0.566, so absolutes carry 1.28-1.69x | tests/test_mfu_sensitivity.py |
-| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) | tests/test_act_factor_knob.py |
+| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only: 5x band changes no step time; seq-32768 N=16 verdict flips on feasibility at 2.277; measured range 2.189 to 2.435 (median 2.329) straddles it | tests/test_act_factor_knob.py |
 | S_best = 8192 | **VALIDATED** | CP crossover is seq 5956 (3658 measured), so 8192 is the first conventional length above it, +6.03% | tests/test_cp_crossover.py |
 | Alpha piece-charging granularity | **BOUNDED** | +6.0% at P=8, winner unmoved | docs section 0 (alpha piece charging) |
 | Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
