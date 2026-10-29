@@ -90,5 +90,53 @@ class TestErrorBudgetRanking(unittest.TestCase):
                 self.assertIn(s, ("up", "down"))
 
 
+
+
+    def _top_for_verdict(self, verdict):
+        rows = [r for r in self.ranked if r["affected_verdict"] == verdict]
+        flips = [r for r in rows if r["fraction_one_sided"] is not None]
+        if flips:
+            return min(flips, key=lambda r: r["fraction_one_sided"])["parameter"]
+        # all-null cell: smallest current_margin wins
+        return min(rows, key=lambda r: (r["current_margin"] if r["current_margin"] is not None else 1e9))["parameter"]
+
+    def test_top_row_n64_winner(self):
+        self.assertEqual(self._top_for_verdict("N64_winner"), "term_scale_cp")
+
+    def test_top_row_n128_winner(self):
+        self.assertEqual(self._top_for_verdict("N128_winner"), "term_scale_cp")
+
+    def test_top_row_n64_seq32768(self):
+        self.assertEqual(self._top_for_verdict("N64_seq32768"), "term_scale_cp")
+
+    def test_top_row_n128_seq32768(self):
+        # no flip within range; term_scale_pp has the smallest current margin
+        self.assertEqual(self._top_for_verdict("N128_seq32768"), "term_scale_pp")
+
+    def test_cp_n64_anchor(self):
+        r = _row(self.ranked, "term_scale_cp", "N64_winner")
+        self.assertAlmostEqual(r["flip_up"], 1.763004, places=5)
+
+    def test_pp_n64_anchor(self):
+        r = _row(self.ranked, "term_scale_pp", "N64_winner")
+        self.assertAlmostEqual(r["flip_value"], 2.3599, places=4)
+
+    def test_cp_n128_anchor(self):
+        r = _row(self.ranked, "term_scale_cp", "N128_winner")
+        self.assertAlmostEqual(r["flip_up"], 1.911146, places=5)
+
+    def test_pp_n128_anchor(self):
+        r = _row(self.ranked, "term_scale_pp", "N128_winner")
+        self.assertAlmostEqual(r["flip_down"], 0.523246, places=5)
+
+    def test_cp_n64_seq32768_anchor(self):
+        r = _row(self.ranked, "term_scale_cp", "N64_seq32768")
+        self.assertAlmostEqual(r["flip_up"], 1.233294, places=5)
+
+    def test_pp_n64_seq32768_anchor(self):
+        r = _row(self.ranked, "term_scale_pp", "N64_seq32768")
+        self.assertAlmostEqual(r["flip_down"], 0.810836, places=5)
+
+
 if __name__ == "__main__":
     unittest.main()

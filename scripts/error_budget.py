@@ -18,7 +18,8 @@ import cy0_l1
 
 PEAK = 989e12
 SPECS = {8: "specs/h100_rack.json", 16: "specs/h100_rack.json",
-         32: "specs/h100_rack_4node.json", 80: "experiments/gpu-sim-hd5u/spec_10node.json"}
+         32: "specs/h100_rack_4node.json", 64: "specs/h100_rack_8node.json",
+         128: "specs/h100_rack_16node.json", 80: "experiments/gpu-sim-hd5u/spec_10node.json"}
 MODELS = {
     "8b": {"n_layers": 32, "d_model": 4096, "n_heads": 32, "n_kv_heads": 8, "head_dim": 128,
            "d_ff": 14336, "vocab": 128256, "seq": 8192},
@@ -95,8 +96,12 @@ CELLS = [
     ("N8_winner", 8, 8192, "8b", "winner", None),
     ("N16_winner", 16, 8192, "8b", "winner", None),
     ("N32_winner", 32, 8192, "8b", "winner", None),
+    ("N64_winner", 64, 8192, "8b", "winner", None),
+    ("N128_winner", 128, 8192, "8b", "winner", None),
     ("N16_seq32768", 16, 32768, "8b", "winner", None),
     ("N32_seq32768", 32, 32768, "8b", "winner", None),
+    ("N64_seq32768", 64, 32768, "8b", "winner", None),
+    ("N128_seq32768", 128, 32768, "8b", "winner", None),
     ("405B_bf16_feasible", 80, 8192, "405b", "feasible", "bf16_moments"),
     ("405B_fp32master_feasible", 80, 8192, "405b", "feasible", "fp32_master"),
 ]
