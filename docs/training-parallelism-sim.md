@@ -998,7 +998,7 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | Same config at seq 16384 / 32768 | **TIE** | margin only 0.22% / 1.48% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
 | N=16 winner (tp=1 pp=16 cp=1 dp=1 z0), seq 8192 | **VERDICT** | 2.06% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
 | N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (tp=2 pp=2 cp=4 dp=1 z0) at 40%, margins 0.45% / 0.64% | tests/test_fragility_map.py |
-| N=16 at seq 32768 (hard-fit memory) | **TIE** | 2.20% margin and 92% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 41.6 GB (+2.4%) | tests/test_memory_headroom.py |
+| N=16 at seq 32768 (hard-fit memory) | **TIE** | 2.20% margin and 91% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 41.4 GB (+2.4%) | tests/test_memory_headroom.py |
 | N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.02% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
 | Absolute step durations | **BOUNDED** | model implies 0.786 MFU; a real GPU reached 0.566, so absolutes carry 1.28-1.69x | tests/test_mfu_sensitivity.py |
 | act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only for step time: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) at seq 8192; the seq-32768 N=16 verdict flips on feasibility at 2.277, and the measured range 2.189-2.435 (median 2.329, 7 measurements on a 5090) straddles it | tests/test_act_factor_knob.py |
