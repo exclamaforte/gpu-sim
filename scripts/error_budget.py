@@ -59,6 +59,11 @@ def set_param(hw, name, value):
         hw["mem_charge"] = value
     return hw
 
+_ACT_FACTOR_BY_SEQ = {2048: 1.7347, 4096: 2.1279, 8192: 2.2263, 16384: 2.3291, 32768: 2.3448}
+
+def _act_factor_for_seq(seq):
+    return _ACT_FACTOR_BY_SEQ.get(seq, 2.3)
+
 def _bw_default():
     import os
     v = os.environ.get("ACHIEVED_BW_SCALE")
@@ -85,7 +90,7 @@ PARAMS = [
     {"name": "microbatch_factor", "default": 1.0, "lo": 1.0, "hi": 8.0,
      "provenance": "assumed (no measurement)"},
     {"name": "act_factor", "default": 2.3, "lo": 1.0, "hi": 4.0,
-     "provenance": "measured (gpu-sim-4nf, 2.3x)"},
+     "provenance": "measured curve (gpu-sim-7uz2): seq-specific 1.7347..2.3448; spread at fixed length 0.0"},
     {"name": "achieved_bw_scale", "default": _bw_default(), "lo": 0.5, "hi": 2.0,
      "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec"},
     {"name": "mem_headroom", "default": 0.0, "lo": 0.0, "hi": 0.2,
@@ -278,10 +283,14 @@ def compute():
         cells = RECOMPUTE_CELLS if name in RECOMPUTE_PARAMS else CELLS
         for cell in cells:
             cname = cell[0]
+            if name == "act_factor":
+                cell_default = _act_factor_for_seq(cell[2])
+            else:
+                cell_default = default_val
             if name in RECOMPUTE_PARAMS:
                 cname = cname + " (recompute=1.0, conditional)"
-            base_verdict = verdict_for(name, default_val, cell)
-            flip_up, flip_down = bisect_flips(name, cell, default_val, lo, hi)
+            base_verdict = verdict_for(name, cell_default, cell)
+            flip_up, flip_down = bisect_flips(name, cell, cell_default, lo, hi)
             fw_candidates = [(x, abs(default_val - x) / (hi - lo) if (hi - lo) > 0 else 1.0)
                             for x in (flip_up, flip_down) if x is not None]
             if fw_candidates:
@@ -310,13 +319,13 @@ def compute():
                 cands = [x for x in (m_lo, m_hi) if x is not None]
                 margin = min(cands) if cands else None
             else:
-                margin = margin_for(name, default_val, cell)
-            elast = elasticity(name, cell, default_val, lo, hi)
+                margin = margin_for(name, cell_default, cell)
+            elast = elasticity(name, cell, cell_default, lo, hi)
             row = {
                 "parameter": name,
                 "affected_verdict": cname,
                 "provenance": p["provenance"],
-                "default": default_val,
+                "default": cell_default,
                 "range": [lo, hi],
                 "base_verdict": [str(x) for x in base_verdict],
                 "current_margin": margin,

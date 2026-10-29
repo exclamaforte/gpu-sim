@@ -264,6 +264,42 @@ def compute_facts():
             "seq_comparison": _sc,
         }
 
+    def _measured_act_curve():
+        # gpu-sim-7uz2: peak activation memory measured across sequence lengths on the 5090.
+        # Source: experiments/gpu-sim-7uz2/act_curve_raw.json.
+        import json as _j
+        _src = os.path.join(ROOT, "experiments", "gpu-sim-7uz2", "act_curve_raw.json")
+        if not os.path.exists(_src):
+            return None
+        _d = _j.load(open(_src))
+        _curve = {}
+        for _r in _d["results"]:
+            _curve[str(_r["seq"])] = {
+                "act_factor_median": _r["act_factor_median"],
+                "act_factor_min": _r["act_factor_min"],
+                "act_factor_max": _r["act_factor_max"],
+                "spread_fixed_len": _r["spread_fixed_len"],
+                "n_reps": len(_r["reps"]),
+                "neighbours_before": _r["neighbours_before"],
+                "neighbours_after": _r["neighbours_after"],
+            }
+        return {
+            "source": "gpu-sim-7uz2",
+            "device": "NVIDIA GeForce RTX 5090",
+            "torch": "2.13.0+cu132",
+            "dtype": _d["config"]["dtype"],
+            "batch": _d["config"]["batch"],
+            "n_layers": _d["config"]["n_layers"],
+            "d": _d["config"]["d"],
+            "d_ff": _d["config"]["d_ff"],
+            "seqs": [int(x) for x in _d["config"]["seqs"].split(",")],
+            "reps": _d["config"]["reps"],
+            "model_assumed_act_factor": _d["model_assumed_act_factor"],
+            "flip_point_n16_seq32768": _d["flip_point_N16_seq32768"],
+            "curve": _curve,
+            "cause": "seq_length (spread at fixed length is 0.0 across 3 reps; mxaz straddle was mixing seq lengths, not run-to-run noise)",
+        }
+
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
         # deltas against the default 16 B/param total) plus the 405B@80 rows per
@@ -337,6 +373,7 @@ def compute_facts():
             out["bf16_80_margin"] = _bcell["margin_pct"]
         out["measured_style_bytes"] = _measured_opt_bytes()
         out["measured_act_factor"] = _measured_act_factor()
+        out["measured_act_curve"] = _measured_act_curve()
         return out
 
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
@@ -1080,6 +1117,20 @@ def allowed_decimals(facts):
             for _v in _vals:
                 if isinstance(_v, (int, float)) and not isinstance(_v, bool):
                     add(_v)
+    # gpu-sim-7uz2: act_factor curve measured across seq lengths.
+    _mac = facts.get("scaleout_opt", {}).get("measured_act_curve", {})
+    for _k in ("model_assumed_act_factor", "flip_point_n16_seq32768"):
+        _v = _mac.get(_k)
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
+    for _seq, _d in (_mac.get("curve") or {}).items():
+        if isinstance(_d, dict):
+            for _v in _d.values():
+                if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                    add(_v)
+    for _v in (_mac.get("seqs") or []):
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
     # gpu-sim-hz3u: every with-recompute number the paragraph quotes -- 405B winners at
     # 800/8000 (ms with one decimal, margins/mems as stored) and the 70B/batch-32
     # acceptance cell at 80 GPUs, both settings (steps quoted in seconds as stored,
