@@ -81,7 +81,7 @@ parameter. Extended to N=64 and N=128 (gpu-sim-afbg): the N=8 and N=16 headline 
 NOT size-stable. At seq 8192 the top row at both N=64 and N=128 is `term_scale_cp`; at seq 32768
 N=64 is also `term_scale_cp` and only N=128 is `term_scale_pp`. So a rank-1 claim has to name its
 N as well as its sequence, and at the largest sizes the brittle input is the fabric term -- the
-one input that cannot be calibrated on a single GPU. Rows that do not flip in either sequence (`mem_headroom`, `mem_charge`, the eff classes)
+one input that cannot be calibrated on a single GPU. Fabric precision requirement (gpu-sim-b1r6): at N=64/seq8192 `term_scale_cp` flips at 0.424x (down) and 1.763x (up) of the fitted value; N=128/seq8192 flips at 1.911x (up only); N=64/seq32768 flips at 1.233x (up only); N=128/seq32768 does not flip in range. Pinning the fabric makes `term_scale_pp` the next rank-1 in every cell. Rows that do not flip in either sequence (`mem_headroom`, `mem_charge`, the eff classes)
 are reported with their worst-case margin over the whole range instead of a flip value, so they are
 not empty. At seq 8192 `recompute` and `act_factor` do not flip; at seq 32768 both do --
 `recompute` at 0.015 (1.50% of its range) and `act_factor` at 2.277 (1.78%) at N=16 -- which is
