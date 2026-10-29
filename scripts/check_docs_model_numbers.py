@@ -525,14 +525,22 @@ def compute_facts():
     facts["act_factor_knob"] = {"calibrated": 2.3,
                                 "band_tested": [1.0, 12.0],
                                 "bend_point": {}, "infeasible_above": {}}
+    # gpu-sim-05uf: the knob is evaluated at seq=8192 (the cell the 5x-band claim
+    # refers to). It is NOT the seq=32768 cell where the error-budget flip point
+    # (2.2769) is measured; that flip point comes from error_budget.py, not here.
+    # Passing seq explicitly (instead of relying on ps.MODEL's default) so the
+    # evaluated cell is no longer implicit.
+    _KNOB_SEQ = 8192
     for n in (8, 16, 32):
-        _, base = search(n)
+        _, base = search(n, seq=_KNOB_SEQ)
         base_shape = (base[0].tp, base[0].pp, base[0].cp, base[0].dp, base[0].zero)
 
-        def _w(a):
-            spec = SPEC[n]
+        def _w(a, _n=n):
+            spec = SPEC[_n]
             hwv = {"peak_flops": PEAK, "mem_gb": 80.0, "spec_path": spec, "act_factor": a}
-            _, feas = ps.search(n, hwv, m=ps.MODEL)
+            _m = dict(ps.MODEL)
+            _m["seq"] = _KNOB_SEQ
+            _, feas = ps.search(_n, hwv, m=_m)
             return feas
 
         a, bend = 2.3, None
