@@ -300,6 +300,24 @@ def compute_facts():
             "cause": "seq_length (spread at fixed length is 0.0 across 3 reps; mxaz straddle was mixing seq lengths, not run-to-run noise)",
         }
 
+    def _measured_act_shape():
+        # gpu-sim-006j: act_factor curve measured at 3 shapes on the 5090.
+        # Source: experiments/gpu-sim-006j/analysis.json.
+        import json as _j
+        _src = os.path.join(ROOT, "experiments", "gpu-sim-006j", "analysis.json")
+        if not os.path.exists(_src):
+            return None
+        _d = _j.load(open(_src))
+        return {
+            "source": "gpu-sim-006j",
+            "method": _d.get("method"),
+            "caveat": _d.get("caveat"),
+            "curve_act_factor_by_seq": _d.get("curve_act_factor_by_seq"),
+            "shape_dependence": _d.get("shape_dependence"),
+            "finding": _d.get("finding"),
+            "mechanism": _d.get("mechanism"),
+        }
+
     def _opt_styles():
         # gpu-sim-scup: the optimizer-style table recomputed end-to-end (dp=1
         # deltas against the default 16 B/param total) plus the 405B@80 rows per
@@ -374,6 +392,7 @@ def compute_facts():
         out["measured_style_bytes"] = _measured_opt_bytes()
         out["measured_act_factor"] = _measured_act_factor()
         out["measured_act_curve"] = _measured_act_curve()
+        out["measured_act_shape"] = _measured_act_shape()
         return out
 
     facts = {"generated_by": "scripts/check_docs_model_numbers.py",
@@ -1131,6 +1150,20 @@ def allowed_decimals(facts):
     for _v in (_mac.get("seqs") or []):
         if isinstance(_v, (int, float)) and not isinstance(_v, bool):
             add(_v)
+    # gpu-sim-006j: act_factor curve across 3 shapes.
+    _mas = facts.get("scaleout_opt", {}).get("measured_act_shape", {})
+    _cc = _mas.get("curve_act_factor_by_seq", {}) or {}
+    for _shape, _seqs in _cc.items():
+        if isinstance(_seqs, dict):
+            for _v in _seqs.values():
+                if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                    add(_v)
+    _sd = _mas.get("shape_dependence", {}) or {}
+    for _seq, _d in _sd.items():
+        if isinstance(_d, dict):
+            for _v in _d.values():
+                if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                    add(_v)
     # gpu-sim-hz3u: every with-recompute number the paragraph quotes -- 405B winners at
     # 800/8000 (ms with one decimal, margins/mems as stored) and the 70B/batch-32
     # acceptance cell at 80 GPUs, both settings (steps quoted in seconds as stored,
