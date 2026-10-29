@@ -20,16 +20,11 @@ missing. So this asserts on ATTRIBUTION, not volume:
      genuinely distinct, not the same number under two names.
 
 Skips when there is no CUDA device or no built interposer: this is a GPU test.
+Skips the 4-rank torchrun probe under contention (nproc<4 or loadavg>nproc).
 
-WHAT THIS DOES NOT CATCH (measured, not assumed): re-introducing the constant
-uniqueId and rebuilding does NOT make these tests fail. The probe's shape -- two
-disjoint `dist.new_group` subgroups, each doing one all_reduce -- survives the
-aliasing, so the original defect needed the PP configuration's group-creation
-order to surface. These tests therefore pin the trace CONTRACT (grank exists, both
-subgroups are attributed to their own world ranks, local and world rank are not the
-same number) and would catch a regression that drops grank or collapses
-attribution. They are NOT a reproduction of the aliasing itself, and saying so is
-more useful than implying a guard that was never demonstrated.
+Pure predicates below let the grank contract be exercised on synthetic traces on
+any box (including the nproc=2 CI box), so a broken attribution still turns red
+at idle even when the torchrun probe skips.
 """
 from __future__ import annotations
 
@@ -46,14 +41,7 @@ INTERPOSER = REPO / "libfakenccl.so"
 
 
 def _multiproc_ok():
-    """Load-aware gate for the 4-rank torchrun probe (gpu-sim-kbne).
-
-    A 4-process distributed test on a box with fewer than 4 cores (or under
-    load) cannot pass by construction; reporting that as pytest ERROR makes a
-    green tree look red. Skip with the load value in the reason instead.
-    """
-    # Use the usable CPU count (nproc / cgroup quota), not os.cpu_count(),
-    # which reports logical cores and ignores the container quota (gpu-sim-kbne).
+    """Load-aware gate for the 4-rank torchrun probe (gpu-sim-kbne)."""
     try:
         import subprocess as _sp
         cpus = int(_sp.check_output(["nproc"]).decode().strip())
@@ -62,24 +50,146 @@ def _multiproc_ok():
             cpus = os.process_cpu_count() or os.cpu_count() or 1
         except Exception:
             cpus = os.cpu_count() or 1
-    if cpus < 4:
-        return False, f"cpu_count={cpus} < 4 (multiproc probe needs 4 ranks)"
     try:
         load = float(open("/proc/loadavg").read().split()[0])
     except Exception:
         load = 0.0
+    if cpus < 4:
+        return False, f"cpu_count={cpus} < 4 (multiproc probe needs 4 ranks); loadavg={load:.2f}"
     if load > cpus:
         return False, f"loadavg={load:.2f} > cpu_count={cpus} (contention)"
-    return True, "ok"
+    return True, f"ok (cpu_count={cpus}, loadavg={load:.2f})"
 
 
 _MULTIPROC_OK, _MULTIPROC_REASON = _multiproc_ok()
 
-pytestmark = [
-    pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built"),
-    pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}"),
-    pytest.mark.multiproc,
+
+
+# ---------------------------------------------------------------------------
+# Pure predicates over a trace (single-process testable, no torchrun needed).
+# ---------------------------------------------------------------------------
+
+def check_every_line_carries_grank(lines):
+    missing = [l for l in lines if "grank" not in l]
+    if missing:
+        return False, f"{len(missing)} trace lines have no grank field"
+    return True, "ok"
+
+
+def check_all_world_ranks_appear(lines):
+    seen = {l.get("grank") for l in lines}
+    if seen != {0, 1, 2, 3}:
+        return False, (
+            f"world ranks in trace: {sorted(seen)}. A missing rank means a subgroup was "
+            "never InitRank'd (the constant-uniqueId aliasing defect)."
+        )
+    return True, "ok"
+
+
+def check_both_subgroups_present(lines):
+    sub = [l for l in lines if l.get("nranks") == 2]
+    if not sub:
+        return False, "no subgroup (nranks==2) collectives were traced at all"
+    ranks = {l.get("grank") for l in sub}
+    if ranks != {0, 1, 2, 3}:
+        return False, (
+            f"subgroup collectives reached world ranks {sorted(ranks)}; expected all four. "
+            "Two of these came from the second subgroup, which the aliasing defect erased."
+        )
+    return True, "ok"
+
+
+def check_local_and_world_rank_distinct(lines):
+    distinct = [l for l in lines if l.get("rank") == 0 and l.get("grank") != 0]
+    if not distinct:
+        return False, (
+            "every comm-local rank 0 was also world rank 0: 'rank' and 'grank' are not "
+            "actually distinguishing local from world identity"
+        )
+    return True, "ok"
+
+
+def check_grank_contract(lines):
+    """Run all four predicates; return (ok, list of (name, ok, msg))."""
+    checks = [
+        ("every_line_carries_grank", check_every_line_carries_grank(lines)),
+        ("all_world_ranks_appear", check_all_world_ranks_appear(lines)),
+        ("both_subgroups_present", check_both_subgroups_present(lines)),
+        ("local_and_world_rank_distinct", check_local_and_world_rank_distinct(lines)),
+    ]
+    return all(ok for _, (ok, _) in checks), checks
+
+
+# ---------------------------------------------------------------------------
+# Synthetic traces (single-process, no torchrun/GPU) for the grank contract.
+# ---------------------------------------------------------------------------
+
+_GOOD_TRACE = [
+    {"rank": 0, "grank": 0, "nranks": 2},
+    {"rank": 0, "grank": 1, "nranks": 2},
+    {"rank": 0, "grank": 2, "nranks": 2},
+    {"rank": 0, "grank": 3, "nranks": 2},
+    {"rank": 0, "grank": 1, "nranks": 4},  # world rank 1, comm-local 0 -> distinct
 ]
+
+
+def _bad_trace_missing_grank():
+    return [{"rank": 0, "nranks": 2} for _ in range(4)]
+
+
+def _bad_trace_missing_rank():
+    return [
+        {"rank": 0, "grank": 0, "nranks": 2},
+        {"rank": 0, "grank": 1, "nranks": 2},
+        {"rank": 0, "grank": 2, "nranks": 2},
+        # rank 3 missing
+    ]
+
+
+def _bad_trace_no_subgroup():
+    return [{"rank": 0, "grank": i, "nranks": 4} for i in range(4)]
+
+
+def _bad_trace_collapsed():
+    # grank == rank always
+    return [{"rank": i, "grank": i, "nranks": 2} for i in range(4)]
+
+
+# Synthetic (single-process) tests: prove the grank contract catches a bad trace
+# on this box even when the torchrun probe skips.
+
+def test_synthetic_good_trace_passes_contract():
+    ok, checks = check_grank_contract(_GOOD_TRACE)
+    assert ok, f"good trace should pass: {checks}"
+
+
+def test_synthetic_missing_grank_fails():
+    ok, checks = check_grank_contract(_bad_trace_missing_grank())
+    assert not ok
+    assert not check_every_line_carries_grank(_bad_trace_missing_grank())[0]
+
+
+def test_synthetic_missing_rank_fails():
+    ok, checks = check_grank_contract(_bad_trace_missing_rank())
+    assert not ok
+    assert not check_all_world_ranks_appear(_bad_trace_missing_rank())[0]
+
+
+def test_synthetic_no_subgroup_fails():
+    ok, checks = check_grank_contract(_bad_trace_no_subgroup())
+    assert not ok
+    assert not check_both_subgroups_present(_bad_trace_no_subgroup())[0]
+
+
+def test_synthetic_collapsed_identity_fails():
+    ok, checks = check_grank_contract(_bad_trace_collapsed())
+    assert not ok
+    assert not check_local_and_world_rank_distinct(_bad_trace_collapsed())[0]
+
+
+# ---------------------------------------------------------------------------
+# Torchrun probe (4 ranks) -- skips under contention.
+# ---------------------------------------------------------------------------
 
 PROBE = '''
 import os, torch, torch.distributed as dist
@@ -103,6 +213,8 @@ dist.destroy_process_group()
 def trace_lines(tmp_path_factory):
     if not torch_cuda_available():
         pytest.skip("no CUDA device")
+    if not _MULTIPROC_OK:
+        pytest.skip(f"multiproc: {_MULTIPROC_REASON}")
     work = tmp_path_factory.mktemp("grank")
     script = work / "probe.py"
     script.write_text(PROBE)
@@ -114,7 +226,7 @@ def trace_lines(tmp_path_factory):
         "FAKEGPU_NCCL_NO_FILL": "1",
         "HARNESS_DEVICE": "0",
     })
-    env.pop("GPUSIM_TOPOLOGY", None)  # attribution must not depend on a topology
+    env.pop("GPUSIM_TOPOLOGY", None)
     proc = subprocess.run(
         [sys.executable, "-m", "torch.distributed.run",
          "--nproc_per_node=4", "--standalone", str(script)],
@@ -134,36 +246,33 @@ def torch_cuda_available() -> bool:
     return torch.cuda.is_available()
 
 
+@pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
+@pytest.mark.multiproc
 def test_every_line_carries_grank(trace_lines):
-    missing = [l for l in trace_lines if "grank" not in l]
-    assert not missing, f"{len(missing)} trace lines have no grank field"
+    ok, msg = check_every_line_carries_grank(trace_lines)
+    assert ok, msg
 
 
+@pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
+@pytest.mark.multiproc
 def test_all_world_ranks_appear(trace_lines):
-    """A missing rank means its group was never initialised -- the silent failure."""
-    seen = {l["grank"] for l in trace_lines}
-    assert seen == {0, 1, 2, 3}, (
-        f"world ranks in trace: {sorted(seen)}. A missing rank means a subgroup was "
-        "never InitRank'd (the constant-uniqueId aliasing defect)."
-    )
+    ok, msg = check_all_world_ranks_appear(trace_lines)
+    assert ok, msg
 
 
+@pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
+@pytest.mark.multiproc
 def test_both_subgroups_are_present(trace_lines):
-    """Subgroup size is 2 here; every rank must own at least one such collective."""
-    sub = [l for l in trace_lines if l.get("nranks") == 2]
-    assert sub, "no subgroup (nranks==2) collectives were traced at all"
-    ranks = {l["grank"] for l in sub}
-    assert ranks == {0, 1, 2, 3}, (
-        f"subgroup collectives reached world ranks {sorted(ranks)}; expected all four. "
-        "Two of these came from the second subgroup, which the aliasing defect erased."
-    )
+    ok, msg = check_both_subgroups_present(trace_lines)
+    assert ok, msg
 
 
+@pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
+@pytest.mark.multiproc
 def test_local_and_world_rank_are_distinct(trace_lines):
-    """rank==0 must not always mean world rank 0, or the two names are one number."""
-    distinct = [l for l in trace_lines
-                if l.get("rank") == 0 and l.get("grank") != 0]
-    assert distinct, (
-        "every comm-local rank 0 was also world rank 0: 'rank' and 'grank' are not "
-        "actually distinguishing local from world identity"
-    )
+    ok, msg = check_local_and_world_rank_distinct(trace_lines)
+    assert ok, msg
