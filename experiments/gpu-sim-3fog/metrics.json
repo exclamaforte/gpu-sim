@@ -1,0 +1,116 @@
+{
+  "device": "NVIDIA GeForce RTX 5090",
+  "torch": "2.13.0+cu132",
+  "cuda": "13.2",
+  "spec_bw_gbs": 1792.0,
+  "spec_source": "NVIDIA RTX 5090 spec sheet: GDDR7 32GB, 512-bit @ 28 Gbps = 1792 GB/s",
+  "working_set_bytes": 3221225472,
+  "n_reps": 7,
+  "copy_median_gbs": 1505.1903205388792,
+  "read_median_gbs": 1611.74248264293,
+  "copy_min_gbs": 1494.9981720827702,
+  "copy_max_gbs": 1514.3970341895083,
+  "achieved_bw_scale": 0.8399499556578567,
+  "achieved_bw_scale_read": 0.899409867546278,
+  "neighbors_before": "3894384, 44 MiB\n3895937, 16 MiB\n2228568, 638 MiB",
+  "neighbors_after": "3894384, 44 MiB\n3895937, 16 MiB\n2228568, 638 MiB\n2230706, 7540 MiB",
+  "flip_points": {
+    "N8_winner": 0.814132,
+    "N16_seq32768": 0.824585
+  },
+  "verdict_survives": {
+    "N8_winner": true,
+    "N16_seq32768": true
+  },
+  "margin_to_flip_N8": 0.025817955657856717,
+  "margin_to_flip_N16_seq32768": 0.015364955657856672,
+  "rerun_rank1_N8_measured": "microbatch_factor",
+  "rerun_rank1_N8_datasheet": "achieved_bw_scale",
+  "gate": "n/a (GPU measurement; verified by gate --fast on the landing tree)",
+  "runs": [
+    {
+      "run": "1",
+      "note": "7540 MiB neighbour appeared during the run",
+      "scales": {
+        "copy": {
+          "median": 0.8399,
+          "min": 0.8343,
+          "max": 0.8451,
+          "samples": [
+            0.8399,
+            0.8429,
+            0.8379,
+            0.8451,
+            0.8429,
+            0.8343,
+            0.8392
+          ]
+        },
+        "read": {
+          "median": 0.8994,
+          "min": 0.0445,
+          "max": 0.9028,
+          "samples": [
+            0.0445,
+            0.8935,
+            0.9006,
+            0.9014,
+            0.8965,
+            0.8994,
+            0.9028
+          ]
+        }
+      },
+      "neighbours_after": "3894384, 44 MiB\n3895937, 16 MiB\n2228568, 638 MiB\n2230706, 7540 MiB"
+    },
+    {
+      "run": "2 (intended clean)",
+      "note": "ALSO contaminated: a 7540 MiB neighbour (pid 3457352) is present in neighbours_after, and one copy sample fell to 0.7387 -- BELOW the N8 flip point 0.814132. This is the single most decision-relevant number in the set: on a quiet card the ratio is ~0.84-0.85, but SHARED with a 7.5 GB neighbour it reaches 0.74, i.e. the N=8 verdict flips.",
+      "scales": {
+        "copy": {
+          "median": 0.8407,
+          "min": 0.7387,
+          "max": 0.8493,
+          "samples": [
+            0.7929,
+            0.8493,
+            0.8435,
+            0.8408,
+            0.8322,
+            0.8407,
+            0.7387
+          ]
+        },
+        "read": {
+          "median": 0.8788,
+          "min": 0.0493,
+          "max": 0.9005,
+          "samples": [
+            0.0493,
+            0.8788,
+            0.8805,
+            0.8662,
+            0.8661,
+            0.8991,
+            0.9005
+          ]
+        }
+      },
+      "neighbours_after": "3894384, 44 MiB\n3895937, 16 MiB\n3457352, 7540 MiB"
+    }
+  ],
+  "consolidated": {
+    "quiet_card_estimate": 0.845,
+    "range_across_both_runs": [
+      0.7387,
+      0.8493
+    ],
+    "flip_points": {
+      "N8_winner": 0.814132,
+      "N16_seq32768": 0.824585
+    },
+    "finding": "achieved_bw_scale is ~0.845 of datasheet on an idle 5090, which clears the N8 flip point (0.814132) by only 3.8%. Under contention from a 7.5 GB neighbour the SAME card produced 0.7387, which is BELOW that flip point -- so the N=8 winner recommendation is not merely thin, it is CONTENTION-DEPENDENT: the same hardware that supports it when idle contradicts it when shared.",
+    "policy": "two runs are reported SEPARATELY and never averaged, because their occupancy differs (u6j5 rule).",
+    "caveat": "both runs overlapped with a neighbour job despite the queue being reported idle; neither is clean-room, and a truly exclusive run should be done before quoting 0.845 as the card's capability."
+  }
+}

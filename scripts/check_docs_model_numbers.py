@@ -811,6 +811,7 @@ def compute_facts():
             row[f"N{N}"] = entry
         facts["sweep"][name] = row
     facts["fabric_precision"] = _fabric_precision(facts)
+    facts["achieved_bw_measured"] = _measured_bw()
     return facts
 
 
@@ -861,6 +862,42 @@ def _fabric_precision(facts):
                      "next_rank1_fraction_one_sided": next_frac}
         out[cell] = entry
     return out
+
+
+
+def _measured_bw():
+    """gpu-sim-3fog: achieved HBM bandwidth measured on RTX 5090."""
+    import json as _j
+    path = os.path.join(ROOT, "experiments", "gpu-sim-3fog", "bw_raw.json")
+    if not os.path.exists(path):
+        return None
+    d = _j.load(open(path))
+    copy_med = d.get("results", {}).get("copy", {}).get("median_bytes_per_s")
+    read_med = d.get("results", {}).get("read", {}).get("median_bytes_per_s")
+    spec = d.get("spec_bytes_per_s")
+    achieved = (copy_med / spec) if (copy_med and spec) else None
+    achieved_read = (read_med / spec) if (read_med and spec) else None
+    copy_min = d.get("results", {}).get("copy", {}).get("min_bytes_per_s")
+    copy_max = d.get("results", {}).get("copy", {}).get("max_bytes_per_s")
+    return {
+        "device": d.get("device"),
+        "torch": d.get("torch"),
+        "cuda": d.get("cuda"),
+        "spec_bw_gbs": (spec / 1e9) if spec else None,
+        "spec_source": "NVIDIA RTX 5090 spec sheet: GDDR7 32GB, 512-bit @ 28 Gbps = 1792 GB/s",
+        "working_set_bytes": d.get("working_set_bytes"),
+        "n_reps": d.get("repetitions"),
+        "copy_median_gbs": (copy_med / 1e9) if copy_med else None,
+        "read_median_gbs": (read_med / 1e9) if read_med else None,
+        "copy_min_gbs": (copy_min / 1e9) if copy_min else None,
+        "copy_max_gbs": (copy_max / 1e9) if copy_max else None,
+        "achieved_bw_gbs": (copy_med / 1e9) if copy_med else None,
+        "achieved_bw_scale": achieved,
+        "achieved_bw_scale_read": achieved_read,
+        "neighbors_before": d.get("neighbours_before"),
+        "neighbors_after": d.get("neighbours_after"),
+        "flip_points": {"N8_winner": 0.814132, "N16_seq32768": 0.824585},
+    }
 
 
 def section0(text):
@@ -1078,6 +1115,21 @@ def allowed_decimals(facts):
                 add(round(row[key], 2))
                 add(round(row[key], 1))
     # gpu-sim-i5ze: allow error-budget flip values in prose.
+    _ab = facts.get("achieved_bw_measured")
+    if isinstance(_ab, dict):
+        for _v in _ab.values():
+            if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                add(_v)
+        for _side in ("neighbors_before", "neighbors_after"):
+            for _n in (_ab.get(_side) or []):
+                if isinstance(_n, dict):
+                    for _v in _n.values():
+                        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+                            add(_v)
+    _fp2 = facts.get("achieved_bw_measured", {}).get("flip_points", {}) if isinstance(facts.get("achieved_bw_measured"), dict) else {}
+    for _v in _fp2.values():
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool):
+            add(_v)
     _eb = facts.get("error_budget", {})
     for _r in _eb.get("ranked", []) + _eb.get("unranked", []):
         for _k in ("flip_value", "flip_up", "flip_down", "current_margin"):

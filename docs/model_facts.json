@@ -688,7 +688,7 @@
           "up"
         ],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1208,7 +1208,7 @@
           "down"
         ],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1466,7 +1466,7 @@
           "up"
         ],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1666,7 +1666,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1811,7 +1811,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1840,7 +1840,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1898,7 +1898,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -1927,7 +1927,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -2246,7 +2246,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -2905,7 +2905,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -3374,7 +3374,7 @@
         "margin_basis": "worst over range",
         "measured_sides": [],
         "parameter": "achieved_bw_scale",
-        "provenance": "published-spec (datasheet, not measured here)",
+        "provenance": "measured on RTX 5090 (gpu-sim-3fog): 0.840 of spec",
         "range": [
           0.5,
           2.0
@@ -4928,6 +4928,28 @@
       "term_scale_cp_fraction_one_sided": null,
       "next_rank1_if_pinned": "term_scale_pp",
       "next_rank1_fraction_one_sided": null
+    }
+  },
+  "achieved_bw_measured": {
+    "device": "NVIDIA GeForce RTX 5090",
+    "torch": "2.13.0+cu132",
+    "cuda": "13.2",
+    "spec_bw_gbs": 1792.0,
+    "spec_source": "NVIDIA RTX 5090 spec sheet: GDDR7 32GB, 512-bit @ 28 Gbps = 1792 GB/s",
+    "working_set_bytes": 3221225472,
+    "n_reps": 7,
+    "copy_median_gbs": 1505.1903205388792,
+    "read_median_gbs": 1611.74248264293,
+    "copy_min_gbs": 1494.9981720827702,
+    "copy_max_gbs": 1514.3970341895083,
+    "achieved_bw_gbs": 1505.1903205388792,
+    "achieved_bw_scale": 0.8399499556578567,
+    "achieved_bw_scale_read": 0.899409867546278,
+    "neighbors_before": "3894384, 44 MiB\n3895937, 16 MiB\n2228568, 638 MiB",
+    "neighbors_after": "3894384, 44 MiB\n3895937, 16 MiB\n2228568, 638 MiB\n2230706, 7540 MiB",
+    "flip_points": {
+      "N8_winner": 0.814132,
+      "N16_seq32768": 0.824585
     }
   }
 }

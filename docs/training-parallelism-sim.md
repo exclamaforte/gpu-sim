@@ -76,7 +76,7 @@ At seq 32768 the ranking changes: the most fragile parameter is `term_scale_pp` 
 `microbatch_factor` is 15.57% at N=16 and does not flip at N=32. The 'weakest assumption is
 micro-batching' claim is therefore 8192-specific; at long sequences the CP/PP terms are tighter. `achieved_bw_scale` also flips the
 N=8 verdict (0.814132, 12.39% full-width / 37.17% one-sided), so bandwidth is NOT a robust
-parameter. Extended to N=64 and N=128 (gpu-sim-afbg): the N=8 and N=16 headline cells are unchanged
+parameter. Measured on the 5090 (gpu-sim-3fog): 1505.19 GB/s = 0.83995 of the 1792 GB/s spec, above both flip points (0.814132 at N=8, 0.824585 at N=16/32768), so the headline verdicts survive; bandwidth becomes 7.6% (N=8) / 4.5% (N=16/32768) and `microbatch_factor` (5.95%) is the new rank-1 at N=8. Extended to N=64 and N=128 (gpu-sim-afbg): the N=8 and N=16 headline cells are unchanged
 (`microbatch_factor` 5.95% at seq 8192, `term_scale_pp` 1.40% at seq 32768), but the ranking is
 NOT size-stable. At seq 8192 the top row at both N=64 and N=128 is `term_scale_cp`; at seq 32768
 N=64 is also `term_scale_cp` and only N=128 is `term_scale_pp`. So a rank-1 claim has to name its
