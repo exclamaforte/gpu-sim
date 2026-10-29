@@ -32,6 +32,23 @@ metrics = {
     "rerun_rank1_N8_measured": "microbatch_factor",
     "rerun_rank1_N8_datasheet": "achieved_bw_scale",
     "gate": "n/a (GPU measurement; verified by gate --fast on the landing tree)",
+    "runs_all": [
+        {
+            "job_id": "20261029t133040-c71701fa",
+            "achieved_bw_scale": 0.8486742229040299,
+            "copy_median_gbs": 1520.8242074440216,
+            "occupancy": "unstable: 2 procs before (44, 16 MiB), 3 after (+8820 MiB)",
+            "anchored": False,
+        },
+        {
+            "job_id": "20261029t134925-219dbd35",
+            "achieved_bw_scale": 0.8399499556578567,
+            "copy_median_gbs": 1505.1903205388792,
+            "occupancy": "stable: 3 procs before (44, 16, 638 MiB), 4 after (+7540 MiB)",
+            "anchored": True,
+        },
+    ],
+    "contention_finding_corrected": "Run 1 occupancy changed mid-measurement (an extra process appeared), so its higher 0.8487 is not the anchored value; the stable run 2 (0.83995) is anchored. A lone low sample in run 1 was neighbour-startup, not contention, and is excluded from the median.",
 }
 out = ROOT / "experiments" / "gpu-sim-3fog" / "metrics.json"
 out.write_text(json.dumps(metrics, indent=2) + "\n")
