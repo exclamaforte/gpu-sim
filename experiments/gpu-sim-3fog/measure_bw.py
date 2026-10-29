@@ -13,7 +13,6 @@ Occupancy is recorded before and after because a busy GPU gives a wrong number.
 import json
 import statistics
 import subprocess
-import sys
 import time
 
 import torch
