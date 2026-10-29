@@ -315,7 +315,7 @@ below the fitted 2.3. The measured curve resolves the straddle: act_factor rises
 (1.735 at 2048, 2.128 at 4096, 2.226 at 8192, 2.329 at 16384, 2.345 at 32768) with
 zero spread at fixed length across 3 reps, so the mxaz straddle was driven by SEQ LENGTH, not
 run-to-run noise. At seq 8192 the measured 2.226 sits below the 2.277 flip (verdict flips);
-at seq 32768 the measured 2.345 sits above it (safe). Shape dependence (gpu-sim-006j): the curve is shape-dependent at short sequence (48% across 3 shapes at seq 2048) but converges at long sequence (1.0-1.3% at seq 16384-32768), so the single-curve simplification is valid where the budget uses it (N16_seq32768) and invalid at short sequences. The model stops being feasible at all
+at seq 32768 the measured 2.345 sits above it (safe). Shape dependence (gpu-sim-006j): the curve is shape-dependent at short sequence (48% across 3 shapes at seq 2048) but converges at long sequence (1.0-1.3% at seq 16384-32768), so the single-curve simplification is valid where the budget uses it (N16_seq32768) and invalid at short sequences. Occupancy caveat: the 4L/16L short-sequence extremes ran under differing neighbour load (~1020 MiB -> ~4.0 GB vs ~0.8 GB), so the 48% is provisional. The model stops being feasible at all
 beyond ~36 / ~82 / ~174 at seq 8192. The
 recommendation therefore does not rest on this fit
 (tests/test_act_factor_knob.py).

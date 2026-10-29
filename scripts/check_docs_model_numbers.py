@@ -1284,6 +1284,23 @@ def main() -> int:
         print("FAST MODE: checking prose against committed docs/model_facts.json "
               "(artifact-vs-code recompute skipped; set CI_GATES_FULL=1 for full).")
 
+    # gpu-sim-a5zj: fast guard -- error_budget._ACT_FACTOR_BY_SEQ must equal the
+    # facts' original-shape curve (int keys in code vs str keys in facts).
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "scripts"))
+        import error_budget as _eb  # noqa: E402
+        _orig_curve = facts["scaleout_opt"]["measured_act_shape"]["curve_act_factor_by_seq"]["8L_d1024_dff4096"]
+        _expected_curve = {int(_k): _v for _k, _v in _orig_curve.items()}
+        if _eb._ACT_FACTOR_BY_SEQ != _expected_curve:
+            print("FAIL: error_budget._ACT_FACTOR_BY_SEQ != facts orig-shape curve")
+            print(f"  code:   {_eb._ACT_FACTOR_BY_SEQ}")
+            print(f"  facts:  {_expected_curve}")
+            return 1
+        print("OK: error_budget curve tied to facts (orig shape)")
+    except Exception as _e:
+        print(f"FAIL: could not verify error_budget curve: {_e}")
+        return 1
+
     text = open(DOC).read()
 
     # Retraction tripwire: scan the WHOLE document, not just section 0. A retracted claim that survives
