@@ -1,0 +1,343 @@
+{
+  "config": {
+    "n_layers": 8,
+    "d": 1024,
+    "d_ff": 4096,
+    "n_heads": 8,
+    "dtype": "bfloat16",
+    "batch": 1,
+    "steps": 5,
+    "warmup": 2,
+    "reps": 3,
+    "seqs": "2048,4096,8192,16384,32768"
+  },
+  "model_assumed_act_factor": 2.3,
+  "flip_point_N16_seq32768": 2.2769,
+  "results": [
+    {
+      "seq": 2048,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 886025728,
+          "peak_median_bytes": 886025728,
+          "mem_params_grads_bytes": 478584832,
+          "activation_delta_peak_bytes": 407440896,
+          "bytes_per_token_per_layer_peak": 24868.22,
+          "implied_act_factor_peak": 1.7347,
+          "peaks": [
+            886025728,
+            886025728,
+            886025728,
+            886025728,
+            886025728
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 886025728,
+          "peak_median_bytes": 886025728,
+          "mem_params_grads_bytes": 478584832,
+          "activation_delta_peak_bytes": 407440896,
+          "bytes_per_token_per_layer_peak": 24868.22,
+          "implied_act_factor_peak": 1.7347,
+          "peaks": [
+            886025728,
+            886025728,
+            886025728,
+            886025728,
+            886025728
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 886025728,
+          "peak_median_bytes": 886025728,
+          "mem_params_grads_bytes": 478584832,
+          "activation_delta_peak_bytes": 407440896,
+          "bytes_per_token_per_layer_peak": 24868.22,
+          "implied_act_factor_peak": 1.7347,
+          "peaks": [
+            886025728,
+            886025728,
+            886025728,
+            886025728,
+            886025728
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 1.7347,
+      "act_factor_min": 1.7347,
+      "act_factor_max": 1.7347,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 62\n3895937, 16",
+      "neighbours_after": "3894384, 62\n3895937, 16\n817709, 1418"
+    },
+    {
+      "seq": 4096,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 1889676800,
+          "peak_median_bytes": 1889676800,
+          "mem_params_grads_bytes": 890052608,
+          "activation_delta_peak_bytes": 999624192,
+          "bytes_per_token_per_layer_peak": 30506.11,
+          "implied_act_factor_peak": 2.1279,
+          "peaks": [
+            1889676800,
+            1889676800,
+            1889676800,
+            1889676800,
+            1889676800
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 2292755968,
+          "peak_median_bytes": 2292755968,
+          "mem_params_grads_bytes": 1293131776,
+          "activation_delta_peak_bytes": 999624192,
+          "bytes_per_token_per_layer_peak": 30506.11,
+          "implied_act_factor_peak": 2.1279,
+          "peaks": [
+            2292755968,
+            2292755968,
+            2292755968,
+            2292755968,
+            2292755968
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 2292755968,
+          "peak_median_bytes": 2292755968,
+          "mem_params_grads_bytes": 1293131776,
+          "activation_delta_peak_bytes": 999624192,
+          "bytes_per_token_per_layer_peak": 30506.11,
+          "implied_act_factor_peak": 2.1279,
+          "peaks": [
+            2292755968,
+            2292755968,
+            2292755968,
+            2292755968,
+            2292755968
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.1279,
+      "act_factor_min": 2.1279,
+      "act_factor_max": 2.1279,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 62\n3895937, 16\n817709, 1418",
+      "neighbours_after": "3894384, 62\n3895937, 16\n817709, 2134"
+    },
+    {
+      "seq": 8192,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 2595458560,
+          "peak_median_bytes": 2595458560,
+          "mem_params_grads_bytes": 503750656,
+          "activation_delta_peak_bytes": 2091707904,
+          "bytes_per_token_per_layer_peak": 31916.93,
+          "implied_act_factor_peak": 2.2263,
+          "peaks": [
+            2595458560,
+            2595458560,
+            2595458560,
+            2595458560,
+            2595458560
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 2998537728,
+          "peak_median_bytes": 2998537728,
+          "mem_params_grads_bytes": 906829824,
+          "activation_delta_peak_bytes": 2091707904,
+          "bytes_per_token_per_layer_peak": 31916.93,
+          "implied_act_factor_peak": 2.2263,
+          "peaks": [
+            2998537728,
+            2998537728,
+            2998537728,
+            2998537728,
+            2998537728
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 2595458560,
+          "peak_median_bytes": 2595458560,
+          "mem_params_grads_bytes": 503750656,
+          "activation_delta_peak_bytes": 2091707904,
+          "bytes_per_token_per_layer_peak": 31916.93,
+          "implied_act_factor_peak": 2.2263,
+          "peaks": [
+            2595458560,
+            2595458560,
+            2595458560,
+            2595458560,
+            2595458560
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.2263,
+      "act_factor_min": 2.2263,
+      "act_factor_max": 2.2263,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 62\n3895937, 16\n817709, 2134",
+      "neighbours_after": "3894384, 62\n3895937, 16\n817709, 1326\n823219, 580"
+    },
+    {
+      "seq": 16384,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 4913860096,
+          "peak_median_bytes": 4913860096,
+          "mem_params_grads_bytes": 537305088,
+          "activation_delta_peak_bytes": 4376555008,
+          "bytes_per_token_per_layer_peak": 33390.46,
+          "implied_act_factor_peak": 2.3291,
+          "peaks": [
+            4913860096,
+            4913860096,
+            4913860096,
+            4913860096,
+            4913860096
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 4913860096,
+          "peak_median_bytes": 4913860096,
+          "mem_params_grads_bytes": 537305088,
+          "activation_delta_peak_bytes": 4376555008,
+          "bytes_per_token_per_layer_peak": 33390.46,
+          "implied_act_factor_peak": 2.3291,
+          "peaks": [
+            4913860096,
+            4913860096,
+            4913860096,
+            4913860096,
+            4913860096
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 5316939264,
+          "peak_median_bytes": 5316939264,
+          "mem_params_grads_bytes": 940384256,
+          "activation_delta_peak_bytes": 4376555008,
+          "bytes_per_token_per_layer_peak": 33390.46,
+          "implied_act_factor_peak": 2.3291,
+          "peaks": [
+            5316939264,
+            5316939264,
+            5316939264,
+            5316939264,
+            5316939264
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.3291,
+      "act_factor_min": 2.3291,
+      "act_factor_max": 2.3291,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 62\n3895937, 16\n817709, 1326\n823219, 580",
+      "neighbours_after": "3894384, 62\n3895937, 16\n817709, 1856\n823219, 708"
+    },
+    {
+      "seq": 32768,
+      "batch": 1,
+      "n_layers": 8,
+      "d": 1024,
+      "d_ff": 4096,
+      "dtype": "bfloat16",
+      "torch_version": "2.13.0+cu132",
+      "reps": [
+        {
+          "peak_max_bytes": 9416445440,
+          "peak_median_bytes": 9416445440,
+          "mem_params_grads_bytes": 604413952,
+          "activation_delta_peak_bytes": 8812031488,
+          "bytes_per_token_per_layer_peak": 33615.23,
+          "implied_act_factor_peak": 2.3448,
+          "peaks": [
+            9416445440,
+            9416445440,
+            9416445440,
+            9416445440,
+            9416445440
+          ],
+          "rep": 0
+        },
+        {
+          "peak_max_bytes": 9416445440,
+          "peak_median_bytes": 9416445440,
+          "mem_params_grads_bytes": 604413952,
+          "activation_delta_peak_bytes": 8812031488,
+          "bytes_per_token_per_layer_peak": 33615.23,
+          "implied_act_factor_peak": 2.3448,
+          "peaks": [
+            9416445440,
+            9416445440,
+            9416445440,
+            9416445440,
+            9416445440
+          ],
+          "rep": 1
+        },
+        {
+          "peak_max_bytes": 9819524608,
+          "peak_median_bytes": 9819524608,
+          "mem_params_grads_bytes": 1007493120,
+          "activation_delta_peak_bytes": 8812031488,
+          "bytes_per_token_per_layer_peak": 33615.23,
+          "implied_act_factor_peak": 2.3448,
+          "peaks": [
+            9819524608,
+            9819524608,
+            9819524608,
+            9819524608,
+            9819524608
+          ],
+          "rep": 2
+        }
+      ],
+      "act_factor_median": 2.3448,
+      "act_factor_min": 2.3448,
+      "act_factor_max": 2.3448,
+      "spread_fixed_len": 0.0,
+      "neighbours_before": "3894384, 62\n3895937, 16\n817709, 1856\n823219, 708",
+      "neighbours_after": "3894384, 62\n3895937, 16\n817709, 2282\n823219, 708\n832784, 798"
+    }
+  ]
+}

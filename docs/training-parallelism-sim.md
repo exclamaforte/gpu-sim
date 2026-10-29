@@ -311,8 +311,11 @@ sweeping act_factor 1.0 to 12.0 -- a 5x band around the fit -- leaves every step
 and every winner unmoved at N=8, 16 and 32 (at seq 8192). "No bend" is a STEP-TIME statement: act_factor
 multiplies activation MEMORY, so it cannot enter a time term. It does bite on FEASIBILITY, and the
 seq-32768 N=16 verdict flips on feasibility when act_factor falls to 2.277, which is 1%
-below the fitted 2.3. A measured range of 2.189 to 2.435 (median 2.329, 7 measurements on a 5090)
-straddles that flip point, so the fragility is not theoretical. The model stops being feasible at all
+below the fitted 2.3. The measured curve resolves the straddle: act_factor rises with sequence length
+(1.735 at 2048, 2.128 at 4096, 2.226 at 8192, 2.329 at 16384, 2.345 at 32768) with
+zero spread at fixed length across 3 reps, so the mxaz straddle was driven by SEQ LENGTH, not
+run-to-run noise. At seq 8192 the measured 2.226 sits below the 2.277 flip (verdict flips);
+at seq 32768 the measured 2.345 sits above it (safe). The model stops being feasible at all
 beyond ~36 / ~82 / ~174 at seq 8192. The
 recommendation therefore does not rest on this fit
 (tests/test_act_factor_knob.py).
@@ -352,8 +355,8 @@ first conventional length above that".
 config at 91% of capacity looks as good as one at 52%. Requiring a mere 10% of HBM to stay free --
 room for fragmentation, allocator rounding, activation spikes and the CUDA context -- changes exactly
 **two** cells in the whole grid: N=16 at seq 32768, where the winner (tp=2 cp=8 dp=1) occupies **73.0 of
-80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **41.4 GB** for **423.78 vs 413.98 ms**; and N=8
-at seq 16384, where (tp=2 cp=4 dp=1) at **72.9 GB** gives way to (tp=4 cp=2 dp=1 z0) at **40.7 GB** for
+80 GB** and is replaced by (tp=2 pp=2 cp=4 dp=1 z0) at **41.5 GB** for **423.78 vs 413.98 ms**; and N=8
+at seq 16384, where (tp=2 cp=4 dp=1) at **73.0 GB** gives way to (tp=4 cp=2 dp=1 z0) at **40.8 GB** for
 **253.43 vs 253.00 ms**. Both cost about 2% or less, and the N=16 replacement is also the config that
 wins at N=16 for seq 16384 at pessimistic efficiency, so the headroom requirement does not cost a real
 recommendation -- it removes artifacts. Every other cell
@@ -995,10 +998,10 @@ configuration. `coll_msgs` is filtered to the same window as `step_ms`
 | Same config at seq 16384 / 32768 | **TIE** | margin only 0.22% / 1.48% -- the config is right, the ranking is not decisive | tests/test_fragility_map.py |
 | N=16 winner (tp=1 pp=16 cp=1 dp=1 z0), seq 8192 | **VERDICT** | 2.06% at 40% MFU; flips below MFU 0.25 | tests/test_mfu_sensitivity.py |
 | N=16 at seq 16384 | **TIE** | three-way tangle: winner moves to (tp=2 pp=2 cp=4 dp=1 z0) at 40%, margins 0.45% / 0.64% | tests/test_fragility_map.py |
-| N=16 at seq 32768 (hard-fit memory) | **TIE** | 2.20% margin and 91% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 41.4 GB (+2.4%) | tests/test_memory_headroom.py |
+| N=16 at seq 32768 (hard-fit memory) | **TIE** | 2.20% margin and 91% of HBM; 10% headroom swaps it to (2, 2, 4, 1, 0) at 41.5 GB (+2.4%) | tests/test_memory_headroom.py |
 | N=32 winner (tp=1 pp=16 cp=2 dp=1 z0), seq 8192 | **TIE** | margin 0.02% at worst over every seq and efficiency tested | tests/test_fragility_map.py |
 | Absolute step durations | **BOUNDED** | model implies 0.786 MFU; a real GPU reached 0.566, so absolutes carry 1.28-1.69x | tests/test_mfu_sensitivity.py |
-| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only for step time: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) at seq 8192; the seq-32768 N=16 verdict flips on feasibility at 2.277, and the measured range 2.189-2.435 (median 2.329, 7 measurements on a 5090) straddles it | tests/test_act_factor_knob.py |
+| act_factor (2.3) fitted constant | **STRUCTURAL** | memory-only for step time: 5x band changes no step time; ranking bends only at 28.5 (N=8) / None (N=16,32) at seq 8192; the seq-32768 N=16 verdict flips on feasibility at 2.277; the measured curve 1.735 (2048) -> 2.345 (32768) resolves the straddle as seq-length-driven, zero spread at fixed length (gpu-sim-7uz2) | tests/test_act_factor_knob.py |
 | S_best = 8192 | **VALIDATED** | CP crossover is seq 5956 (3658 measured), so 8192 is the first conventional length above it, +6.03% | tests/test_cp_crossover.py |
 | Alpha piece-charging granularity | **BOUNDED** | +6.0% at P=8, winner unmoved | docs section 0 (alpha piece charging) |
 | Harness determinism (the instrument itself) | **VALIDATED** | two runs of dp=4/zero=2/3 steps give 115 records per rank with identical per-rank sequences; only cross-rank interleaving differs | tests/test_trace_determinism.py |
