@@ -86,8 +86,8 @@ MAX_TP = 8          # TP needs NVLink-class all-to-all per layer; one node is th
 
 def answer(spec: dict, model: dict, n: int, cp_scale: float, batch: int = 1,
             recompute: float = 0.0, opt_state: str = "fp32_master",
-            opt_peak: str = "default") -> dict | None:
-    hw = {"peak_flops": PEAK, "mem_gb": HBM_GB, "spec": spec, "term_scale": {"cp": cp_scale},
+            opt_peak: str = "default", fabric_scale: float = 1.0) -> dict | None:
+    hw = {"peak_flops": PEAK, "mem_gb": HBM_GB, "spec": spec, "term_scale": {"cp": cp_scale * fabric_scale},
           "batch": batch, "recompute": recompute,
           "opt_state": opt_state, "opt_peak": opt_peak}
     _, feas = ps.search(n, hw, model)
@@ -104,6 +104,7 @@ def answer(spec: dict, model: dict, n: int, cp_scale: float, batch: int = 1,
         "tp": best.tp, "pp": best.pp, "cp": best.cp, "dp": best.dp, "zero": best.zero,
         "step_s": round(best.step_sum, 3),
         "margin_pct": round(100 * (alt.step_sum / best.step_sum - 1), 2) if alt else None,
+        "fabric_scale": fabric_scale,
         "mem_gb": round(best.memory_gb, 1),
         "n_feasible": len(feas),
         "constrained": True,
@@ -123,6 +124,10 @@ def main() -> int:
     # recompute=0 (tightest: 70B@80 default convention, 8.03 GB/stage vs the 80 GB budget;
     # see facts pp1_act), so no published row needs the recompute charge to be feasible
     # and the published steps honestly carry no recompute compute term.
+    fabric_scale = 1.0
+    if "--fabric-scale" in sys.argv:
+        fabric_scale = float(sys.argv[sys.argv.index("--fabric-scale") + 1])
+        assert fabric_scale > 0, f"fabric-scale must be >0, got {fabric_scale}"
     recompute = 0.0
     if "--recompute" in sys.argv:
         recompute = float(sys.argv[sys.argv.index("--recompute") + 1])
@@ -152,7 +157,8 @@ def main() -> int:
                     key = cname if batch == 1 else f"{cname}, batch={batch}"
                     out[f"{nodes}x8"]["models"][name][key] = answer(spec, model, n, scale,
                                                                       batch, recompute,
-                                                                      opt_state, opt_peak)
+                                                                      opt_state, opt_peak,
+                                                                      fabric_scale)
     if "--json" in sys.argv:
         print(json.dumps(out, indent=2))
         return 0

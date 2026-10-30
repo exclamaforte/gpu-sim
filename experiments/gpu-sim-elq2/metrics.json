@@ -1,0 +1,138 @@
+{
+  "bead": "gpu-sim-elq2",
+  "fabric": "100x8",
+  "n_gpus": 800,
+  "factors": [
+    0.8110300081103,
+    0.9090909090909091,
+    1.0,
+    1.1,
+    1.233
+  ],
+  "n_rows": 12,
+  "n_rows_flipping": 5,
+  "rows": [
+    {
+      "model": "llama3-8b",
+      "convention": "ring all_to_all",
+      "batch": 1,
+      "base_winner": "tp=5 pp=10 cp=16 dp=1 zero=0",
+      "base_margin_pct": 2.99,
+      "flips_at": [],
+      "flipped": false
+    },
+    {
+      "model": "llama3-8b",
+      "convention": "default all_gather",
+      "batch": 1,
+      "base_winner": "tp=1 pp=16 cp=1 dp=50 zero=2",
+      "base_margin_pct": 4.1,
+      "flips_at": [],
+      "flipped": false
+    },
+    {
+      "model": "llama3-8b",
+      "convention": "ring all_to_all",
+      "batch": 8,
+      "base_winner": "tp=1 pp=25 cp=32 dp=1 zero=0",
+      "base_margin_pct": 0.87,
+      "flips_at": [
+        0.81103
+      ],
+      "flipped": true
+    },
+    {
+      "model": "llama3-8b",
+      "convention": "default all_gather",
+      "batch": 8,
+      "base_winner": "tp=1 pp=32 cp=25 dp=1 zero=0",
+      "base_margin_pct": 0.38,
+      "flips_at": [
+        0.81103,
+        1.233
+      ],
+      "flipped": true
+    },
+    {
+      "model": "llama3-70b",
+      "convention": "ring all_to_all",
+      "batch": 1,
+      "base_winner": "tp=1 pp=50 cp=16 dp=1 zero=0",
+      "base_margin_pct": 1.11,
+      "flips_at": [],
+      "flipped": false
+    },
+    {
+      "model": "llama3-70b",
+      "convention": "default all_gather",
+      "batch": 1,
+      "base_winner": "tp=1 pp=32 cp=1 dp=25 zero=2",
+      "base_margin_pct": 0.26,
+      "flips_at": [],
+      "flipped": false
+    },
+    {
+      "model": "llama3-70b",
+      "convention": "ring all_to_all",
+      "batch": 8,
+      "base_winner": "tp=1 pp=40 cp=20 dp=1 zero=0",
+      "base_margin_pct": 0.02,
+      "flips_at": [
+        0.81103,
+        0.909091
+      ],
+      "flipped": true
+    },
+    {
+      "model": "llama3-70b",
+      "convention": "default all_gather",
+      "batch": 8,
+      "base_winner": "tp=1 pp=50 cp=16 dp=1 zero=0",
+      "base_margin_pct": 0.22,
+      "flips_at": [
+        0.81103,
+        0.909091
+      ],
+      "flipped": true
+    },
+    {
+      "model": "llama3-405b",
+      "convention": "ring all_to_all",
+      "batch": 1,
+      "base_winner": "tp=1 pp=100 cp=8 dp=1 zero=0",
+      "base_margin_pct": 7.21,
+      "flips_at": [],
+      "flipped": false
+    },
+    {
+      "model": "llama3-405b",
+      "convention": "default all_gather",
+      "batch": 1,
+      "base_winner": "tp=1 pp=100 cp=8 dp=1 zero=0",
+      "base_margin_pct": 2.58,
+      "flips_at": [
+        1.1,
+        1.233
+      ],
+      "flipped": true
+    },
+    {
+      "model": "llama3-405b",
+      "convention": "ring all_to_all",
+      "batch": 8,
+      "base_winner": "tp=1 pp=50 cp=8 dp=2 zero=2",
+      "base_margin_pct": 2.97,
+      "flips_at": [],
+      "flipped": false
+    },
+    {
+      "model": "llama3-405b",
+      "convention": "default all_gather",
+      "batch": 8,
+      "base_winner": "tp=1 pp=100 cp=8 dp=1 zero=0",
+      "base_margin_pct": 2.93,
+      "flips_at": [],
+      "flipped": false
+    }
+  ]
+}
