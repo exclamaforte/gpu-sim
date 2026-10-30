@@ -2,7 +2,7 @@
   "gate": "n/a (CPU-only analysis of GPU measurement logs; no gate run)",
   "bead": "gpu-sim-006j",
   "method": "measure_act_curve.py (from gpu-sim-7uz2) run on the idle RTX 5090 at two contrasting shapes, d_ff/d=4 and batch 1 held fixed so the comparison is about SHAPE not size. Logs are the script's per-rep stdout lines (seq=... rep=... af=...).",
-  "caveat": "CORRECTED 2026-10-29: an earlier version of this file said neighbour occupancy was NOT recorded for these runs. That was FALSE -- the raw logs carry neighbours_before/after, and the reviewer was right to check. What the logs show: the 4L d2048 run (which produced the LOW extreme at seq 2048) ran with a growing neighbour load -- ~1020 MiB resident before, ~4.0 GB after (1020 + 2418 + 628 MiB) -- while the 16L d512 run ran much lighter (~0.8 GB). So the 48.2% short-sequence spread COINCIDES with differing neighbour occupancy. It is repeatable across 3 reps, which argues against pure transient interference, but occupancy is a confound that has not been excluded. RE-MEASURED 2026-10-29 and the confound is EXCLUDED: per-rep values are bit-identical to the original session across two runs whose occupancy totals differ ~25% (see occupancy_confound_resolved, which also corrects an earlier wrong neighbour figure of mine).",
+  "caveat": "CORRECTED 2026-10-29 TWICE. First: an earlier version said neighbour occupancy was NOT recorded -- FALSE, the logs carry neighbours_before/after. Second: the replacement text then quoted wrong figures (~4.0 GB vs ~0.8 GB). Those were wrong because the 2418 MiB entry is THE MEASURING PROCESS ITSELF and because I compared one run's PRE snapshot with another's POST snapshot. Corrected from pure-neighbour snapshots: 1132 vs 916 MiB originally, 1407 vs 1113 MiB on re-measure -- a 220-290 MiB asymmetry. The spread stays non-provisional on the orthogonal basis: per-rep values are BIT-IDENTICAL across two sessions whose occupancy totals differ ~25%, which no occupancy artefact would produce.",
   "curve_act_factor_by_seq": {
     "8L_d1024_dff4096": {
       "2048": 1.7347,
@@ -56,20 +56,10 @@
   "finding": "act_factor is SHAPE-DEPENDENT AT SHORT SEQUENCE and CONVERGES AT LONG SEQUENCE: 48% across shapes at seq 2048, 1.0-1.3% at seq 16384-32768. The single-curve simplification the error budget relies on is therefore VALID WHERE IT IS USED (the deciding cell N16_seq32768) and invalid at short sequences.",
   "mechanism": "At long sequence the activation term is dominated by real token activations (scaling with seq x d x layers), so the per-token-per-layer coefficient converges across shapes. At short sequence fixed overheads -- allocator behaviour, fragmentation, workspace -- dominate and are attributed to the coefficient, which is where the apparent shape dependence comes from.",
   "status": "MEASUREMENT COMPLETE; anchoring (produced facts, doc sentence, guard + plant) still open on gpu-sim-006j.",
-  "occupancy_per_run": {
-    "4L_d2048": {
-      "before": "~1020 MiB neighbour resident",
-      "after": "~4.0 GB (1020+2418+628 MiB)"
-    },
-    "16L_d512": {
-      "note": "lighter neighbour load (~0.8 GB)"
-    },
-    "implication": "the short-sequence spread and occupancy differ together; re-measure short sequences on a quiet card before quoting 48.2% as a hardware property."
-  },
   "occupancy_confound_resolved": {
     "date": "2026-10-29",
     "status": "RESOLVED -- but the first version of this block had WRONG OCCUPANCY NUMBERS, corrected here.",
-    "correction": "I wrote that the 4L run had ~4.0 GB of neighbours (1020+2418+628 MiB) against ~0.8 GB for 16L. That was wrong: the 2418 MiB entry is THE MEASURING PROCESS ITSELF, and I compared a PRE-run snapshot from one run with a POST-run snapshot from another. Corrected figures, from the pure-neighbour snapshots: original runs 1132 vs 916 MiB, re-measured runs 1407 vs 1113 MiB -- an asymmetry of 220-290 MiB, NOT 3.2 GiB.",
+    "correction": "I wrote ~4.0 GB of neighbours for 4L (1020+2418+628 MiB) against ~0.8 GB for 16L. Both halves wrong: the 2418 MiB entry is the measuring process itself, and the comparison mixed a pre-snapshot with a post-snapshot. Corrected: 1132 vs 916 MiB originally, 1407 vs 1113 MiB re-measured (220-290 MiB asymmetry).",
     "remeasured": {
       "4L_d2048": {
         "2048": 1.3234,
@@ -87,6 +77,7 @@
     "logs": [
       "quiet_4L_d2048.log",
       "quiet_16L_d512.log"
-    ]
+    ],
+    "conditions": "Re-measurement session: both shapes ran with a persistent neighbour of ~800-1030 MiB; the earlier 'matched occupancy / 0% util / 1342 MiB' characterisation was NOT supported by the logs and is withdrawn."
   }
 }
