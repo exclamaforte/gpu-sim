@@ -1,16 +1,15 @@
 GATE TREE: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-a5zj
-GATE TIP: aabb20c733fc127590e4c14a0b744c892c0e63c9
-GATE HEAD: aabb20c a5zj: tie error_budget curve to facts; correct occup
-GATE PID: 1143563
-GATE START: 2026-10-29T22:42:11Z
-GATE DIRTY-AT-START: 1d0537ec41e18b5b9e04d3da84127bb50a52db016141810936cad8fe1cda177c
-GATE DIRTY-AT-START PATHS: docs/model_facts.json scripts/check_docs_model_numbers.py scripts/error_budget.py
+GATE TIP: 1b675c742ced61b3ebad2720682bf10a12f04b5d
+GATE HEAD: 1b675c7 a5zj: tie error_budget curve to facts; correct occup
+GATE PID: 819574
+GATE START: 2026-10-30T02:03:40Z
+GATE DIRTY-AT-START: a812ffa76cc41080a3f0308c36ad90eaec885cfea45eb3e63d7a45190a94e511
+GATE DIRTY-AT-START PATHS: experiments/gpu-sim-a5zj/negative_control.log scripts/error_budget.py
 GATE DIFFSTAT-AT-START:
-   docs/model_facts.json               |  4 ++--
-   scripts/check_docs_model_numbers.py | 17 +++++++++++++++++
-   scripts/error_budget.py             |  2 +-
-   3 files changed, 20 insertions(+), 3 deletions(-)
-=== gpu-sim gates 2026-10-29T22:42Z ===
+   experiments/gpu-sim-a5zj/negative_control.log | 50 ++++-----------------------
+   scripts/error_budget.py                       |  2 +-
+   2 files changed, 7 insertions(+), 45 deletions(-)
+=== gpu-sim gates 2026-10-30T02:03Z ===
 (fast mode: test suite skipped)
 docs section 0 vs model                    FAIL
     FAST MODE: checking prose against committed docs/model_facts.json (artifact-vs-code recompute skipped; set CI_GATES_FULL=1 for full).
@@ -31,11 +30,11 @@ byte reconciliation (advisory)             PASS
 byte reconciliation cp (advisory)          PASS
 MANIFEST FAILED: 9 passed, expected 10
 ran: docs section 0 vs model close_audit unchanged close audit (concrete artifacts) interposer guard uniqueness libfakegpu freshness prose-number provenance claims register radius prose no vacuous assertions gate citations worktree hygiene byte reconciliation byte reconciliation cp
-GATE END: 2026-10-29T22:42:32Z
-GATE DIRTY-AT-END: 1d0537ec41e18b5b9e04d3da84127bb50a52db016141810936cad8fe1cda177c
-GATE DIRTY-AT-END PATHS: docs/model_facts.json scripts/check_docs_model_numbers.py scripts/error_budget.py
+GATE END: 2026-10-30T02:03:59Z
+GATE DIRTY-AT-END: 90c75b04b6622070930b2e4e4990b37a1285a83bd02e76a94c8b790f502a505f
+GATE DIRTY-AT-END PATHS: experiments/gpu-sim-a5zj/negative_control.log scripts/error_budget.py
 GATE DIFFSTAT-AT-END:
-   docs/model_facts.json               |  4 ++--
-   scripts/check_docs_model_numbers.py | 17 +++++++++++++++++
-   scripts/error_budget.py             |  2 +-
-   3 files changed, 20 insertions(+), 3 deletions(-)
+   experiments/gpu-sim-a5zj/negative_control.log | 34 ++++++++++-----------------
+   scripts/error_budget.py                       |  2 +-
+   2 files changed, 13 insertions(+), 23 deletions(-)
+FAIL: dirty digest changed during the run (start=a812ffa76cc41080a3f0308c36ad90eaec885cfea45eb3e63d7a45190a94e511 end=90c75b04b6622070930b2e4e4990b37a1285a83bd02e76a94c8b790f502a505f)
