@@ -41,6 +41,7 @@ for mname, model in sa.MODELS.items():
 
 metrics = {
     "bead": "gpu-sim-elq2",
+    "gate": "n/a (CPU-only fabric-term sweep; verified by gate --fast on the landing tree)",
     "fabric": "100x8",
     "n_gpus": n,
     "factors": FACTORS,
