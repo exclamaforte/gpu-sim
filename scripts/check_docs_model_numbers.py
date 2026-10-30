@@ -1306,11 +1306,26 @@ def main() -> int:
     # act_shape claim must agree with facts.scaleout_opt.measured_act_shape.provisional.
     try:
         _mas = facts.get("scaleout_opt", {}).get("measured_act_shape", {})
-        _prov = _mas.get("provisional", None)
-        if _prov is not None:
+        # FAIL-CLOSED (gpu-sim-0zv0 review): a MISSING key is a stale artifact, not a
+        # reason to skip. The generator defaults this flag, so if it is absent the
+        # committed facts predate the guard and the check must not silently vanish.
+        if "provisional" not in _mas:
+            print("FAIL: facts.scaleout_opt.measured_act_shape.provisional is MISSING "
+                  "(stale artifact; the generator emits it) -- cannot verify the prose qualifier")
+            return 1
+        _prov = _mas["provisional"]
+        if True:
             _doctext = open(DOC).read()
+            # FAIL-CLOSED: the anchor string is the guard's only link to the paragraph.
+            # If it is absent (heading reworded) we must NOT fall back to an empty
+            # paragraph and pass -- that turns the whole check into a no-op.
             _i = _doctext.find("Shape dependence (gpu-sim-006j)")
-            _para = _doctext[_i:_doctext.find("\n\n", _i)] if _i >= 0 else ""
+            if _i < 0:
+                print("FAIL: prose-qualifier anchor 'Shape dependence (gpu-sim-006j)' not found in the doc "
+                      "(heading reworded?) -- the guard cannot locate the claim it must check")
+                return 1
+            _j = _doctext.find("\n\n", _i)
+            _para = _doctext[_i:_j] if _j >= 0 else _doctext[_i:]
             _doc_has_prov = "provisional" in _para.lower()
             if bool(_prov) != _doc_has_prov:
                 print("FAIL: prose qualifier mismatch for act_shape 'provisional'")
