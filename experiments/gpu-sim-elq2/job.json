@@ -1,0 +1,20 @@
+{
+  "bead": "gpu-sim-elq2",
+  "cpu_runs": [
+    {
+      "command": "python3 -m unittest tests.test_elq2_100x8_fabric",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-elq2/output.log"
+    },
+    {
+      "command": "python3 experiments/gpu-sim-elq2/gen_metrics.py",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-elq2/output.log"
+    },
+    {
+      "command": "bash experiments/gpu-sim-elq2/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-elq2/output.log"
+    }
+  ]
+}
