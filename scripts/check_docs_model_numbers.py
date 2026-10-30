@@ -315,6 +315,7 @@ def compute_facts():
             "curve_act_factor_by_seq": _d.get("curve_act_factor_by_seq"),
             "shape_dependence": _d.get("shape_dependence"),
             "finding": _d.get("finding"),
+            "provisional": _d.get("provisional", True),
             "mechanism": _d.get("mechanism"),
         }
 
@@ -1299,6 +1300,25 @@ def main() -> int:
         print("OK: error_budget curve tied to facts (orig shape)")
     except Exception as _e:
         print(f"FAIL: could not verify error_budget curve: {_e}")
+        return 1
+
+    # gpu-sim-0zv0: prose-qualifier guard. The word 'provisional' attached to the
+    # act_shape claim must agree with facts.scaleout_opt.measured_act_shape.provisional.
+    try:
+        _mas = facts.get("scaleout_opt", {}).get("measured_act_shape", {})
+        _prov = _mas.get("provisional", None)
+        if _prov is not None:
+            _doctext = open(DOC).read()
+            _i = _doctext.find("Shape dependence (gpu-sim-006j)")
+            _para = _doctext[_i:_doctext.find("\n\n", _i)] if _i >= 0 else ""
+            _doc_has_prov = "provisional" in _para.lower()
+            if bool(_prov) != _doc_has_prov:
+                print("FAIL: prose qualifier mismatch for act_shape 'provisional'")
+                print(f"  facts.provisional={_prov}, doc has 'provisional'={_doc_has_prov}")
+                return 1
+            print("OK: prose qualifier 'provisional' consistent with facts")
+    except Exception as _e:
+        print(f"FAIL: could not verify prose qualifier: {_e}")
         return 1
 
     text = open(DOC).read()
