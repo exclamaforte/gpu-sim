@@ -160,3 +160,17 @@ def test_using_part_of_the_spec_is_warned():
         "using half the rack must be stated, not silent")
     assert r["config"]["micro_batch"] == 4, (
         "global batch 8 over dp*pp=2 must report per-device micro-batch 4")
+
+
+class TestCy0L3Memory:
+    def test_7b_tp1_refused_tp8_accepted(self):
+        """dhfo: 7B at tp=1 must be refused (112 GB > 80 GB); at tp=8 it fits."""
+        import cy0_l3
+        cfg = {"n_layers": 32, "param_bytes": 7e9 * 2}
+        try:
+            cy0_l3.plan(cfg, str(SPEC_PATH), dp=1, tp=1, pp=1, ep=1, zero_stage=0, seq=8192, batch=16)
+            raise AssertionError("7B tp=1 should have been refused")
+        except cy0_l3.PlanError as e:
+            assert "112.0 GB" in str(e)
+        r = cy0_l3.plan(cfg, str(SPEC_PATH), dp=1, tp=8, pp=1, ep=1, zero_stage=0, seq=8192, batch=16)
+        assert r["predicted"] is True
