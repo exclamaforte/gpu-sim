@@ -198,7 +198,7 @@ def test_pp_bubble_never_exceeds_the_step():
     """Absurdity guard: fill+drain cannot exceed the whole step."""
     import cy0_l3
     for nl, pp in ((8, 2), (8, 4), (2, 2), (1, 4)):
-        r = cy0_l3.plan({"n_layers": nl}, "specs/h100_rack.json", 1, 1, pp,
+        r = cy0_l3.plan({"n_layers": nl, "param_bytes": 1e9 * 2}, "specs/h100_rack.json", 1, 1, pp,
                         seq=2048, batch=8)
         assert 0.0 <= r["bubble_seconds"] <= r["total_seconds"], (nl, pp, r)
 
