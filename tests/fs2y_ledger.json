@@ -3,12 +3,12 @@
   "epic_rule": "Containers (issue_type=epic) are excluded; pending entries never count as passing.",
   "entries": [
     {
-      "name": "dhfo_memory_check",
-      "beads": ["gpu-sim-dhfo"],
+      "name": "bch9_fabric_band",
+      "beads": ["gpu-sim-bch9"],
       "state": "passing",
-      "test": "test_cy0_l3.TestCy0L3Memory.test_7b_tp1_refused_tp8_accepted",
+      "test": "experiments.gpu_sim_bch9.test.TestBch9.test_reproducible",
       "bound_calls": 1,
-      "mutation": "dhfo_memory_check"
+      "mutation": "bch9_fabric_band"
     }
   ]
 }

@@ -1020,3 +1020,5 @@ N32_seq8192: CP [0.4486, 1.4737], PP [0.5439, 2.229]
 N8_seq32768: CP [0.1964, 4.8104], PP [0.3645, unbounded]
 N8_seq8192: CP [0.5415, 1.5244], PP [0.8255, unbounded]
 <!-- RADIUS-PROSE:END -->
+
+**Fabric-band robustness (gpu-sim-bch9).** Across 43 unique fabric factors spanning 0.811 to 1.233, 5 of 12 100x8 rows flip their winning parallelism (7 are fabric-invariant); worst-case regret of following the f=1 recommendation is 8.79% (405b default all_gather batch=1). Robustness is not monotone in the base margin (margin_separates=false): the flipped 405b default batch=1 row has a 2.58% base margin while the invariant 8b ring batch=1 row has a 2.99% margin, so a larger base margin does not guarantee fabric-invariance.
