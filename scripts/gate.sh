@@ -125,6 +125,7 @@ if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
 fi
 run_hard "docs section 0 vs model" python3 scripts/check_docs_model_numbers.py
+run_hard "append-only records" python3 scripts/check_append_only.py
 run_hard "close_audit unchanged" python3 scripts/check_close_audit_unchanged.py
 run_hard "close audit (concrete artifacts)" python3 scripts/close_requires_artifact.py
 run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py
@@ -139,7 +140,7 @@ run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace ex
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
 # gpu-sim-gman: manifest comparison.
-EXPECTED_HARD=11
+EXPECTED_HARD=12
 EXPECTED_ADVISORY=3
 if [ $FAST -eq 1 ]; then
   EXPECTED_TOTAL=$((EXPECTED_HARD - 1 + EXPECTED_ADVISORY))

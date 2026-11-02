@@ -1257,6 +1257,14 @@ def main() -> int:
         facts = compute_facts()
         jsontext = json.dumps(facts, indent=2) + "\n"
         if args.write:
+            # preserve append-only retirement list across regeneration
+            try:
+                _existing = json.loads(open(FACTS_JSON).read())
+                if isinstance(_existing.get("_retired_fact_blocks"), list):
+                    facts["_retired_fact_blocks"] = _existing["_retired_fact_blocks"]
+                    jsontext = json.dumps(facts, indent=2) + "\n"
+            except Exception:
+                pass
             _tmp = FACTS_JSON + ".tmp"
             with open(_tmp, "w") as fh:
                 fh.write(jsontext)
