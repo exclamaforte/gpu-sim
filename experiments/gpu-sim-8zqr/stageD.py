@@ -265,11 +265,11 @@ if not paired_all_neg:
     verdict = "DOES_NOT_GENERALIZE" if verdict == "GENERALIZES" else verdict
 
 results["verdict"] = verdict
-results["verdict_reason"] = (f"Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution "
-  f"(strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). "
-  f"Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. "
-  f"Margin collapse: in-distribution advantage 7.3x (0.3709 vs 2.7015) -> off-distribution 1.0-1.15x; error inflates 1.58x/2.97x/7.17x. "
-  f"Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case.")
+results["verdict_reason"] = ("Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution "
+  "(strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). "
+  "Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. "
+  "Margin collapse: in-distribution advantage 7.3x (0.3709 vs 2.7015) -> off-distribution 1.0-1.15x; error inflates 1.58x/2.97x/7.17x. "
+  "Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case.")
 
 # write
 out = HERE / "stageD_results.json"
