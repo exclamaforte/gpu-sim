@@ -82,4 +82,12 @@ A full `bd show` costs 50-150KB per bead and replays on every turn until compact
   transcript is near the resume cap; verdicts live in bead comments and `.lab/tmp/review-<bead>/`,
   so a reset costs nothing evidential. Then send an itemised checklist, not "review again".
 - Reset a role BEFORE a long multi-stage bead, never during it: mid-flight resets throw
+- A GPU job killed `killed_underused` is a MEASUREMENT-DESIGN signal before it is an ops
+  problem: microsecond kernels measured at a small working set are host-bound (2026-11-02:
+  a 16KB-minimum corpus ran at 1.3% util, 350 rows in 295 s, killed by the 10% floor). Check
+  the size/regime range FIRST: if the measured work is too small to occupy the GPU, no flag
+  fixes the science. Keep the measured regime identical to the reference corpus, or the
+  comparison silently becomes two variables. `GPQUEUE_MIN_GPU_UTIL=none` is set at SUBMIT time
+  (env var, stored per job) and is legitimate only for short bounded measurement chunks with
+  the reason declared in the job description -- never for a long low-util hold on the shared GPU.
   away stage reasoning, and an over-cap transcript is unresumable (archived and lost).
