@@ -26,37 +26,38 @@ class Test8zqr:
     def test_all_better_tie_low_deg_generalizes(self):
         pf = {
             "a": _pf("BETTER", 1.2, [-0.2, -0.01], -0.1),
-            "b": _pf("TIE", 1.5, [-0.1, 0.05], -0.02),
+            "b": _pf("TIE", 1.5, [-0.05, 0.05], -0.02),
         }
-        assert stageD.aggregate_verdict(pf, mde_exceeds_effect=False) == "GENERALIZES"
+        assert stageD.aggregate_verdict(pf, delta=0.10) == "GENERALIZES"
 
     def test_all_better_tie_high_deg_degradation(self):
         pf = {
             "a": _pf("BETTER", 1.2, [-0.2, -0.01], -0.1),
-            "b": _pf("TIE", 3.0, [-0.1, 0.05], -0.02),
+            "b": _pf("TIE", 3.0, [-0.05, 0.05], -0.02),
         }
-        assert stageD.aggregate_verdict(pf, mde_exceeds_effect=False) == "GENERALIZES_WITH_DEGRADATION"
+        assert stageD.aggregate_verdict(pf, delta=0.10) == "GENERALIZES_WITH_DEGRADATION"
 
     def test_any_worse_does_not_generalize(self):
         pf = {
             "a": _pf("BETTER", 1.2, [-0.2, -0.01], -0.1),
-            "b": _pf("WORSE", 3.0, [0.01, 0.2], 0.1),
+            "b": _pf("WORSE", 3.0, [0.11, 0.2], 0.1),
         }
-        assert stageD.aggregate_verdict(pf, mde_exceeds_effect=False) == "DOES_NOT_GENERALIZE"
+        assert stageD.aggregate_verdict(pf, delta=0.10) == "DOES_NOT_GENERALIZE"
 
-    def test_mde_exceeds_effect_inconclusive(self):
+    def test_unresolved_inconclusive(self):
         pf = {
             "a": _pf("BETTER", 1.2, [-0.2, -0.01], -0.1),
+            "b": _pf("UNRESOLVED", 1.5, [-0.05, 0.15], -0.02),
         }
-        assert stageD.aggregate_verdict(pf, mde_exceeds_effect=True) == "INCONCLUSIVE"
+        assert stageD.aggregate_verdict(pf, delta=0.10) == "INCONCLUSIVE"
 
     def test_family_order_invariance(self):
         pf1 = {
-            "a": _pf("TIE", 3.0, [-0.1, 0.05], -0.02),
+            "a": _pf("TIE", 3.0, [-0.05, 0.05], -0.02),
             "b": _pf("BETTER", 1.2, [-0.2, -0.01], -0.1),
         }
         pf2 = {
             "b": _pf("BETTER", 1.2, [-0.2, -0.01], -0.1),
-            "a": _pf("TIE", 3.0, [-0.1, 0.05], -0.02),
+            "a": _pf("TIE", 3.0, [-0.05, 0.05], -0.02),
         }
-        assert stageD.aggregate_verdict(pf1) == stageD.aggregate_verdict(pf2)
+        assert stageD.aggregate_verdict(pf1, delta=0.10) == stageD.aggregate_verdict(pf2, delta=0.10)

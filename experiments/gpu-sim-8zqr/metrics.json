@@ -270,8 +270,8 @@
         "verdict": "INCONCLUSIVE_LOW_N"
       }
     },
-    "verdict": "INCONCLUSIVE",
-    "verdict_reason": "aggregate_verdict=INCONCLUSIVE; see per_family_state, margin_collapse, floor_identity computed fields",
+    "verdict": "GENERALIZES_WITH_DEGRADATION",
+    "verdict_reason": "aggregate_verdict=GENERALIZES_WITH_DEGRADATION; verdict_rule_version=delta-0.10-v1; per_family labels in per_family_state; numbers in margin_collapse/floor_identity",
     "primary_statistic": "paired per-cell (bootstrap over (size,block) cells): delta = log_MAE_gbt - log_MAE_floor",
     "pooled_also_reported": {
       "strided_read": {
@@ -287,7 +287,7 @@
         "floor_mae_pooled": 2.7642269134521484
       }
     },
-    "aggregate_verdict": "INCONCLUSIVE",
+    "aggregate_verdict": "GENERALIZES_WITH_DEGRADATION",
     "margin_collapse": {
       "in_distribution_x": 2.907476,
       "off_distribution_min_x": 0.989434,
@@ -331,7 +331,8 @@
         "degradation_factor": 7.1742631382899
       }
     },
-    "mde_frame": "PRIMARY=bootstrap resolution of paired delta (mde_paired_*); pooled MDE (mde_pooled_*_context) reported as labelled context; INCONCLUSIVE trigger compares paired MDE vs paired effect."
+    "mde_frame": "PRIMARY=bootstrap resolution of paired delta (mde_paired_*); pooled MDE (mde_pooled_*_context) reported as labelled context; INCONCLUSIVE trigger compares paired MDE vs paired effect.",
+    "verdict_rule_version": "delta-0.10-v1"
   },
   "gpu_jobs": [
     {

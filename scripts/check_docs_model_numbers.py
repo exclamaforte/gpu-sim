@@ -497,7 +497,6 @@ def compute_facts():
             _implied = (6 * 8e9 * 8192) / (8 * PEAK) / b.compute
             facts["mfu_sensitivity"][tag]["implied_mfu"] = round(_implied, 3)
             facts["mfu_sensitivity"]["implied_mfu_pct"] = round(_implied * 100, 1)
-            _base = b.step_sum
     for tag, key in (("measured_5090", "ratio_at_measured"), ("typical_h100", "ratio_at_typical")):
         facts["mfu_sensitivity"][key] = round(
             facts["mfu_sensitivity"][tag]["step_ms"] / facts["mfu_sensitivity"]["implied_0.786"]["step_ms"], 2)
@@ -1312,6 +1311,23 @@ def main() -> int:
                 _bad.append(f"{_fam}.floor_mae")
         if _bad:
             print(f"FAIL: metrics.json disagrees with docs/model_facts.json (gpu_sim_8zqr): {', '.join(_bad)}")
+            return 1
+        # verdict-token guard: any verdict token in epic doc must equal aggregate_verdict
+        _agg = _m8c.get("results", {}).get("aggregate_verdict") or _m8c.get("results", {}).get("verdict")
+        import re as _re
+        _tokens = ["GENERALIZES_WITH_DEGRADATION", "DOES_NOT_GENERALIZE", "INCONCLUSIVE", "GENERALIZES"]
+        _epic = os.path.join(ROOT, "epic_u2o", "eval.md")
+        if os.path.exists(_epic):
+            _txt = open(_epic).read()
+            for _t in _tokens:
+                if _re.search(r"\b" + _re.escape(_t) + r"\b", _txt) and _t != _agg:
+                    print(f"FAIL: epic_u2o/eval.md contains verdict token {_t} != aggregate_verdict {_agg}")
+                    return 1
+        # model_facts.json verdict token
+        _mf = json.load(open(os.path.join(ROOT, "docs", "model_facts.json")))
+        _mfverdict = _mf.get("gpu_sim_8zqr", {}).get("verdict")
+        if _mfverdict is not None and _mfverdict != _agg:
+            print(f"FAIL: docs/model_facts.json verdict {_mfverdict} != aggregate_verdict {_agg}")
             return 1
     except Exception as _e:
         print(f"FAIL: metrics.json cross-check error: {_e}")

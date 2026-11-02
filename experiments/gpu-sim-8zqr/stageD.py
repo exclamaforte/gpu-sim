@@ -6,21 +6,42 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 
-def aggregate_verdict(per_family, mde_exceeds_effect=False):
-    """Monotone aggregation. No residual demotion.
+DELTA = 0.10  # pre-registered material-loss margin (indifference threshold), log-MAE units
 
-    per_family: dict family -> {label: BETTER|TIE|WORSE, degradation_factor_gbt, paired_delta_ci, ...}
-    Returns one of GENERALIZES / GENERALIZES_WITH_DEGRADATION / DOES_NOT_GENERALIZE / INCONCLUSIVE.
+def aggregate_verdict(per_family, delta=DELTA, mde_exceeds_effect=False):
+    """Threshold-anchored aggregation (PI correction). mde_exceeds_effect is diagnostic only.
+
+    Per family from paired CI [lo,hi] of log_MAE_gbt - log_MAE_floor:
+      BETTER if hi < 0
+      WORSE if lo > delta
+      TIE if hi <= delta and not BETTER
+      UNRESOLVED if hi > delta
+    Aggregate: any WORSE -> DOES_NOT_GENERALIZE; else any UNRESOLVED -> INCONCLUSIVE;
+               else any degradation>2.0 -> GENERALIZES_WITH_DEGRADATION; else GENERALIZES.
+    Stores per_family[f]['label'].
     """
-    labels = [per_family[f]["label"] for f in per_family]
+    labels = []
+    for f in per_family:
+        ci = per_family[f]["paired_delta_ci"]
+        lo, hi = ci[0], ci[1]
+        if hi < 0:
+            lab = "BETTER"
+        elif lo > delta:
+            lab = "WORSE"
+        elif hi <= delta:
+            lab = "TIE"
+        else:
+            lab = "UNRESOLVED"
+        per_family[f]["label"] = lab
+        labels.append(lab)
     if any(l == "WORSE" for l in labels):
         return "DOES_NOT_GENERALIZE"
-    if mde_exceeds_effect:
+    if any(l == "UNRESOLVED" for l in labels):
         return "INCONCLUSIVE"
     max_deg = max(per_family[f]["degradation_factor_gbt"] for f in per_family) if per_family else 0.0
-    if max_deg <= 2.0:
-        return "GENERALIZES"
-    return "GENERALIZES_WITH_DEGRADATION"
+    if max_deg > 2.0:
+        return "GENERALIZES_WITH_DEGRADATION"
+    return "GENERALIZES"
 
 if __name__ == "__main__":
     # seen data
@@ -269,39 +290,18 @@ if __name__ == "__main__":
     # Overall powered verdict
     all_generalize = all(results["per_family"][f]["gbt_mae_mean_over_seeds"] < results["per_family"][f]["floor_mae_mean_over_seeds"] for f in powered_families)
     max_deg = max(results["per_family"][f]["degradation_factor_gbt"] for f in powered_families)
-    significant_loss = any(results["per_family"][f]["paired_delta_ci"][0] > 0 for f in powered_families)
-
-    # per-family MDE (paired, log-space) at achieved n
+    # per-family MDE (paired, log-space) at achieved n -- DIAGNOSTIC ONLY
     mde_paired = {}
-    mde_exceeds_effect = False
     for f in powered_families:
-        rows_fam = [r for r in powered if r["family"] == f and r["target_usable"]]
-        cells = {}
-        for r in rows_fam:
-            cells.setdefault((r["size"], r["block"]), []).append(r)
-        deltas = []
-        for (sz, blk), rs in cells.items():
-            # paired delta per cell: mean log gbt - mean log floor (seed0)
-            pass
-        # approximate paired MDE from per-row paired deltas if available; fallback to pooled
         pf = results["per_family"][f]
         ci = pf["paired_delta_ci"]
-        # MDE in log space = half-width of CI-ish: use 1.96*sigma/sqrt(n_cells). Compute from bootstrap width.
-        # bootstrap CI width = 1.96 * sigma_boot; MDE_log = (ci[1]-ci[0])/2 is a proxy for 1.96*sigma/sqrt(n).
         mde_log = (ci[1] - ci[0]) / 2.0
         mde_paired[f] = mde_log
-        effect_log = abs(pf["paired_delta_mean"])
-        if mde_log > effect_log:
-            mde_exceeds_effect = True
         results["per_family"][f]["mde_paired_log_at_achieved_n"] = round(mde_log, 6)
-        results["per_family"][f]["mde_exceeds_effect"] = bool(mde_log > effect_log)
+        results["per_family"][f]["mde_exceeds_effect"] = bool(mde_log > abs(pf["paired_delta_mean"]))
 
-    # label already stored in per_family (BETTER/TIE/WORSE)
-    for f in powered_families:
-        ci = results["per_family"][f]["paired_delta_ci"]
-        results["per_family"][f]["label"] = "BETTER" if ci[1] < 0 else ("WORSE" if ci[0] > 0 else "TIE")
+    verdict = aggregate_verdict(results["per_family"], delta=DELTA)
 
-    verdict = aggregate_verdict(results["per_family"], mde_exceeds_effect=mde_exceeds_effect)
 
     # computed fields (no literals in verdict)
     seen_gbt_mae = results["seen_reference"]["gbt_mae"]
@@ -328,7 +328,8 @@ if __name__ == "__main__":
         } for f in powered_families}
     results["aggregate_verdict"] = verdict
     results["verdict"] = verdict
-    results["verdict_reason"] = "aggregate_verdict=" + verdict + "; see per_family_state, margin_collapse, floor_identity computed fields"
+    results["verdict_rule_version"] = "delta-0.10-v1"
+    results["verdict_reason"] = "aggregate_verdict=" + verdict + "; verdict_rule_version=delta-0.10-v1; per_family labels in per_family_state; numbers in margin_collapse/floor_identity"
 
     # write
     # write
@@ -342,12 +343,13 @@ if __name__ == "__main__":
     strict = "GENERALIZES" if all(results["per_family"][f]["gbt_mae_mean_over_seeds"] < results["per_family"][f]["floor_mae_mean_over_seeds"] for f in powered_families) else "DOES_NOT_GENERALIZE"
     stat = results["verdict"]
     print("STRICT (point-estimate):", strict, "| STATISTICAL (paired CI):", stat)
-    print("per-family: better/tie/worse by paired CI:")
+    print("per-family: threshold-anchored labels (delta=0.10):")
     for f in powered_families:
         ci = results["per_family"][f]["paired_delta_ci"]
-        label = "BETTER" if ci[1] < 0 else ("WORSE" if ci[0] > 0 else "TIE")
+        label = results["per_family"][f]["label"]
         print(f"  {f}: {label} (paired CI [{ci[0]:.4f}, {ci[1]:.4f}])")
-    print(json.dumps({k: results[k] for k in ["verdict","verdict_reason"]}, indent=2))
+    print("verdict_rule_version:", results["verdict_rule_version"])
+    print(json.dumps({k: results[k] for k in ["verdict","verdict_reason","aggregate_verdict"]}, indent=2))
     for f in powered_families:
         r = results["per_family"][f]
         print(f, "n=", r["n_usable"], "gbt=", round(r["gbt_mae_mean_over_seeds"],4), "floor=", round(r["floor_mae_mean_over_seeds"],4), "deg=", round(r["degradation_factor_gbt"],2), "paired_ci=", [round(x,4) for x in r["paired_delta_ci"]])
