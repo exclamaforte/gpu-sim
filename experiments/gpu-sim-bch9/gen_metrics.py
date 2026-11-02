@@ -242,5 +242,7 @@ print("n_rows_flipping_5:", n_flip5)
 print("elq2 mismatches:", len(mismatch))
 for mm in mismatch:
     print("  MISMATCH:", mm)
+if mismatch:
+    sys.exit(1)
 print("worst_regret_max:", worst_regret_max)
 print("margin_separates:", margin_separates, "threshold:", margin_threshold)
