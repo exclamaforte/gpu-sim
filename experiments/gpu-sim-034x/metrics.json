@@ -1,0 +1,49 @@
+{
+  "bead": "gpu-sim-034x",
+  "files_covered": [
+    "docs/model_facts.json",
+    "tests/fs2y_ledger.json"
+  ],
+  "protected_keys": {
+    "docs/model_facts.json": {
+      "base_count": 45,
+      "head_count": 45,
+      "added": [],
+      "removed": []
+    },
+    "tests/fs2y_ledger.json": {
+      "base_count": 3,
+      "head_count": 4,
+      "added": [
+        "append_only_guard"
+      ],
+      "removed": []
+    }
+  },
+  "plant_runs": [
+    {
+      "name": "clean (no unretired losses)",
+      "expected_rc": 0,
+      "output": "OK: append-only check passed (no unretired losses)"
+    },
+    {
+      "name": "unretired deletion (fabric_band_robustness removed)",
+      "expected_rc": 1,
+      "output": "FAIL: docs/model_facts.json lost fact block 'fabric_band_robustness' (not retired)"
+    },
+    {
+      "name": "retired deletion (fabric_band_robustness retired with reason+commit)",
+      "expected_rc": 0,
+      "output": "OK: append-only check passed (no unretired losses)"
+    }
+  ],
+  "historical_verdicts": {
+    "_note": "historical runs (not part of the plant set above); kept as data with commit hashes",
+    "06a7e34": "FAIL: fabric_band_robustness lost (not retired)",
+    "d0f0c6e (base aeb96db)": "FAIL: dhfo_memory_check lost (not retired)",
+    "master": "PASS: no unretired losses"
+  },
+  "retirement_mechanism": "explicit _retired_fact_blocks (model_facts) / retired (ledger) list with reason+commit",
+  "gate": "n/a (CPU-only guard, no GPU run)",
+  "protected_keys_computed_via": "deep-compare HEAD vs merge-base (base counts, HEAD counts, added/removed sets)"
+}
