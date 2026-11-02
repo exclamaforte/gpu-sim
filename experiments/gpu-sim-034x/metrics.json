@@ -5,8 +5,8 @@
     "tests/fs2y_ledger.json"
   ],
   "protected_keys": {
-    "docs/model_facts.json": 44,
-    "tests/fs2y_ledger.json": 2
+    "docs/model_facts.json": 45,
+    "tests/fs2y_ledger.json": 4
   },
   "historical_verdicts": {
     "06a7e34": "FAIL: fabric_band_robustness lost (not retired)",
@@ -14,5 +14,6 @@
     "master": "PASS: no unretired losses"
   },
   "retirement_mechanism": "explicit _retired_fact_blocks (model_facts) / retired (ledger) list with reason+commit",
-  "gate": "n/a (CPU-only guard, no GPU run)"
+  "gate": "n/a (CPU-only guard, no GPU run)",
+  "protected_keys_computed_via": "deep-compare HEAD vs merge-base (count of keys/entries at HEAD)"
 }
