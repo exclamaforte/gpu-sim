@@ -59,3 +59,27 @@ A full `bd show` costs 50-150KB per bead and replays on every turn until compact
 - Before approving any long GPU run, look up its smoke job in the gpqueue history (`~/.local/state/gpqueue/jobs/*.json`) and its measured tokens/s. No smoke job id + measured rate in the bead = not approved. A condition you set ("GPU smoke first") is checked, not assumed (2026-10-08: 1vv.4 ran 10 h with no smoke at all).
 - Before approving any job design, ask what is lost if the queue kills it at any moment (trial cutoff, max-runtime, cancel, preempt). More than one training step is a bug: the trainer checkpoints on SIGTERM/SIGUSR1, and the next job resumes from the newest checkpoint. (2026-10-09, user escalation: the PI's 'trials write only to TMPDIR' directive made every trial's training disposable; 10 training trials were killed and redone from scratch.)
 - A trial exists so the implementer inspects throughput/MFU before the full job runs. Never design that inspection away (no auto-release, no trial-promotion, no trial-skipping), even to save an implementer turn. Saving the trial's progress is done by checkpointing, not by skipping the review.
+
+## Lab mechanics learned the hard way (2026-11-01)
+
+- `needs-review` / `needs-rework` are BEAD LABELS, not statuses. The reviewer's queue is
+  `bd list -l needs-review`. Setting `--status needs-review` invents a nonstandard status
+  that the digest reports as "unknown status (unresolved)" forever; the correct state for a
+  bead under review is status `open` (or `in_progress`) plus the label.
+- A bead under review still sits in `bd ready`, so the daemon can hand it back to the
+  implementer as fresh work. Suppress that with `lab hold <bead> "<reason>"` (PI-only,
+  worker-wake filter; `bd ready` still lists it, the daemon does not).
+- Recurring submit refusal "daemon stale (loaded X vs on-disk Y)" is by design and
+  directional: it fires only when the running daemon is OLDER than the on-disk lab package,
+  which happens every time the pi-research-lab project lands a tool commit. Workers cannot
+  restart the daemon. Re-arm with `lab restart-daemon --if-stale --now`, then wake the
+  implementer immediately -- the window is short because their next land re-stales us.
+  Protocol: on a stale refusal the implementer writes one bead comment, messages
+  "restart-daemon needed" and stops; it must not retry in a loop or redo the analysis.
+- A stalled review looks like `needs-review 1` with the reviewer `busy=False` and an old
+  gate file (`.lab/gates/<bead>.json`). The round-N wake is often consumed while the
+  reviewer was busy with round N-1. Reset it (`lab reset reviewer --reason ...`) when its
+  transcript is near the resume cap; verdicts live in bead comments and `.lab/tmp/review-<bead>/`,
+  so a reset costs nothing evidential. Then send an itemised checklist, not "review again".
+- Reset a role BEFORE a long multi-stage bead, never during it: mid-flight resets throw
+  away stage reasoning, and an over-cap transcript is unresumable (archived and lost).
