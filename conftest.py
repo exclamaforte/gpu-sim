@@ -12,11 +12,19 @@ from pathlib import Path
 import pytest
 
 # gpu-sim-x1v: refuse to run tests against a stale libfakegpu.so
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from scripts.check_libfakegpu_fresh import assert_fresh
-
-
 REPO = Path(__file__).resolve().parent
+sys.path.insert(0, str(REPO))
+
+# gpu-sim-1upd: redirect bytecode cache to a gitignored project-local tree so
+# nothing lands under experiments/ (the lab's untracked-path guard would
+# otherwise flag gitignored __pycache__ dirs as untracked). Subprocesses inherit
+# via os.environ.setdefault. Set before conftest's own imports for tidiness.
+_PYCACHE_DIR = REPO / ".lab" / "tmp" / "pycache"
+_PYCACHE_DIR.mkdir(parents=True, exist_ok=True)
+sys.pycache_prefix = str(_PYCACHE_DIR)
+os.environ.setdefault("PYTHONPYCACHEPREFIX", str(_PYCACHE_DIR))
+
+from scripts.check_libfakegpu_fresh import assert_fresh
 
 
 def _git(*args):
