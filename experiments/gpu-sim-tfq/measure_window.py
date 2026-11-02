@@ -204,6 +204,8 @@ def main():
         "timestamp_end_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts_end)),
         "load_label": args.load_label if args.load_label else ("natural" if args.phase == "1" else "burners=%d" % args.burners),
         "repeat_of": args.repeat_of,
+        "host_cpus_os_view": len(aff),
+        "cpu_capacity_cpus": min(len(aff), (read_cgroup_quota().get("cpu_quota_cpus") or len(aff))),
         "effective_cpu_capacity": _effective_cpus_record(),
         "nproc_shell": 2,
         "affinity_mask": aff,
