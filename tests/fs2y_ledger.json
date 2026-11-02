@@ -43,14 +43,14 @@
       "mutation": "append_only_guard"
     },
     {
-      "name": "fs2y_mutations_tracked",
+      "name": "no_pycache_under_experiments",
       "beads": [
-        "gpu-sim-vb7x"
+        "gpu-sim-1upd"
       ],
       "state": "passing",
-      "test": "test_fs2y_mutations.test_every_non_pending_mutation_registered",
+      "test": "tests/test_no_pycache.py::test_lab_config_sets_pycache_suppression",
       "bound_calls": 1,
-      "mutation": "fs2y_mutations_tracked"
+      "mutation": "no_pycache_under_experiments"
     }
   ]
 }
