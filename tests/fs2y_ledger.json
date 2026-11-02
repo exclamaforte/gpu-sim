@@ -4,7 +4,9 @@
   "entries": [
     {
       "name": "dhfo_memory_check",
-      "beads": ["gpu-sim-dhfo"],
+      "beads": [
+        "gpu-sim-dhfo"
+      ],
       "state": "passing",
       "test": "test_cy0_l3.TestCy0L3Memory.test_7b_tp1_refused_tp8_accepted",
       "bound_calls": 1,
@@ -12,9 +14,11 @@
     },
     {
       "name": "bch9_fabric_band",
-      "beads": ["gpu-sim-bch9"],
+      "beads": [
+        "gpu-sim-bch9"
+      ],
       "state": "passing",
-      "test": "tests.test_bch9.TestBch9.test_metrics_reproducible",
+      "test": "test_bch9.TestBch9.test_metrics_reproducible",
       "bound_calls": 1,
       "mutation": "bch9_fabric_band"
     }
