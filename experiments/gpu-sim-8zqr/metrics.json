@@ -167,10 +167,11 @@
             "floor_mae": 0.5362094058640683
           }
         },
-        "mde_pooled_pct_at_achieved_n": 44.01,
         "label": "BETTER",
         "mde_paired_log_at_achieved_n": 0.080514,
-        "mde_exceeds_effect": false
+        "mde_exceeds_effect": false,
+        "mde_paired_pct_at_achieved_n": 8.38,
+        "mde_pooled_pct_at_achieved_n_context": 44.01
       },
       "interleaved_read": {
         "n_usable": 147,
@@ -205,10 +206,11 @@
             "floor_mae": 1.1397881255465396
           }
         },
-        "mde_pooled_pct_at_achieved_n": 31.92,
         "label": "TIE",
         "mde_paired_log_at_achieved_n": 0.074597,
-        "mde_exceeds_effect": true
+        "mde_exceeds_effect": true,
+        "mde_paired_pct_at_achieved_n": 7.74,
+        "mde_pooled_pct_at_achieved_n_context": 31.92
       },
       "block_cyclic": {
         "n_usable": 146,
@@ -243,10 +245,11 @@
             "floor_mae": 2.674782276142351
           }
         },
-        "mde_pooled_pct_at_achieved_n": 28.63,
         "label": "TIE",
         "mde_paired_log_at_achieved_n": 0.109865,
-        "mde_exceeds_effect": true
+        "mde_exceeds_effect": true,
+        "mde_paired_pct_at_achieved_n": 11.61,
+        "mde_pooled_pct_at_achieved_n_context": 28.63
       }
     },
     "probe": {
@@ -327,7 +330,8 @@
         "floor_mae": 2.7642269134521484,
         "degradation_factor": 7.1742631382899
       }
-    }
+    },
+    "mde_frame": "PRIMARY=bootstrap resolution of paired delta (mde_paired_*); pooled MDE (mde_pooled_*_context) reported as labelled context; INCONCLUSIVE trigger compares paired MDE vs paired effect."
   },
   "gpu_jobs": [
     {

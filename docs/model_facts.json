@@ -5079,7 +5079,7 @@
     }
   },
   "gpu_sim_8zqr": {
-    "verdict": "GENERALIZES_WITH_DEGRADATION",
+    "verdict": "INCONCLUSIVE",
     "seen_gbt_mae": 0.37091784447197473,
     "seen_floor_mae": 1.0784345865249634,
     "per_family_gbt_mae": {
@@ -5092,5 +5092,13 @@
       "interleaved_read": 1.0916727781295776,
       "block_cyclic": 2.7642269134521484
     }
+  },
+  "fabric_band_robustness": {
+    "n_rows": 12,
+    "n_rows_flipping_5": 5,
+    "n_rows_flipping_46": 5,
+    "n_invariant": 7,
+    "worst_regret_pct_max": 8.7891,
+    "margin_separates": false
   }
 }

@@ -870,17 +870,18 @@ def compute_facts():
     facts["fabric_precision"] = _fabric_precision(facts)
     facts["achieved_bw_measured"] = _measured_bw()
     # gpu-sim-8zqr: generalization verdict (read from committed metrics.json)
+    _m8_path = os.path.join(ROOT, "experiments", "gpu-sim-8zqr", "metrics.json")
     try:
-        _m8 = json.loads(open(os.path.join(ROOT, "experiments", "gpu-sim-8zqr", "metrics.json")).read())
-        facts["gpu_sim_8zqr"] = {
-            "verdict": _m8.get("results", {}).get("verdict"),
-            "seen_gbt_mae": _m8.get("results", {}).get("seen_reference", {}).get("gbt_mae"),
-            "seen_floor_mae": _m8.get("results", {}).get("seen_reference", {}).get("floor_mae"),
-            "per_family_gbt_mae": {k: v.get("gbt_mae_mean_over_seeds") for k, v in _m8.get("results", {}).get("per_family", {}).items()},
-            "per_family_floor_mae": {k: v.get("floor_mae_mean_over_seeds") for k, v in _m8.get("results", {}).get("per_family", {}).items()},
-        }
-    except Exception:
-        pass
+        _m8 = json.loads(open(_m8_path).read())
+    except Exception as _e:
+        raise RuntimeError(f"gpu-sim-8zqr metrics load failed ({_m8_path}): {_e}") from _e
+    facts["gpu_sim_8zqr"] = {
+        "verdict": _m8.get("results", {}).get("verdict"),
+        "seen_gbt_mae": _m8.get("results", {}).get("seen_reference", {}).get("gbt_mae"),
+        "seen_floor_mae": _m8.get("results", {}).get("seen_reference", {}).get("floor_mae"),
+        "per_family_gbt_mae": {k: v.get("gbt_mae_mean_over_seeds") for k, v in _m8.get("results", {}).get("per_family", {}).items()},
+        "per_family_floor_mae": {k: v.get("floor_mae_mean_over_seeds") for k, v in _m8.get("results", {}).get("per_family", {}).items()},
+    }
     return facts
 
 
@@ -1296,6 +1297,25 @@ def main() -> int:
         facts = json.load(open(FACTS_JSON))
         print("FAST MODE: checking prose against committed docs/model_facts.json "
               "(artifact-vs-code recompute skipped; set CI_GATES_FULL=1 for full).")
+    # gpu-sim-8zqr: cross-check metrics.json numbers against committed facts
+    try:
+        _m8c = json.loads(open(os.path.join(ROOT, "experiments", "gpu-sim-8zqr", "metrics.json")).read())
+        _f8 = facts.get("gpu_sim_8zqr", {})
+        _bad = []
+        if _f8.get("verdict") != _m8c.get("results", {}).get("verdict"):
+            _bad.append("verdict")
+        _pfm = _m8c.get("results", {}).get("per_family", {})
+        for _fam, _v in _pfm.items():
+            if _f8.get("per_family_gbt_mae", {}).get(_fam) != _v.get("gbt_mae_mean_over_seeds"):
+                _bad.append(f"{_fam}.gbt_mae")
+            if _f8.get("per_family_floor_mae", {}).get(_fam) != _v.get("floor_mae_mean_over_seeds"):
+                _bad.append(f"{_fam}.floor_mae")
+        if _bad:
+            print(f"FAIL: metrics.json disagrees with docs/model_facts.json (gpu_sim_8zqr): {', '.join(_bad)}")
+            return 1
+    except Exception as _e:
+        print(f"FAIL: metrics.json cross-check error: {_e}")
+        return 1
 
     # gpu-sim-a5zj: fast guard -- error_budget._ACT_FACTOR_BY_SEQ must equal the
     # facts' original-shape curve (int keys in code vs str keys in facts).
