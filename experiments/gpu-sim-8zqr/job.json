@@ -1,0 +1,46 @@
+{
+  "bead": "gpu-sim-8zqr",
+  "queue": "ts (task-spooler) on gpu 0 for Stage B/C; Stage D CPU",
+  "jobs": [
+    {
+      "job_id": "20261102t013006-7547482f",
+      "script": "measure.py (Stage B trial)",
+      "state": "finished",
+      "exit_code": 0,
+      "purpose": "strided_read trial 120 specs, 111 usable, MDE 9.2%",
+      "log": "~/.local/state/gpqueue/jobs/20261102t013006-7547482f.log"
+    },
+    {
+      "job_id": "20261102t043341-9fa18f0a",
+      "script": "run_fk_full.sh (Stage C powered)",
+      "state": "timed_out",
+      "exit_code": -15,
+      "purpose": "540 powered rows, 430 usable",
+      "log": "~/.local/state/gpqueue/jobs/20261102t043341-9fa18f0a.log"
+    },
+    {
+      "job_id": "20261102t043935-4beee32f",
+      "script": "run_fk_full.sh (finish)",
+      "state": "finished",
+      "exit_code": 0,
+      "purpose": "finish remaining powered rows",
+      "log": "~/.local/state/gpqueue/jobs/20261102t043935-4beee32f.log"
+    },
+    {
+      "job_id": "20261102t044304-eeea7851",
+      "script": "measure.py (probe arm)",
+      "state": "finished",
+      "exit_code": 0,
+      "purpose": "gemm_naive 24 + divergent_branch 56, 23 usable",
+      "log": "~/.local/state/gpqueue/jobs/20261102t044304-eeea7851.log"
+    }
+  ],
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-8zqr/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-8zqr/output.log"
+    }
+  ],
+  "measurement_version": 1
+}

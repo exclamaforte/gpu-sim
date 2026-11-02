@@ -1,0 +1,12 @@
+{
+  "verdict": "DOES_NOT_GENERALIZE",
+  "verdict_reason": "all powered families beat floor: False; max degradation 7.17; paired CIs all negative: False"
+}
+strided_read n= 137 gbt= 0.5877 floor= 0.6777 deg= 1.58 paired_ci= [-0.1678, -0.0068]
+interleaved_read n= 147 gbt= 1.1033 floor= 1.0917 deg= 2.97 paired_ci= [-0.0639, 0.0853]
+block_cyclic n= 146 gbt= 2.6611 floor= 2.7642 deg= 7.17 paired_ci= [-0.2109, 0.0089]
+probe gemm_naive INCONCLUSIVE_LOW_N ratio= 0.876743598764905
+probe divergent_branch INCONCLUSIVE_LOW_N ratio= 0.8311078918176228
+stageD_results.json present
+metrics.json results consistent with stageD_results.json
+metrics recompute OK

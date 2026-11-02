@@ -32,12 +32,23 @@
           "block_cyclic"
         ],
         "n_per_family_target": 300,
-        "min_size": 16384,
+        "min_size": 1048576,
         "verdict_allowed": [
           "GENERALIZES",
           "GENERALIZES_WITH_DEGRADATION",
           "DOES_NOT_GENERALIZE",
           "INCONCLUSIVE"
+        ],
+        "size_grid": {
+          "lo": 1048576,
+          "hi": 16777216,
+          "n_sizes": 60,
+          "source": "experiments/gpu-sim-1jf/gen_rows.py (lo=1<<20, hi=1<<24, 60 log-spaced sizes)"
+        },
+        "blocks": [
+          128,
+          256,
+          512
         ]
       },
       "probe": {
@@ -105,13 +116,156 @@
     "mde_pct_at_n300": 4.4,
     "rows_per_gpu_hour": 7920
   },
-  "stage_c_counts": {},
-  "results": {
-    "per_family": {},
-    "probe": {},
-    "union": {},
-    "verdict": "PENDING",
-    "verdict_reason": ""
+  "stage_c_counts": {
+    "powered": {
+      "strided_read": 137,
+      "interleaved_read": 147,
+      "block_cyclic": 146
+    },
+    "probe": {
+      "gemm_naive": 4,
+      "divergent_branch": 19
+    },
+    "small_size_bucket": 114
   },
-  "gpu_jobs": []
+  "results": {
+    "seen_reference": {
+      "gbt_mae": 0.37091784447197473,
+      "floor_mae": 1.0784345865249634
+    },
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "gbt_mae_mean_over_seeds": 0.5877040526199653,
+        "floor_mae_mean_over_seeds": 0.677695631980896,
+        "gbt_mae_seed0": 0.5877040526199653,
+        "floor_mae_seed0": 0.677695631980896,
+        "mape_gbt": 89.50738215212502,
+        "rmse_gbt": 0.6739560556042961,
+        "spearman_gbt": 0.9626993581732505,
+        "kendall_gbt": 0.8452988545011869,
+        "bootstrap_ci_gbt_mae": [
+          0.5329697989017841,
+          0.6417410788136451
+        ],
+        "paired_delta_mean": -0.08999163667465787,
+        "paired_delta_ci": [
+          -0.16784826849411547,
+          -0.006819644319166252
+        ],
+        "degradation_factor_gbt": 1.5844588266078155,
+        "degradation_factor_floor": 0.6284068041295232,
+        "size_decades": {
+          "4M-16M": {
+            "n": 108,
+            "gbt_mae": 0.5728153936882683,
+            "floor_mae": 0.7156873753616613
+          },
+          "1M-4M": {
+            "n": 29,
+            "gbt_mae": 0.6431514657586375,
+            "floor_mae": 0.5362094058640683
+          }
+        }
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "gbt_mae_mean_over_seeds": 1.1033305103609603,
+        "floor_mae_mean_over_seeds": 1.0916727781295776,
+        "gbt_mae_seed0": 1.1033305103609603,
+        "floor_mae_seed0": 1.0916727781295776,
+        "mape_gbt": 61.72566720399261,
+        "rmse_gbt": 1.35521964151326,
+        "spearman_gbt": 0.9069357801829326,
+        "kendall_gbt": 0.741645343598385,
+        "bootstrap_ci_gbt_mae": [
+          0.9789823102831047,
+          1.235096472057845
+        ],
+        "paired_delta_mean": 0.011657808092991646,
+        "paired_delta_ci": [
+          -0.06394048603046695,
+          0.08525318335066301
+        ],
+        "degradation_factor_gbt": 2.974595390339394,
+        "degradation_factor_floor": 1.012275377449894,
+        "size_decades": {
+          "4M-16M": {
+            "n": 111,
+            "gbt_mae": 1.1434005194274135,
+            "floor_mae": 1.0760677172516868
+          },
+          "1M-4M": {
+            "n": 36,
+            "gbt_mae": 0.9797813521254058,
+            "floor_mae": 1.1397881255465396
+          }
+        }
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "gbt_mae_mean_over_seeds": 2.6610622189292346,
+        "floor_mae_mean_over_seeds": 2.7642269134521484,
+        "gbt_mae_seed0": 2.6610622189292346,
+        "floor_mae_seed0": 2.7642269134521484,
+        "mape_gbt": 90.38728295250779,
+        "rmse_gbt": 2.795094748523427,
+        "spearman_gbt": 0.8472944300087937,
+        "kendall_gbt": 0.6879932333070272,
+        "bootstrap_ci_gbt_mae": [
+          2.5178547256158983,
+          2.8015210267044166
+        ],
+        "paired_delta_mean": -0.10316457980438527,
+        "paired_delta_ci": [
+          -0.21086433813511168,
+          0.008865625256148134
+        ],
+        "degradation_factor_gbt": 7.1742631382899,
+        "degradation_factor_floor": 2.563184589952098,
+        "size_decades": {
+          "4M-16M": {
+            "n": 110,
+            "gbt_mae": 2.7089378604232173,
+            "floor_mae": 2.7934995404984844
+          },
+          "1M-4M": {
+            "n": 36,
+            "gbt_mae": 2.5147755027212164,
+            "floor_mae": 2.674782276142351
+          }
+        }
+      }
+    },
+    "probe": {
+      "gemm_naive": {
+        "n_usable": 4,
+        "gbt_mae": 1.510638043493028,
+        "floor_mae": 1.7230100631713867,
+        "ratio_gbt_over_floor": 0.876743598764905,
+        "catastrophic": false,
+        "verdict": "INCONCLUSIVE_LOW_N"
+      },
+      "divergent_branch": {
+        "n_usable": 19,
+        "gbt_mae": 0.6504085775884175,
+        "floor_mae": 0.7825801968574524,
+        "ratio_gbt_over_floor": 0.8311078918176228,
+        "catastrophic": false,
+        "verdict": "INCONCLUSIVE_LOW_N"
+      }
+    },
+    "verdict": "DOES_NOT_GENERALIZE",
+    "verdict_reason": "all powered families beat floor: False; max degradation 7.17; paired CIs all negative: False",
+    "primary_statistic": "paired per-cell (bootstrap over (size,block) cells): delta = log_MAE_gbt - log_MAE_floor",
+    "pooled_also_reported": true
+  },
+  "gpu_jobs": [
+    "20261102t013006-7547482f",
+    "20261102t043341-9fa18f0a",
+    "20261102t043935-4beee32f",
+    "20261102t044304-eeea7851"
+  ],
+  "small_size_bucket_note": "114 rows from prior min-size-16384 run (strided_read 114); kept as named small-size bucket, excluded from powered arm (PI ruling: size confound).",
+  "gate": "n/a (GPU job ids in job.json; CPU recompute verified by run.sh)"
 }
