@@ -99,11 +99,15 @@
     },
     "degradation_rule": "degradation_factor = gbt_unseen_MAE / 0.3709 (seen-CV reference from 2al), computed per family AND for the analytic floor itself; the floor's own degradation must be reported.",
     "verdict_thresholds": {
-      "generalizes": "degradation_factor <= 2.0 AND beats analytic floor on every powered family",
-      "generalizes_with_degradation": "beats the floor everywhere but degradation_factor > 2.0 on >=1 family (named)",
-      "does_not_generalize": "loses to analytic floor on any powered family",
-      "probe_catastrophic": "GBT MAE > 2x analytic floor on the FULL spec set",
-      "probe_inconclusive_low_n": "otherwise (n=24/56, MDE ~15-20%)"
+      "delta_log_mae": 0.1,
+      "worse_requires": "paired CI lower bound > delta (lo > 0.10)",
+      "unresolved_requires": "paired CI upper bound > delta (hi > 0.10) and not BETTER",
+      "tie_requires": "paired CI upper bound <= delta (hi <= 0.10) and not BETTER",
+      "better_requires": "paired CI upper bound < 0 (hi < 0)",
+      "generalizes_requires": "no WORSE, no UNRESOLVED, max degradation <= 2.0",
+      "generalizes_with_degradation_requires": "no WORSE, no UNRESOLVED, max degradation > 2.0",
+      "does_not_generalize_requires": "any WORSE",
+      "inconclusive_requires": "any UNRESOLVED"
     },
     "mde_rule": "MDE recomputed per family at the ACHIEVED n (bootstrap over rows, z=1.96), recorded per family; INCONCLUSIVE only when MDE exceeds the observed effect; probe arm is INCONCLUSIVE_LOW_N by construction at n=24/56 (state measured MDE)."
   },
@@ -171,7 +175,7 @@
         "mde_paired_log_at_achieved_n": 0.080514,
         "mde_exceeds_effect": false,
         "mde_paired_pct_at_achieved_n": 8.38,
-        "mde_pooled_pct_at_achieved_n_context": 44.01
+        "mde_pooled_pct_at_achieved_n": 44.01
       },
       "interleaved_read": {
         "n_usable": 147,
@@ -210,7 +214,7 @@
         "mde_paired_log_at_achieved_n": 0.074597,
         "mde_exceeds_effect": true,
         "mde_paired_pct_at_achieved_n": 7.74,
-        "mde_pooled_pct_at_achieved_n_context": 31.92
+        "mde_pooled_pct_at_achieved_n": 31.92
       },
       "block_cyclic": {
         "n_usable": 146,
@@ -249,7 +253,7 @@
         "mde_paired_log_at_achieved_n": 0.109865,
         "mde_exceeds_effect": true,
         "mde_paired_pct_at_achieved_n": 11.61,
-        "mde_pooled_pct_at_achieved_n_context": 28.63
+        "mde_pooled_pct_at_achieved_n": 28.63
       }
     },
     "probe": {
@@ -332,7 +336,8 @@
       }
     },
     "mde_frame": "PRIMARY=bootstrap resolution of paired delta (mde_paired_*); pooled MDE (mde_pooled_*_context) reported as labelled context; INCONCLUSIVE trigger compares paired MDE vs paired effect.",
-    "verdict_rule_version": "delta-0.10-v1"
+    "verdict_rule_version": "delta-0.10-v1",
+    "decision_delta": 0.1
   },
   "gpu_jobs": [
     {
