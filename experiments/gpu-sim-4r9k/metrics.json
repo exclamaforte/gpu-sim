@@ -1,0 +1,13 @@
+{
+  "bead": "gpu-sim-4r9k",
+  "reproduction": {
+    "family": "gemm_naive",
+    "n_specs": 24,
+    "usable_before_fix": 0,
+    "usable_after_fix": 24,
+    "root_cause_1": "grid_capped used problem_size/block_size proxy instead of actual grid (all gemm rows rejected at large sizes)",
+    "root_cause_2": "threshold=5*max(within_std_us,residual) with within_std_us inflated by clock-boosted empty baseline; compute-bound kernels need residual-based threshold",
+    "fix": "family-aware: for compute_bound families, threshold=5*residual; grid_capped uses actual grid from spec"
+  },
+  "gate": "n/a (analysis of GPU-measured rows)"
+}

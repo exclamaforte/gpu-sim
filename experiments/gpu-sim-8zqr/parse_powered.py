@@ -26,7 +26,18 @@ for p in sorted(pathlib.Path(TR).glob("*.txt")):
     within=(empty["p95_us"]-empty["p05_us"])/3.29 if empty["p95_us"]>empty["p05_us"] else 0.0
     residual=nearest_residual(n)
     threshold=5*max(within,residual)
-    usable=(kernel_us>=threshold) and (not gc)
+    compute_bound = (family == "gemm_naive")
+    if compute_bound:
+        threshold = 5 * residual if residual > 0 else threshold
+    grid_dim = (n + block - 1) // block if block > 0 else 0
+    gc = bool(gc) or (grid_dim > 65535)
+    usable=(kernel_us>=threshold) and (not gc) and (kernel_us>0)
+    rejection_reason = None
+    if not usable:
+        if kernel_us <= 0: rejection_reason="nonpositive_kernel_us"
+        elif gc: rejection_reason="grid_capped"
+        elif kernel_us < threshold: rejection_reason="below_threshold"
+        else: rejection_reason="unknown"
     bm=2*n*4.0
     flops=n  # memory-access family
     ai=flops/bm
@@ -36,7 +47,7 @@ for p in sorted(pathlib.Path(TR).glob("*.txt")):
         "family":family,"size":n,"block":block,
         "kernel_us":kernel_us,"dispatch_us":empty["median_us"],
         "within_std_us":within,"residual_us":residual,"threshold_us":threshold,
-        "grid_capped":bool(gc),"target_usable":bool(usable),
+        "grid_capped":bool(gc),"target_usable":bool(usable),"rejection_reason":rejection_reason,
         "y":math.log(kernel_us) if kernel_us>0 else None,
         "phys":{"n":n,"block":block,"bm":bm,"flops":flops,"ai":ai,"grid":grid_dim,"waves":waves},
     })

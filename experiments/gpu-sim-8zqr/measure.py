@@ -88,14 +88,29 @@ def main():
                 within_us=0.0
             residual=nearest_residual(d["problem_size"])
             threshold=5*max(within_us, residual) if (within_us>0 or residual>0) else 0.0
-            # grid capped
-            n=d["problem_size"]; block=d["block"]
-            if len(block)>=1 and (block[0]*block[1]*block[2] if len(block)>=3 else block[0])>0:
-                gc = ((n + (block[0]*block[1]*block[2] if len(block)>=3 else block[0]) - 1)//(block[0]*block[1]*block[2] if len(block)>=3 else block[0])) > 65535
-            else:
-                gc=False
-            # for gemm, grid capped check on M,N
+            md = d.get("metadata", {})
+            compute_bound = bool(md.get("compute_bound", False))
+            # grid capped: use the ACTUAL grid from the spec, not a size/block proxy
+            grid = d["grid"]
+            gc = (grid[0] * grid[1] * grid[2]) > 65535
+            # family-aware threshold: flop-bound (compute-bound) kernels use the
+            # irreducible residual as the noise floor, not the empty-baseline
+            # variance (which is inflated by clock boosting on trivial kernels).
+            md = d.get("metadata", {})
+            compute_bound = bool(md.get("compute_bound", False))
+            if compute_bound:
+                threshold = 5 * residual if residual > 0 else threshold
             usable = (kernel_us >= threshold) and (not gc) and (kernel_us>0)
+            rejection_reason = None
+            if not usable:
+                if kernel_us <= 0:
+                    rejection_reason = "nonpositive_kernel_us"
+                elif gc:
+                    rejection_reason = "grid_capped"
+                elif kernel_us < threshold:
+                    rejection_reason = "below_threshold"
+                else:
+                    rejection_reason = "unknown"
             import math
             row={
                 "family":d["family"],
@@ -113,6 +128,7 @@ def main():
                 "threshold_us":threshold,
                 "grid_capped":bool(gc),
                 "target_usable":bool(usable),
+                "rejection_reason":rejection_reason,
                 "log_kernel_us": math.log(kernel_us) if kernel_us>0 else None,
                 "phys":d.get("phys",{}),
                 "n_trials":len(scale_trials),
