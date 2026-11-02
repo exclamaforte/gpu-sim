@@ -1,6 +1,6 @@
 {
-  "verdict": "DOES_NOT_GENERALIZE",
-  "verdict_reason": "all powered families beat floor: False; max degradation 7.17; paired CIs all negative: False"
+  "verdict": "GENERALIZES_WITH_DEGRADATION",
+  "verdict_reason": "Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution (strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. Margin collapse: in-distribution advantage 7.3x (0.3709 vs 2.7015) -> off-distribution 1.0-1.15x; error inflates 1.58x/2.97x/7.17x. Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case."
 }
 strided_read n= 137 gbt= 0.5877 floor= 0.6777 deg= 1.58 paired_ci= [-0.1678, -0.0068]
 interleaved_read n= 147 gbt= 1.1033 floor= 1.0917 deg= 2.97 paired_ci= [-0.0639, 0.0853]

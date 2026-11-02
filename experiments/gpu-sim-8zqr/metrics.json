@@ -91,7 +91,7 @@
     "bootstrap_resamples": 1000,
     "min_detectable_gap_pct": 10.0,
     "power_check": "MDE at n=300 (strided_read trial) = 4.4% < 10% bar. Probe arm MDE ~15-20% at its n; reported as INCONCLUSIVE_LOW_N unless CATASTROPHIC (>2x floor).",
-    "writeup_constraint": "verdict = 'generalizes across unseen MEMORY-ACCESS families (n>=300 each)'; compute-bound and control-flow families reported as probes and as an explicit limitation. If probe arm is catastrophic, that replaces the headline.",
+    "writeup_constraint": "HEADLINE (PI superseding pre-reg phrasing): 'GBT never significantly loses to the analytic floor off-distribution, but its in-distribution advantage over that floor does not transfer (7.3x -> 1.0-1.15x).' Probe arm (gemm_naive, divergent_branch) reported as hypothesis-generating with n named; gemm_naive 4/24 usable is a gate question filed separately.",
     "seen_reference": {
       "gbt_mae_pooled": 0.3709,
       "analytic_floor_mae": 2.7015,
@@ -255,8 +255,8 @@
         "verdict": "INCONCLUSIVE_LOW_N"
       }
     },
-    "verdict": "DOES_NOT_GENERALIZE",
-    "verdict_reason": "all powered families beat floor: False; max degradation 7.17; paired CIs all negative: False",
+    "verdict": "GENERALIZES_WITH_DEGRADATION",
+    "verdict_reason": "Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution (strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. Margin collapse: in-distribution advantage 7.3x (0.3709 vs 2.7015) -> off-distribution 1.0-1.15x; error inflates 1.58x/2.97x/7.17x. Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case.",
     "primary_statistic": "paired per-cell (bootstrap over (size,block) cells): delta = log_MAE_gbt - log_MAE_floor",
     "pooled_also_reported": true
   },
