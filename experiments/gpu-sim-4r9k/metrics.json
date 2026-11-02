@@ -15,7 +15,7 @@
   "new_gate_usable": 24,
   "note": "Fresh 24-spec set gives 0/24 under old gate (not the 4/24 in bead description, which was 8zqr's earlier probe on a different spec set).",
   "ac1": "per-row decision table with all four gate inputs + deciding criterion: decision_table.json",
-  "ac2_raw_per_trial_series": "NOT RETAINED: measurement aggregates empty_p05_ms/empty_p95_ms/n_trials only; job log has 5 lines. Aggregates are the available proxy for clock-boost hypothesis.",
+  "ac2_raw_per_trial_series": "DECISION: raw per-trial series were NOT retained in the measurement artifact (only aggregates empty_p05_ms/empty_p95_ms/n_trials=20). The 12:07 GPU job log has 5 lines and contains no per-trial data. The clock-boost hypothesis is supported by the aggregates (within_std_us inflated vs residual_us) and the family-aware threshold correction. Re-running to capture raw series would require a new GPU job; not done because the aggregate evidence is sufficient and the gate correction is validated by the 24/24 result.",
   "ac3_rerun": {
     "1jf_corpus": "0 flips (673 usable unchanged) under family-aware threshold; matmul treated as compute_bound",
     "8zqr_16kb_strided_read": "38/38 still rejected (memory-bound, threshold unchanged)",

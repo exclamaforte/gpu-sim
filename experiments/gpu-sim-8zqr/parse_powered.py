@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-import json, math, pathlib
+import json, math, pathlib, sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.grid_limits import grid_capped as _grid_capped
 TR="experiments/gpu-sim-8zqr/traces_fk"
 RESIDUAL={1024:0.018,16384:0.068,262144:0.078,4194304:0.004,16777216:0.027}
 def nearest_residual(n):
@@ -30,7 +33,7 @@ for p in sorted(pathlib.Path(TR).glob("*.txt")):
     if compute_bound:
         threshold = 5 * residual if residual > 0 else threshold
     grid_dim = (n + block - 1) // block if block > 0 else 0
-    gc = bool(gc) or (grid_dim > 65535)
+    gc = bool(gc) or _grid_capped([grid_dim, 1, 1])
     usable=(kernel_us>=threshold) and (not gc) and (kernel_us>0)
     rejection_reason = None
     if not usable:
