@@ -19,6 +19,7 @@
         -0.16784826849411547,
         -0.006819644319166252
       ],
+      "label": "BETTER",
       "degradation_factor_gbt": 1.5844588266078155,
       "degradation_factor_floor": 0.6284068041295232,
       "size_decades": {
@@ -33,7 +34,9 @@
           "floor_mae": 0.5362094058640683
         }
       },
-      "mde_pooled_pct_at_achieved_n": 44.01
+      "mde_pooled_pct_at_achieved_n": 44.01,
+      "mde_paired_log_at_achieved_n": 0.080514,
+      "mde_exceeds_effect": false
     },
     "interleaved_read": {
       "n_usable": 147,
@@ -54,6 +57,7 @@
         -0.06394048603046695,
         0.08525318335066301
       ],
+      "label": "TIE",
       "degradation_factor_gbt": 2.974595390339394,
       "degradation_factor_floor": 1.012275377449894,
       "size_decades": {
@@ -68,7 +72,9 @@
           "floor_mae": 1.1397881255465396
         }
       },
-      "mde_pooled_pct_at_achieved_n": 31.92
+      "mde_pooled_pct_at_achieved_n": 31.92,
+      "mde_paired_log_at_achieved_n": 0.074597,
+      "mde_exceeds_effect": true
     },
     "block_cyclic": {
       "n_usable": 146,
@@ -89,6 +95,7 @@
         -0.21086433813511168,
         0.008865625256148134
       ],
+      "label": "TIE",
       "degradation_factor_gbt": 7.1742631382899,
       "degradation_factor_floor": 2.563184589952098,
       "size_decades": {
@@ -103,7 +110,9 @@
           "floor_mae": 2.674782276142351
         }
       },
-      "mde_pooled_pct_at_achieved_n": 28.63
+      "mde_pooled_pct_at_achieved_n": 28.63,
+      "mde_paired_log_at_achieved_n": 0.109865,
+      "mde_exceeds_effect": true
     }
   },
   "probe": {
@@ -128,6 +137,50 @@
     "gbt_mae": 0.37091784447197473,
     "floor_mae": 1.0784345865249634
   },
-  "verdict": "GENERALIZES_WITH_DEGRADATION",
-  "verdict_reason": "Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution (strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. Margin collapse: in-distribution advantage 2.91x (0.370918/1.078435, like-for-like ridge-on-seen-holdout floor) -> off-distribution 1.0-1.15x (0.678/0.588, 1.092/1.103, 2.764/2.661); error inflates 1.58x/2.97x/7.17x. Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case."
+  "margin_collapse": {
+    "in_distribution_x": 2.907476,
+    "off_distribution_min_x": 0.989434,
+    "off_distribution_max_x": 1.153124
+  },
+  "floor_identity": {
+    "estimator": "ridge (linear) on seen holdout (like-for-like with gbt)",
+    "value": 1.078435,
+    "gbt_seen": 0.370918,
+    "provenance": "experiments/gpu-sim-8zqr stageD seen_reference; 2al pooled analytic floor 2.7015 quoted separately with provenance only"
+  },
+  "per_family_state": {
+    "strided_read": {
+      "label": "BETTER",
+      "paired_ci": [
+        -0.16784826849411547,
+        -0.006819644319166252
+      ],
+      "gbt_mae": 0.5877040526199653,
+      "floor_mae": 0.677695631980896,
+      "degradation_factor": 1.5844588266078155
+    },
+    "interleaved_read": {
+      "label": "TIE",
+      "paired_ci": [
+        -0.06394048603046695,
+        0.08525318335066301
+      ],
+      "gbt_mae": 1.1033305103609603,
+      "floor_mae": 1.0916727781295776,
+      "degradation_factor": 2.974595390339394
+    },
+    "block_cyclic": {
+      "label": "TIE",
+      "paired_ci": [
+        -0.21086433813511168,
+        0.008865625256148134
+      ],
+      "gbt_mae": 2.6610622189292346,
+      "floor_mae": 2.7642269134521484,
+      "degradation_factor": 7.1742631382899
+    }
+  },
+  "aggregate_verdict": "INCONCLUSIVE",
+  "verdict": "INCONCLUSIVE",
+  "verdict_reason": "aggregate_verdict=INCONCLUSIVE; see per_family_state, margin_collapse, floor_identity computed fields"
 }
