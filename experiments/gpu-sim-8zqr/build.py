@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """BUILD phase (CPU, unqueued): generate specs for chosen unseen families,
 synthesize drivers, compile binaries, write manifest. No GPU contact."""
-import argparse, json, sys, os
+import argparse, json, sys, subprocess
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -75,7 +75,6 @@ def main():
             bm = 2 * n * 4.0
             ai = flops / bm if bm > 0 else 0.0
             grid_dim_total = grid[0] * grid[1] * grid[2]
-            threads = grid[0] * grid[1] * grid[2] * block[0] * block[1] * block[2]
             waves = grid_dim_total / 170.0
             d["phys"] = {"n": n, "block": block[0] * block[1] * block[2],
                          "bm": bm, "flops": flops, "ai": ai, "grid": grid_dim_total, "waves": waves}
@@ -106,7 +105,7 @@ def main():
             '  for(int w=0;w<20;w++){ k_empty<<<grid,block>>>(); } cudaDeviceSynchronize();\n'
             '  for(int t=0;t<20;t++){\n'
             '    float ms=0; cudaEventRecord(s); k_empty<<<grid,block>>>(); cudaEventRecord(e); cudaEventSynchronize(e); cudaEventElapsedTime(&ms,s,e);\n'
-            '    printf("{\\"trial\\": %d, \\"time_ms\\": %.6f}\\n", t, ms);\n'
+            '    printf("{\\"trial\\": %%d, \\"time_ms\\": %%.6f}\\n", t, ms);\n'
             '  }\n'
             '  return 0;\n'
             '}\n'
