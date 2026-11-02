@@ -1,0 +1,117 @@
+{
+  "bead": "gpu-sim-8zqr",
+  "split_plan": {
+    "seen_families": [
+      "elementwise",
+      "matmul",
+      "reduction",
+      "softmax",
+      "transpose"
+    ],
+    "powered_unseen_families": [
+      "strided_read",
+      "interleaved_read",
+      "block_cyclic"
+    ],
+    "probe_unseen_families": [
+      "gemm_naive",
+      "divergent_branch"
+    ],
+    "unseen_families": [
+      "strided_read",
+      "interleaved_read",
+      "block_cyclic",
+      "gemm_naive",
+      "divergent_branch"
+    ],
+    "arms": {
+      "powered": {
+        "families": [
+          "strided_read",
+          "interleaved_read",
+          "block_cyclic"
+        ],
+        "n_per_family_target": 300,
+        "min_size": 16384,
+        "verdict_allowed": [
+          "GENERALIZES",
+          "GENERALIZES_WITH_DEGRADATION",
+          "DOES_NOT_GENERALIZE",
+          "INCONCLUSIVE"
+        ]
+      },
+      "probe": {
+        "families": [
+          "gemm_naive",
+          "divergent_branch"
+        ],
+        "spec_mode": "FULL (all specs, no sampling)",
+        "verdict_allowed": [
+          "CATASTROPHIC",
+          "INCONCLUSIVE_LOW_N"
+        ],
+        "note": "~80 rows total, ~1 GPU-min. Numbers must not enter powered arm CIs or verdict."
+      }
+    },
+    "unseen_family_rationale": {
+      "strided_read": "stage-3 strided memory access; structurally distinct (non-coalesced) from seen (all coalesced/elementwise or matmul/reduction); emittable by generator_stage3.",
+      "interleaved_read": "stage-3 interleaved access pattern; distinct.",
+      "block_cyclic": "stage-3 block-cyclic access pattern; distinct.",
+      "gemm_naive": "stage-4 compute-bound GEMM (probe arm only; only 24 specs).",
+      "divergent_branch": "stage-5 control-flow divergence (probe arm only; only 56 specs)."
+    },
+    "baselines": [
+      "analytic_floor (ridge on phys descriptors, 2al roofline_94)",
+      "mean_predictor (train mean)",
+      "GBT (HistGradientBoostingRegressor as 2al confirmed arm)"
+    ],
+    "metrics": [
+      "MAE (log space)",
+      "MAPE",
+      "log_RMSE",
+      "Spearman",
+      "Kendall"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "bootstrap_resamples": 1000,
+    "min_detectable_gap_pct": 10.0,
+    "power_check": "MDE at n=300 (strided_read trial) = 4.4% < 10% bar. Probe arm MDE ~15-20% at its n; reported as INCONCLUSIVE_LOW_N unless CATASTROPHIC (>2x floor).",
+    "writeup_constraint": "verdict = 'generalizes across unseen MEMORY-ACCESS families (n>=300 each)'; compute-bound and control-flow families reported as probes and as an explicit limitation. If probe arm is catastrophic, that replaces the headline.",
+    "seen_reference": {
+      "gbt_mae_pooled": 0.3709,
+      "analytic_floor_mae": 2.7015,
+      "source": "experiments/gpu-sim-2al/metrics.json"
+    },
+    "degradation_rule": "degradation_factor = gbt_unseen_MAE / 0.3709 (seen-CV reference from 2al), computed per family AND for the analytic floor itself; the floor's own degradation must be reported.",
+    "verdict_thresholds": {
+      "generalizes": "degradation_factor <= 2.0 AND beats analytic floor on every powered family",
+      "generalizes_with_degradation": "beats the floor everywhere but degradation_factor > 2.0 on >=1 family (named)",
+      "does_not_generalize": "loses to analytic floor on any powered family",
+      "probe_catastrophic": "GBT MAE > 2x analytic floor on the FULL spec set",
+      "probe_inconclusive_low_n": "otherwise (n=24/56, MDE ~15-20%)"
+    },
+    "mde_rule": "MDE recomputed per family at the ACHIEVED n (bootstrap over rows, z=1.96), recorded per family; INCONCLUSIVE only when MDE exceeds the observed effect; probe arm is INCONCLUSIVE_LOW_N by construction at n=24/56 (state measured MDE)."
+  },
+  "stage_b_trial": {
+    "job_id": "20261102t013006-7547482f",
+    "family": "strided_read",
+    "n_specs": 120,
+    "usable": 111,
+    "pass_rate": 0.925,
+    "mde_pct_at_n300": 4.4,
+    "rows_per_gpu_hour": 7920
+  },
+  "stage_c_counts": {},
+  "results": {
+    "per_family": {},
+    "probe": {},
+    "union": {},
+    "verdict": "PENDING",
+    "verdict_reason": ""
+  },
+  "gpu_jobs": []
+}
