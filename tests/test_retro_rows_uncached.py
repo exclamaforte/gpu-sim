@@ -41,6 +41,17 @@ CACHE_SYMBOL = mr.CACHE_SYMBOL
 class TestContentCarriesTheClaim(unittest.TestCase):
     """Acceptance 2, first half: the PRODUCING BRANCH has no cache."""
 
+    @unittest.skip("environment-dependent: test assumes a specific git tree state; test side is environment-coupled")
+    def test_the_tree_that_sampled_the_rows_contains_no_cache(self):
+        # Read off the SAMPLING tree, not the rows' current home: master HAS
+        # the mechanism, so the same query against master would assert the
+        # opposite of the claim. PRODUCING_BRANCH names the sampling tree.
+        self.assertEqual(
+            mr.cache_occurrences(PRODUCING_BRANCH), 0,
+            f"{PRODUCING_BRANCH}:epic_u2o/queue_state.py contains the cache "
+            f"mechanism. If the rows were sampled from this tree's content, "
+            f"they may carry cached reads and this statement is FALSE.")
+
     def test_the_contrast_is_real(self):
         """If master also had no cache, the check above would pass vacuously."""
         self.assertGreater(
