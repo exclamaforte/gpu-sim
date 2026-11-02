@@ -1,0 +1,10 @@
+{
+  "bead": "gpu-sim-ynaj",
+  "effective_cpus": 2.0,
+  "affinity_cpus": 32,
+  "cgroup_cpu_max": "200000 100000",
+  "cgroup_path": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-*.scope",
+  "nproc": 2,
+  "os_cpu_count": 32,
+  "helper": "scripts/effective_cpus.py"
+}
