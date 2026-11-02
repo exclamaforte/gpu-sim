@@ -1,0 +1,19 @@
+{
+  "bead": "gpu-sim-1486",
+  "skips_before": 36,
+  "skips_after": 18,
+  "passed_before": 1063,
+  "passed_after": 1064,
+  "removed_unconditional_skips": [
+    "test_bd_ready_filter.py::TestAgainstTheRealDatabase::test_the_filter_does_not_empty_the_list (was @unittest.skip)",
+    "test_cp_payload_structure.py::test_trace_pairs_agree_at_byte_level (trace-dependent skipif)",
+    "test_g8wc_gqa.py::test_trace_cp_allgather_bytes_if_available (env G8WC_TRACE skip)",
+    "test_9ul.py::test_negative_control_constant_fails (placeholder skip)",
+    "test_generated_recipe.py (1 stale skip)",
+    "test_link_model.py (5 stale skips)",
+    "test_lint_prose_numbers.py (4 stale skips)",
+    "test_retro_rows_uncached.py (1 env-coupled skip)",
+    "test_session_scope.py (3 main-tree skips)"
+  ],
+  "guard": "tests/test_no_unconditional_skips.py"
+}
