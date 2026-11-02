@@ -97,3 +97,9 @@ A full `bd show` costs 50-150KB per bead and replays on every turn until compact
   demonstrated to FAIL against the old implementation (2026-11-02: tests/test_8zqr.py pinned
   "mde_exceeds_effect -> INCONCLUSIVE" after that trigger was retracted, so the suite would
   have enforced the retracted spec). Rule changes need a plant exactly like a check does.
+
+- DO NOT REOPEN A BEAD WHILE A REVIEWER IS MID-LAND. If a bead reads closed but master lacks the
+  artifacts, message the reviewer to land and WAIT; reopen only if it reports being stuck, or
+  announce the reopen first so the validated label is re-added in one unbroken sequence -- the land
+  tool refuses a bead without that label (2026-11-02: my honest reopen at 09:30 made the first
+  gpu-sim-8zqr land fail with "carries no validated verdict").
