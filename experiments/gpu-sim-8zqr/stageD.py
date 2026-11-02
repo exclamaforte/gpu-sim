@@ -210,6 +210,7 @@ for fam in powered_families:
         "degradation_factor_gbt": deg_gbt,
         "degradation_factor_floor": deg_floor,
         "size_decades": decade_summary,
+        "mde_pooled_pct_at_achieved_n": round((math.exp(1.96*(2**0.5)*__import__("statistics").stdev([math.log(r["kernel_us"]) for r in rows_fam if r["kernel_us"]>0])/(len(rows_fam)**0.5))-1)*100, 2) if len(rows_fam)>1 else None,
     }
 
 # Probe arm
@@ -268,12 +269,25 @@ results["verdict"] = verdict
 results["verdict_reason"] = ("Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution "
   "(strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). "
   "Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. "
-  "Margin collapse: in-distribution advantage 7.3x (0.3709 vs 2.7015) -> off-distribution 1.0-1.15x; error inflates 1.58x/2.97x/7.17x. "
+  "Margin collapse: in-distribution advantage 2.91x (0.370918/1.078435, like-for-like ridge-on-seen-holdout floor) -> off-distribution 1.0-1.15x (0.678/0.588, 1.092/1.103, 2.764/2.661); error inflates 1.58x/2.97x/7.17x. "
   "Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case.")
 
 # write
-out = HERE / "stageD_results.json"
+import argparse as _ap
+_ap_ = _ap.ArgumentParser()
+_ap_.add_argument("--out", default=str(HERE / "stageD_results.json"))
+_args_ = _ap_.parse_args()
+out = pathlib.Path(_args_.out)
 out.write_text(json.dumps(results, indent=2) + "\n")
+# both readings
+strict = "GENERALIZES" if all(results["per_family"][f]["gbt_mae_mean_over_seeds"] < results["per_family"][f]["floor_mae_mean_over_seeds"] for f in powered_families) else "DOES_NOT_GENERALIZE"
+stat = results["verdict"]
+print("STRICT (point-estimate):", strict, "| STATISTICAL (paired CI):", stat)
+print("per-family: better/tie/worse by paired CI:")
+for f in powered_families:
+    ci = results["per_family"][f]["paired_delta_ci"]
+    label = "BETTER" if ci[1] < 0 else ("WORSE" if ci[0] > 0 else "TIE")
+    print(f"  {f}: {label} (paired CI [{ci[0]:.4f}, {ci[1]:.4f}])")
 print(json.dumps({k: results[k] for k in ["verdict","verdict_reason"]}, indent=2))
 for f in powered_families:
     r = results["per_family"][f]

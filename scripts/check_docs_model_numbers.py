@@ -869,6 +869,18 @@ def compute_facts():
         facts["sweep"][name] = row
     facts["fabric_precision"] = _fabric_precision(facts)
     facts["achieved_bw_measured"] = _measured_bw()
+    # gpu-sim-8zqr: generalization verdict (read from committed metrics.json)
+    try:
+        _m8 = json.loads(open(os.path.join(ROOT, "experiments", "gpu-sim-8zqr", "metrics.json")).read())
+        facts["gpu_sim_8zqr"] = {
+            "verdict": _m8.get("results", {}).get("verdict"),
+            "seen_gbt_mae": _m8.get("results", {}).get("seen_reference", {}).get("gbt_mae"),
+            "seen_floor_mae": _m8.get("results", {}).get("seen_reference", {}).get("floor_mae"),
+            "per_family_gbt_mae": {k: v.get("gbt_mae_mean_over_seeds") for k, v in _m8.get("results", {}).get("per_family", {}).items()},
+            "per_family_floor_mae": {k: v.get("floor_mae_mean_over_seeds") for k, v in _m8.get("results", {}).get("per_family", {}).items()},
+        }
+    except Exception:
+        pass
     return facts
 
 

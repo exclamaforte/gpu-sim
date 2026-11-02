@@ -91,7 +91,7 @@
     "bootstrap_resamples": 1000,
     "min_detectable_gap_pct": 10.0,
     "power_check": "MDE at n=300 (strided_read trial) = 4.4% < 10% bar. Probe arm MDE ~15-20% at its n; reported as INCONCLUSIVE_LOW_N unless CATASTROPHIC (>2x floor).",
-    "writeup_constraint": "HEADLINE (PI superseding pre-reg phrasing): 'GBT never significantly loses to the analytic floor off-distribution, but its in-distribution advantage over that floor does not transfer (7.3x -> 1.0-1.15x).' Probe arm (gemm_naive, divergent_branch) reported as hypothesis-generating with n named; gemm_naive 4/24 usable is a gate question filed separately.",
+    "writeup_constraint": "HEADLINE (PI superseding): 'GBT never significantly loses to the analytic floor off-distribution, but its in-distribution advantage over that floor does not transfer (2.91x like-for-like -> 1.0-1.15x).' Probe arm (gemm_naive, divergent_branch) reported as hypothesis-generating with n named; gemm_naive 4/24 usable is a gate question filed separately.",
     "seen_reference": {
       "gbt_mae_pooled": 0.3709,
       "analytic_floor_mae": 2.7015,
@@ -166,7 +166,8 @@
             "gbt_mae": 0.6431514657586375,
             "floor_mae": 0.5362094058640683
           }
-        }
+        },
+        "mde_pooled_pct_at_achieved_n": 44.01
       },
       "interleaved_read": {
         "n_usable": 147,
@@ -200,7 +201,8 @@
             "gbt_mae": 0.9797813521254058,
             "floor_mae": 1.1397881255465396
           }
-        }
+        },
+        "mde_pooled_pct_at_achieved_n": 31.92
       },
       "block_cyclic": {
         "n_usable": 146,
@@ -234,7 +236,8 @@
             "gbt_mae": 2.5147755027212164,
             "floor_mae": 2.674782276142351
           }
-        }
+        },
+        "mde_pooled_pct_at_achieved_n": 28.63
       }
     },
     "probe": {
@@ -256,9 +259,22 @@
       }
     },
     "verdict": "GENERALIZES_WITH_DEGRADATION",
-    "verdict_reason": "Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution (strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. Margin collapse: in-distribution advantage 7.3x (0.3709 vs 2.7015) -> off-distribution 1.0-1.15x; error inflates 1.58x/2.97x/7.17x. Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case.",
+    "verdict_reason": "Aggregate GENERALIZES_WITH_DEGRADATION: GBT never significantly loses to the analytic floor off-distribution (strided CI [-0.168,-0.007] significant win; interleaved [-0.064,0.085] and block_cyclic [-0.211,0.009] cross zero -> ties). Strict point-estimate: 1 of 3 nominally 1% worse (interleaved 1.103 vs 1.092), not significant; statistical reading: 3 of 3 ties-or-better. Margin collapse: in-distribution advantage 2.91x (0.370918/1.078435, like-for-like ridge-on-seen-holdout floor) -> off-distribution 1.0-1.15x (0.678/0.588, 1.092/1.103, 2.764/2.661); error inflates 1.58x/2.97x/7.17x. Probe arm (n=4/19) ratio 0.88/0.83 -> INCONCLUSIVE_LOW_N, hypothesis-generating, contradicts assumption that memory patterns were the easy case.",
     "primary_statistic": "paired per-cell (bootstrap over (size,block) cells): delta = log_MAE_gbt - log_MAE_floor",
-    "pooled_also_reported": true
+    "pooled_also_reported": {
+      "strided_read": {
+        "gbt_mae_pooled": 0.5877040526199653,
+        "floor_mae_pooled": 0.677695631980896
+      },
+      "interleaved_read": {
+        "gbt_mae_pooled": 1.1033305103609603,
+        "floor_mae_pooled": 1.0916727781295776
+      },
+      "block_cyclic": {
+        "gbt_mae_pooled": 2.6610622189292346,
+        "floor_mae_pooled": 2.7642269134521484
+      }
+    }
   },
   "gpu_jobs": [
     "20261102t013006-7547482f",
@@ -267,5 +283,11 @@
     "20261102t044304-eeea7851"
   ],
   "small_size_bucket_note": "114 rows from prior min-size-16384 run (strided_read 114); kept as named small-size bucket, excluded from powered arm (PI ruling: size confound).",
-  "gate": "n/a (GPU job ids in job.json; CPU recompute verified by run.sh)"
+  "gate": "n/a (GPU job ids in job.json; CPU recompute verified by run.sh)",
+  "gpu_jobs_killed": [
+    {
+      "job_id": "20261102t023945-9b33b0c3",
+      "kill_reason": "stage C first attempt timed out (job 20261102t043341-9fa18f0a superseded); killed to free queue for re-run"
+    }
+  ]
 }
