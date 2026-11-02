@@ -1,0 +1,47 @@
+{
+  "bead": "gpu-sim-smqu",
+  "executed_by": "pi (labops chore: tracker maintenance, no experiment)",
+  "gate": "n/a (tracker operation; artifact + set verification is the gate)",
+  "n_rows_before": 1135,
+  "n_rows_after": 420,
+  "n_purged_total": 715,
+  "families": {
+    "audit violation: session": {
+      "n_before": 665,
+      "n_purged": 664,
+      "n_after": 1,
+      "kept": "gpu-sim-cjmn (standing bead; the audit lattice reuses it with occurrence+1)"
+    },
+    "audit violation: daemon": {
+      "n_before": 52,
+      "n_purged": 51,
+      "n_after": 1,
+      "kept": "gpu-sim-s3n1 (newest; kept as the standing record)"
+    },
+    "audit violation: role": {
+      "n_before": 2,
+      "n_purged": 0,
+      "n_after": 2,
+      "kept": "gpu-sim-3uln, gpu-sim-qklt (2 beads, below any duplicate threshold)"
+    }
+  },
+  "export": {
+    "path": "experiments/gpu-sim-smqu/audit_violations_purged.json",
+    "records": 715,
+    "sha256": "f437380f3eefe95f",
+    "sha256_note": "first 16 hex characters of `sha256sum`; full digest recomputable from the committed file",
+    "method": "bd delete --from-file <ids> --force, one pass per family, dry-run first"
+  },
+  "verification": {
+    "non_audit_ids_before": 416,
+    "non_audit_ids_after": 416,
+    "non_audit_id_set_diff": "empty (ids_before.txt vs ids_after.txt, sort+diff)",
+    "dependency_links_removed": 0,
+    "labels_removed": 0,
+    "events_removed": 2042,
+    "text_references_updated": 0,
+    "titles_with_count_gt_5": 0,
+    "deletion_arithmetic": "664 + 51 = 715 = 1135 - 420"
+  },
+  "why_this_was_done_by_the_PI": "The bead was first closed by another role with close_reason 'Closed' and NO artifact while all 665 duplicate beads were still present (verified: total rows unchanged, 0 comments, no experiments/gpu-sim-smqu/). Reopened, executed, and closed against the artifact instead."
+}
