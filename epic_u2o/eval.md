@@ -60,3 +60,23 @@ Gaps recorded, not filled: ranking/calibration need per-row predictions
 none of the three approaches committed; generalization suites await 10.3;
 memory->memory has no learned-approach test cell (roofline 1.1209 is from
 its own analysis, different basis).
+
+# 8zqr generalization (GPU, Stage D)
+
+GBT trained on the 5 stage-1 families (elementwise, matmul, reduction, softmax,
+transpose) and evaluated on 3 unseen memory-access families (strided_read,
+interleaved_read, block_cyclic) on the same size grid (262144-16777216) with
+~140 usable rows each, plus a probe arm (gemm_naive 4 usable, divergent_branch
+19 usable).
+
+Headline (PI superseding pre-reg phrasing): GBT never significantly loses to
+the analytic floor off-distribution, but its in-distribution advantage over
+that floor does not transfer (2.91x like-for-like -> 1.0-1.15x). In-distribution
+advantage 2.91x (0.370918/1.078435, ridge-on-seen-holdout floor); off-distribution
+point estimates 0.588/0.678, 1.103/1.092, 2.661/2.764. Error inflates
+1.58x/2.97x/7.17x. Degradation factors 1.58, 2.97, 7.17. Verdict:
+GENERALIZES_WITH_DEGRADATION (strict point-estimate: 1 of 3 nominally 1% worse,
+not significant; statistical reading: 3 of 3 ties-or-better). Probe arm
+(gemm_naive ratio 0.88, divergent_branch 0.83) is INCONCLUSIVE_LOW_N and
+hypothesis-generating -- contradicts the assumption that memory patterns were
+the easy case. gemm_naive 4/24 usable (17%) is a gate question filed separately.

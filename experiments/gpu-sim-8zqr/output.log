@@ -1,0 +1,19 @@
+STRICT (point-estimate): DOES_NOT_GENERALIZE | STATISTICAL (paired CI): GENERALIZES_WITH_DEGRADATION
+per-family: threshold-anchored labels (delta=0.10):
+  strided_read: BETTER (paired CI [-0.1678, -0.0068])
+  interleaved_read: TIE (paired CI [-0.0639, 0.0853])
+  block_cyclic: TIE (paired CI [-0.2109, 0.0089])
+verdict_rule_version: delta-0.10-v1
+{
+  "verdict": "GENERALIZES_WITH_DEGRADATION",
+  "verdict_reason": "aggregate_verdict=GENERALIZES_WITH_DEGRADATION; verdict_rule_version=delta-0.10-v1; per_family labels in per_family_state; numbers in margin_collapse/floor_identity",
+  "aggregate_verdict": "GENERALIZES_WITH_DEGRADATION"
+}
+strided_read n= 137 gbt= 0.5877 floor= 0.6777 deg= 1.58 paired_ci= [-0.1678, -0.0068]
+interleaved_read n= 147 gbt= 1.1033 floor= 1.0917 deg= 2.97 paired_ci= [-0.0639, 0.0853]
+block_cyclic n= 146 gbt= 2.6611 floor= 2.7642 deg= 7.17 paired_ci= [-0.2109, 0.0089]
+probe gemm_naive INCONCLUSIVE_LOW_N ratio= 0.876743598764905
+probe divergent_branch INCONCLUSIVE_LOW_N ratio= 0.8311078918176228
+stageD_results.json reproducible
+metrics.json results consistent with stageD_results.json
+metrics recompute OK
