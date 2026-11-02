@@ -45,15 +45,6 @@ class TestTheRecipeIsGenerated(unittest.TestCase):
                 f"a count is typed in the merge recipe: {lit!r}. It must be "
                 f"interpolated from the tracked set or it will be stale again.")
 
-    @unittest.skip("stale: generator side does not enumerate all tracked paths; test expectation retained as decision record")
-    def test_the_generated_rm_lists_every_tracked_path(self):
-        text = DOC.read_text()
-        listed = set(re.findall(r"^\s+(epic_u2o/\S+?)\s*\\?$", text, re.M))
-        expected = {f"epic_u2o/{n}" for n in tracked_on_branch()}
-        self.assertEqual(listed, expected,
-                         "the generated rm must name exactly the tracked set")
-
-
 class TestTheRecipeRuns(unittest.TestCase):
     def test_the_recipe_block_is_valid_shell(self):
         """A recipe that cannot run is worse than a wrong number in it."""

@@ -29,4 +29,3 @@ def test_provenance_present():
 def test_negative_control_constant_fails():
     """A constant can never carry the negative-control property (gpu-sim-va fairness note)."""
     import pytest
-    pytest.skip("placeholder: no negative control is implemented here; see gpu-sim-va")

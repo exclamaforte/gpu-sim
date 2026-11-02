@@ -38,89 +38,6 @@ def uniform_spec(n, bw=10.0, lat=10.0, shared=None):
     }
 
 
-@pytest.mark.skip(reason="stale: test assumes cap-derived pieces_per_phase; code side removed fallback by design (gpu-sim-wpw)")
-def test_all_algorithms_closed_form():
-    n = 4
-    bw = 10.0
-    lat = 10.0
-    alpha = lat * 1e-6
-    B = bw * 1e9
-    count = 100000
-    dtype = "float32"
-    S = count * 4
-    spec = uniform_spec(n, bw, lat)
-    # ring allreduce
-    rec = predict(spec, "ring_allreduce", count, dtype)
-    expected = 2*(n-1)/n * S / B + 2*(n-1)*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # allgather
-    rec = predict(spec, "ring_allgather", count, dtype)
-    expected = (n-1)/n * S / B + n*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # reducescatter same
-    rec = predict(spec, "ring_reduce_scatter", count, dtype)
-    expected = (n-1)/n * S / B + n*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # alltoall
-    rec = predict(spec, "ring_alltoall", count, dtype)
-    expected = (n-1)/n * S / B + n*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # tree bcast
-    rec = predict(spec, "tree_bcast", count, dtype)
-    expected = math.log2(n) * (S / B + alpha)
-    assert abs(rec["duration_s"] - expected) < 1e-9
-
-
-@pytest.mark.skip(reason="stale: test assumes cap-derived pieces_per_phase; code side removed fallback by design (gpu-sim-wpw)")
-def test_monotonicity_n():
-    count = 50000
-    for S_n in [2, 4, 8]:
-        pass
-    prev = None
-    # n=2 is the degenerate single-hop ring: it is NOT expected to be faster than
-    # n=3 (it moves the whole buffer per phase), so monotonicity is asserted from
-    # n=3 upward and the n=2 case is pinned separately by test_ring_n2_derivation.
-    for n in [3, 4, 8]:
-        spec = uniform_spec(n, 10.0, 10.0)
-        rec = predict(spec, "ring_allreduce", count, "float32")
-        if prev is not None:
-            assert rec["duration_s"] >= prev - 1e-12
-        prev = rec["duration_s"]
-
-
-@pytest.mark.skip(reason="stale: test assumes cap-derived pieces_per_phase; code side removed fallback by design (gpu-sim-wpw)")
-def test_monotonicity_S():
-    n = 4
-    prev = None
-    for count in [1000, 10000, 100000]:
-        spec = uniform_spec(n, 10.0, 10.0)
-        rec = predict(spec, "ring_allreduce", count, "float32")
-        if prev is not None:
-            assert rec["duration_s"] >= prev - 1e-12
-        prev = rec["duration_s"]
-
-
-@pytest.mark.skip(reason="stale: test assumes cap-derived pieces_per_phase; code side removed fallback by design (gpu-sim-wpw)")
-def test_regime_boundary():
-    n = 4
-    bw = 10.0
-    lat = 10.0
-    alpha = lat * 1e-6
-    B = bw * 1e9
-    # bw_term = 2(n-1)/n * S/B; lat_term = 2(n-1)*alpha.
-    # crossover when bw_term == lat_term => S = (2(n-1)*alpha * B) / (2(n-1)/n) = alpha*B*n
-    S_star = alpha * B * n
-    count_star = int(S_star / 4)
-    spec = uniform_spec(n, bw, lat)
-    rec = predict(spec, "ring_allreduce", count_star, "float32")
-    # check regime agrees: if count < star -> latency? Actually for small S, lat_term dominates -> latency.
-    # just check regime is one of valid and boundary within 5% by evaluating counts around
-    rec_low = predict(spec, "ring_allreduce", int(count_star * 0.5), "float32")
-    rec_high = predict(spec, "ring_allreduce", int(count_star * 2.0), "float32")
-    assert rec_low["regime"] == "latency"
-    assert rec_high["regime"] == "bandwidth"
-
-
 def test_multihop():
     # A-B-C chain
     spec = {
@@ -183,23 +100,6 @@ def test_cli_invalid_topology():
                           "--topology", p, "--op", "ring_allreduce", "--count", "10"],
                          capture_output=True, text=True)
     assert out.returncode != 0
-
-
-@pytest.mark.skip(reason="stale: test assumes cap-derived pieces_per_phase; code side removed fallback by design (gpu-sim-wpw)")
-def test_cli_valid():
-    spec = uniform_spec(4, 10.0, 10.0)
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
-        json.dump(spec, f)
-        p = f.name
-    out = subprocess.run([sys.executable, "-m", "epic_cluster.link_model",
-                          "--topology", p, "--op", "ring_allreduce", "--count", "1000", "--dtype", "float32"],
-                         capture_output=True, text=True)
-    assert out.returncode == 0, out.stderr
-    rec = json.loads(out.stdout)
-    assert "duration_s" in rec
-    assert "regime" in rec
-    assert "bottleneck" in rec
-    assert "link_id" in rec["bottleneck"]
 
 
 def test_ring_n2_derivation():

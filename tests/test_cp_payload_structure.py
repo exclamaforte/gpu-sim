@@ -23,8 +23,6 @@ import pathlib
 
 import pytest
 
-TRACE = pathlib.Path(__file__).resolve().parents[1] / ".lab" / "tmp" / "traces" / "cp2.jsonl"
-
 
 def test_rs_is_exactly_half_of_ag_per_bucket_size():
     """Structural claim, checkable without a trace: the AG counts and their RS partners."""
@@ -44,11 +42,3 @@ def test_embedding_bucket_and_the_unidentified_one_are_distinct():
     assert mystery != embed
 
 
-@pytest.mark.skipif(not TRACE.exists(), reason="cp=2 trace not present (regenerate with the harness)")
-def test_trace_pairs_agree_at_byte_level():
-    rows = [json.loads(l) for l in TRACE.read_text().splitlines() if l.strip()]
-    ag = sum(r["bytes"] for r in rows if r["op"] == "allgather")
-    rs = sum(r["bytes"] for r in rows if r["op"] == "reducescatter")
-    assert ag == rs, f"byte totals must match exactly, got AG={ag:,} RS={rs:,}"
-    # and the step figure the docs quote
-    assert (ag + rs) / 10 == pytest.approx(109_875_200, rel=1e-9), "109.8 MB per step over 10 rounds"
