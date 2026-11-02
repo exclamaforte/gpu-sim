@@ -1,8 +1,11 @@
 === Run 1: clean (no unretired losses) ===
 OK: append-only check passed (no unretired losses)
+rc=0
 
 === Run 2: unretired deletion (fabric_band_robustness removed) ===
 FAIL: docs/model_facts.json lost fact block 'fabric_band_robustness' (not retired)
+rc=1
 
 === Run 3: retired deletion (fabric_band_robustness retired with reason+commit) ===
 OK: append-only check passed (no unretired losses)
+rc=0
