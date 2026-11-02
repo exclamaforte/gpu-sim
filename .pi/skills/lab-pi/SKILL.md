@@ -91,3 +91,9 @@ A full `bd show` costs 50-150KB per bead and replays on every turn until compact
   (env var, stored per job) and is legitimate only for short bounded measurement chunks with
   the reason declared in the job description -- never for a long low-util hold on the shared GPU.
   away stage reasoning, and an over-cap transcript is unresumable (archived and lost).
+
+- A TEST THAT PINS A RETIRED RULE DEFENDS THE BUG. When a ruling changes, the test asserting
+  the old rule must be REPLACED, not kept alongside the new one, and the new test must be
+  demonstrated to FAIL against the old implementation (2026-11-02: tests/test_8zqr.py pinned
+  "mde_exceeds_effect -> INCONCLUSIVE" after that trigger was retracted, so the suite would
+  have enforced the retracted spec). Rule changes need a plant exactly like a check does.
