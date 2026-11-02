@@ -92,7 +92,7 @@ def main():
             compute_bound = bool(md.get("compute_bound", False))
             # grid capped: use the ACTUAL grid from the spec, not a size/block proxy
             grid = d["grid"]
-            gc = (grid[0] * grid[1] * grid[2]) > 65535
+            gc = (grid[0] > (2**31 - 1)) or (grid[1] > 65535) or (grid[2] > 65535)
             # family-aware threshold: flop-bound (compute-bound) kernels use the
             # irreducible residual as the noise floor, not the empty-baseline
             # variance (which is inflated by clock boosting on trivial kernels).
