@@ -1,0 +1,14 @@
+{
+  "bead": "gpu-sim-1upd",
+  "upstream_defect": {
+    "project": "pi-research-lab",
+    "file": "lab.py",
+    "line": 20737,
+    "function": "experiment_untracked_paths()",
+    "wrong_command": "git ls-files --error-unmatch <file>",
+    "correct_command": "git ls-files --others --exclude-standard -- experiments/<id>",
+    "description": "reports gitignored files as untracked by construction"
+  },
+  "mitigation": "lab.config.json tests.command uses python -B (no bytecode writes); *.out artifacts remain in build dirs (gitignored)",
+  "gate": "n/a (CPU-only config change)"
+}
