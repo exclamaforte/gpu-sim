@@ -402,6 +402,8 @@ class TestBypassPath(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 1)
         self.assertIn("missing role or tip", buf.getvalue())
+        assert rc == 1
+        assert "missing role or tip" in buf.getvalue()
 
     def test_record_bad_tip_fails(self):
         self._bypass({"role": "pi", "tip": "0" * 40, "reason": "test"})
