@@ -53,7 +53,7 @@ class TestFiresOnHistory(unittest.TestCase):
         f = []
         lint.check_6_10_ratio(f)
         self.assertTrue(f, "6.10's unit-ratio was not caught")
-        # the operands give ~2713x, the prose reported the printed 3x
+        # the operands give ~6338x, the prose reported the printed 3x
         self.assertIn("6338", f[0].artifact_value)
         self.assertEqual(f[0].comment_value, 3.0)
 

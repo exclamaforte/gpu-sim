@@ -100,6 +100,16 @@
       "bound_calls": 1,
       "mutation": "no_unconditional_skips",
       "plant": "tests/test_oi4m_plant.py::test_plant_fails"
+    },
+    {
+      "name": "u5q0_stale_self_tests",
+      "beads": [
+        "gpu-sim-u5q0"
+      ],
+      "state": "passing",
+      "test": "test_lint_prose_numbers.TestFiresOnHistory.test_6_10_seconds_vs_milliseconds",
+      "bound_calls": 1,
+      "mutation": "u5q0_lint_fixture_6338"
     }
   ]
 }
