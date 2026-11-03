@@ -56,6 +56,17 @@
       "bound_calls": 1,
       "mutation": "no_unconditional_skips",
       "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+    },
+    {
+      "name": "fs2y_mutations_tracked",
+      "beads": [
+        "gpu-sim-vb7x"
+      ],
+      "state": "passing",
+      "test": "tests/test_fs2y_mutations.py::test_every_non_pending_mutation_registered",
+      "bound_calls": 1,
+      "mutation": "fs2y_mutations_tracked",
+      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
     }
   ]
 }

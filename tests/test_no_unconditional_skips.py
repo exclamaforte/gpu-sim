@@ -46,7 +46,7 @@ def test_all_skip_sites_are_allowlisted():
         for site in _skip_sites(p):
             if site not in allow:
                 offenders.append(site)
-    assert not offenders, (
+    assert len(offenders) == 0, (
         "unregistered skip sites (add to tests/skip_allowlist.json with justification):\n"
         + "\n".join(offenders)
     )
