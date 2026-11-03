@@ -31,7 +31,7 @@ def new_usable(row, family):
     kernel_us = row["kernel_us"]
     within = row["within_std_us"]
     residual = row["residual_us"]
-    compute_bound = (family == "gemm_naive")
+    compute_bound = (family in ("gemm_naive", "matmul"))
     if compute_bound and residual > 0:
         threshold = 5 * residual
     else:
