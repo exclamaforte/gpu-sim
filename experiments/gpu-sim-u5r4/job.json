@@ -1,7 +1,7 @@
 {
   "gpu_jobs": [
     {
-      "job_id": "20261103t084831-9c17c9d9",
+      "job_id": "20261103t085547-9c17c9d9",
       "what": "out-of-range arm (gemm 24/24, div 0/56)",
       "wall_s": 36
     },
@@ -21,5 +21,12 @@
       "wall_s": 32
     }
   ],
-  "total_wall_s": 170
+  "total_wall_s": 170,
+  "excluded": [
+    {
+      "job_id": "20261103t084831-75603665",
+      "state": "canceled",
+      "what": "measure_all.sh (canceled; contributes no wall time; listed for provenance only)"
+    }
+  ]
 }
