@@ -128,7 +128,6 @@ for fam in unseen_families:
         g0=train_gbt(0)
         mae_g,pg,yt=eval_model(g0,rows_subset,powered_phys_vec)
         mae_f,pf,_=eval_model(ridge,rows_subset,powered_phys_vec,is_ridge=True)
-        lo,hi,mean=bootstrap_paired(pg,pf,yt,1000,0) if False else (None,None,None)
         return mae_g,mae_f,len(rows_subset)
     # bootstrap paired
     def bp(rows_subset):

@@ -12,4 +12,5 @@ class TestWty2(unittest.TestCase):
     def test_analysis_reproducible(self):
         r = subprocess.run(["bash", str(RUN)], cwd=str(ROOT),
                            capture_output=True, text=True, timeout=300)
+        assert r.returncode == 0, r.stdout + r.stderr
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
