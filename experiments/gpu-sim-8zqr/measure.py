@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from epic_u2o.safe_harness import SafeHarness
 from scripts.grid_limits import grid_capped as _grid_capped
+GRID_CAPPED = _grid_capped
 
 RESIDUAL = {1024:0.018,16384:0.068,262144:0.078,4194304:0.004,16777216:0.027}
 def nearest_residual(n):
