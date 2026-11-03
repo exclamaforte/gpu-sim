@@ -88,7 +88,8 @@ def gate_decision(row, compute_bound_families=("gemm_naive", "matmul")):
     within = row["within_std_us"]
     residual = row["residual_us"]
     family = row.get("family", "")
-    compute_bound = family in compute_bound_families
+    md = row.get("metadata", {}) if isinstance(row.get("metadata"), dict) else {}
+    compute_bound = (family in compute_bound_families) or bool(md.get("compute_bound", False))
     if compute_bound and residual > 0:
         threshold = 5 * residual
     else:
