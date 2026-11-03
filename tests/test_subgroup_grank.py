@@ -248,6 +248,7 @@ def torch_cuda_available() -> bool:
 
 
 @pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
 @pytest.mark.multiproc
 def test_every_line_carries_grank(trace_lines):
     ok, msg = check_every_line_carries_grank(trace_lines)
@@ -255,6 +256,7 @@ def test_every_line_carries_grank(trace_lines):
 
 
 @pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
 @pytest.mark.multiproc
 def test_all_world_ranks_appear(trace_lines):
     ok, msg = check_all_world_ranks_appear(trace_lines)
@@ -262,6 +264,7 @@ def test_all_world_ranks_appear(trace_lines):
 
 
 @pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
 @pytest.mark.multiproc
 def test_both_subgroups_are_present(trace_lines):
     ok, msg = check_both_subgroups_present(trace_lines)
@@ -269,6 +272,7 @@ def test_both_subgroups_are_present(trace_lines):
 
 
 @pytest.mark.skipif(not INTERPOSER.exists(), reason="libfakenccl.so not built")
+@pytest.mark.skipif(not _MULTIPROC_OK, reason=f"multiproc: {_MULTIPROC_REASON}")
 @pytest.mark.multiproc
 def test_local_and_world_rank_are_distinct(trace_lines):
     ok, msg = check_local_and_world_rank_distinct(trace_lines)

@@ -90,16 +90,35 @@ def test_nproc_mismatch_named_warning(monkeypatch):
     assert "nproc=32" in r["reason"]
 
 
-def test_artifact_cpu_capacity_and_throttle():
-    """Artifact must carry cpu_capacity_cpus + throttle deltas, and no 'nproc' field
-    may carry the OS CPU count (32)."""
+def test_measurement_artifact_cpu_capacity_and_throttle():
+    """Measurement artifact (windows.jsonl / tfq metrics) must carry numeric
+    throttle deltas + cpu_capacity_cpus + host_cpus_os_view, and no field named
+    'nproc' may carry the OS CPU count (32)."""
     import json
-    art = json.loads((ROOT / "experiments" / "gpu-sim-ynaj" / "metrics.json").read_text())
-    assert "cpu_capacity_cpus" in art, "cpu_capacity_cpus missing from artifact"
-    assert "throttle_deltas" in art, "throttle_deltas missing from artifact"
-    # nproc field, if present, must NOT carry the OS CPU count (32)
-    if "nproc" in art:
-        assert art["nproc"] != 32, "nproc field carries OS CPU count"
+    # windows.jsonl measurement artifact
+    wl = ROOT / "experiments" / "gpu-sim-tfq" / "windows.jsonl"
+    assert wl.exists(), "windows.jsonl missing"
+    windows = [json.loads(l) for l in wl.read_text().splitlines() if l.strip()]
+    assert windows, "no measurement windows"
+    # find a window produced by the current measure_window.py (has cpu_capacity_cpus)
+    cand = [w for w in windows if "cpu_capacity_cpus" in w and "host_cpus_os_view" in w]
+    assert cand, "no window records cpu_capacity_cpus + host_cpus_os_view"
+    w = cand[-1]
+    assert isinstance(w["cpu_capacity_cpus"], (int, float)), "cpu_capacity_cpus not numeric"
+    assert isinstance(w["host_cpus_os_view"], int), "host_cpus_os_view not int"
+    # throttle deltas from cgroup cpu.stat
+    cq = w.get("cgroup_quota", {})
+    for k in ("nr_periods", "nr_throttled", "throttled_usec"):
+        assert k in cq, f"{k} missing from cgroup_quota"
+        assert isinstance(cq[k], int), f"{k} not numeric"
+    # no field named 'nproc' may carry the OS CPU count
+    if "nproc" in w:
+        assert w["nproc"] != 32, "nproc field carries OS CPU count"
+    # tfq metrics artifact throttle deltas
+    tfq = json.loads((ROOT / "experiments" / "gpu-sim-tfq" / "metrics.json").read_text())
+    txt = json.dumps(tfq)
+    for k in ("nr_throttled", "nr_periods", "throttled_usec"):
+        assert k in txt, f"{k} missing from tfq metrics"
 
 
 def test_no_quota_walk_reason(monkeypatch):
