@@ -27,3 +27,12 @@ PY
 
 # --- Regenerate decision table and deep-compare against committed ---
 python3 experiments/gpu-sim-4r9k/gen_decision_table.py
+
+# --- Assert regenerated artifacts carry rejection_reason (regenerated, not pre-tip) ---
+python3 - << 'PY'
+import json
+p = "experiments/gpu-sim-8zqr/powered_rows.jsonl"
+rows = [json.loads(l) for l in open(p) if l.strip()]
+assert rows and "rejection_reason" in rows[0], "powered_rows.jsonl is pre-tip (no rejection_reason); regenerate or document"
+print(f"OK: powered_rows.jsonl regenerated with rejection_reason ({len(rows)} rows)")
+PY

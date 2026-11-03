@@ -59,7 +59,7 @@ def test_parse_powered_own_path_y_70000_capped():
     parse_powered = _load_module("experiments/gpu-sim-8zqr/parse_powered.py")
     assert parse_powered.GRID_CAPPED([1, 70000, 1]) is True
 
-def test_measure_row_path_uses_shared_symbol_under_monkeypatch():
+def test_measure_build_row_uses_shared_symbol_under_monkeypatch():
     measure = _load_module("experiments/gpu-sim-8zqr/measure.py")
     grid_limits = sys.modules["scripts.grid_limits"]
     calls = []
@@ -69,16 +69,37 @@ def test_measure_row_path_uses_shared_symbol_under_monkeypatch():
     original = grid_limits.grid_capped
     grid_limits.grid_capped = fake
     try:
-        result = measure._row_grid_capped([256, 256, 1])
+        spec = {
+            "family": "gemm_naive",
+            "build_idx": 0,
+            "op_type": "gemm",
+            "problem_size": 1024,
+            "block": [256, 1, 1],
+            "grid": [256, 256, 1],
+            "metadata": {"compute_bound": True},
+            "phys": {},
+        }
+        scale_trials = [1.0] * 10
+        empty_trials = [0.1] * 5
+        row = measure.build_row(spec, scale_trials, empty_trials)
     finally:
         grid_limits.grid_capped = original
-    assert calls == [[256, 256, 1]], f"shared grid_capped was not called: {calls}"
-    assert result is True, "fake's verdict did not reach the row path"
+    assert calls and calls[0] == [256, 256, 1], f"shared grid_capped was not called: {calls}"
+    assert row["grid_capped"] is True, "fake's verdict did not reach the row"
+    assert row["target_usable"] is False, "wrong verdict did not propagate to usable"
 
 
-def test_parse_powered_row_path_uses_shared_symbol_under_monkeypatch():
+def test_parse_powered_row_loop_uses_shared_symbol_under_monkeypatch(tmp_path):
     parse_powered = _load_module("experiments/gpu-sim-8zqr/parse_powered.py")
     grid_limits = sys.modules["scripts.grid_limits"]
+    # tiny fixture: one trace file
+    tr = tmp_path / "traces_fk"
+    tr.mkdir()
+    import json as _json
+    trace = tr / "gemm_naive_1024_256.txt"
+    scale_line = _json.dumps({"summary": True, "mode": "scale", "median_us": 100.0, "p95_us": 101.0, "p05_us": 99.0})
+    empty_line = _json.dumps({"summary": True, "mode": "empty", "median_us": 1.0, "p95_us": 1.1, "p05_us": 0.9})
+    trace.write_text(scale_line + "\n" + empty_line + "\n")
     calls = []
     def fake(grid):
         calls.append(list(grid))
@@ -86,8 +107,10 @@ def test_parse_powered_row_path_uses_shared_symbol_under_monkeypatch():
     original = grid_limits.grid_capped
     grid_limits.grid_capped = fake
     try:
-        result = parse_powered._row_grid_capped([256, 256, 1])
+        rows = parse_powered.build_rows(str(tr))
     finally:
         grid_limits.grid_capped = original
-    assert calls == [[256, 256, 1]], f"shared grid_capped was not called: {calls}"
-    assert result is True, "fake's verdict did not reach the row path"
+    assert rows, "no rows produced"
+    assert calls, f"shared grid_capped was not called: {calls}"
+    assert rows[0]["grid_capped"] is True, "fake's verdict did not reach the row"
+    assert rows[0]["target_usable"] is False, "wrong verdict did not propagate to usable"
