@@ -260,7 +260,7 @@ for fam in families:
 labels = list(per_family_verdicts.values())
 if any(l == "WORSE" for l in labels):
     agg = "DOES_NOT_GENERALIZE"
-elif any(l == "UNRESOLVED" for l in labels):
+elif any(l == "UNRESOLVED" for l in labels) or any(l == "INSUFFICIENT" for l in labels):
     agg = "INCONCLUSIVE"
 else:
     max_deg = max(results["per_family"][f]["degradation_factor_gbt"] for f in families)
@@ -292,6 +292,7 @@ results["rejected_arms"] = {
     "measured_rows_holdgrid.jsonl": {"valid_for": [], "rejected_for": ["divergent_branch"], "reason": "hold-grid, 0/56 usable (1 elem/thread, no grid-stride loop)", "n_range": "1M-16M"},
 }
 results["verdict_rule_version"] = "delta-0.10-v1"
+results["provenance"] = "FRESH rows measured under the corrected gate (rule from 4r9k via scripts/grid_limits.grid_capped); does not reuse 8zqr probe rows."
 
 # four-way verdict per family already in label; add four_way_verdicts
 results["four_way_verdicts"] = {f: results["per_family"][f]["label"] for f in families}
@@ -356,7 +357,7 @@ if hold_path.exists():
         "n_total": len(hold_rows),
         "n_usable": len(hold_usable),
         "gate_pass_rate": round(len(hold_usable)/len(hold_rows),4) if hold_rows else 0.0,
-        "label": "UNMEASURABLE" if len(hold_usable) < 3 else "TIE",
+        "label": "UNMEASURABLE" if len(hold_usable) < 3 else "INSUFFICIENT",
         "size_distribution": size_stats(hold_usable) if hold_usable else {"n":0},
         "note": "0/56 usable: kernel is one element per thread with no grid-stride loop; declared size is decorative. Not a size-scaling measurement.",
     }
@@ -364,11 +365,6 @@ if hold_path.exists():
 
 results["size_scaling_arm"] = size_scaling_arm
 results["occupancy_arm"] = occupancy_arm
-results["rejected_arms"] = {
-    "measured_rows.jsonl": {"valid_for": [], "rejected_for": ["gemm_naive", "divergent_branch"], "reason": "out-of-range 1K-65K", "n_range": "1K-65K"},
-    "measured_rows_v2.jsonl": {"valid_for": ["gemm_naive"], "rejected_for": ["divergent_branch"], "reason": "grid scales with size (does not cover n) for divergent", "n_range": "1M-268M"},
-    "measured_rows_holdgrid.jsonl": {"valid_for": [], "rejected_for": ["divergent_branch"], "reason": "hold-grid, 0/56 usable (1 elem/thread, no grid-stride loop)", "n_range": "1M-16M"},
-}
 
 
 # write
