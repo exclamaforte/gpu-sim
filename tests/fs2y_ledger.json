@@ -1,6 +1,13 @@
 {
   "schema": 1,
   "epic_rule": "Containers (issue_type=epic) are excluded; pending entries never count as passing.",
+  "retired": [
+    {
+      "name": "append_only_guard",
+      "reason": "self-referential row (target execs check_append_only); validated by checker self-tests, not a ledger target (gpu-sim-oi4m)",
+      "commit": "6b1b48544266b87e4227826e2ea2b9b728097a52"
+    }
+  ],
   "entries": [
     {
       "name": "dhfo_memory_check",
@@ -113,6 +120,16 @@
       "mutation": "u5r4_size_scaling_arm"
     },
     {
+      "name": "wty2_structure_dominated",
+      "beads": [
+        "gpu-sim-wty2"
+      ],
+      "state": "passing",
+      "test": "test_wty2.TestWty2.test_analysis_reproducible",
+      "bound_calls": 1,
+      "mutation": "wty2_structure_dominated"
+    },
+    {
       "name": "v5l3_pin_coverage",
       "beads": [
         "gpu-sim-v5l3"
@@ -121,13 +138,6 @@
       "test": "test_pin_coverage.TestPinCoverage.test_all_run_sh_pinned",
       "bound_calls": 1,
       "mutation": "v5l3_pin_coverage"
-    }
-  ],
-  "retired": [
-    {
-      "name": "append_only_guard",
-      "reason": "self-referential row (target execs check_append_only); validated by checker self-tests, not a ledger target (gpu-sim-oi4m)",
-      "commit": "6b1b48544266b87e4227826e2ea2b9b728097a52"
     }
   ]
 }

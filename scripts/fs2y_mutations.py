@@ -17,6 +17,7 @@ MUTATIONS = {
     "ledger_node_ids_validated": "ledger node id validator",
     "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
     "u5q0_lint_fixture_6338": "6.10 prose-ratio fixture pins the derived 6338x ratio (gpu-sim-u5q0)",
+    "wty2_structure_dominated": "wty2 structure-dominated verdict on unseen families (gpu-sim-wty2)",
     "u5r4_size_scaling_arm": "u5r4 size-scaling arm on divergent_branch (gpu-sim-u5r4)",
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
 }
@@ -38,6 +39,22 @@ def _apply_ledger_bad_row(root):
     return backup, ledger_path
 
 
+def _apply_wty2_corrupt(root):
+    """Mutation for wty2_structure_dominated: corrupt a scalar in committed metrics.json."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-wty2", "metrics.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    # corrupt a scalar MAE
+    try:
+        d["ac1_reconstruction"]["per_family"]["strided_read"]["gbt_mae"] = 999.0
+    except Exception:
+        pass
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
 def _apply_u5r4_corrupt(root):
     """Mutation for u5r4_size_scaling_arm: corrupt a scalar in committed metrics.json."""
     import json, os
@@ -52,7 +69,6 @@ def _apply_u5r4_corrupt(root):
         json.dump(d, f, indent=2)
     return backup, path
 
-
 def _apply_v5l3_unpin(root):
     """Mutation for v5l3_pin_coverage: remove one pin from a run.sh."""
     import os
@@ -66,6 +82,7 @@ def _apply_v5l3_unpin(root):
 
 MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
+    "wty2_structure_dominated": _apply_wty2_corrupt,
     "u5r4_size_scaling_arm": _apply_u5r4_corrupt,
     "v5l3_pin_coverage": _apply_v5l3_unpin,
 }
