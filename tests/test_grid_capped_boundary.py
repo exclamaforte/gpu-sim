@@ -59,34 +59,36 @@ def test_parse_powered_own_path_y_70000_capped():
     parse_powered = _load_module("experiments/gpu-sim-8zqr/parse_powered.py")
     assert parse_powered.GRID_CAPPED([1, 70000, 1]) is True
 
-def test_measure_build_row_uses_shared_symbol_under_monkeypatch():
-    measure = _load_module("experiments/gpu-sim-8zqr/measure.py")
-    grid_limits = sys.modules["scripts.grid_limits"]
-    calls = []
-    def fake(grid):
-        calls.append(list(grid))
-        return True  # deliberately wrong verdict
-    original = grid_limits.grid_capped
-    grid_limits.grid_capped = fake
-    try:
-        spec = {
-            "family": "gemm_naive",
-            "build_idx": 0,
-            "op_type": "gemm",
-            "problem_size": 1024,
-            "block": [256, 1, 1],
-            "grid": [256, 256, 1],
-            "metadata": {"compute_bound": True},
-            "phys": {},
-        }
-        scale_trials = [1.0] * 10
-        empty_trials = [0.1] * 5
-        row = measure.build_row(spec, scale_trials, empty_trials)
-    finally:
-        grid_limits.grid_capped = original
-    assert calls and calls[0] == [256, 256, 1], f"shared grid_capped was not called: {calls}"
-    assert row["grid_capped"] is True, "fake's verdict did not reach the row"
-    assert row["target_usable"] is False, "wrong verdict did not propagate to usable"
+
+class TestGridCappedBoundary:
+    def test_measure_build_row_uses_shared_symbol_under_monkeypatch(self):
+        measure = _load_module("experiments/gpu-sim-8zqr/measure.py")
+        grid_limits = sys.modules["scripts.grid_limits"]
+        calls = []
+        def fake(grid):
+            calls.append(list(grid))
+            return True  # deliberately wrong verdict
+        original = grid_limits.grid_capped
+        grid_limits.grid_capped = fake
+        try:
+            spec = {
+                "family": "gemm_naive",
+                "build_idx": 0,
+                "op_type": "gemm",
+                "problem_size": 1024,
+                "block": [256, 1, 1],
+                "grid": [256, 256, 1],
+                "metadata": {"compute_bound": True},
+                "phys": {},
+            }
+            scale_trials = [1.0] * 10
+            empty_trials = [0.1] * 5
+            row = measure.build_row(spec, scale_trials, empty_trials)
+        finally:
+            grid_limits.grid_capped = original
+        assert calls and calls[0] == [256, 256, 1], f"shared grid_capped was not called: {calls}"
+        assert row["grid_capped"] is True, "fake's verdict did not reach the row"
+        assert row["target_usable"] is False, "wrong verdict did not propagate to usable"
 
 
 def test_parse_powered_row_loop_uses_shared_symbol_under_monkeypatch(tmp_path):

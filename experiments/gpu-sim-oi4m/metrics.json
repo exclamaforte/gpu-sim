@@ -15,6 +15,6 @@
   "recursion_fix": "AST-refuse self-referential targets; depth marker OI4M_CHECKER_PID verified via /proc ancestor with check_append_only.py in cmdline; timeouts <=120s; OI4M_SKIP_FULL_RUN deleted.",
   "registry": "lab-package requirement (lab.py presubmit x06h imports MUTATIONS); this repo ships scripts/fs2y_mutations.py as its own convention, extended with MUTATION_FUNCTIONS.",
   "plant_field_decision": "Per-row 'plant' field DELETED. main's rows (incl. gpu-sim-1486 no_unconditional_skips) referenced tests/test_oi4m_plant.py::test_plant_fails; field is now ignored by checker and absent in this commit's ledger, so the reference is removed on land. test_oi4m_plant.py deleted.",
-  "four_preexisting_rows": "bk9_gate_flop_aware, fs2y_mutations_tracked, no_pycache_under_experiments, no_unconditional_skips use path form (tests/...::...); resolve in repo-local checker. Lab resolver (foreign project, applicability False) reports them as 'replay test does not exist' because it only handles class-qualified dotted form; classified as module-level guards validated by repo-local checker.",
+  "four_preexisting_rows": "bk9_gate_flop_aware, fs2y_mutations_tracked, no_pycache_under_experiments, no_unconditional_skips, effective_cpu_capacity: wrapped their module-level tests in classes and converted ledger test ids to dotted form so the lab resolver (validate_ledger) resolves them (0 errors).",
   "result": "checker FAILS on all plants and PASSES on every genuine row (10 entries)"
 }

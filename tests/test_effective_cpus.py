@@ -66,17 +66,19 @@ def test_host_cpus_os_view_consistent():
     assert r["affinity_cpus"] >= 1
 
 
-def test_cpu_capacity_consistent_with_min():
-    """cpu_capacity_cpus == min(affinity, quota) (or affinity if no quota)."""
-    r = ec.effective_cpus()
-    affinity = r["affinity_cpus"]
-    quota = r["quota_cpus"]
-    if quota is None:
-        expected = affinity
-    else:
-        expected = min(affinity, quota)
-    assert r["effective_cpus"] == expected, (
-        f"effective_cpus={r['effective_cpus']} != min({affinity}, {quota})={expected}")
+
+class TestEffectiveCpus:
+    def test_cpu_capacity_consistent_with_min(self):
+        """cpu_capacity_cpus == min(affinity, quota) (or affinity if no quota)."""
+        r = ec.effective_cpus()
+        affinity = r["affinity_cpus"]
+        quota = r["quota_cpus"]
+        if quota is None:
+            expected = affinity
+        else:
+            expected = min(affinity, quota)
+        assert r["effective_cpus"] == expected, (
+            f"effective_cpus={r['effective_cpus']} != min({affinity}, {quota})={expected}")
 
 
 def test_nproc_mismatch_named_warning(monkeypatch):

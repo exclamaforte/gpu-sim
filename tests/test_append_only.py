@@ -126,7 +126,7 @@ class TestLedgerNodeIds:
         d["entries"].append({
             "name": "plant_class_qualified",
             "state": "passing",
-            "test": "tests/test_no_pycache.py::TestNoPycache::test_lab_config_sets_pycache_suppression",
+            "test": "tests/test_no_pycache.py::NonexistentClass::test_lab_config_sets_pycache_suppression",
             "mutation": "append_only_guard",
         })
         lf.write_text(json.dumps(d, indent=2) + "\n")

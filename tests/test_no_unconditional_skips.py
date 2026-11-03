@@ -90,25 +90,27 @@ def _skip_sites(path: Path):
                 yield f"{path.name}::{node.name}:{sub.lineno}:{tag}"
 
 
-def test_all_skip_sites_are_allowlisted():
-    allow = json.loads(ALLOWLIST.read_text()) if ALLOWLIST.exists() else {}
-    uncond_offenders = []
-    unreg_offenders = []
-    for p in sorted(TESTS.glob("test_*.py")):
-        if p.name == "test_no_unconditional_skips.py":
-            continue
-        for site in _skip_sites(p):
-            tag = site.rsplit(":", 1)[-1]
-            base = site.rsplit(":", 1)[0]
-            if tag == "UNCOND":
-                uncond_offenders.append(base)
-            if base not in allow and site not in allow:
-                unreg_offenders.append(site)
-    assert len(uncond_offenders) == 0, (
-        "unconditional skips are forbidden (convert to skipIf or remove):\n"
-        + "\n".join(uncond_offenders)
-    )
-    assert len(unreg_offenders) == 0, (
-        "unregistered skip call sites (add to tests/skip_allowlist.json with "
-        "condition + derivation):\n" + "\n".join(unreg_offenders)
-    )
+
+class TestNoUnconditionalSkips:
+    def test_all_skip_sites_are_allowlisted(self):
+        allow = json.loads(ALLOWLIST.read_text()) if ALLOWLIST.exists() else {}
+        uncond_offenders = []
+        unreg_offenders = []
+        for p in sorted(TESTS.glob("test_*.py")):
+            if p.name == "test_no_unconditional_skips.py":
+                continue
+            for site in _skip_sites(p):
+                tag = site.rsplit(":", 1)[-1]
+                base = site.rsplit(":", 1)[0]
+                if tag == "UNCOND":
+                    uncond_offenders.append(base)
+                if base not in allow and site not in allow:
+                    unreg_offenders.append(site)
+        assert len(uncond_offenders) == 0, (
+            "unconditional skips are forbidden (convert to skipIf or remove):\n"
+            + "\n".join(uncond_offenders)
+        )
+        assert len(unreg_offenders) == 0, (
+            "unregistered skip call sites (add to tests/skip_allowlist.json with "
+            "condition + derivation):\n" + "\n".join(unreg_offenders)
+        )
