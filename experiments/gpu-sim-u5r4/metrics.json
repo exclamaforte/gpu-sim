@@ -70,49 +70,42 @@
     "gemm_naive": "BETTER",
     "divergent_branch": "WORSE"
   },
-  "ac1_out_of_range": {
-    "gemm_naive": "24/24 usable (pass_rate 1.0)",
-    "divergent_branch": "0/56 usable (49 below_threshold, 7 nonpositive_kernel_us)"
-  },
-  "ac1_in_range": {
-    "gemm_naive": "23/24 usable (pass_rate 0.9583)",
-    "divergent_branch": "3/56 usable (44 below_threshold, 9 nonpositive_kernel_us)"
-  },
-  "size_distribution_out_of_range": {
-    "gemm_naive": {
-      "min": 262144,
-      "median": 100000000,
-      "max": 268435456,
-      "n": 24
-    },
-    "divergent_branch": {
-      "min": 1024,
-      "median": 4096,
-      "max": 65536,
-      "n": 56
+  "size_scaling_arm": {
+    "arm": "size-scaling (grid=ceil(n/256), block=256, n 1M-16M)",
+    "n_total": 56,
+    "n_usable": 43,
+    "gate_pass_rate": 0.7679,
+    "gbt_mae": 1.0563616344241902,
+    "floor_mae": 0.9421418905258179,
+    "paired_delta_ci": [
+      -0.03479943089929627,
+      0.2727808405637496
+    ],
+    "paired_delta_mean": 0.11421982983995316,
+    "label": "UNRESOLVED",
+    "degradation_factor_gbt": 2.847966605456765,
+    "achieved_n_mde_log": 0.15379,
+    "size_distribution": {
+      "min": 1048576,
+      "median": 4194304,
+      "max": 16777216,
+      "n": 43
     }
   },
-  "gpu_jobs": [
-    {
-      "job_id": "20261103t085547-9c17c9d9",
-      "state": "finished",
-      "exit_code": 0,
-      "runtime_s": 36.0,
-      "rows": 80,
-      "note": "out-of-range probe (original grid)"
+  "occupancy_arm": {
+    "arm": "occupancy (fixed grid 16384, n 1M-16M; 1 elem/thread, no grid-stride loop)",
+    "n_total": 56,
+    "n_usable": 0,
+    "gate_pass_rate": 0.0,
+    "label": "UNMEASURABLE",
+    "size_distribution": {
+      "n": 0
     },
-    {
-      "job_id": "20261103t102403-9457806c",
-      "state": "finished",
-      "exit_code": 0,
-      "runtime_s": 67.0,
-      "rows": 80,
-      "note": "in-range probe (1M-16M grid)"
-    },
-    {
-      "job_id": "20261103t084831-75603665",
-      "state": "canceled",
-      "note": "resume defect (rm -f OUT)"
-    }
+    "note": "0/56 usable: kernel is one element per thread with no grid-stride loop; declared size is decorative. Not a size-scaling measurement."
+  },
+  "rejected_arms": [
+    "measured_rows.jsonl (out-of-range 1K-65K)",
+    "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)",
+    "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"
   ]
 }

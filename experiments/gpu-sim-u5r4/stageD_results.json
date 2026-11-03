@@ -69,5 +69,43 @@
   "four_way_verdicts": {
     "gemm_naive": "BETTER",
     "divergent_branch": "WORSE"
-  }
+  },
+  "size_scaling_arm": {
+    "arm": "size-scaling (grid=ceil(n/256), block=256, n 1M-16M)",
+    "n_total": 56,
+    "n_usable": 43,
+    "gate_pass_rate": 0.7679,
+    "gbt_mae": 1.0563616344241902,
+    "floor_mae": 0.9421418905258179,
+    "paired_delta_ci": [
+      -0.03479943089929627,
+      0.2727808405637496
+    ],
+    "paired_delta_mean": 0.11421982983995316,
+    "label": "UNRESOLVED",
+    "degradation_factor_gbt": 2.847966605456765,
+    "achieved_n_mde_log": 0.15379,
+    "size_distribution": {
+      "min": 1048576,
+      "median": 4194304,
+      "max": 16777216,
+      "n": 43
+    }
+  },
+  "occupancy_arm": {
+    "arm": "occupancy (fixed grid 16384, n 1M-16M; 1 elem/thread, no grid-stride loop)",
+    "n_total": 56,
+    "n_usable": 0,
+    "gate_pass_rate": 0.0,
+    "label": "UNMEASURABLE",
+    "size_distribution": {
+      "n": 0
+    },
+    "note": "0/56 usable: kernel is one element per thread with no grid-stride loop; declared size is decorative. Not a size-scaling measurement."
+  },
+  "rejected_arms": [
+    "measured_rows.jsonl (out-of-range 1K-65K)",
+    "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)",
+    "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"
+  ]
 }

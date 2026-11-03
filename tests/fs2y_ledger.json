@@ -101,6 +101,16 @@
       "test": "test_ledger_node_ids.TestLedgerNodeIds.test_all_rows_resolve",
       "bound_calls": 1,
       "mutation": "ledger_node_ids_validated"
+    },
+    {
+      "name": "u5r4_size_scaling_arm",
+      "beads": [
+        "gpu-sim-u5r4"
+      ],
+      "state": "passing",
+      "test": "test_u5r4.TestU5r4.test_analysis_reproducible",
+      "bound_calls": 1,
+      "mutation": "u5r4_size_scaling_arm"
     }
   ],
   "retired": [

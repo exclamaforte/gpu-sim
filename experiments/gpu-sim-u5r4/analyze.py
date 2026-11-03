@@ -228,6 +228,8 @@ else:
 
 # size distribution side-by-side
 def size_stats(rs):
+    if not rs:
+        return {"min": None, "median": None, "max": None, "n": 0}
     ns = sorted(r["size"] for r in rs)
     return {"min": ns[0], "median": ns[len(ns)//2], "max": ns[-1], "n": len(ns)}
 seen_sizes = [r["size"] for r in seen_rows]
@@ -241,6 +243,77 @@ results["verdict_rule_version"] = "delta-0.10-v1"
 
 # four-way verdict per family already in label; add four_way_verdicts
 results["four_way_verdicts"] = {f: results["per_family"][f]["label"] for f in families}
+
+# ---- Size-scaling arm (PI direction): divergent_branch with grid=ceil(n/256), block=256 ----
+sizescale_path = HERE / "measured_rows_sizescale.jsonl"
+size_scaling_arm = None
+if sizescale_path.exists():
+    ss_rows = [json.loads(l) for l in sizescale_path.read_text().splitlines() if l.strip()]
+    for r in ss_rows:
+        r["corrected_usable"] = bool(new_usable(r))
+    ss_usable = [r for r in ss_rows if r["corrected_usable"]]
+    ss_total = len(ss_rows)
+    ss_pass = len(ss_usable) / ss_total if ss_total else 0.0
+    # verdict on size-scaling arm (divergent_branch only)
+    if len(ss_usable) >= 3:
+        g0, _ = train_gbt(0)
+        mae_g0, preds_g0, ytrue_ss = eval_model(g0, ss_usable, probe_phys_vec)
+        mae_f0, preds_f0, _ = eval_model(ridge, ss_usable, probe_phys_vec, is_ridge=True)
+        lo, hi, mean = bootstrap_paired(preds_g0, preds_f0, ytrue_ss, 1000, 0)
+        mde_ss = mde_at_n(preds_g0, preds_f0, ytrue_ss)
+        if hi < 0:
+            ss_label = "BETTER"
+        elif lo > DELTA:
+            ss_label = "WORSE"
+        elif hi <= DELTA:
+            ss_label = "TIE"
+        else:
+            ss_label = "UNRESOLVED"
+        gbt_ss = float(np.mean([eval_model(train_gbt(s)[0], ss_usable, probe_phys_vec)[0] for s in SEEDS]))
+        floor_ss = float(np.mean([eval_model(ridge, ss_usable, probe_phys_vec, is_ridge=True)[0] for s in SEEDS]))
+        deg_ss = gbt_ss / seen_gbt_mae if seen_gbt_mae > 0 else None
+    else:
+        ss_label = "UNMEASURABLE"; gbt_ss = None; floor_ss = None; deg_ss = None
+        lo, hi, mean = None, None, None; mde_ss = None
+    size_scaling_arm = {
+        "arm": "size-scaling (grid=ceil(n/256), block=256, n 1M-16M)",
+        "n_total": ss_total,
+        "n_usable": len(ss_usable),
+        "gate_pass_rate": round(ss_pass, 4),
+        "gbt_mae": gbt_ss,
+        "floor_mae": floor_ss,
+        "paired_delta_ci": [lo, hi] if lo is not None else None,
+        "paired_delta_mean": mean,
+        "label": ss_label,
+        "degradation_factor_gbt": deg_ss,
+        "achieved_n_mde_log": (round(mde_ss, 6) if mde_ss is not None else None),
+        "size_distribution": size_stats(ss_usable) if ss_usable else None,
+    }
+    print("size-scaling arm:", ss_total, "rows,", len(ss_usable), "usable,", ss_label)
+
+# ---- Occupancy arm (hold-grid): fixed grid 16384, n 1M-16M ----
+hold_path = HERE / "measured_rows_holdgrid.jsonl"
+occupancy_arm = None
+if hold_path.exists():
+    hold_rows = [json.loads(l) for l in hold_path.read_text().splitlines() if l.strip()]
+    for r in hold_rows:
+        r["corrected_usable"] = bool(new_usable(r))
+    hold_usable = [r for r in hold_rows if r["corrected_usable"]]
+    occupancy_arm = {
+        "arm": "occupancy (fixed grid 16384, n 1M-16M; 1 elem/thread, no grid-stride loop)",
+        "n_total": len(hold_rows),
+        "n_usable": len(hold_usable),
+        "gate_pass_rate": round(len(hold_usable)/len(hold_rows),4) if hold_rows else 0.0,
+        "label": "UNMEASURABLE" if len(hold_usable) < 3 else "TIE",
+        "size_distribution": size_stats(hold_usable) if hold_usable else {"n":0},
+        "note": "0/56 usable: kernel is one element per thread with no grid-stride loop; declared size is decorative. Not a size-scaling measurement.",
+    }
+    print("occupancy arm:", len(hold_rows), "rows,", len(hold_usable), "usable")
+
+results["size_scaling_arm"] = size_scaling_arm
+results["occupancy_arm"] = occupancy_arm
+results["rejected_arms"] = ["measured_rows.jsonl (out-of-range 1K-65K)", "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)", "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"]
+
 
 # write
 import os as _os
