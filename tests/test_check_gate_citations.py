@@ -382,6 +382,8 @@ class TestBypassPath(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 1)
         self.assertIn("missing 'gate' citation", buf.getvalue())
+        assert rc == 1
+        assert "missing 'gate' citation" in buf.getvalue()
 
     def test_record_missing_role_fails(self):
         self._bypass({"tip": self.head, "reason": "test"})
@@ -390,6 +392,8 @@ class TestBypassPath(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 1)
         self.assertIn("missing role or tip", buf.getvalue())
+        assert rc == 1
+        assert "missing role or tip" in buf.getvalue()
 
     def test_record_missing_tip_fails(self):
         self._bypass({"role": "pi", "reason": "test"})
@@ -406,6 +410,8 @@ class TestBypassPath(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 1)
         self.assertIn("does not exist", buf.getvalue())
+        assert rc == 1
+        assert "does not exist" in buf.getvalue()
 
     def test_record_retroactive_out_of_window_fails(self):
         self._bypass({"role": "pi", "tip": self.head, "reason": "test",
@@ -415,6 +421,8 @@ class TestBypassPath(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 1)
         self.assertIn("out of window", buf.getvalue())
+        assert rc == 1
+        assert "out of window" in buf.getvalue()
 
     def test_valid_record_passes(self):
         self._bypass({"role": "pi", "tip": self.head, "reason": "test bypass"})
@@ -423,3 +431,5 @@ class TestBypassPath(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 0)
         self.assertIn("BYPASSED (audited)", buf.getvalue())
+        assert rc == 0
+        assert "BYPASSED (audited)" in buf.getvalue()
