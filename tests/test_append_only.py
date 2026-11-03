@@ -256,21 +256,28 @@ class TestWty2Repro(unittest.TestCase):
         cls._cache_dir = d
 
     def _corrupt(self, mutate):
-        metrics = ROOT / "experiments" / "gpu-sim-wty2" / "metrics.json"
-        backup = metrics.read_text()
-        d = _json.loads(backup)
+        import tempfile
+        committed = ROOT / "experiments" / "gpu-sim-wty2" / "metrics.json"
+        tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+        tmp.write(committed.read_text())
+        tmp.close()
+        d = _json.loads(open(tmp.name).read())
         mutate(d)
-        metrics.write_text(_json.dumps(d, indent=2) + "\n")
+        open(tmp.name, "w").write(_json.dumps(d, indent=2) + "\n")
         run = ROOT / "experiments" / "gpu-sim-wty2" / "run.sh"
         env = dict(os.environ)
         env["WTY2_CACHE_DIR"] = self._cache_dir
+        env["WTY2_METRICS"] = tmp.name
         try:
             r = subprocess.run(["bash", str(run)], cwd=str(ROOT),
                                capture_output=True, text=True, timeout=120,
                                env=env)
             return r.returncode, r.stdout + r.stderr
         finally:
-            metrics.write_text(backup)
+            try:
+                os.unlink(tmp.name)
+            except OSError:
+                pass
 
     def test_corrupted_scalar_fails(self):
         def mutate(d):
