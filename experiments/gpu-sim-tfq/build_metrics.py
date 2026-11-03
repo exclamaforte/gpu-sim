@@ -153,13 +153,10 @@ metrics = {
                   "Switch count does NOT predict spread.",
         "survivor_tested": "per-window cgroup throttle delta vs spread",
         "throttle_sample": json.load(open(os.path.join(HERE, "cgroup_delta_sample.json"))),
-        "throttle_interpretation": "Representative 12s sustained-workload sample: 120 periods, "
-                                   "0 throttled, 0 throttled_usec. This process's own 2-CPU quota "
-                                   "is not throttling during sustained CPU work (cumulative scope "
-                                   "shows 64/3578 = 1.8%%, 11.8s total). The spread is therefore "
-                                   "more consistent with neighbour contention / scheduler noise on "
-                                   "shared cores than with this process's own quota throttling. "
-                                   "The quota still caps us at 2 CPUs.",
+        "throttle_delta_nr_periods": json.load(open(os.path.join(HERE, "cgroup_delta_sample.json")))["delta"]["nr_periods"],
+        "throttle_delta_nr_throttled": json.load(open(os.path.join(HERE, "cgroup_delta_sample.json")))["delta"]["nr_throttled"],
+        "throttle_delta_throttled_usec": json.load(open(os.path.join(HERE, "cgroup_delta_sample.json")))["delta"]["throttled_usec"],
+        "throttle_delta_fraction": json.load(open(os.path.join(HERE, "cgroup_delta_sample.json")))["throttled_fraction"],
         "ctx_switch_vs_spread_pairs": [
             {"window": r["window_id"], "ctx_switches": r["nonvoluntary_ctx_switches_delta"],
              "spread_us": r["spread_us"]} for r in rows if not r.get("repeat_of")

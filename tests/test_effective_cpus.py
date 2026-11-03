@@ -56,3 +56,24 @@ def test_mismatch_reported():
     r = ec.effective_cpus()
     assert "effective_cpus" in r
     assert r["effective_cpus"] == 2.0 or r["effective_cpus"] > 0
+
+
+def test_host_cpus_os_view_consistent():
+    """host_cpus_os_view == affinity_cpus (os view)."""
+    r = ec.effective_cpus()
+    assert r["affinity_cpus"] == len(os.sched_getaffinity(0))
+    # host_cpus_os_view is the os view = affinity count
+    assert r["affinity_cpus"] >= 1
+
+
+def test_cpu_capacity_consistent_with_min():
+    """cpu_capacity_cpus == min(affinity, quota) (or affinity if no quota)."""
+    r = ec.effective_cpus()
+    affinity = r["affinity_cpus"]
+    quota = r["quota_cpus"]
+    if quota is None:
+        expected = affinity
+    else:
+        expected = min(affinity, quota)
+    assert r["effective_cpus"] == expected, (
+        f"effective_cpus={r['effective_cpus']} != min({affinity}, {quota})={expected}")

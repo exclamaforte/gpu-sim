@@ -39,7 +39,9 @@
       "python",
       "-m",
       "pytest",
-      "tests/"
+      "tests/",
+      "-m",
+      "not multiproc"
     ],
     "build": [
       "make"

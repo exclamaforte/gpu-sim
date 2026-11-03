@@ -10,6 +10,6 @@
   "host_cpus_os_view": 32,
   "cpu_capacity_cpus": 2.0,
   "per_cpu_util_caveat": "per_cpu_util is NOT a capacity signal under a cgroup quota: it measures utilization of the 32 OS-visible CPUs, not the 2-CPU quota. A 100% per-CPU reading on 2 CPUs is only 6.25% of host capacity.",
-  "deselect_note": "The multiproc skipif in test_subgroup_grank is retained (cpu_count=2 < 4). Removing it without '-m not multiproc' documented would run 4 rank-4 tests on 2 CPUs, which is worse than the skip. Deselect must be stated explicitly.",
+  "deselect_note": "The _MULTIPROC_OK skipif at tests/test_subgroup_grank.py:250-274 was removed at 391be5d; the real deselect is stated in lab.config.json tests.command as '-m not multiproc' (4 multiproc tests deselected explicitly). The deselect is a decision, not a silent skip.",
   "throttle_deltas": "nr_throttled/nr_periods from cgroup cpu.stat recorded in measure_window output; present in artifact."
 }
