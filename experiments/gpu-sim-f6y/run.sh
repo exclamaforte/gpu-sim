@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-f6y RECOMPUTE (CPU only): replay every CPU-side step and require
 # byte-identical outputs. The GPU job (measure_f6y.sh, job
 # 20261011t145826-efc35eab) is NOT replayed: its outputs

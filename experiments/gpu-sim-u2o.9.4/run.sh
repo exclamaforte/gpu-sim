@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.9.4 -- recompute check. CPU-ONLY (stdlib + repo).
 # Re-runs the report gates + report driver, byte-compares metrics.json.
 # NOT a model gate: nothing under epic_u2o/ may change in this bead, so a

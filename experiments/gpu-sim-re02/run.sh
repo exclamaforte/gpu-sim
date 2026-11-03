@@ -9,6 +9,7 @@
 # than trusted: the previous revision of this file ran only the fast path, so
 # the expensive half of the check was never exercised at land time.
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 cd "$(dirname "$0")/../.."
 
 echo "=== fast path (CI_GATES_FULL=0) ==="

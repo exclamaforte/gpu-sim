@@ -10,6 +10,7 @@
 # Exit nonzero on any gate failure. Byte-identical outputs expected on
 # re-run (measured.jsonl, measure_summary.json, metrics.json).
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
 export CUDA_VISIBLE_DEVICES=

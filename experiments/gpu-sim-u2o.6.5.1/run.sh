@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.6.5.1 -- recompute check. CPU-ONLY: no CUDA, no ts queue.
 # Re-runs the new isolation checks + make check, and re-verifies the bead's
 # standing admission grep (every GPU-free claim has a named check).
