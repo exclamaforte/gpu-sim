@@ -16,5 +16,6 @@
   "registry": "lab-package requirement (lab.py presubmit x06h imports MUTATIONS); this repo ships scripts/fs2y_mutations.py as its own convention, extended with MUTATION_FUNCTIONS.",
   "plant_field_decision": "Per-row 'plant' field DELETED. main's rows (incl. gpu-sim-1486 no_unconditional_skips) referenced tests/test_oi4m_plant.py::test_plant_fails; field is now ignored by checker and absent in this commit's ledger, so the reference is removed on land. test_oi4m_plant.py deleted.",
   "four_preexisting_rows": "bk9_gate_flop_aware, fs2y_mutations_tracked, no_pycache_under_experiments, no_unconditional_skips, effective_cpu_capacity: wrapped their module-level tests in classes and converted ledger test ids to dotted form so the lab resolver (validate_ledger) resolves them (0 errors).",
-  "result": "checker FAILS on all plants and PASSES on every genuine row (10 entries)"
+  "result": "checker FAILS on all plants and PASSES on every genuine row (10 entries)",
+  "heavy_row_exemption": "8zqr_generalization and bch9_fabric_band exempt from execution (committed EXEMPT_ROWS with reasons); checker prints 'replay skipped (exempt): <row>'. Not an env var. Artifact byte-verified by append-only half."
 }
