@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.9.3 replay: loss unit tests only (CPU-only bead, no GPU used).
 set -u
 WT=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.9.3

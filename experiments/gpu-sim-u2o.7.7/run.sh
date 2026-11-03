@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.7.7 merged-corpus audit replay (CPU only, no GPU, no ts job).
 # Re-runs the merged audit + the split test module; outputs must be
 # byte-identical to the committed metrics.json (modulo key order, which

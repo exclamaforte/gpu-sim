@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import os as _os
+_os.environ.setdefault("OMP_NUM_THREADS", "1")
+_os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+_os.environ.setdefault("MKL_NUM_THREADS", "1")
+_os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+_os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 import json, math, pathlib, sys, hashlib, numpy as np
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import KFold

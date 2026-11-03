@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-39u EXPERIMENT 2 -- recompute check. CPU-ONLY (stdlib).
 # Re-runs exp2_nlocal.py into scratch, byte-compares metrics.json.
 set -uo pipefail

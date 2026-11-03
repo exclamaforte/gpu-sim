@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import os as _os
+_os.environ.setdefault("OMP_NUM_THREADS", "1")
+_os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+_os.environ.setdefault("MKL_NUM_THREADS", "1")
+_os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+_os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 """gpu-sim-u2o.9.5 STAGE 1+2 (CPU): GBT baseline over hand-engineered features.
 
 Stage 1: hash-verified join (8.3 features x 6.6 targets, 456/456), stated

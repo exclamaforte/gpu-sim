@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.6.6.2.1.1.1 -- per-file landing, mechanical emission, narrowed test.
 # CPU-ONLY git work. Default mode verifies against committed metrics.json and
 # leaves the tree untouched; XY8_OUTDIR set to this directory produces it.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-urr -- recompute + evidence. CPU-ONLY, device-free throughout
 # (libfakegpu answers registration and launch; no device touched).
 # Never writes a tracked file: builds go to gitignored build/, scratch to
