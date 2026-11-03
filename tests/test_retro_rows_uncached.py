@@ -41,7 +41,16 @@ CACHE_SYMBOL = mr.CACHE_SYMBOL
 class TestContentCarriesTheClaim(unittest.TestCase):
     """Acceptance 2, first half: the PRODUCING BRANCH has no cache."""
 
-    @unittest.skip("environment-dependent: test assumes a specific git tree state; test side is environment-coupled")
+    def _producing_branch_exists():
+        try:
+            subprocess.check_output(["git", "-C", str(mr.REPO), "rev-parse", "--verify", PRODUCING_BRANCH],
+                                    stderr=subprocess.DEVNULL)
+            return True
+        except Exception:
+            return False
+
+    @unittest.skipIf(not _producing_branch_exists(),
+                     "environment-dependent: producing branch not present in this checkout")
     def test_the_tree_that_sampled_the_rows_contains_no_cache(self):
         # Read off the SAMPLING tree, not the rows' current home: master HAS
         # the mechanism, so the same query against master would assert the

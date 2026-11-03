@@ -45,14 +45,18 @@ def _real_finished_job() -> str:
     version of that test failed.
     """
     import glob
+    finished = None
     for f in sorted(glob.glob(str(Path.home() / ".local/state/gpqueue/jobs/*.json"))):
         try:
             d = json.loads(Path(f).read_text())
         except Exception:
             continue
         if d.get("state") == "finished":
-            return d["id"]
-    raise unittest.SkipTest("no finished job in the queue to verify against")
+            finished = d["id"]
+            break
+    if finished is None:
+        raise unittest.SkipTest("no finished job in the queue to verify against")
+    return finished
 
 
 def make_artifact(results, job=None):

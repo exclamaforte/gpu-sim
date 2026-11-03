@@ -28,5 +28,8 @@ def test_provenance_present():
 
 def test_negative_control_constant_fails():
     """A constant can never carry the negative-control property (gpu-sim-va fairness note)."""
-    import pytest
-    pytest.skip("placeholder: no negative control is implemented here; see gpu-sim-va")
+    m = json.loads(METRICS.read_text())
+    # The negative control is not implemented (verdict is GAP-REMAINS), so a
+    # constant prediction must not be recorded as passing.
+    assert m["verdict"] != "PASS-ALL", "constant negative control cannot yield PASS-ALL"
+    assert "overfitting_diagnostic" in m
