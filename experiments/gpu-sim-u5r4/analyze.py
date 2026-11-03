@@ -373,7 +373,11 @@ results["rejected_arms"] = {
 
 # write
 import os as _os
-out_dir = Path(_os.environ.get("U5R4_OUT", str(HERE)))
+_u5r4_out = _os.environ.get("U5R4_OUT")
+if not _u5r4_out:
+    print("ERROR: U5R4_OUT is required (no default; refusing to write into the committed artifact dir)")
+    raise SystemExit(2)
+out_dir = Path(_u5r4_out)
 out_dir.mkdir(parents=True, exist_ok=True)
 out = out_dir / "stageD_results.json"
 out.write_text(json.dumps(results, indent=2) + "\n")
