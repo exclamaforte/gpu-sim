@@ -90,7 +90,7 @@
       "mae_without_family_label": 2.0013811588287354,
       "mae_with_family_label": 0.08048882961731281,
       "recovered_fraction": 0.9597833579764401,
-      "note": "synthetic control: family label is a perfect predictor -> probe recovers ~1; real leak probe (access-class, seen-only) recovers 0.0, proving the probe is not dead."
+      "note": "synthetic control: family label is a perfect predictor -> probe recovers ~1. Real leak probe (access-class, seen-only) recovers 0.0 and is vacuous by construction (access class constant in training), so the residual is unattributed. Positive control shows the probe mechanism works; the real probe cannot test the hypothesis."
     }
   },
   "ac4_floor_artefact": {
@@ -151,6 +151,6 @@
   "verdict": "STRUCTURE_DOMINATED",
   "verdict_rule_version": "wty2-v1",
   "in_range_definition": "A powered (unseen-family) row is in-range iff its size n and block b both fall within the seen-family envelope: n in [262144,16777216] and b in [128,512] (min/max over seen_rows). All powered rows satisfy this, so n_out_of_range=0 for every unseen family; out-of-range extrapolation is ruled out by construction.",
-  "consequence": "STRUCTURE_DOMINATED: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; the leak probe recovers 0.0 (positive control recovers ~1), so adding access-pattern descriptors to the feature set is required; collecting more in-range data will not close the gap. The learned model's predictive claim is scoped to coalesced access patterns.",
+  "consequence": "STRUCTURE_DOMINATED (descriptive): all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation. The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns.",
   "verdict_reason": "verdict=STRUCTURE_DOMINATED; in_range_degrades=False"
 }

@@ -217,7 +217,7 @@ g_s.fit(Xtr_s,ytr_s); pred_s=g_s.predict(Xte_s)
 mae1=float(np.mean(np.abs(pred_s-yte_s)))
 recovered_pc=(mae0-mae1)/mae0 if mae0>0 else 0.0
 ac3["positive_control"]={"mae_without_family_label":mae0,"mae_with_family_label":mae1,"recovered_fraction":recovered_pc,
-                          "note":"synthetic control: family label is a perfect predictor -> probe recovers ~1; real leak probe (access-class, seen-only) recovers 0.0, proving the probe is not dead."}
+                          "note":"synthetic control: family label is a perfect predictor -> probe recovers ~1. Real leak probe (access-class, seen-only) recovers 0.0 and is vacuous by construction (access class constant in training), so the residual is unattributed. Positive control shows the probe mechanism works; the real probe cannot test the hypothesis."}
 print("positive_control recovered", round(recovered_pc,4))
 
 
@@ -273,7 +273,7 @@ else:
 results={"ac1_reconstruction":ac1,"ac2_out_of_range":ac2,"ac3_structure_leak":ac3,"ac4_floor_artefact":ac4,
         "verdict":verdict,"verdict_rule_version":"wty2-v1",
         "in_range_definition": IN_RANGE_DEFINITION,
-        "consequence": "STRUCTURE_DOMINATED: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; the leak probe recovers 0.0 (positive control recovers ~1), so adding access-pattern descriptors to the feature set is required; collecting more in-range data will not close the gap. The learned model's predictive claim is scoped to coalesced access patterns."}
+        "consequence": "STRUCTURE_DOMINATED (descriptive): all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation. The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns."}
 # computed fields only
 results["verdict_reason"]=f"verdict={verdict}; in_range_degrades={in_range_degrades}"
 import os as _os
