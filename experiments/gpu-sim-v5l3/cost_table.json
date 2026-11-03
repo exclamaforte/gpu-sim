@@ -1,20 +1,52 @@
 {
   "measured_at": "2026-11-03",
   "method": "wall-clock and user/sys CPU time, single run each, 2-core box",
-  "thread_counts": {"pinned": 1, "unpinned": "default (system)"},
+  "thread_counts": {
+    "pinned": 1,
+    "unpinned": "default (system)"
+  },
   "results": [
-    {"experiment": "gpu-sim-8zqr", "pinned_wall_s": 4.64, "unpinned_wall_s": 3.27, "ratio": 1.42, "verdict": "ok"},
-    {"experiment": "gpu-sim-m3d.6", "pinned_wall_s": 5.91, "unpinned_wall_s": 5.90, "ratio": 1.00, "verdict": "ok"},
-    {"experiment": "gpu-sim-034x", "pinned_wall_s": 2.85, "unpinned_wall_s": 2.69, "ratio": 1.06, "verdict": "ok (pre-existing fail both)"},
-    {"experiment": "gpu-sim-fzd", "pinned_wall_s": 11.10, "unpinned_wall_s": 7.00, "ratio": 1.59, "verdict": "ok (pre-existing fail both, uses torch)"}
+    {
+      "experiment": "gpu-sim-8zqr",
+      "pinned_wall_s": 4.64,
+      "unpinned_wall_s": 3.27,
+      "ratio": 1.42,
+      "verdict": "ok"
+    },
+    {
+      "experiment": "gpu-sim-m3d.6",
+      "pinned_wall_s": 5.91,
+      "unpinned_wall_s": 5.9,
+      "ratio": 1.0,
+      "verdict": "ok"
+    },
+    {
+      "experiment": "gpu-sim-034x",
+      "pinned_wall_s": 2.85,
+      "unpinned_wall_s": 2.69,
+      "ratio": 1.06,
+      "verdict": "ok (pre-existing fail both)"
+    },
+    {
+      "experiment": "gpu-sim-fzd",
+      "pinned_wall_s": 11.1,
+      "unpinned_wall_s": 7.0,
+      "ratio": 1.59,
+      "verdict": "ok (pre-existing fail both, uses torch)"
+    }
   ],
   "max_ratio": 1.59,
   "threshold": 2.0,
-  "conclusion": "No experiment regresses more than 2x from pinning. All pinned.",
+  "conclusion": "Four short experiments (3-11s) measured once each under load ~20: ratios 1.00-1.59, within noise. Minute-scale and heavy-torch cost NOT measured. Byte-identity (u5r4, 1 vs 4 threads, full metrics.json) is the correctness evidence.",
   "byte_identity": {
     "experiment": "gpu-sim-u5r4",
-    "thread_counts": [1, 4],
+    "thread_counts": [
+      1,
+      4
+    ],
     "compared": "metrics.json (full artifact)",
     "result": "byte-identical"
-  }
+  },
+  "load_avg_during_measurement": "~20 (foreign job on shared 2-core box)",
+  "n_runs_per_experiment": 1
 }
