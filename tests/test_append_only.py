@@ -242,19 +242,6 @@ import json as _json
 class TestWty2Repro(unittest.TestCase):
     """Plants for the wty2 reproducibility gate (must exit nonzero)."""
 
-    _cache_dir = None
-
-    @classmethod
-    def setUpClass(cls):
-        import tempfile, os
-        d = tempfile.mkdtemp(prefix="wty2-cache-")
-        os.environ["WTY2_CACHE_DIR"] = d
-        subprocess.run(
-            ["bash", "-c", "U5R4_OUT=%s python3 %s/analyze.py > %s/analyze.log 2>&1" % (
-                d, ROOT / "experiments" / "gpu-sim-wty2", d)],
-            cwd=str(ROOT), check=True, timeout=300)
-        cls._cache_dir = d
-
     def _corrupt(self, mutate):
         import tempfile
         committed = ROOT / "experiments" / "gpu-sim-wty2" / "metrics.json"
@@ -266,7 +253,6 @@ class TestWty2Repro(unittest.TestCase):
         open(tmp.name, "w").write(_json.dumps(d, indent=2) + "\n")
         run = ROOT / "experiments" / "gpu-sim-wty2" / "run.sh"
         env = dict(os.environ)
-        env["WTY2_CACHE_DIR"] = self._cache_dir
         env["WTY2_METRICS"] = tmp.name
         try:
             r = subprocess.run(["bash", str(run)], cwd=str(ROOT),

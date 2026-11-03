@@ -149,8 +149,9 @@
     }
   },
   "verdict": "GENERALIZES_WITH_DEGRADATION",
-  "verdict_rule_version": "wty2-v1",
+  "verdict_rule_version": "wty2-v2",
+  "verdict_rule": "if out_of_range_exists: if in_range_degrades and out_degrades: MIXED; elif in_range_degrades: STRUCTURE_DOMINATED; elif out_degrades: EXTRAPOLATION_DOMINATED; elif max_deg > 2.0: GENERALIZES_WITH_DEGRADATION; else: GENERALIZES. else (no out-of-range cells): if in_range_degrades: STRUCTURE_DOMINATED; elif max_deg > 2.0: GENERALIZES_WITH_DEGRADATION; else: GENERALIZES.",
   "in_range_definition": "A powered (unseen-family) row is in-range iff its size n and block b both fall within the seen-family envelope: n in [262144,16777216] and b in [128,512] (min/max over seen_rows). All powered rows satisfy this, so n_out_of_range=0 for every unseen family; out-of-range extrapolation is ruled out by construction.",
-  "consequence": "GENERALIZES_WITH_DEGRADATION: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; GBT absolute error grows 3.0x-7.2x on unseen families but the floor degrades similarly, so GBT stays at parity or better (no in-range advantage lost). The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns.",
+  "consequence": "GENERALIZES_WITH_DEGRADATION: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; GBT absolute error grows 1.6x-7.2x on unseen families but the floor degrades similarly, so GBT stays at parity or better (no in-range advantage lost). The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns.",
   "verdict_reason": "verdict=GENERALIZES_WITH_DEGRADATION; in_range_degrades=False"
 }

@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """wty2: separate extrapolation from missing structure."""
+import os as _os
+_os.environ.setdefault("OMP_NUM_THREADS", "1")
+_os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+_os.environ.setdefault("MKL_NUM_THREADS", "1")
+_os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+_os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 import json, math, random, sys
 from pathlib import Path
 import numpy as np
@@ -248,6 +254,17 @@ for fam in unseen_families:
 # AC5: resolved consequence sentence
 # verdict stays STRUCTURE_DOMINATED (computed above)
 
+VERDICT_RULE = ("if out_of_range_exists: "
+    "if in_range_degrades and out_degrades: MIXED; "
+    "elif in_range_degrades: STRUCTURE_DOMINATED; "
+    "elif out_degrades: EXTRAPOLATION_DOMINATED; "
+    "elif max_deg > 2.0: GENERALIZES_WITH_DEGRADATION; "
+    "else: GENERALIZES. "
+    "else (no out-of-range cells): "
+    "if in_range_degrades: STRUCTURE_DOMINATED; "
+    "elif max_deg > 2.0: GENERALIZES_WITH_DEGRADATION; "
+    "else: GENERALIZES.")
+
 # verdict
 # EXTRAPOLATION_DOMINATED if in-range cells show tie; STRUCTURE_DOMINATED if in-range also degrade
 in_range_degrades=False
@@ -280,10 +297,36 @@ else:
     else:
         verdict = "GENERALIZES"
 
+deg_vals = [ac1["per_family"][f]["deg"] for f in unseen_families]
+min_deg = min(deg_vals)
+max_deg = max(deg_vals)
+if verdict == "STRUCTURE_DOMINATED":
+    consequence = (f"{verdict}: all unseen cells are in-range (n_out_of_range=0), so the degradation "
+                   f"is not extrapolation; GBT absolute error grows {min_deg:.1f}x-{max_deg:.1f}x on "
+                   f"unseen families and the floor does not degrade similarly, so the in-range "
+                   f"advantage is lost (missing structure). The access-class leak probe recovers 0.0 "
+                   f"but is vacuous by construction (access class is constant in training), so the "
+                   f"residual is UNATTRIBUTED. Missing structure unidentified; next step is a probe "
+                   f"with training-time variation. The learned model's predictive claim is scoped to "
+                   f"coalesced access patterns.")
+elif verdict == "GENERALIZES_WITH_DEGRADATION":
+    consequence = (f"{verdict}: all unseen cells are in-range (n_out_of_range=0), so the degradation "
+                   f"is not extrapolation; GBT absolute error grows {min_deg:.1f}x-{max_deg:.1f}x on "
+                   f"unseen families but the floor degrades similarly, so GBT stays at parity or "
+                   f"better (no in-range advantage lost). The access-class leak probe recovers 0.0 "
+                   f"but is vacuous by construction (access class is constant in training), so the "
+                   f"residual is UNATTRIBUTED: the probe cannot test the missing-structure "
+                   f"hypothesis. Missing structure unidentified; next step is a probe with "
+                   f"training-time variation. The learned model's predictive claim is scoped to "
+                   f"coalesced access patterns.")
+else:
+    consequence = (f"{verdict}: in_range_degrades={in_range_degrades}; max_deg={max_deg:.2f}.")
+
 results={"ac1_reconstruction":ac1,"ac2_out_of_range":ac2,"ac3_structure_leak":ac3,"ac4_floor_artefact":ac4,
-        "verdict":verdict,"verdict_rule_version":"wty2-v1",
+        "verdict":verdict,"verdict_rule_version":"wty2-v2",
+        "verdict_rule": VERDICT_RULE,
         "in_range_definition": IN_RANGE_DEFINITION,
-        "consequence": "GENERALIZES_WITH_DEGRADATION: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; GBT absolute error grows 3.0x-7.2x on unseen families but the floor degrades similarly, so GBT stays at parity or better (no in-range advantage lost). The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns."}
+        "consequence": consequence}
 # computed fields only
 results["verdict_reason"]=f"verdict={verdict}; in_range_degrades={in_range_degrades}"
 import os as _os
