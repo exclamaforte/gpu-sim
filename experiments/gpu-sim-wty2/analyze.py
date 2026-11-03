@@ -287,7 +287,11 @@ results={"ac1_reconstruction":ac1,"ac2_out_of_range":ac2,"ac3_structure_leak":ac
 # computed fields only
 results["verdict_reason"]=f"verdict={verdict}; in_range_degrades={in_range_degrades}"
 import os as _os
-out_dir = Path(_os.environ.get("U5R4_OUT", str(HERE)))
+_u5r4_out = _os.environ.get("U5R4_OUT")
+if not _u5r4_out:
+    print("ERROR: U5R4_OUT is required (no default; refusing to write into the committed artifact dir)")
+    raise SystemExit(2)
+out_dir = Path(_u5r4_out)
 out_dir.mkdir(parents=True, exist_ok=True)
 (out_dir/"metrics.json").write_text(json.dumps(results,indent=2)+"\n")
 (out_dir/"stageD_results.json").write_text(json.dumps(results,indent=2)+"\n")
