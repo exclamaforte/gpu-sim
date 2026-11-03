@@ -1,0 +1,140 @@
+{
+  "per_family": {
+    "gemm_naive": {
+      "n_total": 24,
+      "n_usable": 23,
+      "gate_pass_rate": 0.9583,
+      "gbt_mae": 0.8161821920103801,
+      "floor_mae": 12.523902893066406,
+      "gbt_mae_seed0": 0.8161821920103801,
+      "floor_mae_seed0": 12.523902893066406,
+      "paired_delta_mean": -11.707719713692128,
+      "paired_delta_ci": [
+        -16.361119617289997,
+        -7.044816535978813
+      ],
+      "label": "BETTER",
+      "degradation_factor_gbt": 2.200439272939989,
+      "achieved_n_mde_log": 4.658152,
+      "mde_exceeds_effect": false
+    },
+    "divergent_branch": {
+      "n_total": 56,
+      "n_usable": 43,
+      "gate_pass_rate": 0.7679,
+      "gbt_mae": 1.0563616344241902,
+      "floor_mae": 0.9421418905258179,
+      "gbt_mae_seed0": 1.0563616344241902,
+      "floor_mae_seed0": 0.9421418905258179,
+      "paired_delta_mean": 0.11421982983995316,
+      "paired_delta_ci": [
+        -0.03479943089929627,
+        0.2727808405637496
+      ],
+      "label": "UNRESOLVED",
+      "degradation_factor_gbt": 2.847966605456765,
+      "achieved_n_mde_log": 0.15379,
+      "mde_exceeds_effect": true
+    }
+  },
+  "seen_reference": {
+    "gbt_mae": 0.37091784447197473,
+    "floor_mae": 1.0784345865249634
+  },
+  "size_distribution": {
+    "probe_in_range": {
+      "gemm_naive": {
+        "min": 1048576,
+        "median": 134217728,
+        "max": 268435456,
+        "n": 23
+      },
+      "divergent_branch": {
+        "min": 1048576,
+        "median": 4194304,
+        "max": 16777216,
+        "n": 43
+      }
+    },
+    "seen_corpus": {
+      "min": 262144,
+      "median": 7713253,
+      "max": 16777216,
+      "n": 673
+    }
+  },
+  "aggregate_verdict": "INCONCLUSIVE",
+  "verdict": "INCONCLUSIVE",
+  "arm_selection": {
+    "gemm_naive": "v2 in-range rows (grid covers MxN; valid)",
+    "divergent_branch": "size-scaling rows (grid=ceil(n/256), block=256; valid)"
+  },
+  "rejected_arms": {
+    "measured_rows.jsonl": {
+      "valid_for": [],
+      "rejected_for": [
+        "gemm_naive",
+        "divergent_branch"
+      ],
+      "reason": "out-of-range 1K-65K",
+      "n_range": "1K-65K"
+    },
+    "measured_rows_v2.jsonl": {
+      "valid_for": [
+        "gemm_naive"
+      ],
+      "rejected_for": [
+        "divergent_branch"
+      ],
+      "reason": "grid scales with size (does not cover n) for divergent",
+      "n_range": "1M-268M"
+    },
+    "measured_rows_holdgrid.jsonl": {
+      "valid_for": [],
+      "rejected_for": [
+        "divergent_branch"
+      ],
+      "reason": "hold-grid, 0/56 usable (1 elem/thread, no grid-stride loop)",
+      "n_range": "1M-16M"
+    }
+  },
+  "verdict_rule_version": "delta-0.10-v1",
+  "provenance": "FRESH rows measured under the corrected gate (rule from 4r9k via scripts/grid_limits.grid_capped); does not reuse 8zqr probe rows.",
+  "four_way_verdicts": {
+    "gemm_naive": "BETTER",
+    "divergent_branch": "UNRESOLVED"
+  },
+  "size_scaling_arm": {
+    "arm": "size-scaling (grid=ceil(n/256), block=256, n 1M-16M)",
+    "n_total": 56,
+    "n_usable": 43,
+    "gate_pass_rate": 0.7679,
+    "gbt_mae": 1.0563616344241902,
+    "floor_mae": 0.9421418905258179,
+    "paired_delta_ci": [
+      -0.03479943089929627,
+      0.2727808405637496
+    ],
+    "paired_delta_mean": 0.11421982983995316,
+    "label": "UNRESOLVED",
+    "degradation_factor_gbt": 2.847966605456765,
+    "achieved_n_mde_log": 0.15379,
+    "size_distribution": {
+      "min": 1048576,
+      "median": 4194304,
+      "max": 16777216,
+      "n": 43
+    }
+  },
+  "occupancy_arm": {
+    "arm": "occupancy (fixed grid 16384, n 1M-16M; 1 elem/thread, no grid-stride loop)",
+    "n_total": 56,
+    "n_usable": 0,
+    "gate_pass_rate": 0.0,
+    "label": "UNMEASURABLE",
+    "size_distribution": {
+      "n": 0
+    },
+    "note": "0/56 usable: kernel is one element per thread with no grid-stride loop; declared size is decorative. Not a size-scaling measurement."
+  }
+}
