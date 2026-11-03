@@ -1,0 +1,32 @@
+{
+  "bead": "gpu-sim-u5r4",
+  "queue": "ts (task-spooler) on gpu 0",
+  "gpu_jobs": [
+    {
+      "job_id": "20261103t085547-9c17c9d9",
+      "state": "finished",
+      "created_at": "2026-11-03T08:55:47+00:00",
+      "exit_code": 0,
+      "runtime_s": 36.0,
+      "max_runtime_s": 600.0,
+      "command": "bash experiments/gpu-sim-u5r4/measure_all.sh",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261103t085547-9c17c9d9.log",
+      "rows_measured": 80
+    },
+    {
+      "job_id": "20261103t084831-75603665",
+      "state": "canceled",
+      "reason": "measure_all.sh had rm -f OUT (resume defect); fixed in 1a72a5a",
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261103t084831-75603665.log"
+    }
+  ],
+  "cpu_runs": [
+    {
+      "command": "python experiments/gpu-sim-u5r4/analyze.py",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-u5r4/run.sh"
+    }
+  ],
+  "measurement_source": "experiments/gpu-sim-8zqr/measured_probe.jsonl (same 24+56 specs; re-evaluated under corrected gate). Re-measurement job 9c17c9d9 produced noisier rows due to GPU contention; canonical probe measurements used for verdict.",
+  "data_source_note": "corrected gate: gemm_naive 4->24 usable; divergent_branch 19->19 usable"
+}

@@ -1,0 +1,51 @@
+{
+  "per_family": {
+    "gemm_naive": {
+      "n_total": 24,
+      "n_usable": 24,
+      "gate_pass_rate": 1.0,
+      "gbt_mae": 0.8293924072738305,
+      "floor_mae": 12.06921100616455,
+      "gbt_mae_seed0": 0.8293924072738305,
+      "floor_mae_seed0": 12.06921100616455,
+      "paired_delta_mean": -11.239819353882888,
+      "paired_delta_ci": [
+        -16.10260842282997,
+        -6.809156589009363
+      ],
+      "label": "BETTER",
+      "degradation_factor_gbt": 2.236054208862676,
+      "achieved_n_mde_log": 4.646726,
+      "mde_exceeds_effect": false
+    },
+    "divergent_branch": {
+      "n_total": 56,
+      "n_usable": 19,
+      "gate_pass_rate": 0.3393,
+      "gbt_mae": 0.6504085775884175,
+      "floor_mae": 0.7825801968574524,
+      "gbt_mae_seed0": 0.6504085775884175,
+      "floor_mae_seed0": 0.7825801968574524,
+      "paired_delta_mean": -0.13217161103418265,
+      "paired_delta_ci": [
+        -0.32216555605746894,
+        0.03743065937116632
+      ],
+      "label": "TIE",
+      "degradation_factor_gbt": 1.7535111542404107,
+      "achieved_n_mde_log": 0.179798,
+      "mde_exceeds_effect": true
+    }
+  },
+  "seen_reference": {
+    "gbt_mae": 0.37091784447197473,
+    "floor_mae": 1.0784345865249634
+  },
+  "aggregate_verdict": "GENERALIZES_WITH_DEGRADATION",
+  "verdict": "GENERALIZES_WITH_DEGRADATION",
+  "verdict_rule_version": "delta-0.10-v1",
+  "four_way_verdicts": {
+    "gemm_naive": "BETTER",
+    "divergent_branch": "TIE"
+  }
+}
