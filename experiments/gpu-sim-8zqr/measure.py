@@ -81,6 +81,36 @@ def build_row(d, scale_trials, empty_trials):
     }
     return row
 
+def gate_decision(row, compute_bound_families=("gemm_naive", "matmul")):
+    """Shared gate decision for a measured row dict. Returns (usable, threshold, gc, reason).
+    Used by run.sh and gen_ac3.py to avoid copying the rule."""
+    kernel_us = row["kernel_us"]
+    within = row["within_std_us"]
+    residual = row["residual_us"]
+    family = row.get("family", "")
+    compute_bound = family in compute_bound_families
+    if compute_bound and residual > 0:
+        threshold = 5 * residual
+    else:
+        threshold = 5 * max(within, residual) if (within > 0 or residual > 0) else 0.0
+    grid = row["grid"]
+    from scripts.grid_limits import grid_capped as _gc
+    gc = bool(_gc(grid))
+    usable = (kernel_us >= threshold) and (not gc) and (kernel_us > 0)
+    if not usable:
+        if kernel_us <= 0:
+            reason = "nonpositive_kernel_us"
+        elif gc:
+            reason = "grid_capped"
+        elif kernel_us < threshold:
+            reason = "below_threshold"
+        else:
+            reason = "unknown"
+    else:
+        reason = "accepted"
+    return usable, threshold, gc, reason
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--build-dir", default=None)

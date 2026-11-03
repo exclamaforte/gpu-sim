@@ -37,7 +37,7 @@ def build_rows(tr_dir=None):
         within=(empty["p95_us"]-empty["p05_us"])/3.29 if empty["p95_us"]>empty["p05_us"] else 0.0
         residual=nearest_residual(n)
         threshold=5*max(within,residual)
-        compute_bound = (family == "gemm_naive")
+        compute_bound = (family in ("gemm_naive", "matmul"))
         if compute_bound:
             threshold = 5 * residual if residual > 0 else threshold
         grid_dim = (n + block - 1) // block if block > 0 else 0
