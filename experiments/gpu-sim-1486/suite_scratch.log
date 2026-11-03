@@ -1,0 +1,130 @@
+.....................................................................s.. [  6%]
+........................................................s............... [ 12%]
+........................................................................ [ 19%]
+........................................................................ [ 25%]
+........................................................................ [ 32%]
+..........s.......s..ss................................................. [ 38%]
+........................................................................ [ 44%]
+......................................................................F. [ 51%]
+........................................................................ [ 57%]
+....FF.F.F.............................................................. [ 64%]
+........................................................................ [ 70%]
+........................................................................ [ 77%]
+...................................................sss.................. [ 83%]
+.........................................................sss............ [ 89%]
+.............ss............s............................................ [ 96%]
+.........................................                                [100%]
+=================================== FAILURES ===================================
+___ TestTheRecipeIsGenerated.test_the_generated_rm_lists_every_tracked_path ____
+
+self = <test_generated_recipe.TestTheRecipeIsGenerated testMethod=test_the_generated_rm_lists_every_tracked_path>
+
+    def test_the_generated_rm_lists_every_tracked_path(self):
+        text = DOC.read_text()
+        listed = set(re.findall(r"^\s+(epic_u2o/\S+?)\s*\\?$", text, re.M))
+        expected = {f"epic_u2o/{n}" for n in tracked_on_branch()}
+>       self.assertEqual(listed, expected,
+                         "the generated rm must name exactly the tracked set")
+E       AssertionError: Items in the second set but not the first:
+E       'epic_u2o/gpu_spec.py'
+E       'epic_u2o/train_trans_91.py'
+E       'epic_u2o/throughput_evidence.py'
+E       'epic_u2o/rlimit_cuda_gate.py'
+E       'epic_u2o/acquisition.py'
+E       'epic_u2o/hw_5090.py'
+E       'epic_u2o/op_latency.py'
+E       'epic_u2o/train_ablation.py'
+E       'epic_u2o/dataset_split.py'
+E       'epic_u2o/surrogate_search.py'
+E       'epic_u2o/representation_cardinality.py' : the generated rm must name exactly the tracked set
+
+tests/test_generated_recipe.py:52: AssertionError
+_____________ TestFiresOnHistory.test_6_10_seconds_vs_milliseconds _____________
+
+self = <test_lint_prose_numbers.TestFiresOnHistory testMethod=test_6_10_seconds_vs_milliseconds>
+
+    def test_6_10_seconds_vs_milliseconds(self):
+        f = []
+        lint.check_6_10_ratio(f)
+        self.assertTrue(f, "6.10's unit-ratio was not caught")
+        # the operands give ~2713x, the prose reported the printed 3x
+>       self.assertIn("2713", f[0].artifact_value)
+E       AssertionError: '2713' not found in '(process_wall_sec*1000)/sum_of_trials_ms = 6338; stored wall_over_trials_ratio=6338'
+
+tests/test_lint_prose_numbers.py:63: AssertionError
+___________________ TestFiresOnHistory.test_6_11_typed_count ___________________
+
+self = <test_lint_prose_numbers.TestFiresOnHistory testMethod=test_6_11_typed_count>
+
+    def test_6_11_typed_count(self):
+        f = []
+        lint.check_6_11_counts(f)
+>       self.assertTrue(f, "6.11's typed removal count was not caught")
+E       AssertionError: [] is not true : 6.11's typed removal count was not caught
+
+tests/test_lint_prose_numbers.py:69: AssertionError
+_____________ TestFiresOnHistory.test_6_6_3_discriminates_ordering _____________
+
+self = <test_lint_prose_numbers.TestFiresOnHistory testMethod=test_6_6_3_discriminates_ordering>
+
+    def test_6_6_3_discriminates_ordering(self):
+        f = []
+        lint.check_6_6_3_constant_boolean(f)
+>       self.assertTrue(f, "6.6.3's constant-boolean-as-discriminator was not caught")
+E       AssertionError: [] is not true : 6.6.3's constant-boolean-as-discriminator was not caught
+
+tests/test_lint_prose_numbers.py:49: AssertionError
+____ TestDoesNotFireOnSupportedClaims.test_6_10_correct_ratio_does_not_fire ____
+
+self = <test_lint_prose_numbers.TestDoesNotFireOnSupportedClaims testMethod=test_6_10_correct_ratio_does_not_fire>
+
+    def test_6_10_correct_ratio_does_not_fire(self):
+        f = []
+        lint.check_6_10_ratio(
+            f, comments="it printed 2713x where the real ratio is 2713x")
+>       self.assertEqual(f, [], "fired on a ratio the operands support")
+E       AssertionError: Lists differ: [Finding(bead='gpu-sim-u2o.6.10', check='r[513 chars]e.")] != []
+E       
+E       First list contains 1 additional elements.
+E       First extra element 0:
+E       Finding(bead='gpu-sim-u2o.6.10', check='ratio printed in prose is not what the operands give', fragment='it printed 2713x where the real ratio is 2713x', artifact_path='9nhck:experiments/gpu-sim-u2o.6.10/report.json', artifact_value='(process_wall_sec*1000)/sum_of_trials_ms = 6338; stored wall_over_trials_ratio=6338', comment_value=2713.0, note="the same sentence claims the real ratio is 2713.0x, which the operands DO support (6338); the disagreement is with the value the harness actually printed. artifact's own unit_bug_correction records the cause.")
+E       
+E       Diff is 720 characters long. Set self.maxDiff to None to see it. : fired on a ratio the operands support
+
+tests/test_lint_prose_numbers.py:91: AssertionError
+=============================== warnings summary ===============================
+tests/test_9ei.py::Test9ei::test_clamp_high
+  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-1486/tests/test_9ei.py:53: UserWarning: op_latency: relu size out of calibrated range (above); prediction is clamped to the table edge and may be inaccurate.
+    self.assertEqual(latency_ms_for("relu", last * 2), entry["sizes"][sizes[-1]])
+
+tests/test_9ei.py::Test9ei::test_clamp_low
+  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-1486/tests/test_9ei.py:47: UserWarning: op_latency: relu size out of calibrated range (below); prediction is clamped to the table edge and may be inaccurate.
+    self.assertEqual(latency_ms_for("relu", first // 2), entry["sizes"][sizes[0]])
+
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+tests/test_trace_concurrent_writers.py::test_concurrent_writers_never_tear_a_line
+  /usr/lib/python3.14/multiprocessing/popen_fork.py:76: DeprecationWarning: This process (pid=1416266) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+tests/test_w4v.py::TestW4v::test_fp16_within_25
+  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-1486/tests/test_w4v.py:27: UserWarning: op_latency: sigmoid size out of calibrated range (below); prediction is clamped to the table edge and may be inaccurate.
+    pred = latency_ms_for(c["op"], n, dtype_bytes=2) / 1000.0  # ms? latency_ms_for returns ms? Wait table device_ms_median is ms, normalized ms. latency_ms_for returns ms. Convert to ms? Let's keep ms.
+
+tests/test_w4v.py::TestW4v::test_fp16_within_25
+  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-1486/tests/test_w4v.py:27: UserWarning: op_latency: tanh size out of calibrated range (below); prediction is clamped to the table edge and may be inaccurate.
+    pred = latency_ms_for(c["op"], n, dtype_bytes=2) / 1000.0  # ms? latency_ms_for returns ms? Wait table device_ms_median is ms, normalized ms. latency_ms_for returns ms. Convert to ms? Let's keep ms.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_generated_recipe.py::TestTheRecipeIsGenerated::test_the_generated_rm_lists_every_tracked_path
+FAILED tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_10_seconds_vs_milliseconds
+FAILED tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_11_typed_count
+FAILED tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_6_3_discriminates_ordering
+FAILED tests/test_lint_prose_numbers.py::TestDoesNotFireOnSupportedClaims::test_6_10_correct_ratio_does_not_fire
+5 failed, 1101 passed, 15 skipped, 4 deselected, 12 warnings in 1388.34s (0:23:08)

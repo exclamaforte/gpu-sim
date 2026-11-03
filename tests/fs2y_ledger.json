@@ -67,6 +67,28 @@
       "bound_calls": 1,
       "mutation": "fs2y_mutations_tracked",
       "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+    },
+    {
+      "name": "bk9_gate_flop_aware",
+      "beads": [
+        "gpu-sim-4r9k"
+      ],
+      "state": "passing",
+      "test": "tests/test_grid_capped_boundary.py::test_measure_build_row_uses_shared_symbol_under_monkeypatch",
+      "bound_calls": 1,
+      "mutation": "bk9_gate_flop_aware",
+      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+    },
+    {
+      "name": "no_pycache_under_experiments",
+      "beads": [
+        "gpu-sim-1upd"
+      ],
+      "state": "passing",
+      "test": "tests/test_no_pycache.py::test_lab_config_sets_pycache_suppression",
+      "bound_calls": 1,
+      "mutation": "no_pycache_under_experiments",
+      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
     }
   ]
 }

@@ -1,9 +1,11 @@
 {
   "bead": "gpu-sim-1486",
-  "skips_before": 36,
-  "skips_after": 18,
-  "passed_before": 1063,
-  "passed_after": 1064,
+  "suite_run_empty_lab_tmp": "1101 passed, 15 skipped, 5 failed, 4 deselected (tests/test_lint_prose_numbers 4 failures + test_generated_recipe 1 failure are recorded findings about live lint)",
+  "suite_run_scratch_present": "1101 passed, 15 skipped, 5 failed, 4 deselected (identical test set to empty run)",
+  "passed_after": 1101,
+  "skips_after": 15,
+  "failed_after": 5,
+  "deselected_after": 4,
   "removed_unconditional_skips": [
     "test_bd_ready_filter.py::TestAgainstTheRealDatabase::test_the_filter_does_not_empty_the_list (converted: now runs against live DB)",
     "test_9ul.py (placeholder skip replaced with real assertions)",
@@ -19,11 +21,16 @@
     "test_generated_recipe.py::test_the_generated_rm_lists_every_tracked_path (fails \u2014 finding)"
   ],
   "conditional_skips_retained": [
-    "test_cp_payload_structure.py:47 (gitignored scratch trace, skipif)",
     "test_retro_rows_uncached.py:52 (producing branch absent, skipif)",
     "test_retro_rows_uncached.py setUpClass (cache commits unavailable)",
     "test_session_scope.py (linked worktree, skipif)",
     "test_subgroup_grank.py (multiproc cpu_count<4, 4 skips)",
     "test_bd_ready_filter.py::setUpClass (DB capability)"
-  ]
+  ],
+  "guard_plant_demonstration": {
+    "plant": "appended a bare @unittest.skip('planted bare skip') function (test_planted_bare_skip) to tests/test_session_scope.py",
+    "rc": 1,
+    "message": "AssertionError: unconditional skips are forbidden (convert to skipIf or remove): test_session_scope.py::test_planted_bare_skip:133"
+  },
+  "suite_runs_identical_test_sets": true
 }
