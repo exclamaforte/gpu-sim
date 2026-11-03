@@ -7,7 +7,12 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from epic_u2o.safe_harness import SafeHarness
 from scripts.grid_limits import grid_capped as _grid_capped
+from scripts import grid_limits
 GRID_CAPPED = _grid_capped
+
+def _row_grid_capped(grid):
+    # Runtime lookup so a monkeypatch of grid_limits.grid_capped is honored.
+    return grid_limits.grid_capped(grid)
 
 RESIDUAL = {1024:0.018,16384:0.068,262144:0.078,4194304:0.004,16777216:0.027}
 def nearest_residual(n):
@@ -94,7 +99,7 @@ def main():
             compute_bound = bool(md.get("compute_bound", False))
             # grid capped: use the ACTUAL grid from the spec, not a size/block proxy
             grid = d["grid"]
-            gc = _grid_capped(grid)
+            gc = _row_grid_capped(grid)
             # family-aware threshold: flop-bound (compute-bound) kernels use the
             # irreducible residual as the noise floor, not the empty-baseline
             # variance (which is inflated by clock boosting on trivial kernels).
