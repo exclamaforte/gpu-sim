@@ -15,4 +15,5 @@ MUTATIONS = {
     "bk9_gate_flop_aware": "flop-aware bk9 gate calibration",
     "effective_cpu_capacity": "effective CPU capacity helper",
     "ledger_node_ids_validated": "ledger node id validator",
+    "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
 }
