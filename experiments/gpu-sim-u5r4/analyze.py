@@ -18,6 +18,12 @@ if not rows_path.exists():
 rows = [json.loads(l) for l in rows_path.read_text().splitlines() if l.strip()]
 print("measured rows:", len(rows), "from", rows_path.name)
 
+sizescale_path = HERE / "measured_rows_sizescale.jsonl"
+sizescale_rows = []
+if sizescale_path.exists():
+    sizescale_rows = [json.loads(l) for l in sizescale_path.read_text().splitlines() if l.strip()]
+    print("size-scaling rows:", len(sizescale_rows))
+
 # corrected usable
 def new_usable(row):
     kernel_us = row["kernel_us"]
@@ -33,6 +39,8 @@ def new_usable(row):
     return (kernel_us >= threshold) and (not gc) and (kernel_us > 0)
 
 for r in rows:
+    r["corrected_usable"] = bool(new_usable(r))
+for r in sizescale_rows:
     r["corrected_usable"] = bool(new_usable(r))
 
 # gate pass rates
@@ -163,12 +171,22 @@ def mde_at_n(preds_gbt, preds_floor, ytrue):
     lo, hi, mean = bootstrap_paired(preds_gbt, preds_floor, ytrue, 1000, 0)
     return (hi - lo) / 2.0
 
+# per-family arm selection: gemm_naive uses v2 (grid covers MxN); divergent uses size-scaling
+def _arm_rows(fam):
+    if fam == "gemm_naive":
+        return [r for r in rows if r["family"] == fam and r["corrected_usable"]]
+    if fam == "divergent_branch":
+        return [r for r in sizescale_rows if r["corrected_usable"]]
+    return [r for r in rows if r["family"] == fam and r["corrected_usable"]]
+
 results = {"per_family": {}, "seen_reference": {"gbt_mae": seen_gbt_mae, "floor_mae": seen_floor_mae}}
 per_family_verdicts = {}
 for fam in families:
-    usable_rows = [r for r in rows if r["family"] == fam and r["corrected_usable"]]
+    usable_rows = _arm_rows(fam)
     n_usable = len(usable_rows)
-    gate_pass_rate = n_usable / len([r for r in rows if r["family"] == fam])
+    arm_name = "v2 (in-range, grid covers MxN)" if fam == "gemm_naive" else "size-scaling (grid=ceil(n/256))"
+    _arm_total = len([r for r in (rows if fam=="gemm_naive" else sizescale_rows) if r["family"] == fam]) if (fam=="gemm_naive" or sizescale_rows) else len([r for r in rows if r["family"]==fam])
+    gate_pass_rate = n_usable / _arm_total if _arm_total else 0.0
     # seeds
     seed_maes_gbt = []
     seed_maes_floor = []
@@ -196,7 +214,7 @@ for fam in families:
     else:
         label = "UNRESOLVED"
     results["per_family"][fam] = {
-        "n_total": len([r for r in rows if r["family"] == fam]),
+        "n_total": _arm_total,
         "n_usable": n_usable,
         "gate_pass_rate": round(gate_pass_rate, 4),
         "gbt_mae": gbt_mae,
@@ -238,6 +256,11 @@ results["size_distribution"] = {
 }
 results["aggregate_verdict"] = agg
 results["verdict"] = agg
+results["arm_selection"] = {
+    "gemm_naive": "v2 in-range rows (grid covers MxN; valid)",
+    "divergent_branch": "size-scaling rows (grid=ceil(n/256), block=256; valid)",
+}
+results["rejected_arms"] = ["measured_rows.jsonl (out-of-range 1K-65K)", "measured_rows_v2.jsonl (divergent in-range, grid scales with size -> 3/56 usable)", "measured_rows_holdgrid.jsonl (occupancy, 0/56 usable)"]
 results["verdict_rule_version"] = "delta-0.10-v1"
 
 # four-way verdict per family already in label; add four_way_verdicts

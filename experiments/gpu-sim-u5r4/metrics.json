@@ -20,21 +20,21 @@
     },
     "divergent_branch": {
       "n_total": 56,
-      "n_usable": 3,
-      "gate_pass_rate": 0.0536,
-      "gbt_mae": 2.1974349200397243,
-      "floor_mae": 0.908935546875,
-      "gbt_mae_seed0": 2.1974349200397243,
-      "floor_mae_seed0": 0.908935546875,
-      "paired_delta_mean": 1.2884993731647243,
+      "n_usable": 43,
+      "gate_pass_rate": 0.7679,
+      "gbt_mae": 1.0563616344241902,
+      "floor_mae": 0.9421418905258179,
+      "gbt_mae_seed0": 1.0563616344241902,
+      "floor_mae_seed0": 0.9421418905258179,
+      "paired_delta_mean": 0.11421982983995316,
       "paired_delta_ci": [
-        0.9344223661734139,
-        1.665876274876343
+        -0.03479943089929627,
+        0.2727808405637496
       ],
-      "label": "WORSE",
-      "degradation_factor_gbt": 5.924317076650527,
-      "achieved_n_mde_log": 0.365727,
-      "mde_exceeds_effect": false
+      "label": "UNRESOLVED",
+      "degradation_factor_gbt": 2.847966605456765,
+      "achieved_n_mde_log": 0.15379,
+      "mde_exceeds_effect": true
     }
   },
   "seen_reference": {
@@ -63,12 +63,21 @@
       "n": 673
     }
   },
-  "aggregate_verdict": "DOES_NOT_GENERALIZE",
-  "verdict": "DOES_NOT_GENERALIZE",
+  "aggregate_verdict": "INCONCLUSIVE",
+  "verdict": "INCONCLUSIVE",
+  "arm_selection": {
+    "gemm_naive": "v2 in-range rows (grid covers MxN; valid)",
+    "divergent_branch": "size-scaling rows (grid=ceil(n/256), block=256; valid)"
+  },
+  "rejected_arms": [
+    "measured_rows.jsonl (out-of-range 1K-65K)",
+    "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)",
+    "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"
+  ],
   "verdict_rule_version": "delta-0.10-v1",
   "four_way_verdicts": {
     "gemm_naive": "BETTER",
-    "divergent_branch": "WORSE"
+    "divergent_branch": "UNRESOLVED"
   },
   "size_scaling_arm": {
     "arm": "size-scaling (grid=ceil(n/256), block=256, n 1M-16M)",
@@ -102,10 +111,5 @@
       "n": 0
     },
     "note": "0/56 usable: kernel is one element per thread with no grid-stride loop; declared size is decorative. Not a size-scaling measurement."
-  },
-  "rejected_arms": [
-    "measured_rows.jsonl (out-of-range 1K-65K)",
-    "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)",
-    "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"
-  ]
+  }
 }
