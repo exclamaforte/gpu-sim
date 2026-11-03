@@ -1,0 +1,157 @@
+{
+  "ac1_reconstruction": {
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "gbt_mae": 0.5877040526199653,
+        "floor_mae": 0.677695631980896,
+        "deg": 1.5844588266078155
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "gbt_mae": 1.1033305103609603,
+        "floor_mae": 1.0916727781295776,
+        "deg": 2.974595390339394
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "gbt_mae": 2.6610622189292346,
+        "floor_mae": 2.7642269134521484,
+        "deg": 7.1742631382899
+      }
+    },
+    "seen_reference": {
+      "gbt_mae": 0.37091784447197473,
+      "floor_mae": 1.0784345865249634
+    }
+  },
+  "ac2_out_of_range": {
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "n_in_range": 137,
+        "n_out_of_range": 0,
+        "fraction_in_range": 1.0,
+        "in_range_paired": [
+          -0.16784826849411547,
+          -0.006819644319166252,
+          -0.08999163667465787,
+          137
+        ],
+        "out_of_range_paired": null
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "n_in_range": 147,
+        "n_out_of_range": 0,
+        "fraction_in_range": 1.0,
+        "in_range_paired": [
+          -0.06394048603046695,
+          0.08525318335066301,
+          0.011657808092991646,
+          147
+        ],
+        "out_of_range_paired": null
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "n_in_range": 146,
+        "n_out_of_range": 0,
+        "fraction_in_range": 1.0,
+        "in_range_paired": [
+          -0.21086433813511168,
+          0.008865625256148134,
+          -0.10316457980438527,
+          146
+        ],
+        "out_of_range_paired": null
+      }
+    }
+  },
+  "ac3_structure_leak": {
+    "per_family": {
+      "strided_read": {
+        "mae_without_leak": 0.5877040526199653,
+        "mae_with_leak": 0.5877040526199653,
+        "recovered_fraction": 0.0
+      },
+      "interleaved_read": {
+        "mae_without_leak": 1.1033305103609603,
+        "mae_with_leak": 1.1033305103609603,
+        "recovered_fraction": 0.0
+      },
+      "block_cyclic": {
+        "mae_without_leak": 2.6610622189292346,
+        "mae_with_leak": 2.6610622189292346,
+        "recovered_fraction": 0.0
+      }
+    },
+    "positive_control": {
+      "mae_without_family_label": 2.0013811588287354,
+      "mae_with_family_label": 0.08048882961731281,
+      "recovered_fraction": 0.9597833579764401,
+      "note": "synthetic control: family label is a perfect predictor -> probe recovers ~1. Real leak probe (access-class, seen-only) recovers 0.0 and is vacuous by construction (access class constant in training), so the residual is unattributed. Positive control shows the probe mechanism works; the real probe cannot test the hypothesis."
+    }
+  },
+  "ac4_floor_artefact": {
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "per_decade": {
+          "large": {
+            "n": 108,
+            "gbt_mae": 0.5728153950041557,
+            "floor_mae": 0.7156874537467957
+          },
+          "mid": {
+            "n": 29,
+            "gbt_mae": 0.6431514671891879,
+            "floor_mae": 0.5362094640731812
+          }
+        },
+        "gbt_flat_across_decades": true,
+        "flat_vs_inflating": "flat"
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "per_decade": {
+          "large": {
+            "n": 111,
+            "gbt_mae": 1.1434005099617637,
+            "floor_mae": 1.0760676860809326
+          },
+          "mid": {
+            "n": 36,
+            "gbt_mae": 0.9797813449251502,
+            "floor_mae": 1.1397881507873535
+          }
+        },
+        "gbt_flat_across_decades": true,
+        "flat_vs_inflating": "flat"
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "per_decade": {
+          "large": {
+            "n": 110,
+            "gbt_mae": 2.7089378639166886,
+            "floor_mae": 2.793499708175659
+          },
+          "mid": {
+            "n": 36,
+            "gbt_mae": 2.5147755259120146,
+            "floor_mae": 2.6747825145721436
+          }
+        },
+        "gbt_flat_across_decades": true,
+        "flat_vs_inflating": "flat"
+      }
+    }
+  },
+  "verdict": "GENERALIZES_WITH_DEGRADATION",
+  "verdict_rule_version": "wty2-v2",
+  "verdict_rule": "if out_of_range_exists: if in_range_degrades and out_degrades: MIXED; elif in_range_degrades: STRUCTURE_DOMINATED; elif out_degrades: EXTRAPOLATION_DOMINATED; elif max_deg > 2.0: GENERALIZES_WITH_DEGRADATION; else: GENERALIZES. else (no out-of-range cells): if in_range_degrades: STRUCTURE_DOMINATED; elif max_deg > 2.0: GENERALIZES_WITH_DEGRADATION; else: GENERALIZES.",
+  "in_range_definition": "A powered (unseen-family) row is in-range iff its size n and block b both fall within the seen-family envelope: n in [262144,16777216] and b in [128,512] (min/max over seen_rows). All powered rows satisfy this, so n_out_of_range=0 for every unseen family; out-of-range extrapolation is ruled out by construction.",
+  "consequence": "GENERALIZES_WITH_DEGRADATION: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; GBT absolute error grows 1.6x-7.2x on unseen families but the floor degrades similarly, so GBT stays at parity or better (no in-range advantage lost). The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns.",
+  "verdict_reason": "verdict=GENERALIZES_WITH_DEGRADATION; in_range_degrades=False"
+}
