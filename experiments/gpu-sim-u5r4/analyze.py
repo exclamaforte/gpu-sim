@@ -12,9 +12,12 @@ from measure import nearest_residual
 
 DELTA = 0.10
 
-# load measured rows
-rows = [json.loads(l) for l in (HERE / "measured_rows.jsonl").read_text().splitlines() if l.strip()]
-print("measured rows:", len(rows))
+# load measured rows (prefer in-range v2 if present)
+rows_path = HERE / "measured_rows_v2.jsonl"
+if not rows_path.exists():
+    rows_path = HERE / "measured_rows.jsonl"
+rows = [json.loads(l) for l in rows_path.read_text().splitlines() if l.strip()]
+print("measured rows:", len(rows), "from", rows_path.name)
 
 # corrected usable
 def new_usable(row):
@@ -223,6 +226,15 @@ else:
     else:
         agg = "GENERALIZES"
 
+# size distribution side-by-side
+def size_stats(rs):
+    ns = sorted(r["size"] for r in rs)
+    return {"min": ns[0], "median": ns[len(ns)//2], "max": ns[-1], "n": len(ns)}
+seen_sizes = [r["size"] for r in seen_rows]
+results["size_distribution"] = {
+    "probe_in_range": {fam: size_stats([r for r in rows if r["family"]==fam and r["corrected_usable"]]) for fam in families},
+    "seen_corpus": {"min": min(seen_sizes), "median": sorted(seen_sizes)[len(seen_sizes)//2], "max": max(seen_sizes), "n": len(seen_sizes)},
+}
 results["aggregate_verdict"] = agg
 results["verdict"] = agg
 results["verdict_rule_version"] = "delta-0.10-v1"

@@ -2,50 +2,117 @@
   "per_family": {
     "gemm_naive": {
       "n_total": 24,
-      "n_usable": 24,
-      "gate_pass_rate": 1.0,
-      "gbt_mae": 0.8293924072738305,
-      "floor_mae": 12.06921100616455,
-      "gbt_mae_seed0": 0.8293924072738305,
-      "floor_mae_seed0": 12.06921100616455,
-      "paired_delta_mean": -11.239819353882888,
+      "n_usable": 23,
+      "gate_pass_rate": 0.9583,
+      "gbt_mae": 0.8161821920103801,
+      "floor_mae": 12.523902893066406,
+      "gbt_mae_seed0": 0.8161821920103801,
+      "floor_mae_seed0": 12.523902893066406,
+      "paired_delta_mean": -11.707719713692128,
       "paired_delta_ci": [
-        -16.10260842282997,
-        -6.809156589009363
+        -16.361119617289997,
+        -7.044816535978813
       ],
       "label": "BETTER",
-      "degradation_factor_gbt": 2.236054208862676,
-      "achieved_n_mde_log": 4.646726,
+      "degradation_factor_gbt": 2.200439272939989,
+      "achieved_n_mde_log": 4.658152,
       "mde_exceeds_effect": false
     },
     "divergent_branch": {
       "n_total": 56,
-      "n_usable": 19,
-      "gate_pass_rate": 0.3393,
-      "gbt_mae": 0.6504085775884175,
-      "floor_mae": 0.7825801968574524,
-      "gbt_mae_seed0": 0.6504085775884175,
-      "floor_mae_seed0": 0.7825801968574524,
-      "paired_delta_mean": -0.13217161103418265,
+      "n_usable": 3,
+      "gate_pass_rate": 0.0536,
+      "gbt_mae": 2.1974349200397243,
+      "floor_mae": 0.908935546875,
+      "gbt_mae_seed0": 2.1974349200397243,
+      "floor_mae_seed0": 0.908935546875,
+      "paired_delta_mean": 1.2884993731647243,
       "paired_delta_ci": [
-        -0.32216555605746894,
-        0.03743065937116632
+        0.9344223661734139,
+        1.665876274876343
       ],
-      "label": "TIE",
-      "degradation_factor_gbt": 1.7535111542404107,
-      "achieved_n_mde_log": 0.179798,
-      "mde_exceeds_effect": true
+      "label": "WORSE",
+      "degradation_factor_gbt": 5.924317076650527,
+      "achieved_n_mde_log": 0.365727,
+      "mde_exceeds_effect": false
     }
   },
   "seen_reference": {
     "gbt_mae": 0.37091784447197473,
     "floor_mae": 1.0784345865249634
   },
-  "aggregate_verdict": "GENERALIZES_WITH_DEGRADATION",
-  "verdict": "GENERALIZES_WITH_DEGRADATION",
+  "size_distribution": {
+    "probe_in_range": {
+      "gemm_naive": {
+        "min": 1048576,
+        "median": 134217728,
+        "max": 268435456,
+        "n": 23
+      },
+      "divergent_branch": {
+        "min": 8388608,
+        "median": 16777216,
+        "max": 16777216,
+        "n": 3
+      }
+    },
+    "seen_corpus": {
+      "min": 262144,
+      "median": 7713253,
+      "max": 16777216,
+      "n": 673
+    }
+  },
+  "aggregate_verdict": "DOES_NOT_GENERALIZE",
+  "verdict": "DOES_NOT_GENERALIZE",
   "verdict_rule_version": "delta-0.10-v1",
   "four_way_verdicts": {
     "gemm_naive": "BETTER",
-    "divergent_branch": "TIE"
-  }
+    "divergent_branch": "WORSE"
+  },
+  "ac1_out_of_range": {
+    "gemm_naive": "24/24 usable (pass_rate 1.0)",
+    "divergent_branch": "0/56 usable (49 below_threshold, 7 nonpositive_kernel_us)"
+  },
+  "ac1_in_range": {
+    "gemm_naive": "23/24 usable (pass_rate 0.9583)",
+    "divergent_branch": "3/56 usable (44 below_threshold, 9 nonpositive_kernel_us)"
+  },
+  "size_distribution_out_of_range": {
+    "gemm_naive": {
+      "min": 262144,
+      "median": 100000000,
+      "max": 268435456,
+      "n": 24
+    },
+    "divergent_branch": {
+      "min": 1024,
+      "median": 4096,
+      "max": 65536,
+      "n": 56
+    }
+  },
+  "gpu_jobs": [
+    {
+      "job_id": "20261103t085547-9c17c9d9",
+      "state": "finished",
+      "exit_code": 0,
+      "runtime_s": 36.0,
+      "rows": 80,
+      "note": "out-of-range probe (original grid)"
+    },
+    {
+      "job_id": "20261103t102403-9457806c",
+      "state": "finished",
+      "exit_code": 0,
+      "runtime_s": 67.0,
+      "rows": 80,
+      "note": "in-range probe (1M-16M grid)"
+    },
+    {
+      "job_id": "20261103t084831-75603665",
+      "state": "canceled",
+      "note": "resume defect (rm -f OUT)"
+    }
+  ]
 }

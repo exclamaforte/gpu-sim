@@ -5,19 +5,23 @@
     {
       "job_id": "20261103t085547-9c17c9d9",
       "state": "finished",
-      "created_at": "2026-11-03T08:55:47+00:00",
       "exit_code": 0,
       "runtime_s": 36.0,
-      "max_runtime_s": 600.0,
-      "command": "bash experiments/gpu-sim-u5r4/measure_all.sh",
-      "log": "/home/gabe/.local/state/gpqueue/jobs/20261103t085547-9c17c9d9.log",
-      "rows_measured": 80
+      "rows": 80,
+      "note": "out-of-range probe (original grid)"
+    },
+    {
+      "job_id": "20261103t102403-9457806c",
+      "state": "finished",
+      "exit_code": 0,
+      "runtime_s": 67.0,
+      "rows": 80,
+      "note": "in-range probe (1M-16M grid)"
     },
     {
       "job_id": "20261103t084831-75603665",
       "state": "canceled",
-      "reason": "measure_all.sh had rm -f OUT (resume defect); fixed in 1a72a5a",
-      "log": "/home/gabe/.local/state/gpqueue/jobs/20261103t084831-75603665.log"
+      "note": "resume defect (rm -f OUT)"
     }
   ],
   "cpu_runs": [
