@@ -43,11 +43,32 @@ class TestFiresOnHistory(unittest.TestCase):
         self.assertEqual(f[0].artifact_value, 76.3)
         self.assertEqual(f[0].comment_value, 59.3)
 
+    def test_6_6_3_discriminates_ordering(self):
+        f = []
+        lint.check_6_6_3_constant_boolean(f)
+        self.assertTrue(f, "6.6.3's constant-boolean-as-discriminator was not caught")
+        self.assertIn("discriminates", f[0].artifact_value)
+
     def test_8dw_false_where_true(self):
         f = []
         lint.check_8dw_claim_vs_output(f)
         self.assertTrue(f, "8dw's False-where-True claim was not caught")
         self.assertIn("passed=True", f[0].artifact_value)
+
+    def test_6_10_seconds_vs_milliseconds(self):
+        f = []
+        lint.check_6_10_ratio(f)
+        self.assertTrue(f, "6.10's unit-ratio was not caught")
+        # the operands give ~2713x, the prose reported the printed 3x
+        self.assertIn("2713", f[0].artifact_value)
+        self.assertEqual(f[0].comment_value, 3.0)
+
+    def test_6_11_typed_count(self):
+        f = []
+        lint.check_6_11_counts(f)
+        self.assertTrue(f, "6.11's typed removal count was not caught")
+        self.assertEqual(f[0].comment_value, 33)
+
 
 class TestDoesNotFireOnSupportedClaims(unittest.TestCase):
     """Criterion 3: the negative control, and the reason the tool is usable."""
@@ -62,6 +83,12 @@ class TestDoesNotFireOnSupportedClaims(unittest.TestCase):
         lint.check_6_6_1_worst_case_mdd(
             f, comments="worst case = the empty cell: 10 trials 76.3%")
         self.assertEqual(f, [], "fired on a claim the artifact supports")
+
+    def test_6_10_correct_ratio_does_not_fire(self):
+        f = []
+        lint.check_6_10_ratio(
+            f, comments="it printed 2713x where the real ratio is 2713x")
+        self.assertEqual(f, [], "fired on a ratio the operands support")
 
     def test_8dw_true_claim_does_not_fire(self):
         """The repaired preflight legitimately PASSES one probe. That is not a bug.
