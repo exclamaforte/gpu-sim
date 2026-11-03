@@ -36,3 +36,6 @@ rows = [json.loads(l) for l in open(p) if l.strip()]
 assert rows and "rejection_reason" in rows[0], "powered_rows.jsonl is pre-tip (no rejection_reason); regenerate or document"
 print(f"OK: powered_rows.jsonl regenerated with rejection_reason ({len(rows)} rows)")
 PY
+
+# --- Regenerate AC3 table and deep-compare against committed ---
+python3 experiments/gpu-sim-4r9k/gen_ac3.py
