@@ -1,5 +1,6 @@
 """Append-only guard tests."""
 import json
+import unittest
 import os
 import subprocess
 import sys
@@ -15,7 +16,7 @@ def run_script():
     return r.returncode, r.stdout + r.stderr
 
 
-class TestAppendOnly:
+class TestAppendOnly(unittest.TestCase):
     def test_unretired_deletion_fails_naming_key(self):
         mf = ROOT / "docs" / "model_facts.json"
         backup = mf.read_text()
@@ -112,7 +113,7 @@ class TestAppendOnly:
             mf.write_text(backup)
 
 
-class TestLedgerNodeIds:
+class TestLedgerNodeIds(unittest.TestCase):
     def test_ledger_node_ids_resolve(self):
         """Every ledger row's test node resolves and collects >=1 test."""
         rc, out = run_script()
