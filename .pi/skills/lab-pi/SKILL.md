@@ -103,3 +103,23 @@ A full `bd show` costs 50-150KB per bead and replays on every turn until compact
   announce the reopen first so the validated label is re-added in one unbroken sequence -- the land
   tool refuses a bead without that label (2026-11-02: my honest reopen at 09:30 made the first
   gpu-sim-8zqr land fail with "carries no validated verdict").
+
+- A LOCAL `main` ALIAS CAN SILENTLY MOVE THE INTEGRATION BRANCH. `lab`'s x06h presubmit hardcodes
+  `git merge-base HEAD main`; on a repo whose integration branch is `master` that fails, and the
+  obvious workaround (`git branch main <head>`) is a trap: once `main` exists the land machinery
+  LANDS ONTO IT, so `main` advances while `master` stays behind, and every bead branch based on
+  `master` then looks "behind main" (2026-11-03: master 9564996 vs main dc35a16, 3 commits apart,
+  and the reviewer had to refuse a bead as "based on master, not main"). If you create the alias,
+  the two refs must move TOGETHER: after every land, `git branch -f master main`, and assert
+  `git rev-list --left-right --count master...main` prints `0 0`. The hardcoded branch name is a
+  filed package defect; until it is fixed, keeping the refs identical is the only safe state.
+
+- A WORKER CANNOT SEE THAT ITS OWN LONG OPERATION IS IN FLIGHT, SO IT RETRIES THE LOCK. Three
+  separate failures in one night had this shape: a submit refused because its own gate was running,
+  a land refused because a submit was running, and a worker "wedged in retry" re-running a command
+  that was already executing. The PI's move is to end the worker's turn (restart/reset) while the
+  long process keeps running -- it is independent -- and to say the rule explicitly: if a command
+  that is already in flight fails, write ONE bead comment and end the turn; never retry it. The
+  durable fix for a validated bead is `lab hold <bead>` (suppresses re-dispatch) plus a supersession
+  message voiding earlier "submit now" instructions; messaging alone does not stop it, because the
+  wake system keeps re-offering the bead.
