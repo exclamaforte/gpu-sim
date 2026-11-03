@@ -43,13 +43,16 @@ INTERPOSER = REPO / "libfakenccl.so"
 def _multiproc_ok():
     """Load-aware gate for the 4-rank torchrun probe (gpu-sim-kbne)."""
     try:
-        import subprocess as _sp
-        cpus = int(_sp.check_output(["nproc"]).decode().strip())
+        import sys as _sys
+        _sys.path.insert(0, str(REPO / "scripts"))
+        import effective_cpus as _ec
+        cpus = int(_ec.effective_cpus()["effective_cpus"])
     except Exception:
         try:
-            cpus = os.process_cpu_count() or os.cpu_count() or 1
+            import subprocess as _sp
+            cpus = int(_sp.check_output(["nproc"]).decode().strip())
         except Exception:
-            cpus = os.cpu_count() or 1
+            cpus = 1
     try:
         load = float(open("/proc/loadavg").read().split()[0])
     except Exception:
@@ -213,8 +216,6 @@ dist.destroy_process_group()
 def trace_lines(tmp_path_factory):
     if not torch_cuda_available():
         pytest.skip("no CUDA device")
-    if not _MULTIPROC_OK:
-        pytest.skip(f"multiproc: {_MULTIPROC_REASON}")
     work = tmp_path_factory.mktemp("grank")
     script = work / "probe.py"
     script.write_text(PROBE)

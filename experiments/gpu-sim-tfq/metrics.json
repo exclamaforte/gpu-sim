@@ -558,7 +558,10 @@
       },
       "throttled_fraction": 0.0
     },
-    "throttle_interpretation": "Representative 12s sustained-workload sample: 120 periods, 0 throttled, 0 throttled_usec. This process's own 2-CPU quota is not throttling during sustained CPU work (cumulative scope shows 64/3578 = 1.8%%, 11.8s total). The spread is therefore more consistent with neighbour contention / scheduler noise on shared cores than with this process's own quota throttling. The quota still caps us at 2 CPUs.",
+    "throttle_delta_nr_periods": 120,
+    "throttle_delta_nr_throttled": 0,
+    "throttle_delta_throttled_usec": 0,
+    "throttle_delta_fraction": 0.0,
     "ctx_switch_vs_spread_pairs": [
       {
         "window": "w01",

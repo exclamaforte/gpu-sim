@@ -1,0 +1,9 @@
+{
+  "bead": "gpu-sim-ynaj",
+  "queue": "CPU-only",
+  "jobs": [],
+  "cpu_runs": [
+    {"command": "python scripts/effective_cpus.py", "exit_code": 0, "log": "experiments/gpu-sim-ynaj/output.log"},
+    {"command": "python -m pytest tests/test_effective_cpus.py tests/test_no_os_cpu_count_in_skips.py -q", "exit_code": 0, "log": "experiments/gpu-sim-ynaj/output.log"}
+  ]
+}

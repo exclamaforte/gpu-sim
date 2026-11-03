@@ -1,0 +1,13 @@
+{
+  "affinity_cpus": 32,
+  "quota_cpus": 2.0,
+  "effective_cpus": 2.0,
+  "reason": "min(affinity, cgroup quota)",
+  "cgroup_path": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p2683423-i1532731791.scope",
+  "cpu_max_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/run-p2683423-i1532731791.scope/cpu.max",
+  "nproc": 2,
+  "nproc_agrees": true
+}
+.............                                                            [100%]
+13 passed in 0.12s
+OK: effective_cpus helper + guards pass

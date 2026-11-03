@@ -63,6 +63,14 @@ def read_cgroup_quota():
             "throttled_usec": stat.get("throttled_usec")}
 
 
+def _effective_cpus_record():
+    import sys as _sys
+    from pathlib import Path as _P
+    _sys.path.insert(0, str(_P(__file__).resolve().parents[2] / "scripts"))
+    import effective_cpus as _ec
+    return _ec.effective_cpus()
+
+
 def read_proc_stat(indices):
     # returns dict idx -> (idle, total) cumulative jiffies
     res = {}
@@ -196,7 +204,9 @@ def main():
         "timestamp_end_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts_end)),
         "load_label": args.load_label if args.load_label else ("natural" if args.phase == "1" else "burners=%d" % args.burners),
         "repeat_of": args.repeat_of,
-        "nproc": os.cpu_count(),
+        "host_cpus_os_view": len(aff),
+        "cpu_capacity_cpus": min(len(aff), (read_cgroup_quota().get("cpu_quota_cpus") or len(aff))),
+        "effective_cpu_capacity": _effective_cpus_record(),
         "nproc_shell": 2,
         "affinity_mask": aff,
         "affinity_cpu_count": len(aff),

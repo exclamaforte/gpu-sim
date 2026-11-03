@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-ynaj",
+  "effective_cpus": 2.0,
+  "affinity_cpus": 32,
+  "cgroup_cpu_max": "200000 100000",
+  "cgroup_path": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-*.scope",
+  "nproc": 2,
+  "os_cpu_count": 32,
+  "helper": "scripts/effective_cpus.py",
+  "host_cpus_os_view": 32,
+  "cpu_capacity_cpus": 2.0,
+  "per_cpu_util_caveat": "per_cpu_util is NOT a capacity signal under a cgroup quota: it measures utilization of the 32 OS-visible CPUs, not the 2-CPU quota. A 100% per-CPU reading on 2 CPUs is only 6.25% of host capacity.",
+  "deselect_note": "The _MULTIPROC_OK skipif at tests/test_subgroup_grank.py:250-274 is RESTORED (4 multiproc tests skip via skipif on this 2-CPU host). The deselect is a decision, not a silent skip.",
+  "throttle_deltas": "nr_throttled/nr_periods from cgroup cpu.stat recorded in measure_window output; present in artifact."
+}
