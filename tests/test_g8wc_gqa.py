@@ -42,19 +42,13 @@ def test_train_accepts_n_kv_heads():
     assert r.returncode == 0
 
 
-def test_trace_cp_allgather_bytes_if_available(tmp_path):
-    """Trace test: all_gather bytes must be positive when a trace is present.
-
-    The prerequisite is built in-test (tmp_path) rather than read from gitignored
-    scratch or an env var, so this test runs in every worktree.
-    """
-    trace = tmp_path / "g8wc_trace.jsonl"
-    trace.write_text('{"op": "allgather", "bytes": 1024}\n')
-    lines = [json.loads(l) for l in trace.read_text().splitlines() if l.strip()]
-    ag = [l for l in lines if "allgather" in l.get("op", "").lower()]
-    assert len(ag) > 0, "no all_gather collective in trace"
-    for a in ag:
-        assert a.get("bytes", 0) > 0
+def test_trace_cp_allgather_bytes_if_available():
+    """Product code: GQA cp_exchange bytes are positive for a GQA model."""
+    m = {"n_layers": 2, "d_model": 4096 // 4, "n_heads": 8, "n_kv_heads": 2,
+         "head_dim": 32, "d_ff": 1024, "vocab": 1000, "seq": 512}
+    hw = {"peak_flops": 1e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "tp_payload": "four_d"}
+    cb = ps.comm_bytes(1, 1, 2, 1, 0, hw, m)
+    assert cb["cp_exchange"] > 0, "cp_exchange must be positive for GQA"
 
 
 if __name__ == "__main__":

@@ -25,30 +25,12 @@ def _is_skip_call(node):
 
 
 def _ancestors_conditional(tree, target):
-    """Return True if target node is inside an if/try/except/with block."""
-    # Walk parents
-    parents = {}
-    for parent in ast.walk(tree):
-        for child in ast.iter_child_nodes(parent):
-            parents[id(child)] = parent
-    cur = id(target)
-    # target itself may not be in parents; walk via node identity
-    # Build parent map properly
-    parent_map = {}
-    for parent in ast.walk(tree):
-        for child in ast.iter_child_nodes(parent):
-            parent_map[id(child)] = parent
-            for sub in ast.iter_child_nodes(child):
-                pass
-    # traverse
-    node = target
-    # We need parent of target; use a recursive search
+    """Return True if target node is inside an if/try/except/with/for/while block."""
     def find_parent(root, target_id):
         for parent in ast.walk(root):
             for child in ast.iter_child_nodes(parent):
                 if id(child) == target_id:
                     return parent
-                # deeper
         return None
     cur_id = id(target)
     depth = 0

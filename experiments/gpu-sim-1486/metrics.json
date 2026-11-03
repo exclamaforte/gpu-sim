@@ -6,7 +6,6 @@
   "passed_after": 1064,
   "removed_unconditional_skips": [
     "test_bd_ready_filter.py::TestAgainstTheRealDatabase::test_the_filter_does_not_empty_the_list (converted: now runs against live DB)",
-    "test_g8wc_gqa.py::test_trace_cp_allgather_bytes_if_available (converted: builds synthetic trace in tmp_path)",
     "test_9ul.py (placeholder skip replaced with real assertions)",
     "test_generated_recipe.py::test_the_generated_rm_lists_every_tracked_path (restored unskipped; fails as finding)",
     "test_link_model.py (5 stale skips rewritten to enforce refusal)",
@@ -25,7 +24,6 @@
     "test_retro_rows_uncached.py setUpClass (cache commits unavailable)",
     "test_session_scope.py (linked worktree, skipif)",
     "test_subgroup_grank.py (multiproc cpu_count<4, 4 skips)",
-    "test_bd_ready_filter.py::setUpClass (DB capability)",
-    "test_g8wc_gqa.py (env G8WC_TRACE)"
+    "test_bd_ready_filter.py::setUpClass (DB capability)"
   ]
 }
