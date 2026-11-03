@@ -11,7 +11,17 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+LEDGER_DIR = ROOT / "tests" / "fs2y_ledger.d"
 LEDGER = ROOT / "tests" / "fs2y_ledger.json"
+
+
+def _load_entries():
+    if LEDGER_DIR.is_dir():
+        entries = []
+        for fn in sorted(LEDGER_DIR.glob("*.json")):
+            entries.append(json.loads(fn.read_text()))
+        return entries
+    return json.loads(LEDGER.read_text()).get("entries", [])
 
 
 def _normalize(node):
@@ -28,8 +38,7 @@ def _normalize(node):
 
 class TestLedgerNodeIds(unittest.TestCase):
     def test_all_rows_resolve(self):
-        data = json.loads(LEDGER.read_text())
-        for entry in data.get("entries", []):
+        for entry in _load_entries():
             node = entry.get("test")
             if not node or node == "doc-only":
                 continue

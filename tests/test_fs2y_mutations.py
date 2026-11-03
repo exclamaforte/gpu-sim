@@ -12,7 +12,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "tests" / "fs2y_ledger.json"
+LEDGER_DIR = ROOT / "tests" / "fs2y_ledger.d"
 REGISTRY = ROOT / "scripts" / "fs2y_mutations.py"
+
+def _load_ledger_entries():
+    if LEDGER_DIR.is_dir():
+        entries = []
+        for fn in sorted(LEDGER_DIR.glob("*.json")):
+            entries.append(json.loads(fn.read_text()))
+        return {"entries": entries}
+    return json.loads(LEDGER.read_text())
 
 
 def _load_mutations():
@@ -33,7 +42,8 @@ def _unregistered(ledger, mutations):
     """Return list of (row_name, mutation) pairs that are non-pending and
     unresolved against the registry."""
     out = []
-    for entry in ledger.get("entries", []):
+    entries = ledger.get("entries", []) if isinstance(ledger, dict) else _load_ledger_entries().get("entries", [])
+    for entry in entries:
         if entry.get("state") == "pending":
             continue
         mutation = entry.get("mutation")
@@ -59,7 +69,7 @@ def test_registry_imports():
 class TestFs2yMutations:
     def test_every_non_pending_mutation_registered(self):
         mutations = _load_mutations()
-        ledger = json.loads(LEDGER.read_text(encoding="utf-8"))
+        ledger = _load_ledger_entries()
         bad = _unregistered(ledger, mutations)
         assert len(bad) == 0, f"unregistered ledger mutations: {bad}"
 

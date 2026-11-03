@@ -24,17 +24,22 @@ MUTATIONS = {
 def _apply_ledger_bad_row(root):
     """Mutation for ledger_node_ids_validated: add an unresolvable row to the ledger."""
     import json, os
-    ledger_path = os.path.join(root, "tests", "fs2y_ledger.json")
-    backup = open(ledger_path).read()
-    d = json.loads(backup)
-    d["entries"].append({
+    ddir = os.path.join(root, "tests", "fs2y_ledger.d")
+    os.makedirs(ddir, exist_ok=True)
+    path = os.path.join(ddir, "plant_bad_row.json")
+    bad_row = {
         "name": "plant_bad_row",
         "state": "passing",
         "test": "tests/test_nonexistent_file_xyz.py::test_foo",
-    })
-    with open(ledger_path, "w") as f:
-        json.dump(d, f, indent=2)
-    return backup, ledger_path
+    }
+    # backup the directory listing (just the new file)
+    backup = None
+    if os.path.exists(path):
+        backup = open(path).read()
+    with open(path, "w") as f:
+        json.dump(bad_row, f, indent=2)
+    # return backup and path; restore deletes the file
+    return (backup, path)
 
 
 def _apply_u5r4_corrupt(root):
