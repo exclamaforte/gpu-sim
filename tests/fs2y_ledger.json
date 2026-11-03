@@ -89,6 +89,17 @@
       "bound_calls": 1,
       "mutation": "effective_cpu_capacity",
       "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+    },
+    {
+      "name": "no_unconditional_skips",
+      "beads": [
+        "gpu-sim-1486"
+      ],
+      "state": "passing",
+      "test": "tests/test_no_unconditional_skips.py::test_all_skip_sites_are_allowlisted",
+      "bound_calls": 1,
+      "mutation": "no_unconditional_skips",
+      "plant": "tests/test_oi4m_plant.py::test_plant_fails"
     }
   ]
 }
