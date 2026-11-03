@@ -8,7 +8,6 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO))
 from scripts.grid_limits import grid_capped
 sys.path.insert(0, str(REPO / "experiments" / "gpu-sim-8zqr"))
-from measure import nearest_residual
 
 DELTA = 0.10
 
