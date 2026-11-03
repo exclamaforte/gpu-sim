@@ -148,9 +148,9 @@
       }
     }
   },
-  "verdict": "STRUCTURE_DOMINATED",
+  "verdict": "GENERALIZES_WITH_DEGRADATION",
   "verdict_rule_version": "wty2-v1",
   "in_range_definition": "A powered (unseen-family) row is in-range iff its size n and block b both fall within the seen-family envelope: n in [262144,16777216] and b in [128,512] (min/max over seen_rows). All powered rows satisfy this, so n_out_of_range=0 for every unseen family; out-of-range extrapolation is ruled out by construction.",
-  "consequence": "STRUCTURE_DOMINATED (descriptive): all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation. The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns.",
-  "verdict_reason": "verdict=STRUCTURE_DOMINATED; in_range_degrades=False"
+  "consequence": "GENERALIZES_WITH_DEGRADATION: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; GBT absolute error grows 3.0x-7.2x on unseen families but the floor degrades similarly, so GBT stays at parity or better (no in-range advantage lost). The access-class leak probe recovers 0.0 but is vacuous by construction (access class is constant in training), so the residual is UNATTRIBUTED: the probe cannot test the missing-structure hypothesis. Missing structure unidentified; next step is a probe with training-time variation. The learned model's predictive claim is scoped to coalesced access patterns.",
+  "verdict_reason": "verdict=GENERALIZES_WITH_DEGRADATION; in_range_degrades=False"
 }

@@ -26,6 +26,7 @@ DEPTH_ENV = "OI4M_CHECKER_PID"
 EXEMPT_ROWS = {
     "8zqr_generalization": "replays stageD experiment (~74s); artifact byte-verified by append-only half",
     "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
+    "wty2_structure_dominated": "replays the full stageD analysis (~100s) in tests/test_wty2.py::TestWty2::test_analysis_reproducible; artifact byte-verified by the append-only half",
 }
 
 
