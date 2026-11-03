@@ -174,9 +174,45 @@ def main() -> int:
             data = json.loads(metrics.read_text())
         except Exception:
             continue
+        bead_id = metrics.parent.name
+        # resolve bypass record: check worktree first, then main tree
+        bypass_candidates = [REPO / ".lab" / "gate-bypass" / f"{bead_id}.json"]
+        main_root = REPO
+        while main_root.name and main_root != main_root.parent:
+            if main_root.parent.name == "wt" and main_root.parent.parent.name == ".lab":
+                main_root = main_root.parent.parent.parent
+                break
+            main_root = main_root.parent
+        bypass_candidates.append(main_root / ".lab" / "gate-bypass" / f"{bead_id}.json")
+        bypass_path = None
+        for c in bypass_candidates:
+            if c.exists():
+                bypass_path = c
+                break
+        if bypass_path is not None:
+            # bypassed land: audited, not failed
+            try:
+                bp = json.loads(bypass_path.read_text())
+                role = bp.get("role")
+                tip = bp.get("tip")
+                reason = bp.get("reason", "bypassed")
+                # guard: record must name BOTH role and tip
+                if not role or not tip:
+                    bad.append((metrics, "bypass record missing role or tip"))
+                    continue
+                r = git("cat-file", "-e", tip)
+                if r.returncode != 0:
+                    bad.append((metrics, f"bypass record tip {tip} does not exist"))
+                    continue
+                print(f"BYPASSED (audited): {bead_id} role={role} tip={tip[:12]} reason={reason}")
+            except Exception:
+                bad.append((metrics, "bypass record unreadable"))
+                continue
+            continue
+
         gate = data.get("gate")
         if not isinstance(gate, str):
-            # missing gate key
+            # missing gate key, no bypass record
             if rel in grandfathered and rel not in modified:
                 continue
             bad.append((metrics, "missing 'gate' citation"))
