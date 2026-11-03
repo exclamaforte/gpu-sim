@@ -196,6 +196,11 @@ class TestLedgerNodeIds:
 
     def test_plant_vacuous_fails(self):
         """A vacuous row (assert True) must fail the mutation check."""
+        plant_file = ROOT / "tests" / "test_vacuous_plant.py"
+        plant_backup = None
+        if plant_file.exists():
+            plant_backup = plant_file.read_text()
+        plant_file.write_text("def test_vacuous():\n    assert True\n")
         lf = ROOT / "tests" / "fs2y_ledger.json"
         backup = lf.read_text()
         d = json.loads(backup)
@@ -212,6 +217,10 @@ class TestLedgerNodeIds:
             assert "did not fail" in out, out
         finally:
             lf.write_text(backup)
+            if plant_backup is None:
+                plant_file.unlink(missing_ok=True)
+            else:
+                plant_file.write_text(plant_backup)
 
     def test_spoofed_depth_marker_does_not_skip(self):
         """An ambient/spoofed OI4M_CHECKER_PID must not enable child/skip mode."""

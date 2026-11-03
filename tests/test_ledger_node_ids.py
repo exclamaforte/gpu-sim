@@ -39,7 +39,3 @@ class TestLedgerNodeIds:
             )
             assert r.returncode == 0, f"row {entry.get('name')!r}: {target} does not resolve"
 
-
-def test_ledger_node_ids_resolve():
-    # module-level alias kept for compatibility
-    TestLedgerNodeIds().test_all_rows_resolve()
