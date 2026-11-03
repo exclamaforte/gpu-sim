@@ -26,7 +26,6 @@ DEPTH_ENV = "OI4M_CHECKER_PID"
 EXEMPT_ROWS = {
     "8zqr_generalization": "replays stageD experiment (~74s); artifact byte-verified by append-only half",
     "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
-    "dhfo_memory_check": "replays 7b tp1 refusal measurement; artifact byte-verified by append-only half",
 }
 
 
