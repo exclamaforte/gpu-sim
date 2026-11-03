@@ -1,0 +1,18 @@
+=== gpu-sim-1upd run.sh ===
+cleanup: pycache dirs 16 -> 0; .pyc files 17 -> 0
+NEGATIVE CONTROL: without redirect, __pycache__ created under experiments/ (expected)
+NEGATIVE CONTROL: unfiltered guard query would flag 33 file(s)
+PROBE: created experiments/gpu-sim-1upd-probe with __pycache__/x.pyc and fk/probe.out (both gitignored)
+PROBE wrong-query (unfiltered) flags:
+experiments/gpu-sim-1upd-probe/__pycache__/x.pyc
+experiments/gpu-sim-1upd-probe/fk/probe.out
+PROBE correct-query (--exclude-standard) flags: (should be empty)
+  /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-1upd/tests/test_w4v.py:27: UserWarning: op_latency: tanh size out of calibrated range (below); prediction is clamped to the table edge and may be inaccurate.
+    pred = latency_ms_for(c["op"], n, dtype_bytes=2) / 1000.0  # ms? latency_ms_for returns ms? Wait table device_ms_median is ms, normalized ms. latency_ms_for returns ms. Convert to ms? Let's keep ms.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1076 passed, 33 skipped, 12 warnings in 1468.90s (0:24:28)
+post-run: pycache dirs=0 .pyc files=0 .out files=0
+guard-query (all untracked, incl. gitignored): 33 (informational)
+guard-query (pycache/.pyc/.out only): 0
+OK: repo-wide clean, guard query empty

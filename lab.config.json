@@ -34,6 +34,8 @@
   },
   "tests": {
     "command": [
+      "env",
+      "PYTHONPYCACHEPREFIX=.lab/tmp/pycache",
       "python",
       "-m",
       "pytest",
