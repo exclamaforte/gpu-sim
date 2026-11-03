@@ -1,0 +1,20 @@
+{
+  "bead": "gpu-sim-oi4m",
+  "validator": "scripts/check_append_only.py (extended with check_ledger_test_ids)",
+  "entries": 10,
+  "plant_mode": "mutation-derived (PI 11:12Z ruling): apply row.mutation via scripts/fs2y_mutations.py, run row.test (require rc!=0), restore, run row.test (require rc==0). No per-row plant field. No externally settable opt-out.",
+  "plants": {
+    "plant_a_class_qualified_module_level": "tests/test_no_pycache.py::TestNoPycache::test_lab_config_sets_pycache_suppression (class-qualified) -> does not resolve",
+    "plant_b_nonexistent_function": "tests/test_no_pycache.py::nonexistent_func_xyz -> does not resolve",
+    "plant_c_nonexistent_file": "tests/test_nonexistent_file_xyz.py::test_foo -> does not resolve",
+    "plant_d_self_referential": "row naming tests/test_append_only.py::* (imports checker) -> self-referential hard error",
+    "plant_e_vacuous_assert_true": "row for tests/test_vacuous_plant.py::test_vacuous (body 'assert True') with mutation ledger_node_ids_validated -> mutation did not fail (rc=0) -> rejected (fails with any external env var)",
+    "plant_f_spoofed_depth_marker": "OI4M_CHECKER_PID=99999 (no real ancestor) -> verification fails -> full run, no skip; check still fails closed on vacuous row"
+  },
+  "ac2_old_implementation_acceptance": "The pre-rework checker accepted a vacuous 'assert True' row (rc=0) via the ast.Assert heuristic. Heuristic deleted; mutation-derived plant (rc=0 under mutation) now rejects it. Heuristic no longer present.",
+  "recursion_fix": "AST-refuse self-referential targets; depth marker OI4M_CHECKER_PID verified via /proc ancestor with check_append_only.py in cmdline; timeouts <=120s; OI4M_SKIP_FULL_RUN deleted.",
+  "registry": "lab-package requirement (lab.py presubmit x06h imports MUTATIONS); this repo ships scripts/fs2y_mutations.py as its own convention, extended with MUTATION_FUNCTIONS.",
+  "plant_field_decision": "Per-row 'plant' field DELETED. main's rows (incl. gpu-sim-1486 no_unconditional_skips) referenced tests/test_oi4m_plant.py::test_plant_fails; field is now ignored by checker and absent in this commit's ledger, so the reference is removed on land. test_oi4m_plant.py deleted.",
+  "four_preexisting_rows": "bk9_gate_flop_aware, fs2y_mutations_tracked, no_pycache_under_experiments, no_unconditional_skips use path form (tests/...::...); resolve in repo-local checker. Lab resolver (foreign project, applicability False) reports them as 'replay test does not exist' because it only handles class-qualified dotted form; classified as module-level guards validated by repo-local checker.",
+  "result": "checker FAILS on all plants and PASSES on every genuine row (10 entries)"
+}

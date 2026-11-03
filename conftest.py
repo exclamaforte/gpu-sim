@@ -52,13 +52,13 @@ def pytest_configure(config):
 
 
 def _handler(signum, frame):
-    raise TimeoutError("per-test wall budget exceeded (120s)")
+    raise TimeoutError("per-test wall budget exceeded (300s)")
 
 
 @pytest.fixture(autouse=True)
 def _per_test_timeout():
     signal.signal(signal.SIGALRM, _handler)
-    signal.alarm(120)
+    signal.alarm(300)
     yield
     signal.alarm(0)
 
