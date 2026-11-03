@@ -16,12 +16,16 @@ rows_path = HERE / "measured_rows_v2.jsonl"
 if not rows_path.exists():
     rows_path = HERE / "measured_rows.jsonl"
 rows = [json.loads(l) for l in rows_path.read_text().splitlines() if l.strip()]
+for r in rows:
+    r["_source"] = rows_path.name
 print("measured rows:", len(rows), "from", rows_path.name)
 
 sizescale_path = HERE / "measured_rows_sizescale.jsonl"
 sizescale_rows = []
 if sizescale_path.exists():
     sizescale_rows = [json.loads(l) for l in sizescale_path.read_text().splitlines() if l.strip()]
+    for r in sizescale_rows:
+        r["_source"] = sizescale_path.name
     print("size-scaling rows:", len(sizescale_rows))
 
 # corrected usable
@@ -45,6 +49,26 @@ for r in sizescale_rows:
 
 # gate pass rates
 families = ["gemm_naive", "divergent_branch"]
+
+# arm-selection consistency check
+_arm_file = {"gemm_naive": "measured_rows_v2.jsonl", "divergent_branch": "measured_rows_sizescale.jsonl"}
+def _arm_rows_src(fam):
+    if fam == "gemm_naive":
+        return [r for r in rows if r["family"] == fam and r.get("corrected_usable")]
+    if fam == "divergent_branch":
+        return [r for r in sizescale_rows if r.get("corrected_usable")]
+    return []
+for fam in families:
+    fed_rows = _arm_rows_src(fam)
+    sources = set(r.get("_source") for r in fed_rows) if fed_rows else set()
+    expected = _arm_file[fam]
+    if fed_rows and sources != {expected}:
+        print(f"ARM MISMATCH: {fam} fed from {sources} but arm_selection says {expected}")
+        raise SystemExit(1)
+    if not fed_rows:
+        print(f"ARM MISMATCH: {fam} has no usable rows from {expected}")
+        raise SystemExit(1)
+print("arm-selection consistency: OK")
 for fam in families:
     fr = [r for r in rows if r["family"] == fam]
     nu = sum(1 for r in fr if r["corrected_usable"])
@@ -205,7 +229,9 @@ for fam in families:
     deg = gbt_mae / seen_gbt_mae if seen_gbt_mae > 0 else None
     mde = mde_at_n(preds_g0, preds_f0, ytrue)
     # four-way label
-    if paired_hi < 0:
+    if n_usable < 3:
+        label = "INSUFFICIENT"
+    elif paired_hi < 0:
         label = "BETTER"
     elif paired_lo > DELTA:
         label = "WORSE"
@@ -251,7 +277,7 @@ def size_stats(rs):
     return {"min": ns[0], "median": ns[len(ns)//2], "max": ns[-1], "n": len(ns)}
 seen_sizes = [r["size"] for r in seen_rows]
 results["size_distribution"] = {
-    "probe_in_range": {fam: size_stats([r for r in rows if r["family"]==fam and r["corrected_usable"]]) for fam in families},
+    "probe_in_range": {fam: size_stats(_arm_rows(fam)) for fam in families},
     "seen_corpus": {"min": min(seen_sizes), "median": sorted(seen_sizes)[len(seen_sizes)//2], "max": max(seen_sizes), "n": len(seen_sizes)},
 }
 results["aggregate_verdict"] = agg
@@ -260,7 +286,11 @@ results["arm_selection"] = {
     "gemm_naive": "v2 in-range rows (grid covers MxN; valid)",
     "divergent_branch": "size-scaling rows (grid=ceil(n/256), block=256; valid)",
 }
-results["rejected_arms"] = ["measured_rows.jsonl (out-of-range 1K-65K)", "measured_rows_v2.jsonl (divergent in-range, grid scales with size -> 3/56 usable)", "measured_rows_holdgrid.jsonl (occupancy, 0/56 usable)"]
+results["rejected_arms"] = {
+    "measured_rows.jsonl": {"valid_for": [], "rejected_for": ["gemm_naive", "divergent_branch"], "reason": "out-of-range 1K-65K", "n_range": "1K-65K"},
+    "measured_rows_v2.jsonl": {"valid_for": ["gemm_naive"], "rejected_for": ["divergent_branch"], "reason": "grid scales with size (does not cover n) for divergent", "n_range": "1M-268M"},
+    "measured_rows_holdgrid.jsonl": {"valid_for": [], "rejected_for": ["divergent_branch"], "reason": "hold-grid, 0/56 usable (1 elem/thread, no grid-stride loop)", "n_range": "1M-16M"},
+}
 results["verdict_rule_version"] = "delta-0.10-v1"
 
 # four-way verdict per family already in label; add four_way_verdicts
@@ -334,7 +364,11 @@ if hold_path.exists():
 
 results["size_scaling_arm"] = size_scaling_arm
 results["occupancy_arm"] = occupancy_arm
-results["rejected_arms"] = ["measured_rows.jsonl (out-of-range 1K-65K)", "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)", "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"]
+results["rejected_arms"] = {
+    "measured_rows.jsonl": {"valid_for": [], "rejected_for": ["gemm_naive", "divergent_branch"], "reason": "out-of-range 1K-65K", "n_range": "1K-65K"},
+    "measured_rows_v2.jsonl": {"valid_for": ["gemm_naive"], "rejected_for": ["divergent_branch"], "reason": "grid scales with size (does not cover n) for divergent", "n_range": "1M-268M"},
+    "measured_rows_holdgrid.jsonl": {"valid_for": [], "rejected_for": ["divergent_branch"], "reason": "hold-grid, 0/56 usable (1 elem/thread, no grid-stride loop)", "n_range": "1M-16M"},
+}
 
 
 # write

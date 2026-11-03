@@ -50,10 +50,10 @@
         "n": 23
       },
       "divergent_branch": {
-        "min": 8388608,
-        "median": 16777216,
+        "min": 1048576,
+        "median": 4194304,
         "max": 16777216,
-        "n": 3
+        "n": 43
       }
     },
     "seen_corpus": {
@@ -69,11 +69,35 @@
     "gemm_naive": "v2 in-range rows (grid covers MxN; valid)",
     "divergent_branch": "size-scaling rows (grid=ceil(n/256), block=256; valid)"
   },
-  "rejected_arms": [
-    "measured_rows.jsonl (out-of-range 1K-65K)",
-    "measured_rows_v2.jsonl (in-range 1M-16M, grid scales with size)",
-    "measured_rows_holdgrid.jsonl (hold-grid, 0/56 usable)"
-  ],
+  "rejected_arms": {
+    "measured_rows.jsonl": {
+      "valid_for": [],
+      "rejected_for": [
+        "gemm_naive",
+        "divergent_branch"
+      ],
+      "reason": "out-of-range 1K-65K",
+      "n_range": "1K-65K"
+    },
+    "measured_rows_v2.jsonl": {
+      "valid_for": [
+        "gemm_naive"
+      ],
+      "rejected_for": [
+        "divergent_branch"
+      ],
+      "reason": "grid scales with size (does not cover n) for divergent",
+      "n_range": "1M-268M"
+    },
+    "measured_rows_holdgrid.jsonl": {
+      "valid_for": [],
+      "rejected_for": [
+        "divergent_branch"
+      ],
+      "reason": "hold-grid, 0/56 usable (1 elem/thread, no grid-stride loop)",
+      "n_range": "1M-16M"
+    }
+  },
   "verdict_rule_version": "delta-0.10-v1",
   "four_way_verdicts": {
     "gemm_naive": "BETTER",

@@ -1,36 +1,9 @@
 {
-  "bead": "gpu-sim-u5r4",
-  "queue": "ts (task-spooler) on gpu 0",
   "gpu_jobs": [
-    {
-      "job_id": "20261103t085547-9c17c9d9",
-      "state": "finished",
-      "exit_code": 0,
-      "runtime_s": 36.0,
-      "rows": 80,
-      "note": "out-of-range probe (original grid)"
-    },
-    {
-      "job_id": "20261103t102403-9457806c",
-      "state": "finished",
-      "exit_code": 0,
-      "runtime_s": 67.0,
-      "rows": 80,
-      "note": "in-range probe (1M-16M grid)"
-    },
-    {
-      "job_id": "20261103t084831-75603665",
-      "state": "canceled",
-      "note": "resume defect (rm -f OUT)"
-    }
+    {"job_id": "20261103t084831-9c17c9d9", "what": "out-of-range arm (gemm 24/24, div 0/56)", "wall_s": 36},
+    {"job_id": "20261103t085547-9457806c", "what": "in-range arm 1M-16M (gemm 23/24, div 3/56)", "wall_s": 67},
+    {"job_id": "20261103t103000-c68ddb12", "what": "hold-grid occupancy arm (0/56 usable)", "wall_s": 35},
+    {"job_id": "20261103t144359-1bcb473d", "what": "size-scaling arm (43/56 usable)", "wall_s": 32}
   ],
-  "cpu_runs": [
-    {
-      "command": "python experiments/gpu-sim-u5r4/analyze.py",
-      "exit_code": 0,
-      "log": "experiments/gpu-sim-u5r4/run.sh"
-    }
-  ],
-  "measurement_source": "experiments/gpu-sim-8zqr/measured_probe.jsonl (same 24+56 specs; re-evaluated under corrected gate). Re-measurement job 9c17c9d9 produced noisier rows due to GPU contention; canonical probe measurements used for verdict.",
-  "data_source_note": "corrected gate: gemm_naive 4->24 usable; divergent_branch 19->19 usable"
+  "total_wall_s": 170
 }
