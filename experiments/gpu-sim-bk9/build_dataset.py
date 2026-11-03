@@ -24,6 +24,7 @@ def main():
         print("REFUSED: target_usable=false rows: " + ", ".join(offending), file=sys.stderr)
         sys.exit(1)
     dataset = {"rows": [by_id[r] for r in selected]}
+    pathlib.Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     pathlib.Path(args.out).write_text(json.dumps(dataset, indent=2) + "\n")
     print(f"built dataset with {len(selected)} rows -> {args.out}")
 

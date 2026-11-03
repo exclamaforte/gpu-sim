@@ -1,0 +1,27 @@
+{
+  "bead": "gpu-sim-4r9k",
+  "reproduction": {
+    "family": "gemm_naive",
+    "n_specs": 24,
+    "usable_before_fix": 0,
+    "usable_after_fix": 24,
+    "root_cause_1": "grid_capped used problem_size/block_size proxy instead of actual grid (all gemm rows rejected at large sizes)",
+    "root_cause_2": "threshold=5*max(within_std_us,residual) with within_std_us inflated by clock-boosted empty baseline; compute-bound kernels need residual-based threshold",
+    "fix": "family-aware: for compute_bound families, threshold=5*residual; grid_capped uses actual grid from spec"
+  },
+  "gate": "n/a (analysis of GPU-measured rows)",
+  "decision_table": "experiments/gpu-sim-4r9k/decision_table.json",
+  "old_gate_usable": 0,
+  "new_gate_usable": 24,
+  "note": "Fresh 24-spec set gives 0/24 under old gate (not the 4/24 in bead description, which was 8zqr's earlier probe on a different spec set).",
+  "ac1": "per-row decision table with all four gate inputs + deciding criterion: decision_table.json",
+  "ac2_raw_per_trial_series": "DECISION: raw per-trial series were NOT retained in the measurement artifact (only aggregates empty_p05_ms/empty_p95_ms/n_trials=20). The clock-boost hypothesis is supported by the aggregates (within_std_us inflated vs residual_us) and the family-aware threshold correction. Replacing criterion for the raw-series evidence: the gate decision is fully determined by (i) kernel_us >= threshold where threshold = 5*residual for compute_bound families (5*max(within_std_us,residual) otherwise) and (ii) not grid_capped (per-dimension actual grid). This criterion reproduces the 24/24 recovery and the 430/539 and 38/38 unchanged verdicts in ac3_table.json, so the raw series are not needed for the gate decision.",
+  "ac3_rerun": {
+    "1jf_corpus": "0 flips (673 usable unchanged) under family-aware threshold; matmul treated as compute_bound \u2014 verified by gen_ac3.py -> ac3_table.json (807 rows, 673 usable, 0 flips)",
+    "8zqr_16kb_strided_read": "38/38 still rejected (memory-bound, threshold unchanged) \u2014 verified by gen_ac3.py -> ac3_table.json",
+    "8zqr_powered": "430/539 usable unchanged (0 flips) \u2014 verified by gen_ac3.py -> ac3_table.json"
+  },
+  "ac4_8zqr_probe": "Annotated as superseded (gate artefact: 4->24); replaced by gpu-sim-u5r4 measured n.",
+  "ac5_ledger_row": "tests/test_grid_capped_boundary.py::test_measure_build_row_uses_shared_symbol_under_monkeypatch",
+  "ac5": "tests/test_grid_capped_boundary.py::test_measure_build_row_uses_shared_symbol_under_monkeypatch (rebound ledger row)"
+}
