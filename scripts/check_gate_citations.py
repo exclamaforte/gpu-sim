@@ -175,20 +175,29 @@ def main() -> int:
         except Exception:
             continue
         bead_id = metrics.parent.name
-        # resolve bypass record: check worktree first, then main tree
-        bypass_candidates = [REPO / ".lab" / "gate-bypass" / f"{bead_id}.json"]
+        # resolve bypass record: tracked (docs/gate-bypass/) first, then .lab fallback
+        bypass_candidates = [REPO / "docs" / "gate-bypass" / f"{bead_id}.json"]
         main_root = REPO
         while main_root.name and main_root != main_root.parent:
             if main_root.parent.name == "wt" and main_root.parent.parent.name == ".lab":
                 main_root = main_root.parent.parent.parent
                 break
             main_root = main_root.parent
+        bypass_candidates.append(main_root / "docs" / "gate-bypass" / f"{bead_id}.json")
+        bypass_candidates.append(REPO / ".lab" / "gate-bypass" / f"{bead_id}.json")
         bypass_candidates.append(main_root / ".lab" / "gate-bypass" / f"{bead_id}.json")
         bypass_path = None
         for c in bypass_candidates:
             if c.exists():
                 bypass_path = c
                 break
+        # divergence check: if both tracked and .lab twins exist, they must match
+        tracked_p = REPO / "docs" / "gate-bypass" / f"{bead_id}.json"
+        lab_p = REPO / ".lab" / "gate-bypass" / f"{bead_id}.json"
+        if tracked_p.exists() and lab_p.exists():
+            if tracked_p.read_text() != lab_p.read_text():
+                bad.append((metrics, "bypass record divergence: tracked vs .lab mismatch"))
+                continue
         if bypass_path is not None:
             # bypassed land: audited, not failed
             try:
