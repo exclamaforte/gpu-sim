@@ -85,35 +85,72 @@
         "mae_with_leak": 2.6610622189292346,
         "recovered_fraction": 0.0
       }
+    },
+    "positive_control": {
+      "mae_without_family_label": 2.0013811588287354,
+      "mae_with_family_label": 0.08048882961731281,
+      "recovered_fraction": 0.9597833579764401,
+      "note": "synthetic control: family label is a perfect predictor -> probe recovers ~1; real leak probe (access-class, seen-only) recovers 0.0, proving the probe is not dead."
     }
   },
   "ac4_floor_artefact": {
     "per_family": {
       "strided_read": {
         "n_usable": 137,
-        "size_decades": {
-          "large": 108,
-          "mid": 29
-        }
+        "per_decade": {
+          "large": {
+            "n": 108,
+            "gbt_mae": 0.5728153950041557,
+            "floor_mae": 0.7156874537467957
+          },
+          "mid": {
+            "n": 29,
+            "gbt_mae": 0.6431514671891879,
+            "floor_mae": 0.5362094640731812
+          }
+        },
+        "gbt_flat_across_decades": true,
+        "flat_vs_inflating": "flat"
       },
       "interleaved_read": {
         "n_usable": 147,
-        "size_decades": {
-          "large": 111,
-          "mid": 36
-        }
+        "per_decade": {
+          "large": {
+            "n": 111,
+            "gbt_mae": 1.1434005099617637,
+            "floor_mae": 1.0760676860809326
+          },
+          "mid": {
+            "n": 36,
+            "gbt_mae": 0.9797813449251502,
+            "floor_mae": 1.1397881507873535
+          }
+        },
+        "gbt_flat_across_decades": true,
+        "flat_vs_inflating": "flat"
       },
       "block_cyclic": {
         "n_usable": 146,
-        "size_decades": {
-          "large": 110,
-          "mid": 36
-        }
+        "per_decade": {
+          "large": {
+            "n": 110,
+            "gbt_mae": 2.7089378639166886,
+            "floor_mae": 2.793499708175659
+          },
+          "mid": {
+            "n": 36,
+            "gbt_mae": 2.5147755259120146,
+            "floor_mae": 2.6747825145721436
+          }
+        },
+        "gbt_flat_across_decades": true,
+        "flat_vs_inflating": "flat"
       }
     }
   },
   "verdict": "STRUCTURE_DOMINATED",
   "verdict_rule_version": "wty2-v1",
-  "consequence": "If EXTRAPOLATION_DOMINATED: collect in-range data. If STRUCTURE_DOMINATED: change feature set. If MIXED: both.",
+  "in_range_definition": "A powered (unseen-family) row is in-range iff its size n and block b both fall within the seen-family envelope: n in [262144,16777216] and b in [128,512] (min/max over seen_rows). All powered rows satisfy this, so n_out_of_range=0 for every unseen family; out-of-range extrapolation is ruled out by construction.",
+  "consequence": "STRUCTURE_DOMINATED: all unseen cells are in-range (n_out_of_range=0), so the degradation is not extrapolation; the leak probe recovers 0.0 (positive control recovers ~1), so adding access-pattern descriptors to the feature set is required; collecting more in-range data will not close the gap. The learned model's predictive claim is scoped to coalesced access patterns.",
   "verdict_reason": "verdict=STRUCTURE_DOMINATED; in_range_degrades=False"
 }
