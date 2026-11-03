@@ -44,30 +44,26 @@ def test_all_algorithms_closed_form():
     spec = uniform_spec(4, 10.0, 10.0)
     for algo in ("ring_allreduce", "ring_allgather", "ring_reduce_scatter",
                  "ring_alltoall", "tree_bcast"):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="pieces_per_phase not measured"):
             predict(spec, algo, 100000, "float32")
 
 
 def test_monotonicity_n():
     count = 50000
-    for S_n in [2, 4, 8]:
-        pass
-    prev = None
     # n=2 is the degenerate single-hop ring: it is NOT expected to be faster than
     # n=3 (it moves the whole buffer per phase), so monotonicity is asserted from
     # n=3 upward and the n=2 case is pinned separately by test_ring_n2_derivation.
     for n in [3, 4, 8]:
         spec = uniform_spec(n, 10.0, 10.0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="pieces_per_phase not measured"):
             predict(spec, "ring_allreduce", count, "float32")
 
 
 def test_monotonicity_S():
     n = 4
-    prev = None
     for count in [1000, 10000, 100000]:
         spec = uniform_spec(n, 10.0, 10.0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="pieces_per_phase not measured"):
             predict(spec, "ring_allreduce", count, "float32")
 
 
@@ -82,11 +78,11 @@ def test_regime_boundary():
     S_star = alpha * B * n
     count_star = int(S_star / 4)
     spec = uniform_spec(n, bw, lat)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="pieces_per_phase not measured"):
         predict(spec, "ring_allreduce", count_star, "float32")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="pieces_per_phase not measured"):
         predict(spec, "ring_allreduce", int(count_star * 0.5), "float32")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="pieces_per_phase not measured"):
         predict(spec, "ring_allreduce", int(count_star * 2.0), "float32")
 
 
@@ -142,6 +138,26 @@ def test_shared_group():
     S = 1000 * 4
     expected = 1.0 * S / B + 2 * alpha
     assert abs(rec["duration_s"] - expected) < 1e-9
+
+
+def test_n2_out_of_range_refusal():
+    """n=2 S beyond measured range (2 MiB) refuses (no cap fallback)."""
+    from epic_cluster.link_model import _derived_pieces_per_phase
+    with pytest.raises(ValueError, match="outside measured range"):
+        _derived_pieces_per_phase(2, 4194304)  # 4 MiB > 2 MiB
+    with pytest.raises(ValueError, match="not measured"):
+        _derived_pieces_per_phase(3, 1024)
+
+
+def test_n2_measured_range_consistency():
+    """n=2 measured ranges return the documented P (monotonic in S)."""
+    from epic_cluster.link_model import _derived_pieces_per_phase
+    assert _derived_pieces_per_phase(2, 1024) == 1
+    assert _derived_pieces_per_phase(2, 4096) == 1
+    assert _derived_pieces_per_phase(2, 65536) == 4
+    assert _derived_pieces_per_phase(2, 262144) == 4
+    assert _derived_pieces_per_phase(2, 1048576) == 8
+    assert _derived_pieces_per_phase(2, 2097152) == 8
 
 
 def test_cli_invalid_topology():

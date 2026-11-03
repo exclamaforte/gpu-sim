@@ -2,7 +2,8 @@
 
 A new skip (decorator or in-body call) that is not in the allowlist fails
 this test, so skips cannot be added silently. Conditional skips are allowed
-only when documented in the allowlist with their justification.
+only when documented in the allowlist with their justification (condition +
+derivation).
 """
 import ast
 import json
@@ -13,28 +14,37 @@ TESTS = ROOT / "tests"
 ALLOWLIST = TESTS / "skip_allowlist.json"
 
 
+def _is_skip_call(node):
+    if not isinstance(node, ast.Call):
+        return False
+    try:
+        fn = ast.unparse(node.func) if hasattr(ast, "unparse") else ""
+    except Exception:
+        fn = ""
+    return "skip" in fn.lower()
+
+
 def _skip_sites(path: Path):
-    """Yield (function_qualname) for every function containing a skip."""
+    """Yield 'file::function:lineno' for every skip call site (decorator or
+    in-body). Each call site is a separate entry so a second skip inside an
+    already-allowlisted function is still caught."""
     src = path.read_text()
     tree = ast.parse(src)
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        has_skip = False
+        # decorator skips
         for d in node.decorator_list:
-            if isinstance(d, ast.Call):
-                fn = ast.unparse(d.func) if hasattr(ast, "unparse") else ""
-                if "skip" in fn.lower():
-                    has_skip = True
-            elif isinstance(d, ast.Name) and "skip" in d.id.lower():
-                has_skip = True
+            if _is_skip_call(d):
+                yield f"{path.name}::{node.name}:{d.lineno}"
+        # decorator line numbers to exclude from in-body walk
+        deco_lines = {d.lineno for d in node.decorator_list if _is_skip_call(d)}
+        # in-body skips
         for sub in ast.walk(node):
-            if isinstance(sub, ast.Call):
-                fn = ast.unparse(sub.func) if hasattr(ast, "unparse") else ""
-                if "skip" in fn.lower():
-                    has_skip = True
-        if has_skip:
-            yield f"{path.name}::{node.name}"
+            if sub is node:
+                continue
+            if isinstance(sub, ast.Call) and _is_skip_call(sub) and sub.lineno not in deco_lines:
+                yield f"{path.name}::{node.name}:{sub.lineno}"
 
 
 def test_all_skip_sites_are_allowlisted():
@@ -47,6 +57,6 @@ def test_all_skip_sites_are_allowlisted():
             if site not in allow:
                 offenders.append(site)
     assert len(offenders) == 0, (
-        "unregistered skip sites (add to tests/skip_allowlist.json with justification):\n"
-        + "\n".join(offenders)
+        "unregistered skip call sites (add to tests/skip_allowlist.json with "
+        "condition + derivation):\n" + "\n".join(offenders)
     )
