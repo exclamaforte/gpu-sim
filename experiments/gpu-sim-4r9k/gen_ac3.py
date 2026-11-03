@@ -13,6 +13,7 @@ from measure import nearest_residual
 
 STAGEC = REPO / "experiments" / "gpu-sim-8zqr" / "measured_stageC.jsonl"
 POWERED = REPO / "experiments" / "gpu-sim-8zqr" / "powered_rows.jsonl"
+JF = REPO / "experiments" / "gpu-sim-1jf" / "metrics.json"
 COMMITTED = HERE / "ac3_table.json"
 SCRATCH = REPO / ".lab" / "tmp" / "ac3_table.recomputed.json"
 
@@ -54,7 +55,13 @@ def build():
     powered_usable_old = sum(1 for r in powered if old_usable(r))
     powered_usable_new = sum(1 for r in powered if new_usable(r, r.get("family", "")))
 
-    # 1jf corpus: not available in tree
+    # 1jf corpus: 807 rows in experiments/gpu-sim-1jf/metrics.json
+    jf_rows = json.loads(JF.read_text())["rows"]
+    jf_old_usable = sum(1 for r in jf_rows if old_usable(r))
+    jf_new_usable = sum(1 for r in jf_rows if new_usable(r, r.get("family", "")))
+    jf_flips = sum(1 for r in jf_rows if old_usable(r) != new_usable(r, r.get("family", "")))
+    jf_total = len(jf_rows)
+
     table = {
         "8zqr_16kb_strided_read": {
             "total": kb16_total,
@@ -69,7 +76,10 @@ def build():
             "flips": powered_total - unchanged,
         },
         "1jf_corpus": {
-            "note": "1jf reference corpus not present in this worktree; claim '0 flips (673 usable unchanged)' recorded in metrics.json ac3_rerun and cannot be recomputed here.",
+            "total": jf_total,
+            "usable_old": jf_old_usable,
+            "usable_new": jf_new_usable,
+            "flips": jf_flips,
         },
     }
     return table

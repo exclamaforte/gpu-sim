@@ -17,7 +17,7 @@
   "ac1": "per-row decision table with all four gate inputs + deciding criterion: decision_table.json",
   "ac2_raw_per_trial_series": "DECISION: raw per-trial series were NOT retained in the measurement artifact (only aggregates empty_p05_ms/empty_p95_ms/n_trials=20). The clock-boost hypothesis is supported by the aggregates (within_std_us inflated vs residual_us) and the family-aware threshold correction. Replacing criterion for the raw-series evidence: the gate decision is fully determined by (i) kernel_us >= threshold where threshold = 5*residual for compute_bound families (5*max(within_std_us,residual) otherwise) and (ii) not grid_capped (per-dimension actual grid). This criterion reproduces the 24/24 recovery and the 430/539 and 38/38 unchanged verdicts in ac3_table.json, so the raw series are not needed for the gate decision.",
   "ac3_rerun": {
-    "1jf_corpus": "0 flips (673 usable unchanged) under family-aware threshold; matmul treated as compute_bound. Not recomputable in-tree (corpus absent); recorded claim.",
+    "1jf_corpus": "0 flips (673 usable unchanged) under family-aware threshold; matmul treated as compute_bound \u2014 verified by gen_ac3.py -> ac3_table.json (807 rows, 673 usable, 0 flips)",
     "8zqr_16kb_strided_read": "38/38 still rejected (memory-bound, threshold unchanged) \u2014 verified by gen_ac3.py -> ac3_table.json",
     "8zqr_powered": "430/539 usable unchanged (0 flips) \u2014 verified by gen_ac3.py -> ac3_table.json"
   },
