@@ -235,3 +235,48 @@ class TestLedgerNodeIds(unittest.TestCase):
         # rejected because no ancestor matches.
         assert r.returncode == 0, r.stdout + r.stderr
 
+
+import json as _json
+
+
+class TestWty2Repro(unittest.TestCase):
+    """Plants for the wty2 reproducibility gate (must exit nonzero)."""
+
+    def _corrupt(self, mutate):
+        metrics = ROOT / "experiments" / "gpu-sim-wty2" / "metrics.json"
+        backup = metrics.read_text()
+        d = _json.loads(backup)
+        mutate(d)
+        metrics.write_text(_json.dumps(d, indent=2) + "\n")
+        run = ROOT / "experiments" / "gpu-sim-wty2" / "run.sh"
+        try:
+            r = subprocess.run(["bash", str(run)], cwd=str(ROOT),
+                               capture_output=True, text=True, timeout=300)
+            return r.returncode, r.stdout + r.stderr
+        finally:
+            metrics.write_text(backup)
+
+    def test_corrupted_scalar_fails(self):
+        def mutate(d):
+            d["ac1_reconstruction"]["per_family"]["strided_read"]["gbt_mae"] = 999.0
+        rc, out = self._corrupt(mutate)
+        self.assertNotEqual(rc, 0, "expected failure on corrupted scalar")
+        self.assertIn("NOT reproducible", out, out)
+
+    def test_reordered_list_fails(self):
+        def mutate(d):
+            fams = list(d["ac1_reconstruction"]["per_family"].keys())
+            # move first key to end by rebuilding dict
+            first = fams[0]
+            val = d["ac1_reconstruction"]["per_family"].pop(first)
+            d["ac1_reconstruction"]["per_family"][first] = val
+        rc, out = self._corrupt(mutate)
+        self.assertNotEqual(rc, 0, "expected failure on reordered list")
+        self.assertIn("NOT reproducible", out, out)
+
+    def test_flipped_verdict_fails(self):
+        def mutate(d):
+            d["verdict"] = "EXTRAPOLATION_DOMINATED"
+        rc, out = self._corrupt(mutate)
+        self.assertNotEqual(rc, 0, "expected failure on flipped verdict")
+        self.assertIn("NOT reproducible", out, out)
