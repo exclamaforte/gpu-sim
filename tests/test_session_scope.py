@@ -57,6 +57,22 @@ def make_store(tmp, mapping):
     return agent
 
 
+
+def _is_linked_worktree():
+    import subprocess
+    try:
+        git_dir = subprocess.check_output(
+            ["git", "rev-parse", "--git-dir"],
+            cwd=str(Path(__file__).resolve().parents[1]),
+            text=True, stderr=subprocess.DEVNULL).strip()
+        common = subprocess.check_output(
+            ["git", "rev-parse", "--git-common-dir"],
+            cwd=str(Path(__file__).resolve().parents[1]),
+            text=True, stderr=subprocess.DEVNULL).strip()
+        return git_dir != common
+    except Exception:
+        return False
+
 class SessionScopeTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -71,7 +87,7 @@ class SessionScopeTest(unittest.TestCase):
         cls.lab = load_lab(cls.repo_a, cls.agent)
         cls.lab.ROOT = cls.repo_a
 
-    @unittest.skip("environment-dependent: requires main-tree repo scoping")
+    @unittest.skipIf(_is_linked_worktree(), "environment-dependent: requires main-tree repo scoping")
     def test_find_session_file_cwd_scoped(self):
         path = self.lab.find_session_file(SESSION_ID)
         self.assertIsNotNone(path)
@@ -96,13 +112,13 @@ class SessionScopeTest(unittest.TestCase):
             cwds.add(json.loads(p.read_text().splitlines()[0])["cwd"])
         self.assertEqual(len(cwds), 2)
 
-    @unittest.skip("environment-dependent: requires main-tree repo scoping")
+    @unittest.skipIf(_is_linked_worktree(), "environment-dependent: requires main-tree repo scoping")
     def test_bridge_has_no_session_resolution(self):
         hits = [l for l in BRIDGE.read_text().splitlines()
                 if "sessionid" in l.lower() or "session-id" in l.lower()]
         self.assertEqual(hits, [])
 
-    @unittest.skip("environment-dependent: requires main-tree repo scoping")
+    @unittest.skipIf(_is_linked_worktree(), "environment-dependent: requires main-tree repo scoping")
     def test_daemon_socket_paths_repo_scoped(self):
         src = LABPY.read_text()
         self.assertIn('LAB / f"{role}.sock"', src)
