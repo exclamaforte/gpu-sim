@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """u5r4 analysis: re-measure probe arm under corrected gate."""
+import os as _os
+_os.environ.setdefault("OMP_NUM_THREADS", "1")
+_os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+_os.environ.setdefault("MKL_NUM_THREADS", "1")
+_os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+_os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 import json, math, random, sys
 from pathlib import Path
 import numpy as np
