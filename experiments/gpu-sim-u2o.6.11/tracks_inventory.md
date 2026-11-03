@@ -24,15 +24,17 @@ transcript is in this file's git history.
 | path | in master before this bead | category | decision | reason |
 |---|---|---|---|---|
 | `epic_u2o/README.md` | yes | spec | TRACK | written specification with real content |
+| `epic_u2o/acquisition.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/batch_measure.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/bottleneck_check.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/compare_baselines.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/complete.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/corpus_miner.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/corpus_protocol.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
-| `epic_u2o/deferred.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
-| `epic_u2o/eval.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
-| `epic_u2o/experiment.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
+| `epic_u2o/dataset_split.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/deferred.md` | yes | spec | TRACK | written specification with real content |
+| `epic_u2o/eval.md` | yes | spec | TRACK | written specification with real content |
+| `epic_u2o/experiment.md` | yes | spec | TRACK | written specification with real content |
 | `epic_u2o/experiment_program.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/features.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/future_extensions.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
@@ -48,7 +50,9 @@ transcript is in this file's git history.
 | `epic_u2o/generator_stage5.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/gpu_control.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/gpu_recovery.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/gpu_spec.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/harness.md` | yes | spec (was volatile) | TRACK | was a 4-line stub in main and untracked in master, but gpu-sim-u2o.6.1.2 rewrote it with the real containment ladder; leaving it untracked kept that row's justification false-on-arrival AND kept 6.1.2's merge blocked on 'untracked working tree files would be overwritten' |
+| `epic_u2o/hw_5090.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/kernel_driver.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/kernel_names.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/measurement_spec.md` | yes | spec | TRACK | written specification with real content |
@@ -58,6 +62,7 @@ transcript is in this file's git history.
 | `epic_u2o/model.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/model_arch.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/model_specs.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
+| `epic_u2o/op_latency.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/preflight.md` | yes | spec | TRACK | written specification with real content |
 | `epic_u2o/preflight_validator.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/ptx_tokenizer.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
@@ -66,16 +71,22 @@ transcript is in this file's git history.
 | `epic_u2o/recovery.md` | yes | spec | TRACK | written specification with real content |
 | `epic_u2o/repo_scaffold.md` | yes | spec | TRACK | written specification with real content |
 | `epic_u2o/representation_ablation.md` | yes | spec | TRACK | written specification with real content |
+| `epic_u2o/representation_cardinality.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/resource_limits.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/results_writeup.md` | yes | result-artifact | DO NOT TRACK | a results document whose own first paragraph says its numbers come from synthetic fixtures; results belong to experiments/<bd-id>/, where the owning bead can stamp them |
+| `epic_u2o/rlimit_cuda_gate.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/roofline.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/safe_harness.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/split.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/structural_split.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/surrogate_search.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/task_limits.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/throughput_evidence.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/throughput_tracker.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/tokenizer.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/toolchain.md` | yes | spec | TRACK | written specification with real content |
+| `epic_u2o/train_ablation.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
+| `epic_u2o/train_trans_91.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/training_loop.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
 | `epic_u2o/training_loop.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/training_throughput.md` | yes | spec (placeholder) | DO NOT TRACK | literal '# placeholder' / one-line stub; the audit notes cite these as evidence of the fabrication history |
@@ -83,7 +94,7 @@ transcript is in this file's git history.
 | `epic_u2o/tree_baseline.py` | yes | source | TRACK | code the harness/generators import; without it master is not self-consistent |
 | `epic_u2o/v1_scope.md` | yes | spec | TRACK | written specification with real content |
 
-**Tracked: 59 paths. Not tracked: 0 paths.** (Of the tracked set, 59 were already in master and 0 are added by this bead.)
+**Tracked: 70 paths. Not tracked: 0 paths.** (Of the tracked set, 70 were already in master and 0 are added by this bead.)
 
 ## Deliberately NOT tracked, and why
 
@@ -147,12 +158,14 @@ mkdir -p /tmp/epic_u2o_backup && cp epic_u2o/*.py epic_u2o/*.md \
     /tmp/epic_u2o_backup/          # back up first, and CHECK it
 rm -f \
       epic_u2o/README.md \
+      epic_u2o/acquisition.py \
       epic_u2o/batch_measure.py \
       epic_u2o/bottleneck_check.py \
       epic_u2o/compare_baselines.py \
       epic_u2o/complete.md \
       epic_u2o/corpus_miner.py \
       epic_u2o/corpus_protocol.py \
+      epic_u2o/dataset_split.py \
       epic_u2o/deferred.md \
       epic_u2o/eval.md \
       epic_u2o/experiment.md \
@@ -171,7 +184,9 @@ rm -f \
       epic_u2o/generator_stage5.py \
       epic_u2o/gpu_control.py \
       epic_u2o/gpu_recovery.py \
+      epic_u2o/gpu_spec.py \
       epic_u2o/harness.md \
+      epic_u2o/hw_5090.py \
       epic_u2o/kernel_driver.py \
       epic_u2o/kernel_names.py \
       epic_u2o/measurement_spec.md \
@@ -181,6 +196,7 @@ rm -f \
       epic_u2o/model.py \
       epic_u2o/model_arch.md \
       epic_u2o/model_specs.md \
+      epic_u2o/op_latency.py \
       epic_u2o/preflight.md \
       epic_u2o/preflight_validator.py \
       epic_u2o/ptx_tokenizer.py \
@@ -189,23 +205,29 @@ rm -f \
       epic_u2o/recovery.md \
       epic_u2o/repo_scaffold.md \
       epic_u2o/representation_ablation.md \
+      epic_u2o/representation_cardinality.py \
       epic_u2o/resource_limits.py \
       epic_u2o/results_writeup.md \
+      epic_u2o/rlimit_cuda_gate.py \
       epic_u2o/roofline.py \
       epic_u2o/safe_harness.py \
       epic_u2o/split.md \
       epic_u2o/structural_split.py \
+      epic_u2o/surrogate_search.py \
       epic_u2o/task_limits.py \
+      epic_u2o/throughput_evidence.py \
       epic_u2o/throughput_tracker.py \
       epic_u2o/tokenizer.py \
       epic_u2o/toolchain.md \
+      epic_u2o/train_ablation.py \
+      epic_u2o/train_trans_91.py \
       epic_u2o/training_loop.md \
       epic_u2o/training_loop.py \
       epic_u2o/training_throughput.md \
       epic_u2o/training_throughput_profile.py \
       epic_u2o/tree_baseline.py \
       epic_u2o/v1_scope.md
-      # 59 paths, generated; explicit list, not a glob
+      # 70 paths, generated; explicit list, not a glob
 git merge --ff-only lab/gpu-sim-u2o.6.11
 # restore anything the content check says should exist
 ```

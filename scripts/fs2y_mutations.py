@@ -16,4 +16,5 @@ MUTATIONS = {
     "effective_cpu_capacity": "effective CPU capacity helper",
     "ledger_node_ids_validated": "ledger node id validator",
     "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
+    "u5q0_lint_fixture_6338": "6.10 prose-ratio fixture pins the derived 6338x ratio (gpu-sim-u5q0)",
 }

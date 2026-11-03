@@ -1,0 +1,14 @@
+{
+  "bead": "gpu-sim-u5q0",
+  "pre_fix_failures": "experiments/gpu-sim-1486/suite_empty.log: 5 failed (test_lint_prose_numbers 4 + test_generated_recipe 1), 1101 passed, 15 skipped",
+  "post_fix_result": "experiments/gpu-sim-u5q0/suite.log: 1104 passed, 15 skipped, 4 deselected, 0 failed",
+  "per_check": {
+    "6_10_seconds_vs_milliseconds": "FIXED: stale 2713 -> 6338 (operands give 6338x)",
+    "6_10_correct_ratio_does_not_fire": "FIXED: fixture comments now use 6338x (matches truth)",
+    "6_6_3_discriminates_ordering": "RETIRED (no finding on current tree; tracked as gpu-sim-119u)",
+    "6_11_typed_count": "RETIRED (no finding on current tree; tracked as gpu-sim-119u)",
+    "generated_recipe": "REGENERATED: tracks_inventory.md now lists 70 tracked paths"
+  },
+  "plant_cite": "experiments/gpu-sim-1486/suite_empty.log shows the 5 pre-fix failures (plant demonstration)",
+  "removed_unconditional_skips": "2 no-finding tests removed; decision recorded as gpu-sim-119u (P3, held)"
+}
