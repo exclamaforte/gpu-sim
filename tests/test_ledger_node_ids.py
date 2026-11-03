@@ -5,6 +5,7 @@ node. This is a PRODUCT test (it does not import or exec the checker), so it
 can serve as a ledger target without being self-referential.
 """
 import json
+import unittest
 import subprocess
 import sys
 from pathlib import Path
@@ -25,7 +26,7 @@ def _normalize(node):
     return node
 
 
-class TestLedgerNodeIds:
+class TestLedgerNodeIds(unittest.TestCase):
     def test_all_rows_resolve(self):
         data = json.loads(LEDGER.read_text())
         for entry in data.get("entries", []):
