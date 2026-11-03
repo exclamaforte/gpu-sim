@@ -39,35 +39,13 @@ def uniform_spec(n, bw=10.0, lat=10.0, shared=None):
 
 
 def test_all_algorithms_closed_form():
-    n = 4
-    bw = 10.0
-    lat = 10.0
-    alpha = lat * 1e-6
-    B = bw * 1e9
-    count = 100000
-    dtype = "float32"
-    S = count * 4
-    spec = uniform_spec(n, bw, lat)
-    # ring allreduce
-    rec = predict(spec, "ring_allreduce", count, dtype)
-    expected = 2*(n-1)/n * S / B + 2*(n-1)*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # allgather
-    rec = predict(spec, "ring_allgather", count, dtype)
-    expected = (n-1)/n * S / B + n*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # reducescatter same
-    rec = predict(spec, "ring_reduce_scatter", count, dtype)
-    expected = (n-1)/n * S / B + n*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # alltoall
-    rec = predict(spec, "ring_alltoall", count, dtype)
-    expected = (n-1)/n * S / B + n*alpha
-    assert abs(rec["duration_s"] - expected) < 1e-9
-    # tree bcast
-    rec = predict(spec, "tree_bcast", count, dtype)
-    expected = math.log2(n) * (S / B + alpha)
-    assert abs(rec["duration_s"] - expected) < 1e-9
+    # pieces_per_phase is not measured for n>=3; the model refuses rather
+    # than derive a number from the fabric cap (gpu-sim-wpw).
+    spec = uniform_spec(4, 10.0, 10.0)
+    for algo in ("ring_allreduce", "ring_allgather", "ring_reduce_scatter",
+                 "ring_alltoall", "tree_bcast"):
+        with pytest.raises(ValueError):
+            predict(spec, algo, 100000, "float32")
 
 
 def test_monotonicity_n():
@@ -80,10 +58,8 @@ def test_monotonicity_n():
     # n=3 upward and the n=2 case is pinned separately by test_ring_n2_derivation.
     for n in [3, 4, 8]:
         spec = uniform_spec(n, 10.0, 10.0)
-        rec = predict(spec, "ring_allreduce", count, "float32")
-        if prev is not None:
-            assert rec["duration_s"] >= prev - 1e-12
-        prev = rec["duration_s"]
+        with pytest.raises(ValueError):
+            predict(spec, "ring_allreduce", count, "float32")
 
 
 def test_monotonicity_S():
@@ -91,10 +67,8 @@ def test_monotonicity_S():
     prev = None
     for count in [1000, 10000, 100000]:
         spec = uniform_spec(n, 10.0, 10.0)
-        rec = predict(spec, "ring_allreduce", count, "float32")
-        if prev is not None:
-            assert rec["duration_s"] >= prev - 1e-12
-        prev = rec["duration_s"]
+        with pytest.raises(ValueError):
+            predict(spec, "ring_allreduce", count, "float32")
 
 
 def test_regime_boundary():
@@ -108,13 +82,12 @@ def test_regime_boundary():
     S_star = alpha * B * n
     count_star = int(S_star / 4)
     spec = uniform_spec(n, bw, lat)
-    rec = predict(spec, "ring_allreduce", count_star, "float32")
-    # check regime agrees: if count < star -> latency? Actually for small S, lat_term dominates -> latency.
-    # just check regime is one of valid and boundary within 5% by evaluating counts around
-    rec_low = predict(spec, "ring_allreduce", int(count_star * 0.5), "float32")
-    rec_high = predict(spec, "ring_allreduce", int(count_star * 2.0), "float32")
-    assert rec_low["regime"] == "latency"
-    assert rec_high["regime"] == "bandwidth"
+    with pytest.raises(ValueError):
+        predict(spec, "ring_allreduce", count_star, "float32")
+    with pytest.raises(ValueError):
+        predict(spec, "ring_allreduce", int(count_star * 0.5), "float32")
+    with pytest.raises(ValueError):
+        predict(spec, "ring_allreduce", int(count_star * 2.0), "float32")
 
 
 def test_multihop():
@@ -189,12 +162,9 @@ def test_cli_valid():
     out = subprocess.run([sys.executable, "-m", "epic_cluster.link_model",
                           "--topology", p, "--op", "ring_allreduce", "--count", "1000", "--dtype", "float32"],
                          capture_output=True, text=True)
-    assert out.returncode == 0, out.stderr
-    rec = json.loads(out.stdout)
-    assert "duration_s" in rec
-    assert "regime" in rec
-    assert "bottleneck" in rec
-    assert "link_id" in rec["bottleneck"]
+    assert out.returncode != 0, out.stderr
+    assert "pieces_per_phase not measured" in out.stderr
+    assert out.stdout == "" or "duration_s" not in out.stdout
 
 
 def test_ring_n2_derivation():
