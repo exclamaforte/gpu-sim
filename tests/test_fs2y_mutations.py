@@ -55,11 +55,13 @@ def test_registry_imports():
                for k, v in mutations.items()) is True
 
 
-def test_every_non_pending_mutation_registered():
-    mutations = _load_mutations()
-    ledger = json.loads(LEDGER.read_text(encoding="utf-8"))
-    bad = _unregistered(ledger, mutations)
-    assert len(bad) == 0, f"unregistered ledger mutations: {bad}"
+
+class TestFs2yMutations:
+    def test_every_non_pending_mutation_registered(self):
+        mutations = _load_mutations()
+        ledger = json.loads(LEDGER.read_text(encoding="utf-8"))
+        bad = _unregistered(ledger, mutations)
+        assert len(bad) == 0, f"unregistered ledger mutations: {bad}"
 
 
 def test_registered_mutation_passes():

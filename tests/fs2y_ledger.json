@@ -10,8 +10,7 @@
       "state": "passing",
       "test": "test_cy0_l3.TestCy0L3Memory.test_7b_tp1_refused_tp8_accepted",
       "bound_calls": 1,
-      "mutation": "dhfo_memory_check",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "dhfo_memory_check"
     },
     {
       "name": "bch9_fabric_band",
@@ -21,8 +20,7 @@
       "state": "passing",
       "test": "test_bch9.TestBch9.test_metrics_reproducible",
       "bound_calls": 1,
-      "mutation": "bch9_fabric_band",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "bch9_fabric_band"
     },
     {
       "name": "8zqr_generalization",
@@ -32,19 +30,7 @@
       "state": "passing",
       "test": "test_8zqr.Test8zqr.test_stageD_reproducible",
       "bound_calls": 1,
-      "mutation": "8zqr_generalization",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
-    },
-    {
-      "name": "append_only_guard",
-      "beads": [
-        "gpu-sim-034x"
-      ],
-      "state": "passing",
-      "test": "test_append_only.TestAppendOnly.test_unretired_deletion_fails_naming_key",
-      "bound_calls": 1,
-      "mutation": "append_only_guard",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "8zqr_generalization"
     },
     {
       "name": "bk9_gate_flop_aware",
@@ -52,10 +38,9 @@
         "gpu-sim-4r9k"
       ],
       "state": "passing",
-      "test": "tests/test_grid_capped_boundary.py::test_measure_build_row_uses_shared_symbol_under_monkeypatch",
+      "test": "test_grid_capped_boundary.TestGridCappedBoundary.test_measure_build_row_uses_shared_symbol_under_monkeypatch",
       "bound_calls": 1,
-      "mutation": "bk9_gate_flop_aware",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "bk9_gate_flop_aware"
     },
     {
       "name": "fs2y_mutations_tracked",
@@ -63,10 +48,9 @@
         "gpu-sim-vb7x"
       ],
       "state": "passing",
-      "test": "tests/test_fs2y_mutations.py::test_every_non_pending_mutation_registered",
+      "test": "test_fs2y_mutations.TestFs2yMutations.test_every_non_pending_mutation_registered",
       "bound_calls": 1,
-      "mutation": "fs2y_mutations_tracked",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "fs2y_mutations_tracked"
     },
     {
       "name": "no_pycache_under_experiments",
@@ -74,10 +58,9 @@
         "gpu-sim-1upd"
       ],
       "state": "passing",
-      "test": "tests/test_no_pycache.py::test_lab_config_sets_pycache_suppression",
+      "test": "test_no_pycache.TestNoPycache.test_lab_config_sets_pycache_suppression",
       "bound_calls": 1,
-      "mutation": "no_pycache_under_experiments",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "no_pycache_under_experiments"
     },
     {
       "name": "effective_cpu_capacity",
@@ -85,10 +68,9 @@
         "gpu-sim-ynaj"
       ],
       "state": "passing",
-      "test": "tests/test_effective_cpus.py::test_cpu_capacity_consistent_with_min",
+      "test": "test_effective_cpus.TestEffectiveCpus.test_cpu_capacity_consistent_with_min",
       "bound_calls": 1,
-      "mutation": "effective_cpu_capacity",
-      "plant": "tests/test_nonexistent_file_xyz.py::test_foo"
+      "mutation": "effective_cpu_capacity"
     },
     {
       "name": "no_unconditional_skips",
@@ -96,10 +78,9 @@
         "gpu-sim-1486"
       ],
       "state": "passing",
-      "test": "tests/test_no_unconditional_skips.py::test_all_skip_sites_are_allowlisted",
+      "test": "test_no_unconditional_skips.TestNoUnconditionalSkips.test_all_skip_sites_are_allowlisted",
       "bound_calls": 1,
-      "mutation": "no_unconditional_skips",
-      "plant": "tests/test_oi4m_plant.py::test_plant_fails"
+      "mutation": "no_unconditional_skips"
     },
     {
       "name": "u5q0_stale_self_tests",
@@ -110,6 +91,23 @@
       "test": "test_lint_prose_numbers.TestFiresOnHistory.test_6_10_seconds_vs_milliseconds",
       "bound_calls": 1,
       "mutation": "u5q0_lint_fixture_6338"
+    },
+    {
+      "name": "ledger_node_ids_validated",
+      "beads": [
+        "gpu-sim-oi4m"
+      ],
+      "state": "passing",
+      "test": "test_ledger_node_ids.TestLedgerNodeIds.test_all_rows_resolve",
+      "bound_calls": 1,
+      "mutation": "ledger_node_ids_validated"
+    }
+  ],
+  "retired": [
+    {
+      "name": "append_only_guard",
+      "reason": "self-referential row (target execs check_append_only); validated by checker self-tests, not a ledger target (gpu-sim-oi4m)",
+      "commit": "6b1b48544266b87e4227826e2ea2b9b728097a52"
     }
   ]
 }

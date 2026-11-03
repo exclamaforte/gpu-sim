@@ -7,10 +7,27 @@ Compares HEAD against the merge-base with master for two record files:
 Any key/entry present at the base but absent at HEAD fails unless it is named
 in an explicit retirement list inside the same file, where each retirement
 entry must carry a 'reason' (str) and 'commit' (str).
+
+Also validates every ledger row's test node (gpu-sim-oi4m): resolves to a real
+pytest node, collects >=1 test, executes successfully, and (when a mutation
+function is registered) fails when its mutation is applied and passes when
+restored. No externally settable opt-out; recursion is broken structurally.
 """
-import json, subprocess, sys, os, argparse
+import json, subprocess, sys, os, argparse, ast
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+CHECKER_NAME = "check_append_only.py"
+DEPTH_ENV = "OI4M_CHECKER_PID"
+
+# Heavy rows whose replay re-runs an experiment (stageD/fabric-band). Exempt from
+# execution per PI 11-03 ruling (option b): artifact is byte-verified by the
+# append-only half. Committed list, not an env var. Checker prints the skip.
+EXEMPT_ROWS = {
+    "8zqr_generalization": "replays stageD experiment (~74s); artifact byte-verified by append-only half",
+    "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
+}
+
 
 def git_show(ref, path):
     r = subprocess.run(["git", "-C", ROOT, "show", f"{ref}:{path}"],
@@ -19,25 +36,26 @@ def git_show(ref, path):
         return None
     return r.stdout
 
+
 def merge_base():
     r = subprocess.run(["git", "-C", ROOT, "merge-base", "HEAD", "master"],
                        capture_output=True, text=True)
     if r.returncode != 0:
-        # fall back to HEAD~1? No; require merge-base
         return None
     return r.stdout.strip()
+
 
 def retired_set_model_facts(d):
     out = set()
     for r in d.get("_retired_fact_blocks", []) or []:
         if isinstance(r, dict) and "key" in r:
-            # validate reason + commit
             if not isinstance(r.get("reason"), str) or not r.get("reason"):
                 raise ValueError(f"retirement entry for {r['key']} missing reason")
             if not isinstance(r.get("commit"), str) or not r.get("commit"):
                 raise ValueError(f"retirement entry for {r['key']} missing commit")
             out.add(r["key"])
     return out
+
 
 def retired_set_ledger(d):
     out = set()
@@ -50,10 +68,11 @@ def retired_set_ledger(d):
             out.add(r["name"])
     return out
 
+
 def check_model_facts(base_ref):
     base_text = git_show(base_ref, "docs/model_facts.json")
     if base_text is None:
-        return []  # no base file -> nothing to protect
+        return []
     base = json.loads(base_text)
     head = json.load(open(os.path.join(ROOT, "docs", "model_facts.json")))
     base_keys = set(base.keys()) - {"_retired_fact_blocks"}
@@ -61,6 +80,7 @@ def check_model_facts(base_ref):
     retired = retired_set_model_facts(head)
     lost = base_keys - head_keys - retired
     return sorted(lost)
+
 
 def check_ledger(base_ref):
     base_text = git_show(base_ref, "tests/fs2y_ledger.json")
@@ -73,6 +93,251 @@ def check_ledger(base_ref):
     retired = retired_set_ledger(head)
     lost = base_ids - head_ids - retired
     return sorted(lost)
+
+
+# ---------- recursion / child-mode handling ----------
+
+def _ancestor_is_checker(pid):
+    """Verify via /proc that an ancestor process (pid) is the checker."""
+    cur = os.getppid()
+    seen = set()
+    while cur not in seen:
+        seen.add(cur)
+        try:
+            cmdline = open(f"/proc/{cur}/cmdline", "rb").read().replace(b"\x00", b" ").decode("utf-8", "replace")
+        except OSError:
+            return False
+        if cur == pid and CHECKER_NAME in cmdline:
+            return True
+        try:
+            status = open(f"/proc/{cur}/status").read()
+        except OSError:
+            return False
+        ppid = None
+        for line in status.splitlines():
+            if line.startswith("PPid:"):
+                try:
+                    ppid = int(line.split()[1])
+                except (ValueError, IndexError):
+                    ppid = None
+        if ppid is None or ppid == cur or ppid <= 1:
+            return False
+        cur = ppid
+    return False
+
+
+def _child_mode():
+    """Enter reduced (collect-only) mode only if a real checker ancestor exists."""
+    val = os.environ.get(DEPTH_ENV)
+    if not val:
+        return False
+    try:
+        pid = int(val)
+    except ValueError:
+        return False
+    return _ancestor_is_checker(pid)
+
+
+def _module_references_checker(root, rel_path):
+    """AST-refuse targets whose module imports or execs the checker."""
+    full = os.path.join(root, rel_path)
+    if not os.path.exists(full):
+        return False
+    try:
+        src = open(full).read()
+    except OSError:
+        return False
+    # text-level quick reject for the script name in strings
+    if CHECKER_NAME in src:
+        return True
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names = []
+            if isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            else:
+                if node.module:
+                    names.append(node.module)
+                names += [a.name for a in node.names]
+            for n in names:
+                if n and "check_append_only" in n:
+                    return True
+        if isinstance(node, ast.Call):
+            # exec/eval with any string containing check_append_only
+            func = node.func
+            fname = ""
+            if isinstance(func, ast.Name):
+                fname = func.id
+            elif isinstance(func, ast.Attribute):
+                fname = func.attr
+            if fname in ("exec", "eval", "compile", "system", "run", "Popen", "check_call", "check_output"):
+                for arg in node.args + [kw.value for kw in node.keywords]:
+                    if isinstance(arg, ast.Constant) and isinstance(arg.value, str) and "check_append_only" in arg.value:
+                        return True
+    return False
+
+
+# ---------- ledger node id normalization ----------
+
+def _normalize_ledger_node(node):
+    node = node.strip()
+    if "::" in node:
+        return node, None
+    parts = node.split(".")
+    if len(parts) < 2 or len(parts) > 3:
+        return None, f"unparseable node id {node!r}"
+    module = parts[0]
+    path = f"tests/{module}.py"
+    if len(parts) == 2:
+        method = parts[1]
+        return f"{path}::{method}", None
+    cls = parts[1]
+    method = parts[2]
+    return f"{path}::{cls}::{method}", None
+
+
+def _load_mutations(root):
+    reg_path = os.path.join(root, "scripts", "fs2y_mutations.py")
+    if not os.path.exists(reg_path):
+        return None, "scripts/fs2y_mutations.py: MISSING (registry required for ledger validation)"
+    try:
+        import importlib.util as _ils
+        _spec = _ils.spec_from_file_location("fs2y_mutations_check", reg_path)
+        _mod = _ils.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _mutations = getattr(_mod, "MUTATIONS", None)
+        if not isinstance(_mutations, dict):
+            return None, "scripts/fs2y_mutations.py: MUTATIONS missing or not a dict"
+        _mfns = getattr(_mod, "MUTATION_FUNCTIONS", {}) or {}
+        return (_mutations, _mfns), None
+    except Exception as e:
+        return None, f"scripts/fs2y_mutations.py: import failed: {e}"
+
+
+def check_ledger_test_ids(root):
+    """Resolve every ledger row's test node; fail closed on resolution errors,
+    missing registry, unregistered mutation, self-reference, or vacuous test."""
+    ledger_path = os.path.join(root, "tests", "fs2y_ledger.json")
+    if not os.path.exists(ledger_path):
+        return []
+    try:
+        ledger = json.load(open(ledger_path))
+    except Exception as e:
+        return [f"tests/fs2y_ledger.json: unreadable: {e}"]
+
+    reg, reg_err = _load_mutations(root)
+    if reg_err:
+        return [reg_err]
+    mutations, mfns = reg
+
+    child = _child_mode()
+    errors = []
+    seen = set()
+    for entry in ledger.get("entries", []):
+        name = entry.get("name", "?")
+        node = entry.get("test")
+        state = entry.get("state", "passing")
+        mutation = entry.get("mutation")
+
+        # registry check for non-pending rows
+        if state != "pending" and mutation and mutation not in ("n/a", "doc-only"):
+            if mutation not in mutations:
+                errors.append(f"ledger row {name!r}: mutation {mutation!r} not in registry")
+                continue
+
+        if not node:
+            errors.append(f"ledger row {name!r}: missing 'test' field")
+            continue
+        target, err = _normalize_ledger_node(node)
+        if err:
+            errors.append(f"ledger row {name!r}: {err}")
+            continue
+
+        # self-reference refusal (AST): a ledger row must name a PRODUCT test
+        module_file = target.split("::")[0]
+        if _module_references_checker(root, module_file):
+            errors.append(f"ledger row {name!r}: target {target!r} is self-referential "
+                          f"(imports or execs {CHECKER_NAME}); a ledger row must name a PRODUCT test")
+            continue
+
+        positive_done = False
+        exempt = name in EXEMPT_ROWS
+        # mutation-derived plant: apply mutation, run target (expect fail),
+        # restore, run target (expect pass). Only when a function exists.
+        if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
+                and mutation in mfns):
+            apply_fn = mfns[mutation]
+            backup, mutated_path = apply_fn(root)
+            try:
+                rmut = subprocess.run(
+                    [sys.executable, "-m", "pytest", "-q", target],
+                    cwd=root, capture_output=True, text=True, timeout=120,
+                    env=_child_env())
+                if rmut.returncode == 0:
+                    errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
+                    continue
+            finally:
+                with open(mutated_path, "w") as f:
+                    f.write(backup)
+            rrest = subprocess.run(
+                [sys.executable, "-m", "pytest", "-q", target],
+                cwd=root, capture_output=True, text=True, timeout=120,
+                env=_child_env())
+            if rrest.returncode != 0:
+                errors.append(f"ledger row {name!r}: restored target did not pass (rc={rrest.returncode})")
+                continue
+            positive_done = True
+
+        if target in seen:
+            continue
+        seen.add(target)
+
+        # collect-only resolution
+        r = subprocess.run(
+            [sys.executable, "-m", "pytest", "--collect-only", "-q", target],
+            cwd=root, capture_output=True, text=True, timeout=120,
+            env=_child_env())
+        out = (r.stdout or "") + (r.stderr or "")
+        collected = 0
+        for line in out.splitlines():
+            if "test" in line.lower() and "::" in line:
+                collected += 1
+        if collected == 0:
+            import re
+            m = re.search(r"(\d+)\s+test", out)
+            if m:
+                collected = int(m.group(1))
+        if r.returncode != 0:
+            errors.append(f"ledger row {name!r}: node {target!r} does not resolve (rc={r.returncode})")
+            continue
+        if collected < 1:
+            errors.append(f"ledger row {name!r}: node {target!r} collects 0 tests")
+            continue
+
+        if (not child and exempt):
+            print(f"replay skipped (exempt): {name} -- {EXEMPT_ROWS[name]}")
+        # positive execution (top-level only; children skip to avoid recursion)
+        if (not child and not positive_done and not exempt):
+            rrun = subprocess.run(
+                [sys.executable, "-m", "pytest", "-q", target],
+                cwd=root, capture_output=True, text=True, timeout=120,
+                env=_child_env())
+            if rrun.returncode != 0:
+                errors.append(f"ledger row {name!r}: positive {target!r} did not pass (rc={rrun.returncode})")
+                continue
+    return errors
+
+
+def _child_env():
+    """Env for subprocess: propagate depth marker with this process's pid."""
+    env = dict(os.environ)
+    env[DEPTH_ENV] = str(os.getpid())
+    return env
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -95,12 +360,18 @@ def main():
             errors.append(f"tests/fs2y_ledger.json lost ledger entry '{k}' (not retired)")
     except Exception as e:
         errors.append(f"tests/fs2y_ledger.json: {e}")
+    try:
+        for e in check_ledger_test_ids(ROOT):
+            errors.append(e)
+    except Exception as e:
+        errors.append(f"ledger test-id resolution: {e}")
     if errors:
         for e in errors:
             print(f"FAIL: {e}")
         return 1
     print("OK: append-only check passed (no unretired losses)")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
