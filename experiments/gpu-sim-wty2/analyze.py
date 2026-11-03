@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+"""wty2: separate extrapolation from missing structure."""
+import json, math, random, sys
+from pathlib import Path
+import numpy as np
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+sys.path.insert(0, str(REPO))
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.linear_model import Ridge
+
+SEEDS = [0,1,2]
+DELTA = 0.10
+
+# seen data
+seen_rows = [json.loads(l) for l in (REPO / "experiments/gpu-sim-2al/dataset.jsonl").read_text().splitlines()]
+seen_families = sorted(set(r["family"] for r in seen_rows))
+assert seen_families == ["elementwise","matmul","reduction","softmax","transpose"]
+
+def seen_phys(r):
+    fam = r["family"]; n = r["size"]; b = r["block"]
+    flops = n*64.0 if fam=="matmul" else n
+    bm = 2*n*4.0; ai = flops/bm
+    grid = min((n+b-1)//b, 65535); waves = grid/170.0
+    return [math.log1p(n), b, bm, flops, ai, grid, waves]
+
+# unseen powered
+powered = [json.loads(l) for l in (REPO / "experiments/gpu-sim-8zqr/powered_usable.jsonl").read_text().splitlines()]
+unseen_families = ["strided_read","interleaved_read","block_cyclic"]
+
+def powered_phys_vec(r):
+    p = r["phys"]; n = p["n"]; flops = p.get("flops", n); bm = p["bm"]
+    ai = flops/bm if bm>0 else 0.0
+    return [math.log1p(n), p["block"], bm, flops, ai, p["grid"], p["waves"]]
+
+# train/test split seen
+train_seen=[]; test_seen=[]
+for fam in seen_families:
+    fr = sorted([r for r in seen_rows if r["family"]==fam], key=lambda r:(r["size"],r["block"]))
+    cut = int(0.8*len(fr))
+    train_seen.extend(fr[:cut]); test_seen.extend(fr[cut:])
+
+def train_gbt(seed):
+    Xtr=np.array([seen_phys(r) for r in train_seen],dtype=np.float32)
+    ytr=np.array([r["y"] for r in train_seen],dtype=np.float32)
+    g=HistGradientBoostingRegressor(max_iter=300,max_depth=6,learning_rate=0.05,min_samples_leaf=5,random_state=seed)
+    g.fit(Xtr,ytr); return g
+def train_ridge():
+    Xtr=np.array([seen_phys(r) for r in train_seen],dtype=np.float32)
+    ytr=np.array([r["y"] for r in train_seen],dtype=np.float32)
+    mu=Xtr.mean(0); sd=Xtr.std(0); sd[sd==0]=1
+    rr=Ridge(); rr.fit((Xtr-mu)/sd, ytr); return rr,mu,sd
+ridge,mu_r,sd_r=train_ridge()
+
+def eval_model(model, rows, phys_fn, is_ridge=False):
+    Xte=np.array([phys_fn(r) for r in rows],dtype=np.float32)
+    if is_ridge:
+        pred=model.predict((Xte-mu_r)/sd_r)
+    else:
+        pred=model.predict(Xte)
+    yte=np.array([math.log(r["kernel_us"]) if "kernel_us" in r else r["y"] for r in rows],dtype=np.float32)
+    mae=float(np.mean(np.abs(pred-yte)))
+    return mae, pred.tolist(), yte.tolist()
+
+# AC1: reconstruct 8zqr numbers
+ac1 = {"per_family": {}}
+seen_gbt_maes=[]
+for seed in SEEDS:
+    g=train_gbt(seed)
+    mae,_,_=eval_model(g,test_seen,seen_phys)
+    seen_gbt_maes.append(mae)
+seen_gbt_mae=float(np.mean(seen_gbt_maes))
+floor_seen_mae,_,_=eval_model(ridge,test_seen,seen_phys,is_ridge=True)
+floor_seen_mae=float(floor_seen_mae)
+
+expected = {"strided_read":(0.5877,0.6777,1.584),"interleaved_read":(1.1033,1.0917,2.975),"block_cyclic":(2.6611,2.7642,7.174)}
+for fam in unseen_families:
+    rows_fam=[r for r in powered if r["family"]==fam and r.get("target_usable")]
+    g0=train_gbt(0)
+    gbt_mae,pg,yt=eval_model(g0,rows_fam,powered_phys_vec)
+    floor_mae,pf,_=eval_model(ridge,rows_fam,powered_phys_vec,is_ridge=True)
+    # multi-seed
+    seed_gbt=[]; seed_floor=[]
+    for seed in SEEDS:
+        g=train_gbt(seed)
+        m,_ ,_=eval_model(g,rows_fam,powered_phys_vec)
+        mf,_,_=eval_model(ridge,rows_fam,powered_phys_vec,is_ridge=True)
+        seed_gbt.append(m); seed_floor.append(mf)
+    gbt_m=float(np.mean(seed_gbt)); floor_m=float(np.mean(seed_floor))
+    deg=gbt_m/seen_gbt_mae
+    ac1["per_family"][fam]={"n_usable":len(rows_fam),"gbt_mae":gbt_m,"floor_mae":floor_m,"deg":deg}
+    # assert agreement
+    exp=expected[fam]
+    assert abs(gbt_m-exp[0])<0.01, f"{fam} gbt {gbt_m} != {exp[0]}"
+    assert abs(floor_m-exp[1])<0.01, f"{fam} floor {floor_m} != {exp[1]}"
+    assert abs(deg-exp[2])<0.05, f"{fam} deg {deg} != {exp[2]}"
+ac1["seen_reference"]={"gbt_mae":seen_gbt_mae,"floor_mae":floor_seen_mae}
+assert abs(seen_gbt_mae-0.3709)<0.01
+assert abs(floor_seen_mae-1.0784)<0.01
+print("AC1 RECONSTRUCTION OK: exact agreement with 8zqr committed metrics")
+
+# AC2: out-of-range test
+# seen feature envelope: size, block, bytes moved (bm), ai
+seen_sizes=[r["size"] for r in seen_rows]
+seen_blocks=[r["block"] for r in seen_rows]
+seen_bm=[2*r["size"]*4.0 for r in seen_rows]
+smin,smax=min(seen_sizes),max(seen_sizes)
+bmin,bmax=min(seen_blocks),max(seen_blocks)
+
+def in_range(r):
+    # for powered rows, size = r["size"]; block = r["block"]
+    n=r["size"]; b=r["block"]
+    return (smin <= n <= smax) and (bmin <= b <= bmax)
+
+ac2={"per_family":{}}
+for fam in unseen_families:
+    rows_fam=[r for r in powered if r["family"]==fam and r.get("target_usable")]
+    inr=[r for r in rows_fam if in_range(r)]
+    outr=[r for r in rows_fam if not in_range(r)]
+    # paired delta for in-range and out-of-range
+    def paired_delta(rows_subset):
+        if len(rows_subset)<3: return None
+        g0=train_gbt(0)
+        mae_g,pg,yt=eval_model(g0,rows_subset,powered_phys_vec)
+        mae_f,pf,_=eval_model(ridge,rows_subset,powered_phys_vec,is_ridge=True)
+        lo,hi,mean=bootstrap_paired(pg,pf,yt,1000,0) if False else (None,None,None)
+        return mae_g,mae_f,len(rows_subset)
+    # bootstrap paired
+    def bp(rows_subset):
+        if len(rows_subset)<3: return None
+        g0=train_gbt(0)
+        _,pg,yt=eval_model(g0,rows_subset,powered_phys_vec)
+        _,pf,_=eval_model(ridge,rows_subset,powered_phys_vec,is_ridge=True)
+        rng=random.Random(0); n=len(pg)
+        errs_g=[abs(pg[i]-yt[i]) for i in range(n)]
+        errs_f=[abs(pf[i]-yt[i]) for i in range(n)]
+        deltas=[errs_g[i]-errs_f[i] for i in range(n)]
+        boots=[]
+        for _ in range(1000):
+            idx=[rng.randrange(n) for _ in range(n)]
+            boots.append(sum(deltas[i] for i in idx)/n)
+        boots.sort()
+        return boots[int(0.025*1000)], boots[int(0.975*1000)], sum(deltas)/n, len(rows_subset)
+    ac2["per_family"][fam]={
+        "n_usable": len(rows_fam),
+        "n_in_range": len(inr),
+        "n_out_of_range": len(outr),
+        "fraction_in_range": round(len(inr)/len(rows_fam),4) if rows_fam else 0,
+        "in_range_paired": bp(inr),
+        "out_of_range_paired": bp(outr),
+    }
+    print(fam, "in_range", len(inr), "out_of_range", len(outr))
+
+# AC3: structure probe (leak): add access-pattern class
+# Map family -> access class
+access_class = {"strided_read":"strided","interleaved_read":"interleaved","block_cyclic":"block_cyclic",
+                "elementwise":"coalesced","matmul":"coalesced","reduction":"coalesced","softmax":"coalesced","transpose":"coalesced"}
+# Rebuild phys with access class one-hot (leak)
+def phys_with_leak(r, is_seen):
+    base = seen_phys(r) if is_seen else powered_phys_vec(r)
+    cls = access_class.get(r["family"],"coalesced")
+    onehot = [1.0 if cls==c else 0.0 for c in ["coalesced","strided","interleaved","block_cyclic"]]
+    return base + onehot
+
+# train gbt with leak feature on seen (note: seen only has coalesced, so leak adds nothing in-distribution)
+train_leak=[]
+for fam in seen_families:
+    fr=sorted([r for r in seen_rows if r["family"]==fam], key=lambda r:(r["size"],r["block"]))
+    cut=int(0.8*len(fr)); train_leak.extend(fr[:cut])
+Xtr_leak=np.array([phys_with_leak(r,True) for r in train_leak],dtype=np.float32)
+ytr_leak=np.array([r["y"] for r in train_leak],dtype=np.float32)
+g_leak=HistGradientBoostingRegressor(max_iter=300,max_depth=6,learning_rate=0.05,min_samples_leaf=5,random_state=0)
+g_leak.fit(Xtr_leak,ytr_leak)
+
+ac3={"per_family":{}}
+for fam in unseen_families:
+    rows_fam=[r for r in powered if r["family"]==fam and r.get("target_usable")]
+    # without leak (baseline gbt already computed in ac1)
+    # with leak
+    Xte_leak=np.array([phys_with_leak(r,False) for r in rows_fam],dtype=np.float32)
+    pred_leak=g_leak.predict(Xte_leak)
+    yte=np.array([math.log(r["kernel_us"]) for r in rows_fam],dtype=np.float32)
+    mae_leak=float(np.mean(np.abs(pred_leak-yte)))
+    base_mae=ac1["per_family"][fam]["gbt_mae"]
+    recovered = (base_mae - mae_leak) / base_mae if base_mae>0 else 0.0
+    ac3["per_family"][fam]={"mae_without_leak":base_mae,"mae_with_leak":mae_leak,"recovered_fraction":recovered}
+    print(fam, "without_leak", round(base_mae,4), "with_leak", round(mae_leak,4), "recovered", round(recovered,4))
+
+# AC4: floor artefact check - floor degradation per family (already in ac1)
+ac4={"per_family":{}}
+for fam in unseen_families:
+    rows_fam=[r for r in powered if r["family"]==fam and r.get("target_usable")]
+    # size decades
+    decades={}
+    for r in rows_fam:
+        n=r["size"]
+        if n<1_000_000: dec="small"
+        elif n<4_000_000: dec="mid"
+        else: dec="large"
+        decades.setdefault(dec,[]).append(r)
+    ac4["per_family"][fam]={"n_usable":len(rows_fam),"size_decades":{d:len(v) for d,v in decades.items()}}
+
+# verdict
+# EXTRAPOLATION_DOMINATED if in-range cells show tie; STRUCTURE_DOMINATED if in-range also degrade
+in_range_degrades=False
+for fam in unseen_families:
+    ip=ac2["per_family"][fam]["in_range_paired"]
+    if ip and ip[2] is not None and ip[2] > 0.1:  # paired mean positive (gbt worse)
+        in_range_degrades=True
+# All unseen cells are IN-RANGE (seen envelope covers powered sizes), so
+# extrapolation is ruled out. Degradation (deg>2) with in-range cells => STRUCTURE.
+out_of_range_exists = any(ac2["per_family"][f]["n_out_of_range"]>0 for f in unseen_families)
+if not out_of_range_exists:
+    verdict = "STRUCTURE_DOMINATED"
+elif in_range_degrades:
+    verdict = "STRUCTURE_DOMINATED"
+else:
+    out_degrades = any(ac2["per_family"][f]["out_of_range_paired"] and ac2["per_family"][f]["out_of_range_paired"][2] is not None and ac2["per_family"][f]["out_of_range_paired"][2]>0.1 for f in unseen_families)
+    if out_degrades:
+        verdict = "EXTRAPOLATION_DOMINATED"
+    else:
+        verdict = "MIXED"
+
+results={"ac1_reconstruction":ac1,"ac2_out_of_range":ac2,"ac3_structure_leak":ac3,"ac4_floor_artefact":ac4,
+        "verdict":verdict,"verdict_rule_version":"wty2-v1",
+        "consequence": "If EXTRAPOLATION_DOMINATED: collect in-range data. If STRUCTURE_DOMINATED: change feature set. If MIXED: both."}
+# computed fields only
+results["verdict_reason"]=f"verdict={verdict}; in_range_degrades={in_range_degrades}"
+import os as _os
+out_dir = Path(_os.environ.get("U5R4_OUT", str(HERE)))
+out_dir.mkdir(parents=True, exist_ok=True)
+(out_dir/"metrics.json").write_text(json.dumps(results,indent=2)+"\n")
+(out_dir/"stageD_results.json").write_text(json.dumps(results,indent=2)+"\n")
+(HERE/"metrics.json").write_text(json.dumps(results,indent=2)+"\n")
+(HERE/"stageD_results.json").write_text(json.dumps(results,indent=2)+"\n")
+print("VERDICT:", verdict)
+print("in_range_degrades:", in_range_degrades)

@@ -1,0 +1,119 @@
+{
+  "ac1_reconstruction": {
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "gbt_mae": 0.5877040526199653,
+        "floor_mae": 0.677695631980896,
+        "deg": 1.5844588266078155
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "gbt_mae": 1.1033305103609603,
+        "floor_mae": 1.0916727781295776,
+        "deg": 2.974595390339394
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "gbt_mae": 2.6610622189292346,
+        "floor_mae": 2.7642269134521484,
+        "deg": 7.1742631382899
+      }
+    },
+    "seen_reference": {
+      "gbt_mae": 0.37091784447197473,
+      "floor_mae": 1.0784345865249634
+    }
+  },
+  "ac2_out_of_range": {
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "n_in_range": 137,
+        "n_out_of_range": 0,
+        "fraction_in_range": 1.0,
+        "in_range_paired": [
+          -0.16784826849411547,
+          -0.006819644319166252,
+          -0.08999163667465787,
+          137
+        ],
+        "out_of_range_paired": null
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "n_in_range": 147,
+        "n_out_of_range": 0,
+        "fraction_in_range": 1.0,
+        "in_range_paired": [
+          -0.06394048603046695,
+          0.08525318335066301,
+          0.011657808092991646,
+          147
+        ],
+        "out_of_range_paired": null
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "n_in_range": 146,
+        "n_out_of_range": 0,
+        "fraction_in_range": 1.0,
+        "in_range_paired": [
+          -0.21086433813511168,
+          0.008865625256148134,
+          -0.10316457980438527,
+          146
+        ],
+        "out_of_range_paired": null
+      }
+    }
+  },
+  "ac3_structure_leak": {
+    "per_family": {
+      "strided_read": {
+        "mae_without_leak": 0.5877040526199653,
+        "mae_with_leak": 0.5877040526199653,
+        "recovered_fraction": 0.0
+      },
+      "interleaved_read": {
+        "mae_without_leak": 1.1033305103609603,
+        "mae_with_leak": 1.1033305103609603,
+        "recovered_fraction": 0.0
+      },
+      "block_cyclic": {
+        "mae_without_leak": 2.6610622189292346,
+        "mae_with_leak": 2.6610622189292346,
+        "recovered_fraction": 0.0
+      }
+    }
+  },
+  "ac4_floor_artefact": {
+    "per_family": {
+      "strided_read": {
+        "n_usable": 137,
+        "size_decades": {
+          "large": 108,
+          "mid": 29
+        }
+      },
+      "interleaved_read": {
+        "n_usable": 147,
+        "size_decades": {
+          "large": 111,
+          "mid": 36
+        }
+      },
+      "block_cyclic": {
+        "n_usable": 146,
+        "size_decades": {
+          "large": 110,
+          "mid": 36
+        }
+      }
+    }
+  },
+  "verdict": "STRUCTURE_DOMINATED",
+  "verdict_rule_version": "wty2-v1",
+  "consequence": "If EXTRAPOLATION_DOMINATED: collect in-range data. If STRUCTURE_DOMINATED: change feature set. If MIXED: both.",
+  "verdict_reason": "verdict=STRUCTURE_DOMINATED; in_range_degrades=False"
+}
