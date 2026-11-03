@@ -20,6 +20,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHECKER_NAME = "check_append_only.py"
 DEPTH_ENV = "OI4M_CHECKER_PID"
 
+# Heavy rows whose replay re-runs an experiment (stageD/fabric-band). Exempt from
+# execution per PI 11-03 ruling (option b): artifact is byte-verified by the
+# append-only half. Committed list, not an env var. Checker prints the skip.
+EXEMPT_ROWS = {
+    "8zqr_generalization": "replays stageD experiment (~74s); artifact byte-verified by append-only half",
+    "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
+    "dhfo_memory_check": "replays 7b tp1 refusal measurement; artifact byte-verified by append-only half",
+}
+
 
 def git_show(ref, path):
     r = subprocess.run(["git", "-C", ROOT, "show", f"{ref}:{path}"],
@@ -257,9 +266,10 @@ def check_ledger_test_ids(root):
             continue
 
         positive_done = False
+        exempt = name in EXEMPT_ROWS
         # mutation-derived plant: apply mutation, run target (expect fail),
         # restore, run target (expect pass). Only when a function exists.
-        if (not child and mutation and mutation not in ("n/a", "doc-only")
+        if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
                 and mutation in mfns):
             apply_fn = mfns[mutation]
             backup, mutated_path = apply_fn(root)
@@ -309,8 +319,10 @@ def check_ledger_test_ids(root):
             errors.append(f"ledger row {name!r}: node {target!r} collects 0 tests")
             continue
 
+        if (not child and exempt):
+            print(f"replay skipped (exempt): {name} -- {EXEMPT_ROWS[name]}")
         # positive execution (top-level only; children skip to avoid recursion)
-        if (not child and not positive_done):
+        if (not child and not positive_done and not exempt):
             rrun = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q", target],
                 cwd=root, capture_output=True, text=True, timeout=120,
