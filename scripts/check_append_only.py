@@ -28,6 +28,11 @@ EXEMPT_ROWS = {
     "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
 }
 
+# Per-row timeout overrides (seconds). Baseline 120s scaled by measured cost.
+ROW_TIMEOUTS = {
+    "wty2_structure_dominated": 300,
+}
+
 
 def git_show(ref, path):
     r = subprocess.run(["git", "-C", ROOT, "show", f"{ref}:{path}"],
@@ -275,7 +280,7 @@ def check_ledger_test_ids(root):
             try:
                 rmut = subprocess.run(
                     [sys.executable, "-m", "pytest", "-q", target],
-                    cwd=root, capture_output=True, text=True, timeout=120,
+                    cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
                     env=_child_env())
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
@@ -285,7 +290,7 @@ def check_ledger_test_ids(root):
                     f.write(backup)
             rrest = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q", target],
-                cwd=root, capture_output=True, text=True, timeout=120,
+                cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
                 env=_child_env())
             if rrest.returncode != 0:
                 errors.append(f"ledger row {name!r}: restored target did not pass (rc={rrest.returncode})")
@@ -299,7 +304,7 @@ def check_ledger_test_ids(root):
         # collect-only resolution
         r = subprocess.run(
             [sys.executable, "-m", "pytest", "--collect-only", "-q", target],
-            cwd=root, capture_output=True, text=True, timeout=120,
+            cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
             env=_child_env())
         out = (r.stdout or "") + (r.stderr or "")
         collected = 0
@@ -324,7 +329,7 @@ def check_ledger_test_ids(root):
         if (not child and not positive_done and not exempt):
             rrun = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q", target],
-                cwd=root, capture_output=True, text=True, timeout=120,
+                cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
                 env=_child_env())
             if rrun.returncode != 0:
                 errors.append(f"ledger row {name!r}: positive {target!r} did not pass (rc={rrun.returncode})")

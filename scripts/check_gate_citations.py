@@ -196,6 +196,7 @@ def main() -> int:
                 role = bp.get("role")
                 tip = bp.get("tip")
                 reason = bp.get("reason", "bypassed")
+                retroactive = bool(bp.get("retroactive", False))
                 # guard: record must name BOTH role and tip
                 if not role or not tip:
                     bad.append((metrics, "bypass record missing role or tip"))
@@ -204,7 +205,21 @@ def main() -> int:
                 if r.returncode != 0:
                     bad.append((metrics, f"bypass record tip {tip} does not exist"))
                     continue
-                print(f"BYPASSED (audited): {bead_id} role={role} tip={tip[:12]} reason={reason}")
+                # retroactive guard: a retroactive record is accepted only for
+                # beads whose land predates 2026-11-03 (the day bypass records
+                # became standard). A new bypass must carry at=<land date> on
+                # the same day, otherwise it is rejected as retroactive-out-of-
+                # window. This stops a retroactive record from becoming a
+                # loophole for new bypasses.
+                RETROACTIVE_CUTOFF = 1793664000  # 2026-11-03 00:00:00 UTC
+                if retroactive:
+                    at = bp.get("at", 0)
+                    if not isinstance(at, (int, float)) or at >= RETROACTIVE_CUTOFF:
+                        bad.append((metrics, "retroactive bypass record out of window (land must predate 2026-11-03)"))
+                        continue
+                    print(f"BYPASSED (retroactive): {bead_id} role={role} tip={tip[:12]} reason={reason}")
+                else:
+                    print(f"BYPASSED (audited): {bead_id} role={role} tip={tip[:12]} reason={reason}")
             except Exception:
                 bad.append((metrics, "bypass record unreadable"))
                 continue
