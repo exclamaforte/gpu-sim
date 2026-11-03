@@ -24,3 +24,6 @@ print(f"usable after fix: {usable}/{len(rows)}")
 assert usable == 24, f"expected 24, got {usable}"
 print("OK")
 PY
+
+# --- Regenerate decision table and deep-compare against committed ---
+python3 experiments/gpu-sim-4r9k/gen_decision_table.py
