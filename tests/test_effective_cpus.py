@@ -77,3 +77,34 @@ def test_cpu_capacity_consistent_with_min():
         expected = min(affinity, quota)
     assert r["effective_cpus"] == expected, (
         f"effective_cpus={r['effective_cpus']} != min({affinity}, {quota})={expected}")
+
+
+def test_nproc_mismatch_named_warning(monkeypatch):
+    """A helper-vs-nproc mismatch must produce a named WARNING, not a silent pick."""
+    import subprocess as sp
+    monkeypatch.setattr(sp, "check_output", lambda *a, **k: "32")
+    r = ec.effective_cpus()
+    assert r["nproc"] == 32
+    assert r["nproc_agrees"] is False
+    assert "WARNING" in r["reason"]
+    assert "nproc=32" in r["reason"]
+
+
+def test_artifact_cpu_capacity_and_throttle():
+    """Artifact must carry cpu_capacity_cpus + throttle deltas, and no 'nproc' field
+    may carry the OS CPU count (32)."""
+    import json
+    art = json.loads((ROOT / "experiments" / "gpu-sim-ynaj" / "metrics.json").read_text())
+    assert "cpu_capacity_cpus" in art, "cpu_capacity_cpus missing from artifact"
+    assert "throttle_deltas" in art, "throttle_deltas missing from artifact"
+    # nproc field, if present, must NOT carry the OS CPU count (32)
+    if "nproc" in art:
+        assert art["nproc"] != 32, "nproc field carries OS CPU count"
+
+
+def test_no_quota_walk_reason(monkeypatch):
+    """A walk with no non-max quota must make effective_cpus report the fallback reason."""
+    monkeypatch.setattr(ec, "walk_cpu_max", lambda rel, fs_root="/sys/fs/cgroup": [])
+    r = ec.effective_cpus()
+    assert r["quota_cpus"] is None
+    assert "no non-max cpu.max quota found" in r["reason"]
