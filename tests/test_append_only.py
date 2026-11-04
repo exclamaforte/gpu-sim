@@ -1,5 +1,7 @@
 """Append-only guard tests."""
 import json
+import signal
+import atexit
 import unittest
 import os
 import subprocess
@@ -8,6 +10,31 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_append_only.py"
+
+# p4dw-style: track plant files created during tests so an interrupted run
+# cleans them up via atexit / signal handlers instead of poisoning the next run.
+_PLANT_FILES = []
+
+def _cleanup_plants():
+    for pf in list(_PLANT_FILES):
+        try:
+            pf.unlink(missing_ok=True)
+        except OSError:
+            pass
+    _PLANT_FILES.clear()
+
+atexit.register(_cleanup_plants)
+
+def _plant_signal(signum, frame):
+    _cleanup_plants()
+    raise SystemExit(128 + signum)
+
+for _sig in (signal.SIGTERM, signal.SIGINT):
+    try:
+        signal.signal(_sig, _plant_signal)
+    except (ValueError, OSError):
+        pass
+
 
 
 def run_script():
@@ -127,6 +154,7 @@ class TestLedgerNodeIds(unittest.TestCase):
     def test_plant_class_qualified_module_level_fails(self):
         """Plant (a): class-qualified node for a module-level test must fail."""
         shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_class_qualified.json"
+        _PLANT_FILES.append(shard)
         shard.write_text(json.dumps({
             "name": "plant_class_qualified",
             "beads": ["gpu-sim-u6ih"],
@@ -141,10 +169,13 @@ class TestLedgerNodeIds(unittest.TestCase):
             assert "does not resolve" in out or "collects 0" in out, out
         finally:
             shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_nonexistent_function_fails(self):
         """Plant (b): node naming a function that does not exist must fail."""
         shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_nonexistent_func.json"
+        _PLANT_FILES.append(shard)
         shard.write_text(json.dumps({
             "name": "plant_nonexistent_func",
             "beads": ["gpu-sim-u6ih"],
@@ -159,10 +190,13 @@ class TestLedgerNodeIds(unittest.TestCase):
             assert "does not resolve" in out or "collects 0" in out, out
         finally:
             shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_nonexistent_file_fails(self):
         """Plant (c): node naming a file that does not exist must fail."""
         shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_nonexistent_file.json"
+        _PLANT_FILES.append(shard)
         shard.write_text(json.dumps({
             "name": "plant_nonexistent_file",
             "beads": ["gpu-sim-u6ih"],
@@ -177,10 +211,13 @@ class TestLedgerNodeIds(unittest.TestCase):
             assert "does not resolve" in out or "collects 0" in out, out
         finally:
             shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_self_referential_fails(self):
         """A row naming a test in test_append_only (imports checker) must be refused."""
         shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_self_ref.json"
+        _PLANT_FILES.append(shard)
         shard.write_text(json.dumps({
             "name": "plant_self_ref",
             "beads": ["gpu-sim-u6ih"],
@@ -195,15 +232,19 @@ class TestLedgerNodeIds(unittest.TestCase):
             assert "self-referential" in out, out
         finally:
             shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_vacuous_fails(self):
         """A vacuous row (assert True) must fail the mutation check."""
         plant_file = ROOT / "tests" / "test_vacuous_plant.py"
+        _PLANT_FILES.append(plant_file)
         plant_backup = None
         if plant_file.exists():
             plant_backup = plant_file.read_text()
         plant_file.write_text("def test_vacuous():\n    assert True\n")
         shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_vacuous.json"
+        _PLANT_FILES.append(shard)
         shard.write_text(json.dumps({
             "name": "plant_vacuous",
             "beads": ["gpu-sim-u6ih"],
@@ -218,6 +259,8 @@ class TestLedgerNodeIds(unittest.TestCase):
             assert "did not fail" in out, out
         finally:
             shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
             if plant_backup is None:
                 plant_file.unlink(missing_ok=True)
             else:
