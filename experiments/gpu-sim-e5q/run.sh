@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-e5q -- recompute check. CPU-ONLY: re-runs e5q_verify.py into scratch
 # and byte-compares metrics.json + job.json. Writes no tracked file.
 set -uo pipefail

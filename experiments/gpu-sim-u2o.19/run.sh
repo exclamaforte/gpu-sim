@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.19 -- recompute check. Rebuilds libfakegpu + reruns the overlay
 # gate CPU-side, re-parses the two recorded ts probe logs, byte-compares
 # metrics. Writes no tracked file (gate log + recomputed metrics to scratch).

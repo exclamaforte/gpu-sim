@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.8.3 -- recompute check. CPU-ONLY (stdlib + repo).
 # Re-runs the unit gates + populate, byte-compares both artifacts against
 # the committed ones. A same-vector/different-runtime pair, a zero

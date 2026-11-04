@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-8y7.1 recompute: derive metrics.json from the committed sweep JSONs
 # (pure CPU) and diff against the committed metrics.json. Never writes a
 # tracked file: recompute goes to $SCRATCH, then cmp.

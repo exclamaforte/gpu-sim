@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-m3d.5: build the fake driver shim and run the driver-seam probe.
 # CPU-only: no GPU is used and no ts job is required.
 set -uo pipefail

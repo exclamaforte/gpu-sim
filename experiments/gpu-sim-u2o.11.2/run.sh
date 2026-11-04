@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.11.2 replay: CPU inference (~2 min) + analysis checks.
 set -u
 WT=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-u2o.11.2

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.6.6.7 -- CPU only. Run directly, never through ts: a CPU job in the
 # shared GPU queue blocks real GPU work for its whole runtime, and nothing here
 # touches the device.

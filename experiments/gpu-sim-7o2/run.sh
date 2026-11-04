@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-7o2: recompute the timing summary from the committed reps and diff
 # against the committed summary.json. Recomputation goes to a scratch path;
 # running this leaves `git status` clean.

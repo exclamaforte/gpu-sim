@@ -3,6 +3,7 @@
 # proof.json/metrics.json replay byte-identical (deterministic JSON);
 # any mismatch fails instead of landing.
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 HERE="$(dirname "$0")"
 cd "$HERE"
 export CUDA_VISIBLE_DEVICES=
