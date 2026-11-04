@@ -1,0 +1,18 @@
+NEGATIVE CONTROL (gpu-sim-xy8): demonstrate the agreement assertion goes RED under string equality.
+
+Commands:
+  cp -r .lab/wt/gpu-sim-fd5i .lab/tmp/fd5i-scratch
+  cd .lab/tmp/fd5i-scratch
+  # revert the comparison to string equality (landing stays %H):
+  # stamp != landing  (instead of resolve_commit(stamp) != landing)
+  python3 -m pytest tests/test_tree_state_supersession.py::TestEveryStampedArtifact::test_carried_stamps_agree_with_the_per_file_landing -q
+
+Result: FAILED
+  experiments/gpu-sim-u2o.6.6.2/job.json: superseded_by.commit 97575af != the file's own oldest add 97575af4411c07c4a77405ecab1da01474e7ad2f
+  experiments/gpu-sim-u2o.6.6.2/metrics.json: superseded_by.commit 97575af != the file's own oldest add 97575af4411c07c4a77405ecab1da01474e7ad2f
+
+Interpretation: with string equality, the stored 7-char stamp "97575af" disagrees with the
+full-sha landing "97575af4..." even though they name the same commit, producing a false
+drift failure. The fix resolves both to full shas before comparing, eliminating the
+abbreviation-length sensitivity. Plants (a) and (d) are RED under string equality and
+GREEN under the fix.

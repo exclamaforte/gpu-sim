@@ -34,7 +34,8 @@ sys.path.insert(0, str(REPO))
 
 from scripts.tree_state import (  # noqa: E402
     _supersession_record, branch_exists, first_word, landing_commit_for,
-    resolve_superseded_by, stamp_tree_state, stamped_artifacts,
+    resolve_commit, resolve_superseded_by, stamp_agreement_errors, stamp_tree_state,
+    stamped_artifacts,
 )
 
 
@@ -68,7 +69,7 @@ def _commit_all(root, message):
     subprocess.run(["git", "-C", str(root), "commit", "-qm", message],
                    check=True)
     return subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "--short", "HEAD"],
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
         capture_output=True, text=True, check=True).stdout.strip()
 
 
@@ -107,7 +108,7 @@ class TestPerFileLanding(unittest.TestCase):
 
             def old_directory_rule():
                 out = subprocess.run(
-                    ["git", "-C", str(root), "log", "--oneline", "-1",
+                    ["git", "-C", str(root), "log", "--format=%H", "-1",
                      "--diff-filter=A", "master", "--", "expdir/"],
                     capture_output=True, text=True, check=True).stdout.strip()
                 return out.split()[0]
@@ -196,6 +197,32 @@ class TestTheSupersessionRule(unittest.TestCase):
             td.cleanup()
 
 
+
+def _audit_stamps(repo):
+    """Run the carried-stamp agreement check over opted-in artifacts in repo.
+    Returns (bad, unstamped, checked) lists. Shared by the audit test and the
+    FAIL-direction plants so the same code path is exercised."""
+    from pathlib import Path as _P
+    repo = _P(repo)
+    bad, unstamped, checked = [], [], []
+    for path, doc, ts in stamped_artifacts(repo):
+        if not (isinstance(doc.get("tree_state"), dict)
+                and doc["tree_state"].get("branch")):
+            continue
+        rel = path.relative_to(repo)
+        landing = landing_commit_for(rel, repo)
+        if not landing:
+            continue
+        checked.append(str(rel))
+        sb = ts.get("superseded_by") or doc.get("superseded_by")
+        if not sb or not isinstance(sb, dict):
+            unstamped.append(f"{rel}: landed at {landing}, no stamp")
+            continue
+        errs = stamp_agreement_errors(rel, repo)
+        bad.extend(errs)
+    return bad, unstamped, checked
+
+
 class TestEveryStampedArtifact(unittest.TestCase):
     """Criterion 3 narrowed: over artifacts that opt in with a tree_state block."""
 
@@ -220,23 +247,7 @@ class TestEveryStampedArtifact(unittest.TestCase):
         the 6.6.2.1 failure mode. The printed opt-in count keeps the coverage
         gap on the face of the run.
         """
-        bad, unstamped, checked = [], [], []
-        for path, doc, ts in _opted_in():
-            rel = path.relative_to(REPO)
-            landing = landing_commit_for(rel, REPO)
-            if not landing:
-                continue                      # not merged; nothing to point at
-            checked.append(str(rel))
-            sb = ts.get("superseded_by") or doc.get("superseded_by")
-            if not sb:
-                unstamped.append(f"{rel}: landed at {landing}, no stamp")
-                continue
-            if sb.get("commit") != landing:
-                bad.append(f"{path}: superseded_by.commit {sb.get('commit')} "
-                           f"!= the file's own oldest add {landing}")
-            if not sb.get("reachable_from_master"):
-                bad.append(f"{path}: superseded_by.commit is not reachable "
-                           f"from master")
+        bad, unstamped, checked = _audit_stamps(REPO)
         print(f"[tree_state] opt-in artifacts checked: {len(checked)}; "
               f"carrying a stamp: {len(checked) - len(unstamped)}; "
               f"opted-in but unstamped (reported, not failed): {unstamped}")
@@ -274,6 +285,107 @@ class TestEveryStampedArtifact(unittest.TestCase):
         rec = resolve_superseded_by(
             live, "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
         self.assertTrue(rec["branch_still_exists"])
+
+
+
+
+class TestResolveCommitPlants(unittest.TestCase):
+    """Plants for the fd5i fix: commit comparison must resolve, not stringify."""
+
+    def test_a_seven_char_prefix_of_landing_sha_passes(self):
+        landing = landing_commit_for(
+            "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
+        self.assertIsNotNone(landing)
+        prefix = landing[:7]
+        assert resolve_commit(prefix, REPO) == landing, "a 7-char prefix must resolve to the landing sha"
+        self.assertEqual(resolve_commit(prefix, REPO), landing,
+                         "a 7-char prefix of the landing sha must resolve to it")
+
+    def test_b_abbreviation_of_a_different_commit_fails(self):
+        landing = landing_commit_for(
+            "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
+        self.assertIsNotNone(landing)
+        other = resolve_commit("566ba0b", REPO)
+        # 566ba0b must resolve to a real commit distinct from landing
+        self.assertIsNotNone(other, "control: 566ba0b must resolve")
+        assert other != landing, "an abbreviation of a different commit must not agree"
+        self.assertNotEqual(other, landing,
+                            "an abbreviation of a different commit must not agree")
+
+    def test_c_unresolvable_sha_fails(self):
+        assert resolve_commit("0000000000000000000000000000000000000000", REPO) is None, "an unresolvable stamp must yield None"
+        self.assertIsNone(
+            resolve_commit("0000000000000000000000000000000000000000", REPO),
+            "an unresolvable stamp must yield None")
+
+    def test_d_real_pair_97575af_vs_landing_passes(self):
+        landing = landing_commit_for(
+            "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
+        self.assertIsNotNone(landing)
+        assert resolve_commit("97575af", REPO) == landing, "97575af must resolve to the landing commit"
+        self.assertEqual(resolve_commit("97575af", REPO), landing,
+                         "97575af must resolve to the landing commit")
+
+
+
+
+class TestStampAgreementFailDirection(unittest.TestCase):
+    """Plants for the FAIL direction: the agreement rule must report a wrong
+    stamp, not only pass on the right one (reviewer E1/E2)."""
+
+    def _make_artifact(self, td, stamp):
+        root = Path(td.name)
+        subprocess.run(["git", "-C", str(root), "init", "-q", "-b", "master"],
+                       check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.email",
+                        "lab@example.invalid"], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.name", "lab"],
+                       check=True)
+        (root / "experiments" / "x").mkdir(parents=True)
+        art = root / "experiments" / "x" / "a.json"
+        art.write_text(__import__("json").dumps(
+            {"tree_state": {"branch": "lab/x",
+                            "superseded_by": {"commit": stamp,
+                                              "reachable_from_master": True}}}) + "\n")
+        subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(root), "commit", "-qm", "add artifact"],
+                       check=True)
+        landing = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                 capture_output=True, text=True, check=True).stdout.strip()
+        return root, landing
+
+    def test_wrong_stamp_is_reported(self):
+        td = tempfile.TemporaryDirectory()
+        try:
+            root, landing = self._make_artifact(td, "0000000000000000000000000000000000000001")
+            # 0000...0001 is not a real commit -> unresolvable -> error
+            bad, unstamped, checked = _audit_stamps(root)
+            assert len(bad) > 0, "an unresolvable stamp must be reported"
+            assert any("unresolvable" in e for e in bad), bad
+        finally:
+            td.cleanup()
+
+    def test_different_commit_stamp_is_reported(self):
+        td = tempfile.TemporaryDirectory()
+        try:
+            root, landing = self._make_artifact(td, None)
+            # create a second commit to get a different sha
+            (root / "x.txt").write_text("x")
+            subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "second"], check=True)
+            second = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                    capture_output=True, text=True, check=True).stdout.strip()
+            # stamp the artifact with the second commit (different from landing=first)
+            art = root / "experiments" / "x" / "a.json"
+            doc = __import__("json").loads(art.read_text())
+            doc["tree_state"]["superseded_by"]["commit"] = second[:7]
+            art.write_text(__import__("json").dumps(doc) + "\n")
+            # re-commit the change so landing doesn't move (amend not needed; landing stays first commit's sha for the file's oldest add)
+            bad, unstamped, checked = _audit_stamps(root)
+            # The stamp (second[:7]) resolves to 'second', which != landing (first commit) -> error
+            assert len(bad) > 0, "a wrong-but-resolvable stamp must be reported"
+        finally:
+            td.cleanup()
 
 
 if __name__ == "__main__":

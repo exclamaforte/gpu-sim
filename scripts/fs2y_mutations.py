@@ -23,6 +23,7 @@ MUTATIONS = {
     "j1qc_lint_no_bd": "j1qc lint takes comment text as argument, no bd dependency (gpu-sim-j1qc)",
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
+    "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
 }
 
 
@@ -122,6 +123,17 @@ def _apply_9wza_disable_lab_fallback(root):
         f.write(mutated)
     return backup, path
 
+def _apply_fd5i_revert_to_short(root):
+    """Mutation for fd5i_landing_commit_full_sha: revert landing_commit_for to %h so the full-sha agreement plant fails."""
+    import os
+    path = os.path.join(root, "scripts", "tree_state.py")
+    backup = open(path).read()
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
@@ -130,5 +142,6 @@ MUTATION_FUNCTIONS = {
     "s2qj_bypass_path": _apply_s2qj_unbypass,
     "v5l3_pin_coverage": _apply_v5l3_unpin,
     "9wza_tracked_bypass_records": _apply_9wza_disable_lab_fallback,
+    "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
 }
 
