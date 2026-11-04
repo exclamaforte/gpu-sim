@@ -202,20 +202,12 @@ def _audit_stamps(repo):
     """Run the carried-stamp agreement check over opted-in artifacts in repo.
     Returns (bad, unstamped, checked) lists. Shared by the audit test and the
     FAIL-direction plants so the same code path is exercised."""
+    from pathlib import Path as _P
+    repo = _P(repo)
     bad, unstamped, checked = [], [], []
-    # opted-in = files with a tree_state block
-    import json as _j
-    for path in sorted(Path(repo).rglob("*.json")):
-        try:
-            doc = _j.loads(path.read_text())
-        except Exception:
-            continue
-        if not isinstance(doc, dict):
-            continue
-        ts = doc.get("tree_state")
-        if not isinstance(ts, dict):
-            continue
-        if "superseded_by" not in (ts or {}) and "superseded_by" not in doc:
+    for path, doc, ts in stamped_artifacts(repo):
+        if not (isinstance(doc.get("tree_state"), dict)
+                and doc["tree_state"].get("branch")):
             continue
         rel = path.relative_to(repo)
         landing = landing_commit_for(rel, repo)
@@ -349,8 +341,8 @@ class TestStampAgreementFailDirection(unittest.TestCase):
                         "lab@example.invalid"], check=True)
         subprocess.run(["git", "-C", str(root), "config", "user.name", "lab"],
                        check=True)
-        (root / "artifacts").mkdir()
-        art = root / "artifacts" / "a.json"
+        (root / "experiments" / "x").mkdir(parents=True)
+        art = root / "experiments" / "x" / "a.json"
         art.write_text(__import__("json").dumps(
             {"tree_state": {"branch": "lab/x",
                             "superseded_by": {"commit": stamp,
@@ -384,7 +376,7 @@ class TestStampAgreementFailDirection(unittest.TestCase):
             second = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
                                     capture_output=True, text=True, check=True).stdout.strip()
             # stamp the artifact with the second commit (different from landing=first)
-            art = root / "artifacts" / "a.json"
+            art = root / "experiments" / "x" / "a.json"
             doc = __import__("json").loads(art.read_text())
             doc["tree_state"]["superseded_by"]["commit"] = second[:7]
             art.write_text(__import__("json").dumps(doc) + "\n")

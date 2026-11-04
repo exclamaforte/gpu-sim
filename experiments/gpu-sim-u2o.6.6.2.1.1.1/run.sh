@@ -12,7 +12,11 @@ OUT="${XY8_OUTDIR:-$(mktemp -d "${XDG_CACHE_HOME:-$HOME/.cache}/62111-XXXXXX")}"
 if [ -z "${XY8_OUTDIR:-}" ]; then trap 'rm -rf "$OUT"' EXIT; fi
 exec > >(tee "$OUT/output.log") 2>&1
 
-echo "--- 1. tree_state suite: 16/16 ---"
+# tree_state_tests is derived from the run itself; a hand-written count went
+# 12/12 -> 16/16 -> 18 across three edits (fd5i review item 2).
+TS_TESTS=$(python3 -m pytest tests/test_tree_state_supersession.py --collect-only -q 2>/dev/null | grep -oE "^[0-9]+ tests? collected" | grep -oE "^[0-9]+")
+[ -n "$TS_TESTS" ] || { echo "FAIL: cannot count tree_state tests"; exit 1; }
+echo "--- 1. tree_state suite: ${TS_TESTS}/${TS_TESTS} ---"
 CUDA_VISIBLE_DEVICES= nice -n 10 python3 tests/test_tree_state_supersession.py \
     > "$OUT/tree_state.log" 2>&1
 ts_rc=$?
@@ -44,7 +48,9 @@ print('citations mechanical: 97575af x2')
 EOF
 
 echo "--- 3. item 6: no other closed artifact rewritten ---"
-allowed='^(experiments/gpu-sim-u2o\.6\.6\.2/(job|metrics)\.json|experiments/gpu-sim-u2o\.6\.6\.2\.1\.1\.1/|scripts/tree_state\.py|tests/test_tree_state_supersession\.py)$'
+# tests/skip_allowlist.json is a REGISTRY, not a closed artifact: it is keyed by
+# file::test:LINE, so any edit to the tree_state test file moves the key (gpu-sim-05b3).
+allowed='^(experiments/gpu-sim-u2o\.6\.6\.2/(job|metrics)\.json|experiments/gpu-sim-u2o\.6\.6\.2\.1\.1\.1/|scripts/tree_state\.py|tests/test_tree_state_supersession\.py|tests/skip_allowlist\.json)$'
 violations=$(git status --porcelain -- experiments/ scripts/ tests/ \
     | awk '{print $2}' | grep -v -E "$allowed" || true)
 [ -z "$violations" ] || { echo "FAIL: closed artifacts touched:"; echo "$violations"; exit 1; }
@@ -73,12 +79,12 @@ unknown=$(comm -23 "$OUT/failures.txt" <(echo "$known" | sort))
 [ -z "$unknown" ] || { echo "FAIL: new failures:"; echo "$unknown"; exit 1; }
 echo "suite: failures are a subset of the 7 known pre-existing; nothing new"
 
-CUDA_VISIBLE_DEVICES= nice -n 10 python3 - "$OUT/metrics.json" <<'EOF'
+CUDA_VISIBLE_DEVICES= nice -n 10 python3 - "$OUT/metrics.json" "$TS_TESTS" <<'EOF'
 import json, sys
 m = {
     "bead": "gpu-sim-u2o.6.6.2.1.1.1",
     "branch": "lab/gpu-sim-u2o.6.6.2.1.1.1",
-    "tree_state_tests": "16/16",
+    "tree_state_tests": "{0}/{0}".format(sys.argv[2]),
     "opt_in_checked": 3,
     "opt_in_stamped": 2,
     "opt_in_unstamped_reported": ["experiments/gpu-sim-u2o.6.6.4/anchor_metrics.json"],
