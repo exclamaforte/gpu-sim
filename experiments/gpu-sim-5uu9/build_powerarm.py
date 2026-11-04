@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """BUILD phase for 5uu9: 12 explicit divergent_branch configurations."""
-import argparse, json, math, sys
+import argparse, sys
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
