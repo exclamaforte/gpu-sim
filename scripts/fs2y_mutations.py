@@ -25,6 +25,7 @@ MUTATIONS = {
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
+    "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
 }
 
 
@@ -135,6 +136,21 @@ def _apply_fd5i_revert_to_short(root):
     return backup, path
 
 
+def _apply_nlgf_corrupt(root):
+    """Mutation for nlgf_power_test: corrupt a scalar in committed metrics_power.json."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-nlgf", "metrics_power.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    try:
+        d["n_cells_total"] = 999
+    except Exception:
+        pass
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
 def _apply_3v6d1_unhalve(root):
     """Mutation for 3v6d1_fabric_rate: remove the bidirectional halving in
     topology.effective_bw, so the one-way rate becomes the spec's aggregate
@@ -176,5 +192,6 @@ MUTATION_FUNCTIONS = {
     "9wza_tracked_bypass_records": _apply_9wza_disable_lab_fallback,
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
+    "nlgf_power_test": _apply_nlgf_corrupt,
 }
 
