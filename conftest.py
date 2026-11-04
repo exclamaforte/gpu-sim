@@ -63,6 +63,66 @@ def _per_test_timeout():
     signal.alarm(0)
 
 
+def _dirty_paths():
+    """Paths `git status --porcelain` reports, relative to the repo root."""
+    out = _git("status", "--porcelain")
+    paths = set()
+    for line in out.stdout.splitlines():
+        if len(line) < 4:
+            continue
+        p = line[3:].strip()
+        if " -> " in p:
+            p = p.split(" -> ", 1)[1]
+        paths.add(p.strip('"'))
+    return paths
+
+
+@pytest.fixture(autouse=True)
+def _tree_janitor(request):
+    """Put back any repo file a test modified but did not restore (gpu-sim-zsd3).
+
+    The plant tests and the mutation replay deliberately corrupt a tracked file,
+    run a checker, and restore it in `finally`. Under an interrupted run (OOM
+    kill, timeout) the `finally` never executes, the payload survives, and every
+    later test in the same session -- and the gate's residue commit -- inherits
+    it. Two real examples: experiments/gpu-sim-u5r4/metrics.json left holding the
+    mutation payload gbt_mae=999, and docs/model_facts.json left missing bch9's
+    fact block, which the gate then committed as if the branch had dropped it.
+
+    This janitor makes every test start from the tree state it inherited: any
+    tracked file that was clean before the test and dirty after is restored from
+    HEAD, and known plant/temp debris is removed. It warns loudly with the node
+    id so the polluter is still visible instead of being silently papered over.
+    """
+    if os.environ.get("LAB_NO_TREE_JANITOR"):
+        yield
+        return
+    root = Path(__file__).resolve().parent
+    before = _dirty_paths()
+    yield
+    leaked = _dirty_paths() - before
+    if not leaked:
+        return
+    restored = []
+    for rel in sorted(leaked):
+        if _git("ls-files", "--error-unmatch", rel).returncode == 0:
+            head = _git("show", "HEAD:" + rel)
+            if head.returncode == 0:
+                (root / rel).write_text(head.stdout)
+                restored.append(rel)
+                continue
+        name = Path(rel).name
+        if name.startswith(("plant_", "tmp")) or name.endswith((".tmp", ".pyc")):
+            try:
+                (root / rel).unlink()
+            except OSError:
+                pass
+            restored.append(rel + " (removed)")
+    if restored:
+        print(f"\n[conftest] tree janitor: {request.node.nodeid} left {restored}; "
+              f"restored so the next test starts clean (gpu-sim-zsd3)", file=sys.stderr)
+
+
 def pytest_sessionfinish(session, exitstatus):
     """Fail loudly if the suite left the repository somewhere else than it found it."""
     start_branch = getattr(session.config, "_start_branch", None)
