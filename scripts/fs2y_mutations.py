@@ -6,10 +6,7 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
-    "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
-
     "dhfo_memory_check": "dhfo memory-check guard",
-    "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
     "bch9_fabric_band": "bch9 fabric band robustness",
     "8zqr_generalization": "8zqr cross-class generalization",
     "append_only_guard": "append-only guard for validated records",
@@ -27,6 +24,8 @@ MUTATIONS = {
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
+    "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
+    "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
 }
 
 
