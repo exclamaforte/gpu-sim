@@ -4,7 +4,7 @@ NEGATIVE CONTROLS (5uu9)
    cp -r .lab/wt/gpu-sim-5uu9 .lab/tmp/5uu9-scratch
    cd .lab/tmp/5uu9-scratch
    python3 -c "import json; p='experiments/gpu-sim-5uu9/power_rep1.jsonl'; rows=[json.loads(l) for l in open(p)]; rows.pop(0); open(p,'w').write(''.join(json.dumps(r)+'\n' for r in rows))"
-   U5R4_OUT=/tmp/scratchpad/x python3 experiments/gpu-sim-5uu9/analyze.py
+   U5R4_OUT=.lab/tmp/5uu9-scratch/out python3 experiments/gpu-sim-5uu9/analyze.py
    -> REFUSE: config (8388608, 128) replicate counts [0, 1, 1] != [1,1,1] (exit 1)
 
 2. Add duplicate configuration -> REFUSE 'duplicate configuration: 1 identical specs':
