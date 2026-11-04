@@ -1,22 +1,12 @@
 {
-  "gpu_jobs": [
+  "jobs": [
     {
       "job_id": "20261104t015928-3e1e6e96",
+      "command": "bash experiments/gpu-sim-u5r4/run_power.sh",
+      "exit_code": 0,
+      "log": "/home/gabe/.local/state/gpqueue/jobs/20261104t015928-3e1e6e96.log",
       "what": "power test 3 replicates sizescale (168 rows)",
-      "wall_s": 96,
-      "trial_id": "20261104t015928-b2d124cd"
-    },
-    {
-      "job_id": "20261104t015928-b2d124cd",
-      "what": "trial (timed out 1s)",
-      "wall_s": 1,
-      "status": "timed_out"
-    },
-    {
-      "job_id": "20261104t015845-c891bbfd",
-      "what": "HELD (no GPQUEUE_PROGRESS)",
-      "wall_s": 0,
-      "status": "held"
+      "wall_s": 96
     }
   ],
   "total_wall_s": 96

@@ -201,4 +201,6 @@ out_dir = Path(_u5r4_out)
 out_dir.mkdir(parents=True, exist_ok=True)
 out = out_dir / "metrics_power.json"
 out.write_text(json.dumps(results, indent=2) + "\n")
+# also write metrics.json (harness-required name)
+(out_dir / "metrics.json").write_text(json.dumps(results, indent=2) + "\n")
 print("wrote", out)
