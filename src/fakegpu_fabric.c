@@ -666,12 +666,17 @@ static uint64_t fg_xorshift64(uint64_t *state) {
 uint64_t fg_fab_success_count(fg_fab_t *f) { return f ? f->success_count : 0; }
 uint64_t fg_fab_attempt_count(fg_fab_t *f) { return f ? f->attempt_count : 0; }
 
-int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
+int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                     double latency_us, double jitter_us, int loss_ppm,
                     uint64_t partition_after, double timeout_us, int link_id) {
     (void)dir;
     if (!f) return FG_FAB_EINVAL;
-    if (bw_gbps <= 0.0) return FG_FAB_EINVAL;
+    /* bw_gbs is the EFFECTIVE PER-DIRECTION rate in GB/s, the same number
+       fakegpu_nccl.c and epic_cluster.topology.emit's eff_bw_gbps use.  This
+       used to be `bw_gbps` (Gbit/s by name) carrying the spec's raw
+       bidirectional 900, so the enforcer ran at 112.5 GB/s while the model
+       priced 450 GB/s and nothing compared them (gpu-sim-3v6d.1). */
+    if (bw_gbs <= 0.0) return FG_FAB_EINVAL;
 
     /* D3: rng_state established at attach; assert invariant here */
     /* (attach sets rng_state != 0; if 0, that is a bug, not a re-seed) */
@@ -722,7 +727,7 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
     f->attempt_count++;
 
     /* simulated time */
-    double delay_us = (double)nbytes / (bw_gbps * 125.0) + latency_us + jitter;
+    double delay_us = (double)nbytes / (bw_gbs * 1000.0) + latency_us + jitter;
 
     /* per-transfer timeout check (C3) */
     if (timeout_us > 0.0 && delay_us > timeout_us) {

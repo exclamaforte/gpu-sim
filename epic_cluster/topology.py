@@ -149,7 +149,25 @@ def shared_group_counts(spec: Dict[str, Any]) -> Dict[str, int]:
 
 
 def effective_bw(link: Dict[str, Any], counts: Dict[str, int]) -> float:
+    """One-directional usable link bandwidth, in GB/s.
+
+    THE single authority for this rule (gpu-sim-3v6d.1).  It used to live in two
+    places that disagreed: this function applied only the shared_group division,
+    while epic_cluster.link_model._eff_bw also halved `bw_is_bidirectional`
+    links.  Because emit() writes THIS function's answer into the flat binary as
+    `eff_bw_gbps`, and fakegpu_nccl.c prices with that field, the C predictor
+    charged NVLink at the spec's aggregate 900 GB/s while the Python model
+    charged 450 -- a 2x split that no test saw, because test_model_agreement.py
+    compares the two implementations on a spec with no bidirectional flag.
+
+    `bw_gbps` in the spec files is the figure as the vendor quotes it: NVLink 4
+    is "900 GB/s per GPU (aggregate bidirectional)" while NDR IB is "50 GB/s per
+    direction".  Only links declaring bw_is_bidirectional are halved; halving
+    both would make the IB links half as fast as the hardware.
+    """
     bw = float(link["bw_gbps"])
+    if link.get("bw_is_bidirectional", False):
+        bw *= 0.5
     sg = link["shared_group"]
     if sg is None:
         return bw

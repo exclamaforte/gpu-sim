@@ -25,13 +25,18 @@ CFLAGS  = -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -fvisibility=default 
 # function is UB the test suite cannot reliably catch (a negative control
 # showed the miss test PASSING on the broken code -- rax residue luck). The
 # flag makes the class a build failure instead. Verified clean on all SRCS.
-LDFLAGS = -shared -lm
+LDFLAGS = -shared -lm -lpthread
 INCLUDES = -Iinclude -Ishim -I/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include
 
 LIB = libfakegpu.so
 SRCS = src/fakegpu_config.c src/fakegpu_random.c src/fakegpu_pool.c \
        src/fakegpu_latency.c src/fakegpu_cuda.c src/fakegpu_nccl.c \
-       src/fakegpu_topology.c src/fakegpu_transport.c
+       src/fakegpu_topology.c src/fakegpu_transport.c \
+       src/fakegpu_fabric.c
+# fakegpu_fabric.c is the link-cost ENFORCER (modelled delay per link).  It used
+# to be absent here, so the shipped library could predict a collective but never
+# enforce or serialise one: the fabric lived only in test binaries and in
+# experiments/gpu-sim-m3d.8 (gpu-sim-3v6d.1).
 OBJS = $(SRCS:.c=.o)
 
 TEST_BIN = build/fake_client
