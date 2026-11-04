@@ -94,9 +94,27 @@ run_hard() {  # name, command...
   local name="$1"; shift
   RAN+=("$name")
   printf '%-42s ' "$name"
+  # persist per-check log so the audit trail survives a passing run
+  local slug
+  slug=$(printf '%s' "$name" | tr ' /' '__' | tr -cd 'A-Za-z0-9_-')
+  mkdir -p "$gate_root/.lab/gate-logs" 2>/dev/null || true
+  local check_log="$gate_root/.lab/gate-logs/${slug}.log"
   if "$@" >"$GATE_LOG" 2>&1; then
+    cp "$GATE_LOG" "$check_log" 2>/dev/null || true
     echo "PASS"; pass=$((pass+1))
+    # re-print audit lines (BYPASSED, retroactive, exempt, skipped (exempt), grandfather)
+    local audit_lines
+    audit_lines=$(grep -iE 'BYPASSED|retroactive|exempt|skipped \(exempt\)|grandfather' "$GATE_LOG" 2>/dev/null || true)
+    if [ -n "$audit_lines" ]; then
+      local total
+      total=$(printf '%s\n' "$audit_lines" | wc -l)
+      printf '%s\n' "$audit_lines" | head -n 10 | sed 's/^/    /'
+      if [ "$total" -gt 10 ]; then
+        echo "    ... $((total - 10)) more (see $check_log)"
+      fi
+    fi
   else
+    cp "$GATE_LOG" "$check_log" 2>/dev/null || true
     echo "FAIL"; fail=$((fail+1)); FAILED+=("$name")
     if [ -s "$GATE_LOG" ]; then
       sed -n '1,12p' "$GATE_LOG" | sed 's/^/    /'

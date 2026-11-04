@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.9.5 replay (CPU only, no GPU, no ts job: HGBR on 456x33).
 # Re-runs the baseline + tests; metrics.json must be byte-identical.
 set -u

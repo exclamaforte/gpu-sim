@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.9.2 CPU replay (no GPU): compare + fusion tests.
 # The GPU arms (run_fusion.sh, ~40 s/arm) are documented, not replayed.
 set -u

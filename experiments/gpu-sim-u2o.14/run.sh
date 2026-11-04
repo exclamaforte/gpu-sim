@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # gpu-sim-u2o.14 RUN (CPU, unqueued): replay dose merge byte-identical.
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 HERE="$(dirname "$0")"
 cd "$HERE"
 export CUDA_VISIBLE_DEVICES=

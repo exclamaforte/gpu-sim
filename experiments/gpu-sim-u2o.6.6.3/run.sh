@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.6.6.3 -- contention characterisation. ts ONLY.
 # The burner is started INSIDE this job; no GPU work runs outside the queue.
 set -uo pipefail
