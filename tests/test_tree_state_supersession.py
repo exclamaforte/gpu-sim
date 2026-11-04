@@ -293,6 +293,7 @@ class TestResolveCommitPlants(unittest.TestCase):
             "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
         self.assertIsNotNone(landing)
         prefix = landing[:7]
+        assert resolve_commit(prefix, REPO) == landing, "a 7-char prefix must resolve to the landing sha"
         self.assertEqual(resolve_commit(prefix, REPO), landing,
                          "a 7-char prefix of the landing sha must resolve to it")
 
@@ -303,10 +304,12 @@ class TestResolveCommitPlants(unittest.TestCase):
         other = resolve_commit("566ba0b", REPO)
         # 566ba0b must resolve to a real commit distinct from landing
         self.assertIsNotNone(other, "control: 566ba0b must resolve")
+        assert other != landing, "an abbreviation of a different commit must not agree"
         self.assertNotEqual(other, landing,
                             "an abbreviation of a different commit must not agree")
 
     def test_c_unresolvable_sha_fails(self):
+        assert resolve_commit("0000000000000000000000000000000000000000", REPO) is None, "an unresolvable stamp must yield None"
         self.assertIsNone(
             resolve_commit("0000000000000000000000000000000000000000", REPO),
             "an unresolvable stamp must yield None")
@@ -315,6 +318,7 @@ class TestResolveCommitPlants(unittest.TestCase):
         landing = landing_commit_for(
             "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
         self.assertIsNotNone(landing)
+        assert resolve_commit("97575af", REPO) == landing, "97575af must resolve to the landing commit"
         self.assertEqual(resolve_commit("97575af", REPO), landing,
                          "97575af must resolve to the landing commit")
 

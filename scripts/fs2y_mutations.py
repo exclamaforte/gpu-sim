@@ -128,7 +128,7 @@ def _apply_fd5i_revert_to_short(root):
     import os
     path = os.path.join(root, "scripts", "tree_state.py")
     backup = open(path).read()
-    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1)
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
