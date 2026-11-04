@@ -193,15 +193,14 @@ print("CI computed over", len(usable), "usable cells (not over", len(rows), "row
 results = {
     "n_cells_total": len(cell_rows),
     "n_usable": len(usable),
+    "gate_pass_rate": round(len(usable)/len(cell_rows),4),
     "n_replicates_per_cell": 3,
+    "ci_basis": "cells (mean of 3 replicates per cell), not rows",
     "n_units": n_units,
     "unit_rule": unit_rule,
     "per_config_usable": per_config_usable,
     "label_scope": "single configuration; protocol demonstration, not a model verdict",
     "model_verdict": "INSUFFICIENT" if n_units < 2 else label,
-    "gate_pass_rate": round(len(usable)/len(cell_rows),4),
-    "n_replicates_per_cell": 3,
-    "ci_basis": "cells (mean of 3 replicates per cell), not rows",
     "gbt_mae": gbt_mae,
     "floor_mae": floor_mae,
     "paired_delta_mean": paired_mean,
@@ -210,6 +209,9 @@ results = {
     "achieved_mde": mde,
     "mde_exceeds_effect": bool(mde > abs(paired_mean)),
     "sizes": sorted(set(r["size"] for r in cell_rows)),
+    "honest_claim": "Contract v2 changes the measured quantity to steady-state per-launch time. On the shared sizescale corpus under the corrected gate it yields 11/56 usable cells, ALL in one configuration (16M, block 256); no smaller size is rescued (8M 0/11 cells), so the hoped-for downward widening of the usable range is not achieved. The GBT-vs-floor MODEL verdict is therefore INSUFFICIENT at n_units=1; the 13-configuration arm gpu-sim-5uu9 is what can answer it.",
+    "config_grouping": "5 distinct (family,kernel_name,block,grid,args,problem_size,shared_mem_bytes,op_type) signatures from 56 specs: 12x grid(4096), 11x (8192), 11x (16384), 11x (32768), 11x (65536); all block [256,1,1]. 11 usable cells all at grid 65536 = 1 configuration.",
+    "kept_negative": "v2 does not rescue small sizes: 8M 0/11 usable cells. GPU-util-per-row not measured.",
 }
 import os as _os2
 _u5r4_out = _os2.environ.get("U5R4_OUT")

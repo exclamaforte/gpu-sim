@@ -1,7 +1,9 @@
 {
   "n_cells_total": 56,
   "n_usable": 11,
+  "gate_pass_rate": 0.1964,
   "n_replicates_per_cell": 3,
+  "ci_basis": "cells (mean of 3 replicates per cell), not rows",
   "n_units": 1,
   "unit_rule": "distinct problem sizes with at least one usable cell",
   "per_config_usable": {
@@ -28,8 +30,6 @@
   },
   "label_scope": "single configuration; protocol demonstration, not a model verdict",
   "model_verdict": "INSUFFICIENT",
-  "gate_pass_rate": 0.1964,
-  "ci_basis": "cells (mean of 3 replicates per cell), not rows",
   "gbt_mae": 0.36220183245199905,
   "floor_mae": 0.8548389673233032,
   "paired_delta_mean": -0.49263705901084714,
@@ -46,5 +46,8 @@
     4194304,
     8388608,
     16777216
-  ]
+  ],
+  "honest_claim": "Contract v2 changes the measured quantity to steady-state per-launch time. On the shared sizescale corpus under the corrected gate it yields 11/56 usable cells, ALL in one configuration (16M, block 256); no smaller size is rescued (8M 0/11 cells), so the hoped-for downward widening of the usable range is not achieved. The GBT-vs-floor MODEL verdict is therefore INSUFFICIENT at n_units=1; the 13-configuration arm gpu-sim-5uu9 is what can answer it.",
+  "config_grouping": "5 distinct (family,kernel_name,block,grid,args,problem_size,shared_mem_bytes,op_type) signatures from 56 specs: 12x grid(4096), 11x (8192), 11x (16384), 11x (32768), 11x (65536); all block [256,1,1]. 11 usable cells all at grid 65536 = 1 configuration.",
+  "kept_negative": "v2 does not rescue small sizes: 8M 0/11 usable cells. GPU-util-per-row not measured."
 }
