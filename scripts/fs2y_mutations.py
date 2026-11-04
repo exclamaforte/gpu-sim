@@ -6,6 +6,8 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
+    "5uu9_power_arm": "5uu9 power arm reproducibility",
+    "qaiu_power_audit": "qaiu power audit reproducibility",
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
     "rb66_ambient_init": "rb66 fixture: throwaway repo left on the ambient default branch",
@@ -296,7 +298,39 @@ def _apply_hsuv_manifest_absolute(root):
     return backup, path
 
 
+def _apply_5uu9_corrupt(root):
+    """Mutation for 5uu9_power_arm: corrupt a scalar in committed metrics.json."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-5uu9", "metrics.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    try:
+        d["gbt_mae"] = 999.0
+    except Exception:
+        pass
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
+def _apply_qaiu_corrupt(root):
+    """Mutation for qaiu_power_audit: corrupt a scalar in committed metrics.json."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-qaiu", "metrics.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    try:
+        d["as_landed_over_rows"]["paired_delta_mean"] = 999.0
+    except Exception:
+        pass
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
+    "5uu9_power_arm": _apply_5uu9_corrupt,
+    "qaiu_power_audit": _apply_qaiu_corrupt,
     "8yb4_k_window": _apply_8yb4_corrupt,
     "3v6d2_link_calendar": _apply_3v6d2_uncas,
     "rb66_ambient_init": _apply_rb66_ambient_init,
@@ -313,4 +347,3 @@ MUTATION_FUNCTIONS = {
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
 }
-
