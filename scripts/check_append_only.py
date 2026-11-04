@@ -122,16 +122,46 @@ def load_ledger_meta(root=None):
         return json.load(open(lpath))
     return {}
 
-def check_ledger(base_ref):
-    base_text = git_show(base_ref, "tests/fs2y_ledger.json")
-    base_ids = set()
-    if base_text is not None:
+def _base_ledger_ids(base_ref):
+    """Row names in the ledger AT base_ref.
+
+    u6ih moved the ledger to tests/fs2y_ledger.d/ shards and deleted
+    tests/fs2y_ledger.json. The base side of this check kept reading only the
+    legacy file, so once u6ih landed the base set was EMPTY and this guard
+    could not see a deleted row again -- silently vacuous, which is exactly
+    what its own test (test_ledger_unretired_deletion_fails_naming_entry)
+    caught. Read the shards at the base ref, and keep the legacy read for
+    bases that predate the migration.
+    """
+    ids = set()
+    r = subprocess.run(["git", "-C", ROOT, "ls-tree", "-r", "--name-only", base_ref,
+                        "--", "tests/fs2y_ledger.d/"], capture_output=True, text=True)
+    for path in (r.stdout or "").split():
+        if not path.endswith(".json"):
+            continue
+        txt = git_show(base_ref, path)
+        if not txt:
+            continue
         try:
-            base = json.loads(base_text)
-            base_ids = {e.get("name") for e in base.get("entries", []) if e.get("name")}
-        except json.JSONDecodeError:
+            d = json.loads(txt)
+        except (ValueError, TypeError):
+            continue
+        rows = d.get("entries") if isinstance(d, dict) and isinstance(d.get("entries"), list) else [d]
+        for e in rows:
+            if isinstance(e, dict) and e.get("name"):
+                ids.add(e["name"])
+    legacy = git_show(base_ref, "tests/fs2y_ledger.json")
+    if legacy:
+        try:
+            d = json.loads(legacy)
+            ids |= {e.get("name") for e in d.get("entries", []) if e.get("name")}
+        except (ValueError, TypeError):
             pass
-    # Also check base ledger dir entries? Not available via git show easily; rely on json.
+    return ids
+
+
+def check_ledger(base_ref):
+    base_ids = _base_ledger_ids(base_ref)
     head_entries = load_ledger_entries()
     head_ids = {e.get("name") for e in head_entries if e.get("name")}
     retired = retired_set_ledger(load_ledger_meta())
