@@ -81,13 +81,13 @@ def _skip_sites(path: Path):
         for d in node.decorator_list:
             if _is_skip_call(d):
                 tag = "UNCOND" if _is_unconditional_skip(d, tree) else "COND"
-                yield f"{path.name}::{node.name}:{d.lineno}:{tag}"
+                yield f"{path.name}::{node.name}:{tag}"
         for sub in ast.walk(node):
             if sub is node:
                 continue
             if isinstance(sub, ast.Call) and _is_skip_call(sub) and sub.lineno not in deco_lines:
                 tag = "UNCOND" if _is_unconditional_skip(sub, tree) else "COND"
-                yield f"{path.name}::{node.name}:{sub.lineno}:{tag}"
+                yield f"{path.name}::{node.name}:{tag}"
 
 
 
@@ -101,10 +101,9 @@ class TestNoUnconditionalSkips:
                 continue
             for site in _skip_sites(p):
                 tag = site.rsplit(":", 1)[-1]
-                base = site.rsplit(":", 1)[0]
                 if tag == "UNCOND":
-                    uncond_offenders.append(base)
-                if base not in allow and site not in allow:
+                    uncond_offenders.append(site)
+                if site not in allow:
                     unreg_offenders.append(site)
         assert len(uncond_offenders) == 0, (
             "unconditional skips are forbidden (convert to skipIf or remove):\n"
