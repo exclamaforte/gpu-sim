@@ -22,6 +22,7 @@ extern "C" {
 #define FG_FAB_EBUSY         7
 
 #define FG_FAB_MAX_PAYLOAD   (1 << 20)   /* 1 MiB */
+#define FG_FAB_MAX_LINKS     256
 
 typedef struct fg_fab fg_fab_t;
 
@@ -38,6 +39,10 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
                         uint64_t timeout_ns, int *err);
 
 int  fg_fab_barrier(fg_fab_t *f);
+
+/* Initialize the per-link busy_until calendar for `n_links` links (all zeroed).
+   Must be called by the creator before transfers that use link_id>=0. */
+int  fg_fab_links_init(fg_fab_t *f, int n_links);
 
 /* send exactly n bytes (n <= FG_FAB_MAX_PAYLOAD) to peer. */
 int  fg_fab_send(fg_fab_t *f, int peer, const void *buf, size_t n);

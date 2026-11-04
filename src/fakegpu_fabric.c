@@ -49,6 +49,9 @@ typedef struct {
     atomic_uint_fast64_t next_send_seq; /* FIFO order, see gpu-sim-6n6 */
 } fg_mailbox_t;
 
+#ifndef FG_FAB_MAX_LINKS
+#define FG_FAB_MAX_LINKS 256
+#endif
 typedef struct {
     uint64_t magic;
     uint32_t version;
@@ -59,6 +62,8 @@ typedef struct {
     atomic_uint barrier_arrived;
     atomic_uint barrier_gen;
     atomic_uint reg_pool_used; /* shared across ranks (fetch_add) */
+    atomic_uint_fast64_t n_links; /* number of initialized links */
+    atomic_uint_fast64_t busy_until[FG_FAB_MAX_LINKS]; /* per-link calendar (ns) */
     /* rank slots follow in memory, then mailboxes */
 } fg_header_t;
 
@@ -319,6 +324,16 @@ int fg_fab_barrier(fg_fab_t *f) {
     while (atomic_load_explicit(&h->barrier_gen, memory_order_acquire) == my_gen) {
         if (now_ns() > deadline) return FG_FAB_ETIMEDOUT;
         usleep(10);
+    }
+    return FG_FAB_OK;
+}
+
+int fg_fab_links_init(fg_fab_t *f, int n_links) {
+    if (!f) return FG_FAB_EINVAL;
+    if (n_links < 0 || n_links > FG_FAB_MAX_LINKS) return FG_FAB_EINVAL;
+    f->hdr->n_links = (uint64_t)n_links;
+    for (int i = 0; i < n_links; i++) {
+        atomic_store_explicit(&f->hdr->busy_until[i], 0, memory_order_relaxed);
     }
     return FG_FAB_OK;
 }
@@ -740,8 +755,41 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
         return FG_FAB_ETIMEDOUT;
     }
 
-    if (delay_us > 0) {
-        usleep((useconds_t)delay_us);
+    if (link_id >= 0) {
+        /* per-link busy calendar: serialize concurrent transfers on the same link */
+        uint64_t nlinks = atomic_load_explicit(&f->hdr->n_links, memory_order_acquire);
+        if (link_id >= (int)nlinks) {
+            return FG_FAB_EINVAL;
+        }
+        uint64_t delay_ns = (uint64_t)(delay_us * 1000.0);
+        if (delay_ns == 0) delay_ns = 1;
+        uint64_t busy, start, finish;
+        do {
+            busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
+            uint64_t now = now_ns();
+            start = (busy > now) ? busy : now;
+            finish = start + delay_ns;
+        } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
+                                                            &busy, finish,
+                                                            memory_order_acq_rel,
+                                                            memory_order_acquire));
+        /* sleep until finish */
+        struct timespec ts;
+        ts.tv_sec = (time_t)(finish / 1000000000ULL);
+        ts.tv_nsec = (long)(finish % 1000000000ULL);
+        /* sleep most of the way, then spin to the deadline for precision */
+        uint64_t spin_start = finish - 200000ULL; /* last 200 us */
+        if (spin_start > now_ns()) {
+            struct timespec ts2;
+            ts2.tv_sec = (time_t)(spin_start / 1000000000ULL);
+            ts2.tv_nsec = (long)(spin_start % 1000000000ULL);
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts2, NULL);
+        }
+        while (now_ns() < finish) { /* spin */ }
+    } else {
+        if (delay_us > 0) {
+            usleep((useconds_t)delay_us);
+        }
     }
     f->success_count++;
     return FG_FAB_OK;

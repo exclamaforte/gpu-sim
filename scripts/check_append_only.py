@@ -361,6 +361,8 @@ def check_ledger_test_ids(root):
                 else:
                     with open(mutated_path, "w") as f:
                         f.write(backup)
+                # rebuild if a compiled source was restored (C-source mutations)
+                subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
             rrest = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q", target],
                 cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),

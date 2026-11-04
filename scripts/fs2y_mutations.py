@@ -6,6 +6,8 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
+    "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
+
     "dhfo_memory_check": "dhfo memory-check guard",
     "bch9_fabric_band": "bch9 fabric band robustness",
     "8zqr_generalization": "8zqr cross-class generalization",
@@ -182,7 +184,35 @@ def _apply_3v6d1_unhalve(root):
     return backup, path
 
 
+
+def _apply_3v6d2_uncas(root):
+    """Mutation for 3v6d2_link_calendar: remove the calendar reservation entirely."""
+    import os
+    path = os.path.join(root, "src", "fakegpu_fabric.c")
+    backup = open(path).read()
+    old = """        do {
+            busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
+            uint64_t now = now_ns();
+            start = (busy > now) ? busy : now;
+            finish = start + delay_ns;
+        } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
+                                                            &busy, finish,
+                                                            memory_order_acq_rel,
+                                                            memory_order_acquire));"""
+    new = """        /* mutation: calendar removed -- no serialization */
+        uint64_t now = now_ns();
+        finish = now + delay_ns;"""
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d2 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    import subprocess
+    subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
+    return backup, path
+
 MUTATION_FUNCTIONS = {
+    "3v6d2_link_calendar": _apply_3v6d2_uncas,
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
     "u5r4_size_scaling_arm": _apply_u5r4_corrupt,
