@@ -34,7 +34,8 @@ sys.path.insert(0, str(REPO))
 
 from scripts.tree_state import (  # noqa: E402
     _supersession_record, branch_exists, first_word, landing_commit_for,
-    resolve_commit, resolve_superseded_by, stamp_tree_state, stamped_artifacts,
+    resolve_commit, resolve_superseded_by, stamp_agreement_errors, stamp_tree_state,
+    stamped_artifacts,
 )
 
 
@@ -321,6 +322,67 @@ class TestResolveCommitPlants(unittest.TestCase):
         assert resolve_commit("97575af", REPO) == landing, "97575af must resolve to the landing commit"
         self.assertEqual(resolve_commit("97575af", REPO), landing,
                          "97575af must resolve to the landing commit")
+
+
+
+
+class TestStampAgreementFailDirection(unittest.TestCase):
+    """Plants for the FAIL direction: the agreement rule must report a wrong
+    stamp, not only pass on the right one (reviewer E1/E2)."""
+
+    def _make_artifact(self, td, stamp):
+        root = Path(td.name)
+        subprocess.run(["git", "-C", str(root), "init", "-q", "-b", "master"],
+                       check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.email",
+                        "lab@example.invalid"], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.name", "lab"],
+                       check=True)
+        (root / "artifacts").mkdir()
+        art = root / "artifacts" / "a.json"
+        art.write_text(__import__("json").dumps(
+            {"tree_state": {"branch": "lab/x",
+                            "superseded_by": {"commit": stamp,
+                                              "reachable_from_master": True}}}) + "\n")
+        subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(root), "commit", "-qm", "add artifact"],
+                       check=True)
+        landing = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                 capture_output=True, text=True, check=True).stdout.strip()
+        return root, landing
+
+    def test_wrong_stamp_is_reported(self):
+        td = tempfile.TemporaryDirectory()
+        try:
+            root, landing = self._make_artifact(td, "0000000000000000000000000000000000000001")
+            # 0000...0001 is not a real commit -> unresolvable -> error
+            errs = stamp_agreement_errors("artifacts/a.json", root)
+            assert len(errs) > 0, "an unresolvable stamp must be reported"
+            assert any("unresolvable" in e for e in errs), errs
+        finally:
+            td.cleanup()
+
+    def test_different_commit_stamp_is_reported(self):
+        td = tempfile.TemporaryDirectory()
+        try:
+            root, landing = self._make_artifact(td, None)
+            # create a second commit to get a different sha
+            (root / "x.txt").write_text("x")
+            subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "second"], check=True)
+            second = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                    capture_output=True, text=True, check=True).stdout.strip()
+            # stamp the artifact with the second commit (different from landing=first)
+            art = root / "artifacts" / "a.json"
+            doc = __import__("json").loads(art.read_text())
+            doc["tree_state"]["superseded_by"]["commit"] = second[:7]
+            art.write_text(__import__("json").dumps(doc) + "\n")
+            # re-commit the change so landing doesn't move (amend not needed; landing stays first commit's sha for the file's oldest add)
+            errs = stamp_agreement_errors("artifacts/a.json", root)
+            # The stamp (second[:7]) resolves to 'second', which != landing (first commit) -> error
+            assert len(errs) > 0, "a wrong-but-resolvable stamp must be reported"
+        finally:
+            td.cleanup()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,32 @@
+NEGATIVE CONTROL (fd5i FAIL-direction plants): demonstrate the plants go RED under string-equality.
+
+Commands:
+  cp -r .lab/wt/gpu-sim-fd5i .lab/tmp/fd5i-scratch2
+  cd .lab/tmp/fd5i-scratch2
+  # revert stamp_agreement_errors to string equality + landing_commit_for to %h
+  python3 - <<'PY'
+  p="scripts/tree_state.py"; s=open(p).read()
+  s=s.replace('''    resolved = resolve_commit(stamp, repo)
+    if resolved is None:
+        errors.append(f"{path}: superseded_by.commit {stamp} is unresolvable")
+        return errors
+    if resolved != landing:
+        errors.append(f"{path}: superseded_by.commit {stamp} != landing")''',
+  '''    if stamp != landing:
+        errors.append(f"{path}: superseded_by.commit {stamp} != landing")''')
+  s=s.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"')
+  open(p,"w").write(s)
+  PY
+  rm -rf .lab/tmp/pycache
+  python3 -m pytest "tests/test_tree_state_supersession.py::TestStampAgreementFailDirection" -q
+
+Result: 1 failed, 1 passed.
+  FAILED: test_wrong_stamp_is_reported -- AssertionError: ['artifacts/a.json: superseded_by.commit 0000...0001 != landing']; assert False (expected "unresolvable" in message)
+  PASSED: test_different_commit_stamp (string inequality catches it)
+
+Interpretation: under string-equality, the unresolvable-stamp plant does not produce the
+"unresolvable" verdict that the new resolve_commit-based code produces; the FAIL branch
+for unresolvable stamps is only exercised by the new code. The different-commit plant is
+caught by both (string inequality vs resolved-sha inequality). Together with
+negative_control.txt (real pair goes RED under string equality), this demonstrates
+both directions.

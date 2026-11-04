@@ -12,7 +12,7 @@ OUT="${XY8_OUTDIR:-$(mktemp -d "${XDG_CACHE_HOME:-$HOME/.cache}/62111-XXXXXX")}"
 if [ -z "${XY8_OUTDIR:-}" ]; then trap 'rm -rf "$OUT"' EXIT; fi
 exec > >(tee "$OUT/output.log") 2>&1
 
-echo "--- 1. tree_state suite: 12/12 ---"
+echo "--- 1. tree_state suite: 16/16 ---"
 CUDA_VISIBLE_DEVICES= nice -n 10 python3 tests/test_tree_state_supersession.py \
     > "$OUT/tree_state.log" 2>&1
 ts_rc=$?
@@ -74,11 +74,11 @@ unknown=$(comm -23 "$OUT/failures.txt" <(echo "$known" | sort))
 echo "suite: failures are a subset of the 7 known pre-existing; nothing new"
 
 CUDA_VISIBLE_DEVICES= nice -n 10 python3 - "$OUT/metrics.json" <<'EOF'
-import json, subprocess, sys
+import json, sys
 m = {
     "bead": "gpu-sim-u2o.6.6.2.1.1.1",
     "branch": "lab/gpu-sim-u2o.6.6.2.1.1.1",
-    "tree_state_tests": "12/12",
+    "tree_state_tests": "16/16",
     "opt_in_checked": 3,
     "opt_in_stamped": 2,
     "opt_in_unstamped_reported": ["experiments/gpu-sim-u2o.6.6.4/anchor_metrics.json"],

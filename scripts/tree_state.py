@@ -133,6 +133,41 @@ def resolve_commit(stamp: str | None,
     return _git(repo, "rev-parse", "--verify", f"{stamp}^{{commit}}")
 
 
+def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
+    """Return a list of error strings for an artifact's carried stamp vs its
+    per-file landing commit. Empty list means agreement (or unstamped/not
+    merged). Used by the audit and by the FAIL-direction plants."""
+    import json as _json
+    errors = []
+    path = Path(artifact)
+    full = Path(repo) / path
+    if not full.is_file():
+        return errors
+    try:
+        doc = _json.loads(full.read_text())
+    except Exception:
+        return errors
+    if not isinstance(doc, dict):
+        return errors
+    ts = doc.get("tree_state", {}) if isinstance(doc.get("tree_state"), dict) else {}
+    landing = landing_commit_for(path, repo)
+    if not landing:
+        return errors
+    sb = ts.get("superseded_by") or doc.get("superseded_by")
+    if not sb or not isinstance(sb, dict):
+        return errors  # unstamped: reported, not failed
+    stamp = sb.get("commit")
+    resolved = resolve_commit(stamp, repo)
+    if resolved is None:
+        errors.append(f"{path}: superseded_by.commit {stamp} is unresolvable")
+        return errors
+    if resolved != landing:
+        errors.append(f"{path}: superseded_by.commit {stamp} != landing")
+    if not sb.get("reachable_from_master", True):
+        errors.append(f"{path}: superseded_by.commit not reachable from master")
+    return errors
+
+
 def resolve_superseded_by(branch_field: str, artifact: str | Path,
                           repo: Path = REPO_DEFAULT) -> dict | None:
     """Superseding-commit record, or None when it cannot be established.
