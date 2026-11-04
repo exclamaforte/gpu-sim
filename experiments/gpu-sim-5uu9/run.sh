@@ -3,11 +3,14 @@ set -euo pipefail
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-BUILD="$HERE/build"
-rm -rf "$BUILD"; mkdir -p "$BUILD"
-python3 "$HERE/build_powerarm.py" --build-dir "$BUILD"
-for rep in 1 2 3; do
-  python3 "$ROOT/experiments/gpu-sim-8zqr/measure.py" --build-dir "$BUILD" --out "$HERE/power_rep${rep}.jsonl"
-done
+export U5R4_OUT="${U5R4_OUT:-$ROOT/.lab/tmp/5uu9_out}"
+case "$U5R4_OUT" in
+    "$ROOT"/.lab/tmp/*) ;;
+    *) echo "REFUSE: U5R4_OUT must be under $ROOT/.lab/tmp (got '$U5R4_OUT'); refusing to rm -rf it" >&2; exit 2 ;;
+esac
+rm -rf "$U5R4_OUT"; mkdir -p "$U5R4_OUT"
 python3 "$HERE/analyze.py"
-echo "ANALYZE_DONE"
+if ! diff -q "$U5R4_OUT/metrics.json" "$HERE/metrics.json" >/dev/null; then
+    echo "METRICS_MISMATCH"; diff "$U5R4_OUT/metrics.json" "$HERE/metrics.json"; exit 1
+fi
+echo "METRICS_MATCH"
