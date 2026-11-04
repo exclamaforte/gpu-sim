@@ -5,8 +5,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 export U5R4_OUT="${U5R4_OUT:-$ROOT/.lab/tmp/nlgf_out}"
 case "$U5R4_OUT" in
-    "$ROOT"/.lab/tmp/*|"$ROOT"/experiments/*) ;;
-    *) echo "REFUSE: U5R4_OUT must be under .lab/tmp or experiments/ (got '$U5R4_OUT'); refusing to rm -rf it" >&2; exit 2 ;;
+    "$ROOT"/.lab/tmp/*) ;;
+    *) echo "REFUSE: U5R4_OUT must be under $ROOT/.lab/tmp (got '$U5R4_OUT'); refusing to rm -rf it" >&2; exit 2 ;;
 esac
 rm -rf "$U5R4_OUT"; mkdir -p "$U5R4_OUT"
 python3 "$HERE/analyze_power.py"
