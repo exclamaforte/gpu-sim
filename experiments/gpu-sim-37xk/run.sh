@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 cd "$(dirname "$0")/../.."
 # CPU-side validation: recompute the 405B floors from the committed measured bytes/param
 # and check they match experiments/gpu-sim-37xk/measured_opt_bytes.json.

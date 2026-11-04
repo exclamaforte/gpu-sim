@@ -356,3 +356,82 @@ class TestContractDeclared(unittest.TestCase):
             rc = cgc.main()
         self.assertEqual(rc, 0)
         self.assertIn("UNVERIFIABLE", buf.getvalue())
+
+
+class TestBypassPath(unittest.TestCase):
+    def setUp(self):
+        self.repo, self.base = _make_repo()
+        self.head = _commit(self.repo, "head", {
+            "code.py": "v2\n",
+            "experiments/x/metrics.json": json.dumps({"gate": None}) + "\n",
+        })
+        self.old_repo = cgc.REPO
+        cgc.REPO = self.repo
+        (self.repo / ".lab" / "gate-bypass").mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        cgc.REPO = self.old_repo
+        shutil.rmtree(self.repo, ignore_errors=True)
+
+    def _bypass(self, data):
+        (self.repo / ".lab" / "gate-bypass" / "x.json").write_text(json.dumps(data))
+
+    def test_no_record_fails_closed(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("missing 'gate' citation", buf.getvalue())
+        assert rc == 1
+        assert "missing 'gate' citation" in buf.getvalue()
+
+    def test_record_missing_role_fails(self):
+        self._bypass({"tip": self.head, "reason": "test"})
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("missing role or tip", buf.getvalue())
+        assert rc == 1
+        assert "missing role or tip" in buf.getvalue()
+
+    def test_record_missing_tip_fails(self):
+        self._bypass({"role": "pi", "reason": "test"})
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("missing role or tip", buf.getvalue())
+        assert rc == 1
+        assert "missing role or tip" in buf.getvalue()
+
+    def test_record_bad_tip_fails(self):
+        self._bypass({"role": "pi", "tip": "0" * 40, "reason": "test"})
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("does not exist", buf.getvalue())
+        assert rc == 1
+        assert "does not exist" in buf.getvalue()
+
+    def test_record_retroactive_out_of_window_fails(self):
+        self._bypass({"role": "pi", "tip": self.head, "reason": "test",
+                      "retroactive": True, "at": 1793727142})
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("out of window", buf.getvalue())
+        assert rc == 1
+        assert "out of window" in buf.getvalue()
+
+    def test_valid_record_passes(self):
+        self._bypass({"role": "pi", "tip": self.head, "reason": "test bypass"})
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = cgc.main()
+        self.assertEqual(rc, 0)
+        self.assertIn("BYPASSED (audited)", buf.getvalue())
+        assert rc == 0
+        assert "BYPASSED (audited)" in buf.getvalue()

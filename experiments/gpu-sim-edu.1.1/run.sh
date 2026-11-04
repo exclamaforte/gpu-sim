@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-edu.1.1 -- recompute check. CPU-ONLY (fixture repos live in /tmp).
 # Re-runs edu11_verify.py into scratch and byte-compares against committed
 # edu11_metrics.json. Writes no tracked file (suite log goes to scratch).

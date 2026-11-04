@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-zhq -- recompute check. CPU-ONLY (stdlib).
 # Re-runs the latency-arm tests + before/after driver into scratch,
 # byte-compares metrics.json. Writes no tracked file. NOTE: unlike g8x's
