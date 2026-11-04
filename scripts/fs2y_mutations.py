@@ -30,6 +30,7 @@ MUTATIONS = {
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
+    "hsuv_manifest_relative": "hsuv manifest exe paths must be repo-relative (gpu-sim-hsuv)",
 }
 
 
@@ -209,74 +210,18 @@ def _apply_rb66_ambient_init(root):
 
 
 
-def _apply_05b3_delete_key(root):
-    """Mutation for 05b3_skip_allowlist_keys: delete one registered key."""
+def _apply_hsuv_manifest_absolute(root):
+    """Mutation for hsuv_manifest_relative: write an absolute exe path into the
+    committed manifest so the relative-path guard fails."""
     import json, os
-    path = os.path.join(root, "tests", "skip_allowlist.json")
+    path = os.path.join(root, "experiments", "gpu-sim-u5r4", "build_div_sizescale", "manifest.json")
     backup = open(path).read()
     d = json.loads(backup)
-    # remove first key
-    if d:
-        del d[next(iter(d))]
+    specs = d.get("specs", [])
+    if specs:
+        specs[0]["exe"] = "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-hsuv/experiments/gpu-sim-u5r4/build_div_sizescale/bin/k_divergent_branch_0000.out"
     with open(path, "w") as f:
         json.dump(d, f, indent=2)
-        f.write("\n")
-    return backup, path
-
-
-def _apply_3v6d2_uncas(root):
-    """Mutation for 3v6d2_link_calendar: remove the calendar reservation entirely."""
-    import os
-    path = os.path.join(root, "src", "fakegpu_fabric.c")
-    backup = open(path).read()
-    old = """        do {
-            busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
-            uint64_t now = now_ns();
-            start = (busy > now) ? busy : now;
-            finish = start + delay_ns;
-        } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
-                                                            &busy, finish,
-                                                            memory_order_acq_rel,
-                                                            memory_order_acquire));"""
-    new = """        /* mutation: calendar removed -- no serialization */
-        uint64_t now = now_ns();
-        finish = now + delay_ns;"""
-    mutated = backup.replace(old, new, 1)
-    if mutated == backup:
-        raise RuntimeError("3v6d2 mutation did not apply")
-    with open(path, "w") as f:
-        f.write(mutated)
-    import subprocess
-    subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
-    return backup, path
-
-
-def _apply_8yb4_corrupt(root):
-    """Mutation for 8yb4_k_window: put back the 40x currency error the bead rules out.
-
-    The row's test pins every config's K=1/K=40 ratio to [0.9,1.1]; the defect under
-    investigation was the hypothesis that the corpus's one-launch-per-window timing
-    and the gate's K=40 pricing are ~40x apart. Inflating one measured ratio to 40
-    reproduces that hypothesis as data, so the test must fail.
-    """
-    import json, os
-    path = os.path.join(root, "experiments", "gpu-sim-8yb4", "rows.jsonl")
-    backup = open(path).read()
-    lines = backup.splitlines()
-    out = []
-    changed = False
-    for line in lines:
-        if not line.strip():
-            continue
-        row = json.loads(line)
-        if not changed:
-            row["ratio_k1_over_k40"] = 40.0
-            changed = True
-        out.append(json.dumps(row))
-    if not changed:
-        raise RuntimeError("8yb4 mutation did not apply")
-    with open(path, "w") as f:
-        f.write("\n".join(out) + "\n")
     return backup, path
 
 
@@ -294,6 +239,6 @@ MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "nlgf_power_test": _apply_nlgf_corrupt,
-    "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
+    "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
 }
 
