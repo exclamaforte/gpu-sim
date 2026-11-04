@@ -22,6 +22,7 @@ MUTATIONS = {
     "u5r4_size_scaling_arm": "u5r4 size-scaling arm on divergent_branch (gpu-sim-u5r4)",
     "j1qc_lint_no_bd": "j1qc lint takes comment text as argument, no bd dependency (gpu-sim-j1qc)",
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
+    "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
 }
 
 
@@ -104,6 +105,18 @@ def _apply_v5l3_unpin(root):
     return backup, path
 
 
+def _apply_9wza_disable_lab_fallback(root):
+    """Mutation for 9wza_tracked_bypass_records: disable the .lab fallback so tracked-only resolution breaks the .lab-based test."""
+    import os
+    path = os.path.join(root, "scripts", "check_gate_citations.py")
+    backup = open(path).read()
+    mutated = backup.replace(
+        'bypass_candidates.append(REPO / ".lab" / "gate-bypass" / f"{bead_id}.json")',
+        '# bypass_candidates.append(REPO / ".lab" / "gate-bypass" / f"{bead_id}.json")', 1)
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
 MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
@@ -111,4 +124,6 @@ MUTATION_FUNCTIONS = {
     "j1qc_lint_no_bd": _apply_j1qc_lint_no_bd,
     "s2qj_bypass_path": _apply_s2qj_unbypass,
     "v5l3_pin_coverage": _apply_v5l3_unpin,
+    "9wza_tracked_bypass_records": _apply_9wza_disable_lab_fallback,
 }
+
