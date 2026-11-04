@@ -273,5 +273,8 @@ if n_units >= 8:
 out_dir = Path(_os.environ.get("U5R4_OUT", str(HERE)))
 out_dir.mkdir(parents=True, exist_ok=True)
 (out_dir / "metrics.json").write_text(json.dumps(results, indent=2) + "\n")
-(HERE / "metrics.json").write_text(json.dumps(results, indent=2) + "\n")
+# Do NOT also write into the repo tree: run.sh re-executes on a CPU-only gate
+# host and the gate fails when a committed artifact changes under it
+# (gpu-sim-5uu9). The committed metrics.json is the artifact; the regenerated
+# copy belongs in the scratch dir and is diffed against it by run.sh.
 print("wrote metrics.json")
