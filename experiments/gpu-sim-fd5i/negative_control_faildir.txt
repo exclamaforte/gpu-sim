@@ -30,3 +30,9 @@ for unresolvable stamps is only exercised by the new code. The different-commit 
 caught by both (string inequality vs resolved-sha inequality). Together with
 negative_control.txt (real pair goes RED under string equality), this demonstrates
 both directions.
+
+BLINDING VERIFICATION (reviewer E4a/E4b):
+  - Blinding "resolved != landing" -> test_different_commit_stamp_is_reported fails (RED).
+  - Blinding "resolved is None" -> test_wrong_stamp_is_reported fails (RED).
+  Both confirm the plants exercise the audit's FAIL branch, which is now shared
+  via _audit_stamps (the same function test_carried_stamps_agree_with_the_per_file_landing uses).

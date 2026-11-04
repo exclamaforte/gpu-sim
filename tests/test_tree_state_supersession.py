@@ -197,6 +197,40 @@ class TestTheSupersessionRule(unittest.TestCase):
             td.cleanup()
 
 
+
+def _audit_stamps(repo):
+    """Run the carried-stamp agreement check over opted-in artifacts in repo.
+    Returns (bad, unstamped, checked) lists. Shared by the audit test and the
+    FAIL-direction plants so the same code path is exercised."""
+    bad, unstamped, checked = [], [], []
+    # opted-in = files with a tree_state block
+    import json as _j
+    for path in sorted(Path(repo).rglob("*.json")):
+        try:
+            doc = _j.loads(path.read_text())
+        except Exception:
+            continue
+        if not isinstance(doc, dict):
+            continue
+        ts = doc.get("tree_state")
+        if not isinstance(ts, dict):
+            continue
+        if "superseded_by" not in (ts or {}) and "superseded_by" not in doc:
+            continue
+        rel = path.relative_to(repo)
+        landing = landing_commit_for(rel, repo)
+        if not landing:
+            continue
+        checked.append(str(rel))
+        sb = ts.get("superseded_by") or doc.get("superseded_by")
+        if not sb or not isinstance(sb, dict):
+            unstamped.append(f"{rel}: landed at {landing}, no stamp")
+            continue
+        errs = stamp_agreement_errors(rel, repo)
+        bad.extend(errs)
+    return bad, unstamped, checked
+
+
 class TestEveryStampedArtifact(unittest.TestCase):
     """Criterion 3 narrowed: over artifacts that opt in with a tree_state block."""
 
@@ -221,30 +255,7 @@ class TestEveryStampedArtifact(unittest.TestCase):
         the 6.6.2.1 failure mode. The printed opt-in count keeps the coverage
         gap on the face of the run.
         """
-        bad, unstamped, checked = [], [], []
-        for path, doc, ts in _opted_in():
-            rel = path.relative_to(REPO)
-            landing = landing_commit_for(rel, REPO)
-            if not landing:
-                continue                      # not merged; nothing to point at
-            checked.append(str(rel))
-            sb = ts.get("superseded_by") or doc.get("superseded_by")
-            if not sb:
-                unstamped.append(f"{rel}: landed at {landing}, no stamp")
-                continue
-            stamp = sb.get("commit")
-            resolved = resolve_commit(stamp, REPO)
-            if resolved is None:
-                bad.append(f"{path}: superseded_by.commit {stamp} is "
-                           f"unresolvable (not a commit)")
-                continue
-            if resolved != landing:
-                bad.append(f"{path}: superseded_by.commit {stamp} "
-                           f"(resolves to {resolved}) != the file's own "
-                           f"oldest add {landing[:8]}")
-            if not sb.get("reachable_from_master"):
-                bad.append(f"{path}: superseded_by.commit is not reachable "
-                           f"from master")
+        bad, unstamped, checked = _audit_stamps(REPO)
         print(f"[tree_state] opt-in artifacts checked: {len(checked)}; "
               f"carrying a stamp: {len(checked) - len(unstamped)}; "
               f"opted-in but unstamped (reported, not failed): {unstamped}")
@@ -356,9 +367,9 @@ class TestStampAgreementFailDirection(unittest.TestCase):
         try:
             root, landing = self._make_artifact(td, "0000000000000000000000000000000000000001")
             # 0000...0001 is not a real commit -> unresolvable -> error
-            errs = stamp_agreement_errors("artifacts/a.json", root)
-            assert len(errs) > 0, "an unresolvable stamp must be reported"
-            assert any("unresolvable" in e for e in errs), errs
+            bad, unstamped, checked = _audit_stamps(root)
+            assert len(bad) > 0, "an unresolvable stamp must be reported"
+            assert any("unresolvable" in e for e in bad), bad
         finally:
             td.cleanup()
 
@@ -378,9 +389,9 @@ class TestStampAgreementFailDirection(unittest.TestCase):
             doc["tree_state"]["superseded_by"]["commit"] = second[:7]
             art.write_text(__import__("json").dumps(doc) + "\n")
             # re-commit the change so landing doesn't move (amend not needed; landing stays first commit's sha for the file's oldest add)
-            errs = stamp_agreement_errors("artifacts/a.json", root)
+            bad, unstamped, checked = _audit_stamps(root)
             # The stamp (second[:7]) resolves to 'second', which != landing (first commit) -> error
-            assert len(errs) > 0, "a wrong-but-resolvable stamp must be reported"
+            assert len(bad) > 0, "a wrong-but-resolvable stamp must be reported"
         finally:
             td.cleanup()
 
