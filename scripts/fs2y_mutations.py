@@ -181,6 +181,7 @@ def _apply_3v6d1_unhalve(root):
         f.write(mutated)
     return backup, path
 
+
 MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
