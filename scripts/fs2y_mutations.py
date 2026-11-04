@@ -6,6 +6,8 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
+    "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
+
     "dhfo_memory_check": "dhfo memory-check guard",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
     "bch9_fabric_band": "bch9 fabric band robustness",
@@ -150,6 +152,36 @@ def _apply_nlgf_corrupt(root):
     return backup, path
 
 
+def _apply_3v6d1_unhalve(root):
+    """Mutation for 3v6d1_fabric_rate: remove the bidirectional halving in
+    topology.effective_bw, so the one-way rate becomes the spec's aggregate
+    900 GB/s. The Python rule, the emitted binary and the transport then disagree
+    with the model formula in the same way they did before gpu-sim-3v6d.1.
+
+    Raises if the substitution does not apply, so a silent no-op cannot be
+    reported as a mutation that failed to fail.
+    """
+    import os
+    path = os.path.join(root, "epic_cluster", "topology.py")
+    backup = open(path).read()
+    old = 'if link.get("bw_is_bidirectional", False):\n        bw *= 0.5\n'
+    # MEASURED 2026-11-04: the mutated text must differ in LENGTH from the
+    # original. conftest.py redirects bytecode to .lab/tmp/pycache and CPython
+    # validates a .pyc on (mtime, size); a same-length mutation restored inside
+    # the same mtime second leaves a stale .pyc that serves the MUTATED code to
+    # the restored run, so the checker reports 'restored target did not pass'.
+    # The trailing comment makes the mutated file longer, so the signature
+    # differs in both directions.
+    new = ('if link.get("bw_is_bidirectional", False):\n'
+           '        bw *= 1.0  # 3v6d1 mutation: halving removed\n')
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d1 mutation did not apply: halving block not found "
+                           "in epic_cluster/topology.py")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
 MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
@@ -159,6 +191,7 @@ MUTATION_FUNCTIONS = {
     "v5l3_pin_coverage": _apply_v5l3_unpin,
     "9wza_tracked_bypass_records": _apply_9wza_disable_lab_fallback,
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
+    "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "nlgf_power_test": _apply_nlgf_corrupt,
 }
 
