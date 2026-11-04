@@ -58,6 +58,19 @@ print("cells:", len(cell_rows), "replicates per cell:", cell_rows[0]["_n_replica
 usable = [r for r in cell_rows if r["corrected_usable"]]
 print("usable cells:", len(usable), "pass rate:", round(len(usable)/len(cell_rows),4))
 
+# per-configuration usable table
+from collections import Counter, defaultdict
+per_config = defaultdict(lambda: [0, 0])
+for r in cell_rows:
+    per_config[r["size"]][1] += 1
+    if r["corrected_usable"]:
+        per_config[r["size"]][0] += 1
+per_config_usable = {str(k): {"usable": v[0], "total": v[1]} for k, v in sorted(per_config.items())}
+n_units = sum(1 for k, v in per_config.items() if v[0] > 0)
+unit_rule = "distinct problem sizes with at least one usable cell"
+print("per_config_usable:", per_config_usable)
+print("n_units:", n_units)
+
 # seen data for training
 seen_rows = [json.loads(l) for l in (REPO / "experiments/gpu-sim-2al/dataset.jsonl").read_text().splitlines()]
 seen_families = sorted(set(r["family"] for r in seen_rows))
@@ -180,6 +193,12 @@ print("CI computed over", len(usable), "usable cells (not over", len(rows), "row
 results = {
     "n_cells_total": len(cell_rows),
     "n_usable": len(usable),
+    "n_replicates_per_cell": 3,
+    "n_units": n_units,
+    "unit_rule": unit_rule,
+    "per_config_usable": per_config_usable,
+    "label_scope": "single configuration; protocol demonstration, not a model verdict",
+    "model_verdict": "INSUFFICIENT" if n_units < 2 else label,
     "gate_pass_rate": round(len(usable)/len(cell_rows),4),
     "n_replicates_per_cell": 3,
     "ci_basis": "cells (mean of 3 replicates per cell), not rows",

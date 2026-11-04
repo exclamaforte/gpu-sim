@@ -1,8 +1,34 @@
 {
   "n_cells_total": 56,
   "n_usable": 11,
-  "gate_pass_rate": 0.1964,
   "n_replicates_per_cell": 3,
+  "n_units": 1,
+  "unit_rule": "distinct problem sizes with at least one usable cell",
+  "per_config_usable": {
+    "1048576": {
+      "usable": 0,
+      "total": 12
+    },
+    "2097152": {
+      "usable": 0,
+      "total": 11
+    },
+    "4194304": {
+      "usable": 0,
+      "total": 11
+    },
+    "8388608": {
+      "usable": 0,
+      "total": 11
+    },
+    "16777216": {
+      "usable": 11,
+      "total": 11
+    }
+  },
+  "label_scope": "single configuration; protocol demonstration, not a model verdict",
+  "model_verdict": "INSUFFICIENT",
+  "gate_pass_rate": 0.1964,
   "ci_basis": "cells (mean of 3 replicates per cell), not rows",
   "gbt_mae": 0.36220183245199905,
   "floor_mae": 0.8548389673233032,
