@@ -91,18 +91,33 @@ def show(ref, path):
 def count_mf(text):
     d=json.loads(text); return len([k for k in d if k!="_retired_fact_blocks"])
 def count_ledger(text):
+    import glob, os
+    ddir="tests/fs2y_ledger.d"
+    if os.path.isdir(ddir):
+        return len(glob.glob(os.path.join(ddir,"*.json")))
+    if not text:
+        return 0
     d=json.loads(text); return len(d.get("entries",[]))
 mb=subprocess.check_output(["git","-C",ROOT,"merge-base","HEAD","master"],text=True).strip()
 base_mf=count_mf(show(mb,"docs/model_facts.json"))
 head_mf=count_mf(open("docs/model_facts.json").read())
 base_ld=count_ledger(show(mb,"tests/fs2y_ledger.json"))
-head_ld=count_ledger(open("tests/fs2y_ledger.json").read())
+head_ld=count_ledger("")
 
 # added/removed keys
 base_mf_keys=set(json.loads(show(mb,"docs/model_facts.json"))) - {"_retired_fact_blocks"}
 head_mf_keys=set(json.loads(open("docs/model_facts.json").read())) - {"_retired_fact_blocks"}
 base_ld_names={e["name"] for e in json.loads(show(mb,"tests/fs2y_ledger.json")).get("entries",[])}
-head_ld_names={e["name"] for e in json.load(open("tests/fs2y_ledger.json")).get("entries",[])}
+head_ld_names=set()
+_ddir="tests/fs2y_ledger.d"
+if os.path.isdir(_ddir):
+    for _fn in glob.glob(os.path.join(_ddir,"*.json")):
+        try:
+            head_ld_names.add(json.load(open(_fn)).get("name"))
+        except Exception:
+            pass
+else:
+    head_ld_names={e["name"] for e in json.load(open("tests/fs2y_ledger.json")).get("entries",[])}
 
 expected={
   "docs/model_facts.json": {

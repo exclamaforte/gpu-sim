@@ -1,5 +1,7 @@
 """Append-only guard tests."""
 import json
+import signal
+import atexit
 import unittest
 import os
 import subprocess
@@ -8,6 +10,31 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_append_only.py"
+
+# p4dw-style: track plant files created during tests so an interrupted run
+# cleans them up via atexit / signal handlers instead of poisoning the next run.
+_PLANT_FILES = []
+
+def _cleanup_plants():
+    for pf in list(_PLANT_FILES):
+        try:
+            pf.unlink(missing_ok=True)
+        except OSError:
+            pass
+    _PLANT_FILES.clear()
+
+atexit.register(_cleanup_plants)
+
+def _plant_signal(signum, frame):
+    _cleanup_plants()
+    raise SystemExit(128 + signum)
+
+for _sig in (signal.SIGTERM, signal.SIGINT):
+    try:
+        signal.signal(_sig, _plant_signal)
+    except (ValueError, OSError):
+        pass
+
 
 
 def run_script():
@@ -54,42 +81,39 @@ class TestAppendOnly(unittest.TestCase):
             mf.write_text(backup)
 
     def test_ledger_unretired_deletion_fails_naming_entry(self):
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        names = [e["name"] for e in d["entries"]]
-        assert "dhfo_memory_check" in names
-        d["entries"] = [e for e in d["entries"] if e["name"] != "dhfo_memory_check"]
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
+        backup = shard.read_text()
+        shard.unlink()
         try:
             rc, out = run_script()
             assert rc != 0, "expected failure on unretired deletion"
             assert "dhfo_memory_check" in out, out
         finally:
-            lf.write_text(backup)
+            shard.write_text(backup)
 
     def test_ledger_retired_deletion_passes(self):
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        names = [e["name"] for e in d["entries"]]
-        assert "dhfo_memory_check" in names
-        d["entries"] = [e for e in d["entries"] if e["name"] != "dhfo_memory_check"]
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
+        backup = shard.read_text()
         import subprocess as sp
         commit = sp.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
                                  text=True).strip()
-        d.setdefault("retired", [])
-        d["retired"].append({
+        shard.unlink()
+        meta = ROOT / "tests" / "fs2y_ledger_meta.json"
+        meta_backup = meta.read_text()
+        md = json.loads(meta_backup)
+        md.setdefault("retired", [])
+        md["retired"].append({
             "name": "dhfo_memory_check",
             "reason": "test retirement",
             "commit": commit,
         })
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        meta.write_text(json.dumps(md, indent=2) + "\n")
         try:
             rc, out = run_script()
             assert rc == 0, out
         finally:
-            lf.write_text(backup)
+            shard.write_text(backup)
+            meta.write_text(meta_backup)
 
     def test_retirement_missing_reason_fails(self):
         mf = ROOT / "docs" / "model_facts.json"
@@ -113,6 +137,14 @@ class TestAppendOnly(unittest.TestCase):
             mf.write_text(backup)
 
 
+
+    def test_no_legacy_ledger_json_reappears(self):
+        """Regression (gpu-sim-u6ih): the legacy single-file ledger must not reappear."""
+        lf = ROOT / "tests" / "fs2y_ledger.json"
+        assert not lf.exists(), (
+            "tests/fs2y_ledger.json must not reappear (gpu-sim-u6ih): "
+            "entries live in tests/fs2y_ledger.d/*.json now")
+
 class TestLedgerNodeIds(unittest.TestCase):
     def test_ledger_node_ids_resolve(self):
         """Every ledger row's test node resolves and collects >=1 test."""
@@ -121,103 +153,114 @@ class TestLedgerNodeIds(unittest.TestCase):
 
     def test_plant_class_qualified_module_level_fails(self):
         """Plant (a): class-qualified node for a module-level test must fail."""
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        d["entries"].append({
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_class_qualified.json"
+        _PLANT_FILES.append(shard)
+        shard.write_text(json.dumps({
             "name": "plant_class_qualified",
+            "beads": ["gpu-sim-u6ih"],
             "state": "passing",
             "test": "tests/test_no_pycache.py::NonexistentClass::test_lab_config_sets_pycache_suppression",
+            "bound_calls": 1,
             "mutation": "append_only_guard",
-        })
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        }, indent=2) + "\n")
         try:
             rc, out = run_script()
             assert rc != 0, "expected failure on class-qualified module-level node"
             assert "does not resolve" in out or "collects 0" in out, out
         finally:
-            lf.write_text(backup)
+            shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_nonexistent_function_fails(self):
         """Plant (b): node naming a function that does not exist must fail."""
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        d["entries"].append({
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_nonexistent_func.json"
+        _PLANT_FILES.append(shard)
+        shard.write_text(json.dumps({
             "name": "plant_nonexistent_func",
+            "beads": ["gpu-sim-u6ih"],
             "state": "passing",
             "test": "tests/test_no_pycache.py::nonexistent_func_xyz",
+            "bound_calls": 1,
             "mutation": "append_only_guard",
-        })
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        }, indent=2) + "\n")
         try:
             rc, out = run_script()
             assert rc != 0, "expected failure on nonexistent function"
             assert "does not resolve" in out or "collects 0" in out, out
         finally:
-            lf.write_text(backup)
+            shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_nonexistent_file_fails(self):
         """Plant (c): node naming a file that does not exist must fail."""
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        d["entries"].append({
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_nonexistent_file.json"
+        _PLANT_FILES.append(shard)
+        shard.write_text(json.dumps({
             "name": "plant_nonexistent_file",
+            "beads": ["gpu-sim-u6ih"],
             "state": "passing",
             "test": "tests/test_nonexistent_file_xyz.py::test_foo",
+            "bound_calls": 1,
             "mutation": "append_only_guard",
-        })
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        }, indent=2) + "\n")
         try:
             rc, out = run_script()
             assert rc != 0, "expected failure on nonexistent file"
             assert "does not resolve" in out or "collects 0" in out, out
         finally:
-            lf.write_text(backup)
+            shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_self_referential_fails(self):
         """A row naming a test in test_append_only (imports checker) must be refused."""
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        d["entries"].append({
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_self_ref.json"
+        _PLANT_FILES.append(shard)
+        shard.write_text(json.dumps({
             "name": "plant_self_ref",
+            "beads": ["gpu-sim-u6ih"],
             "state": "passing",
             "test": "tests/test_append_only.py::TestAppendOnly::test_retired_deletion_passes",
+            "bound_calls": 1,
             "mutation": "append_only_guard",
-        })
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        }, indent=2) + "\n")
         try:
             rc, out = run_script()
             assert rc != 0, "expected failure on self-referential row"
             assert "self-referential" in out, out
         finally:
-            lf.write_text(backup)
+            shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
 
     def test_plant_vacuous_fails(self):
         """A vacuous row (assert True) must fail the mutation check."""
         plant_file = ROOT / "tests" / "test_vacuous_plant.py"
+        _PLANT_FILES.append(plant_file)
         plant_backup = None
         if plant_file.exists():
             plant_backup = plant_file.read_text()
         plant_file.write_text("def test_vacuous():\n    assert True\n")
-        lf = ROOT / "tests" / "fs2y_ledger.json"
-        backup = lf.read_text()
-        d = json.loads(backup)
-        d["entries"].append({
+        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_vacuous.json"
+        _PLANT_FILES.append(shard)
+        shard.write_text(json.dumps({
             "name": "plant_vacuous",
+            "beads": ["gpu-sim-u6ih"],
             "state": "passing",
             "test": "tests/test_vacuous_plant.py::test_vacuous",
+            "bound_calls": 1,
             "mutation": "ledger_node_ids_validated",
-        })
-        lf.write_text(json.dumps(d, indent=2) + "\n")
+        }, indent=2) + "\n")
         try:
             rc, out = run_script()
             assert rc != 0, "expected failure on vacuous row"
             assert "did not fail" in out, out
         finally:
-            lf.write_text(backup)
+            shard.unlink(missing_ok=True)
+            try: _PLANT_FILES.remove(shard)
+            except ValueError: pass
             if plant_backup is None:
                 plant_file.unlink(missing_ok=True)
             else:

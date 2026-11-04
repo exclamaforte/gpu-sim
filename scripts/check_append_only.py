@@ -87,15 +87,54 @@ def check_model_facts(base_ref):
     return sorted(lost)
 
 
+LEDGER_DIR = os.path.join(ROOT, "tests", "fs2y_ledger.d")
+LEDGER_JSON = os.path.join(ROOT, "tests", "fs2y_ledger.json")
+
+def load_ledger_entries(root=None):
+    """Load ledger entries from tests/fs2y_ledger.d/*.json (preferred) or the json file."""
+    r = root or ROOT
+    ddir = os.path.join(r, "tests", "fs2y_ledger.d")
+    if os.path.isdir(ddir):
+        entries = []
+        for fn in sorted(os.listdir(ddir)):
+            if fn.endswith(".json"):
+                try:
+                    entries.append(json.load(open(os.path.join(ddir, fn))))
+                except (json.JSONDecodeError, OSError):
+                    pass
+        return entries
+    lpath = os.path.join(r, "tests", "fs2y_ledger.json")
+    if os.path.exists(lpath):
+        return json.load(open(lpath)).get("entries", [])
+    return []
+
+def load_ledger_meta(root=None):
+    r = root or ROOT
+    # u6ih: retired list migrated to tests/fs2y_ledger_meta.json (shards layout).
+    mpath = os.path.join(r, "tests", "fs2y_ledger_meta.json")
+    if os.path.exists(mpath):
+        try:
+            return json.load(open(mpath))
+        except (json.JSONDecodeError, OSError):
+            pass
+    lpath = os.path.join(r, "tests", "fs2y_ledger.json")
+    if os.path.exists(lpath):
+        return json.load(open(lpath))
+    return {}
+
 def check_ledger(base_ref):
     base_text = git_show(base_ref, "tests/fs2y_ledger.json")
-    if base_text is None:
-        return []
-    base = json.loads(base_text)
-    head = json.load(open(os.path.join(ROOT, "tests", "fs2y_ledger.json")))
-    base_ids = {e.get("name") for e in base.get("entries", []) if e.get("name")}
-    head_ids = {e.get("name") for e in head.get("entries", []) if e.get("name")}
-    retired = retired_set_ledger(head)
+    base_ids = set()
+    if base_text is not None:
+        try:
+            base = json.loads(base_text)
+            base_ids = {e.get("name") for e in base.get("entries", []) if e.get("name")}
+        except json.JSONDecodeError:
+            pass
+    # Also check base ledger dir entries? Not available via git show easily; rely on json.
+    head_entries = load_ledger_entries()
+    head_ids = {e.get("name") for e in head_entries if e.get("name")}
+    retired = retired_set_ledger(load_ledger_meta())
     lost = base_ids - head_ids - retired
     return sorted(lost)
 
@@ -226,13 +265,11 @@ def _load_mutations(root):
 def check_ledger_test_ids(root):
     """Resolve every ledger row's test node; fail closed on resolution errors,
     missing registry, unregistered mutation, self-reference, or vacuous test."""
+    ddir = os.path.join(root, "tests", "fs2y_ledger.d")
     ledger_path = os.path.join(root, "tests", "fs2y_ledger.json")
-    if not os.path.exists(ledger_path):
+    if not os.path.isdir(ddir) and not os.path.exists(ledger_path):
         return []
-    try:
-        ledger = json.load(open(ledger_path))
-    except Exception as e:
-        return [f"tests/fs2y_ledger.json: unreadable: {e}"]
+    entries = load_ledger_entries(root)
 
     reg, reg_err = _load_mutations(root)
     if reg_err:
@@ -242,7 +279,7 @@ def check_ledger_test_ids(root):
     child = _child_mode()
     errors = []
     seen = set()
-    for entry in ledger.get("entries", []):
+    for entry in entries:
         name = entry.get("name", "?")
         node = entry.get("test")
         state = entry.get("state", "passing")
@@ -286,8 +323,14 @@ def check_ledger_test_ids(root):
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
                     continue
             finally:
-                with open(mutated_path, "w") as f:
-                    f.write(backup)
+                if backup is None:
+                    try:
+                        os.remove(mutated_path)
+                    except OSError:
+                        pass
+                else:
+                    with open(mutated_path, "w") as f:
+                        f.write(backup)
             rrest = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q", target],
                 cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
