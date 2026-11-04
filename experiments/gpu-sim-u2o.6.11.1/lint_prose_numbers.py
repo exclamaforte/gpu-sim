@@ -110,12 +110,6 @@ def artifact_json(bead: str, name: str) -> tuple[dict, str] | None:
         return None
 
 
-def bead_comments(bead: str) -> str:
-    r = subprocess.run(["bd", "comments", bead], cwd=REPO,
-                       capture_output=True, text=True)
-    return r.stdout if r.returncode == 0 else ""
-
-
 # --- the checks ------------------------------------------------------------
 #
 # Each check is (a) a way to pull a value OUT OF THE ARTIFACT and (b) a way to
@@ -138,7 +132,7 @@ def check_6_6_1_worst_case_mdd(findings: list, comments: str | None = None) -> N
     # the prose claim, quoted exactly as written
     pat = re.compile(r"worst case\s*=\s*the empty cell:\s*10 trials\s*([\d.]+)\s*%",
                      re.I)
-    for m in pat.finditer(comments if comments is not None else bead_comments(bead)):
+    for m in pat.finditer(comments or ""):
         claimed = float(m.group(1))
         if abs(claimed - art) > 0.05:
             findings.append(Finding(
@@ -181,7 +175,7 @@ def check_6_6_3_constant_boolean(findings: list, comments: str | None = None) ->
                      if "relative_spread" in s)
     rng = f"{spreads[0][0]:.3f} ({spreads[0][1]}) .. {spreads[-1][0]:.3f} ({spreads[-1][1]})" \
         if spreads else "n/a"
-    text = comments if comments is not None else bead_comments(bead)
+    text = comments or ""
     pat = re.compile(r"Every one of the (\w+) signals carries [\"']?discriminates[\"']?: true",
                      re.I)
     for m in pat.finditer(text):
@@ -220,7 +214,7 @@ def check_6_10_ratio(finding_list: list, comments: str | None = None) -> None:
     # which is smaller by 1000x and printed "3x" where the answer is 2713x.
     truth = (wall_sec * 1000.0) / sum_ms
     pat = re.compile(r"it printed\s*([\d.]+)x where the real ratio is\s*([\d.]+)x", re.I)
-    for m in pat.finditer(comments if comments is not None else bead_comments(bead)):
+    for m in pat.finditer(comments or ""):
         printed, claimed = float(m.group(1)), float(m.group(2))
         if abs(printed - truth) / truth > 0.01:
             finding_list.append(Finding(
@@ -252,7 +246,7 @@ def check_8dw_claim_vs_output(findings: list, comments: str | None = None) -> No
     # over-reports, and the test caught it by running the check in isolation.
     seen: set = set()
     pat = re.compile(r"answered False to (?:BOTH|both) probes", re.I)
-    for m in pat.finditer(comments if comments is not None else bead_comments(bead)):
+    for m in pat.finditer(comments or ""):
         if "passed=True" in actual:
             key = (bead, m.group(0), path)
             if key in seen:

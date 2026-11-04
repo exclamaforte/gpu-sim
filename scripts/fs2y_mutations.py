@@ -20,6 +20,7 @@ MUTATIONS = {
     "s2qj_bypass_path": "s2qj bypass path (gpu-sim-s2qj)",
     "wty2_structure_dominated": "wty2 structure-dominated verdict on unseen families (gpu-sim-wty2)",
     "u5r4_size_scaling_arm": "u5r4 size-scaling arm on divergent_branch (gpu-sim-u5r4)",
+    "j1qc_lint_no_bd": "j1qc lint takes comment text as argument, no bd dependency (gpu-sim-j1qc)",
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
 }
@@ -71,6 +72,18 @@ def _apply_u5r4_corrupt(root):
         json.dump(d, f, indent=2)
     return backup, path
 
+def _apply_j1qc_lint_no_bd(root):
+    """Mutation for j1qc_lint_no_bd: make check_6_6_1_worst_case_mdd a no-op."""
+    import os
+    path = os.path.join(root, "experiments", "gpu-sim-u2o.6.11.1", "lint_prose_numbers.py")
+    backup = open(path).read()
+    mutated = backup.replace(
+        "def check_6_6_1_worst_case_mdd(findings: list, comments: str | None = None) -> None:",
+        "def check_6_6_1_worst_case_mdd(findings: list, comments: str | None = None) -> None:\n    return", 1)
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
 def _apply_s2qj_unbypass(root):
     """Mutation for s2qj_bypass_path: make the checker ignore bypass records."""
     import os
@@ -80,7 +93,6 @@ def _apply_s2qj_unbypass(root):
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
-
 
 def _apply_v5l3_unpin(root):
     """Mutation for v5l3_pin_coverage: remove one pin from a run.sh."""
@@ -109,6 +121,7 @@ MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
     "u5r4_size_scaling_arm": _apply_u5r4_corrupt,
+    "j1qc_lint_no_bd": _apply_j1qc_lint_no_bd,
     "s2qj_bypass_path": _apply_s2qj_unbypass,
     "v5l3_pin_coverage": _apply_v5l3_unpin,
     "9wza_tracked_bypass_records": _apply_9wza_disable_lab_fallback,
