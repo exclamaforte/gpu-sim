@@ -774,9 +774,6 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                                                             memory_order_acq_rel,
                                                             memory_order_acquire));
         /* sleep until finish */
-        struct timespec ts;
-        ts.tv_sec = (time_t)(finish / 1000000000ULL);
-        ts.tv_nsec = (long)(finish % 1000000000ULL);
         /* sleep most of the way, then spin to the deadline for precision */
         uint64_t spin_start = finish - 200000ULL; /* last 200 us */
         if (spin_start > now_ns()) {
