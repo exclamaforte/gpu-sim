@@ -45,7 +45,10 @@ class Fixture(unittest.TestCase):
         self.td = Path(tempfile.mkdtemp())
         self.repo = self.td / "repo"
         self.repo.mkdir()
-        git(self.repo, "init", "-q")
+        # -b master, not the ambient init.defaultBranch: this fixture is about a
+        # master/side worktree hazard, and the suite must pass on a machine whose
+        # global config says defaultBranch = main (gpu-sim-rb66).
+        git(self.repo, "init", "-q", "-b", "master")
         git(self.repo, "config", "user.email", "t@example.com")
         git(self.repo, "config", "user.name", "t")
         (self.repo / "base.txt").write_text("base\n")
