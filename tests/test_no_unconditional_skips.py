@@ -4,6 +4,11 @@ A new skip (decorator or in-body call) that is not in the allowlist fails
 this test, so skips cannot be added silently. Unconditional skips (no
 condition argument) are forbidden outright. Conditional skips are allowed
 only when documented in the allowlist with their justification.
+
+Keys are (file, function, TAG, condition-text); the line number is carried
+for diagnostics only and is NOT part of the key, so edits that shift lines do
+not invalidate registrations. A new conditional skip inside an already
+registered function is caught because its condition text differs.
 """
 import ast
 import json
@@ -70,25 +75,50 @@ def _is_unconditional_skip(node, tree=None):
 
 
 def _skip_sites(path: Path):
-    """Yield 'file::function:lineno:TAG' for every skip call site."""
+    """Yield (key, lineno) for every skip call site.
+
+    key is line-free: 'file::function:TAG:condition-text'. lineno is carried
+    for the failure message only.
+    """
     src = path.read_text()
     tree = ast.parse(src)
+    results = []
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         deco_lines = {d.lineno for d in node.decorator_list
                       if isinstance(d, ast.Call) and _is_skip_call(d)}
+
+        def _emit(call_node, lineno):
+            tag = "UNCOND" if _is_unconditional_skip(call_node, tree) else "COND"
+            ct = _cond_text(call_node)
+            key = f"{path.name}::{node.name}:{tag}:{ct}"
+            results.append((key, lineno))
+
         for d in node.decorator_list:
             if _is_skip_call(d):
-                tag = "UNCOND" if _is_unconditional_skip(d, tree) else "COND"
-                yield f"{path.name}::{node.name}:{tag}"
+                _emit(d, d.lineno)
         for sub in ast.walk(node):
             if sub is node:
                 continue
             if isinstance(sub, ast.Call) and _is_skip_call(sub) and sub.lineno not in deco_lines:
-                tag = "UNCOND" if _is_unconditional_skip(sub, tree) else "COND"
-                yield f"{path.name}::{node.name}:{tag}"
+                _emit(sub, sub.lineno)
+    return results
 
+
+def _cond_text(node):
+    if node.args:
+        try:
+            return ast.unparse(node.args[0])
+        except Exception:
+            return ""
+    for kw in node.keywords:
+        if kw.arg in ("condition", "skipif"):
+            try:
+                return ast.unparse(kw.value)
+            except Exception:
+                return ""
+    return ""
 
 
 class TestNoUnconditionalSkips:
@@ -99,12 +129,13 @@ class TestNoUnconditionalSkips:
         for p in sorted(TESTS.glob("test_*.py")):
             if p.name == "test_no_unconditional_skips.py":
                 continue
-            for site in _skip_sites(p):
-                tag = site.rsplit(":", 1)[-1]
+            for key, lineno in _skip_sites(p):
+                _parts = key.split(":", 3)
+                tag = _parts[3].split(":", 1)[0] if len(_parts) >= 4 else ""
                 if tag == "UNCOND":
-                    uncond_offenders.append(site)
-                if site not in allow:
-                    unreg_offenders.append(site)
+                    uncond_offenders.append(f"{p.name}:{lineno}:UNCOND")
+                if key not in allow:
+                    unreg_offenders.append(f"{key} (line {lineno})")
         assert len(uncond_offenders) == 0, (
             "unconditional skips are forbidden (convert to skipIf or remove):\n"
             + "\n".join(uncond_offenders)
