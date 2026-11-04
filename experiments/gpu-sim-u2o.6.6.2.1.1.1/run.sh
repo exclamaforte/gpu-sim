@@ -23,7 +23,7 @@ grep -q "opt-in artifacts checked: 3" "$OUT/tree_state.log" \
 
 echo "--- 2. 6.6.2 citations equal the mechanical per-file values ---"
 CUDA_VISIBLE_DEVICES= nice -n 10 python3 - "$OUT/citations.json" <<'EOF'
-import json, sys
+import json, subprocess, sys
 sys.path.insert(0, '.')
 from scripts.tree_state import landing_commit_for
 out = {}
@@ -32,7 +32,11 @@ for f in ('experiments/gpu-sim-u2o.6.6.2/job.json',
     doc = json.load(open(f))
     sb = doc['tree_state']['superseded_by']
     mech = landing_commit_for(f)
-    assert sb['commit'] == mech == '97575af', (f, sb['commit'], mech)
+    resolved = subprocess.check_output(
+        ['git', 'rev-parse', '--verify', sb['commit'] + '^{commit}'],
+        text=True).strip()
+    assert resolved == mech, (f, sb['commit'], mech, resolved)
+    assert mech == '97575af4411c07c4a77405ecab1da01474e7ad2f', mech
     assert '566ba0b' not in json.dumps(sb), f
     out[f] = sb['commit']
 json.dump(out, open(sys.argv[1], 'w'), indent=2, sort_keys=True)
@@ -70,7 +74,7 @@ unknown=$(comm -23 "$OUT/failures.txt" <(echo "$known" | sort))
 echo "suite: failures are a subset of the 7 known pre-existing; nothing new"
 
 CUDA_VISIBLE_DEVICES= nice -n 10 python3 - "$OUT/metrics.json" <<'EOF'
-import json, sys
+import json, subprocess, sys
 m = {
     "bead": "gpu-sim-u2o.6.6.2.1.1.1",
     "branch": "lab/gpu-sim-u2o.6.6.2.1.1.1",

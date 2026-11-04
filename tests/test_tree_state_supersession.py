@@ -34,7 +34,7 @@ sys.path.insert(0, str(REPO))
 
 from scripts.tree_state import (  # noqa: E402
     _supersession_record, branch_exists, first_word, landing_commit_for,
-    resolve_superseded_by, stamp_tree_state, stamped_artifacts,
+    resolve_commit, resolve_superseded_by, stamp_tree_state, stamped_artifacts,
 )
 
 
@@ -68,7 +68,7 @@ def _commit_all(root, message):
     subprocess.run(["git", "-C", str(root), "commit", "-qm", message],
                    check=True)
     return subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "--short", "HEAD"],
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
         capture_output=True, text=True, check=True).stdout.strip()
 
 
@@ -107,7 +107,7 @@ class TestPerFileLanding(unittest.TestCase):
 
             def old_directory_rule():
                 out = subprocess.run(
-                    ["git", "-C", str(root), "log", "--oneline", "-1",
+                    ["git", "-C", str(root), "log", "--format=%H", "-1",
                      "--diff-filter=A", "master", "--", "expdir/"],
                     capture_output=True, text=True, check=True).stdout.strip()
                 return out.split()[0]
@@ -231,9 +231,16 @@ class TestEveryStampedArtifact(unittest.TestCase):
             if not sb:
                 unstamped.append(f"{rel}: landed at {landing}, no stamp")
                 continue
-            if sb.get("commit") != landing:
-                bad.append(f"{path}: superseded_by.commit {sb.get('commit')} "
-                           f"!= the file's own oldest add {landing}")
+            stamp = sb.get("commit")
+            resolved = resolve_commit(stamp, REPO)
+            if resolved is None:
+                bad.append(f"{path}: superseded_by.commit {stamp} is "
+                           f"unresolvable (not a commit)")
+                continue
+            if resolved != landing:
+                bad.append(f"{path}: superseded_by.commit {stamp} "
+                           f"(resolves to {resolved}) != the file's own "
+                           f"oldest add {landing[:8]}")
             if not sb.get("reachable_from_master"):
                 bad.append(f"{path}: superseded_by.commit is not reachable "
                            f"from master")
@@ -274,6 +281,42 @@ class TestEveryStampedArtifact(unittest.TestCase):
         rec = resolve_superseded_by(
             live, "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
         self.assertTrue(rec["branch_still_exists"])
+
+
+
+
+class TestResolveCommitPlants(unittest.TestCase):
+    """Plants for the fd5i fix: commit comparison must resolve, not stringify."""
+
+    def test_a_seven_char_prefix_of_landing_sha_passes(self):
+        landing = landing_commit_for(
+            "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
+        self.assertIsNotNone(landing)
+        prefix = landing[:7]
+        self.assertEqual(resolve_commit(prefix, REPO), landing,
+                         "a 7-char prefix of the landing sha must resolve to it")
+
+    def test_b_abbreviation_of_a_different_commit_fails(self):
+        landing = landing_commit_for(
+            "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
+        self.assertIsNotNone(landing)
+        other = resolve_commit("566ba0b", REPO)
+        # 566ba0b must resolve to a real commit distinct from landing
+        self.assertIsNotNone(other, "control: 566ba0b must resolve")
+        self.assertNotEqual(other, landing,
+                            "an abbreviation of a different commit must not agree")
+
+    def test_c_unresolvable_sha_fails(self):
+        self.assertIsNone(
+            resolve_commit("0000000000000000000000000000000000000000", REPO),
+            "an unresolvable stamp must yield None")
+
+    def test_d_real_pair_97575af_vs_landing_passes(self):
+        landing = landing_commit_for(
+            "experiments/gpu-sim-u2o.6.6.2/job.json", REPO)
+        self.assertIsNotNone(landing)
+        self.assertEqual(resolve_commit("97575af", REPO), landing,
+                         "97575af must resolve to the landing commit")
 
 
 if __name__ == "__main__":

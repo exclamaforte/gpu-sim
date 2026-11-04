@@ -110,13 +110,27 @@ def landing_commit_for(artifact: str | Path,
     Per-file, oldest add: a sibling file added later cannot move it, which
     is the property the bead exists for ('where it landed must not move
     every time someone adds a file beside it'). Returns the oldest add's
-    short hash (%h, same convention as the existing citations).
+    full sha (%H); callers resolve stamps via git rev-parse.
     """
-    out = _git(repo, "log", "--format=%h", "--diff-filter=A", "--reverse",
+    out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
                "master", "--", str(artifact))
     if not out:
         return None
     return out.splitlines()[0]
+
+
+def resolve_commit(stamp: str | None,
+                   repo: Path = REPO_DEFAULT) -> str | None:
+    """Resolve a (possibly abbreviated) commit stamp to its FULL sha.
+
+    Returns None when the stamp cannot be resolved (unresolvable -> a real
+    failure for the agreement check). A 7-char prefix of a 40-char sha
+    resolves to that sha; an abbreviation of a different commit resolves to
+    that other commit's sha.
+    """
+    if not stamp:
+        return None
+    return _git(repo, "rev-parse", "--verify", f"{stamp}^{{commit}}")
 
 
 def resolve_superseded_by(branch_field: str, artifact: str | Path,
