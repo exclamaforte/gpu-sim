@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import os as _os
+_os.environ.setdefault("OMP_NUM_THREADS", "1")
+_os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+_os.environ.setdefault("MKL_NUM_THREADS", "1")
+_os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+_os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 """Stage D: train GBT (2al confirmed config) on 5 seen families, evaluate on unseen."""
 import json, math, pathlib, sys, random
 import numpy as np

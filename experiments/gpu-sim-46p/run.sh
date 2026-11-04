@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-46p -- recompute check. CPU-ONLY (stdlib + repo).
 # Re-runs the unit gates + before/after driver, byte-compares metrics.json.
 # The driver has no change-detection gate (46p EXPECTS movement, stated

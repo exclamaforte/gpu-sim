@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 cd "$(dirname "$0")/../.."
 # CPU-only equivalence test (no interposer, real gloo collectives).
 # cp=1 single-process smoke; cp=2 requires 2 processes (see cp_cpu_equiv.py).

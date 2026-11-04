@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.12.1 replay: GPU numbers are documented, not replayed.
 # Verifies the derivation (metrics == job output + ratio) and reruns the
 # CPU preflight (shape/sync-guard path, tiny batch).

@@ -1,4 +1,5 @@
 #!/bin/bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-u2o.9.1 CPU replay (no GPU, no ts job): data build + negctrl +
 # tests, byte-identical where deterministic. The GPU train (run_trans.sh,
 # ~40 s, 157 MB ckpt NOT committed) is documented, not replayed.

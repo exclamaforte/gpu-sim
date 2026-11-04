@@ -3,6 +3,7 @@
 # The 40-min extraction is a recorded run (see job.json), NOT replayed here;
 # verify recomputes every check from ptx_corpus.jsonl + the corpus.
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 HERE="$(dirname "$0")"
 cd "$HERE"
 export CUDA_VISIBLE_DEVICES=

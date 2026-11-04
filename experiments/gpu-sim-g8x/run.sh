@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-g8x -- recompute check. CPU-ONLY (stdlib; no numpy needed).
 # Re-runs the specs tests + baseline driver into scratch, byte-compares
 # metrics.json. Writes no tracked file.

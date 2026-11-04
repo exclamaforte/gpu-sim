@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # gpu-sim-m3d.6 acceptance test suite (CPU-only).
 set -euo pipefail
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 cd "$(dirname "$0")/../.."
 OUT="$(pwd)/experiments/gpu-sim-m3d.6"
 G=./scripts/gpusim

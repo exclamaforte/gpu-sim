@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-8g6 -- recompute check. CPU-ONLY: the three GPU probe jobs cannot be
 # recomputed without a device. Re-runs build_verdict.py into scratch and
 # byte-compares against the committed metrics.json (modulo the recorded tree

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 # gpu-sim-ep3 orchestrator. Invoke under the 8-CPU quota so the windows inherit it:
 #   systemd-run --user --scope --property=CPUQuota=800% -- bash experiments/gpu-sim-ep3/run.sh
 set -u

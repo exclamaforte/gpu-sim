@@ -17,8 +17,10 @@ MUTATIONS = {
     "ledger_node_ids_validated": "ledger node id validator",
     "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
     "u5q0_lint_fixture_6338": "6.10 prose-ratio fixture pins the derived 6338x ratio (gpu-sim-u5q0)",
+    "s2qj_bypass_path": "s2qj bypass path (gpu-sim-s2qj)",
     "wty2_structure_dominated": "wty2 structure-dominated verdict on unseen families (gpu-sim-wty2)",
     "u5r4_size_scaling_arm": "u5r4 size-scaling arm on divergent_branch (gpu-sim-u5r4)",
+    "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
 }
 
 
@@ -68,8 +70,32 @@ def _apply_u5r4_corrupt(root):
         json.dump(d, f, indent=2)
     return backup, path
 
+def _apply_s2qj_unbypass(root):
+    """Mutation for s2qj_bypass_path: make the checker ignore bypass records."""
+    import os
+    path = os.path.join(root, "scripts", "check_gate_citations.py")
+    backup = open(path).read()
+    mutated = backup.replace("if bypass_path is not None:", "if False and bypass_path is not None:", 1)
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_v5l3_unpin(root):
+    """Mutation for v5l3_pin_coverage: remove one pin from a run.sh."""
+    import os
+    path = os.path.join(root, "experiments", "gpu-sim-006j", "run.sh")
+    backup = open(path).read()
+    mutated = backup.replace("OMP_NUM_THREADS=1", "OMP_NUM_THREADS=2", 1)
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
     "u5r4_size_scaling_arm": _apply_u5r4_corrupt,
+    "s2qj_bypass_path": _apply_s2qj_unbypass,
+    "v5l3_pin_coverage": _apply_v5l3_unpin,
 }
