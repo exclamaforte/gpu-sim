@@ -42,11 +42,11 @@ class Test5uu9(unittest.TestCase):
             env["U5R4_OUT"] = str(scratch)
             r = subprocess.run([sys.executable, str(RUN_ANALYZE)], cwd=str(ROOT),
                                capture_output=True, text=True, timeout=300, env=env)
-            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            assert r.returncode == 0, r.stdout + r.stderr
             regenerated = json.loads(METRICS.read_text())
         finally:
             METRICS.write_bytes(backup)
-        self.assertEqual(_normalize(committed), _normalize(regenerated),
+        assert _normalize(committed) == _normalize(regenerated), (
                          "analyze.py output differs from committed metrics.json")
 
 
