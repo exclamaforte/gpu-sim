@@ -110,6 +110,13 @@ def load_ledger_entries(root=None):
 
 def load_ledger_meta(root=None):
     r = root or ROOT
+    # u6ih: retired list migrated to tests/fs2y_ledger_meta.json (shards layout).
+    mpath = os.path.join(r, "tests", "fs2y_ledger_meta.json")
+    if os.path.exists(mpath):
+        try:
+            return json.load(open(mpath))
+        except (json.JSONDecodeError, OSError):
+            pass
     lpath = os.path.join(r, "tests", "fs2y_ledger.json")
     if os.path.exists(lpath):
         return json.load(open(lpath))

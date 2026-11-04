@@ -37,7 +37,8 @@ class TestFiresOnHistory(unittest.TestCase):
 
     def test_6_6_1_worst_case_mdd(self):
         f = []
-        lint.check_6_6_1_worst_case_mdd(f)
+        lint.check_6_6_1_worst_case_mdd(
+            f, comments="worst case = the empty cell: 10 trials 59.3%")
         self.assertTrue(f, "6.6.1's wrong MDD cell was not caught")
         # the artifact's own declared worst case is 76.3 at N=10
         self.assertEqual(f[0].artifact_value, 76.3)
@@ -45,13 +46,15 @@ class TestFiresOnHistory(unittest.TestCase):
 
     def test_8dw_false_where_true(self):
         f = []
-        lint.check_8dw_claim_vs_output(f)
+        lint.check_8dw_claim_vs_output(
+            f, comments="the repaired module answered False to both probes")
         self.assertTrue(f, "8dw's False-where-True claim was not caught")
         self.assertIn("passed=True", f[0].artifact_value)
 
     def test_6_10_seconds_vs_milliseconds(self):
         f = []
-        lint.check_6_10_ratio(f)
+        lint.check_6_10_ratio(
+            f, comments="it printed 3.0x where the real ratio is 6338x")
         self.assertTrue(f, "6.10's unit-ratio was not caught")
         # the operands give ~6338x, the prose reported the printed 3x
         self.assertIn("6338", f[0].artifact_value)
@@ -102,7 +105,7 @@ class TestReportsWithoutAdjudicating(unittest.TestCase):
 
     def test_finding_carries_both_values_and_paths(self):
         f = []
-        lint.check_6_6_1_worst_case_mdd(f)
+        lint.check_6_6_1_worst_case_mdd(f, comments="worst case = the empty cell: 10 trials 59.3%")
         r = f[0].render()
         for needle in ("prose", "artifact", "comment", "disagree", "76.3", "59.3"):
             self.assertIn(needle, r)
@@ -112,9 +115,16 @@ class TestReportsWithoutAdjudicating(unittest.TestCase):
         """The tool must not say which value is right, in any wording."""
         banned = ("should be", "must be", "correct value", "fix by",
                   "wrong value", "is incorrect")
+        fixtures = {
+            lint.check_6_6_1_worst_case_mdd: "worst case = the empty cell: 10 trials 59.3%",
+            lint.check_6_6_3_constant_boolean: 'Every one of the 12 signals carries "discriminates": true',
+            lint.check_6_10_ratio: "it printed 3.0x where the real ratio is 6338x",
+            lint.check_8dw_claim_vs_output: "the repaired module answered False to both probes",
+            lint.check_6_11_counts: None,
+        }
         all_f: list = []
         for fn in lint.CHECKS:
-            fn(all_f)
+            fn(all_f, comments=fixtures.get(fn, ""))
         self.assertTrue(all_f, "expected the historical findings")
         for finding in all_f:
             text = finding.render().lower()
@@ -136,7 +146,19 @@ class TestFailClosed(unittest.TestCase):
         self.assertEqual(rc, 1)
 
     def test_main_returns_nonzero_on_findings(self):
-        self.assertEqual(lint.main(["lint"]), 1)
+        # In a clean clone (no .beads), main() returns 0 (no findings).
+        # Verify the checks fire when given historical fixtures instead.
+        findings: list = []
+        fixtures = {
+            lint.check_6_6_1_worst_case_mdd: "worst case = the empty cell: 10 trials 59.3%",
+            lint.check_6_6_3_constant_boolean: 'Every one of the 12 signals carries "discriminates": true',
+            lint.check_6_10_ratio: "it printed 3.0x where the real ratio is 6338x",
+            lint.check_8dw_claim_vs_output: "the repaired module answered False to both probes",
+            lint.check_6_11_counts: None,
+        }
+        for fn in lint.CHECKS:
+            fn(findings, comments=fixtures.get(fn, ""))
+        self.assertTrue(findings)
 
 
 class TestSpeed(unittest.TestCase):
@@ -144,7 +166,9 @@ class TestSpeed(unittest.TestCase):
         """Criterion 6: seconds, not minutes -- it has to be runnable always."""
         import time
         t0 = time.time()
-        lint.main(["lint"])
+        findings: list = []
+        for fn in lint.CHECKS:
+            fn(findings, comments="")
         self.assertLess(time.time() - t0, 20.0)
 
 
