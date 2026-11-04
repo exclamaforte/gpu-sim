@@ -111,22 +111,16 @@ def _eff_bw(link: Any, counts: Dict[str, int]) -> float:
     nccl_cost table had used all along, and with the fix the two paths agree to 0.4%
     (94.12 vs 93.77 ms at N=8/seq 8192).
 
-    The flag is PER LINK because the two fabrics are quoted differently, and the specs
-    say so: NVLink 4 "900 GB/s per GPU (aggregate bidirectional)" is two-way, while NDR
-    IB "400 Gb/s = 50 GB/s per GPU NIC" is already per direction. Halving both would
-    make the IB links half as fast as the hardware. Default is per-direction (unchanged
-    behaviour) so only links declaring `bw_is_bidirectional` are halved.
+    The rule itself lives in epic_cluster.topology.effective_bw, which is also
+    what emit() writes into the flat binary as `eff_bw_gbps` and therefore what
+    fakegpu_nccl.c prices with.  It is DELEGATED to rather than reimplemented:
+    when the two copies existed independently, this one halved the bidirectional
+    NVLink while the topology copy did not, so the C predictor charged 900 GB/s
+    where this model charged 450 (gpu-sim-3v6d.1).
     """
-    bw = float(link["bw_gbps"])
-    if link.get("bw_is_bidirectional", False):
-        bw *= 0.5
-    sg = link["shared_group"]
-    if sg is None:
-        return bw
-    c = counts.get(sg, 1)
-    if c < 1:
-        c = 1
-    return bw / c
+    from epic_cluster import topology as _topology
+
+    return _topology.effective_bw(link, counts)
 
 
 def _path_bw(links_spec, path_link_ids, counts):

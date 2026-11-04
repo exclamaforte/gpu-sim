@@ -77,12 +77,22 @@ uint64_t fg_fab_success_count(fg_fab_t *f);
 uint64_t fg_fab_attempt_count(fg_fab_t *f);
 
 /* apply a link's bw/latency/jitter/loss/partition/timeout to nbytes.
+
+   bw_gbs is the link's EFFECTIVE PER-DIRECTION rate in GB/s - the same number
+   epic_cluster.topology.emit writes as `eff_bw_gbps` and fakegpu_nccl.c prices
+   with (bidirectional links already halved, shared_group already divided).
+   The name says GB/s because the previous `bw_gbps` said Gbit/s by its
+   spelling, by fakegpu_fabric.c's formula, and nothing else agreed: with
+   specs/h100_rack.json's 900 the model priced 450 GB/s, this enforcer acted at
+   900 Gbit/s = 112.5 GB/s, and the 8x gap was invisible because no test ever
+   compared the two (gpu-sim-3v6d.1).
+
    loss_ppm: per-transfer drop probability (ppm). partition_after: number of
    successful transfers before the link partitions (0 = never). timeout_ns:
    hard deadline. timeout_us: per-transfer deadline (0 = none). Returns
    FG_FAB_OK on success, FG_FAB_ELOSS on loss, FG_FAB_ETIMEDOUT on
    partition/timeout, FG_FAB_EPEERDEAD on peer death. */
-int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbps,
+int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                      double latency_us, double jitter_us, int loss_ppm,
                      uint64_t partition_after, double timeout_us, int link_id);
 
