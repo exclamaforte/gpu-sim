@@ -85,7 +85,7 @@ for r in cell_rows:
         per_config[r["size"]][0] += 1
 per_config_usable = {str(k): {"usable": v[0], "total": v[1]} for k, v in sorted(per_config.items())}
 n_units = sum(1 for k, v in per_config.items() if v[0] > 0)
-unit_rule = "distinct problem sizes with at least one usable cell"
+unit_rule = "distinct configurations with at least one usable cell"
 print("per_config_usable:", per_config_usable)
 print("n_units:", n_units)
 
