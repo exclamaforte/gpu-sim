@@ -4,6 +4,10 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 export U5R4_OUT="${U5R4_OUT:-$ROOT/.lab/tmp/nlgf_out}"
+case "$U5R4_OUT" in
+    "$ROOT"/.lab/tmp/*|"$ROOT"/experiments/*) ;;
+    *) echo "REFUSE: U5R4_OUT must be under .lab/tmp or experiments/ (got '$U5R4_OUT'); refusing to rm -rf it" >&2; exit 2 ;;
+esac
 rm -rf "$U5R4_OUT"; mkdir -p "$U5R4_OUT"
 python3 "$HERE/analyze_power.py"
 if ! diff -q "$U5R4_OUT/metrics.json" "$HERE/metrics.json" >/dev/null; then
