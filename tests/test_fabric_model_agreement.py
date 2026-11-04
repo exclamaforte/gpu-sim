@@ -40,7 +40,8 @@ SPEC = os.path.join(REPO, "specs", "h100_rack.json")
 
 PAYLOAD = 4 << 30  # 4 GiB: at 450 GB/s that is 9.5 ms, so usleep overshoot (~60 us)
                    # is <1% and the 2x/8x plants stay far outside any sane tolerance
-TOL = 0.05
+TOL = 0.02  # acceptance (a): 2%. Measured +1.15% at the tip (reviewer, 2026-11-04);
+           # 0.05 was a loosening that made the test stop enforcing the written bar.
 
 
 def _load_topo(tmp_path):
@@ -193,3 +194,45 @@ def test_one_rate_everywhere_on_the_real_spec(tmp_path):
     other.pop("bw_is_bidirectional", None)
     assert topology.effective_bw(other, counts) == 900.0
     assert link_model._eff_bw(other, counts) == 900.0
+
+import unittest  # imported here, below every existing test, so no line above shifts
+                 # (tests/skip_allowlist.json is keyed by LINE NUMBER: gpu-sim-05b3)
+
+class TestFabricModelAgreement(unittest.TestCase):
+    """Class-wrapped form of the chain assertion above (gpu-sim-3v6d.1).
+
+    Exists so the liveness ledger can name the enforcing assertion as
+    module.Class.method: the ledger normalises a 2-part id to
+    tests/<module>.py::<method> and a 3-part id to ::<Class>::<method>, and a
+    class keeps the row valid under both readers. No fixtures, so a replay that
+    imports and calls it works too. Same measurement as
+    test_enforced_delay_matches_model_formula -- if this stops agreeing with the
+    model formula, the transport is not charging what nccl_cost prices.
+    """
+
+    def test_enforced_delay_matches_model_formula_class(self):
+        import pathlib
+        import shutil
+        import tempfile
+
+        d = pathlib.Path(tempfile.mkdtemp(prefix="fab-agree-"))
+        try:
+            spec, _ = _load_topo(d)
+            link, eff = _nvlink_terms(spec)
+            assert eff == 450.0, eff
+            lat_us = float(link["latency_us"])
+            lib = ctypes.CDLL(LIB)
+            f = _attach(lib, "chain-class-%d" % os.getpid())
+            try:
+                measured = _measure_us(lib, f, PAYLOAD, eff, lat_us)
+            finally:
+                lib.fg_fab_detach.argtypes = [ctypes.c_void_p]
+                lib.fg_fab_detach(f)
+            model = PAYLOAD / (eff * 1e9) * 1e6 + lat_us   # fakegpu_nccl.c's formula
+            rel = abs(measured - model) / model
+            assert rel <= TOL, (
+                "enforced %.1f us vs modelled %.1f us (%.1f%% off) "
+                "bw_gbs=%.1f -- the transport is not charging what the model prices"
+                % (measured, model, 100 * rel, eff))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
