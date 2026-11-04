@@ -21,6 +21,24 @@ power_path = HERE / "measured_rows_sizescale_power.jsonl"
 rows = [json.loads(l) for l in power_path.read_text().splitlines() if l.strip()]
 print("power rows:", len(rows))
 
+# Census: every (size, build_idx) cell must have exactly K replicates with an
+# identical key set; otherwise the analysis refuses rather than silently
+# averaging a partial cell.
+K = 3
+from collections import defaultdict
+_cells = defaultdict(list)
+for r in rows:
+    _cells[(r["size"], r["build_idx"])].append(r)
+for key, reps in _cells.items():
+    if len(reps) != K:
+        print(f"REFUSE: cell {key} has {len(reps)} replicates, expected {K}", file=sys.stderr)
+        sys.exit(1)
+    keysets = set(frozenset(r.keys()) for r in reps)
+    if len(keysets) != 1:
+        print(f"REFUSE: cell {key} has differing key sets across replicates", file=sys.stderr)
+        sys.exit(1)
+print("census OK: %d cells x %d replicates" % (len(_cells), K))
+
 def new_usable(row):
     kernel_us = row["kernel_us"]
     within = row["within_std_us"]
@@ -74,6 +92,11 @@ print("n_units:", n_units)
 # seen data for training
 seen_rows = [json.loads(l) for l in (REPO / "experiments/gpu-sim-2al/dataset.jsonl").read_text().splitlines()]
 seen_families = sorted(set(r["family"] for r in seen_rows))
+# leakage guard: training families are the 5 seen only; probe families excluded
+assert seen_families == ["elementwise", "matmul", "reduction", "softmax", "transpose"], seen_families
+assert "gemm_naive" not in seen_families
+assert "divergent_branch" not in seen_families
+print("ASSERTION OK: GBT trained on 5 seen families only")
 
 def seen_phys(r):
     fam = r["family"]; n = r["size"]; b = r["block"]
@@ -209,9 +232,12 @@ results = {
     "achieved_mde": mde,
     "mde_exceeds_effect": bool(mde > abs(paired_mean)),
     "sizes": sorted(set(r["size"] for r in cell_rows)),
-    "honest_claim": "Contract v2 changes the measured quantity to steady-state per-launch time. On the shared sizescale corpus under the corrected gate it yields 11/56 usable cells, ALL in one configuration (16M, block 256); no smaller size is rescued (8M 0/11 cells), so the hoped-for downward widening of the usable range is not achieved. The GBT-vs-floor MODEL verdict is therefore INSUFFICIENT at n_units=1; the 13-configuration arm gpu-sim-5uu9 is what can answer it.",
+    "honest_claim": "nlgf is a 3-replicate POWER TEST OF THE V1 SINGLE-LAUNCH TARGET under the corrected gate (n_units=1). The gate's launches_per_region_K=40 is NOT what these rows measure: measure_power.py subtracts medians over ONE launch. The real batched contract is gpu-sim-8yb4. Protocol claim (pass rate 0.1964, 16M usable 11/11) stands; MODEL verdict INSUFFICIENT at n_units=1.",
     "config_grouping": "5 distinct (family,kernel_name,block,grid,args,problem_size,shared_mem_bytes,op_type) signatures from 56 specs: 12x grid(4096), 11x (8192), 11x (16384), 11x (32768), 11x (65536); all block [256,1,1]. 11 usable cells all at grid 65536 = 1 configuration.",
     "kept_negative": "v2 does not rescue small sizes: 8M 0/11 usable cells. GPU-util-per-row not measured.",
+    "v1_block": "nlgf is a 3-replicate POWER TEST OF THE V1 SINGLE-LAUNCH TARGET under the corrected gate (n_units=1). The gate's launches_per_region_K=40 is NOT what these rows measure: measure_power.py subtracts medians over ONE launch. The real batched contract is gpu-sim-8yb4.",
+    "delta": paired_mean,
+    "which_numbers_we_quote": "pass rate 0.1964 (11/56 usable cells), CI [-0.5051, -0.4756] over 11 usable cells, achieved MDE 0.0148. WARNING: NOT comparable to u5r4's recorded 43/56 (original gate) -- different gates, cells vs rows; do not quote as an improvement.",
 }
 import os as _os2
 _u5r4_out = _os2.environ.get("U5R4_OUT")

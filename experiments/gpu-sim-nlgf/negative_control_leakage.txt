@@ -1,0 +1,38 @@
+NEGATIVE CONTROL (nlgf b): leakage asserts fire on append-divergent_branch.
+
+Commands:
+  cp -r .lab/wt/gpu-sim-nlgf .lab/tmp/nlgf-scratch
+  cd .lab/tmp/nlgf-scratch
+  # append a divergent_branch row to the seen data:
+  python3 -c "import json; p='experiments/gpu-sim-2al/dataset.jsonl'; rows=[json.loads(l) for l in open(p)]; r=dict(rows[0]); r['family']='divergent_branch'; open(p,'a').write(json.dumps(r)+'\\n')"
+  U5R4_OUT=/tmp/scratchpad/nlgf_out python3 experiments/gpu-sim-nlgf/analyze_power.py
+
+Result: AssertionError: ['divergent_branch', 'elementwise', 'matmul', 'reduction', 'softmax', 'transpose']
+  at analyze_power.py:96: assert seen_families == ["elementwise", "matmul", "reduction", "softmax", "transpose"]
+
+Interpretation: the leakage guard (seen families exactly the 5 seen; divergent_branch/gemm_naive excluded)
+fires when a probe family leaks into the training data, preventing silent contamination of the GBT.
+
+NEGATIVE CONTROL (nlgf a): census refuses partial cell.
+
+Commands:
+  cp -r .lab/wt/gpu-sim-nlgf .lab/tmp/nlgf-scratch2
+  cd .lab/tmp/nlgf-scratch2
+  python3 - <<'PY'
+  import json
+  from collections import defaultdict
+  p="experiments/gpu-sim-nlgf/measured_rows_sizescale_power.jsonl"
+  rows=[json.loads(l) for l in open(p)]
+  cells=defaultdict(list)
+  for r in rows: cells[(r["size"],r["build_idx"])].append(r)
+  key=list(cells)[0]; target=cells[key][0]
+  rows=[r for r in rows if r is not target]
+  with open(p,"w") as f:
+      for r in rows: f.write(json.dumps(r)+"\\n")
+  PY
+  U5R4_OUT=/tmp/scratchpad/nlgf_out2 python3 experiments/gpu-sim-nlgf/analyze_power.py
+
+Result: REFUSE: cell (1048576, 0) has 2 replicates, expected 3 (exit 1)
+
+Interpretation: the census (computed from the file) refuses a cell with != K replicates rather than
+silently averaging a partial cell.

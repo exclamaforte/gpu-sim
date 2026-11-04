@@ -47,7 +47,10 @@
     8388608,
     16777216
   ],
-  "honest_claim": "Contract v2 changes the measured quantity to steady-state per-launch time. On the shared sizescale corpus under the corrected gate it yields 11/56 usable cells, ALL in one configuration (16M, block 256); no smaller size is rescued (8M 0/11 cells), so the hoped-for downward widening of the usable range is not achieved. The GBT-vs-floor MODEL verdict is therefore INSUFFICIENT at n_units=1; the 13-configuration arm gpu-sim-5uu9 is what can answer it.",
+  "honest_claim": "nlgf is a 3-replicate POWER TEST OF THE V1 SINGLE-LAUNCH TARGET under the corrected gate (n_units=1). The gate's launches_per_region_K=40 is NOT what these rows measure: measure_power.py subtracts medians over ONE launch. The real batched contract is gpu-sim-8yb4. Protocol claim (pass rate 0.1964, 16M usable 11/11) stands; MODEL verdict INSUFFICIENT at n_units=1.",
   "config_grouping": "5 distinct (family,kernel_name,block,grid,args,problem_size,shared_mem_bytes,op_type) signatures from 56 specs: 12x grid(4096), 11x (8192), 11x (16384), 11x (32768), 11x (65536); all block [256,1,1]. 11 usable cells all at grid 65536 = 1 configuration.",
-  "kept_negative": "v2 does not rescue small sizes: 8M 0/11 usable cells. GPU-util-per-row not measured."
+  "kept_negative": "v2 does not rescue small sizes: 8M 0/11 usable cells. GPU-util-per-row not measured.",
+  "v1_block": "nlgf is a 3-replicate POWER TEST OF THE V1 SINGLE-LAUNCH TARGET under the corrected gate (n_units=1). The gate's launches_per_region_K=40 is NOT what these rows measure: measure_power.py subtracts medians over ONE launch. The real batched contract is gpu-sim-8yb4.",
+  "delta": -0.49263705901084714,
+  "which_numbers_we_quote": "pass rate 0.1964 (11/56 usable cells), CI [-0.5051, -0.4756] over 11 usable cells, achieved MDE 0.0148. WARNING: NOT comparable to u5r4's recorded 43/56 (original gate) -- different gates, cells vs rows; do not quote as an improvement."
 }
