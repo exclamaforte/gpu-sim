@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import atexit
 
 # gpu-sim-x1v: refuse to run tests against a stale libfakegpu.so
 REPO = Path(__file__).resolve().parent
@@ -41,6 +42,7 @@ def pytest_configure(config):
     # how the hijack went unnoticed.
     top = _git("rev-parse", "--show-toplevel").stdout.strip()
     if top and os.path.realpath(top) == os.path.realpath(str(REPO)):
+        _restore_tree_to_head()
         config._start_branch = _git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
         config._start_commit = _git("rev-parse", "HEAD").stdout.strip()
         if config._start_branch == "HEAD":
@@ -75,6 +77,62 @@ def _dirty_paths():
             p = p.split(" -> ", 1)[1]
         paths.add(p.strip('"'))
     return paths
+
+
+_PLANT_TARGETS = (
+    "docs/model_facts.json",
+    "tests/fs2y_ledger_meta.json",
+    "experiments/gpu-sim-u5r4/metrics.json",
+    "experiments/gpu-sim-wty2/metrics.json",
+    "tests/test_vacuous_plant.py",
+)
+
+
+def _restore_tree_to_head():
+    # Never restore in a checker child: mutation replay relies on the mutated
+    # file surviving until the target test runs (gpu-sim-zsd3).
+    if os.environ.get("OI4M_CHECKER_PID"):
+        return
+    if os.environ.get("LAB_NO_TREE_JANITOR"):
+        return
+    top = _git("rev-parse", "--show-toplevel").stdout.strip()
+    if not top or os.path.realpath(top) != os.path.realpath(str(REPO)):
+        return
+    for rel in _PLANT_TARGETS:
+        head = _git("show", "HEAD:" + rel)
+        if head.returncode == 0:
+            try:
+                (REPO / rel).parent.mkdir(parents=True, exist_ok=True)
+                (REPO / rel).write_text(head.stdout)
+            except OSError:
+                pass
+    ls = _git("ls-tree", "-r", "--name-only", "HEAD", "--", "tests/fs2y_ledger.d/")
+    for rel in (ls.stdout or "").splitlines():
+        rel = rel.strip()
+        if not rel:
+            continue
+        if not (REPO / rel).exists():
+            head = _git("show", "HEAD:" + rel)
+            if head.returncode == 0:
+                try:
+                    (REPO / rel).parent.mkdir(parents=True, exist_ok=True)
+                    (REPO / rel).write_text(head.stdout)
+                except OSError:
+                    pass
+    status = _git("status", "--porcelain")
+    for line in (status.stdout or "").splitlines():
+        if len(line) < 4:
+            continue
+        pp = line[3:].strip()
+        if " -> " in pp:
+            pp = pp.split(" -> ", 1)[1]
+        pp = pp.strip('"')
+        name = Path(pp).name
+        if name.startswith(("plant_", "tmp")) or name.endswith((".tmp", ".pyc")):
+            try:
+                (REPO / pp).unlink()
+            except OSError:
+                pass
 
 
 @pytest.fixture(autouse=True)
@@ -135,3 +193,17 @@ def pytest_sessionfinish(session, exitstatus):
         print(f"\n[conftest] ERROR: the suite moved HEAD from {start_branch!r} to "
               f"{now_branch!r}. Tests must not mutate the shared repository; use a scratch "
               f"git worktree (see tests/test_verify_committed_run.py).", file=sys.stderr)
+    _restore_tree_to_head()
+
+
+def _restore_signal(signum, frame):
+    _restore_tree_to_head()
+    raise SystemExit(128 + signum)
+
+
+for _sig in (signal.SIGTERM, signal.SIGINT):
+    try:
+        signal.signal(_sig, _restore_signal)
+    except (ValueError, OSError):
+        pass
+atexit.register(_restore_tree_to_head)
