@@ -140,7 +140,7 @@ def main():
             key = (d["family"], d["build_idx"])
             if key in done:
                 continue
-            exe = Path(d["exe"])
+            exe = build / "bin" / Path(d["exe"]).name
             if not exe.exists():
                 continue
             # empty baseline
