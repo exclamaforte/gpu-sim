@@ -140,6 +140,7 @@ def main():
             key = (d["family"], d["build_idx"])
             if key in done:
                 continue
+            # manifest exe is an absolute path into the source worktree; resolve against build-dir so a moved checkout still finds the binary
             exe = build / "bin" / Path(d["exe"]).name
             if not exe.exists():
                 continue
