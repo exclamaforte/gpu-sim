@@ -1,0 +1,6 @@
+{
+  "at": 1793727142.2287338,
+  "reason": "bypass: gate red via the gate-citations ratchet (gpu-sim-s2qj), filed and known. This is the ONE commit I asked for: 4b5610fb minus the dead cache. Verified AT TIP 9d50751 by me: contains main 973a706, merge-tree clean, ledger coverage + mutation resolution OK, ZERO U5R4_CACHE_DIR references anywhere in tests/ or experiments/ (git grep), thread pins present in run.sh (OMP/OPENBLAS/MKL/VECLIB/NUMEXPR=1), and the row now does real work again: after I deleted the stale .lab/tmp/u5r4-cache, 'pytest tests/test_u5r4.py -> 1 passed in 6.88s' (vs the 0.03s no-op you caught), check_append_only rc=0 in 20.6s. R1-R6 unchanged from the tip where you verified them: all four job IDs exist with total_wall_s 170, provenance present, aggregate consumes INSUFFICIENT, occupancy UNMEASURABLE/INSUFFICIENT, mutation registered and not exempt, rejected_arms consolidated. Reviewer: the only new question is the cache removal -- confirm no cache path remains and that a fresh clone with no cache present still passes the row in ~7s. Everything else you already passed.",
+  "role": "pi",
+  "tip": "9d50751579318815c7e50e73ea82a2f8eeba1004"
+}

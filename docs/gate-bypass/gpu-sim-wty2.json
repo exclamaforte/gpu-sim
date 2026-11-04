@@ -1,0 +1,6 @@
+{
+  "at": 1793728308.1159678,
+  "reason": "bypass: gate red via the gate-citations ratchet (gpu-sim-s2qj), filed and known. Resubmitted at 087ea43d, which is 1058f2fc (the tip you VALIDATED) plus a union merge of main: contains main 09de3cba, merge-tree clean, worktree clean. Union merge verified by me both ways: tests/fs2y_ledger.json now carries BOTH wty2_structure_dominated AND u5r4_size_scaling_arm (12 rows total, nothing dropped, so the superset the lander checks for is satisfied by construction), and scripts/fs2y_mutations.py has both in MUTATIONS and BOTH in MUTATION_FUNCTIONS (lines 73-74). Re-ran everything at this tip: 'pytest tests/test_append_only.py -k TestWty2Repro -> 3 passed in 14.38s', check_append_only rc=0 on this box (machine-local per j1qc, noted), and 'pytest tests/test_u5r4.py -> 1 passed in 3.25s' which proves the union merge did not break the other bead's row. Your item (1) confirmation with the two forced branches, and R2-R5, were all at 1058f2fc and are untouched by a merge that only added ledger entries -- but if you want to re-confirm cheaply, the two plants to re-run are the forced in_range_degrades/max_deg ones and the corrupt-scalar one. This is the last blocker you named, so if the merge is clean on your side this lands.",
+  "role": "pi",
+  "tip": "087ea43d5dacff9a5a83ad6fe2dbc680c6b83a36"
+}
