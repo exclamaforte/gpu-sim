@@ -6,6 +6,7 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
+    "rb66_ambient_init": "rb66 fixture: throwaway repo left on the ambient default branch",
     "dhfo_memory_check": "dhfo memory-check guard",
     "bch9_fabric_band": "bch9 fabric band robustness",
     "8zqr_generalization": "8zqr cross-class generalization",
@@ -182,7 +183,30 @@ def _apply_3v6d1_unhalve(root):
     return backup, path
 
 
+def _apply_rb66_ambient_init(root):
+    """Mutation for rb66_ambient_init: init the throwaway repo on the WRONG branch.
+
+    The real fix is that the fixture names its branch explicitly, so the
+    master/side hazard it builds does not depend on the caller's
+    init.defaultBranch. Pointing init at 'main' instead reproduces the bug
+    deterministically: the following 'git checkout master' has no such branch and
+    the eight tests in the file error out.
+    """
+    import os
+    path = os.path.join(root, "tests", "test_safe_git_add.py")
+    backup = open(path).read()
+    old = 'git(self.repo, "init", "-q", "-b", "master")'
+    new = 'git(self.repo, "init", "-q", "-b", "main")'
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("rb66 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
+    "rb66_ambient_init": _apply_rb66_ambient_init,
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
     "u5r4_size_scaling_arm": _apply_u5r4_corrupt,
