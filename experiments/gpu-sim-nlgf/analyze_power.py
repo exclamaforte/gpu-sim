@@ -59,7 +59,7 @@ usable = [r for r in cell_rows if r["corrected_usable"]]
 print("usable cells:", len(usable), "pass rate:", round(len(usable)/len(cell_rows),4))
 
 # per-configuration usable table
-from collections import Counter, defaultdict
+from collections import defaultdict
 per_config = defaultdict(lambda: [0, 0])
 for r in cell_rows:
     per_config[r["size"]][1] += 1
