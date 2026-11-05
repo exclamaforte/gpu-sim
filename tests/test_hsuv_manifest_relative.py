@@ -24,7 +24,10 @@ class TestHsuvManifestRelative:
 
     def test_build_script_checks_strip_returncode(self):
         src = BUILD_SCRIPT.read_text()
-        assert "returncode" in src and "strip" in src
+        # two asserts, not one BoolOp: the gate's vacuous-test linter only inspects
+        # assert <Call>/<Compare>, so "assert a and b" registers as NO assertion.
+        assert "returncode" in src
+        assert "strip" in src
 
     def test_build_script_supports_scratch_build_dir(self):
         src = BUILD_SCRIPT.read_text()
