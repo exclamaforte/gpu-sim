@@ -6,6 +6,7 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
+    "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
     "rb66_ambient_init": "rb66 fixture: throwaway repo left on the ambient default branch",
     "dhfo_memory_check": "dhfo memory-check guard",
@@ -250,7 +251,37 @@ def _apply_3v6d2_uncas(root):
     return backup, path
 
 
+def _apply_8yb4_corrupt(root):
+    """Mutation for 8yb4_k_window: put back the 40x currency error the bead rules out.
+
+    The row's test pins every config's K=1/K=40 ratio to [0.9,1.1]; the defect under
+    investigation was the hypothesis that the corpus's one-launch-per-window timing
+    and the gate's K=40 pricing are ~40x apart. Inflating one measured ratio to 40
+    reproduces that hypothesis as data, so the test must fail.
+    """
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-8yb4", "rows.jsonl")
+    backup = open(path).read()
+    lines = backup.splitlines()
+    out = []
+    changed = False
+    for line in lines:
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        if not changed:
+            row["ratio_k1_over_k40"] = 40.0
+            changed = True
+        out.append(json.dumps(row))
+    if not changed:
+        raise RuntimeError("8yb4 mutation did not apply")
+    with open(path, "w") as f:
+        f.write("\n".join(out) + "\n")
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
+    "8yb4_k_window": _apply_8yb4_corrupt,
     "3v6d2_link_calendar": _apply_3v6d2_uncas,
     "rb66_ambient_init": _apply_rb66_ambient_init,
     "ledger_node_ids_validated": _apply_ledger_bad_row,

@@ -1,0 +1,5 @@
+{"n": 8388608, "block": 128, "k1_median_us": 33.6, "k40_median_us": 31.349, "ratio_k1_over_k40": 1.0718, "implied_fixed_cost_us": 2.251}
+{"n": 8388608, "block": 256, "k1_median_us": 17.12, "k40_median_us": 15.954, "ratio_k1_over_k40": 1.0731, "implied_fixed_cost_us": 1.166}
+{"n": 33554432, "block": 256, "k1_median_us": 173.184, "k40_median_us": 175.823, "ratio_k1_over_k40": 0.985, "implied_fixed_cost_us": -2.639}
+{"n": 33554432, "block": 512, "k1_median_us": 172.272, "k40_median_us": 175.788, "ratio_k1_over_k40": 0.98, "implied_fixed_cost_us": -3.516}
+MEASURE_K_DONE {"bead": "gpu-sim-8yb4", "question": "Is per-launch kernel time flat in K? The corpus measures K=1 launch per event window; the gate prices K=40.", "k_test": 40, "configs": 4, "median_ratio_k1_over_k40": 1.0284, "median_implied_fixed_cost_us": -0.736, "finding": "per-launch time is flat in K", "rows_file": "rows.jsonl"}
