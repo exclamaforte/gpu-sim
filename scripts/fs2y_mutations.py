@@ -7,6 +7,7 @@ is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
+    "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
     "rb66_ambient_init": "rb66 fixture: throwaway repo left on the ambient default branch",
     "dhfo_memory_check": "dhfo memory-check guard",
     "bch9_fabric_band": "bch9 fabric band robustness",
@@ -207,6 +208,49 @@ def _apply_rb66_ambient_init(root):
     return backup, path
 
 
+
+def _apply_05b3_delete_key(root):
+    """Mutation for 05b3_skip_allowlist_keys: delete one registered key."""
+    import json, os
+    path = os.path.join(root, "tests", "skip_allowlist.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    # remove first key
+    if d:
+        del d[next(iter(d))]
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+        f.write("\n")
+    return backup, path
+
+
+def _apply_3v6d2_uncas(root):
+    """Mutation for 3v6d2_link_calendar: remove the calendar reservation entirely."""
+    import os
+    path = os.path.join(root, "src", "fakegpu_fabric.c")
+    backup = open(path).read()
+    old = """        do {
+            busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
+            uint64_t now = now_ns();
+            start = (busy > now) ? busy : now;
+            finish = start + delay_ns;
+        } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
+                                                            &busy, finish,
+                                                            memory_order_acq_rel,
+                                                            memory_order_acquire));"""
+    new = """        /* mutation: calendar removed -- no serialization */
+        uint64_t now = now_ns();
+        finish = now + delay_ns;"""
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d2 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    import subprocess
+    subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
+    return backup, path
+
+
 def _apply_8yb4_corrupt(root):
     """Mutation for 8yb4_k_window: put back the 40x currency error the bead rules out.
 
@@ -236,23 +280,9 @@ def _apply_8yb4_corrupt(root):
     return backup, path
 
 
-def _apply_05b3_delete_key(root):
-    """Mutation for 05b3_skip_allowlist_keys: delete one registered key."""
-    import json, os
-    path = os.path.join(root, "tests", "skip_allowlist.json")
-    backup = open(path).read()
-    d = json.loads(backup)
-    # remove first key
-    if d:
-        del d[next(iter(d))]
-    with open(path, "w") as f:
-        json.dump(d, f, indent=2)
-        f.write("\n")
-    return backup, path
-
-
 MUTATION_FUNCTIONS = {
     "8yb4_k_window": _apply_8yb4_corrupt,
+    "3v6d2_link_calendar": _apply_3v6d2_uncas,
     "rb66_ambient_init": _apply_rb66_ambient_init,
     "ledger_node_ids_validated": _apply_ledger_bad_row,
     "wty2_structure_dominated": _apply_wty2_corrupt,
