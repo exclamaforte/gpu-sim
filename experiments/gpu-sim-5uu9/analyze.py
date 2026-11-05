@@ -234,6 +234,28 @@ for c in configs_list:
     print(f"  size={c['size']} block={c['block']} pass={c['pass_count']}/{c['n_reps']} usable={c['usable']} median_kernel_us={c['median_kernel_us']:.2f} max_within_std={c['max_within_std_us']:.4f}")
 
 # Save metrics
+# Mechanism probe: grid-stride 13th config (NOT counted in n_eff).
+_probe_reps = []
+for i in (1, 2, 3):
+    pp = HERE / f"mech_probe_rep{i}.jsonl"
+    if pp.exists():
+        _probe_reps.append([json.loads(l) for l in pp.read_text().splitlines() if l.strip()])
+_probe_kernel = [r["kernel_us"] for rep in _probe_reps for r in rep]
+_std_16m = [r["kernel_us"] for rep in reps for r in rep
+            if r["size"] == 16777216 and r["block"] == 256]
+import statistics as _st
+_probe_median = _st.median(_probe_kernel) if _probe_kernel else 0.0
+_std_median = _st.median(_std_16m) if _std_16m else 0.0
+_mechanism_probe = {
+    "label": "MECHANISM PROBE",
+    "config": "grid-stride, 16M, block 256, grid 256",
+    "reps_kernel_us": _probe_kernel,
+    "median_kernel_us": _probe_median,
+    "standard_16M_256_median_us": _std_median,
+    "ratio_gridstride_over_standard": round(_probe_median / _std_median, 4) if _std_median else None,
+    "counted_in_n_eff": False,
+    "note": "grid-stride separates block size from grid coverage at fixed problem size; does not enter the size/block arm's n_eff (12 configs).",
+}
 results = {
     "n_configs_total": len(configs_list),
     "n_usable": n_units,
@@ -242,7 +264,8 @@ results = {
     "ci_basis": "configurations (mean of 3 replicates per config), not rows",
     "label_rule": "INSUFFICIENT if n_units < 8 (paired bootstrap needs >=8 usable distinct configs for a stable MDE); BETTER if paired CI hi<0; WORSE if paired CI lo>0.10; TIE if paired CI hi<=0.10; UNRESOLVED otherwise. Threshold 8 differs from u5r4's n_usable<3 (u5r4 tests a single config, no paired bootstrap).",
     "noise_bound_us": (lambda xs: (sorted(xs)[len(xs)//2] if xs else 0.0))([c.get("max_within_std_us", 0.0) for c in configs_list]),
-    "noise_bound_note": "per-config within-std is max_within_std_us (us, from empty-baseline p05-p95). Median within-config stdev of log10(kernel_us) is not stored (per-trial kernel_us not retained); max_within_std_us is the conservative substitute.",
+    "noise_bound_note": "per-config within-std is max_within_std_us (us, from empty-baseline p05-p95). The reported noise_bound_us is the median over the 9 usable configs. Median within-config stdev of log10(kernel_us) is not stored (per-trial kernel_us not retained); max_within_std_us is the conservative substitute.",
+    "mechanism_probe": _mechanism_probe,
     "per_config_table": [
         {"size": c["size"], "block": c["block"], "grid": c["grid"],
          "pass_fraction": f"{c['pass_count']}/{c['n_reps']}",

@@ -1,4 +1,5 @@
 #!/bin/bash
+# NOTE: this script writes mech_probe_rep{1,2,3}.jsonl (tracked) in place into the experiment dir.
 set -euo pipefail
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -6,7 +6,21 @@
   "ci_basis": "configurations (mean of 3 replicates per config), not rows",
   "label_rule": "INSUFFICIENT if n_units < 8 (paired bootstrap needs >=8 usable distinct configs for a stable MDE); BETTER if paired CI hi<0; WORSE if paired CI lo>0.10; TIE if paired CI hi<=0.10; UNRESOLVED otherwise. Threshold 8 differs from u5r4's n_usable<3 (u5r4 tests a single config, no paired bootstrap).",
   "noise_bound_us": 4.3671732522796365,
-  "noise_bound_note": "per-config within-std is max_within_std_us (us, from empty-baseline p05-p95). Median within-config stdev of log10(kernel_us) is not stored (per-trial kernel_us not retained); max_within_std_us is the conservative substitute.",
+  "noise_bound_note": "per-config within-std is max_within_std_us (us, from empty-baseline p05-p95). The reported noise_bound_us is the median over the 9 usable configs. Median within-config stdev of log10(kernel_us) is not stored (per-trial kernel_us not retained); max_within_std_us is the conservative substitute.",
+  "mechanism_probe": {
+    "label": "MECHANISM PROBE",
+    "config": "grid-stride, 16M, block 256, grid 256",
+    "reps_kernel_us": [
+      118.88,
+      120.336,
+      119.29599999999999
+    ],
+    "median_kernel_us": 119.29599999999999,
+    "standard_16M_256_median_us": 46.832,
+    "ratio_gridstride_over_standard": 2.5473,
+    "counted_in_n_eff": false,
+    "note": "grid-stride separates block size from grid coverage at fixed problem size; does not enter the size/block arm's n_eff (12 configs)."
+  },
   "per_config_table": [
     {
       "size": 8388608,
@@ -174,19 +188,5 @@
   "floor_mae": 4.6876,
   "achieved_mde": 2.9478,
   "mde_exceeds_effect": false,
-  "finding": "BETTER means GBT beats the linear floor in the paired ln-space comparison; it does NOT mean GBT is accurate: GBT MAE is 0.7366 in ln space (~2x multiplicative error) and the linear floor MAE diverges at 4.6876. The label reflects relative ranking, not absolute accuracy.",
-  "mechanism_probe": {
-    "label": "MECHANISM PROBE",
-    "config": "grid-stride, 16M, block 256, grid 256",
-    "reps_kernel_us": [
-      118.88,
-      120.336,
-      119.29599999999999
-    ],
-    "median_kernel_us": 119.29599999999999,
-    "standard_16M_256_median_us": 45.92,
-    "ratio_gridstride_over_standard": 2.598,
-    "counted_in_n_eff": false,
-    "note": "grid-stride separates block size from grid coverage at fixed problem size; does not enter the size/block arm's n_eff (12 configs)."
-  }
+  "finding": "BETTER means GBT beats the linear floor in the paired ln-space comparison; it does NOT mean GBT is accurate: GBT MAE is 0.7366 in ln space (~2x multiplicative error) and the linear floor MAE diverges at 4.6876. The label reflects relative ranking, not absolute accuracy."
 }
