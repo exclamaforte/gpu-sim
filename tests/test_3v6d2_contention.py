@@ -28,7 +28,7 @@ def _lib():
     return lib
 
 
-def _run(same_link, repeats=5, delay=1.0):
+def _run(same_link, repeats=5, bw_gbs=1.0, latency_us=0.0):
     lib = _lib()
     walls = []
     for _ in range(repeats):
@@ -48,7 +48,7 @@ def _run(same_link, repeats=5, delay=1.0):
         def worker(i):
             bar.wait()
             t0 = time.perf_counter()
-            rc = lib.fg_fab_transfer(f, 0, 1 << 20, delay, 0.0, 0.0, 0, 0, 0.0, links[i])
+            rc = lib.fg_fab_transfer(f, 0, 1 << 20, bw_gbs, latency_us, 0.0, 0, 0, 0.0, links[i])
             t1 = time.perf_counter()
             assert rc == 0
             outs[i].append((t0, t1))
@@ -126,10 +126,9 @@ class Test3v6d2Contention:
                     "nodes": nodes, "links": links, "ranks": ranks}
 
         spec = _spec(2, 1.0, 10.0, "g")
-        d = predict(spec, "ring_allreduce", 262144, "float32", n_ranks=2)["duration_s"]
-        delay_ms = d * 1000.0
-        same = _run(True, delay=delay_ms)
-        predicted_total_ms = 2.0 * delay_ms
+        d_us = predict(spec, "ring_allreduce", 262144, "float32", n_ranks=2)["duration_s"] * 1e6
+        same = _run(True, bw_gbs=1e9, latency_us=d_us)
+        predicted_total_ms = 2.0 * d_us / 1000.0
         assert abs(same - predicted_total_ms) / predicted_total_ms <= 0.10, (
             f"serialized total {same:.3f} ms not within 10% of model "
             f"allocation {predicted_total_ms:.3f} ms")
