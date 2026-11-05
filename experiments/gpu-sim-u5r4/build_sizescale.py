@@ -41,13 +41,16 @@ for spec_obj in g5.generate_kernels(max_kernels=100000):
     except Exception as e:
         print("synth fail", idx, e); continue
     exe = build / "bin" / f"k_divergent_branch_{idx-1:04d}.out"
-    c, m = h.compile_kernel(prog, str(exe.relative_to(REPO)), arch="sm_120")
+    c, m = h.compile_kernel(prog, str(exe), arch="sm_120")
     if not c:
         print("compile fail", idx, m[:120]); continue
     _sr = subprocess.run(["strip","-s",str(exe)], capture_output=True)
     if _sr.returncode != 0:
         print("strip fail", idx, _sr.stderr.decode(errors="replace")[:120])
-    d["exe"] = str(exe.relative_to(REPO))
+    try:
+        d["exe"] = str(exe.relative_to(build))
+    except ValueError:
+        d["exe"] = exe.name
     d["build_idx"] = idx - 1
     bm = 2 * n * 4.0
     flops = n
@@ -77,7 +80,7 @@ for (g, b) in uniq:
            '  for(int t=0;t<20;t++){\n    float ms=0; cudaEventRecord(s); k_empty<<<grid,block>>>(); cudaEventRecord(e); cudaEventSynchronize(e); cudaEventElapsedTime(&ms,s,e);\n'
            '    printf("{\\"trial\\": %%d, \\"time_ms\\": %%.6f}\\n", t, ms);\n  }\n  return 0;\n}\n') % (g[0],g[1],g[2],b[0],b[1],b[2])
     cu.write_text(src)
-    r = subprocess.run(["nvcc","-arch=sm_120","-O2","-s",str(cu.relative_to(REPO)),"-o",str(exe.relative_to(REPO))], capture_output=True, text=True, cwd=REPO)
+    r = subprocess.run(["nvcc","-arch=sm_120","-O2","-s",str(cu),"-o",str(exe)], capture_output=True, text=True)
     if r.returncode != 0:
         print("empty compile fail", g, b, r.stderr[:120])
 print("empty baselines ready")
