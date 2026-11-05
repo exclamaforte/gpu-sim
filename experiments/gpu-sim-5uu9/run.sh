@@ -14,10 +14,10 @@ python3 - "$U5R4_OUT/metrics.json" "$HERE/metrics.json" <<'PY'
 import json,sys
 def norm(o):
     o=json.loads(json.dumps(o))
-    for k in ("loadavg_1_5_15","foreign_gpu_job"):
+    for k in ("loadavg_1_5_15","foreign_gpu_job","mechanism_probe"):
         o.pop(k,None)
     if isinstance(o.get("environment"),dict):
-        for k in ("loadavg_1_5_15","foreign_gpu_job"):
+        for k in ("loadavg_1_5_15","foreign_gpu_job","mechanism_probe"):
             o["environment"].pop(k,None)
         if not o["environment"]: del o["environment"]
     return o

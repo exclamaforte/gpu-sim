@@ -11,7 +11,7 @@ HERE = ROOT / "experiments" / "gpu-sim-5uu9"
 RUN_ANALYZE = HERE / "analyze.py"
 METRICS = HERE / "metrics.json"
 
-ENV_KEYS = ("loadavg_1_5_15", "foreign_gpu_job")
+ENV_KEYS = ("loadavg_1_5_15", "foreign_gpu_job", "mechanism_probe")
 
 
 def _normalize(obj):

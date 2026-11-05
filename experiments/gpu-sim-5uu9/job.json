@@ -2,7 +2,7 @@
   "jobs": [
     {
       "job_id": "20261104t045045-4083159c",
-      "command": "bash experiments/gpu-sim-5uu9/measure_power.sh",
+      "command": "bash experiments/gpu-sim-5uu9/run.sh",
       "exit_code": 0,
       "log": "/home/gabe/.local/state/gpqueue/jobs/20261104t045045-4083159c.log",
       "what": "5uu9 build+measure 12 configs x3 reps",
@@ -11,5 +11,7 @@
       "finished_at": "2026-11-04T04:51:23+00:00"
     }
   ],
-  "total_wall_s": 36
+  "total_wall_s": 36,
+  "command_note": "job.json:5 restored to the queue record's command (20261104t045045-4083159c ran run.sh 04:50:47-04:51:23Z). measure_power.sh is the GPU measurement entry point used for the 13th-config probe, not this job.",
+  "logs_note": "Single output.log (gpqueue job 20261104t045045-4083159c) covers all three replicates sequentially with per-rep boundaries; no per-rep logs needed because one queued job ran rep1->rep2->rep3 in sequence (concurrency: sequential by construction)."
 }

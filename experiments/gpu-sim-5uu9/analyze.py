@@ -14,19 +14,6 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO))
 from scripts.grid_limits import grid_capped
 
-# Environment fields
-try:
-    la = open("/proc/loadavg").read().split()[:3]
-    loadavg = [float(x) for x in la]
-except Exception:
-    loadavg = [0.0, 0.0, 0.0]
-foreign_gpu_job = False
-try:
-    out = subprocess.check_output(["nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader"], text=True, stderr=subprocess.DEVNULL)
-    foreign_gpu_job = bool(out.strip())
-except Exception:
-    foreign_gpu_job = False
-
 K = 3
 reps = []
 for i in (1, 2, 3):
@@ -253,14 +240,15 @@ results = {
     "label": label,
     "unit_rule": "distinct (size, block) configurations with >=2/3 replicates passing the corrected gate",
     "ci_basis": "configurations (mean of 3 replicates per config), not rows",
+    "label_rule": "INSUFFICIENT if n_units < 8 (paired bootstrap needs >=8 usable distinct configs for a stable MDE); BETTER if paired CI hi<0; WORSE if paired CI lo>0.10; TIE if paired CI hi<=0.10; UNRESOLVED otherwise. Threshold 8 differs from u5r4's n_usable<3 (u5r4 tests a single config, no paired bootstrap).",
+    "noise_bound_us": (lambda xs: (sorted(xs)[len(xs)//2] if xs else 0.0))([c.get("max_within_std_us", 0.0) for c in configs_list]),
+    "noise_bound_note": "per-config within-std is max_within_std_us (us, from empty-baseline p05-p95). Median within-config stdev of log10(kernel_us) is not stored (per-trial kernel_us not retained); max_within_std_us is the conservative substitute.",
     "per_config_table": [
         {"size": c["size"], "block": c["block"], "grid": c["grid"],
          "pass_fraction": f"{c['pass_count']}/{c['n_reps']}",
          "usable": c["usable"],
          "median_kernel_us": round(c["median_kernel_us"], 4),
          "max_within_std_us": round(c["max_within_std_us"], 4)} for c in configs_list],
-    "loadavg_1_5_15": loadavg,
-    "foreign_gpu_job": foreign_gpu_job,
 }
 if n_units >= 8:
     results["paired_delta_ci"] = [round(paired_lo, 4), round(paired_hi, 4)]
