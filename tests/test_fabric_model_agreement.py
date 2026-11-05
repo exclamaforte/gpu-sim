@@ -195,8 +195,7 @@ def test_one_rate_everywhere_on_the_real_spec(tmp_path):
     assert topology.effective_bw(other, counts) == 900.0
     assert link_model._eff_bw(other, counts) == 900.0
 
-import unittest  # imported here, below every existing test, so no line above shifts
-                 # (tests/skip_allowlist.json is keyed by LINE NUMBER: gpu-sim-05b3)
+import unittest  # imported here for module-level placement (gpu-sim-05b3)
 
 class TestFabricModelAgreement(unittest.TestCase):
     """Class-wrapped form of the chain assertion above (gpu-sim-3v6d.1).
