@@ -450,7 +450,7 @@ def check_subscripts_bounded(src, *, kernel_name, args, capacities, scalars,
     return checked, unchecked
 
 
-def synthesize(spec: dict) -> str:
+def synthesize(spec: dict, k: int = 1) -> str:
     """Build a full .cu program from a KernelSpec dict.
 
     Required spec keys: source, kernel_name, grid, block, args,
@@ -567,10 +567,13 @@ def synthesize(spec: dict) -> str:
         '    for (int t = 0; t < %d; t++) {' % TRIALS,
         '        float ms = 0.0f;',
         '        CHECK(cudaEventRecord(start));',
-        f'        {call};',
+        ('        for (int kk = 0; kk < %d; kk++) { %s; }' % (k, call)) if k > 1
+            else f'        {call};',
         '        CHECK(cudaEventRecord(stop));',
         '        CHECK(cudaEventSynchronize(stop));',
         '        CHECK(cudaEventElapsedTime(&ms, start, stop));',
+        ('        printf("{\\"trial\\": %d, \\"time_ms\\": %.6f, \\"k\\": %d}\\n", '
+         't, ms / ' + str(k) + ', ' + str(k) + ');') if k > 1 else
         '        printf("{\\"trial\\": %d, \\"time_ms\\": %.6f}\\n", t, ms);',
         '        fflush(stdout);',
         '    }',
