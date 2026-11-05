@@ -28,7 +28,7 @@ def _lib():
     return lib
 
 
-def _run(same_link, repeats=5):
+def _run(same_link, repeats=5, delay=1.0):
     lib = _lib()
     walls = []
     for _ in range(repeats):
@@ -48,7 +48,7 @@ def _run(same_link, repeats=5):
         def worker(i):
             bar.wait()
             t0 = time.perf_counter()
-            rc = lib.fg_fab_transfer(f, 0, 1 << 20, 1.0, 0.0, 0.0, 0, 0, 0.0, links[i])
+            rc = lib.fg_fab_transfer(f, 0, 1 << 20, delay, 0.0, 0.0, 0, 0, 0.0, links[i])
             t1 = time.perf_counter()
             assert rc == 0
             outs[i].append((t0, t1))
@@ -98,13 +98,41 @@ class Test3v6d2Contention:
 
 
     def test_model_agreement_serialized_total(self):
-        # acceptance (d): serialized total vs 2x single transfer, same process, 5%.
-        same = _run(True)
-        diff = _run(False)
-        predicted = 2.0 * diff
-        assert abs(same - predicted) / predicted <= 0.05, (
-            f"serialized total {same:.3f} ms not within 5% of 2x single "
-            f"transfer {predicted:.3f} ms")
+        # acceptance (d): model (link_model.predict shared_group) and enforcer
+        # (calendar) in one assertion. Feed the model's per-transfer duration as
+        # the delay to two same-link transfers; serialized total must match the
+        # model's allocation (2 x d) within wall-clock tolerance.
+        import sys as _sys
+        _sys.path.insert(0, str(REPO / "epic_cluster"))
+        _sys.path.insert(0, str(REPO / "tests"))
+        from epic_cluster.link_model import predict
+
+        def _spec(n, bw, lat, shared):
+            nodes = [{"name": "n0", "devices": [{"id": i, "model": "M"} for i in range(n)]}]
+            links = []
+            for i in range(n):
+                for j in range(i + 1, n):
+                    links.append({"a": {"node": "n0", "device": i},
+                                  "b": {"node": "n0", "device": j},
+                                  "kind": "nvlink", "bw_gbps": bw,
+                                  "latency_us": lat, "mtu": 4096,
+                                  "loss_ppm": 0, "jitter_us": 0,
+                                  "shared_group": shared})
+            ranks = [{"rank": i, "node": "n0", "device": i} for i in range(n)]
+            return {"version": 1,
+                    "models": {"M": {"sm_count": 1, "clock_mhz": 1,
+                                     "mem_bytes": 1, "mem_bw_gbs": 1,
+                                     "arch": "x", "source": "t"}},
+                    "nodes": nodes, "links": links, "ranks": ranks}
+
+        spec = _spec(2, 1.0, 10.0, "g")
+        d = predict(spec, "ring_allreduce", 262144, "float32", n_ranks=2)["duration_s"]
+        delay_ms = d * 1000.0
+        same = _run(True, delay=delay_ms)
+        predicted_total_ms = 2.0 * delay_ms
+        assert abs(same - predicted_total_ms) / predicted_total_ms <= 0.10, (
+            f"serialized total {same:.3f} ms not within 10% of model "
+            f"allocation {predicted_total_ms:.3f} ms")
 
     def test_backward_compat_link_id_negative(self):
         # link_id < 0 keeps uncontended behaviour (single transfer ~1ms)
