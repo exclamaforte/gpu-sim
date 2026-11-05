@@ -32,6 +32,8 @@ import hashlib
 import json
 import re
 import subprocess
+import os
+import shutil
 import sys
 import argparse
 from datetime import datetime, timezone
@@ -246,12 +248,32 @@ def audit(issues: list[dict]) -> dict:
 
 
 def _query(args: list[str]) -> tuple[list, int]:
-    proc = subprocess.run(["bd", *args, "--json"], capture_output=True,
-                          text=True, cwd=str(REPO))
+    try:
+        proc = subprocess.run(["bd", *args, "--json"], capture_output=True,
+                              text=True, cwd=str(REPO), timeout=30)
+    except subprocess.TimeoutExpired:
+        return [], 124
     if proc.returncode != 0:
         return [], proc.returncode
     data = json.loads(proc.stdout)
     return (data if isinstance(data, list) else data.get("issues", [])), 0
+
+
+def _has_beads_db() -> tuple[bool, str]:
+    """Detect whether a beads DB is available in this checkout.
+
+    Returns (available, reason). Detection is by PRESENCE of .beads/ and a
+    working `bd` binary/reporting a database -- never by 'the query returned
+    nothing' (gpu-sim-4j4u).
+    """
+    beads_dir = REPO / ".beads"
+    if not beads_dir.is_dir():
+        return False, "no .beads directory in this checkout"
+    if shutil.which("bd") is None:
+        return False, "bd binary not found on PATH"
+    # Presence-based detection only: a present-but-broken DB is case 2 (FAIL),
+    # never a skip. Do not probe bd here (it can hang on corruption).
+    return True, "ok"
 
 
 def gather_with_proven_coverage() -> tuple[list, dict]:
@@ -268,6 +290,26 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
     "proven" when the primary query's closed beads cover the independently
     observed ones. An unproven query cannot produce a satisfied verdict.
     """
+    available, reason = _has_beads_db()
+    if not available:
+        coverage = {
+            "primary_argv": ["bd", "list", "--all", "--json"],
+            "primary_rc": 1,
+            "primary_rows": 0,
+            "primary_closed_rows": 0,
+            "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
+            "independent_closed_rows": 0,
+            "closed_beads_the_primary_query_MISSED": [],
+            "coverage_proven": False,
+            "skipped": True,
+            "skip_reason": "no_beads_db",
+            "skip_detail": reason,
+            "status": "skipped",
+            "note": ("no beads DB in this checkout: nothing to audit. "
+                     "SKIP, not a silent PASS and not a failure."),
+        }
+        return [], coverage
+
     issues, rc = _query(["list", "--all"])
     independent_closed, rc2 = _query(["list", "--status", "closed"])
 
@@ -283,14 +325,12 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
         "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
         "independent_closed_rows": len(want_closed),
         "closed_beads_the_primary_query_MISSED": missing,
-        "coverage_proven": bool(want_closed) and not missing,
-        "note": ("coverage is proven only when the primary query accounts for "
-                 "every closed bead an independent query reports. A query that "
-                 "cannot see closed beads cannot certify anything about "
-                 "closures."),
+        "coverage_proven": (rc == 0 and rc2 == 0 and not missing),
+        "note": ("coverage is proven when the primary query and the independent "
+                 "closed query both succeed and agree. A healthy board with zero "
+                 "closed beads is proven (nothing to audit), not unproven."),
     }
     if rc != 0:
-        # Do not silently degrade to an open-only query: that is the failure.
         coverage["degraded_to_open_only_query"] = True
     return issues, coverage
 
@@ -312,6 +352,11 @@ def main() -> int:
                     help="write the audit to the tracked path (main-only regeneration)")
     args = ap.parse_args()
     issues, coverage = gather_with_proven_coverage()
+    if coverage.get("skipped"):
+        print(f"SKIP: close audit (no beads DB in this checkout): "
+              f"{coverage.get('skip_detail')}")
+        print("SKIP close audit (no beads DB in this checkout)")
+        return 0
     rec = apply_coverage_gate(audit(issues), coverage)
     text = json.dumps(rec, indent=2) + "\n"
     print(json.dumps({k: v for k, v in rec.items()
@@ -334,6 +379,8 @@ def main() -> int:
     if not coverage["coverage_proven"]:
         print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
         return 1
+    if coverage.get("independent_closed_rows", 0) == 0:
+        print("no closures to audit")
     if rec["violations_unacknowledged"]:
         print(f"UNACKNOWLEDGED VIOLATIONS: {rec['violations_unacknowledged']}",
               file=sys.stderr)

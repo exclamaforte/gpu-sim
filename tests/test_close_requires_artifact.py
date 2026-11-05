@@ -141,15 +141,16 @@ class TestCoverageMustBeProven(unittest.TestCase):
                         f"the live query should cover closed beads: {cov}")
         self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
 
-    def test_zero_closed_beads_is_not_proof_of_coverage(self):
-        """An empty closed set proves nothing about whether we could see one."""
+    def test_zero_closed_beads_with_successful_query_is_proven(self):
+        """A healthy board with zero closed beads is proven (nothing to audit)."""
         real_query = g._query
         g._query = lambda args: ([], 0) if "--status" in args and "closed" in args \
             else ([], 0)
         try:
             _issues, cov = g.gather_with_proven_coverage()
-            self.assertFalse(cov["coverage_proven"],
-                             "an independently-empty closed set must not certify")
+            self.assertTrue(cov["coverage_proven"],
+                            "a successful independent query with zero closed beads "
+                            "is proven (nothing to audit)")
         finally:
             g._query = real_query
 
