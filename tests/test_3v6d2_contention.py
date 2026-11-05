@@ -128,9 +128,12 @@ class Test3v6d2Contention:
         spec = _spec(2, 1.0, 10.0, "g")
         d_us = predict(spec, "ring_allreduce", 262144, "float32", n_ranks=2)["duration_s"] * 1e6
         same = _run(True, bw_gbs=1e9, latency_us=d_us)
+        # (d) is a scheduler-sum check: the fabric serializes two transfers
+        # whose delay is the model allocation (d). Model-vs-fabric formula
+        # agreement is checked separately by test_fabric_model_agreement.py (e).
         predicted_total_ms = 2.0 * d_us / 1000.0
-        assert abs(same - predicted_total_ms) / predicted_total_ms <= 0.10, (
-            f"serialized total {same:.3f} ms not within 10% of model "
+        assert abs(same - predicted_total_ms) / predicted_total_ms <= 0.05, (
+            f"serialized total {same:.3f} ms not within 5% of model "
             f"allocation {predicted_total_ms:.3f} ms")
 
     def test_backward_compat_link_id_negative(self):
