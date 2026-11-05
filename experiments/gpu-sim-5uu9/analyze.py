@@ -269,6 +269,12 @@ if n_units >= 8:
     results["floor_mae"] = round(floor_mae, 4)
     results["achieved_mde"] = round(mde, 4)
     results["mde_exceeds_effect"] = bool(mde > abs(paired_mean))
+    results["finding"] = ("BETTER means GBT beats the linear floor in the paired "
+                          "ln-space comparison; it does NOT mean GBT is accurate: "
+                          "GBT MAE is %.4f in ln space (~2x multiplicative error) "
+                          "and the linear floor MAE diverges at %.4f. The label "
+                          "reflects relative ranking, not absolute accuracy."
+                          % (gbt_mae, floor_mae))
 
 out_dir = Path(_os.environ.get("U5R4_OUT", str(HERE)))
 out_dir.mkdir(parents=True, exist_ok=True)
