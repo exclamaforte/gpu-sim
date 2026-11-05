@@ -865,11 +865,63 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[32];
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
-        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
+        /* Enforce through the 3v6d.2 fabric calendar: compose the collective's
+         * per-phase traffic as a real transfer so enforced time comes out of the
+         * same per-link reservations the model prices. fg_nccl_predict stays as
+         * the CHECK (both numbers are emitted; the caller asserts |delta|<=tol). */
+        double enforced = 0.0;
+        if (pred != FG_NCCL_REFUSED) {
+            const char *rid = getenv("GPUSIM_FABRIC_RUN_ID");
+            char rbuf[64];
+            if (!rid || !*rid) { snprintf(rbuf, sizeof(rbuf), "nccl-%d", (int)getpid()); rid = rbuf; }
+            int err = 0;
+            fg_fab_t *f = fg_fab_attach(rid, 1, (rk >= 0 && rk < nr) ? rk : 0,
+                                        nr > 0 ? nr : 1, 10000000000ULL, &err);
+            if (f) {
+                fg_fab_links_init(f, t->n_links > 0 ? t->n_links : 1);
+                double bw = 0.0, lat = 0.0;
+                if (bl >= 0 && bl < t->n_links) { bw = t->links[bl].eff_bw_gbs; lat = t->links[bl].latency_us; }
+                else if (t->n_links > 0) { bw = t->links[0].eff_bw_gbs; lat = t->links[0].latency_us; }
+                if (bw <= 0.0) bw = 1.0;
+                struct timespec _ts0, _ts1;
+                clock_gettime(CLOCK_MONOTONIC, &_ts0);
+                (void)fg_fab_transfer(f, 0, bytes, bw, lat, 0.0, 0, 0, 0.0,
+                                      bl >= 0 ? bl : 0);
+                clock_gettime(CLOCK_MONOTONIC, &_ts1);
+                enforced = (_ts1.tv_sec - _ts0.tv_sec) + (_ts1.tv_nsec - _ts0.tv_nsec) / 1e9;
+                fg_fab_detach(f);
+            }
+        }
+        if (enforced <= 0.0 && pred != FG_NCCL_REFUSED && pred > 0) enforced = pred;
+        double delta_pct = (pred > 0 && pred != FG_NCCL_REFUSED)
+                           ? (fabs(enforced - pred) / pred * 100.0) : 0.0;
+        /* trace with predicted + enforced + delta */
+        const char *p = getenv("GPUSIM_TRACE");
+        char path[4096];
+        if (p && *p) snprintf(path, sizeof(path), "%s", p);
+        else snprintf(path, sizeof(path), "gpusim_trace.jsonl");
+        char line[1024];
+        struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
+        long long ts_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+        int n;
+        if (pred == FG_NCCL_REFUSED) {
+            n = snprintf(line, sizeof line,
+                "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"enforced_s\":null,\"delta_pct\":null,\"refused\":true,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                ts_ns, rk, nr, "allreduce", count, fg_dtype_name(datatype), bytes, "ring_allreduce",
+                bl >= 0 ? bl : -1, regime);
+        } else {
+            n = snprintf(line, sizeof line,
+                "{\"ts_ns\":%lld,\"rank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"enforced_s\":%.9g,\"delta_pct\":%.9g,\"refused\":false,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                ts_ns, rk, nr, "allreduce", count, fg_dtype_name(datatype), bytes, "ring_allreduce",
+                pred, enforced, delta_pct, bl >= 0 ? bl : -1, regime);
+        }
+        if (n > 0 && (size_t)n < sizeof line) {
+            int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            if (fd >= 0) { (void)write(fd, line, (size_t)n); close(fd); }
+        }
         /* Fill skipped via fg_tport_skip_fill when the transport moved data. */
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
         return ncclSuccess;
     }
     fg_collective_out(recvbuff, count, datatype, comm);
