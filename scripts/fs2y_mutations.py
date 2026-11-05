@@ -28,6 +28,7 @@ MUTATIONS = {
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
+    "hsuv_manifest_relative": "hsuv manifest relative paths (gpu-sim-hsuv)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
 }
@@ -280,6 +281,21 @@ def _apply_8yb4_corrupt(root):
     return backup, path
 
 
+def _apply_hsuv_manifest_absolute(root):
+    """Mutation for hsuv_manifest_relative: write an absolute exe path into the
+    committed manifest so the relative-path guard fails."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-u5r4", "build_div_sizescale", "manifest.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    specs = d.get("specs", [])
+    if specs:
+        specs[0]["exe"] = "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-hsuv/experiments/gpu-sim-u5r4/build_div_sizescale/bin/k_divergent_branch_0000.out"
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "8yb4_k_window": _apply_8yb4_corrupt,
     "3v6d2_link_calendar": _apply_3v6d2_uncas,
@@ -294,6 +310,7 @@ MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "nlgf_power_test": _apply_nlgf_corrupt,
+    "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
 }
 

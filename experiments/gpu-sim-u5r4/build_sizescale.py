@@ -6,6 +6,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO))
+import os
+os.chdir(REPO)
 from epic_u2o.kernel_driver import synthesize
 from epic_u2o.safe_harness import SafeHarness
 import importlib.util
@@ -13,7 +15,8 @@ spec = importlib.util.spec_from_file_location("g5", REPO / "epic_u2o" / "generat
 g5 = importlib.util.module_from_spec(spec); spec.loader.exec_module(g5)
 
 sizes = [1048576, 2097152, 4194304, 8388608, 16777216]
-build = HERE / "build_div_sizescale"
+_build_dir_env = os.environ.get("HSUV_BUILD_DIR")
+build = Path(_build_dir_env) if _build_dir_env else (HERE / "build_div_sizescale")
 build.mkdir(parents=True, exist_ok=True)
 (build / "bin").mkdir(exist_ok=True)
 h = SafeHarness(timeout_sec=300)
@@ -41,7 +44,13 @@ for spec_obj in g5.generate_kernels(max_kernels=100000):
     c, m = h.compile_kernel(prog, str(exe), arch="sm_120")
     if not c:
         print("compile fail", idx, m[:120]); continue
-    d["exe"] = str(exe)
+    _sr = subprocess.run(["strip","-s",str(exe)], capture_output=True)
+    if _sr.returncode != 0:
+        print("strip fail", idx, _sr.stderr.decode(errors="replace")[:120])
+    try:
+        d["exe"] = str(exe.relative_to(build))
+    except ValueError:
+        d["exe"] = exe.name
     d["build_idx"] = idx - 1
     bm = 2 * n * 4.0
     flops = n
@@ -73,5 +82,6 @@ for (g, b) in uniq:
     cu.write_text(src)
     r = subprocess.run(["nvcc","-arch=sm_120","-O2",str(cu),"-o",str(exe)], capture_output=True, text=True)
     if r.returncode != 0:
-        print("empty compile fail", g, b, r.stderr[:120])
+        raise RuntimeError("empty compile fail %s %s: %s" % (g, b, r.stderr[:200]))
+    subprocess.run(["strip","-s",str(exe)], check=True)
 print("empty baselines ready")
