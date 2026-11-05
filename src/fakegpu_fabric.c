@@ -204,7 +204,7 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
         f->hdr = base;
         memset(f->hdr, 0, tsz);
         f->hdr->magic = FG_FAB_MAGIC;
-        f->hdr->version = 1;
+        f->hdr->version = 2;
         f->hdr->nranks = nranks;
         f->hdr->epoch = epoch;
         atomic_store(&f->hdr->state, 1);
@@ -255,7 +255,7 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
             }
             usleep(1000);
         }
-        if (f->hdr->version != 1 || f->hdr->nranks != (uint32_t)nranks) {
+        if (f->hdr->version != 2 || f->hdr->nranks != (uint32_t)nranks) {
             munmap(base, tsz);
             close(fd);
             free(f);

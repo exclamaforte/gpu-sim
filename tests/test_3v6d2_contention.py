@@ -95,6 +95,17 @@ class Test3v6d2Contention:
         # noise on a shared box, and the message states what the code checks.
         assert 0.9 <= med <= 1.15, f"diff-link median {med:.3f} ms not in [0.9,1.15]"
 
+
+
+    def test_model_agreement_serialized_total(self):
+        # acceptance (d): serialized total vs 2x single transfer, same process, 5%.
+        same = _run(True)
+        diff = _run(False)
+        predicted = 2.0 * diff
+        assert abs(same - predicted) / predicted <= 0.05, (
+            f"serialized total {same:.3f} ms not within 5% of 2x single "
+            f"transfer {predicted:.3f} ms")
+
     def test_backward_compat_link_id_negative(self):
         # link_id < 0 keeps uncontended behaviour (single transfer ~1ms)
         lib = _lib()
