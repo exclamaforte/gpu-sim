@@ -33,9 +33,10 @@ MUTATIONS = {
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
-    "hsuv_manifest_relative": "hsuv manifest relative paths (gpu-sim-hsuv)",
+    "3v6d3_nccl_enforce": "3v6d.3 ncclAllReduce enforces through fabric calendar (gpu-sim-3v6d.3)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
+    "3v6d3_nccl_enforce": "3v6d.3 ncclAllReduce enforces through fabric calendar (gpu-sim-3v6d.3)",
 }
 
 
@@ -286,18 +287,38 @@ def _apply_8yb4_corrupt(root):
     return backup, path
 
 
-def _apply_hsuv_manifest_absolute(root):
-    """Mutation for hsuv_manifest_relative: write an absolute exe path into the
-    committed manifest so the relative-path guard fails."""
-    import json, os
-    path = os.path.join(root, "experiments", "gpu-sim-u5r4", "build_div_sizescale", "manifest.json")
+def _apply_3v6d3_nccl_enforce(root):
+    """Mutation for 3v6d3_nccl_enforce: revert enforced path to predict-then-sleep."""
+    import os
+    path = os.path.join(root, "src", "fakegpu_nccl.c")
     backup = open(path).read()
-    d = json.loads(backup)
-    specs = d.get("specs", [])
-    if specs:
-        specs[0]["exe"] = "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-hsuv/experiments/gpu-sim-u5r4/build_div_sizescale/bin/k_divergent_branch_0000.out"
+    # replace the fg_fab_transfer call with fg_sleep_ns(pred) (raw predict)
+    old = "fg_fab_transfer(f, 0, bytes, bw, lat, 0.0, 0, 0, 0.0,\n                                      bl >= 0 ? bl : 0);"
+    new = "fg_sleep_ns((long)(pred * 1e9)); /* mutation: predict-then-sleep */"
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d3 mutation did not apply")
     with open(path, "w") as f:
-        json.dump(d, f, indent=2)
+        f.write(mutated)
+    import subprocess
+    subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
+    return backup, path
+
+
+def _apply_3v6d3_nccl_enforce(root):
+    """Mutation for 3v6d3_nccl_enforce: revert enforced path to predict-then-sleep."""
+    import os
+    path = os.path.join(root, "src", "fakegpu_nccl.c")
+    backup = open(path).read()
+    old = "fg_fab_transfer(f, 0, bytes, bw, lat, 0.0, 0, 0, 0.0,\n                                      bl >= 0 ? bl : 0);"
+    new = "fg_sleep_ns((long)(pred * 1e9)); /* mutation: predict-then-sleep */"
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d3 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    import subprocess
+    subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
     return backup, path
 
 
@@ -389,6 +410,7 @@ MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "nlgf_power_test": _apply_nlgf_corrupt,
-    "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
+    "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
+    "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
 }
