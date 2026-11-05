@@ -80,7 +80,8 @@ for (g, b) in uniq:
            '  for(int t=0;t<20;t++){\n    float ms=0; cudaEventRecord(s); k_empty<<<grid,block>>>(); cudaEventRecord(e); cudaEventSynchronize(e); cudaEventElapsedTime(&ms,s,e);\n'
            '    printf("{\\"trial\\": %%d, \\"time_ms\\": %%.6f}\\n", t, ms);\n  }\n  return 0;\n}\n') % (g[0],g[1],g[2],b[0],b[1],b[2])
     cu.write_text(src)
-    r = subprocess.run(["nvcc","-arch=sm_120","-O2","-s",str(cu),"-o",str(exe)], capture_output=True, text=True)
+    r = subprocess.run(["nvcc","-arch=sm_120","-O2",str(cu),"-o",str(exe)], capture_output=True, text=True)
     if r.returncode != 0:
-        print("empty compile fail", g, b, r.stderr[:120])
+        raise RuntimeError("empty compile fail %s %s: %s" % (g, b, r.stderr[:200]))
+    subprocess.run(["strip","-s",str(exe)], check=True)
 print("empty baselines ready")
