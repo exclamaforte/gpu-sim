@@ -6,7 +6,7 @@ _os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 _os.environ.setdefault("MKL_NUM_THREADS", "1")
 _os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
 _os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
-import json, math, random, sys, subprocess
+import json, math, random, sys
 from pathlib import Path
 import numpy as np
 HERE = Path(__file__).resolve().parent
