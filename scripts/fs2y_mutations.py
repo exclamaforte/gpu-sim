@@ -18,6 +18,7 @@ MUTATIONS = {
     "effective_cpu_capacity": "effective CPU capacity helper",
     "ledger_node_ids_validated": "ledger node id validator",
     "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
+    "05b3_skip_allowlist_keys": "skip allowlist keyed by file::function:TAG:condition (gpu-sim-05b3)",
     "u5q0_lint_fixture_6338": "6.10 prose-ratio fixture pins the derived 6338x ratio (gpu-sim-u5q0)",
     "s2qj_bypass_path": "s2qj bypass path (gpu-sim-s2qj)",
     "wty2_structure_dominated": "wty2 structure-dominated verdict on unseen families (gpu-sim-wty2)",
@@ -235,6 +236,21 @@ def _apply_8yb4_corrupt(root):
     return backup, path
 
 
+def _apply_05b3_delete_key(root):
+    """Mutation for 05b3_skip_allowlist_keys: delete one registered key."""
+    import json, os
+    path = os.path.join(root, "tests", "skip_allowlist.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    # remove first key
+    if d:
+        del d[next(iter(d))]
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+        f.write("\n")
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "8yb4_k_window": _apply_8yb4_corrupt,
     "rb66_ambient_init": _apply_rb66_ambient_init,
@@ -248,5 +264,6 @@ MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "nlgf_power_test": _apply_nlgf_corrupt,
+    "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
 }
 
