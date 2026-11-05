@@ -303,13 +303,13 @@ def _apply_hsuv_manifest_absolute(root):
 
 
 def _apply_3v6d3_nccl_enforce(root):
-    """Mutation for 3v6d3_nccl_enforce: revert enforced path to predict-then-sleep."""
+    """Mutation for 3v6d3_nccl_enforce: revert enforced bw to raw 900 Gbps (8x delta)."""
     import os
     path = os.path.join(root, "src", "fakegpu_nccl.c")
     backup = open(path).read()
-    old = "fg_fab_transfer(f, 0, bytes, bw, lat, 0.0, 0, 0, 0.0,\n                                      bl >= 0 ? bl : 0);"
-    new = "fg_sleep_ns((long)(pred * 1e9)); /* mutation: predict-then-sleep */"
-    mutated = backup.replace(old, new, 1)
+    mutated = backup
+    mutated = mutated.replace("bw = t->links[bl].eff_bw_gbs;", "bw = 900.0; /* mutation: raw bw */", 1)
+    mutated = mutated.replace("bw = t->links[0].eff_bw_gbs;", "bw = 900.0; /* mutation: raw bw */", 1)
     if mutated == backup:
         raise RuntimeError("3v6d3 mutation did not apply")
     with open(path, "w") as f:
