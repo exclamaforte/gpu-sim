@@ -296,26 +296,6 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
     "proven" when the primary query's closed beads cover the independently
     observed ones. An unproven query cannot produce a satisfied verdict.
     """
-    available, reason = _has_beads_db()
-    if not available:
-        coverage = {
-            "primary_argv": ["bd", "list", "--all", "--json"],
-            "primary_rc": 1,
-            "primary_rows": 0,
-            "primary_closed_rows": 0,
-            "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
-            "independent_closed_rows": 0,
-            "closed_beads_the_primary_query_MISSED": [],
-            "coverage_proven": False,
-            "skipped": True,
-            "skip_reason": "no_beads_db",
-            "skip_detail": reason,
-            "status": "skipped",
-            "note": ("no beads DB in this checkout: nothing to audit. "
-                     "SKIP, not a silent PASS and not a failure."),
-        }
-        return [], coverage
-
     issues, rc = _query(["list", "--all"])
     independent_closed, rc2 = _query(["list", "--status", "closed"])
 
@@ -359,6 +339,11 @@ def main() -> int:
     ap.add_argument("--write", action="store_true",
                     help="write the audit to the tracked path (main-only regeneration)")
     args = ap.parse_args()
+    available, _skip_reason = _has_beads_db()
+    if not available:
+        print(f"SKIP: close audit (no beads DB in this checkout): {_skip_reason}")
+        print("SKIP close audit (no beads DB in this checkout)")
+        return 0
     issues, coverage = gather_with_proven_coverage()
     if coverage.get("skipped"):
         print(f"SKIP: close audit (no beads DB in this checkout): "
