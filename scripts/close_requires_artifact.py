@@ -269,6 +269,12 @@ def _has_beads_db() -> tuple[bool, str]:
     beads_dir = REPO / ".beads"
     if not beads_dir.is_dir():
         return False, "no .beads directory in this checkout"
+    # The DB itself (embeddeddolt/dolt) is gitignored, so a clone has the
+    # tracked .beads config but no database. Treat that as "no DB" (skip),
+    # not as a present-but-broken DB (fail). (gpu-sim-4j4u)
+    db_present = (beads_dir / "embeddeddolt").is_dir() or (beads_dir / "dolt").is_dir()
+    if not db_present:
+        return False, "no beads database in this checkout (.beads/embeddeddolt absent)"
     if shutil.which("bd") is None:
         return False, "bd binary not found on PATH"
     # Presence-based detection only: a present-but-broken DB is case 2 (FAIL),
