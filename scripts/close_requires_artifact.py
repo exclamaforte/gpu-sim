@@ -331,12 +331,14 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
         "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
         "independent_closed_rows": len(want_closed),
         "closed_beads_the_primary_query_MISSED": missing,
-        "coverage_proven": (rc == 0 and rc2 == 0 and not missing),
-        "note": ("coverage is proven when the primary query and the independent "
-                 "closed query both succeed and agree. A healthy board with zero "
-                 "closed beads is proven (nothing to audit), not unproven."),
+        "coverage_proven": bool(want_closed) and not missing,
+        "note": ("coverage is proven only when the primary query accounts for "
+                 "every closed bead an independent query reports. A query that "
+                 "cannot see closed beads cannot certify anything about "
+                 "closures."),
     }
     if rc != 0:
+        # Do not silently degrade to an open-only query: that is the failure.
         coverage["degraded_to_open_only_query"] = True
     return issues, coverage
 
@@ -385,8 +387,6 @@ def main() -> int:
     if not coverage["coverage_proven"]:
         print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
         return 1
-    if coverage.get("independent_closed_rows", 0) == 0:
-        print("no closures to audit")
     if rec["violations_unacknowledged"]:
         print(f"UNACKNOWLEDGED VIOLATIONS: {rec['violations_unacknowledged']}",
               file=sys.stderr)
