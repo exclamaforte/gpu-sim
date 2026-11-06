@@ -102,6 +102,7 @@ class TestCitationsToNothingDoNotCount(unittest.TestCase):
         self.assertFalse(v["concrete"])
 
 
+@unittest.skipUnless(g._has_beads_db()[0], "no beads DB in this checkout")
 class TestCoverageMustBeProven(unittest.TestCase):
     """The reviewer's item: satisfied:true must not come from a blind query.
 
@@ -238,6 +239,7 @@ class TestWriteMode(unittest.TestCase):
             mock.patch.object(g, "gather_with_proven_coverage",
                              lambda: ([], {"coverage_proven": True,
                                            "degraded_to_open_only_query": False})),
+            mock.patch.object(g, "_has_beads_db", lambda: (True, "ok")),
             mock.patch.object(g, "audit",
                              lambda issues: {"violations": [], "violations_unacknowledged": [],
                                             "satisfies_the_acceptance": True}),
