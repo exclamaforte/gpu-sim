@@ -13,10 +13,16 @@ METRICS = HERE / "metrics.json"
 
 ENV_KEYS = ("loadavg_1_5_15", "foreign_gpu_job")
 
+# bead-process metadata, not measurement: analyze.py derives the numbers but does
+# not emit the provenance citation, so a hand-added "gate" key can never be
+# regenerated. Excluding it keeps EVERY measured value under whole-document
+# comparison (the 5uu9 mutation corrupts gbt_mae and must still be caught).
+META_KEYS = ("gate",)
+
 
 def _normalize(obj):
     out = json.loads(json.dumps(obj))
-    for k in ENV_KEYS:
+    for k in ENV_KEYS + META_KEYS:
         out.pop(k, None)
     if isinstance(out.get("environment"), dict):
         for k in ENV_KEYS:
