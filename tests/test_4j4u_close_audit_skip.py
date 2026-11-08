@@ -6,10 +6,17 @@ REPO = Path(__file__).resolve().parents[1]
 
 def test_close_audit_skips_without_db():
     # True DB-less clone (real git clone, .beads removed): uses real bd.
-    dst = Path("/var/tmp/realclone-4j4u")
-    if dst.exists():
-        shutil.rmtree(dst)
-    subprocess.run(["git", "clone", "/home/gabe/Documents/gpu-sim", str(dst)], check=True, capture_output=True)
+    #
+    # A UNIQUE scratch dir under .lab/tmp, not a fixed /var/tmp path: with a
+    # fixed path the test rmtree'd another run's clone, so two concurrent runs
+    # BOTH failed (FileNotFoundError / CalledProcessError), and because the
+    # ledger row binds this test that collision made check_append_only -- which
+    # every gate runs -- flake whenever two gates overlapped (gpu-sim-4j4u).
+    # Cloning from REPO rather than a hardcoded absolute path keeps the test
+    # independent of this machine's layout.
+    (REPO / ".lab" / "tmp").mkdir(parents=True, exist_ok=True)
+    dst = Path(tempfile.mkdtemp(prefix="realclone-4j4u-", dir=str(REPO / ".lab" / "tmp")))
+    subprocess.run(["git", "clone", str(REPO), str(dst)], check=True, capture_output=True)
     beads = dst / ".beads"
     if beads.exists():
         shutil.rmtree(beads)
