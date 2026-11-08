@@ -886,7 +886,7 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
          * per-phase traffic as a real transfer so enforced time comes out of the
          * same per-link reservations the model prices. fg_nccl_predict stays as
          * the CHECK (both numbers are emitted; the caller asserts |delta|<=tol). */
-        double enforced = 0.0;
+        double enforced = -1.0;
         if (pred != FG_NCCL_REFUSED) {
             const char *rid = getenv("GPUSIM_FABRIC_RUN_ID");
             char rbuf[64];
@@ -901,12 +901,20 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                 else if (t->n_links > 0) { bw = t->links[0].eff_bw_gbs; lat = t->links[0].latency_us; }
                 if (bw <= 0.0) bw = 1.0;
                 int _nhops = (nr > 1) ? 2 * (nr - 1) : 1;
-                size_t _per = (nr > 0) ? (bytes / (size_t)nr) : bytes;
+                /* phase-payload P (mirror model): packets per phase */
+                int _P = 1;
+                if (nr > 1 && bytes > 0 && bw > 0) {
+                    double _chunk = (double)(nr - 1) / (double)nr;
+                    _P = (int)ceil(_chunk * (double)bytes / (double)FG_FAB_MAX_PAYLOAD);
+                    if (_P < 1) _P = 1;
+                }
+                size_t _per = (nr > 0 && _P > 0) ? (bytes / (size_t)nr / (size_t)_P) : bytes;
                 if (_per == 0) _per = bytes;
+                int _total_hops = _nhops * _P;
                 int _trc = 0;
                 struct timespec _ts0, _ts1;
                 clock_gettime(CLOCK_MONOTONIC, &_ts0);
-                for (int _h = 0; _h < _nhops; _h++) {
+                for (int _h = 0; _h < _total_hops; _h++) {
                     int _r = fg_fab_transfer(f, 0, _per, bw, lat, 0.0, 0, 0, 0.0,
                                              bl >= 0 ? bl : 0);
                     if (_r != 0) { _trc = _r; break; }

@@ -778,7 +778,8 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                                                             memory_order_acquire));
         /* sleep until finish */
         /* sleep most of the way, then spin to the deadline for precision */
-        uint64_t spin_start = finish - 200000ULL; /* last 200 us */
+        /* sleep most of the way, then spin to the deadline for precision */
+        uint64_t spin_start = finish - 100000ULL; /* last 100 us */
         if (spin_start > now_ns()) {
             struct timespec ts2;
             ts2.tv_sec = (time_t)(spin_start / 1000000000ULL);
