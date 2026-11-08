@@ -239,7 +239,7 @@ class TestWriteMode(unittest.TestCase):
             mock.patch.object(g, "gather_with_proven_coverage",
                              lambda: ([], {"coverage_proven": True,
                                            "degraded_to_open_only_query": False})),
-            mock.patch.object(g, "_bd_available", lambda: (True, "ok")),
+            mock.patch.object(g, "_bd_available", lambda: (True, "ok", "ok")),
             mock.patch.object(g, "audit",
                              lambda issues: {"violations": [], "violations_unacknowledged": [],
                                             "satisfies_the_acceptance": True}),
