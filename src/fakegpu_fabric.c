@@ -815,7 +815,7 @@ void fg_fab_detach(fg_fab_t *f) {
         atomic_store(&f->slots[f->rank].attached, 0);
         f->slots[f->rank].pid = 0;
     }
-    if (f->is_creator) shm_unlink(f->name);
+    /* keep calendar alive across collectives/ranks (gpu-sim-3v6d.3 item 3) */
     if (f->base && f->base != MAP_FAILED) munmap(f->base, f->total_size);
     if (f->shm_fd >= 0) close(f->shm_fd);
     free(f);
