@@ -25,46 +25,47 @@ def run(*args):
                          capture_output=True, text=True)
 
 def main() -> int:
-    # Resolve the integration base.
-    base = None
-    for ref in ("master", "main"):
-        mb = run("merge-base", "HEAD", ref)
-        if mb.returncode == 0 and mb.stdout.strip():
-            base = mb.stdout.strip()
+    # Resolve the integration branch tip (not merge-base): a stale base must
+    # never produce a pass (gpu-sim-xv3c).
+    main_ref = None
+    for ref in ("main", "master"):
+        r = run("rev-parse", ref)
+        if r.returncode == 0 and r.stdout.strip():
+            main_ref = ref
             break
-    if base is None:
-        print("INVALID: check_close_audit_unchanged: no merge-base with master/main "
-              "could be resolved; cannot verify close_audit.json is unchanged. "
-              "Run inside a checkout that has the integration branch (master/main).")
+    if main_ref is None:
+        print("INVALID: check_close_audit_unchanged: no main/master ref could be "
+              "resolved; cannot verify close_audit.json is unchanged.")
         print("Convention: close_audit.json is regenerated on main as its own commit.")
         print("See experiments/gpu-sim-u2o.15/README.md.")
         return 1
 
-    # Blob at base (may be absent).
-    base_blob = run("show", f"{base}:{PATH}")
-    base_exists = base_blob.returncode == 0
+    # Blob on main (the authoritative version).
+    main_blob = run("show", f"{main_ref}:{PATH}")
+    main_exists = main_blob.returncode == 0
 
     # Compare the COMMITTED blob (HEAD), never the working tree.
     head_blob = run("show", f"HEAD:{PATH}")
     head_exists = head_blob.returncode == 0
 
-    if base_exists == head_exists:
-        if base_exists:
-            if base_blob.stdout == head_blob.stdout:
-                print("check_close_audit_unchanged: OK (unchanged vs base)")
-                return 0
-            print(f"INVALID: {PATH} differs from its base blob ({base[:7]}).")
-        else:
+    # Absence on a branch that postdates main's copy is a deletion, not a pass.
+    if not main_exists:
+        # main doesn't have it either; nothing to compare.
+        if not head_exists:
             print("check_close_audit_unchanged: OK (absent on both sides)")
             return 0
-    # one side missing
-    if base_exists and not head_exists:
-        print(f"INVALID: {PATH} deleted on this branch; restore it unchanged.")
-    elif (not base_exists) and head_exists:
         print(f"INVALID: {PATH} added on this branch; it is main-only state.")
-    print("Convention: close_audit.json is regenerated on main as its own commit.")
-    print("See experiments/gpu-sim-u2o.15/README.md.")
-    return 1
+        return 1
+
+    # main has the file: HEAD must have the same blob.
+    if not head_exists:
+        print(f"INVALID: {PATH} deleted on this branch; restore it unchanged.")
+        return 1
+    if main_blob.stdout != head_blob.stdout:
+        print(f"INVALID: {PATH} differs from its main blob.")
+        return 1
+    print("check_close_audit_unchanged: OK (unchanged vs main)")
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
