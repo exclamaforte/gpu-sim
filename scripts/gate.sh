@@ -22,6 +22,41 @@ gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
 mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
+
+# Preflight: /dev/shm utilisation (gpu-sim-e5w2). Leaked gpusim-* segments can
+# exhaust tmpfs and turn fabric checks into SIGBUS (rc=-7). Reclaim segments
+# whose owning pid is dead (by liveness, not age), then fail loudly if still
+# above threshold.
+if [ -d /dev/shm ]; then
+  # Reclaim dead-pid segments first
+  for seg in /dev/shm/gpusim-*; do
+    [ -e "$seg" ] || continue
+    # Extract pid from segment name: gpusim-<name>-<pid> or gpusim-<runid>
+    # Segments created by the test embed the pid in the run_id (corpus-<pid>-...).
+    # For segments without an embedded pid, skip reclamation (conservative).
+    base=$(basename "$seg")
+    pid=""
+    # Try to extract a pid: look for a numeric component after the last hyphen
+    case "$base" in
+      *-[0-9]*) pid="${base##*-}" ;;
+    esac
+    if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
+      if ! kill -0 "$pid" 2>/dev/null; then
+        rm -f "$seg" 2>/dev/null
+      fi
+    fi
+  done
+  shm_total_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $2}')
+  shm_used_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
+  if [ -n "$shm_total_kb" ] && [ "$shm_total_kb" -gt 0 ]; then
+    shm_pct=$((shm_used_kb * 100 / shm_total_kb))
+    if [ "$shm_pct" -ge 80 ]; then
+      echo "GATE PREFLIGHT FAIL: /dev/shm at ${shm_pct}% (${shm_used_kb}K/${shm_total_kb}K) after reclamation." >&2
+      exit 1
+    fi
+    echo "GATE PREFLIGHT: /dev/shm at ${shm_pct}% (${shm_used_kb}K/${shm_total_kb}K)"
+  fi
+fi
 GATE_LOG="$GATE_TMP/gate.$$.out"
 if ! : > "$GATE_LOG" 2>/dev/null; then
   echo "gate: cannot write $GATE_LOG (filesystem full or read-only)" >&2

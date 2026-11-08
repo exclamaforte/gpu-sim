@@ -115,13 +115,21 @@ static size_t total_size_for(int nranks) {
     return s;
 }
 
-static char fg_atexit_name[256] = "";
+#define FG_ATEXIT_MAX 64
+static char fg_atexit_names[FG_ATEXIT_MAX][256];
+static int fg_atexit_count = 0;
 static void fg_atexit_unlink(void) {
-    if (fg_atexit_name[0]) shm_unlink(fg_atexit_name);
+    for (int i = 0; i < fg_atexit_count; i++) {
+        if (fg_atexit_names[i][0]) shm_unlink(fg_atexit_names[i]);
+    }
+    fg_atexit_count = 0;
 }
 
 static void fg_signal_handler(int sig) {
-    if (fg_atexit_name[0]) shm_unlink(fg_atexit_name);
+    for (int i = 0; i < fg_atexit_count; i++) {
+        if (fg_atexit_names[i][0]) shm_unlink(fg_atexit_names[i]);
+    }
+    fg_atexit_count = 0;
     _exit(128 + sig);
 }
 
@@ -180,9 +188,14 @@ fg_fab_t *fg_fab_attach(const char *run_id, uint64_t epoch, int rank, int nranks
     f->shm_fd = fd;
     f->is_creator = created;
     if (created) {
-        snprintf(fg_atexit_name, sizeof(fg_atexit_name), "%s", f->name);
-        atexit(fg_atexit_unlink);
-        fg_install_signal_handlers();
+        if (fg_atexit_count < FG_ATEXIT_MAX) {
+            snprintf(fg_atexit_names[fg_atexit_count], 256, "%s", f->name);
+            fg_atexit_count++;
+        }
+        if (fg_atexit_count == 1) {
+            atexit(fg_atexit_unlink);
+            fg_install_signal_handlers();
+        }
     }
 
     size_t tsz = total_size_for(nranks);
