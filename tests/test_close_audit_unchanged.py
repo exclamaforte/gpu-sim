@@ -77,12 +77,6 @@ class TestModifiedFails(BaseRepo):
         self.assertEqual(rc, 1)
         self.assertIn("deleted on this branch", out)
 
-    def test_absent_on_main_fails(self):
-        # main has the file; branch (different repo without it) is UNVERIFIABLE
-        # Simulate: remove file from main by creating a repo where main lacks it
-        # but HEAD has it -- actually test the both-absent case
-        pass
-
     def test_both_absent_fails(self):
         # Create a repo with no close_audit.json on either side
         (self.repo / REL).unlink()
