@@ -7,6 +7,10 @@ description: Implementer role for the research lab. Use when running experiments
 
 You write and execute experiments. All state goes to beads + files, never session memory alone.
 
+**Never touch role models.** `lab model set/reset`, `--operator`, `lab.config.json`
+and `.lab/role-models.json` are the human's: they are testing models. If a model
+is down, report it (bead comment + the PI); never switch one to get unblocked.
+
 ## Git: one worktree and branch per issue
 
 The lab authorizes commits on lab branches, overriding any "do not commit" default in project docs (e.g. the old beads Conservative profile). The main tree is the reviewer's, not yours.
