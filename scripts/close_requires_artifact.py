@@ -259,6 +259,41 @@ def _query(args: list[str]) -> tuple[list, int]:
     return (data if isinstance(data, list) else data.get("issues", [])), 0
 
 
+ALLOWLIST_PATH = REPO / "tests" / "close_audit_allowlist.json"
+ALLOW_SCOPE = "no-beads-db"   # the ONLY situation an allowlist entry may cover
+
+
+def _allowlist_entry() -> dict | None:
+    """Return the TRACKED entry covering this situation, or None (gpu-sim-4j4u).
+
+    The allowlist exists for one case only: a checkout that genuinely cannot run
+    the audit because it has no beads database (a plain `git clone` used by CI or
+    by a verification script). It exists because the PI's ruling on this bead was
+    that an environment which cannot run a check must fail UNVERIFIABLE *unless*
+    exempted in a tracked file naming who and why -- never by an env var, which
+    silently differs per shell, and never by a blanket "skip when unsure", which
+    is the defect this bead exists to remove.
+
+    An entry must name its scope, who and why; an entry missing any of the three
+    is ignored, so a malformed exemption fails closed. Every use is printed by
+    the caller, every time.
+    """
+    try:
+        data = json.loads(ALLOWLIST_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    entries = data.get("entries") if isinstance(data, dict) else data
+    for e in entries or []:
+        if not isinstance(e, dict):
+            continue
+        if e.get("scope") != ALLOW_SCOPE:
+            continue
+        if not (e.get("who") and e.get("why")):
+            continue
+        return e
+    return None
+
+
 def _bd_available() -> tuple[bool, str]:
     """Decide by asking bd, never by a filesystem path test (gpu-sim-4j4u rework).
 
@@ -348,6 +383,13 @@ def main() -> int:
     args = ap.parse_args()
     available, skip_reason = _bd_available()
     if not available:
+        entry = _allowlist_entry()
+        if entry:
+            # loud on EVERY use: an exemption nobody notices is a silent pass.
+            print(f"ALLOWLISTED: close audit skipped in this checkout -- "
+                  f"{entry['who']}: {entry['why']}")
+            print(f"ALLOWLISTED close audit (no beads DB; exempted by {entry['who']})")
+            return 0
         print(f"UNVERIFIABLE: close audit cannot run: {skip_reason}")
         print("UNVERIFIABLE close audit (no beads DB in this checkout)")
         return 1
