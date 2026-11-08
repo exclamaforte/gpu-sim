@@ -50,6 +50,20 @@ esac
 TIMEOUT="$1"; shift
 LOGFILE=""
 gpu_run_preflight "."
+# /dev/shm preflight (gpu-sim-e5w2): refuse if tmpfs is exhausted.
+gpu_shm_preflight() {
+    local total used pct
+    total=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $2}')
+    used=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
+    if [ -n "$total" ] && [ "$total" -gt 0 ]; then
+        pct=$((used * 100 / total))
+        if [ "$pct" -ge 80 ]; then
+            echo "gpu_run: refusing to start: /dev/shm at ${pct}% (exhausted). Reclaim leaked gpusim-* segments." >&2
+            exit 2
+        fi
+    fi
+}
+gpu_shm_preflight
 if [ "${1:-}" = "--log" ]; then
     LOGFILE="${2:-}"; shift 2
 fi

@@ -115,7 +115,7 @@ static size_t total_size_for(int nranks) {
     return s;
 }
 
-#define FG_ATEXIT_MAX 64
+#define FG_ATEXIT_MAX 256
 static char fg_atexit_names[FG_ATEXIT_MAX][256];
 static int fg_atexit_count = 0;
 static void fg_atexit_unlink(void) {

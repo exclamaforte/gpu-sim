@@ -28,17 +28,26 @@ mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
 # whose owning pid is dead (by liveness, not age), then fail loudly if still
 # above threshold.
 if [ -d /dev/shm ]; then
-  # Reclaim dead-pid segments first
+  # Reclaim dead-pid segments first (by liveness, not age).
+  # Names: gpusim-corpus-<pid>-<N>-<uuid8>. Parse pid at position 2 after
+  # "gpusim-corpus-". Non-matching names are never ours -> never delete.
+  # Ambiguous (non-numeric pid) -> skip (refuse to guess).
   for seg in /dev/shm/gpusim-*; do
     [ -e "$seg" ] || continue
-    # Extract pid from segment name: gpusim-<name>-<pid> or gpusim-<runid>
-    # Segments created by the test embed the pid in the run_id (corpus-<pid>-...).
-    # For segments without an embedded pid, skip reclamation (conservative).
     base=$(basename "$seg")
     pid=""
-    # Try to extract a pid: look for a numeric component after the last hyphen
+    # Only handle gpusim-corpus-<pid>-... names
     case "$base" in
-      *-[0-9]*) pid="${base##*-}" ;;
+      gpusim-corpus-[0-9]*)
+        # strip prefix
+        rest="${base#gpusim-corpus-}"
+        # pid is the first field before the next hyphen
+        pid="${rest%%-*}"
+        # validate pid is purely numeric
+        case "$pid" in
+          ''|*[!0-9]*) pid="" ;;
+        esac
+        ;;
     esac
     if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
       if ! kill -0 "$pid" 2>/dev/null; then
