@@ -29,3 +29,7 @@ def test_below_threshold_passes():
                        cwd=str(REPO), capture_output=True, text=True, timeout=300, env=env)
     # With threshold 100, should not fail on shm
     assert "PREFLIGHT FAIL" not in (r.stdout + r.stderr), f"unexpected PREFLIGHT FAIL: {r.stdout[:300]}"
+
+
+def test_gate_preflight_reports_shm():
+    assert "GATE PREFLIGHT: /dev/shm" in (REPO / "scripts" / "gate.sh").read_text()
