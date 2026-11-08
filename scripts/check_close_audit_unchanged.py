@@ -7,10 +7,10 @@ modifies it (or deletes it) is carrying branch noise into review: two branches
 from the same base shipped different values (365/348 vs 370/355) and every
 rebase produced a spurious diff.
 
-So a branch may NOT change this path relative to its merge-base with `main`/`master`.
+So a branch may NOT change this path relative to the `main`/`master` tip.
 Regenerate it on main only.
 
-Exit 0 if unchanged, 1 otherwise (including when no base can be resolved).
+Exit 0 if unchanged, 1 otherwise (including when no ref can be resolved).
 """
 from __future__ import annotations
 import subprocess
@@ -34,7 +34,7 @@ def main() -> int:
             main_ref = ref
             break
     if main_ref is None:
-        print("INVALID: check_close_audit_unchanged: no merge-base with master/main "
+        print("INVALID: check_close_audit_unchanged: no main/master ref "
               "could be resolved; cannot verify close_audit.json is unchanged.")
         print("Convention: close_audit.json is regenerated on main as its own commit.")
         print("See experiments/gpu-sim-u2o.15/README.md.")
@@ -50,11 +50,8 @@ def main() -> int:
 
     # Absence on a branch that postdates main's copy is a deletion, not a pass.
     if not main_exists:
-        # main doesn't have it either; nothing to compare.
-        if not head_exists:
-            print("check_close_audit_unchanged: OK (absent on both sides)")
-            return 0
-        print(f"INVALID: {PATH} added on this branch; it is main-only state.")
+        # main doesn't have it; cannot verify against authoritative state.
+        print(f"UNVERIFIABLE: {PATH} absent on main; cannot verify unchanged.")
         return 1
 
     # main has the file: HEAD must have the same blob.
