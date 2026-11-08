@@ -6,6 +6,11 @@ ledger row's mutation resolves against this dict; a row whose mutation is absent
 is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
+    "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
+    "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
+
+    "5uu9_power_arm": "5uu9 power arm reproducibility",
+    "qaiu_power_audit": "qaiu power audit reproducibility",
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
     "rb66_ambient_init": "rb66 fixture: throwaway repo left on the ambient default branch",
@@ -296,7 +301,81 @@ def _apply_hsuv_manifest_absolute(root):
     return backup, path
 
 
+def _apply_5uu9_corrupt(root):
+    """Mutation for 5uu9_power_arm: corrupt a scalar in committed metrics.json."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-5uu9", "metrics.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    try:
+        d["gbt_mae"] = 999.0
+    except Exception:
+        pass
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
+def _apply_qaiu_corrupt(root):
+    """Mutation for qaiu_power_audit: corrupt a scalar in committed metrics.json."""
+    import json, os
+    path = os.path.join(root, "experiments", "gpu-sim-qaiu", "metrics.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    try:
+        d["as_landed_over_rows"]["paired_delta_mean"] = 999.0
+    except Exception:
+        pass
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return backup, path
+
+
+def _apply_fd5i_revert_to_short(root):
+    """Mutation for fd5i_landing_commit_full_sha: revert landing_commit_for to %h so the full-sha agreement plant fails."""
+    import os
+    path = os.path.join(root, "scripts", "tree_state.py")
+    backup = open(path).read()
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+def _apply_3v6d1_unhalve(root):
+    """Mutation for 3v6d1_fabric_rate: remove the bidirectional halving in
+    topology.effective_bw, so the one-way rate becomes the spec's aggregate
+    900 GB/s. The Python rule, the emitted binary and the transport then disagree
+    with the model formula in the same way they did before gpu-sim-3v6d.1.
+
+    Raises if the substitution does not apply, so a silent no-op cannot be
+    reported as a mutation that failed to fail.
+    """
+    import os
+    path = os.path.join(root, "epic_cluster", "topology.py")
+    backup = open(path).read()
+    old = 'if link.get("bw_is_bidirectional", False):\n        bw *= 0.5\n'
+    # MEASURED 2026-11-04: the mutated text must differ in LENGTH from the
+    # original. conftest.py redirects bytecode to .lab/tmp/pycache and CPython
+    # validates a .pyc on (mtime, size); a same-length mutation restored inside
+    # the same mtime second leaves a stale .pyc that serves the MUTATED code to
+    # the restored run, so the checker reports 'restored target did not pass'.
+    # The trailing comment makes the mutated file longer, so the signature
+    # differs in both directions.
+    new = ('if link.get("bw_is_bidirectional", False):\n'
+           '        bw *= 1.0  # 3v6d1 mutation: halving removed\n')
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d1 mutation did not apply: halving block not found "
+                           "in epic_cluster/topology.py")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
 MUTATION_FUNCTIONS = {
+    "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
+    "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
+    "5uu9_power_arm": _apply_5uu9_corrupt,
+    "qaiu_power_audit": _apply_qaiu_corrupt,
     "8yb4_k_window": _apply_8yb4_corrupt,
     "3v6d2_link_calendar": _apply_3v6d2_uncas,
     "rb66_ambient_init": _apply_rb66_ambient_init,
@@ -313,4 +392,3 @@ MUTATION_FUNCTIONS = {
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
 }
-

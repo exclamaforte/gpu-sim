@@ -1,0 +1,20 @@
+NEGATIVE CONTROLS (5uu9)
+
+1. Drop one replicate -> REFUSE naming missing replicate:
+   cp -r .lab/wt/gpu-sim-5uu9 .lab/tmp/5uu9-scratch
+   cd .lab/tmp/5uu9-scratch
+   python3 -c "import json; p='experiments/gpu-sim-5uu9/power_rep1.jsonl'; rows=[json.loads(l) for l in open(p)]; rows.pop(0); open(p,'w').write(''.join(json.dumps(r)+'\n' for r in rows))"
+   U5R4_OUT=.lab/tmp/5uu9-scratch/out python3 experiments/gpu-sim-5uu9/analyze.py
+   -> REFUSE: config (8388608, 128) replicate counts [0, 1, 1] != [1,1,1] (exit 1)
+
+2. Add duplicate configuration -> REFUSE 'duplicate configuration: 1 identical specs':
+   (duplicate first row in all 3 reps)
+   -> REFUSE: duplicate configuration: 1 identical specs (exit 1)
+
+3. Leakage asserts fire on append-divergent_branch:
+   (append divergent_branch row to 2al/dataset.jsonl in scratch)
+   -> AssertionError: seen_families includes 'divergent_branch'
+
+4. Forcing one config below gate changes only pass-fraction table and n_units, never CI silently:
+   (manually set one config's kernel_us below threshold in the jsonl; re-run)
+   -> n_usable decreases by 1; paired CI recomputed over remaining usable configs.
