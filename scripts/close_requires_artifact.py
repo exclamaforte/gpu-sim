@@ -259,27 +259,34 @@ def _query(args: list[str]) -> tuple[list, int]:
     return (data if isinstance(data, list) else data.get("issues", [])), 0
 
 
-def _has_beads_db() -> tuple[bool, str]:
-    """Detect whether a beads DB is available in this checkout.
+def _bd_available() -> tuple[bool, str]:
+    """Decide by asking bd, never by a filesystem path test (gpu-sim-4j4u rework).
 
-    Returns (available, reason). Detection is by PRESENCE of .beads/ and a
-    working `bd` binary/reporting a database -- never by 'the query returned
-    nothing' (gpu-sim-4j4u).
+    Attempts the query the audit actually needs. A genuine no-database error
+    (or any bd failure) means the audit cannot run: report UNVERIFIABLE and
+    FAIL, so absence can never satisfy a hard check.
     """
-    beads_dir = REPO / ".beads"
-    if not beads_dir.is_dir():
-        return False, "no .beads directory in this checkout"
-    # The DB itself (embeddeddolt/dolt) is gitignored, so a clone has the
-    # tracked .beads config but no database. Treat that as "no DB" (skip),
-    # not as a present-but-broken DB (fail). (gpu-sim-4j4u)
-    db_present = (beads_dir / "embeddeddolt").is_dir() or (beads_dir / "dolt").is_dir()
-    if not db_present:
-        return False, "no beads database in this checkout (.beads/embeddeddolt absent)"
     if shutil.which("bd") is None:
         return False, "bd binary not found on PATH"
-    # Presence-based detection only: a present-but-broken DB is case 2 (FAIL),
-    # never a skip. Do not probe bd here (it can hang on corruption).
-    return True, "ok"
+    try:
+        proc = subprocess.run(["bd", "list", "--all", "--json"],
+                              capture_output=True, text=True, cwd=str(REPO),
+                              timeout=60)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        return False, f"bd query failed to run: {e}"
+    if proc.returncode == 0:
+        try:
+            json.loads(proc.stdout)
+        except (json.JSONDecodeError, ValueError):
+            return False, "bd returned unparseable output"
+        return True, "ok"
+    combined = ((proc.stderr or "") + (proc.stdout or "")).lower()
+    if ("no database" in combined or "no beads" in combined
+            or "database not found" in combined or "embeddeddolt" in combined
+            or ("dolt" in combined and "not found" in combined)):
+        return False, "no beads database available via bd"
+    return False, (f"bd query failed (rc={proc.returncode}): "
+                   f"{(proc.stderr or '').strip()[:200]}")
 
 
 def gather_with_proven_coverage() -> tuple[list, dict]:
@@ -339,17 +346,12 @@ def main() -> int:
     ap.add_argument("--write", action="store_true",
                     help="write the audit to the tracked path (main-only regeneration)")
     args = ap.parse_args()
-    available, _skip_reason = _has_beads_db()
+    available, skip_reason = _bd_available()
     if not available:
-        print(f"SKIP: close audit (no beads DB in this checkout): {_skip_reason}")
-        print("SKIP close audit (no beads DB in this checkout)")
-        return 0
+        print(f"UNVERIFIABLE: close audit cannot run: {skip_reason}")
+        print("UNVERIFIABLE close audit (no beads DB in this checkout)")
+        return 1
     issues, coverage = gather_with_proven_coverage()
-    if coverage.get("skipped"):
-        print(f"SKIP: close audit (no beads DB in this checkout): "
-              f"{coverage.get('skip_detail')}")
-        print("SKIP close audit (no beads DB in this checkout)")
-        return 0
     rec = apply_coverage_gate(audit(issues), coverage)
     text = json.dumps(rec, indent=2) + "\n"
     print(json.dumps({k: v for k, v in rec.items()
