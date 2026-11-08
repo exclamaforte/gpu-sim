@@ -34,8 +34,8 @@ def main() -> int:
             main_ref = ref
             break
     if main_ref is None:
-        print("INVALID: check_close_audit_unchanged: no main/master ref could be "
-              "resolved; cannot verify close_audit.json is unchanged.")
+        print("INVALID: check_close_audit_unchanged: no merge-base with master/main "
+              "could be resolved; cannot verify close_audit.json is unchanged.")
         print("Convention: close_audit.json is regenerated on main as its own commit.")
         print("See experiments/gpu-sim-u2o.15/README.md.")
         return 1
@@ -62,7 +62,7 @@ def main() -> int:
         print(f"INVALID: {PATH} deleted on this branch; restore it unchanged.")
         return 1
     if main_blob.stdout != head_blob.stdout:
-        print(f"INVALID: {PATH} differs from its main blob.")
+        print(f"INVALID: {PATH} differs from its base blob.")
         return 1
     print("check_close_audit_unchanged: OK (unchanged vs main)")
     return 0
