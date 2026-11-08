@@ -331,10 +331,13 @@ int fg_fab_barrier(fg_fab_t *f) {
 int fg_fab_links_init(fg_fab_t *f, int n_links) {
     if (!f) return FG_FAB_EINVAL;
     if (n_links < 0 || n_links > FG_FAB_MAX_LINKS) return FG_FAB_EINVAL;
-    f->hdr->n_links = (uint64_t)n_links;
-    for (int i = 0; i < n_links; i++) {
-        atomic_store_explicit(&f->hdr->busy_until[i], 0, memory_order_relaxed);
+    if (f->hdr->n_links == 0) {
+        /* first init: zero the calendar */
+        for (int i = 0; i < n_links; i++) {
+            atomic_store_explicit(&f->hdr->busy_until[i], 0, memory_order_relaxed);
+        }
     }
+    f->hdr->n_links = (uint64_t)n_links;
     return FG_FAB_OK;
 }
 
