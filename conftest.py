@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 import pytest
-import atexit
+
 
 # gpu-sim-x1v: refuse to run tests against a stale libfakegpu.so
 REPO = Path(__file__).resolve().parent
@@ -42,7 +42,9 @@ def pytest_configure(config):
     # how the hijack went unnoticed.
     top = _git("rev-parse", "--show-toplevel").stdout.strip()
     if top and os.path.realpath(top) == os.path.realpath(str(REPO)):
-        _restore_tree_to_head()
+        # record the starting tree state so residue can be REPORTED at the end;
+        # never restore it (gpu-sim-zsd3).
+        config._dirty_at_start = _dirty_paths()
         config._start_branch = _git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
         config._start_commit = _git("rev-parse", "HEAD").stdout.strip()
         if config._start_branch == "HEAD":
@@ -79,106 +81,66 @@ def _dirty_paths():
     return paths
 
 
-_PLANT_TARGETS = (
-    "docs/model_facts.json",
-    "tests/fs2y_ledger_meta.json",
-    "experiments/gpu-sim-u5r4/metrics.json",
-    "experiments/gpu-sim-wty2/metrics.json",
-    "tests/test_vacuous_plant.py",
-)
-
-
-def _restore_tree_to_head():
-    # Never restore in a checker child: mutation replay relies on the mutated
-    # file surviving until the target test runs (gpu-sim-zsd3).
-    if os.environ.get("OI4M_CHECKER_PID"):
-        return
-    if os.environ.get("LAB_NO_TREE_JANITOR"):
-        return
-    top = _git("rev-parse", "--show-toplevel").stdout.strip()
-    if not top or os.path.realpath(top) != os.path.realpath(str(REPO)):
-        return
-    for rel in _PLANT_TARGETS:
-        head = _git("show", "HEAD:" + rel)
-        if head.returncode == 0:
-            try:
-                (REPO / rel).parent.mkdir(parents=True, exist_ok=True)
-                (REPO / rel).write_text(head.stdout)
-            except OSError:
-                pass
-    ls = _git("ls-tree", "-r", "--name-only", "HEAD", "--", "tests/fs2y_ledger.d/")
-    for rel in (ls.stdout or "").splitlines():
-        rel = rel.strip()
-        if not rel:
-            continue
-        if not (REPO / rel).exists():
-            head = _git("show", "HEAD:" + rel)
-            if head.returncode == 0:
-                try:
-                    (REPO / rel).parent.mkdir(parents=True, exist_ok=True)
-                    (REPO / rel).write_text(head.stdout)
-                except OSError:
-                    pass
-    status = _git("status", "--porcelain")
-    for line in (status.stdout or "").splitlines():
-        if len(line) < 4:
-            continue
-        pp = line[3:].strip()
-        if " -> " in pp:
-            pp = pp.split(" -> ", 1)[1]
-        pp = pp.strip('"')
-        name = Path(pp).name
-        if name.startswith(("plant_", "tmp")) or name.endswith((".tmp", ".pyc")):
-            try:
-                (REPO / pp).unlink()
-            except OSError:
-                pass
+def _report_pollution(nodeid, leaked, tracked_modified, phase):
+    """Name the polluter loudly. Never repairs anything (gpu-sim-zsd3)."""
+    parts = list(tracked_modified) + [p for p in leaked if p not in tracked_modified]
+    print(f"\n[conftest] TREE POLLUTION ({phase}): {nodeid} left {sorted(parts)}; "
+          f"NOT restored -- restoring from HEAD reverts uncommitted work, which is "
+          f"how this fixture reverted a real fix mid-run (gpu-sim-zsd3). The tree is "
+          f"dirty now; later failures may be consequences rather than causes.",
+          file=sys.stderr)
 
 
 @pytest.fixture(autouse=True)
 def _tree_janitor(request):
-    """Put back any repo file a test modified but did not restore (gpu-sim-zsd3).
+    """DETECT -- never repair -- tracked files a test left modified (gpu-sim-zsd3).
 
-    The plant tests and the mutation replay deliberately corrupt a tracked file,
-    run a checker, and restore it in `finally`. Under an interrupted run (OOM
-    kill, timeout) the `finally` never executes, the payload survives, and every
-    later test in the same session -- and the gate's residue commit -- inherits
-    it. Two real examples: experiments/gpu-sim-u5r4/metrics.json left holding the
-    mutation payload gbt_mae=999, and docs/model_facts.json left missing bch9's
-    fact block, which the gate then committed as if the branch had dropped it.
+    History matters here, because the obvious implementation is the wrong one.
+    This fixture used to put the tree back: it restored tracked files from HEAD
+    and unlinked plant/temp debris, to stop an interrupted plant test's payload
+    (gbt_mae=999 in a metrics file, a missing fact block in model_facts.json)
+    from being inherited by later tests and committed by the gate.
 
-    This janitor makes every test start from the tree state it inherited: any
-    tracked file that was clean before the test and dirty after is restored from
-    HEAD, and known plant/temp debris is removed. It warns loudly with the node
-    id so the polluter is still visible instead of being silently papered over.
+    That repair was itself destructive. It cannot tell a payload left by a
+    crashed test from UNCOMMITTED WORK, and on 2026-11-08 it reverted a real fix
+    in progress: a test then failed on the very field being corrected, and
+    passed afterwards testing reverted content. The branch under review had made
+    it worse -- restoring a fixed target list from pytest_configure,
+    pytest_sessionfinish, SIGTERM/SIGINT handlers and atexit, so ANY exit
+    (including a kill) rewrote files that a human was editing.
+
+    Upstream plant cleanup now happens OUTSIDE the tree (the plants are created
+    and removed by the harness, not by a test that can be interrupted), so the
+    repair is obsolete as well as unsafe.
+
+    Ruling: report the node id and the paths, loudly; never write, never unlink,
+    never git-restore. Residue that nobody names is the failure mode this exists
+    to prevent -- residue that the fixture deletes is a worse one.
     """
     if os.environ.get("LAB_NO_TREE_JANITOR"):
         yield
         return
-    root = Path(__file__).resolve().parent
     before = _dirty_paths()
     yield
     leaked = _dirty_paths() - before
     if not leaked:
         return
-    restored = []
+    tracked_modified = []
     for rel in sorted(leaked):
+        # a modified TRACKED file can be swept into a commit: that is the
+        # dangerous residue, and it fails the polluting test so it cannot be
+        # inherited silently.
         if _git("ls-files", "--error-unmatch", rel).returncode == 0:
-            head = _git("show", "HEAD:" + rel)
-            if head.returncode == 0:
-                (root / rel).write_text(head.stdout)
-                restored.append(rel)
-                continue
-        name = Path(rel).name
-        if name.startswith(("plant_", "tmp")) or name.endswith((".tmp", ".pyc")):
-            try:
-                (root / rel).unlink()
-            except OSError:
-                pass
-            restored.append(rel + " (removed)")
-    if restored:
-        print(f"\n[conftest] tree janitor: {request.node.nodeid} left {restored}; "
-              f"restored so the next test starts clean (gpu-sim-zsd3)", file=sys.stderr)
+            tracked_modified.append(rel)
+    _report_pollution(request.node.nodeid, leaked, tracked_modified, "test-end")
+    if tracked_modified:
+        pytest.fail(
+            f"test left tracked file(s) modified: {sorted(tracked_modified)} "
+            f"(gpu-sim-zsd3). Restore them in a finally block or use a scratch "
+            f"worktree; the fixture will NOT restore them for you, because that "
+            f"would also revert uncommitted work.",
+            pytrace=False,
+        )
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -193,17 +155,19 @@ def pytest_sessionfinish(session, exitstatus):
         print(f"\n[conftest] ERROR: the suite moved HEAD from {start_branch!r} to "
               f"{now_branch!r}. Tests must not mutate the shared repository; use a scratch "
               f"git worktree (see tests/test_verify_committed_run.py).", file=sys.stderr)
-    _restore_tree_to_head()
+    _report_session_pollution(session)
 
 
-def _restore_signal(signum, frame):
-    _restore_tree_to_head()
-    raise SystemExit(128 + signum)
+def _report_session_pollution(session):
+    """REPORT residue at session end; never repair it (gpu-sim-zsd3).
 
-
-for _sig in (signal.SIGTERM, signal.SIGINT):
-    try:
-        signal.signal(_sig, _restore_signal)
-    except (ValueError, OSError):
-        pass
-atexit.register(_restore_tree_to_head)
+    The old session-end hook restored HEAD content into the working tree, so a
+    killed run or a SIGTERM rewrote files an author was editing. Reporting
+    cannot lose work; restoring can.
+    """
+    before = getattr(session.config, "_dirty_at_start", None)
+    if before is None:
+        return
+    leaked = _dirty_paths() - before
+    if leaked:
+        _report_pollution("<session>", leaked, [], "session-end")
