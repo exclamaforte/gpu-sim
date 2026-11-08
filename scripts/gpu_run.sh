@@ -57,7 +57,8 @@ gpu_shm_preflight() {
     used=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
     if [ -n "$total" ] && [ "$total" -gt 0 ]; then
         pct=$((used * 100 / total))
-        if [ "$pct" -ge 80 ]; then
+        local threshold="${SHM_THRESHOLD_PCT:-80}"
+        if [ "$pct" -ge "$threshold" ]; then
             echo "gpu_run: refusing to start: /dev/shm at ${pct}% (exhausted). Reclaim leaked gpusim-* segments." >&2
             exit 2
         fi

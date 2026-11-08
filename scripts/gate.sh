@@ -59,7 +59,8 @@ if [ -d /dev/shm ]; then
   shm_used_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
   if [ -n "$shm_total_kb" ] && [ "$shm_total_kb" -gt 0 ]; then
     shm_pct=$((shm_used_kb * 100 / shm_total_kb))
-    if [ "$shm_pct" -ge 80 ]; then
+    shm_threshold="${SHM_THRESHOLD_PCT:-80}"
+    if [ "$shm_pct" -ge "$shm_threshold" ]; then
       echo "GATE PREFLIGHT FAIL: /dev/shm at ${shm_pct}% (${shm_used_kb}K/${shm_total_kb}K) after reclamation." >&2
       exit 1
     fi
