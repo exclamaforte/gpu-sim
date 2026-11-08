@@ -1,1 +1,15 @@
-{"bead": "gpu-sim-e5w2", "job_id": "cpu-1", "status": "done", "command": "gate.sh --fast", "exit_code": 0}
+{
+  "jobs": [
+    {
+      "job_id": "cpu-e5w2-1",
+      "command": "bash experiments/gpu-sim-e5w2/run.sh",
+      "exit_code": 0,
+      "what": "gpu-sim-e5w2: shm preflight check",
+      "state": "finished",
+      "timed_out": false,
+      "wall_s": 1
+    }
+  ],
+  "total_wall_s": 1,
+  "concurrency": "single"
+}
