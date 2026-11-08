@@ -77,6 +77,15 @@ class TestModifiedFails(BaseRepo):
         self.assertEqual(rc, 1)
         self.assertIn("deleted on this branch", out)
 
+    def test_both_absent_fails(self):
+        # Create a repo with no close_audit.json on either side
+        (self.repo / REL).unlink()
+        git(self.repo, "rm", "-q", REL)
+        git(self.repo, "commit", "-qm", "remove from main")
+        rc, out = self.run_guard()
+        self.assertEqual(rc, 1)
+        self.assertIn("UNVERIFIABLE", out)
+
 
 class TestHeadVsWorktree(BaseRepo):
     def test_committed_churn_detected_even_if_worktree_restored(self):
@@ -112,7 +121,7 @@ class TestNoMergeBaseFailsClosed(BaseRepo):
             pass
         rc, out = self.run_guard()
         self.assertEqual(rc, 1)
-        self.assertIn("no merge-base", out)
+        self.assertIn("no main/master ref", out)
 
 
 if __name__ == "__main__":
