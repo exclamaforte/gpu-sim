@@ -294,34 +294,44 @@ def _allowlist_entry() -> dict | None:
     return None
 
 
-def _bd_available() -> tuple[bool, str]:
-    """Decide by asking bd, never by a filesystem path test (gpu-sim-4j4u rework).
+def _bd_available() -> tuple[bool, str, str]:
+    """Ask bd; return (available, cause, detail) -- the CAUSE is what matters.
 
-    Attempts the query the audit actually needs. A genuine no-database error
-    (or any bd failure) means the audit cannot run: report UNVERIFIABLE and
-    FAIL, so absence can never satisfy a hard check.
+    The cause exists because an exemption may cover exactly one situation: this
+    checkout HAS NO DATABASE, so nobody could have answered. It must not cover a
+    database that is present but unusable (locked, corrupt, unparseable): that is
+    a finding the audit exists to report, and exempting it would turn the one
+    failure worth catching into a green pass (gpu-sim-4j4u review).
+
+    Causes: "ok", "no_database", "unusable", "bd_missing", "unparseable".
     """
     if shutil.which("bd") is None:
-        return False, "bd binary not found on PATH"
+        return False, "bd_missing", "bd binary not found on PATH"
     try:
         proc = subprocess.run(["bd", "list", "--all", "--json"],
                               capture_output=True, text=True, cwd=str(REPO),
                               timeout=60)
     except (subprocess.TimeoutExpired, OSError) as e:
-        return False, f"bd query failed to run: {e}"
+        return False, "unusable", f"bd query failed to run: {e}"
     if proc.returncode == 0:
         try:
             json.loads(proc.stdout)
         except (json.JSONDecodeError, ValueError):
-            return False, "bd returned unparseable output"
-        return True, "ok"
+            return False, "unparseable", "bd returned unparseable output"
+        return True, "ok", "ok"
     combined = ((proc.stderr or "") + (proc.stdout or "")).lower()
+    # A PRESENT but damaged database is never "absent". These are checked first
+    # so no absence phrase can swallow them.
+    if any(k in combined for k in ("locked", "corrupt", "invalid", "checksum",
+                                   "malformed", "in use")):
+        return False, "unusable", (f"bd query failed (rc={proc.returncode}): "
+                                   f"{(proc.stderr or '').strip()[:200]}")
     if ("no database" in combined or "no beads" in combined
             or "database not found" in combined or "embeddeddolt" in combined
             or ("dolt" in combined and "not found" in combined)):
-        return False, "no beads database available via bd"
-    return False, (f"bd query failed (rc={proc.returncode}): "
-                   f"{(proc.stderr or '').strip()[:200]}")
+        return False, "no_database", "no beads database available via bd"
+    return False, "unusable", (f"bd query failed (rc={proc.returncode}): "
+                               f"{(proc.stderr or '').strip()[:200]}")
 
 
 def gather_with_proven_coverage() -> tuple[list, dict]:
@@ -381,9 +391,11 @@ def main() -> int:
     ap.add_argument("--write", action="store_true",
                     help="write the audit to the tracked path (main-only regeneration)")
     args = ap.parse_args()
-    available, skip_reason = _bd_available()
+    available, cause, skip_reason = _bd_available()
     if not available:
-        entry = _allowlist_entry()
+        # Only "there is no database" may be exempted. A present-but-unusable
+        # database stays a hard failure even with an allowlist entry present.
+        entry = _allowlist_entry() if cause == "no_database" else None
         if entry:
             # loud on EVERY use: an exemption nobody notices is a silent pass.
             print(f"ALLOWLISTED: close audit skipped in this checkout -- "

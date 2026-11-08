@@ -94,3 +94,44 @@ def test_close_audit_allowlist_entry_without_who_is_ignored():
         assert "ALLOWLISTED" not in out, f"an anonymous exemption must not be honoured: {out}"
     finally:
         shutil.rmtree(dst, ignore_errors=True)
+
+def test_close_audit_allowlist_does_NOT_exempt_a_broken_db():
+    """A present-but-unusable database must fail even when the allowlist exists.
+
+    The allowlist covers one situation: this checkout has no database, so nobody
+    could answer. A database that is LOCKED or CORRUPT is the failure the audit
+    exists to report; exempting it would turn the single case worth catching into
+    a green pass (gpu-sim-4j4u review, reviewer's fake-bd probe).
+    """
+    (REPO / ".lab" / "tmp").mkdir(parents=True, exist_ok=True)
+    dst = Path(tempfile.mkdtemp(prefix="realclone-4j4u-", dir=str(REPO / ".lab" / "tmp")))
+    fakebin = dst / "fakebin"
+    try:
+        subprocess.run(["git", "clone", str(REPO), str(dst / "repo")],
+                       check=True, capture_output=True)
+        repo = dst / "repo"
+        beads = repo / ".beads"
+        if beads.exists():
+            shutil.rmtree(beads)
+        # Run the WORKING-TREE script, not the clone's committed copy.
+        (repo / "scripts").mkdir(parents=True, exist_ok=True)
+        shutil.copy(str(REPO / "scripts" / "close_requires_artifact.py"),
+                    str(repo / "scripts" / "close_requires_artifact.py"))
+        # A bd that EXISTS and FAILS on a present database, never "absent".
+        fakebin.mkdir(parents=True, exist_ok=True)
+        fake = fakebin / "bd"
+        fake.write_text("#!/bin/sh\necho 'dolt: database is locked' >&2\nexit 1\n")
+        fake.chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = str(fakebin) + os.pathsep + env.get("PATH", "")
+        r = subprocess.run(["python3", "scripts/close_requires_artifact.py"],
+                           cwd=str(repo), capture_output=True, text=True, env=env)
+        out = r.stdout + r.stderr
+        # The allowlist is present in this clone (it ships in the repo).
+        assert (repo / "tests" / "close_audit_allowlist.json").exists(), "test needs the allowlist present"
+        assert r.returncode != 0, f"a locked DB must NOT be exempted: {out}"
+        assert "UNVERIFIABLE" in out, f"expected UNVERIFIABLE: {out}"
+        assert "ALLOWLISTED" not in out, f"the allowlist must not cover a broken DB: {out}"
+        assert "locked" in out.lower(), f"the real cause should be reported: {out}"
+    finally:
+        shutil.rmtree(dst, ignore_errors=True)
