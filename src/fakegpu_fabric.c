@@ -65,6 +65,9 @@ typedef struct {
     atomic_uint_fast64_t n_links; /* number of initialized links */
     atomic_uint_fast64_t busy_until[FG_FAB_MAX_LINKS]; /* per-link calendar (ns) */
     atomic_uint_fast64_t first_start; /* ns timestamp of first transfer start */
+    atomic_uint_fast64_t last_start[FG_FAB_MAX_LINKS]; /* start used by the most
+        recent transfer on each link: lets a caller measure its OWN service time
+        (finish - start) instead of including queue wait behind another rank */
     /* rank slots follow in memory, then mailboxes */
 } fg_header_t;
 
@@ -772,11 +775,20 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
         do {
             busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
             uint64_t now = now_ns();
+            /* (gpu-sim-3v6d.3) busy_until PERSISTS after a collective ends, so
+             * once the calendar drains it holds a timestamp in the PAST. Using
+             * it as the reservation start schedules the next transfer backwards
+             * (finish < now), which made enforced_s collapse to 0 whenever two
+             * collectives were separated by more than the transfer delay --
+             * measured: 1st collective enf=0.001017s, 2nd enf=0.000000s at the
+             * same rid. A calendar must never reserve in the past. */
             start = (busy > 0) ? busy : now;
             finish = start + delay_ns;
             if (atomic_load_explicit(&f->hdr->first_start, memory_order_acquire) == 0) {
                 atomic_compare_exchange_strong_explicit(&f->hdr->first_start, &(uint64_t){0}, start, memory_order_acq_rel, memory_order_acquire);
             }
+            atomic_store_explicit(&f->hdr->last_start[link_id], start,
+                                  memory_order_release);
         } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
                                                             &busy, finish,
                                                             memory_order_acq_rel,
@@ -833,6 +845,11 @@ void fg_fab_reset_first_start(fg_fab_t *f) {
 int fg_fab_is_creator(fg_fab_t *f) {
     if (!f) return 0;
     return f->is_creator;
+}
+
+uint64_t fg_fab_link_last_start(fg_fab_t *f, int link_id) {
+    if (!f || !f->hdr || link_id < 0 || link_id >= FG_FAB_MAX_LINKS) return 0;
+    return atomic_load_explicit(&f->hdr->last_start[link_id], memory_order_acquire);
 }
 
 uint64_t fg_fab_now_ns(void) {

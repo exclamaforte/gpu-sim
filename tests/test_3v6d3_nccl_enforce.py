@@ -41,7 +41,8 @@ def _run_once(N, nrank=2, rid=None, keep_segment=False):
     if rid is None:
         rid = f"corpus-{os.getpid()}-{N}-{uuid.uuid4().hex[:8]}"
     os.environ["GPUSIM_FABRIC_RUN_ID"] = rid
-    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl")
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl",
+                                                   dir=str(REPO / ".lab" / "tmp"))
     tf.close()
     os.environ["GPUSIM_TRACE"] = tf.name
     lib.ncclAllReduce.restype = ctypes.c_int
@@ -63,7 +64,8 @@ def _run_once(N, nrank=2, rid=None, keep_segment=False):
     assert pred is not None
     assert enf is not None, "enforced_s null (transfer did not run)"
     delta = abs(enf - pred) / pred * 100.0
-    assert delta <= 5.0, f"delta {delta:.2f}% > 5% (N={N}, nr={nrank})"
+    if os.environ.get("VMQ_DEBUG")=="1": print(f"DBG pred={pred:.6f} enf={enf:.6f}")
+    assert delta <= 5.0, f"delta {delta:.2f}% > 5% (N={N}, nr={nrank}, pred={pred:.6f}s enf={enf:.6f}s)"
     # the per-sample delta for this call; the test function asserts EVERY one
     # reclaim own segment
     libc = ctypes.CDLL('libc.so.6')
@@ -107,7 +109,8 @@ def test_contention_shared_link():
     lib.ncclAllReduce.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
                                   ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
     # first collective
-    tf1 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl")
+    tf1 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl",
+                                                   dir=str(REPO / ".lab" / "tmp"))
     tf1.close()
     os.environ["GPUSIM_TRACE"] = tf1.name
     s1 = (ctypes.c_float * N)(); r1 = (ctypes.c_float * N)()
@@ -126,7 +129,8 @@ def test_contention_shared_link():
     libc.munmap(ptr, 4096)
     libc.close(fd)
     # second collective: must wait for busy_until
-    tf2 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl")
+    tf2 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl",
+                                                   dir=str(REPO / ".lab" / "tmp"))
     tf2.close()
     os.environ["GPUSIM_TRACE"] = tf2.name
     s2 = (ctypes.c_float * N)(); r2 = (ctypes.c_float * N)()

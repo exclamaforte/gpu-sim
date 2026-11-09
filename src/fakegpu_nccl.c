@@ -887,6 +887,14 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
          * same per-link reservations the model prices. fg_nccl_predict stays as
          * the CHECK (both numbers are emitted; the caller asserts |delta|<=tol). */
         double enforced = -1.0;
+        /* Per-collective start taken from THIS process's clock. first_start is a
+         * per-run-id mark in shared memory: it survives into the next collective
+         * (cumulative enforced_s) and, being set by whichever link transfers
+         * first, cannot be cleared safely by a caller that only inspects one
+         * link. Measuring from an entry stamp removes the shared state entirely,
+         * so repeated collectives and multi-link transport are both safe without
+         * a reset protocol. */
+        uint64_t _coll_start = 0;
         if (pred != FG_NCCL_REFUSED) {
             const char *rid = getenv("GPUSIM_FABRIC_RUN_ID");
             char rbuf[64];
@@ -903,9 +911,17 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                  * 99.999% / 199.998% across three calls at one rid. Reset it at
                  * each collective entry, but only when the calendar is idle, so
                  * a reset cannot wipe a concurrent collective's mark. */
-                if (fg_fab_link_busy(f, 0) <= fg_fab_now_ns()) {
-                    fg_fab_reset_first_start(f);
-                }
+                /* Per-collective baseline: this collective's OWN reservation
+                 * start, i.e. the link calendar's end if it is still busy, else
+                 * now. first_start (a per-run-id mark) cannot serve: it survives
+                 * into the next collective, so enforced_s became cumulative
+                 * (0.0005% / 99.999% / 199.998% at one rid). Measuring from the
+                 * reservation start keeps the queue wait out of THIS collective's
+                 * enforced time, which is what fg_nccl_predict prices. */
+                /* baseline is this collective's own first-hop reservation start,
+                 * read back from the fabric after the hop (see the _h==0 branch
+                 * below); using a pre-read here would include queue wait behind
+                 * another rank sharing the run-id calendar. */
                 double bw = 0.0, lat = 0.0;
                 if (bl >= 0 && bl < t->n_links) { bw = t->links[bl].eff_bw_gbs; lat = t->links[bl].latency_us; }
                 else if (t->n_links > 0) { bw = t->links[0].eff_bw_gbs; lat = t->links[0].latency_us; }
@@ -926,18 +942,13 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                 for (int _h = 0; _h < _total_hops; _h++) {
                     int _r = fg_fab_transfer(f, 0, _per, bw, lat, 0.0, 0, 0, 0.0,
                                              bl >= 0 ? bl : 0);
+                    if (_h == 0) _coll_start = fg_fab_link_last_start(f, 0);
                     if (_r != 0) { _trc = _r; break; }
                 }
                 if (_trc == 0) {
-                    uint64_t _start = fg_fab_first_start(f);
                     uint64_t _final_busy = fg_fab_link_busy(f, _link);
-                    if (_start > 0 && _final_busy > _start) {
-                        enforced = (double)(_final_busy - _start) / 1e9;
-                    } else if (_final_busy > 0) {
-                        enforced = (double)_final_busy / 1e9;
-                    } else {
-                        enforced = 0.0;
-                    }
+                    enforced = (_final_busy > _coll_start)
+                                   ? (double)(_final_busy - _coll_start) / 1e9 : 0.0;
                 } else {
                     enforced = -1.0;
                 }

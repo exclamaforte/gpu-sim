@@ -105,7 +105,8 @@ void fg_fab_reset_calendar(fg_fab_t *f);
 void fg_fab_reset_first_start(fg_fab_t *f);
 int fg_fab_is_creator(fg_fab_t *f);
 uint64_t fg_fab_first_start(fg_fab_t *f);
-uint64_t fg_fab_now_ns(void);  /* monotonic ns, same clock as the calendar */
+uint64_t fg_fab_now_ns(void);
+uint64_t fg_fab_link_last_start(fg_fab_t *f, int link_id);  /* monotonic ns, same clock as the calendar */
 uint64_t fg_fab_link_busy(fg_fab_t *f, int link);
 void fg_fab_detach(fg_fab_t *f);
 
