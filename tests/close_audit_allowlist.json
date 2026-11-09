@@ -1,0 +1,10 @@
+{
+  "_what_this_is": "Tracked exemptions for scripts/close_requires_artifact.py (gpu-sim-4j4u). An exemption is only valid for ONE situation: this checkout has no beads database, so the audit cannot run at all. It never covers 'the audit ran and disagreed'. Every use prints 'ALLOWLISTED: ... <who>: <why>' in the script's output, so an exemption can never be silent, and each entry must name scope, who and why -- an entry missing any of those is ignored and the script fails UNVERIFIABLE as usual.",
+  "entries": [
+    {
+      "scope": "no-beads-db",
+      "who": "gpu-sim-pi",
+      "why": "Plain `git clone` checkouts (CI, verification clones, disposable sandboxes) have no .beads directory, so bd cannot be asked anything there. The audit still runs in every worktree that carries the database, and a clone that DOES have one gets the real audit -- this entry only converts the no-database case from a hard failure into a loud, attributed exemption."
+    }
+  ]
+}

@@ -15,6 +15,7 @@ whatever the board happens to contain today.
 """
 import importlib.util
 import sys
+import time
 import unittest
 from pathlib import Path
 
@@ -102,6 +103,7 @@ class TestCitationsToNothingDoNotCount(unittest.TestCase):
         self.assertFalse(v["concrete"])
 
 
+@unittest.skipUnless(g._bd_available()[0], "no beads DB in this checkout")
 class TestCoverageMustBeProven(unittest.TestCase):
     """The reviewer's item: satisfied:true must not come from a blind query.
 
@@ -135,21 +137,60 @@ class TestCoverageMustBeProven(unittest.TestCase):
             g._query = real_query
 
     def test_a_fully_covering_query_is_proven(self):
-        """Can-pass: real coverage must be accepted, or the check never passes."""
-        issues, cov = g.gather_with_proven_coverage()
+        """Can-pass: real coverage must be accepted, or the check never passes.
+
+        This asserts a property of COVERAGE, not a property of bd's latency. On
+        a loaded box bd can exceed its timeout, which makes the query fail and
+        coverage unproven for a reason that has nothing to do with the contract
+        -- measured in a gate run at load ~15 where this failed while passing in
+        23s standalone. So a query FAILURE is retried a few times; a real
+        disagreement (both queries succeed but the primary missed a bead) is
+        NOT retried and fails immediately, because that is the defect under test.
+        """
+        issues = cov = None
+        for _attempt in range(3):
+            issues, cov = g.gather_with_proven_coverage()
+            if cov["coverage_proven"]:
+                break
+            if cov.get("primary_rc") == 0 and cov.get("independent_closed_rc") == 0:
+                break          # genuine disagreement, not contention
+            time.sleep(3)
         self.assertTrue(cov["coverage_proven"],
                         f"the live query should cover closed beads: {cov}")
         self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
 
-    def test_zero_closed_beads_is_not_proof_of_coverage(self):
-        """An empty closed set proves nothing about whether we could see one."""
+    def test_zero_closed_beads_with_successful_query_is_proven(self):
+        """Plant B: a healthy board with no closures has nothing to audit.
+
+        Both queries SUCCEEDED and agree on zero closed beads, so the emptiness
+        is real, not blind -- treating it as unproven fails the gate on a young
+        board, which is the false red the acceptance forbids. The blind and
+        missed-bead cases below stay fail-closed and are unchanged.
+        """
         real_query = g._query
-        g._query = lambda args: ([], 0) if "--status" in args and "closed" in args \
+        g._query = lambda args: ([], 0)
+        try:
+            _issues, cov = g.gather_with_proven_coverage()
+            self.assertTrue(cov["coverage_proven"],
+                            f"both queries succeeded on an empty closed set: {cov}")
+            self.assertEqual(cov["independent_closed_rows"], 0)
+            self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
+        finally:
+            g._query = real_query
+
+    def test_zero_closed_beads_with_a_FAILED_query_is_unproven(self):
+        """The other half: empty + a failing query is blind, not proven."""
+        real_query = g._query
+        g._query = lambda args: ([], 1) if "--status" in args and "closed" in args \
             else ([], 0)
         try:
             _issues, cov = g.gather_with_proven_coverage()
-            self.assertFalse(cov["coverage_proven"],
-                             "an independently-empty closed set must not certify")
+            # Concrete values, not just a boolean: the point is that the FAILED
+            # query is recorded as failed and its emptiness is not trusted.
+            self.assertEqual(cov["independent_closed_rc"], 1)
+            self.assertEqual(cov["independent_closed_rows"], 0)
+            self.assertEqual(cov["coverage_proven"], False)
+            self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
         finally:
             g._query = real_query
 
@@ -238,6 +279,7 @@ class TestWriteMode(unittest.TestCase):
             mock.patch.object(g, "gather_with_proven_coverage",
                              lambda: ([], {"coverage_proven": True,
                                            "degraded_to_open_only_query": False})),
+            mock.patch.object(g, "_bd_available", lambda: (True, "ok", "ok")),
             mock.patch.object(g, "audit",
                              lambda issues: {"violations": [], "violations_unacknowledged": [],
                                             "satisfies_the_acceptance": True}),
@@ -267,3 +309,90 @@ class TestWriteMode(unittest.TestCase):
         self.assertTrue(self.out.exists())
         data = __import__("json").loads(self.out.read_text())
         self.assertIn("satisfies_the_acceptance", data)
+
+class TestNoClosuresToAudit(unittest.TestCase):
+    """Plant B lives in main()'s control flow, so test main() -- not gather().
+
+    Kept out of TestWriteMode: that class patches gather_with_proven_coverage
+    with a hand-built coverage dict, which is exactly the kind of stub that lets
+    a contract regression pass unnoticed.
+    """
+
+    def setUp(self):
+        # main() calls _bd_available() BEFORE the stubbed _query, so in a clone
+        # with no .beads the tracked allowlist short-circuits to ALLOWLISTED
+        # rc=0 and these tests fail on the note/exit code they are checking --
+        # measured by the reviewer in exactly that clone (2 failed, 17 passed,
+        # 5 skipped). Stub the environment so the contract is asserted in any
+        # checkout; the allowlist path has its own tests.
+        self._patches = [
+            mock.patch.object(g, "_bd_available", lambda: (True, "ok", "ok")),
+        ]
+        for _p in self._patches:
+            _p.start()
+
+    def tearDown(self):
+        for _p in self._patches:
+            _p.stop()
+
+    def test_main_says_no_closures_to_audit_and_returns_zero(self):
+        import contextlib, io as _io, sys as _sys
+        real_query, real_argv = g._query, _sys.argv
+        g._query = lambda args: ([], 0)
+        _sys.argv = ["close_requires_artifact.py"]
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                rc = g.main()
+        finally:
+            g._query, _sys.argv = real_query, real_argv
+        out = buf.getvalue()
+        self.assertEqual(rc, 0, f"a healthy empty board must pass: {out}")
+        self.assertIn("no closures to audit", out,
+                      f"the pass must be explicit, not silent: {out}")
+        self.assertNotIn("COVERAGE UNPROVEN", out)
+
+    def test_main_fails_when_the_closed_query_failed(self):
+        """The other half: empty + a failing query is blind, and must be red."""
+        import contextlib, io as _io, sys as _sys
+        real_query, real_argv = g._query, _sys.argv
+        g._query = lambda args: ([], 1) if "--status" in args else ([], 0)
+        _sys.argv = ["close_requires_artifact.py"]
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                rc = g.main()
+        finally:
+            g._query, _sys.argv = real_query, real_argv
+        out = buf.getvalue()
+        self.assertEqual(rc, 1, f"a blind empty board must fail: {out}")
+        self.assertIn("COVERAGE UNPROVEN", out)
+        self.assertNotIn("no closures to audit", out)
+
+    def test_main_does_not_pass_when_the_queries_DISAGREE(self):
+        """A disagreement is not "no closures to audit" -- violations must win.
+
+        Measured regression: the early return keyed only on the independent
+        query's zero rows, so a primary query that DID see an artifact-less
+        closed bead while the independent query returned [] exited 0 before the
+        violations check (gpu-sim-4j4u review).
+        """
+        import contextlib, io as _io, sys as _sys
+        real_query, real_argv, real_audit = g._query, _sys.argv, g.audit
+        # primary sees one closed bead, independent sees none: they disagree.
+        g._query = lambda args: ([{"id": "gpu-sim-fake", "status": "closed"}], 0) \
+            if "--status" not in args else ([], 0)
+        g.audit = lambda issues: {"violations": [{"id": "gpu-sim-fake"}],
+                                  "violations_unacknowledged": [{"id": "gpu-sim-fake"}],
+                                  "satisfies_the_acceptance": False}
+        _sys.argv = ["close_requires_artifact.py"]
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                rc = g.main()
+        finally:
+            g._query, _sys.argv, g.audit = real_query, real_argv, real_audit
+        out = buf.getvalue()
+        self.assertEqual(rc, 1, f"a disagreeing pair must fail: {out}")
+        self.assertIn("UNACKNOWLEDGED VIOLATIONS", out)
+        self.assertNotIn("no closures to audit", out)

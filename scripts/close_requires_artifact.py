@@ -32,6 +32,7 @@ import hashlib
 import json
 import re
 import subprocess
+import shutil
 import sys
 import argparse
 from datetime import datetime, timezone
@@ -246,12 +247,100 @@ def audit(issues: list[dict]) -> dict:
 
 
 def _query(args: list[str]) -> tuple[list, int]:
-    proc = subprocess.run(["bd", *args, "--json"], capture_output=True,
-                          text=True, cwd=str(REPO))
+    try:
+        proc = subprocess.run(["bd", *args, "--json"], capture_output=True,
+                              text=True, cwd=str(REPO), timeout=30)
+    except subprocess.TimeoutExpired:
+        return [], 124
     if proc.returncode != 0:
         return [], proc.returncode
     data = json.loads(proc.stdout)
     return (data if isinstance(data, list) else data.get("issues", [])), 0
+
+
+ALLOWLIST_PATH = REPO / "tests" / "close_audit_allowlist.json"
+ALLOW_SCOPE = "no-beads-db"   # the ONLY situation an allowlist entry may cover
+
+
+def _allowlist_entry() -> dict | None:
+    """Return the TRACKED entry covering this situation, or None (gpu-sim-4j4u).
+
+    The allowlist exists for one case only: a checkout that genuinely cannot run
+    the audit because it has no beads database (a plain `git clone` used by CI or
+    by a verification script). It exists because the PI's ruling on this bead was
+    that an environment which cannot run a check must fail UNVERIFIABLE *unless*
+    exempted in a tracked file naming who and why -- never by an env var, which
+    silently differs per shell, and never by a blanket "skip when unsure", which
+    is the defect this bead exists to remove.
+
+    An entry must name its scope, who and why; an entry missing any of the three
+    is ignored, so a malformed exemption fails closed. Every use is printed by
+    the caller, every time.
+    """
+    try:
+        data = json.loads(ALLOWLIST_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    entries = data.get("entries") if isinstance(data, dict) else data
+    for e in entries or []:
+        if not isinstance(e, dict):
+            continue
+        if e.get("scope") != ALLOW_SCOPE:
+            continue
+        if not (e.get("who") and e.get("why")):
+            continue
+        return e
+    return None
+
+
+def _bd_available() -> tuple[bool, str, str]:
+    """Ask bd; return (available, cause, detail) -- the CAUSE is what matters.
+
+    The cause exists because an exemption may cover exactly one situation: this
+    checkout HAS NO DATABASE, so nobody could have answered. It must not cover a
+    database that is present but unusable (locked, corrupt, unparseable): that is
+    a finding the audit exists to report, and exempting it would turn the one
+    failure worth catching into a green pass (gpu-sim-4j4u review).
+
+    Causes: "ok", "no_database", "unusable", "bd_missing", "unparseable".
+    """
+    if shutil.which("bd") is None:
+        return False, "bd_missing", "bd binary not found on PATH"
+    try:
+        proc = subprocess.run(["bd", "list", "--all", "--json"],
+                              capture_output=True, text=True, cwd=str(REPO),
+                              timeout=60)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        return False, "unusable", f"bd query failed to run: {e}"
+    if proc.returncode == 0:
+        try:
+            json.loads(proc.stdout)
+        except (json.JSONDecodeError, ValueError):
+            return False, "unparseable", "bd returned unparseable output"
+        return True, "ok", "ok"
+    combined = ((proc.stderr or "") + (proc.stdout or "")).lower()
+    # A PRESENT but damaged database is never "absent". These are checked first
+    # so no absence phrase can swallow them.
+    # An engine that is MISSING is not a database that is absent: this box's
+    # bd exists but its dolt engine does not, which would otherwise classify as
+    # 'no_database' and exempt EVERY checkout on such a box, including ones that
+    # have the DB (gpu-sim-4j4u review, second round).
+    if proc.returncode == 127 or "command not found" in combined:
+        return False, "bd_missing", (f"bd cannot run its engine (rc={proc.returncode}): "
+                                     f"{(proc.stderr or '').strip()[:200]}")
+    if any(k in combined for k in ("locked", "corrupt", "invalid", "checksum",
+                                   "malformed", "in use")):
+        return False, "unusable", (f"bd query failed (rc={proc.returncode}): "
+                                   f"{(proc.stderr or '').strip()[:200]}")
+    # 'no beads' matches the real message a DB-less checkout produces
+    # ('Error: no beads database found'), so no dolt-path heuristic is needed --
+    # and the one that used to be here classified a MISSING ENGINE as a MISSING
+    # DATABASE, which exempted checkouts that have one.
+    if ("no database" in combined or "no beads" in combined
+            or "database not found" in combined):
+        return False, "no_database", "no beads database available via bd"
+    return False, "unusable", (f"bd query failed (rc={proc.returncode}): "
+                               f"{(proc.stderr or '').strip()[:200]}")
 
 
 def gather_with_proven_coverage() -> tuple[list, dict]:
@@ -283,7 +372,8 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
         "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
         "independent_closed_rows": len(want_closed),
         "closed_beads_the_primary_query_MISSED": missing,
-        "coverage_proven": bool(want_closed) and not missing,
+        "coverage_proven": (rc == 0 and rc2 == 0 and not missing),
+        "independent_closed_rc": rc2,
         "note": ("coverage is proven only when the primary query accounts for "
                  "every closed bead an independent query reports. A query that "
                  "cannot see closed beads cannot certify anything about "
@@ -311,6 +401,20 @@ def main() -> int:
     ap.add_argument("--write", action="store_true",
                     help="write the audit to the tracked path (main-only regeneration)")
     args = ap.parse_args()
+    available, cause, skip_reason = _bd_available()
+    if not available:
+        # Only "there is no database" may be exempted. A present-but-unusable
+        # database stays a hard failure even with an allowlist entry present.
+        entry = _allowlist_entry() if cause == "no_database" else None
+        if entry:
+            # loud on EVERY use: an exemption nobody notices is a silent pass.
+            print(f"ALLOWLISTED: close audit skipped in this checkout -- "
+                  f"{entry['who']}: {entry['why']}")
+            print(f"ALLOWLISTED close audit (no beads DB; exempted by {entry['who']})")
+            return 0
+        print(f"UNVERIFIABLE: close audit cannot run: {skip_reason}")
+        print("UNVERIFIABLE close audit (no beads DB in this checkout)")
+        return 1
     issues, coverage = gather_with_proven_coverage()
     rec = apply_coverage_gate(audit(issues), coverage)
     text = json.dumps(rec, indent=2) + "\n"
@@ -331,6 +435,23 @@ def main() -> int:
                   f"produce (regenerate on main with --write).")
         else:
             print(f"\nOK: {OUT.relative_to(REPO)} matches the audit this run produces.")
+    # .get() rather than []: a coverage record that does not say how many
+    # closures it saw must FAIL CLOSED, never raise and never pass by default.
+    # BOTH queries must agree there is nothing to audit. Keying only on the
+    # independent query let a DISAGREEMENT pass: primary sees one artifact-less
+    # closed bead, independent returns [] rc 0, and the early return skipped the
+    # violations checks below (gpu-sim-4j4u review).
+    if (coverage.get("independent_closed_rows") == 0
+            and coverage.get("primary_closed_rows") == 0
+            and coverage.get("primary_rc") == 0
+            and coverage.get("independent_closed_rc") == 0):
+        # Plant B (PI ruling 2026-11-04, item 3): a board with NO closures has
+        # nothing to audit, and both queries succeeding says the emptiness is
+        # real rather than blind. That is a pass with an explicit note -- not a
+        # silent OK, and not a red gate on a healthy young board.
+        print("OK: no closures to audit -- the board query succeeded and the "
+              "independent closed-bead query returned zero rows.")
+        return 0
     if not coverage["coverage_proven"]:
         print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
         return 1
