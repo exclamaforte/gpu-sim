@@ -1,3 +1,5 @@
+MUTATIONS = {"8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out"}
+
 def apply(root):
     """Mutation for 8yb4_k_window: put back the 40x currency error the bead rules out.
 

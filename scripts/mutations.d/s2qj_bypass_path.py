@@ -1,3 +1,5 @@
+MUTATIONS = {"s2qj_bypass_path": "s2qj bypass path (gpu-sim-s2qj)"}
+
 def apply(root):
     """Mutation for s2qj_bypass_path: make the checker ignore bypass records."""
     import os

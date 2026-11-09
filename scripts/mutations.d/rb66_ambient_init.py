@@ -1,3 +1,5 @@
+MUTATIONS = {"rb66_ambient_init": "rb66 fixture: throwaway repo left on the ambient default branch"}
+
 def apply(root):
     """Mutation for rb66_ambient_init: init the throwaway repo on the WRONG branch.
 

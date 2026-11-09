@@ -1,3 +1,5 @@
+MUTATIONS = {"3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store"}
+
 def apply(root):
     """Mutation for 3v6d2_link_calendar: remove the calendar reservation entirely."""
     import os

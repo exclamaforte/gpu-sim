@@ -1,3 +1,5 @@
+MUTATIONS = {"3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)"}
+
 def apply(root):
     """Mutation for 3v6d1_fabric_rate: remove the bidirectional halving in
     topology.effective_bw, so the one-way rate becomes the spec's aggregate

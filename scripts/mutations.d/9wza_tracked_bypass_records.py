@@ -1,3 +1,5 @@
+MUTATIONS = {"9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)"}
+
 def apply(root):
     """Mutation for 9wza_tracked_bypass_records: disable the .lab fallback so tracked-only resolution breaks the .lab-based test."""
     import os

@@ -1,3 +1,5 @@
+MUTATIONS = {"u5r4_size_scaling_arm": "u5r4 size-scaling arm on divergent_branch (gpu-sim-u5r4)"}
+
 def apply(root):
     """Mutation for u5r4_size_scaling_arm: corrupt a scalar in committed metrics.json."""
     import json, os
