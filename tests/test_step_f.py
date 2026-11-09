@@ -10,13 +10,13 @@ def step_f(c, f):
     return compute + max(0.0, comm - f * compute)
 
 def test_step_f_one_equals_step_max():
-    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "alpha_s": 1.5e-6, "bw_gbps": 450.0}
+    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "alpha_s": 1.0e-6, "bw_gbps": 450.0}
     _, feas = ps.search(8, hw)
     for c in feas:
         assert abs(step_f(c, 1.0) - c.step_max) < 1e-9, (c, step_f(c,1.0), c.step_max)
 
 def test_tie_count_at_f1():
-    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "alpha_s": 1.5e-6, "bw_gbps": 450.0}
+    hw = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100", "alpha_s": 1.0e-6, "bw_gbps": 450.0}
     _, feas = ps.search(8, hw)
     pp1 = [c for c in feas if c.pp == 1]
     assert len(pp1) > 1  # structural: a real pp=1 space exists

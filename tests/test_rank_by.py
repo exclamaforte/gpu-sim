@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from epic_cluster import parallelism_search as ps
 
 def test_search_accepts_rank_by():
-    hw = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100","alpha_s":1.5e-6,"bw_gbps":450.0}
+    hw = {"peak_flops":989e12,"mem_gb":80.0,"fabric":"nvlink4_h100","alpha_s":1.0e-6,"bw_gbps":450.0}
     r1, f1 = ps.search(8, hw, rank_by="sum")
     r2, f2 = ps.search(8, hw, rank_by="max")
     assert len(f1) == len(f2)

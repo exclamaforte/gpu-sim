@@ -147,6 +147,16 @@ def validate(spec: Any) -> Dict[str, Any]:
     sources = spec.get("sources")
     if sources is not None and not isinstance(sources, dict):
         raise _err("$.sources", "must be object if present")
+    # Per-link-kind provenance (gpu-sim-3v6d.5): every link kind present in the
+    # spec must have a corresponding "link.<kind>" entry in sources.
+    if sources is not None:
+        kinds_present = {lk["kind"] for lk in spec.get("links", []) if isinstance(lk, dict)}
+        for k in kinds_present:
+            key = f"link.{k}"
+            if key not in sources:
+                raise _err("$.sources", f"missing provenance for link kind {k!r} (expected {key!r})")
+            if not isinstance(sources[key], str) or not sources[key]:
+                raise _err(f"$.sources.{key}", "provenance must be non-empty string")
 
     ranks = spec.get("ranks")
     if not isinstance(ranks, list):

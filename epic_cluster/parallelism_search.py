@@ -132,7 +132,9 @@ def score(tp, pp, cp, dp, zero, hw, m):
     _bw_scale = hw.get("bw_scale", hw.get("achieved_bw_scale", 1.0))
     if spec_path is None:
         if (_alpha_override is not None or _bw_override is not None or _bw_scale not in (None, 1.0)):
-            base = nccl_cost.FABRICS.get(fabric, {"alpha_s": 1.5e-6, "bw_gbps": 450.0})
+            base = nccl_cost.FABRICS.get(fabric)
+            if base is None:
+                raise ValueError(f"unknown fabric {fabric!r}; no FABRICS entry and no spec_path")
             ov = dict(base)
             if _alpha_override is not None:
                 ov["alpha_s"] = _alpha_override
