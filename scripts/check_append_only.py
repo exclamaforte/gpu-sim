@@ -292,6 +292,13 @@ def _load_mutations(root):
         return None, f"scripts/fs2y_mutations.py: import failed: {e}"
 
 
+def _dirty_paths(root) -> set:
+    """Tracked paths currently modified vs HEAD (empty on a clean tree)."""
+    r = subprocess.run(["git", "-C", str(root), "diff", "--name-only"],
+                       capture_output=True, text=True)
+    return {ln for ln in r.stdout.splitlines() if ln.strip()}
+
+
 def check_ledger_test_ids(root):
     """Resolve every ledger row's test node; fail closed on resolution errors,
     missing registry, unregistered mutation, self-reference, or vacuous test."""
@@ -343,8 +350,14 @@ def check_ledger_test_ids(root):
         if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
                 and mutation in mfns):
             apply_fn = mfns[mutation]
-            backup, mutated_path = apply_fn(root)
+            # Snapshot what was ALREADY dirty so the restore below can never
+            # discard real work; an applier may write a file and only then
+            # raise, or mutate more than the single path it returns, and either
+            # way a leaked change poisons every later row (gpu-sim-3v6d.3).
+            pre_dirty = _dirty_paths(root)
+            backup = mutated_path = None
             try:
+                backup, mutated_path = apply_fn(root)
                 rmut = subprocess.run(
                     [sys.executable, "-m", "pytest", "-q", target],
                     cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
@@ -361,6 +374,12 @@ def check_ledger_test_ids(root):
                 else:
                     with open(mutated_path, "w") as f:
                         f.write(backup)
+                # Anything ELSE this row made dirty is residue: restore it.
+                # Only paths clean before the row are touched, so pre-existing
+                # uncommitted work is never destroyed.
+                for _p in sorted(_dirty_paths(root) - pre_dirty):
+                    subprocess.run(["git", "-C", str(root), "checkout", "--", _p],
+                                   capture_output=True, text=True)
                 # rebuild if a compiled source was restored (C-source mutations)
                 subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
             rrest = subprocess.run(
