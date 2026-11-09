@@ -21,4 +21,7 @@ def test_below_threshold_passes_shm():
 
 
 def test_gate_preflight_reports_shm():
-    assert "PREFLIGHT FAIL" not in ""  # ledger alias
+    """Ledger alias: preflight line present in gate.sh."""
+    gate = (REPO / "scripts" / "gate.sh").read_text()
+    assert gate.count("GATE PREFLIGHT: /dev/shm") >= 1
+    assert "SHM_THRESHOLD_PCT" in gate
