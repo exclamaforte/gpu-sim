@@ -187,9 +187,7 @@ def test_multi_link_collective_uses_the_transfers_own_link():
     topo_single, where bl is always 0.
     """
     topo = REPO / "experiments" / "gpu-sim-pkb" / "topo_two_links.bin"
-    if not topo.exists():
-        import pytest
-        pytest.skip(f"multi-link topology missing: {topo}")
+    assert topo.exists(), f"tracked multi-link topology missing: {topo}"
     delta, rec = _run_once(1 << 22, 2, topo=topo, return_rec=True)
     bl = rec.get("bottleneck_link")
     assert bl is not None and bl > 0, (

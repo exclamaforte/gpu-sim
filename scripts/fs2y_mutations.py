@@ -232,27 +232,21 @@ def _apply_05b3_delete_key(root):
 
 
 def _apply_3v6d2_uncas(root):
-    """Mutation for 3v6d2_link_calendar: remove the calendar reservation entirely."""
+    """Mutation for 3v6d2_link_calendar: remove the calendar reservation.
+
+    Targets the ONE semantic line (the reservation start) rather than the whole
+    CAS block: the block-splice broke twice today -- once when the fabric was
+    refactored, once when a comment and an out-param assignment were added around
+    it -- and each break surfaced as "mutation did not apply", which is the
+    ledger doing its job but costing a gate cycle. Making the anchor minimal keeps
+    the mutation about the BEHAVIOUR (transfers no longer queue) instead of about
+    the surrounding text.
+    """
     import os
     path = os.path.join(root, "src", "fakegpu_fabric.c")
     backup = open(path).read()
-    old = """        uint64_t busy, start, finish;
-        do {
-            busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
-            uint64_t now = now_ns();
-            start = (busy > 0) ? busy : now;
-            finish = start + delay_ns;
-            if (atomic_load_explicit(&f->hdr->first_start, memory_order_acquire) == 0) {
-                atomic_compare_exchange_strong_explicit(&f->hdr->first_start, &(uint64_t){0}, start, memory_order_acq_rel, memory_order_acquire);
-            }
-        } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
-                                                            &busy, finish,
-                                                            memory_order_acq_rel,
-                                                            memory_order_acquire));
-"""
-    new = """        /* mutation: calendar removed -- no serialization */
-        uint64_t now = now_ns();
-        finish = now + delay_ns;"""
+    old = "            start = (busy > 0) ? busy : now;"
+    new = "            start = now;  /* mutation: calendar removed -- no serialization */"
     mutated = backup.replace(old, new, 1)
     if mutated == backup:
         raise RuntimeError("3v6d2 mutation did not apply")
