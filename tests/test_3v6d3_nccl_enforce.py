@@ -1,5 +1,6 @@
 """Guard: ncclAllReduce enforces through the fabric calendar (gpu-sim-3v6d.3)."""
 import ctypes, json, os, tempfile, statistics, time
+import pytest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -8,6 +9,25 @@ TOPO = REPO / "experiments" / "gpu-sim-pkb" / "topo_single.bin"
 
 SHAPES = [1 << s for s in range(20, 28)]  # 8 shapes
 BUSY_OFF = 64  # byte offset of busy_until[0] in fg_header_t
+
+@pytest.fixture(autouse=True)
+def _restore_environ():
+    """These tests set GPUSIM_* vars globally; they MUST NOT leak (gpu-sim-3v6d.3).
+
+    os.environ is process-wide, so GPUSIM_NCCL_LEGACY_TABLE / GPUSIM_ALLOW_
+    EXTRAPOLATE / GPUSIM_TOPOLOGY / GPUSIM_FABRIC_RUN_ID / GPUSIM_TRACE stayed set
+    for every later test in the suite. Concretely, tests/test_model_agreement.py::
+    test_agreement_refusal_n3_n4 then saw the "legacy table" path and stopped
+    getting FG_NCCL_REFUSED for n>=3 -- it failed only when this file ran first
+    (reproduced: 1 failed / 5 passed in 18s together, 5/5 passed alone).
+    """
+    saved = dict(os.environ)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
+
 
 def _run_once(N, nrank=2):
     if not LIB.exists():
