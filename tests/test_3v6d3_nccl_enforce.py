@@ -43,7 +43,7 @@ def _run_once(N, nrank=2):
     assert enf is not None, "enforced_s null (transfer did not run)"
     delta = abs(enf - pred) / pred * 100.0
     assert delta <= 5.0, f"delta {delta:.2f}% > 5% (N={N}, nr={nrank})"
-    # per-sample delta; median checked in test function
+    # the per-sample delta for this call; the test function asserts EVERY one
     # reclaim own segment
     libc = ctypes.CDLL('libc.so.6')
     _ur = libc.shm_unlink(b'/gpusim-' + rid.encode())
@@ -58,10 +58,15 @@ def test_allreduce_trace_has_enforced_within_5pct():
     for N in SHAPES:
         for nr in NRANKS:
             samples = [_run_once(N, nr) for _ in range(3)]
+            # EVERY sample must be within the bound, and the failure names the
+            # sample and its value. A median-only assert let one sample exceed
+            # 5% unnoticed for three commits (gpu-sim-3v6d.3 rework).
+            for i, s in enumerate(samples):
+                assert s <= 5.0, (
+                    f"sample {i} of {len(samples)} delta {s:.2f}% > 5% "
+                    f"(N={N}, nr={nr}, samples={[round(x, 2) for x in samples]})")
             med = statistics.median(samples)
             assert med <= 5.0, f"median delta {med:.2f}% > 5% (N={N}, nr={nr})"
-    # per-sample 5% assert restored
-    # (already checked via median; individual samples checked below)
 
 def test_contention_shared_link():
     """Contention: pre-set busy_until so second collective must wait."""
