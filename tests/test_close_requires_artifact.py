@@ -168,8 +168,12 @@ class TestCoverageMustBeProven(unittest.TestCase):
             else ([], 0)
         try:
             _issues, cov = g.gather_with_proven_coverage()
-            self.assertFalse(cov["coverage_proven"],
-                             "a failing closed-bead query must not certify emptiness")
+            # Concrete values, not just a boolean: the point is that the FAILED
+            # query is recorded as failed and its emptiness is not trusted.
+            self.assertEqual(cov["independent_closed_rc"], 1)
+            self.assertEqual(cov["independent_closed_rows"], 0)
+            self.assertEqual(cov["coverage_proven"], False)
+            self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
         finally:
             g._query = real_query
 
