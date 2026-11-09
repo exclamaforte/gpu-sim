@@ -15,6 +15,7 @@ whatever the board happens to contain today.
 """
 import importlib.util
 import sys
+import time
 import unittest
 from pathlib import Path
 
@@ -136,8 +137,24 @@ class TestCoverageMustBeProven(unittest.TestCase):
             g._query = real_query
 
     def test_a_fully_covering_query_is_proven(self):
-        """Can-pass: real coverage must be accepted, or the check never passes."""
-        issues, cov = g.gather_with_proven_coverage()
+        """Can-pass: real coverage must be accepted, or the check never passes.
+
+        This asserts a property of COVERAGE, not a property of bd's latency. On
+        a loaded box bd can exceed its timeout, which makes the query fail and
+        coverage unproven for a reason that has nothing to do with the contract
+        -- measured in a gate run at load ~15 where this failed while passing in
+        23s standalone. So a query FAILURE is retried a few times; a real
+        disagreement (both queries succeed but the primary missed a bead) is
+        NOT retried and fails immediately, because that is the defect under test.
+        """
+        issues = cov = None
+        for _attempt in range(3):
+            issues, cov = g.gather_with_proven_coverage()
+            if cov["coverage_proven"]:
+                break
+            if cov.get("primary_rc") == 0 and cov.get("independent_closed_rc") == 0:
+                break          # genuine disagreement, not contention
+            time.sleep(3)
         self.assertTrue(cov["coverage_proven"],
                         f"the live query should cover closed beads: {cov}")
         self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
