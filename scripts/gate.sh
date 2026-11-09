@@ -27,23 +27,16 @@ mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
 # exhaust tmpfs and turn fabric checks into SIGBUS (rc=-7). Reclaim segments
 # whose owning pid is dead (by liveness, not age), then fail loudly if still
 # above threshold.
-if [ -d /dev/shm ]; then
-  # Reclaim dead-pid segments first (by liveness, not age).
-  # Names: gpusim-corpus-<pid>-<N>-<uuid8>. Parse pid at position 2 after
-  # "gpusim-corpus-". Non-matching names are never ours -> never delete.
-  # Ambiguous (non-numeric pid) -> skip (refuse to guess).
-  for seg in /dev/shm/gpusim-*; do
+reclaim_shm_segments() {
+  local dir="$1"
+  for seg in "$dir"/gpusim-*; do
     [ -e "$seg" ] || continue
     base=$(basename "$seg")
     pid=""
-    # Only handle gpusim-corpus-<pid>-... names
     case "$base" in
       gpusim-corpus-[0-9]*)
-        # strip prefix
         rest="${base#gpusim-corpus-}"
-        # pid is the first field before the next hyphen
         pid="${rest%%-*}"
-        # validate pid is purely numeric
         case "$pid" in
           ''|*[!0-9]*) pid="" ;;
         esac
@@ -55,6 +48,10 @@ if [ -d /dev/shm ]; then
       fi
     fi
   done
+}
+
+if [ -d /dev/shm ]; then
+  reclaim_shm_segments /dev/shm
   shm_total_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $2}')
   shm_used_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
   if [ -n "$shm_total_kb" ] && [ "$shm_total_kb" -gt 0 ]; then
