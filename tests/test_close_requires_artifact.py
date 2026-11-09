@@ -318,6 +318,23 @@ class TestNoClosuresToAudit(unittest.TestCase):
     a contract regression pass unnoticed.
     """
 
+    def setUp(self):
+        # main() calls _bd_available() BEFORE the stubbed _query, so in a clone
+        # with no .beads the tracked allowlist short-circuits to ALLOWLISTED
+        # rc=0 and these tests fail on the note/exit code they are checking --
+        # measured by the reviewer in exactly that clone (2 failed, 17 passed,
+        # 5 skipped). Stub the environment so the contract is asserted in any
+        # checkout; the allowlist path has its own tests.
+        self._patches = [
+            mock.patch.object(g, "_bd_available", lambda: (True, "ok", "ok")),
+        ]
+        for _p in self._patches:
+            _p.start()
+
+    def tearDown(self):
+        for _p in self._patches:
+            _p.stop()
+
     def test_main_says_no_closures_to_audit_and_returns_zero(self):
         import contextlib, io as _io, sys as _sys
         real_query, real_argv = g._query, _sys.argv
