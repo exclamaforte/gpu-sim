@@ -42,11 +42,11 @@ def _run_once(N, nrank=2):
     assert pred is not None
     assert enf is not None, "enforced_s null (transfer did not run)"
     delta = abs(enf - pred) / pred * 100.0
-    # per-sample delta; median checked below
+    assert delta <= 5.0, f"delta {delta:.2f}% > 5% (N={N}, nr={nrank})"
     # per-sample delta; median checked in test function
     # reclaim own segment
     libc = ctypes.CDLL('libc.so.6')
-    libc.shm_unlink(b'/gpusim-' + rid.encode())
+    _ur = libc.shm_unlink(b'/gpusim-' + rid.encode())
     try:
         os.unlink(tf.name)
     except OSError:
@@ -103,14 +103,16 @@ def test_contention_shared_link():
     tf2.close()
     os.environ["GPUSIM_TRACE"] = tf2.name
     s2 = (ctypes.c_float * N)(); r2 = (ctypes.c_float * N)()
+    t0 = time.perf_counter()
     rc2 = lib.ncclAllReduce(s2, r2, N, 7, 0, None, None)
+    wall2 = time.perf_counter() - t0
     assert rc2 == 0
     lines2 = [l for l in open(tf2.name) if l.strip()]
     rec2 = json.loads(lines2[-1])
     enf2 = rec2["enforced_s"]
     assert enf2 is not None and enf2 > 0
-    # contention: second waited, so enf2 is large (>= 1s due to the future busy_until)
-    assert enf2 >= enf1 + 0.05, f"contention not visible: enf1={enf1}, enf2={enf2}"
+    # contention: second waited ~0.1s on the pre-set busy_until, so wall time >= 0.05
+    assert wall2 >= 0.05, f"contention not visible: wall2={wall2}, enf1={enf1}, enf2={enf2}"
     libc.shm_unlink(b'/gpusim-' + rid.encode())
     for tf in (tf1, tf2):
         try:

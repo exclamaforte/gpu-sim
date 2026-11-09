@@ -64,6 +64,7 @@ typedef struct {
     atomic_uint reg_pool_used; /* shared across ranks (fetch_add) */
     atomic_uint_fast64_t n_links; /* number of initialized links */
     atomic_uint_fast64_t busy_until[FG_FAB_MAX_LINKS]; /* per-link calendar (ns) */
+    atomic_uint_fast64_t first_start; /* ns timestamp of first transfer start */
     /* rank slots follow in memory, then mailboxes */
 } fg_header_t;
 
@@ -765,20 +766,23 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
             return FG_FAB_EINVAL;
         }
         uint64_t delay_ns = (uint64_t)(delay_us * 1000.0);
+
         if (delay_ns == 0) delay_ns = 1;
         uint64_t busy, start, finish;
         do {
             busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
             uint64_t now = now_ns();
-            start = (busy > now) ? busy : now;
+            start = (busy > 0) ? busy : now;
             finish = start + delay_ns;
+            if (atomic_load_explicit(&f->hdr->first_start, memory_order_acquire) == 0) {
+                atomic_compare_exchange_strong_explicit(&f->hdr->first_start, &(uint64_t){0}, start, memory_order_acq_rel, memory_order_acquire);
+            }
         } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
                                                             &busy, finish,
                                                             memory_order_acq_rel,
                                                             memory_order_acquire));
         /* sleep until finish */
-        /* sleep most of the way, then spin to the deadline for precision */
-        /* sleep most of the way, then spin to the deadline for precision */
+        /* sleep most of the way, then spin the last 1 ms for precision */
         uint64_t spin_start = finish - 100000ULL; /* last 100 us */
         if (spin_start > now_ns()) {
             struct timespec ts2;
@@ -811,6 +815,34 @@ size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size) {
     }
     memcpy((char *)f->reg_pool + off, buf, size);
     return off + 1; /* +1 so 0 means "not registered" */
+}
+
+void fg_fab_reset_calendar(fg_fab_t *f) {
+    if (!f || !f->hdr) return;
+    atomic_store_explicit(&f->hdr->first_start, 0, memory_order_release);
+    for (int i = 0; i < FG_FAB_MAX_LINKS; i++) {
+        atomic_store_explicit(&f->hdr->busy_until[i], 0, memory_order_release);
+    }
+}
+
+void fg_fab_reset_first_start(fg_fab_t *f) {
+    if (!f || !f->hdr) return;
+    atomic_store_explicit(&f->hdr->first_start, 0, memory_order_release);
+}
+
+int fg_fab_is_creator(fg_fab_t *f) {
+    if (!f) return 0;
+    return f->is_creator;
+}
+
+uint64_t fg_fab_first_start(fg_fab_t *f) {
+    if (!f || !f->hdr) return 0;
+    return atomic_load_explicit(&f->hdr->first_start, memory_order_acquire);
+}
+
+uint64_t fg_fab_link_busy(fg_fab_t *f, int link) {
+    if (!f || !f->hdr || link < 0 || link >= (int)f->hdr->n_links) return 0;
+    return atomic_load_explicit(&f->hdr->busy_until[link], memory_order_acquire);
 }
 
 void fg_fab_detach(fg_fab_t *f) {

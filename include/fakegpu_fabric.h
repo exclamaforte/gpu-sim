@@ -101,6 +101,11 @@ int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                      double latency_us, double jitter_us, int loss_ppm,
                      uint64_t partition_after, double timeout_us, int link_id);
 
+void fg_fab_reset_calendar(fg_fab_t *f);
+void fg_fab_reset_first_start(fg_fab_t *f);
+int fg_fab_is_creator(fg_fab_t *f);
+uint64_t fg_fab_first_start(fg_fab_t *f);
+uint64_t fg_fab_link_busy(fg_fab_t *f, int link);
 void fg_fab_detach(fg_fab_t *f);
 
 /* remove the segment (call after all ranks detached). */

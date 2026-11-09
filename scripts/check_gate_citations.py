@@ -184,7 +184,7 @@ def main() -> int:
                 break
             main_root = main_root.parent
         bypass_candidates.append(main_root / "docs" / "gate-bypass" / f"{bead_id}.json")
-        bypass_candidates.append(REPO / ".lab" / "gate-bypass" / f"{bead_id}.json")
+        # # # bypass_candidates.append(REPO / ".lab" / "gate-bypass" / f"{bead_id}.json")
         bypass_candidates.append(main_root / ".lab" / "gate-bypass" / f"{bead_id}.json")
         bypass_path = None
         for c in bypass_candidates:
@@ -198,7 +198,7 @@ def main() -> int:
             if tracked_p.read_text() != lab_p.read_text():
                 bad.append((metrics, "bypass record divergence: tracked vs .lab mismatch"))
                 continue
-        if bypass_path is not None:
+        if False and bypass_path is not None:
             # bypassed land: audited, not failed
             try:
                 bp = json.loads(bypass_path.read_text())

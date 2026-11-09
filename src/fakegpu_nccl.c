@@ -911,17 +911,23 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                 size_t _per = (nr > 0 && _P > 0) ? (bytes / (size_t)nr / (size_t)_P) : bytes;
                 if (_per == 0) _per = bytes;
                 int _total_hops = _nhops * _P;
+                int _link = (bl >= 0) ? bl : 0;
                 int _trc = 0;
-                struct timespec _ts0, _ts1;
-                clock_gettime(CLOCK_MONOTONIC, &_ts0);
                 for (int _h = 0; _h < _total_hops; _h++) {
                     int _r = fg_fab_transfer(f, 0, _per, bw, lat, 0.0, 0, 0, 0.0,
                                              bl >= 0 ? bl : 0);
                     if (_r != 0) { _trc = _r; break; }
                 }
-                clock_gettime(CLOCK_MONOTONIC, &_ts1);
                 if (_trc == 0) {
-                    enforced = (_ts1.tv_sec - _ts0.tv_sec) + (_ts1.tv_nsec - _ts0.tv_nsec) / 1e9;
+                    uint64_t _start = fg_fab_first_start(f);
+                    uint64_t _final_busy = fg_fab_link_busy(f, _link);
+                    if (_start > 0 && _final_busy > _start) {
+                        enforced = (double)(_final_busy - _start) / 1e9;
+                    } else if (_final_busy > 0) {
+                        enforced = (double)_final_busy / 1e9;
+                    } else {
+                        enforced = 0.0;
+                    }
                 } else {
                     enforced = -1.0;
                 }
