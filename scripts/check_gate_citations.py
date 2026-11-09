@@ -38,6 +38,10 @@ RETRY_ATTEMPTS = 3
 RETRY_DELAY_S = 0.2
 
 
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
+from resolve_trunk import resolve_trunk
+
 def git(*args):
     return subprocess.run(["git", "-C", str(REPO), *args],
                          capture_output=True, text=True)
@@ -157,7 +161,7 @@ def main() -> int:
                 grandfathered.add(ln)
     # files modified in the current branch vs its merge base with master/main
     modified = set()
-    base = git("merge-base", "HEAD", "master").stdout.strip()
+    base = git("merge-base", "HEAD", resolve_trunk()).stdout.strip()
     if not base:
         base = git("merge-base", "HEAD", "main").stdout.strip()
     if base:

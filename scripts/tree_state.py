@@ -96,8 +96,12 @@ def landing_commit(bead_dir: str, repo: Path = REPO_DEFAULT) -> str | None:
     docstring here once claimed 'first added' while the code took newest --
     the contradiction is preserved in git history, not in behavior.
     """
-    out = _git(repo, "log", "--oneline", "-1", "--diff-filter=A", "master",
-               "--", f"experiments/{bead_dir}/")
+    out = None
+    for _ref in ("main", "master", "HEAD"):
+        out = _git(repo, "log", "--oneline", "-1", "--diff-filter=A", _ref,
+                   "--", f"experiments/{bead_dir}/")
+        if out:
+            break
     if not out:
         return None
     return out.split()[0]
@@ -113,7 +117,13 @@ def landing_commit_for(artifact: str | Path,
     full sha (%H); callers resolve stamps via git rev-parse.
     """
     out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
-               "master", "--", str(artifact))
+               "main", "--", str(artifact))
+    if not out:
+        out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
+                   "master", "--", str(artifact))
+    if not out:
+        out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
+                   "HEAD", "--", str(artifact))
     if not out:
         return None
     return out.splitlines()[0]
@@ -207,8 +217,12 @@ def _supersession_record(ref: str, commit: str,
     """
     if not ref:
         return None
-    if _git(repo, "merge-base", "--is-ancestor", commit,
-            "master") is None:
+    _anc = None
+    for _ref in ("main", "master", "HEAD"):
+        _anc = _git(repo, "merge-base", "--is-ancestor", commit, _ref)
+        if _anc is not None:
+            break
+    if _anc is None:
         return None
     still_live = branch_exists(ref, repo)
     subject = _git(repo, "log", "-1", "--format=%s", commit) or ""

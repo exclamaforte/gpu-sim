@@ -62,7 +62,12 @@ def lab_branches() -> dict[str, str]:
     return out
 
 
-def is_contained(branch: str, base: str = "master") -> bool:
+def is_contained(branch: str, base: str = None) -> bool:
+    if base is None:
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
+        from resolve_trunk import resolve_trunk
+        base = resolve_trunk() or "main"
     return subprocess.run(("git", "merge-base", "--is-ancestor", branch, base),
                           capture_output=True).returncode == 0
 
@@ -75,14 +80,18 @@ def offenders(branches: dict[str, str], closed: set[str], contained) -> list[tup
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--strict", action="store_true", help="exit 1 on any closed-but-unmerged branch")
-    ap.add_argument("--base", default="master")
+    ap.add_argument("--base", default=None)
     a = ap.parse_args(argv)
 
-    bad = offenders(lab_branches(), closed_beads(), lambda b: is_contained(b, a.base))
+    import sys, os
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
+    from resolve_trunk import resolve_trunk
+    _base = a.base or resolve_trunk() or "main"
+    bad = offenders(lab_branches(), closed_beads(), lambda b: is_contained(b, _base))
     if not bad:
-        print(f"branch ancestry OK: every closed bead's lab/ branch is contained in {a.base}")
+        print(f"branch ancestry OK: every closed bead's lab/ branch is contained in {_base}")
         return 0
-    print(f"CLOSED BUT NOT MERGED into {a.base}: {len(bad)}")
+    print(f"CLOSED BUT NOT MERGED into {_base}: {len(bad)}")
     for branch, bid in bad:
         ahead = git("rev-list", "--count", f"{a.base}..{branch}").strip()
         print(f"  {branch}  ({bid}, {ahead} commits ahead)")

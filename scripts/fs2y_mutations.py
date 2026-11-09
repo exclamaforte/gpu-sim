@@ -37,6 +37,7 @@ MUTATIONS = {
     "hsuv_manifest_relative": "hsuv manifest relative paths (gpu-sim-hsuv)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
+    "e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)",
 }
 
 
@@ -388,6 +389,20 @@ def _apply_3v6d1_unhalve(root):
         f.write(mutated)
     return backup, path
 
+
+def _apply_e7yw_resolve_trunk_master(root):
+    """Mutation for e7yw_trunk_resolution: make resolve_trunk return None."""
+    import os
+    path = os.path.join(root, "scripts", "resolve_trunk.py")
+    backup = open(path).read()
+    mutated = backup.replace('            return ref', '            return None  # mutated', 1)
+    if mutated == backup:
+        raise RuntimeError("e7yw mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
@@ -409,4 +424,5 @@ MUTATION_FUNCTIONS = {
     "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
+    "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
 }

@@ -64,8 +64,8 @@ class TestContentCarriesTheClaim(unittest.TestCase):
     def test_the_contrast_is_real(self):
         """If master also had no cache, the check above would pass vacuously."""
         self.assertGreater(
-            mr.cache_occurrences("master"), 0,
-            "master has no cache mechanism either, so 'the producing branch "
+            mr.cache_occurrences("main"), 0,
+            "main has no cache mechanism either, so 'the producing branch "
             "has none' is not evidence of anything")
 
 
@@ -109,15 +109,15 @@ class TestClockIsCorroboratingOnly(unittest.TestCase):
             "the cache now postdates the rows, so the clock argument would "
             "become load-bearing; revisit the design's wording")
 
-    def test_the_rows_precede_the_cache_on_MASTER(self):
+    def test_the_rows_precede_the_cache_on_MAIN(self):
         """What the clock DOES establish: WHERE, not WHEN."""
         mtimes = [mr.parse_iso(x) for x in
-                  mr.git("log", "--format=%cI", "--reverse", "master",
+                  mr.git("log", "--format=%cI", "--reverse", "main",
                          "--", "epic_u2o/queue_state.py").splitlines() if x.strip()]
         on_master = [d for d in mtimes if d >= self.earliest]
         self.assertTrue(on_master, "the cache never reached master?")
         self.assertLess(self.stamps[-1], min(on_master),
-                        "the rows postdate the cache's arrival on master, so a "
+                        "the rows postdate the cache's arrival on main, so a "
                         "row could reflect a cached read after all")
 
 
@@ -147,9 +147,9 @@ class TestNoAncestryAssertionComesBack(unittest.TestCase):
                              "--", ROWS_PATH).strip()
         rc = subprocess.run(
             ["git", "-C", str(REPO), "merge-base", "--is-ancestor",
-             rows_commit, "master"], capture_output=True).returncode
+             rows_commit, "main"], capture_output=True).returncode
         self.assertEqual(rc, 0,
-                         "the rows file is not on master; the merged-tree "
+                         "the rows file is not on main; the merged-tree "
                          "fixture this suite assumes has changed.")
 
     def test_no_ancestry_assertion_is_USED_between_them(self):
