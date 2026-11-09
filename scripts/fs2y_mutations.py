@@ -236,15 +236,20 @@ def _apply_3v6d2_uncas(root):
     import os
     path = os.path.join(root, "src", "fakegpu_fabric.c")
     backup = open(path).read()
-    old = """        do {
+    old = """        uint64_t busy, start, finish;
+        do {
             busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
             uint64_t now = now_ns();
-            start = (busy > now) ? busy : now;
+            start = (busy > 0) ? busy : now;
             finish = start + delay_ns;
+            if (atomic_load_explicit(&f->hdr->first_start, memory_order_acquire) == 0) {
+                atomic_compare_exchange_strong_explicit(&f->hdr->first_start, &(uint64_t){0}, start, memory_order_acq_rel, memory_order_acquire);
+            }
         } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
                                                             &busy, finish,
                                                             memory_order_acq_rel,
-                                                            memory_order_acquire));"""
+                                                            memory_order_acquire));
+"""
     new = """        /* mutation: calendar removed -- no serialization */
         uint64_t now = now_ns();
         finish = now + delay_ns;"""
