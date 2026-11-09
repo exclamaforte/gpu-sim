@@ -142,15 +142,34 @@ class TestCoverageMustBeProven(unittest.TestCase):
                         f"the live query should cover closed beads: {cov}")
         self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
 
-    def test_zero_closed_beads_is_not_proof_of_coverage(self):
-        """An empty closed set proves nothing about whether we could see one."""
+    def test_zero_closed_beads_with_successful_query_is_proven(self):
+        """Plant B: a healthy board with no closures has nothing to audit.
+
+        Both queries SUCCEEDED and agree on zero closed beads, so the emptiness
+        is real, not blind -- treating it as unproven fails the gate on a young
+        board, which is the false red the acceptance forbids. The blind and
+        missed-bead cases below stay fail-closed and are unchanged.
+        """
         real_query = g._query
-        g._query = lambda args: ([], 0) if "--status" in args and "closed" in args \
+        g._query = lambda args: ([], 0)
+        try:
+            _issues, cov = g.gather_with_proven_coverage()
+            self.assertTrue(cov["coverage_proven"],
+                            f"both queries succeeded on an empty closed set: {cov}")
+            self.assertEqual(cov["independent_closed_rows"], 0)
+            self.assertEqual(cov["closed_beads_the_primary_query_MISSED"], [])
+        finally:
+            g._query = real_query
+
+    def test_zero_closed_beads_with_a_FAILED_query_is_unproven(self):
+        """The other half: empty + a failing query is blind, not proven."""
+        real_query = g._query
+        g._query = lambda args: ([], 1) if "--status" in args and "closed" in args \
             else ([], 0)
         try:
             _issues, cov = g.gather_with_proven_coverage()
             self.assertFalse(cov["coverage_proven"],
-                             "an independently-empty closed set must not certify")
+                             "a failing closed-bead query must not certify emptiness")
         finally:
             g._query = real_query
 
@@ -269,3 +288,45 @@ class TestWriteMode(unittest.TestCase):
         self.assertTrue(self.out.exists())
         data = __import__("json").loads(self.out.read_text())
         self.assertIn("satisfies_the_acceptance", data)
+
+class TestNoClosuresToAudit(unittest.TestCase):
+    """Plant B lives in main()'s control flow, so test main() -- not gather().
+
+    Kept out of TestWriteMode: that class patches gather_with_proven_coverage
+    with a hand-built coverage dict, which is exactly the kind of stub that lets
+    a contract regression pass unnoticed.
+    """
+
+    def test_main_says_no_closures_to_audit_and_returns_zero(self):
+        import contextlib, io as _io, sys as _sys
+        real_query, real_argv = g._query, _sys.argv
+        g._query = lambda args: ([], 0)
+        _sys.argv = ["close_requires_artifact.py"]
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                rc = g.main()
+        finally:
+            g._query, _sys.argv = real_query, real_argv
+        out = buf.getvalue()
+        self.assertEqual(rc, 0, f"a healthy empty board must pass: {out}")
+        self.assertIn("no closures to audit", out,
+                      f"the pass must be explicit, not silent: {out}")
+        self.assertNotIn("COVERAGE UNPROVEN", out)
+
+    def test_main_fails_when_the_closed_query_failed(self):
+        """The other half: empty + a failing query is blind, and must be red."""
+        import contextlib, io as _io, sys as _sys
+        real_query, real_argv = g._query, _sys.argv
+        g._query = lambda args: ([], 1) if "--status" in args else ([], 0)
+        _sys.argv = ["close_requires_artifact.py"]
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                rc = g.main()
+        finally:
+            g._query, _sys.argv = real_query, real_argv
+        out = buf.getvalue()
+        self.assertEqual(rc, 1, f"a blind empty board must fail: {out}")
+        self.assertIn("COVERAGE UNPROVEN", out)
+        self.assertNotIn("no closures to audit", out)

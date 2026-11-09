@@ -32,7 +32,6 @@ import hashlib
 import json
 import re
 import subprocess
-import os
 import shutil
 import sys
 import argparse
@@ -373,7 +372,8 @@ def gather_with_proven_coverage() -> tuple[list, dict]:
         "independent_closed_query": ["bd", "list", "--status", "closed", "--json"],
         "independent_closed_rows": len(want_closed),
         "closed_beads_the_primary_query_MISSED": missing,
-        "coverage_proven": bool(want_closed) and not missing,
+        "coverage_proven": (rc == 0 and rc2 == 0 and not missing),
+        "independent_closed_rc": rc2,
         "note": ("coverage is proven only when the primary query accounts for "
                  "every closed bead an independent query reports. A query that "
                  "cannot see closed beads cannot certify anything about "
@@ -435,6 +435,18 @@ def main() -> int:
                   f"produce (regenerate on main with --write).")
         else:
             print(f"\nOK: {OUT.relative_to(REPO)} matches the audit this run produces.")
+    # .get() rather than []: a coverage record that does not say how many
+    # closures it saw must FAIL CLOSED, never raise and never pass by default.
+    if (coverage.get("independent_closed_rows") == 0
+            and coverage.get("primary_rc") == 0
+            and coverage.get("independent_closed_rc") == 0):
+        # Plant B (PI ruling 2026-11-04, item 3): a board with NO closures has
+        # nothing to audit, and both queries succeeding says the emptiness is
+        # real rather than blind. That is a pass with an explicit note -- not a
+        # silent OK, and not a red gate on a healthy young board.
+        print("OK: no closures to audit -- the board query succeeded and the "
+              "independent closed-bead query returned zero rows.")
+        return 0
     if not coverage["coverage_proven"]:
         print(f"COVERAGE UNPROVEN: {coverage}", file=sys.stderr)
         return 1
