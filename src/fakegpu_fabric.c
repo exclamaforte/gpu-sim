@@ -688,10 +688,10 @@ static uint64_t fg_xorshift64(uint64_t *state) {
 uint64_t fg_fab_success_count(fg_fab_t *f) { return f ? f->success_count : 0; }
 uint64_t fg_fab_attempt_count(fg_fab_t *f) { return f ? f->attempt_count : 0; }
 
-int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
-                    double latency_us, double jitter_us, int loss_ppm,
-                    uint64_t partition_after, double timeout_us, int link_id,
-                    uint64_t *start_out) {
+int fg_fab_transfer_ex(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
+                       double latency_us, double jitter_us, int loss_ppm,
+                       uint64_t partition_after, double timeout_us, int link_id,
+                       uint64_t *start_out) {
     (void)dir;
     if (start_out) *start_out = 0;
     if (!f) return FG_FAB_EINVAL;
@@ -828,6 +828,13 @@ size_t fg_fab_reg_mr(fg_fab_t *f, const void *buf, size_t size) {
     }
     memcpy((char *)f->reg_pool + off, buf, size);
     return off + 1; /* +1 so 0 means "not registered" */
+}
+
+int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
+                    double latency_us, double jitter_us, int loss_ppm,
+                    uint64_t partition_after, double timeout_us, int link_id) {
+    return fg_fab_transfer_ex(f, dir, nbytes, bw_gbs, latency_us, jitter_us,
+                              loss_ppm, partition_after, timeout_us, link_id, NULL);
 }
 
 void fg_fab_reset_calendar(fg_fab_t *f) {

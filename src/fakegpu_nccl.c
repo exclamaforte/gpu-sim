@@ -941,7 +941,7 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                 int _trc = 0;
                 for (int _h = 0; _h < _total_hops; _h++) {
                     uint64_t _hop_start = 0;
-                    int _r = fg_fab_transfer(f, 0, _per, bw, lat, 0.0, 0, 0, 0.0,
+                    int _r = fg_fab_transfer_ex(f, 0, _per, bw, lat, 0.0, 0, 0, 0.0,
                                              bl >= 0 ? bl : 0, &_hop_start);
                     if (_h == 0) _coll_start = _hop_start;
                     if (_r != 0) { _trc = _r; break; }
