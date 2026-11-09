@@ -29,20 +29,21 @@ def _restore_environ():
         os.environ.update(saved)
 
 
-def _run_once(N, nrank=2, rid=None, keep_segment=False):
+def _run_once(N, nrank=2, rid=None, keep_segment=False, topo=None, return_rec=False):
     if not LIB.exists():
         import subprocess
         subprocess.run(["make"], cwd=str(REPO), check=True)
     lib = ctypes.CDLL(str(LIB))
-    os.environ["GPUSIM_TOPOLOGY"] = str(TOPO)
+    os.environ["GPUSIM_TOPOLOGY"] = str(topo if topo is not None else TOPO)
     os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = "1"
     os.environ["GPUSIM_ALLOW_EXTRAPOLATE"] = "1"
     import uuid
     if rid is None:
         rid = f"corpus-{os.getpid()}-{N}-{uuid.uuid4().hex[:8]}"
     os.environ["GPUSIM_FABRIC_RUN_ID"] = rid
-    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl",
-                                                   dir=str(REPO / ".lab" / "tmp"))
+    _tmpdir = REPO / ".lab" / "tmp"
+    _tmpdir.mkdir(parents=True, exist_ok=True)
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl", dir=str(_tmpdir))
     tf.close()
     os.environ["GPUSIM_TRACE"] = tf.name
     lib.ncclAllReduce.restype = ctypes.c_int
@@ -64,7 +65,6 @@ def _run_once(N, nrank=2, rid=None, keep_segment=False):
     assert pred is not None
     assert enf is not None, "enforced_s null (transfer did not run)"
     delta = abs(enf - pred) / pred * 100.0
-    if os.environ.get("VMQ_DEBUG")=="1": print(f"DBG pred={pred:.6f} enf={enf:.6f}")
     assert delta <= 5.0, f"delta {delta:.2f}% > 5% (N={N}, nr={nrank}, pred={pred:.6f}s enf={enf:.6f}s)"
     # the per-sample delta for this call; the test function asserts EVERY one
     # reclaim own segment
@@ -75,7 +75,7 @@ def _run_once(N, nrank=2, rid=None, keep_segment=False):
         os.unlink(tf.name)
     except OSError:
         pass
-    return delta
+    return (delta, rec) if return_rec else delta
 
 def test_allreduce_trace_has_enforced_within_5pct():
     NRANKS = [2, 4, 8]
@@ -109,8 +109,9 @@ def test_contention_shared_link():
     lib.ncclAllReduce.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
                                   ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
     # first collective
-    tf1 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl",
-                                                   dir=str(REPO / ".lab" / "tmp"))
+    _tmpdir = REPO / ".lab" / "tmp"
+    _tmpdir.mkdir(parents=True, exist_ok=True)
+    tf1 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl", dir=str(_tmpdir))
     tf1.close()
     os.environ["GPUSIM_TRACE"] = tf1.name
     s1 = (ctypes.c_float * N)(); r1 = (ctypes.c_float * N)()
@@ -129,8 +130,7 @@ def test_contention_shared_link():
     libc.munmap(ptr, 4096)
     libc.close(fd)
     # second collective: must wait for busy_until
-    tf2 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl",
-                                                   dir=str(REPO / ".lab" / "tmp"))
+    tf2 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl", dir=str(_tmpdir))
     tf2.close()
     os.environ["GPUSIM_TRACE"] = tf2.name
     s2 = (ctypes.c_float * N)(); r2 = (ctypes.c_float * N)()
@@ -176,3 +176,25 @@ def test_repeated_collectives_on_one_rid_are_not_cumulative():
             f"collective {i} of 3 on one rid: delta {d:.3f}% > 5% "
             f"(deltas so far {[round(x, 3) for x in deltas]}) -- "
             f"enforced_s is cumulative across collectives")
+
+
+def test_multi_link_collective_uses_the_transfers_own_link():
+    """bl > 0 must measure the SAME link the transfer reserved.
+
+    fg_fab_transfer was called with link bl, but the baseline was read from
+    last_start[0]. With a multi-link topology and bl > 0 that silently subtracts
+    a different link's timestamp, so enforced_s is meaningless -- invisible on
+    topo_single, where bl is always 0.
+    """
+    topo = REPO / "experiments" / "gpu-sim-pkb" / "topo_two_links.bin"
+    if not topo.exists():
+        import pytest
+        pytest.skip(f"multi-link topology missing: {topo}")
+    delta, rec = _run_once(1 << 22, 2, topo=topo, return_rec=True)
+    bl = rec.get("bottleneck_link")
+    assert bl is not None and bl > 0, (
+        f"topology did not select link > 0 (bottleneck={bl}); the test would not "
+        f"exercise the bl>0 path")
+    assert delta <= 5.0, (
+        f"multi-link delta {delta:.2f}% > 5% with bottleneck link {bl} "
+        f"(pred={rec['predicted_s']:.6f}s enf={rec['enforced_s']:.6f}s)")

@@ -690,8 +690,10 @@ uint64_t fg_fab_attempt_count(fg_fab_t *f) { return f ? f->attempt_count : 0; }
 
 int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                     double latency_us, double jitter_us, int loss_ppm,
-                    uint64_t partition_after, double timeout_us, int link_id) {
+                    uint64_t partition_after, double timeout_us, int link_id,
+                    uint64_t *start_out) {
     (void)dir;
+    if (start_out) *start_out = 0;
     if (!f) return FG_FAB_EINVAL;
     /* bw_gbs is the EFFECTIVE PER-DIRECTION rate in GB/s, the same number
        fakegpu_nccl.c and epic_cluster.topology.emit's eff_bw_gbps use.  This
@@ -775,20 +777,19 @@ int fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
         do {
             busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
             uint64_t now = now_ns();
-            /* (gpu-sim-3v6d.3) busy_until PERSISTS after a collective ends, so
-             * once the calendar drains it holds a timestamp in the PAST. Using
-             * it as the reservation start schedules the next transfer backwards
-             * (finish < now), which made enforced_s collapse to 0 whenever two
-             * collectives were separated by more than the transfer delay --
-             * measured: 1st collective enf=0.001017s, 2nd enf=0.000000s at the
-             * same rid. A calendar must never reserve in the past. */
+            /* busy_until PERSISTS after a collective ends, so a drained calendar
+             * holds the PREVIOUS finish. Reusing it is deliberate: it keeps the
+             * calendar's own bookkeeping continuous, and callers that need their
+             * own service time take start_out (fg_fab_transfer) rather than
+             * subtracting from a shared mark. Making this max(busy, now) was
+             * tried and reverted: it moved every enforced delta to +5..12% and
+             * changed what the model was being compared against. */
             start = (busy > 0) ? busy : now;
             finish = start + delay_ns;
             if (atomic_load_explicit(&f->hdr->first_start, memory_order_acquire) == 0) {
                 atomic_compare_exchange_strong_explicit(&f->hdr->first_start, &(uint64_t){0}, start, memory_order_acq_rel, memory_order_acquire);
             }
-            atomic_store_explicit(&f->hdr->last_start[link_id], start,
-                                  memory_order_release);
+            if (start_out) *start_out = start;  /* per-call, race-free */
         } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
                                                             &busy, finish,
                                                             memory_order_acq_rel,

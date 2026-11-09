@@ -99,14 +99,15 @@ uint64_t fg_fab_attempt_count(fg_fab_t *f);
    partition/timeout, FG_FAB_EPEERDEAD on peer death. */
 int  fg_fab_transfer(fg_fab_t *f, int dir, size_t nbytes, double bw_gbs,
                      double latency_us, double jitter_us, int loss_ppm,
-                     uint64_t partition_after, double timeout_us, int link_id);
+                     uint64_t partition_after, double timeout_us, int link_id,
+                     uint64_t *start_out);
 
 void fg_fab_reset_calendar(fg_fab_t *f);
 void fg_fab_reset_first_start(fg_fab_t *f);
 int fg_fab_is_creator(fg_fab_t *f);
 uint64_t fg_fab_first_start(fg_fab_t *f);
 uint64_t fg_fab_now_ns(void);
-uint64_t fg_fab_link_last_start(fg_fab_t *f, int link_id);  /* monotonic ns, same clock as the calendar */
+uint64_t fg_fab_link_last_start(fg_fab_t *f, int link_id); /* racy: prefer start_out */  /* monotonic ns, same clock as the calendar */
 uint64_t fg_fab_link_busy(fg_fab_t *f, int link);
 void fg_fab_detach(fg_fab_t *f);
 

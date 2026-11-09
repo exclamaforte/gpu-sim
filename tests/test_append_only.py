@@ -355,7 +355,7 @@ class TestRaisingApplierLeavesNoResidue(unittest.TestCase):
 
         target = ROOT / "scripts" / "check_gate_citations.py"
         before = target.read_text()
-        dirty_before = subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only"],
+        dirty_before = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "-uall"],
                                       capture_output=True, text=True).stdout.split()
 
         def _raising_applier(root):
@@ -385,6 +385,53 @@ class TestRaisingApplierLeavesNoResidue(unittest.TestCase):
         self.assertEqual(target.read_text(), before,
                          "write-then-raise left residue behind")
         self.assertEqual(
-            subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only"],
+            subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "-uall"],
                            capture_output=True, text=True).stdout.split(),
             dirty_before)
+
+    def test_write_then_raise_that_creates_an_UNTRACKED_file_is_cleaned(self):
+        """-uall: a file created inside an untracked directory must be restored.
+
+        `git diff --name-only` cannot see untracked paths at all, so a raising
+        applier that creates one left it behind while every dirty-set comparison
+        still reported clean.
+        """
+        import subprocess, importlib.util, sys as _sys
+        from unittest import mock
+        spec = importlib.util.spec_from_file_location(
+            "cao_probe2", ROOT / "scripts" / "check_append_only.py")
+        cao = importlib.util.module_from_spec(spec)
+        _sys.modules["cao_probe2"] = cao
+        spec.loader.exec_module(cao)
+
+        junk_dir = ROOT / "tests"          # tracked dir: -uall reports the file
+        junk = junk_dir / "untracked_probe_residue.txt"
+        before = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "-uall"],
+                                capture_output=True, text=True).stdout.splitlines()
+
+        def _raising_applier(root):
+            junk_dir.mkdir(parents=True, exist_ok=True)
+            junk.write_text("residue\n")
+            raise RuntimeError("simulated write-then-raise (untracked)")
+
+        row = {"name": "untracked_probe", "state": "passing",
+               "test": "tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_6_1_worst_case_mdd",
+               "mutation": "raise_after_write_untracked"}
+        try:
+            with mock.patch.object(cao, "_load_mutations",
+                                   lambda root: (({"raise_after_write_untracked": "probe"},
+                                                  {"raise_after_write_untracked": _raising_applier}), None)), \
+                 mock.patch.object(cao, "load_ledger_entries", lambda root: [row]):
+                try:
+                    with self.assertRaises(RuntimeError):
+                        cao.check_ledger_test_ids(ROOT)
+                except TypeError as e:
+                    self.fail(f"restore path crashed: {e}")
+            self.assertFalse(junk.exists(), "untracked residue was left behind")
+            self.assertEqual(
+                subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "-uall"],
+                               capture_output=True, text=True).stdout.splitlines(),
+                before, "untracked residue changed the tree")
+        finally:
+            if junk.exists():          # never leave residue if the harness fails
+                junk.unlink()

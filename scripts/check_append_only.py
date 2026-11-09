@@ -293,10 +293,24 @@ def _load_mutations(root):
 
 
 def _dirty_paths(root) -> set:
-    """Tracked paths currently modified vs HEAD (empty on a clean tree)."""
-    r = subprocess.run(["git", "-C", str(root), "diff", "--name-only"],
+    """Every path `git status` reports (tracked-modified AND untracked).
+
+    -uall so a file created inside an untracked DIRECTORY still appears -- a
+    write-then-raise applier can create one, and `git diff --name-only` cannot
+    see it at all. Status columns are stripped here: the caller feeds these paths
+    to `git checkout --`, which needs a path, not a porcelain line.
+    """
+    r = subprocess.run(["git", "-C", str(root), "status", "--porcelain", "-uall"],
                        capture_output=True, text=True)
-    return {ln for ln in r.stdout.splitlines() if ln.strip()}
+    out = set()
+    for ln in r.stdout.splitlines():
+        if not ln.strip():
+            continue
+        path = ln[3:]
+        if " -> " in path:            # renames: "R  old -> new"
+            path = path.split(" -> ", 1)[1]
+        out.add(path.strip().strip('"'))
+    return out
 
 
 def check_ledger_test_ids(root):
@@ -384,8 +398,17 @@ def check_ledger_test_ids(root):
                 # Only paths clean before the row are touched, so pre-existing
                 # uncommitted work is never destroyed.
                 for _p in sorted(_dirty_paths(root) - pre_dirty):
-                    subprocess.run(["git", "-C", str(root), "checkout", "--", _p],
-                                   capture_output=True, text=True)
+                    rc_ = subprocess.run(["git", "-C", str(root), "checkout", "--", _p],
+                                         capture_output=True, text=True)
+                    if rc_.returncode != 0:
+                        # untracked path (a raising applier can create one): no
+                        # HEAD version exists, so removing it IS the restore
+                        _fp = os.path.join(str(root), _p)
+                        if os.path.exists(_fp):
+                            try:
+                                os.remove(_fp)
+                            except OSError:
+                                pass
                 # rebuild if a compiled source was restored (C-source mutations)
                 subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
             rrest = subprocess.run(
