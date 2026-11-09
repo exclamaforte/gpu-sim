@@ -33,6 +33,7 @@ MUTATIONS = {
     "v5l3_pin_coverage": "v5l3 pin coverage lint (gpu-sim-v5l3)",
     "9wza_tracked_bypass_records": "9wza tracked-first bypass records with divergence check (gpu-sim-9wza)",
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
+    "3v6d3_nccl_enforce": "3v6d.3 ncclAllReduce enforces through fabric calendar (gpu-sim-3v6d.3)",
     "hsuv_manifest_relative": "hsuv manifest relative paths (gpu-sim-hsuv)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
@@ -231,22 +232,21 @@ def _apply_05b3_delete_key(root):
 
 
 def _apply_3v6d2_uncas(root):
-    """Mutation for 3v6d2_link_calendar: remove the calendar reservation entirely."""
+    """Mutation for 3v6d2_link_calendar: remove the calendar reservation.
+
+    Targets the ONE semantic line (the reservation start) rather than the whole
+    CAS block: the block-splice broke twice today -- once when the fabric was
+    refactored, once when a comment and an out-param assignment were added around
+    it -- and each break surfaced as "mutation did not apply", which is the
+    ledger doing its job but costing a gate cycle. Making the anchor minimal keeps
+    the mutation about the BEHAVIOUR (transfers no longer queue) instead of about
+    the surrounding text.
+    """
     import os
     path = os.path.join(root, "src", "fakegpu_fabric.c")
     backup = open(path).read()
-    old = """        do {
-            busy = atomic_load_explicit(&f->hdr->busy_until[link_id], memory_order_acquire);
-            uint64_t now = now_ns();
-            start = (busy > now) ? busy : now;
-            finish = start + delay_ns;
-        } while (!atomic_compare_exchange_strong_explicit(&f->hdr->busy_until[link_id],
-                                                            &busy, finish,
-                                                            memory_order_acq_rel,
-                                                            memory_order_acquire));"""
-    new = """        /* mutation: calendar removed -- no serialization */
-        uint64_t now = now_ns();
-        finish = now + delay_ns;"""
+    old = "            start = (busy > 0) ? busy : now;"
+    new = "            start = now;  /* mutation: calendar removed -- no serialization */"
     mutated = backup.replace(old, new, 1)
     if mutated == backup:
         raise RuntimeError("3v6d2 mutation did not apply")
@@ -298,6 +298,23 @@ def _apply_hsuv_manifest_absolute(root):
         specs[0]["exe"] = "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-hsuv/experiments/gpu-sim-u5r4/build_div_sizescale/bin/k_divergent_branch_0000.out"
     with open(path, "w") as f:
         json.dump(d, f, indent=2)
+    return backup, path
+
+
+def _apply_3v6d3_nccl_enforce(root):
+    """Mutation for 3v6d3_nccl_enforce: revert enforced bw to raw 900 Gbps (8x delta)."""
+    import os
+    path = os.path.join(root, "src", "fakegpu_nccl.c")
+    backup = open(path).read()
+    mutated = backup
+    mutated = mutated.replace("bw = t->links[bl].eff_bw_gbs;", "bw = 900.0; /* mutation: raw bw */", 1)
+    mutated = mutated.replace("bw = t->links[0].eff_bw_gbs;", "bw = 900.0; /* mutation: raw bw */", 1)
+    if mutated == backup:
+        raise RuntimeError("3v6d3 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    import subprocess
+    subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
     return backup, path
 
 
@@ -389,6 +406,7 @@ MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "nlgf_power_test": _apply_nlgf_corrupt,
+    "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
 }

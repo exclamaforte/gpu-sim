@@ -1,0 +1,198 @@
+"""Guard: ncclAllReduce enforces through the fabric calendar (gpu-sim-3v6d.3)."""
+import ctypes, json, os, tempfile, statistics, time
+import pytest
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+LIB = REPO / "libfakenccl.so"
+TOPO = REPO / "experiments" / "gpu-sim-pkb" / "topo_single.bin"
+
+SHAPES = [1 << s for s in range(20, 28)]  # 8 shapes
+BUSY_OFF = 64  # byte offset of busy_until[0] in fg_header_t
+
+@pytest.fixture(autouse=True)
+def _restore_environ():
+    """These tests set GPUSIM_* vars globally; they MUST NOT leak (gpu-sim-3v6d.3).
+
+    os.environ is process-wide, so GPUSIM_NCCL_LEGACY_TABLE / GPUSIM_ALLOW_
+    EXTRAPOLATE / GPUSIM_TOPOLOGY / GPUSIM_FABRIC_RUN_ID / GPUSIM_TRACE stayed set
+    for every later test in the suite. Concretely, tests/test_model_agreement.py::
+    test_agreement_refusal_n3_n4 then saw the "legacy table" path and stopped
+    getting FG_NCCL_REFUSED for n>=3 -- it failed only when this file ran first
+    (reproduced: 1 failed / 5 passed in 18s together, 5/5 passed alone).
+    """
+    saved = dict(os.environ)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
+
+
+def _run_once(N, nrank=2, rid=None, keep_segment=False, topo=None, return_rec=False):
+    if not LIB.exists():
+        import subprocess
+        subprocess.run(["make"], cwd=str(REPO), check=True)
+    lib = ctypes.CDLL(str(LIB))
+    os.environ["GPUSIM_TOPOLOGY"] = str(topo if topo is not None else TOPO)
+    os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = "1"
+    os.environ["GPUSIM_ALLOW_EXTRAPOLATE"] = "1"
+    import uuid
+    if rid is None:
+        rid = f"corpus-{os.getpid()}-{N}-{uuid.uuid4().hex[:8]}"
+    os.environ["GPUSIM_FABRIC_RUN_ID"] = rid
+    _tmpdir = REPO / ".lab" / "tmp"
+    _tmpdir.mkdir(parents=True, exist_ok=True)
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl", dir=str(_tmpdir))
+    tf.close()
+    os.environ["GPUSIM_TRACE"] = tf.name
+    lib.ncclAllReduce.restype = ctypes.c_int
+    lib.ncclAllReduce.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
+                                  ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
+    send = (ctypes.c_float * N)()
+    recv = (ctypes.c_float * N)()
+    # create a comm with nrank ranks
+    comm_arr = (ctypes.c_void_p * nrank)()
+    lib.ncclCommInitAll(comm_arr, nrank, None)
+    comm = comm_arr[0]
+    rc = lib.ncclAllReduce(send, recv, N, 7, 0, comm, None)
+    assert rc == 0
+    lines = [l for l in open(tf.name) if l.strip()]
+    assert lines, "no trace written"
+    rec = json.loads(lines[-1])
+    assert "predicted_s" in rec and "enforced_s" in rec and "grank" in rec
+    pred = rec["predicted_s"]; enf = rec["enforced_s"]
+    assert pred is not None
+    assert enf is not None, "enforced_s null (transfer did not run)"
+    delta = abs(enf - pred) / pred * 100.0
+    assert delta <= 5.0, f"delta {delta:.2f}% > 5% (N={N}, nr={nrank}, pred={pred:.6f}s enf={enf:.6f}s)"
+    # the per-sample delta for this call; the test function asserts EVERY one
+    # reclaim own segment
+    libc = ctypes.CDLL('libc.so.6')
+    if not keep_segment:
+        libc.shm_unlink(b'/gpusim-' + rid.encode())
+    try:
+        os.unlink(tf.name)
+    except OSError:
+        pass
+    return (delta, rec) if return_rec else delta
+
+def test_allreduce_trace_has_enforced_within_5pct():
+    NRANKS = [2, 4, 8]
+    for N in SHAPES:
+        for nr in NRANKS:
+            samples = [_run_once(N, nr) for _ in range(3)]
+            # EVERY sample must be within the bound, and the failure names the
+            # sample and its value. A median-only assert let one sample exceed
+            # 5% unnoticed for three commits (gpu-sim-3v6d.3 rework).
+            for i, s in enumerate(samples):
+                assert s <= 5.0, (
+                    f"sample {i} of {len(samples)} delta {s:.2f}% > 5% "
+                    f"(N={N}, nr={nr}, samples={[round(x, 2) for x in samples]})")
+            med = statistics.median(samples)
+            assert med <= 5.0, f"median delta {med:.2f}% > 5% (N={N}, nr={nr})"
+
+def test_contention_shared_link():
+    """Contention: pre-set busy_until so second collective must wait."""
+    if not LIB.exists():
+        import subprocess
+        subprocess.run(["make"], cwd=str(REPO), check=True)
+    lib = ctypes.CDLL(str(LIB))
+    os.environ["GPUSIM_TOPOLOGY"] = str(TOPO)
+    os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = "1"
+    os.environ["GPUSIM_ALLOW_EXTRAPOLATE"] = "1"
+    rid = "shared-contention-test"
+    os.environ["GPUSIM_FABRIC_RUN_ID"] = rid
+    N = 1 << 20
+    libc = ctypes.CDLL('libc.so.6')
+    lib.ncclAllReduce.restype = ctypes.c_int
+    lib.ncclAllReduce.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
+                                  ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p]
+    # first collective
+    _tmpdir = REPO / ".lab" / "tmp"
+    _tmpdir.mkdir(parents=True, exist_ok=True)
+    tf1 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl", dir=str(_tmpdir))
+    tf1.close()
+    os.environ["GPUSIM_TRACE"] = tf1.name
+    s1 = (ctypes.c_float * N)(); r1 = (ctypes.c_float * N)()
+    rc1 = lib.ncclAllReduce(s1, r1, N, 7, 0, None, None)
+    assert rc1 == 0
+    lines1 = [l for l in open(tf1.name) if l.strip()]
+    rec1 = json.loads(lines1[-1])
+    enf1 = rec1["enforced_s"]
+    assert enf1 is not None and enf1 > 0
+    # simulate concurrent transfer: push busy_until[0] far into the future
+    fd = libc.shm_open(b'/gpusim-' + rid.encode(), 2, 0o666)
+    assert fd >= 0
+    libc.mmap.restype = ctypes.c_void_p
+    ptr = libc.mmap(None, 4096, 3, 1, fd, 0)
+    ctypes.c_uint64.from_address(ptr + BUSY_OFF).value = int(time.monotonic_ns()) + 100_000_000
+    libc.munmap(ptr, 4096)
+    libc.close(fd)
+    # second collective: must wait for busy_until
+    tf2 = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl", dir=str(_tmpdir))
+    tf2.close()
+    os.environ["GPUSIM_TRACE"] = tf2.name
+    s2 = (ctypes.c_float * N)(); r2 = (ctypes.c_float * N)()
+    t0 = time.perf_counter()
+    rc2 = lib.ncclAllReduce(s2, r2, N, 7, 0, None, None)
+    wall2 = time.perf_counter() - t0
+    assert rc2 == 0
+    lines2 = [l for l in open(tf2.name) if l.strip()]
+    rec2 = json.loads(lines2[-1])
+    enf2 = rec2["enforced_s"]
+    assert enf2 is not None and enf2 > 0
+    # contention: second waited ~0.1s on the pre-set busy_until, so wall time >= 0.05
+    assert wall2 >= 0.05, f"contention not visible: wall2={wall2}, enf1={enf1}, enf2={enf2}"
+    libc.shm_unlink(b'/gpusim-' + rid.encode())
+    for tf in (tf1, tf2):
+        try:
+            os.unlink(tf.name)
+        except OSError:
+            pass
+
+
+def test_repeated_collectives_on_one_rid_are_not_cumulative():
+    """enforced_s must describe ONE collective, not the whole run.
+
+    first_start lives in the shared per-run-id header. Without a reset at
+    collective entry, the second and third collectives on the same rid measure
+    from the FIRST collective's start, so enforced_s grows without bound
+    (reviewer measured 0.0005% / 99.999% / 199.998% over three calls).
+    """
+    N = 1 << 20
+    nrank = 8
+    rid = f"cumulative-{os.getpid()}"
+    deltas = []
+    try:
+        for i in range(3):
+            deltas.append(_run_once(N, nrank, rid=rid, keep_segment=True))
+    finally:
+        import ctypes
+        libc = ctypes.CDLL(None, use_errno=True)
+        libc.shm_unlink(b'/gpusim-' + rid.encode())
+    for i, d in enumerate(deltas):
+        assert d <= 5.0, (
+            f"collective {i} of 3 on one rid: delta {d:.3f}% > 5% "
+            f"(deltas so far {[round(x, 3) for x in deltas]}) -- "
+            f"enforced_s is cumulative across collectives")
+
+
+def test_multi_link_collective_uses_the_transfers_own_link():
+    """bl > 0 must measure the SAME link the transfer reserved.
+
+    fg_fab_transfer was called with link bl, but the baseline was read from
+    last_start[0]. With a multi-link topology and bl > 0 that silently subtracts
+    a different link's timestamp, so enforced_s is meaningless -- invisible on
+    topo_single, where bl is always 0.
+    """
+    topo = REPO / "experiments" / "gpu-sim-pkb" / "topo_two_links.bin"
+    assert topo.exists(), f"tracked multi-link topology missing: {topo}"
+    delta, rec = _run_once(1 << 22, 2, topo=topo, return_rec=True)
+    bl = rec.get("bottleneck_link")
+    assert bl is not None and bl > 0, (
+        f"topology did not select link > 0 (bottleneck={bl}); the test would not "
+        f"exercise the bl>0 path")
+    assert delta <= 5.0, (
+        f"multi-link delta {delta:.2f}% > 5% with bottleneck link {bl} "
+        f"(pred={rec['predicted_s']:.6f}s enf={rec['enforced_s']:.6f}s)")

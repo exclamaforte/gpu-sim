@@ -205,7 +205,8 @@ ncclResult_t ncclGroupEnd(void)
  * be reconstructed from the trace alone. */
 static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count,
                           const char *dtype, size_t bytes, const char *algo,
-                          double predicted, int bottleneck, const char *regime);
+                          double predicted, int bottleneck, const char *regime,
+                          double enforced, double delta_pct);
 static const char *fg_dtype_name(int datatype);
 static fg_topo_t *fg_nccl_topo(void);
 static size_t fg_dtype_size(int datatype);
@@ -253,7 +254,7 @@ static void fg_p2p_trace(const char *op, ncclComm_t comm, size_t count,
                                    sizeof regime);
     }
     fg_nccl_trace(op, rk, nr, count, fg_dtype_name(datatype),
-                  fg_dtype_bytes(datatype, count), algo, pred, bl, regime);
+                  fg_dtype_bytes(datatype, count), algo, pred, bl, regime, -1.0, 0.0);
     if (pred != FG_NCCL_REFUSED && pred > 0) fg_sleep_ns((long)(pred * 1e9));
 }
 
@@ -691,7 +692,7 @@ double fg_nccl_predict(const fg_topo_t *t, const char *algo, size_t count, int d
     return dur;
 }
 
-static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, const char *dtype, size_t bytes, const char *algo, double predicted, int bottleneck, const char *regime) {
+static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, const char *dtype, size_t bytes, const char *algo, double predicted, int bottleneck, const char *regime, double enforced, double delta_pct) {
     const char *p = getenv("GPUSIM_TRACE");
     char path[4096];
     if (p && *p) snprintf(path, sizeof(path), "%s", p);
@@ -709,24 +710,39 @@ static void fg_nccl_trace(const char *op, int rank, int nranks, size_t count, co
     long long ts_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
     if (predicted == FG_NCCL_REFUSED) {
         n = snprintf(line, sizeof line,
-                     "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":%s,\"regime\":\"%s\"}\n",
+                     "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"enforced_s\":null,\"delta_pct\":null,\"refused\":true,\"bottleneck_link\":%s,\"regime\":\"%s\"}\n",
                      ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype,
                      bytes, algo, bottleneck >= 0 ? "" : "null", regime);
         if (bottleneck >= 0)
             n = snprintf(line, sizeof line,
-                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"refused\":true,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":null,\"enforced_s\":null,\"delta_pct\":null,\"refused\":true,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
                          ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count,
                          dtype, bytes, algo, bottleneck, regime);
     } else {
-        n = snprintf(line, sizeof line,
-                     "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
-                     ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype,
-                     bytes, algo, predicted, bottleneck, regime);
-        if (bottleneck < 0)
+        if (enforced < 0) {
             n = snprintf(line, sizeof line,
-                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"bottleneck_link\":null,\"regime\":\"%s\"}\n",
-                         ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count,
-                         dtype, bytes, algo, predicted, regime);
+                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"enforced_s\":null,\"delta_pct\":null,\"refused\":false,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                         ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype,
+                         bytes, algo, predicted, bottleneck, regime);
+        } else {
+            n = snprintf(line, sizeof line,
+                         "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"enforced_s\":%.9g,\"delta_pct\":%.9g,\"refused\":false,\"bottleneck_link\":%d,\"regime\":\"%s\"}\n",
+                         ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count, dtype,
+                         bytes, algo, predicted, enforced, delta_pct, bottleneck, regime);
+        }
+        if (bottleneck < 0) {
+            if (enforced < 0) {
+                n = snprintf(line, sizeof line,
+                             "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"enforced_s\":null,\"delta_pct\":null,\"refused\":false,\"bottleneck_link\":null,\"regime\":\"%s\"}\n",
+                             ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count,
+                             dtype, bytes, algo, predicted, regime);
+            } else {
+                n = snprintf(line, sizeof line,
+                             "{\"ts_ns\":%lld,\"rank\":%d,\"grank\":%d,\"nranks\":%d,\"op\":\"%s\",\"count\":%zu,\"dtype\":\"%s\",\"bytes\":%zu,\"algorithm\":\"%s\",\"predicted_s\":%.9g,\"enforced_s\":%.9g,\"delta_pct\":%.9g,\"refused\":false,\"bottleneck_link\":null,\"regime\":\"%s\"}\n",
+                             ts_ns, rank, fg_nccl_rank_from_env(), nranks, op, count,
+                             dtype, bytes, algo, predicted, enforced, delta_pct, regime);
+            }
+        }
     }
     if (n <= 0) return;
     if ((size_t)n >= sizeof line) n = (int)sizeof line - 1;
@@ -837,7 +853,7 @@ static void fg_collective_out(void *recvbuff, size_t count, int datatype,
      * which is why the same fix is not applied there and `count` stays the caller's).
      */
     fg_nccl_trace(fg_cur_op, rk, nr, count, fg_dtype_name(datatype), bytes_total,
-                  "fallback", FG_NCCL_REFUSED, -1, "unmodelled");
+                  "fallback", FG_NCCL_REFUSED, -1, "unmodelled", -1.0, 0.0);
 }
 
 ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
@@ -865,11 +881,89 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
         int rk = comm ? ((struct fg_nccl_comm *)comm)->rank : 0;
         int bl = -1; char regime[32];
         double pred = fg_nccl_predict(t, "ring_allreduce", count, datatype, nr, &bl, regime, sizeof(regime));
-        if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
+        /* Enforce through the 3v6d.2 fabric calendar: compose the collective's
+         * per-phase traffic as a real transfer so enforced time comes out of the
+         * same per-link reservations the model prices. fg_nccl_predict stays as
+         * the CHECK (both numbers are emitted; the caller asserts |delta|<=tol). */
+        double enforced = -1.0;
+        /* Per-collective start taken from THIS process's clock. first_start is a
+         * per-run-id mark in shared memory: it survives into the next collective
+         * (cumulative enforced_s) and, being set by whichever link transfers
+         * first, cannot be cleared safely by a caller that only inspects one
+         * link. Measuring from an entry stamp removes the shared state entirely,
+         * so repeated collectives and multi-link transport are both safe without
+         * a reset protocol. */
+        uint64_t _coll_start = 0;
+        if (pred != FG_NCCL_REFUSED) {
+            const char *rid = getenv("GPUSIM_FABRIC_RUN_ID");
+            char rbuf[64];
+            if (!rid || !*rid) { snprintf(rbuf, sizeof(rbuf), "nccl-shared"); rid = rbuf; }
+            int err = 0;
+            fg_fab_t *f = fg_fab_attach(rid, 1, (rk >= 0 && rk < nr) ? rk : 0,
+                                        nr > 0 ? nr : 1, 10000000000ULL, &err);
+            if (f) {
+                fg_fab_links_init(f, t->n_links > 0 ? t->n_links : 1);
+                /* (gpu-sim-3v6d.3) first_start lives in the SHARED per-run-id
+                 * header, so without a reset it survives into the NEXT
+                 * collective on the same run id and enforced_s accumulates the
+                 * whole run instead of one collective -- measured 0.0005% /
+                 * 99.999% / 199.998% across three calls at one rid. Reset it at
+                 * each collective entry, but only when the calendar is idle, so
+                 * a reset cannot wipe a concurrent collective's mark. */
+                /* Per-collective baseline: this collective's OWN reservation
+                 * start, i.e. the link calendar's end if it is still busy, else
+                 * now. first_start (a per-run-id mark) cannot serve: it survives
+                 * into the next collective, so enforced_s became cumulative
+                 * (0.0005% / 99.999% / 199.998% at one rid). Measuring from the
+                 * reservation start keeps the queue wait out of THIS collective's
+                 * enforced time, which is what fg_nccl_predict prices. */
+                /* baseline is this collective's own first-hop reservation start,
+                 * read back from the fabric after the hop (see the _h==0 branch
+                 * below); using a pre-read here would include queue wait behind
+                 * another rank sharing the run-id calendar. */
+                double bw = 0.0, lat = 0.0;
+                if (bl >= 0 && bl < t->n_links) { bw = t->links[bl].eff_bw_gbs; lat = t->links[bl].latency_us; }
+                else if (t->n_links > 0) { bw = t->links[0].eff_bw_gbs; lat = t->links[0].latency_us; }
+                if (bw <= 0.0) bw = 1.0;
+                int _nhops = (nr > 1) ? 2 * (nr - 1) : 1;
+                /* phase-payload P (mirror model): packets per phase */
+                int _P = 1;
+                if (nr > 1 && bytes > 0 && bw > 0) {
+                    double _chunk = (double)(nr - 1) / (double)nr;
+                    _P = (int)ceil(_chunk * (double)bytes / (double)FG_FAB_MAX_PAYLOAD);
+                    if (_P < 1) _P = 1;
+                }
+                size_t _per = (nr > 0 && _P > 0) ? (bytes / (size_t)nr / (size_t)_P) : bytes;
+                if (_per == 0) _per = bytes;
+                int _total_hops = _nhops * _P;
+                int _link = (bl >= 0) ? bl : 0;
+                int _trc = 0;
+                for (int _h = 0; _h < _total_hops; _h++) {
+                    uint64_t _hop_start = 0;
+                    int _r = fg_fab_transfer_ex(f, 0, _per, bw, lat, 0.0, 0, 0, 0.0,
+                                             bl >= 0 ? bl : 0, &_hop_start);
+                    if (_h == 0) _coll_start = _hop_start;
+                    if (_r != 0) { _trc = _r; break; }
+                }
+                if (_trc == 0) {
+                    uint64_t _final_busy = fg_fab_link_busy(f, _link);
+                    enforced = (_final_busy > _coll_start)
+                                   ? (double)(_final_busy - _coll_start) / 1e9 : 0.0;
+                } else {
+                    enforced = -1.0;
+                }
+                fg_fab_detach(f);
+            }
+        }
+        double delta_pct = (pred > 0 && pred != FG_NCCL_REFUSED && enforced > 0)
+                           ? (fabs(enforced - pred) / pred * 100.0) : 0.0;
+        /* single writer, one schema (gpu-sim-3v6d.3 item 2): use fg_nccl_trace */
+        fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes,
+                      "ring_allreduce", pred, bl >= 0 ? bl : -1, regime,
+                      enforced, delta_pct);
         /* Fill skipped via fg_tport_skip_fill when the transport moved data. */
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("allreduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
         return ncclSuccess;
     }
     fg_collective_out(recvbuff, count, datatype, comm);
@@ -896,7 +990,7 @@ ncclResult_t ncclBroadcast(const void *sendbuff, void *recvbuff, size_t count,
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("broadcast", rk, nr, count, fg_dtype_name(datatype), bytes, "tree_bcast", pred, bl, regime);
+        fg_nccl_trace("broadcast", rk, nr, count, fg_dtype_name(datatype), bytes, "tree_bcast", pred, bl, regime, -1.0, 0.0);
         return ncclSuccess;
     }
     fg_collective_out(recvbuff, count, datatype, comm);
@@ -932,7 +1026,7 @@ ncclResult_t ncclReduce(const void *sendbuff, void *recvbuff, size_t count,
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("reduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime);
+        fg_nccl_trace("reduce", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_allreduce", pred, bl, regime, -1.0, 0.0);
         return ncclSuccess;
     }
     fg_collective_out(recvbuff, count, datatype, comm);
@@ -979,7 +1073,7 @@ ncclResult_t ncclAllGather(const void *sendbuff, void *recvbuff, size_t count,
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = count * (size_t)nr * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * (size_t)nr * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime);
+        fg_nccl_trace("allgather", rk, nr, count, fg_dtype_name(datatype), count * (size_t)nr * fg_dtype_size(datatype), "ring_allgather", pred, bl, regime, -1.0, 0.0);
         return ncclSuccess;
     }
     int nr = comm ? ((struct fg_nccl_comm *)comm)->nrank : 1;
@@ -1028,7 +1122,7 @@ ncclResult_t ncclReduceScatter(const void *sendbuff, void *recvbuff,
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         size_t bytes = rc * (size_t)nr * fg_dtype_size(datatype);
         fg_nccl_out_fill(recvbuff, rc * fg_dtype_size(datatype));  /* recvbuf is the shard */
-        fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime);
+        fg_nccl_trace("reducescatter", rk, nr, rc, fg_dtype_name(datatype), bytes, "ring_reduce_scatter", pred, bl, regime, -1.0, 0.0);
         return ncclSuccess;
     }
     fg_collective_out(recvbuff, rc, datatype, comm);
@@ -1055,7 +1149,7 @@ ncclResult_t ncclAllToAll(const void *sendbuff, void *recvbuff, size_t count,
         double pred = fg_nccl_predict(t, "ring_alltoall", count * (size_t)nr, datatype, nr, &bl, regime, sizeof(regime));
         if (pred != FG_NCCL_REFUSED) fg_sleep_ns((long)(pred * 1e9));
         fg_nccl_out_fill(recvbuff, bytes);
-        fg_nccl_trace("alltoall", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_alltoall", pred, bl, regime);
+        fg_nccl_trace("alltoall", rk, nr, count, fg_dtype_name(datatype), bytes, "ring_alltoall", pred, bl, regime, -1.0, 0.0);
         return ncclSuccess;
     }
     fg_collective_out(recvbuff, count, datatype, comm);
@@ -1312,7 +1406,7 @@ ncclResult_t ncclGather(const void *sendbuff, void *recvbuff, size_t count,
         fg_nccl_out_fill(recvbuff, total);
     }
     fg_nccl_trace("gather", rk, nr, count, fg_dtype_name(datatype), total,
-                  "ring_gather", FG_NCCL_REFUSED, -1, "unmodelled");
+                  "ring_gather", FG_NCCL_REFUSED, -1, "unmodelled", -1.0, 0.0);
     return ncclSuccess;
 }
 
