@@ -366,7 +366,10 @@ class TestRaisingApplierLeavesNoResidue(unittest.TestCase):
         row = {"name": "raise_after_write_probe", "state": "passing",
                "test": "tests/test_lint_prose_numbers.py::TestFiresOnHistory::test_6_6_1_worst_case_mdd",
                "mutation": "raise_after_write"}
-        with mock.patch.object(cao, "_load_mutations",
+        # Restore in a finally, not only on the success path: if the harness
+        # under test leaks, this test must not be the thing that leaves residue.
+        try:
+         with mock.patch.object(cao, "_load_mutations",
                                lambda root: (({"raise_after_write": "probe"},
                                         {"raise_after_write": _raising_applier}), None)), \
              mock.patch.object(cao, "load_ledger_entries", lambda root: [row]):
@@ -375,6 +378,9 @@ class TestRaisingApplierLeavesNoResidue(unittest.TestCase):
                     cao.check_ledger_test_ids(ROOT)
             except TypeError as e:      # the defect being guarded
                 self.fail(f"restore path crashed with TypeError: {e}")
+        finally:
+            if target.read_text() != before:
+                target.write_text(before)
 
         self.assertEqual(target.read_text(), before,
                          "write-then-raise left residue behind")
