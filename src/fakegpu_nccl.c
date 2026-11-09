@@ -896,6 +896,16 @@ ncclResult_t ncclAllReduce(const void *sendbuff, void *recvbuff, size_t count,
                                         nr > 0 ? nr : 1, 10000000000ULL, &err);
             if (f) {
                 fg_fab_links_init(f, t->n_links > 0 ? t->n_links : 1);
+                /* (gpu-sim-3v6d.3) first_start lives in the SHARED per-run-id
+                 * header, so without a reset it survives into the NEXT
+                 * collective on the same run id and enforced_s accumulates the
+                 * whole run instead of one collective -- measured 0.0005% /
+                 * 99.999% / 199.998% across three calls at one rid. Reset it at
+                 * each collective entry, but only when the calendar is idle, so
+                 * a reset cannot wipe a concurrent collective's mark. */
+                if (fg_fab_link_busy(f, 0) <= fg_fab_now_ns()) {
+                    fg_fab_reset_first_start(f);
+                }
                 double bw = 0.0, lat = 0.0;
                 if (bl >= 0 && bl < t->n_links) { bw = t->links[bl].eff_bw_gbs; lat = t->links[bl].latency_us; }
                 else if (t->n_links > 0) { bw = t->links[0].eff_bw_gbs; lat = t->links[0].latency_us; }

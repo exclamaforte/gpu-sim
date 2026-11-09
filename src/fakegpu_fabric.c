@@ -835,6 +835,10 @@ int fg_fab_is_creator(fg_fab_t *f) {
     return f->is_creator;
 }
 
+uint64_t fg_fab_now_ns(void) {
+    return now_ns();
+}
+
 uint64_t fg_fab_first_start(fg_fab_t *f) {
     if (!f || !f->hdr) return 0;
     return atomic_load_explicit(&f->hdr->first_start, memory_order_acquire);

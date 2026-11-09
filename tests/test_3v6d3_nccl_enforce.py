@@ -29,7 +29,7 @@ def _restore_environ():
         os.environ.update(saved)
 
 
-def _run_once(N, nrank=2):
+def _run_once(N, nrank=2, rid=None, keep_segment=False):
     if not LIB.exists():
         import subprocess
         subprocess.run(["make"], cwd=str(REPO), check=True)
@@ -38,7 +38,8 @@ def _run_once(N, nrank=2):
     os.environ["GPUSIM_NCCL_LEGACY_TABLE"] = "1"
     os.environ["GPUSIM_ALLOW_EXTRAPOLATE"] = "1"
     import uuid
-    rid = f"corpus-{os.getpid()}-{N}-{uuid.uuid4().hex[:8]}"
+    if rid is None:
+        rid = f"corpus-{os.getpid()}-{N}-{uuid.uuid4().hex[:8]}"
     os.environ["GPUSIM_FABRIC_RUN_ID"] = rid
     tf = tempfile.NamedTemporaryFile(delete=False, suffix=".jsonl")
     tf.close()
@@ -66,7 +67,8 @@ def _run_once(N, nrank=2):
     # the per-sample delta for this call; the test function asserts EVERY one
     # reclaim own segment
     libc = ctypes.CDLL('libc.so.6')
-    _ur = libc.shm_unlink(b'/gpusim-' + rid.encode())
+    if not keep_segment:
+        libc.shm_unlink(b'/gpusim-' + rid.encode())
     try:
         os.unlink(tf.name)
     except OSError:
@@ -144,3 +146,29 @@ def test_contention_shared_link():
             os.unlink(tf.name)
         except OSError:
             pass
+
+
+def test_repeated_collectives_on_one_rid_are_not_cumulative():
+    """enforced_s must describe ONE collective, not the whole run.
+
+    first_start lives in the shared per-run-id header. Without a reset at
+    collective entry, the second and third collectives on the same rid measure
+    from the FIRST collective's start, so enforced_s grows without bound
+    (reviewer measured 0.0005% / 99.999% / 199.998% over three calls).
+    """
+    N = 1 << 20
+    nrank = 8
+    rid = f"cumulative-{os.getpid()}"
+    deltas = []
+    try:
+        for i in range(3):
+            deltas.append(_run_once(N, nrank, rid=rid, keep_segment=True))
+    finally:
+        import ctypes
+        libc = ctypes.CDLL(None, use_errno=True)
+        libc.shm_unlink(b'/gpusim-' + rid.encode())
+    for i, d in enumerate(deltas):
+        assert d <= 5.0, (
+            f"collective {i} of 3 on one rid: delta {d:.3f}% > 5% "
+            f"(deltas so far {[round(x, 3) for x in deltas]}) -- "
+            f"enforced_s is cumulative across collectives")
