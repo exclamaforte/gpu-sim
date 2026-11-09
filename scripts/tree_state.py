@@ -112,7 +112,7 @@ def landing_commit_for(artifact: str | Path,
     every time someone adds a file beside it'). Returns the oldest add's
     full sha (%H); callers resolve stamps via git rev-parse.
     """
-    out = _git(repo, "log", "--format=%h", "--diff-filter=A", "--reverse",
+    out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
                "master", "--", str(artifact))
     if not out:
         return None
@@ -260,4 +260,3 @@ def stamp_tree_state(tree_state: dict, bead_dir: str,
 
 
 import json  # noqa: E402  (kept below the helpers that use it locally)
-
