@@ -437,7 +437,12 @@ def main() -> int:
             print(f"\nOK: {OUT.relative_to(REPO)} matches the audit this run produces.")
     # .get() rather than []: a coverage record that does not say how many
     # closures it saw must FAIL CLOSED, never raise and never pass by default.
+    # BOTH queries must agree there is nothing to audit. Keying only on the
+    # independent query let a DISAGREEMENT pass: primary sees one artifact-less
+    # closed bead, independent returns [] rc 0, and the early return skipped the
+    # violations checks below (gpu-sim-4j4u review).
     if (coverage.get("independent_closed_rows") == 0
+            and coverage.get("primary_closed_rows") == 0
             and coverage.get("primary_rc") == 0
             and coverage.get("independent_closed_rc") == 0):
         # Plant B (PI ruling 2026-11-04, item 3): a board with NO closures has

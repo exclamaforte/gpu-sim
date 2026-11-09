@@ -368,3 +368,31 @@ class TestNoClosuresToAudit(unittest.TestCase):
         self.assertEqual(rc, 1, f"a blind empty board must fail: {out}")
         self.assertIn("COVERAGE UNPROVEN", out)
         self.assertNotIn("no closures to audit", out)
+
+    def test_main_does_not_pass_when_the_queries_DISAGREE(self):
+        """A disagreement is not "no closures to audit" -- violations must win.
+
+        Measured regression: the early return keyed only on the independent
+        query's zero rows, so a primary query that DID see an artifact-less
+        closed bead while the independent query returned [] exited 0 before the
+        violations check (gpu-sim-4j4u review).
+        """
+        import contextlib, io as _io, sys as _sys
+        real_query, real_argv, real_audit = g._query, _sys.argv, g.audit
+        # primary sees one closed bead, independent sees none: they disagree.
+        g._query = lambda args: ([{"id": "gpu-sim-fake", "status": "closed"}], 0) \
+            if "--status" not in args else ([], 0)
+        g.audit = lambda issues: {"violations": [{"id": "gpu-sim-fake"}],
+                                  "violations_unacknowledged": [{"id": "gpu-sim-fake"}],
+                                  "satisfies_the_acceptance": False}
+        _sys.argv = ["close_requires_artifact.py"]
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                rc = g.main()
+        finally:
+            g._query, _sys.argv, g.audit = real_query, real_argv, real_audit
+        out = buf.getvalue()
+        self.assertEqual(rc, 1, f"a disagreeing pair must fail: {out}")
+        self.assertIn("UNACKNOWLEDGED VIOLATIONS", out)
+        self.assertNotIn("no closures to audit", out)
