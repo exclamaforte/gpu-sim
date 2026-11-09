@@ -322,13 +322,23 @@ def _bd_available() -> tuple[bool, str, str]:
     combined = ((proc.stderr or "") + (proc.stdout or "")).lower()
     # A PRESENT but damaged database is never "absent". These are checked first
     # so no absence phrase can swallow them.
+    # An engine that is MISSING is not a database that is absent: this box's
+    # bd exists but its dolt engine does not, which would otherwise classify as
+    # 'no_database' and exempt EVERY checkout on such a box, including ones that
+    # have the DB (gpu-sim-4j4u review, second round).
+    if proc.returncode == 127 or "command not found" in combined:
+        return False, "bd_missing", (f"bd cannot run its engine (rc={proc.returncode}): "
+                                     f"{(proc.stderr or '').strip()[:200]}")
     if any(k in combined for k in ("locked", "corrupt", "invalid", "checksum",
                                    "malformed", "in use")):
         return False, "unusable", (f"bd query failed (rc={proc.returncode}): "
                                    f"{(proc.stderr or '').strip()[:200]}")
+    # 'no beads' matches the real message a DB-less checkout produces
+    # ('Error: no beads database found'), so no dolt-path heuristic is needed --
+    # and the one that used to be here classified a MISSING ENGINE as a MISSING
+    # DATABASE, which exempted checkouts that have one.
     if ("no database" in combined or "no beads" in combined
-            or "database not found" in combined or "embeddeddolt" in combined
-            or ("dolt" in combined and "not found" in combined)):
+            or "database not found" in combined):
         return False, "no_database", "no beads database available via bd"
     return False, "unusable", (f"bd query failed (rc={proc.returncode}): "
                                f"{(proc.stderr or '').strip()[:200]}")
