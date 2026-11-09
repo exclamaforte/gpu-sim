@@ -367,10 +367,16 @@ def check_ledger_test_ids(root):
                     continue
             finally:
                 if backup is None:
-                    try:
-                        os.remove(mutated_path)
-                    except OSError:
-                        pass
+                    # apply_fn raised before returning (write-then-raise, e.g. a
+                    # `make` timeout at fs2y_mutations.py:320-323): mutated_path
+                    # is still None, and os.remove(None) raises TypeError --
+                    # which would skip the dirty-path restore BELOW and leak the
+                    # very residue this block exists to clean (review finding).
+                    if mutated_path:
+                        try:
+                            os.remove(mutated_path)
+                        except OSError:
+                            pass
                 else:
                     with open(mutated_path, "w") as f:
                         f.write(backup)
