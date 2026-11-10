@@ -40,6 +40,7 @@ MUTATIONS = {
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
     "e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)",
     "trcz_impostor": "trcz impostor probe hardening (gpu-sim-trcz)",
+    "ccw5_meta_parity": "ccw5 META/META_KEYS equality (gpu-sim-ccw5)",
 }
 
 
@@ -442,6 +443,20 @@ def _apply_trcz_remove_assertion(root):
     return backup, path
 
 
+def _apply_ccw5_meta_mismatch(root):
+    """Mutation for ccw5_meta_parity: remove a key from META in run.sh."""
+    import os
+    path = os.path.join(root, "experiments", "gpu-sim-5uu9", "run.sh")
+    backup = open(path).read()
+    mutated = backup.replace('META = ("loadavg_1_5_15", "foreign_gpu_job", "gate")',
+                            'META = ("loadavg_1_5_15", "foreign_gpu_job")', 1)
+    if mutated == backup:
+        raise RuntimeError("ccw5 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
@@ -465,4 +480,5 @@ MUTATION_FUNCTIONS = {
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
     "trcz_impostor": _apply_trcz_remove_assertion,
+    "ccw5_meta_parity": _apply_ccw5_meta_mismatch,
 }
