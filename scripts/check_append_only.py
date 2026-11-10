@@ -556,10 +556,39 @@ def _child_env():
     return env
 
 
+def _is_integration_tree():
+    """True when ROOT is the integration tree (main's tip, not a worktree)."""
+    try:
+        head = subprocess.run(["git", "-C", ROOT, "rev-parse", "HEAD"],
+                              capture_output=True, text=True).stdout.strip()
+        main_tip = subprocess.run(["git", "-C", ROOT, "rev-parse", "main"],
+                                  capture_output=True, text=True).stdout.strip()
+        if not head or not main_tip:
+            main_tip = subprocess.run(["git", "-C", ROOT, "rev-parse", "master"],
+                                      capture_output=True, text=True).stdout.strip()
+        if head and main_tip and head == main_tip:
+            # Also check we're not in a worktree
+            toplevel = subprocess.run(["git", "-C", ROOT, "rev-parse", "--show-toplevel"],
+                                     capture_output=True, text=True).stdout.strip()
+            gitdir = subprocess.run(["git", "-C", ROOT, "rev-parse", "--git-dir"],
+                                    capture_output=True, text=True).stdout.strip()
+            # In a worktree, git-dir points to .git/worktrees/<name>
+            if "worktrees" not in gitdir:
+                return True
+        return False
+    except Exception:
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=None, help="base ref (default: merge-base HEAD <trunk>)")
+    ap.add_argument("--force", action="store_true", help="allow running in the integration tree (dangerous)")
     args = ap.parse_args()
+    if _is_integration_tree() and not args.force:
+        print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
+        print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
+        return 2
     base_ref = args.base if args.base else merge_base()
     if base_ref is None:
         print("FAIL: cannot determine merge-base with trunk")
