@@ -12,6 +12,7 @@ MUTATIONS = {
     "5uu9_power_arm": "5uu9 power arm reproducibility",
     "55sb_na_rule_disabled": "55sb: disable the 'n/a' refusal so a positive-only row passes again",
     "20ms_drop_grandfather": "20ms: remove wknt from the grandfather list so the row is refused again",
+    "yy6o_integration_guard": "yy6o: disable the integration-tree refusal so the walk runs anywhere",
     "qaiu_power_audit": "qaiu power audit reproducibility",
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
@@ -142,6 +143,24 @@ def _apply_20ms_drop_grandfather(root):
     mutated = "".join(lines)
     if mutated == backup:
         raise RuntimeError("20ms mutation anchor not found: wknt grandfather entry moved")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_yy6o_guard_disabled(root):
+    """Mutation for yy6o_integration_guard: never report the integration tree.
+
+    Disables exactly the condition the bound test asserts, so the test goes red
+    while the plant is applied.
+    """
+    import os
+    path = os.path.join(root, "scripts", "check_append_only.py")
+    backup = open(path).read()
+    mutated = backup.replace('            if "worktrees" not in gitdir:',
+                             '            if False and "worktrees" not in gitdir:', 1)
+    if mutated == backup:
+        raise RuntimeError("yy6o mutation anchor not found: the worktree check moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
