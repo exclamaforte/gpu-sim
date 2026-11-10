@@ -76,6 +76,15 @@ class TestPositiveOnlyIsRefused(unittest.TestCase):
         reason = self.cao.POSITIVE_ONLY_GRANDFATHERED["1q34_lab_clean"]
         self.assertIn("gpu-sim-1q34", reason)
 
+    def test_wknt_row_is_grandfathered_until_its_mutation_exists(self):
+        # gpu-sim-20ms: wknt's row shipped mutation 'n/a' one land AFTER the rule
+        # landed, so the walk went red on main. It is grandfathered (visible debt)
+        # until a mutation applier exists that inverts the ranking and drives
+        # test_error_budget_ranking.test_top_row red.
+        self.assertIn("wknt_error_budget_bounded", self.cao.POSITIVE_ONLY_GRANDFATHERED)
+        self.assertIn("gpu-sim-wknt",
+                      self.cao.POSITIVE_ONLY_GRANDFATHERED["wknt_error_budget_bounded"])
+
     def test_a_mutation_plant_row_still_passes_the_new_rules(self):
         # Control: the new rules must not refuse the shape they are asking for.
         errors = self._errors_for(mutation=REGISTERED_MUTATION,

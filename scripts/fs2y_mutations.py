@@ -11,6 +11,7 @@ MUTATIONS = {
 
     "5uu9_power_arm": "5uu9 power arm reproducibility",
     "55sb_na_rule_disabled": "55sb: disable the 'n/a' refusal so a positive-only row passes again",
+    "20ms_drop_grandfather": "20ms: remove wknt from the grandfather list so the row is refused again",
     "qaiu_power_audit": "qaiu power audit reproducibility",
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
@@ -121,6 +122,25 @@ def _apply_55sb_na_rule_disabled(root):
         'if False and mutation == "n/a" and not exempt and not grandfathered:', 1)
     if mutated == backup:
         raise RuntimeError("55sb mutation anchor not found: the 'n/a' rule moved")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_20ms_drop_grandfather(root):
+    """Mutation for 20ms_wknt_grandfather: un-grandfather the wknt row.
+
+    Removing the entry makes the bound test FAIL (the row is refused again),
+    which is the only plant that falsifies the claim this bead makes.
+    """
+    import os
+    path = os.path.join(root, "scripts", "check_append_only.py")
+    backup = open(path).read()
+    marker = '    "wknt_error_budget_bounded": '
+    lines = [ln for ln in backup.splitlines(True) if not ln.startswith(marker)]
+    mutated = "".join(lines)
+    if mutated == backup:
+        raise RuntimeError("20ms mutation anchor not found: wknt grandfather entry moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
