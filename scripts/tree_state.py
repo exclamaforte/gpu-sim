@@ -219,6 +219,8 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
     if kind == "oldest_add":
         expected = landing_oldest
         if not expected:
+            errors.append(f"{path}: superseded_by.commit {stamp} "
+                          f"(oldest_add): could not resolve landing commit")
             return errors
         if resolved != expected:
             errors.append(f"{path}: superseded_by.commit {stamp} (oldest_add) "
