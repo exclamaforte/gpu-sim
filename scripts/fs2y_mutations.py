@@ -448,11 +448,12 @@ def _apply_7k6e_failopen(root):
     import os
     path = os.path.join(root, "scripts", "tree_state.py")
     backup = open(path).read()
-    mutated = backup.replace(
-        """errors.append(f"{path}: superseded_by.commit {stamp} "
+    old = """            errors.append(f"{path}: superseded_by.commit {stamp} "
                           f"(oldest_add): could not resolve landing commit")
-            return errors""",
-        '', 1)
+            return errors"""
+    new = """            pass
+            return errors"""
+    mutated = backup.replace(old, new, 1)
     if mutated == backup:
         raise RuntimeError("7k6e mutation did not apply")
     with open(path, "w") as f:

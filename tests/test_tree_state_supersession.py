@@ -431,3 +431,41 @@ class TestStampAgreementFailDirection(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestFailClosedLanding(unittest.TestCase):
+    """Fail-closed: an artifact whose landing commit cannot resolve must error."""
+
+    def test_unresolvable_landing_is_reported(self):
+        import tempfile, subprocess, json
+        from pathlib import Path
+        td = tempfile.TemporaryDirectory()
+        try:
+            root = Path(td.name)
+            subprocess.run(["git", "-C", str(root), "init", "-q", "-b", "master"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "t@e.com"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "t"], check=True)
+            art_dir = root / "experiments" / "x"
+            art_dir.mkdir(parents=True)
+            art = art_dir / "a.json"
+            # Create a commit to get a real SHA for the stamp
+            (root / "dummy.txt").write_text("x")
+            subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "dummy"], check=True)
+            real_sha = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                      capture_output=True, text=True, check=True).stdout.strip()
+            # Write the artifact WITHOUT committing it (untracked -> no landing)
+            art.write_text(json.dumps({
+                "tree_state": {"branch": "lab/x",
+                               "superseded_by": {"commit": real_sha[:7],
+                                                 "commit_kind": "oldest_add",
+                                                 "reachable_from_master": True}}}) + "\n")
+            from scripts.tree_state import stamp_agreement_errors
+            # Need to set REPO for the module
+            import scripts.tree_state as ts
+            ts.REPO_DEFAULT = root
+            errs = stamp_agreement_errors("experiments/x/a.json", root)
+            assert len(errs) > 0, "unresolvable landing must be reported"
+            assert any("could not resolve landing commit" in e for e in errs), errs
+        finally:
+            td.cleanup()
