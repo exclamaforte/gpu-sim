@@ -492,6 +492,21 @@ def _apply_wknt_remove_alarm(root):
     return backup, path
 
 
+def _apply_no_pycache_under_experiments(root):
+    """Mutation for no_pycache_under_experiments: drop PYTHONPYCACHEPREFIX from lab.config.json."""
+    import json, os
+    path = os.path.join(root, "lab.config.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    cmd = d.get("tests", {}).get("command", [])
+    new_cmd = [x for x in cmd if "PYTHONPYCACHEPREFIX" not in str(x)]
+    d["tests"]["command"] = new_cmd
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+        f.write("\n")
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
@@ -513,6 +528,7 @@ MUTATION_FUNCTIONS = {
     "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
+    "no_pycache_under_experiments": _apply_no_pycache_under_experiments,
     "55sb_na_rule_disabled": _apply_55sb_na_rule_disabled,
     "20ms_drop_grandfather": _apply_20ms_drop_grandfather,
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
