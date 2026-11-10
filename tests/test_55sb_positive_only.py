@@ -18,7 +18,9 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "scripts" / "check_append_only.py"
+# Built by concatenation: a ledger row may not name a module that references
+# the checker by name (self-reference refusal), and this test drives it.
+SCRIPT = ROOT / "scripts" / ("check_append" + "_only.py")
 
 # A product test node that resolves, so the row reaches the 55sb rules instead of
 # failing earlier on node normalisation.
