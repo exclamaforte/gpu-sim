@@ -299,6 +299,27 @@ def dominant_op(spec_path, eff_name=None, eff_value=None):
         return "none"
     return max(comps, key=lambda c: c["seconds"])["op"]
 
+def rank_sort_key(r):
+    """Ranking key for one error-budget row (gpu-sim-q36u).
+
+    Extracted from compute() so the ordering claim can be asserted on synthetic
+    rows in milliseconds. The end-to-end test cost ~177s and the walk runs it
+    twice (mutated + restored), which exceeded the 300s per-test budget; see
+    gpu-sim-q36u. The claim is unchanged: rows sort by the ONE-SIDED margin
+    fraction, infinite elasticity first, ties broken by absolute elasticity.
+    """
+    f = r["fraction_one_sided"]
+    if f is None:
+        cm = r.get("current_margin")
+        cm = 0.0 if cm is None else cm
+        return (1, cm, 0.0)
+    # Infinite elasticity sorts FIRST (most sensitive) -- which is what
+    # -inf did before the value was made JSON-safe.
+    if r.get("elasticity_infinite"):
+        return (0, f, float("-inf"))
+    return (0, f, -(abs(r["elasticity"]) if r["elasticity"] is not None else 0))
+
+
 def compute():
     ranked = []
     for p in PARAMS:
@@ -383,18 +404,7 @@ def compute():
                     pass
             ranked.append(row)
 
-    def _sort_key(r):
-        f = r["fraction_one_sided"]
-        if f is None:
-            cm = r.get("current_margin")
-            cm = 0.0 if cm is None else cm
-            return (1, cm, 0.0)
-        # Infinite elasticity sorts FIRST (most sensitive) -- which is what
-        # -inf did before the value was made JSON-safe.
-        if r.get("elasticity_infinite"):
-            return (0, f, float("-inf"))
-        return (0, f, -(abs(r["elasticity"]) if r["elasticity"] is not None else 0))
-    ranked.sort(key=_sort_key)
+    ranked.sort(key=rank_sort_key)
 
     # unranked (no discrete published verdict)
     unranked = []
