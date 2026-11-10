@@ -46,6 +46,8 @@ POSITIVE_ONLY_GRANDFATHERED = {
     # interim grandfather so main's walk stays green. Real fix: a mutation applier
     # that inverts the ranking and drives test_top_row red.
     "wknt_error_budget_bounded": "gpu-sim-wknt: binds a product test, mutation n/a shipped one land after the rule",
+    "no_unconditional_skips": "gpu-sim-1486: binds a product test, no mutation recorded",
+    "u5q0_stale_self_tests": "gpu-sim-u5q0: binds a product test, no mutation recorded",
 }
 
 
