@@ -27,12 +27,10 @@ def run(*args):
 def main() -> int:
     # Resolve the integration branch tip (not merge-base): a stale base must
     # never produce a pass (gpu-sim-xv3c).
-    main_ref = None
-    for ref in ("main", "master"):
-        r = run("rev-parse", ref)
-        if r.returncode == 0 and r.stdout.strip():
-            main_ref = ref
-            break
+    import sys, os
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
+    from resolve_trunk import resolve_trunk
+    main_ref = resolve_trunk(str(REPO))  # single source of truth (gpu-sim-e7yw)
     if main_ref is None:
         print("INVALID: check_close_audit_unchanged: no main/master ref "
               "could be resolved; cannot verify close_audit.json is unchanged.")

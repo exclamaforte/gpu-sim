@@ -25,6 +25,10 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WARN_AT = 40          # main tree + a healthy fan-out fits comfortably under this
 
 
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
+from resolve_trunk import resolve_trunk
+
 def git(*args, cwd=REPO):
     return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
 
@@ -50,7 +54,7 @@ def main() -> int:
         if path.startswith("/tmp"):
             outside.append(path)
         dirty = bool(git("-C", path, "status", "--porcelain").stdout.strip())
-        contained = bool(branch) and git("merge-base", "--is-ancestor", branch, "master",
+        contained = bool(branch) and git("merge-base", "--is-ancestor", branch, resolve_trunk() or "main",
                                         cwd=path).returncode == 0
         key = ("contained_" if contained else "diverged_") + ("dirty" if dirty else "clean")
         cats[key] = cats.get(key, 0) + 1

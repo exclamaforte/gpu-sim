@@ -44,7 +44,7 @@ OUT = Path(__file__).resolve().parent / "retro_statement.json"
 
 # Named, not derived: these identify WHAT is being described. Every number below
 # is measured, not carried.
-ROWS_BRANCH = "master"
+ROWS_BRANCH = "main"
 ROWS_PATH = "experiments/gpu-sim-u2o.6.7.1/batch_rows.jsonl"
 # The TREE THAT SAMPLED the rows, for the content leg only. batch_rows.jsonl
 # was sampled by 7.1's code on this branch, whose queue_state.py has no cache
@@ -103,7 +103,7 @@ def main() -> int:
     # the rows live on master now and master HAS the mechanism, so the same
     # query against the rows' current home would assert the opposite.
     producing = cache_occurrences(PRODUCING_BRANCH)
-    master_occ = cache_occurrences("master")
+    master_occ = cache_occurrences("main")
 
     # ---- EVIDENCE 2: CLOCK. Every row predates every cache commit's date.
     stamps = sorted(parse_iso(r["sampled_at"]) for r in rows
@@ -116,10 +116,10 @@ def main() -> int:
     # When the cache reached MASTER, which is the only "arrival" that can
     # retroactively affect a tree anyone reads.
     master_arrival = parse_iso(
-        git("log", "--format=%cI", "--reverse", "master",
+        git("log", "--format=%cI", "--reverse", "main",
             "--", "epic_u2o/queue_state.py").splitlines()[0].strip()) \
         if False else None
-    _mlines = git("log", "--format=%cI", "--reverse", "master",
+    _mlines = git("log", "--format=%cI", "--reverse", "main",
                   "--", "epic_u2o/queue_state.py").splitlines()
     master_dates = [parse_iso(x) for x in _mlines if x.strip()]
     cache_on_master = [d for d in master_dates if d >= earliest_cache_commit]

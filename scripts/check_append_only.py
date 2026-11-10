@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Append-only guard for accumulating records.
 
-Compares HEAD against the merge-base with master for two record files:
+Compares HEAD against the merge-base with the integration branch (main) for two record files:
   - docs/model_facts.json: top-level fact-block keys
   - tests/fs2y_ledger.json: entry 'name' ids
 Any key/entry present at the base but absent at HEAD fails unless it is named
@@ -43,7 +43,11 @@ def git_show(ref, path):
 
 
 def merge_base():
-    r = subprocess.run(["git", "-C", ROOT, "merge-base", "HEAD", "master"],
+    import sys, os
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    from resolve_trunk import resolve_trunk
+    trunk = resolve_trunk(ROOT) or "main"
+    r = subprocess.run(["git", "-C", ROOT, "merge-base", "HEAD", trunk],
                        capture_output=True, text=True)
     if r.returncode != 0:
         return None
@@ -469,11 +473,11 @@ def _child_env():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", default=None, help="base ref (default: merge-base HEAD master)")
+    ap.add_argument("--base", default=None, help="base ref (default: merge-base HEAD <trunk>)")
     args = ap.parse_args()
     base_ref = args.base if args.base else merge_base()
     if base_ref is None:
-        print("FAIL: cannot determine merge-base with master")
+        print("FAIL: cannot determine merge-base with trunk")
         return 1
     errors = []
     try:
