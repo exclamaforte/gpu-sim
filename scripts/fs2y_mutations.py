@@ -513,6 +513,8 @@ MUTATION_FUNCTIONS = {
     "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
+    "55sb_na_rule_disabled": _apply_55sb_na_rule_disabled,
+    "20ms_drop_grandfather": _apply_20ms_drop_grandfather,
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
     "trcz_impostor": _apply_trcz_remove_assertion,
     "ccw5_meta_parity": _apply_ccw5_meta_mismatch,
