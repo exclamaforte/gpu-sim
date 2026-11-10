@@ -31,6 +31,9 @@ def _load_spec(path: str) -> Any:
             return json.load(f)
 
 
+_DEV_INDEX_CACHE = {}
+_ADJ_CACHE = {}
+
 def _dev_index(spec: Any) -> Dict[Tuple[str, int], int]:
     out = {}
     idx = 0
@@ -305,8 +308,15 @@ def predict(spec: Any, algorithm: str, count: int, dtype: str,
             "deadline_exceed_prob": 0.0,
         }
 
-    dev_idx = _dev_index(spec)
-    adj = _adjacency(spec, dev_idx)
+    # Key on id(spec) but hold a reference to spec so its address cannot be
+    # reused by a later freed-and-reallocated object (gpu-sim-wknt hazard fix).
+    _key = id(spec)
+    if _key not in _DEV_INDEX_CACHE:
+        _DEV_INDEX_CACHE[_key] = (_dev_index(spec), spec)
+    dev_idx = _DEV_INDEX_CACHE[_key][0]
+    if _key not in _ADJ_CACHE:
+        _ADJ_CACHE[_key] = (_adjacency(spec, dev_idx), spec)
+    adj = _ADJ_CACHE[_key][0]
     links_spec = spec["links"]
     counts = _shared_counts(spec)
     link_latency = [float(l["latency_us"]) for l in links_spec]
@@ -476,8 +486,15 @@ def point_to_point(spec: Any, src_rank: int, dst_rank: int, size_bytes: int) -> 
     rank_to_dev = {r["rank"]: (r["node"], r["device"]) for r in spec_ranks}
     if src_rank not in rank_to_dev or dst_rank not in rank_to_dev:
         raise ValueError(f"rank {src_rank} or {dst_rank} cannot be placed on spec")
-    dev_idx = _dev_index(spec)
-    adj = _adjacency(spec, dev_idx)
+    # Key on id(spec) but hold a reference to spec so its address cannot be
+    # reused by a later freed-and-reallocated object (gpu-sim-wknt hazard fix).
+    _key = id(spec)
+    if _key not in _DEV_INDEX_CACHE:
+        _DEV_INDEX_CACHE[_key] = (_dev_index(spec), spec)
+    dev_idx = _DEV_INDEX_CACHE[_key][0]
+    if _key not in _ADJ_CACHE:
+        _ADJ_CACHE[_key] = (_adjacency(spec, dev_idx), spec)
+    adj = _ADJ_CACHE[_key][0]
     links_spec = spec["links"]
     counts = _shared_counts(spec)
     link_latency = [float(l["latency_us"]) for l in links_spec]

@@ -25,7 +25,16 @@ def _row(ranked, param, verdict):
 class TestErrorBudgetRanking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ranked, cls.unranked, cls.result = error_budget.compute()
+        import signal
+        def _timeout(signum, frame):
+            raise TimeoutError("error_budget.compute() exceeded 300s wall clock")
+        old_handler = signal.signal(signal.SIGALRM, _timeout)
+        signal.alarm(300)
+        try:
+            cls.ranked, cls.unranked, cls.result = error_budget.compute()
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
 
     def test_top_row(self):
         self.assertEqual(self.ranked[0]["parameter"], "term_scale_pp")

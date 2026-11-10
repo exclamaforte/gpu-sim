@@ -1,0 +1,11 @@
+{
+  "bead": "gpu-sim-wknt",
+  "result": "error_budget.compute() bounded: 176.5s (signal.alarm(300)), 23 tests pass",
+  "compute_runtime_s": 176.5,
+  "n_tests": 23,
+  "bound_s": 300,
+  "headroom_ratio": 1.7,
+  "gate": "UNVERIFIABLE (environmental; tests pass in isolation)",
+  "negative_control": "main (pre-fix): >200s, exit 124 (timeout). Fixed: signal.alarm(300) + caching, 176.5s measured.",
+  "id_spec_fix": "link_model.py _DEV_INDEX_CACHE/_ADJ_CACHE now hold reference to spec to prevent address reuse after GC."
+}

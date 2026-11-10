@@ -29,11 +29,17 @@ MODELS = {
 
 RECOMPUTE_PARAMS = {"recompute_charge", "alpha_scale"}
 
+_HW_BASE_CACHE = {}
 def hw_base(n, opt_state="fp32_master", recompute=0.0):
-    h = {"peak_flops": PEAK, "mem_gb": 80.0, "spec_path": SPECS[n],
-         "opt_state": opt_state, "opt_peak": "default", "seq": 8192,
-         "recompute": recompute}
-    return h
+    key = (n, opt_state, recompute)
+    v = _HW_BASE_CACHE.get(key)
+    if v is None:
+        v = {"peak_flops": PEAK, "mem_gb": 80.0, "spec_path": SPECS[n],
+             "opt_state": opt_state, "opt_peak": "default", "seq": 8192,
+             "recompute": recompute}
+        _HW_BASE_CACHE[key] = v
+    # return a copy so callers can mutate
+    return json.loads(json.dumps(v))
 
 def set_param(hw, name, value):
     hw = json.loads(json.dumps(hw))
@@ -126,17 +132,33 @@ RECOMPUTE_CELLS = [
     ("N16_winner_recompute1", 16, 8192, "8b", "winner", None),
 ]
 
+_WINNER_CELL_CACHE = {}
 def winner_cell(N, seq, model, hw):
+    key = (N, seq, json.dumps(model, sort_keys=True, default=str),
+           json.dumps(hw, sort_keys=True, default=str))
+    v = _WINNER_CELL_CACHE.get(key)
+    if v is not None:
+        return v
     m = dict(model, seq=seq)
     h = dict(hw, seq=seq)
     _, feas = ps.search(N, h, m)
     if not feas:
-        return ("INFEASIBLE",), None, None
+        v = (("INFEASIBLE",), None, None)
+        _WINNER_CELL_CACHE[key] = v
+        return v
     w = feas[0]
     margin_ms = (feas[1].step_sum - w.step_sum) * 1000 if len(feas) > 1 else float("inf")
-    return tuple([w.tp, w.pp, w.cp, w.dp, w.zero]), w, margin_ms
+    v = (tuple([w.tp, w.pp, w.cp, w.dp, w.zero]), w, margin_ms)
+    _WINNER_CELL_CACHE[key] = v
+    return v
 
+_FEAS_CELL_CACHE = {}
 def feas_cell(N, seq, model, hw, opt_state):
+    key = (N, seq, opt_state, json.dumps(model, sort_keys=True, default=str),
+           json.dumps(hw, sort_keys=True, default=str))
+    v = _FEAS_CELL_CACHE.get(key)
+    if v is not None:
+        return v
     m = dict(model, seq=seq)
     h = dict(hw, seq=seq, opt_state=opt_state)
     _, feas = ps.search(N, h, m)
@@ -144,12 +166,16 @@ def feas_cell(N, seq, model, hw, opt_state):
         w = feas[0]
         mem_limit = h["mem_gb"] * 1e9 * (1.0 - h.get("mem_headroom", 0.0))
         margin_gb = mem_limit / 1e9 - w.memory_gb
-        return True, w, margin_gb
+        v = (True, w, margin_gb)
+        _FEAS_CELL_CACHE[key] = v
+        return v
     results, _ = ps.search(N, h, m)
     best = min(results, key=lambda c: c.memory_gb)
     mem_limit = h["mem_gb"] * 1e9 * (1.0 - h.get("mem_headroom", 0.0))
     margin_gb = mem_limit / 1e9 - best.memory_gb
-    return False, best, margin_gb
+    v = (False, best, margin_gb)
+    _FEAS_CELL_CACHE[key] = v
+    return v
 
 def recompute_for(param):
     return 1.0 if param in RECOMPUTE_PARAMS else 0.0
