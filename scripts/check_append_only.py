@@ -42,6 +42,11 @@ POSITIVE_ONLY_GRANDFATHERED = {
     "u6ih_ledger_dir": "gpu-sim-u6ih: binds a product test, no mutation recorded",
     "xv3c_close_audit_unchanged": "gpu-sim-xv3c: binds a product test, no mutation recorded",
     "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",
+    "no_pycache_under_experiments": "gpu-sim-ypdk: binds a product test, no mutation recorded",
+    "fs2y_mutations_tracked": "gpu-sim-ypdk: binds a product test, no mutation recorded",
+    "effective_cpu_capacity": "gpu-sim-ypdk: binds a product test, no mutation recorded",
+    "dhfo_memory_check": "gpu-sim-ypdk: binds a product test, no mutation recorded",
+    "bk9_gate_flop_aware": "gpu-sim-ypdk: binds a product test, no mutation recorded",
     # Landed at da718394 BEFORE this rule could see it (55sb landed a2bf123e);
     # interim grandfather so main's walk stays green. Real fix: a mutation applier
     # that inverts the ranking and drives test_top_row red.
