@@ -106,6 +106,8 @@ def _recompute_alpha(seq):
     return 0.420 + (0.594 - 0.420) * (seq - 4096) / (8192 - 4096)
 
 
+_SPEC_CACHE = {}
+
 def score(tp, pp, cp, dp, zero, hw, m):
     N = tp * pp * cp * dp
     P = total_params(m)
@@ -143,14 +145,18 @@ def score(tp, pp, cp, dp, zero, hw, m):
             fabric = "__ov__"
     spec = None
     if spec_path:
-        import json
-        with open(spec_path) as _f:
-            spec = json.load(_f)
         _bw_scale = hw.get("achieved_bw_scale", hw.get("bw_scale", 1.0))
-        if _bw_scale is not None and _bw_scale != 1.0:
-            for _lk in spec.get("links", []):
-                if "bw_gbps" in _lk:
-                    _lk["bw_gbps"] = _lk["bw_gbps"] * _bw_scale
+        _key = (spec_path, _bw_scale)
+        if _key not in _SPEC_CACHE:
+            import json
+            with open(spec_path) as _f:
+                _spec = json.load(_f)
+            if _bw_scale is not None and _bw_scale != 1.0:
+                for _lk in _spec.get("links", []):
+                    if "bw_gbps" in _lk:
+                        _lk["bw_gbps"] = _lk["bw_gbps"] * _bw_scale
+            _SPEC_CACHE[_key] = _spec
+        spec = _SPEC_CACHE[_key]
 
     # ---- Per-rank memory model (gpu-sim-6y1) ----
     # Assumptions stated per term. Mixed precision (bf16/fp16) is assumed:
