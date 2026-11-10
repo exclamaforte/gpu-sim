@@ -211,7 +211,7 @@ class TestByteIdenticalToThePreChangeCode(Base):
         working across merges, rebases and future re-introductions.
         """
         raw = subprocess.run(
-            ["git", "-C", str(REPO), "log", "--format=%H", "master",
+            ["git", "-C", str(REPO), "log", "--format=%H", "main",
              "--", "epic_u2o/queue_state.py"],
             capture_output=True, text=True, check=True).stdout.split()
         # git log lists NEWEST first; the baseline we want is the parent of the
