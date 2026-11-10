@@ -381,6 +381,16 @@ def check_ledger_test_ids(root):
                 errors.append(f"ledger row {name!r}: mutation {mutation!r} not in registry")
                 continue
 
+        # ypdk: verification strength validation
+        verification = entry.get("verification", "positive_only")
+        if verification not in ("mutation_plant", "positive_only", "collect_only"):
+            errors.append(f"ledger row {name!r}: invalid verification strength {verification!r}")
+            continue
+        if verification == "mutation_plant":
+            if not (mutation and mutation in mfns):
+                errors.append(f"ledger row {name!r}: claims mutation_plant but has no registered mutation function")
+                continue
+
         if not node:
             errors.append(f"ledger row {name!r}: missing 'test' field")
             continue
