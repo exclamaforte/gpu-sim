@@ -42,6 +42,10 @@ POSITIVE_ONLY_GRANDFATHERED = {
     "u6ih_ledger_dir": "gpu-sim-u6ih: binds a product test, no mutation recorded",
     "xv3c_close_audit_unchanged": "gpu-sim-xv3c: binds a product test, no mutation recorded",
     "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",
+    # Landed at da718394 BEFORE this rule could see it (55sb landed a2bf123e);
+    # interim grandfather so main's walk stays green. Real fix: a mutation applier
+    # that inverts the ranking and drives test_top_row red.
+    "wknt_error_budget_bounded": "gpu-sim-wknt: binds a product test, mutation n/a shipped one land after the rule",
 }
 
 
@@ -61,6 +65,7 @@ def _binds_only_docs(root, target):
 # Per-row timeout overrides (seconds). Baseline 120s scaled by measured cost.
 ROW_TIMEOUTS = {
     "wty2_structure_dominated": 300,
+    "wknt_error_budget_bounded": 300,
 }
 
 
