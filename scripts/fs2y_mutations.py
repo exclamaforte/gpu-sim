@@ -42,6 +42,7 @@ MUTATIONS = {
     "e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)",
     "trcz_impostor": "trcz impostor probe hardening (gpu-sim-trcz)",
     "ccw5_meta_parity": "ccw5 META/META_KEYS equality (gpu-sim-ccw5)",
+    "wknt_error_budget_bounded": "wknt error budget bounded (gpu-sim-wknt)",
 }
 
 
@@ -477,6 +478,20 @@ def _apply_ccw5_meta_mismatch(root):
     return backup, path
 
 
+def _apply_wknt_remove_alarm(root):
+    """Mutation for wknt_error_budget_bounded: corrupt the sort key."""
+    import os
+    path = os.path.join(root, "scripts", "error_budget.py")
+    backup = open(path).read()
+    mutated = backup.replace('        f = r["fraction_one_sided"]',
+                            '        f = r["flip_down"]', 1)
+    if mutated == backup:
+        raise RuntimeError("wknt mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
@@ -501,4 +516,5 @@ MUTATION_FUNCTIONS = {
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
     "trcz_impostor": _apply_trcz_remove_assertion,
     "ccw5_meta_parity": _apply_ccw5_meta_mismatch,
+    "wknt_error_budget_bounded": _apply_wknt_remove_alarm,
 }

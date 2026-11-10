@@ -65,6 +65,7 @@ def _binds_only_docs(root, target):
 # Per-row timeout overrides (seconds). Baseline 120s scaled by measured cost.
 ROW_TIMEOUTS = {
     "wty2_structure_dominated": 300,
+    "wknt_error_budget_bounded": 300,
 }
 
 
