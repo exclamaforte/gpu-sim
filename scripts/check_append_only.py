@@ -28,6 +28,36 @@ EXEMPT_ROWS = {
     "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
 }
 
+# Positive-only rows, grandfathered (gpu-sim-55sb). A row that cannot fail is not
+# evidence: it records that something was checked when nothing was. These six rows
+# landed before the rule existed and bind REAL product tests with mutation 'n/a'.
+# They are listed here -- visibly, with the bead that owns the debt -- rather than
+# left to pass silently. The checker prints the count on every clean run, so the
+# debt cannot be forgotten. Adding a name is a PI decision and requires a bead to
+# re-mutate the row; deleting a name requires giving the row a real mutation.
+POSITIVE_ONLY_GRANDFATHERED = {
+    "1q34_lab_clean": "gpu-sim-1q34: binds a product test, no mutation recorded",
+    "4j4u_close_audit_skip": "gpu-sim-4j4u: binds a product test, no mutation recorded",
+    "cju4_manifest_dedup": "gpu-sim-cju4: binds a product test, no mutation recorded",
+    "u6ih_ledger_dir": "gpu-sim-u6ih: binds a product test, no mutation recorded",
+    "xv3c_close_audit_unchanged": "gpu-sim-xv3c: binds a product test, no mutation recorded",
+    "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",
+}
+
+
+def _binds_only_docs(root, target):
+    """True when the path a row binds is documentation.
+
+    Derived from the target path itself, never from a field the author asserts --
+    'doc-only' is a claim about WHAT the row binds, so the checker reads the path
+    (gpu-sim-55sb). A row claiming doc-only while binding a .py test is refused.
+    """
+    module = target.split("::")[0]
+    path = os.path.normpath(os.path.join(str(root), module))
+    if path.endswith((".md", ".txt", ".rst")):
+        return True
+    return os.sep + "docs" + os.sep in path
+
 # Per-row timeout overrides (seconds). Baseline 120s scaled by measured cost.
 ROW_TIMEOUTS = {
     "wty2_structure_dominated": 300,
@@ -363,6 +393,33 @@ def check_ledger_test_ids(root):
 
         positive_done = False
         exempt = name in EXEMPT_ROWS
+        # gpu-sim-55sb: an assertion that cannot fail is not evidence.
+        #   - mutation 'n/a' is refused outright for non-doc rows; 'doc-only' is the
+        #     only sanctioned no-mutation value and is derived from the bound path
+        #   - verification 'positive_only' is refused for a row binding real code
+        # Rows that landed before this rule are named in POSITIVE_ONLY_GRANDFATHERED.
+        grandfathered = name in POSITIVE_ONLY_GRANDFATHERED
+        if mutation == "doc-only" and not _binds_only_docs(root, target):
+            errors.append(
+                f"ledger row {name!r}: mutation 'doc-only' but the row binds {target!r}, "
+                f"which is not documentation; 'doc-only' is derived from the bound path, "
+                f"not declared (gpu-sim-55sb)")
+            continue
+        if mutation == "n/a" and not exempt and not grandfathered:
+            errors.append(
+                f"ledger row {name!r}: mutation 'n/a' is refused (gpu-sim-55sb) -- a row that "
+                f"cannot fail is not evidence. Give it a registry mutation, use 'doc-only' if it "
+                f"binds only documentation, or record an exempt_reason. An existing positive-only "
+                f"row is grandfathered only by naming it in POSITIVE_ONLY_GRANDFATHERED with the "
+                f"bead that owns the debt.")
+            continue
+        if (entry.get("verification") == "positive_only" and not exempt
+                and not grandfathered and mutation != "doc-only"):
+            errors.append(
+                f"ledger row {name!r}: verification 'positive_only' is refused for a row binding "
+                f"non-doc code (gpu-sim-55sb) -- record the mutation that makes the bound test "
+                f"fail and set verification 'mutation_plant', or explain why the row cannot fail")
+            continue
         # mutation-derived plant: apply mutation, run target (expect fail),
         # restore, run target (expect pass). Only when a function exists.
         if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
@@ -461,6 +518,12 @@ def check_ledger_test_ids(root):
             if rrun.returncode != 0:
                 errors.append(f"ledger row {name!r}: positive {target!r} did not pass (rc={rrun.returncode})")
                 continue
+    # Loud on every clean run: the grandfathered positive-only rows are debt, and a
+    # silent pass would be the very defect this bead exists to remove.
+    if not child and not errors and POSITIVE_ONLY_GRANDFATHERED:
+        print(f"note: {len(POSITIVE_ONLY_GRANDFATHERED)} positive-only ledger rows "
+              f"grandfathered (gpu-sim-55sb) -- they bind product tests with no mutation; "
+              f"see POSITIVE_ONLY_GRANDFATHERED for the owning beads")
     return errors
 
 
