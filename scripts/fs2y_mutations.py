@@ -38,6 +38,7 @@ MUTATIONS = {
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
     "e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)",
+    "trcz_impostor": "trcz impostor probe hardening (gpu-sim-trcz)",
 }
 
 
@@ -403,6 +404,24 @@ def _apply_e7yw_resolve_trunk_master(root):
     return backup, path
 
 
+def _apply_trcz_remove_assertion(root):
+    """Mutation for trcz_impostor: remove the _dirty_at_start/marker assertion."""
+    import os
+    path = os.path.join(root, "tests", "test_zsd3_janitor_detection.py")
+    backup = open(path).read()
+    mutated = backup.replace(
+        "    assert pytestconfig._dirty_at_start is not None, 'conftest did not run'\n",
+        '', 1)
+    mutated = mutated.replace(
+        '    assert marker.exists(), "probe did not execute (impostor detection):\\n" + out[-1000:]\n',
+        '', 1)
+    if mutated == backup:
+        raise RuntimeError("trcz mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
@@ -425,4 +444,5 @@ MUTATION_FUNCTIONS = {
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
+    "trcz_impostor": _apply_trcz_remove_assertion,
 }

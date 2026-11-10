@@ -87,35 +87,36 @@ def _run_probe(sandbox: Path, body: str) -> subprocess.CompletedProcess:
     )
 
 
-def test_uncommitted_work_already_present_survives_a_run(sandbox):
-    """The failure that started this bead: a run must not revert dirty files."""
-    target = sandbox / TARGET_REL
-    original = target.read_text(encoding="utf-8")
-    dirty = original + "\n"
-    target.write_text(dirty, encoding="utf-8")     # dirty BEFORE the run starts
+class TestSurvivesCase:
+    def test_uncommitted_work_already_present_survives_a_run(self, sandbox):
+        """The failure that started this bead: a run must not revert dirty files."""
+        target = sandbox / TARGET_REL
+        original = target.read_text(encoding="utf-8")
+        dirty = original + "\n"
+        target.write_text(dirty, encoding="utf-8")     # dirty BEFORE the run starts
 
-    marker = sandbox / ".lab" / "tmp" / "probe_ran.marker"
-    probe_body = (
-        "def test_noop(pytestconfig):\n"
-        "    assert pytestconfig._dirty_at_start is not None, 'conftest did not run'\n"
-        "    import pathlib; pathlib.Path(" + repr(str(marker)) + ").parent.mkdir(parents=True, exist_ok=True); pathlib.Path(" + repr(str(marker)) + ").write_text('ran')\n"
-        "    assert True\n"
-    )
-    r = _run_probe(sandbox, probe_body)
-    out = r.stdout + r.stderr
-    # the probe must actually have RUN: otherwise the assertions below are
-    # satisfied by a pytest that never started (the vacuous-guard shape).
-    # '1 passed in' rather than '1 passed': that substring also matches '11 passed'.
-    assert r.returncode == 0, "probe run failed:\n" + out[-1000:]
-    assert re.search(r"\b1 passed in ", out), "probe did not run exactly one passing test:\n" + out[-1000:]
-    assert marker.exists(), "probe did not execute (impostor detection):\n" + out[-1000:]
-    assert target.read_text(encoding="utf-8") == dirty, (
-        "the janitor reverted uncommitted work that existed before the run "
-        f"({TARGET_REL} was restored from HEAD)"
-    )
-    assert "TREE POLLUTION" not in out, (
-        "pre-existing dirt was reported as pollution by this run:\n" + out[-1000:]
-    )
+        marker = sandbox / ".lab" / "tmp" / "probe_ran.marker"
+        probe_body = (
+            "def test_noop(pytestconfig):\n"
+            "    assert pytestconfig._dirty_at_start is not None, 'conftest did not run'\n"
+            "    import pathlib; pathlib.Path(" + repr(str(marker)) + ").parent.mkdir(parents=True, exist_ok=True); pathlib.Path(" + repr(str(marker)) + ").write_text('ran')\n"
+            "    assert True\n"
+        )
+        r = _run_probe(sandbox, probe_body)
+        out = r.stdout + r.stderr
+        # the probe must actually have RUN: otherwise the assertions below are
+        # satisfied by a pytest that never started (the vacuous-guard shape).
+        # '1 passed in' rather than '1 passed': that substring also matches '11 passed'.
+        assert r.returncode == 0, "probe run failed:\n" + out[-1000:]
+        assert re.search(r"\b1 passed in ", out), "probe did not run exactly one passing test:\n" + out[-1000:]
+        assert marker.exists(), "probe did not execute (impostor detection):\n" + out[-1000:]
+        assert target.read_text(encoding="utf-8") == dirty, (
+            "the janitor reverted uncommitted work that existed before the run "
+            f"({TARGET_REL} was restored from HEAD)"
+        )
+        assert "TREE POLLUTION" not in out, (
+            "pre-existing dirt was reported as pollution by this run:\n" + out[-1000:]
+        )
 
 
 def test_residue_from_a_run_is_reported_and_left_in_place(sandbox):
