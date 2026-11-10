@@ -10,6 +10,7 @@ MUTATIONS = {
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
 
     "5uu9_power_arm": "5uu9 power arm reproducibility",
+    "55sb_na_rule_disabled": "55sb: disable the 'n/a' refusal so a positive-only row passes again",
     "qaiu_power_audit": "qaiu power audit reproducibility",
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
@@ -38,6 +39,7 @@ MUTATIONS = {
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
     "e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)",
+    "trcz_impostor": "trcz impostor probe hardening (gpu-sim-trcz)",
     "7k6e_tree_state_stamp": "7k6e tree-state stamp mandatory (gpu-sim-7k6e)",
 }
 
@@ -104,6 +106,25 @@ def _apply_j1qc_lint_no_bd(root):
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
+
+def _apply_55sb_na_rule_disabled(root):
+    """Mutation for 55sb_positive_only: let mutation 'n/a' through again.
+
+    Disables exactly the rule the ledger row claims to bind, so the bound test
+    must FAIL while the plant is applied and pass once it is restored.
+    """
+    import os
+    path = os.path.join(root, "scripts", "check_append_only.py")
+    backup = open(path).read()
+    mutated = backup.replace(
+        'if mutation == "n/a" and not exempt and not grandfathered:',
+        'if False and mutation == "n/a" and not exempt and not grandfathered:', 1)
+    if mutated == backup:
+        raise RuntimeError("55sb mutation anchor not found: the 'n/a' rule moved")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
 
 def _apply_s2qj_unbypass(root):
     """Mutation for s2qj_bypass_path: make the checker ignore bypass records."""
@@ -404,6 +425,24 @@ def _apply_e7yw_resolve_trunk_master(root):
     return backup, path
 
 
+def _apply_trcz_remove_assertion(root):
+    """Mutation for trcz_impostor: remove the _dirty_at_start/marker assertion."""
+    import os
+    path = os.path.join(root, "tests", "test_zsd3_janitor_detection.py")
+    backup = open(path).read()
+    mutated = backup.replace(
+        "    assert pytestconfig._dirty_at_start is not None, 'conftest did not run'\n",
+        '', 1)
+    mutated = mutated.replace(
+        '    assert marker.exists(), "probe did not execute (impostor detection):\\n" + out[-1000:]\n',
+        '', 1)
+    if mutated == backup:
+        raise RuntimeError("trcz mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 def _apply_7k6e_failopen(root):
     """Mutation for 7k6e_tree_state_stamp: revert fail-closed to fail-open."""
     import os
@@ -444,4 +483,5 @@ MUTATION_FUNCTIONS = {
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
     "7k6e_tree_state_stamp": _apply_7k6e_failopen,
+    "trcz_impostor": _apply_trcz_remove_assertion,
 }
