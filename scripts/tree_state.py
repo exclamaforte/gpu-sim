@@ -121,6 +121,16 @@ def landing_commit_for(artifact: str | Path,
     every time someone adds a file beside it'). Returns the oldest add's
     full sha (%H); callers resolve stamps via git rev-parse.
     """
+    # Normalize absolute paths to repo-relative (7k6e): git log resolves
+    # absolute paths, but normalizing keeps behavior consistent with
+    # _last_content_change_commit and avoids path-form dependence.
+    _a = Path(artifact)
+    try:
+        if _a.is_absolute():
+            _a = _a.resolve().relative_to(Path(repo).resolve())
+    except (ValueError, OSError):
+        pass
+    artifact = _a
     out = None
     for _ref in ("main", "master", "HEAD"):
         out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
@@ -154,6 +164,17 @@ def _last_content_change_commit(path, repo=REPO_DEFAULT):
     newest non-stamp-only commit's sha, or None.
     """
     import json as _json
+    # Normalize to repo-relative (7k6e): callers such as stamp_agreement_errors
+    # may pass absolute paths, but git show <sha>:<path> requires a
+    # repo-relative path. Only absolute inputs are normalized, so temp-repo
+    # tests that pass relative paths are unaffected.
+    _p = Path(path)
+    try:
+        if _p.is_absolute():
+            _p = _p.resolve().relative_to(Path(repo).resolve())
+    except (ValueError, OSError):
+        pass
+    path = _p
     log = _git(repo, "log", "--format=%H", "--", str(path))
     if not log:
         return None
@@ -290,10 +311,6 @@ def _supersession_record(ref: str, commit: str,
         if _anc is not None:
             break
     if _anc is None:
-        _anc_ok = False
-    else:
-        _anc_ok = True
-    if not _anc_ok:
         return None
     still_live = branch_exists(ref, repo)
     subject = _git(repo, "log", "-1", "--format=%s", commit) or ""
