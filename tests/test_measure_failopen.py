@@ -76,3 +76,23 @@ def test_partial_with_allow_partial_exits_zero_and_writes_meta():
     meta = json.loads((Path(str(out) + ".meta.json")).read_text())
     assert meta["skipped"] == 1
     td.cleanup()
+
+def test_fully_populated_build_exits_zero():
+    td = tempfile.TemporaryDirectory()
+    root = Path(td.name)
+    (root / "bin").mkdir()
+    spec = {"family": "f", "build_idx": 0, "exe": "present.out",
+            "grid": [1, 1, 1], "block": [1, 1, 1],
+            "problem_size": 1024, "metadata": {}, "op_type": "gemm",
+            "phys": {}}
+    (root / "manifest.json").write_text(json.dumps({"specs": [spec]}))
+    (root / "bin" / "present.out").write_text(
+        "#!/bin/bash\nfor i in $(seq 1 12); do echo '{\"time_ms\": 1.0}'; done\n")
+    os.chmod(root / "bin" / "present.out", 0o755)
+    out = root / "out.jsonl"
+    r = _run(root, out)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert out.exists()
+    assert "DONE measured 1 new rows" in r.stdout
+    td.cleanup()
+

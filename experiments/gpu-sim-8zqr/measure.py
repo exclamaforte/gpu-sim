@@ -124,6 +124,9 @@ def main():
     out = Path(args.out) if args.out else (here / "measured.jsonl")
     manifest = json.loads((build / "manifest.json").read_text())
     specs = manifest["specs"]
+    if not specs:
+        print(f"manifest lists no specs: {build}/manifest.json", flush=True)
+        raise SystemExit(1)
     h = SafeHarness(timeout_sec=120)
     # load already measured keys
     done = set()
@@ -138,6 +141,7 @@ def main():
     t0 = time.time()
     n_ok = 0
     n_skipped = 0
+    n_failed = 0
     n_total = len(specs)
     fh = None
     try:
@@ -170,6 +174,7 @@ def main():
             # scale run
             res = h.run_kernel(str(exe))
             if not res.success:
+                n_failed += 1
                 row = {"family": d["family"], "build_idx": d["build_idx"], "error": f"run_fail rc={res.returncode}", "target_usable": False}
                 if fh is None:
                     fh = open(out, "a")
@@ -186,6 +191,7 @@ def main():
                     except:
                         pass
             if len(scale_trials) < 10:
+                n_failed += 1
                 row = {"family": d["family"], "build_idx": d["build_idx"], "error": f"few_trials {len(scale_trials)}", "target_usable": False}
                 if fh is None:
                     fh = open(out, "a")
@@ -209,19 +215,16 @@ def main():
     # write skip count into output metadata sidecar when partial
     if n_skipped > 0 and n_ok > 0:
         meta_path = Path(str(out) + ".meta.json")
-        try:
-            meta_path.write_text(json.dumps({"skipped": n_skipped, "total": n_total,
-                                            "measured": n_ok}) + "\n")
-        except Exception:
-            pass
+        meta_path.write_text(json.dumps({"skipped": n_skipped, "total": n_total,
+                                        "measured": n_ok}) + "\n")
 
     if n_skipped == n_total and n_total > 0:
         # remove any empty output file that may have been created
         try:
             if out.exists() and out.stat().st_size == 0:
                 out.unlink()
-        except Exception:
-            pass
+        except Exception as _e:
+            print(f"warning: could not remove empty output file {out}: {_e}", flush=True)
         print(f"build incomplete: no binaries in {build}/bin", flush=True)
         raise SystemExit(1)
 
@@ -229,8 +232,8 @@ def main():
         try:
             if out.exists() and out.stat().st_size == 0:
                 out.unlink()
-        except Exception:
-            pass
+        except Exception as _e:
+            print(f"warning: could not remove empty output file {out}: {_e}", flush=True)
         raise SystemExit(1)
 
     if n_ok == 0 and not (n_skipped == 0 and len(done) >= n_total and n_total > 0):
@@ -238,10 +241,14 @@ def main():
         try:
             if out.exists() and out.stat().st_size == 0:
                 out.unlink()
-        except Exception:
-            pass
+        except Exception as _e:
+            print(f"warning: could not remove empty output file {out}: {_e}", flush=True)
         if n_total > 0:
-            print(f"build incomplete: no binaries in {build}/bin", flush=True)
+            if n_skipped == n_total:
+                print(f"build incomplete: no binaries in {build}/bin", flush=True)
+            else:
+                print(f"no rows measured: {n_skipped} of {n_total} specs skipped (exe missing), "
+                      f"{n_failed} rows recorded errors -- see {out}", flush=True)
             raise SystemExit(1)
 
     print(f"DONE measured {n_ok} new rows -> {out}")
