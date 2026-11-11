@@ -271,6 +271,12 @@ class TestEveryStampedArtifact(unittest.TestCase):
                            "pass vacuously")
         self.assertEqual(bad, [], "\n".join(bad))
 
+    def test_stamped_artifacts_agree(self):
+        """Close the loop: stamped_artifacts() paths must pass stamp_agreement_errors."""
+        for path, doc, ts in stamped_artifacts(REPO):
+            errs = stamp_agreement_errors(path, REPO)
+            self.assertEqual(errs, [], f"{path}: {errs}")
+
     def test_the_detector_flags_a_wrong_stamp(self):
         """THE CHECK MUST BE ABLE TO FAIL (both halves).
 

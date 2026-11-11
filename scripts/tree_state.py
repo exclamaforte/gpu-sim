@@ -192,6 +192,13 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
     import json as _json
     errors = []
     path = Path(artifact)
+    # Normalize to repo-relative (7k6e): stamped_artifacts() yields absolute
+    # paths, but git show <sha>:<path> needs a repo-relative path.
+    try:
+        if path.is_absolute():
+            path = path.resolve().relative_to(Path(repo).resolve())
+    except (ValueError, OSError):
+        pass
     full = Path(repo) / path
     if not full.is_file():
         return errors
