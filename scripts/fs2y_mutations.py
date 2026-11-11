@@ -7,6 +7,7 @@ is reported as newly unresolved. Descriptions document intent only.
 """
 MUTATIONS = {
     "fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)",
+    "4esz_missing_kind": "4esz missing commit_kind guard in stamp_agreement_errors (gpu-sim-4esz)",
     "3v6d1_fabric_rate": "3v6d1 one-rate fabric: bidirectional halving in topology.effective_bw (gpu-sim-3v6d.1)",
 
     "5uu9_power_arm": "5uu9 power arm reproducibility",
@@ -549,8 +550,27 @@ def _apply_7k6e_failopen(root):
     return backup, path
 
 
+def _apply_4esz_missing_kind(root):
+    """Mutation for 4esz_missing_kind: drop the commit_kind guard."""
+    import os
+    path = os.path.join(root, "scripts", "tree_state.py")
+    backup = open(path).read()
+    old = """    if kind not in ("oldest_add", "last_content_change"):
+        errors.append(f"{path}: superseded_by.commit {stamp} has no declared "
+                      f"commit_kind (must be 'oldest_add' or 'last_content_change')")
+        return errors"""
+    new = """    pass"""
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("4esz mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
+    "4esz_missing_kind": _apply_4esz_missing_kind,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
     "5uu9_power_arm": _apply_5uu9_corrupt,
     "qaiu_power_audit": _apply_qaiu_corrupt,
