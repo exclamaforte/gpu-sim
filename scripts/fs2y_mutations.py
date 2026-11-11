@@ -205,7 +205,9 @@ def _apply_fd5i_revert_to_short(root):
     import os
     path = os.path.join(root, "scripts", "tree_state.py")
     backup = open(path).read()
-    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1)
+    if mutated == backup:
+        raise RuntimeError("fd5i mutation anchor not found: the format string moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
@@ -417,7 +419,9 @@ def _apply_fd5i_revert_to_short(root):
     import os
     path = os.path.join(root, "scripts", "tree_state.py")
     backup = open(path).read()
-    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1)
+    if mutated == backup:
+        raise RuntimeError("fd5i mutation anchor not found: the format string moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
