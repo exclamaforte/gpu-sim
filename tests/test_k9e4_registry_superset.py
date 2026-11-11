@@ -20,16 +20,7 @@ def _load_branch_keys():
 
 
 def _load_main_keys():
-    out = subprocess.check_output(
-        ["git", "-C", str(ROOT), "show", "main:scripts/fs2y_mutations.py"],
-        text=True,
-    )
-    ns = {}
-    exec(compile(out, "main_fs2y", "exec"), ns)
-    # main's monolithic file defines MUTATIONS; but main might also use d/ (no).
-    # If main has d/ dir, merge from there too. For now, just main's file.
-    main_keys = set(ns.get("MUTATIONS", {}))
-    # Also check if main has a d/ directory in the tree
+    main_keys = set()
     try:
         d_files = subprocess.check_output(
             ["git", "-C", str(ROOT), "ls-tree", "-r", "main", "--name-only",
@@ -38,10 +29,20 @@ def _load_main_keys():
         )
         for line in d_files.splitlines():
             if line.endswith(".json"):
-                key = Path(line).stem
-                main_keys.add(key)
+                main_keys.add(Path(line).stem)
     except subprocess.CalledProcessError:
         pass
+    if not main_keys:
+        try:
+            out = subprocess.check_output(
+                ["git", "-C", str(ROOT), "show", "main:scripts/fs2y_mutations.py"],
+                text=True,
+            )
+            ns = {"__file__": str(ROOT / "scripts" / "fs2y_mutations.py")}
+            exec(compile(out, "main_fs2y", "exec"), ns)
+            main_keys = set(ns.get("MUTATIONS", {}))
+        except Exception:
+            pass
     return main_keys
 
 
