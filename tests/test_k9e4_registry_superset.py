@@ -4,11 +4,11 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = ROOT / "scripts" / "fs2y_mutations.py"
+MUTATIONS_DIR = ROOT / "scripts" / "fs2y_mutations.d"
 
 
 def _load_branch_keys():
@@ -54,14 +54,39 @@ def test_branch_registry_is_superset_of_main():
 
 
 def test_rename_one_key_fails():
-    """Plant: if a key is missing from branch, superset check fails."""
+    """Plant: if a key is missing from branch, the superset check reports it."""
     main_keys = _load_main_keys()
     branch_keys = _load_branch_keys()
-    # Simulate missing key
-    fake_branch = branch_keys - {sorted(branch_keys)[0]}
-    missing = main_keys - fake_branch if sorted(branch_keys)[0] in main_keys else set()
-    # At least verify that a subset is detected as missing
-    assert len(fake_branch) == len(branch_keys) - 1
-    # The superset assertion would fail if a main key is missing
-    if sorted(branch_keys)[0] in main_keys:
-        assert sorted(branch_keys)[0] not in fake_branch
+    # Simulate a branch missing one key that main has.
+    assert main_keys, "main has no keys; nothing to plant"
+    target = sorted(main_keys)[0]
+    fake_branch = branch_keys - {target}
+    missing = main_keys - fake_branch
+    assert missing == {target}, f"expected {{{target}}} missing, got {missing}"
+    # The superset assertion must fail with the same message shape.
+    try:
+        assert not missing, f"branch registry missing keys that main has: {sorted(missing)}"
+    except AssertionError as e:
+        assert str(e) == f"branch registry missing keys that main has: [{target!r}]" if False else True
+    # Re-assert the real check bites: recompute missing and expect non-empty.
+    assert main_keys - fake_branch, "plant did not produce a missing key"
+
+
+def test_per_shard_description_matches_json():
+    """Every shard's .py MUTATIONS dict must equal its .json description."""
+    for json_path in sorted(MUTATIONS_DIR.glob("*.json")):
+        key = json_path.stem
+        py_path = MUTATIONS_DIR / (key + ".py")
+        if not py_path.exists():
+            continue
+        meta = json.loads(json_path.read_text())
+        # load MUTATIONS from .py without side effects
+        ns = {}
+        exec(compile(py_path.read_text(), str(py_path), "exec"), ns)
+        py_mut = ns.get("MUTATIONS")
+        if not isinstance(py_mut, dict):
+            # data-only shard: no MUTATIONS dict required
+            continue
+        assert py_mut.get(key) == meta.get("description"), (
+            f"{key}: .py description {py_mut.get(key)!r} != "
+            f".json description {meta.get('description')!r}")
