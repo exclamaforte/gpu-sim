@@ -1,3 +1,5 @@
+MUTATIONS = {"20ms_drop_grandfather": "20ms: remove wknt from the grandfather list so the row is refused again"}
+
 """Mutation for 20ms_wknt_grandfather: un-grandfather the wknt row."""
 import os
 

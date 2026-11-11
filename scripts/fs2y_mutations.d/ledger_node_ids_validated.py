@@ -1,3 +1,5 @@
+MUTATIONS = {"ledger_node_ids_validated": "ledger node id validator"}
+
 def apply(root):
     """Mutation for ledger_node_ids_validated: add an unresolvable row to the ledger."""
     import json, os

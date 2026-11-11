@@ -1,3 +1,5 @@
+MUTATIONS = {"e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)"}
+
 def apply(root):
     """Mutation for e7yw_trunk_resolution: make resolve_trunk return None."""
     import os

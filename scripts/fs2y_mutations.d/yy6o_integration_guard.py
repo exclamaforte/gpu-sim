@@ -1,3 +1,5 @@
+MUTATIONS = {"yy6o_integration_guard": "yy6o: disable the integration-tree refusal so the walk runs anywhere"}
+
 """Mutation for yy6o_integration_guard: never report the integration tree."""
 import os
 

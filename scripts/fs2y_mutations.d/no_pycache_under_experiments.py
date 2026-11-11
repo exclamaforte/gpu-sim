@@ -1,3 +1,5 @@
+MUTATIONS = {"no_pycache_under_experiments": "pycache suppression under experiments/"}
+
 """Mutation for no_pycache_under_experiments: drop PYTHONPYCACHEPREFIX from lab.config.json."""
 import json, os
 

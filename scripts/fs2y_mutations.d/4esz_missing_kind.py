@@ -1,3 +1,5 @@
+MUTATIONS = {"4esz_missing_kind": "4esz missing commit_kind guard in stamp_agreement_errors (gpu-sim-4esz)"}
+
 """Mutation for 4esz_missing_kind: drop the commit_kind guard."""
 import os
 

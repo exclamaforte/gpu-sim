@@ -1,3 +1,5 @@
+MUTATIONS = {"qaiu_power_audit": "qaiu power audit reproducibility"}
+
 def apply(root):
     """Mutation for qaiu_power_audit: corrupt a scalar in committed metrics.json."""
     import json, os

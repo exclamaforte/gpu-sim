@@ -1,3 +1,5 @@
+MUTATIONS = {"7k6e_tree_state_stamp": "7k6e tree-state stamp mandatory (gpu-sim-7k6e)"}
+
 """Mutation for 7k6e_tree_state_stamp: revert fail-closed to fail-open."""
 import os
 
