@@ -11,6 +11,8 @@ MUTATIONS = {
 
     "5uu9_power_arm": "5uu9 power arm reproducibility",
     "55sb_na_rule_disabled": "55sb: disable the 'n/a' refusal so a positive-only row passes again",
+    "20ms_drop_grandfather": "20ms: remove wknt from the grandfather list so the row is refused again",
+    "yy6o_integration_guard": "yy6o: disable the integration-tree refusal so the walk runs anywhere",
     "qaiu_power_audit": "qaiu power audit reproducibility",
     "8yb4_k_window": "8yb4 K-window: a measured ratio inflated to the 40x currency error the bead rules out",
     "3v6d2_link_calendar": "3v6d.2 per-link calendar: CAS replaced by plain store",
@@ -23,6 +25,7 @@ MUTATIONS = {
     "no_pycache_under_experiments": "pycache suppression under experiments/",
     "bk9_gate_flop_aware": "flop-aware bk9 gate calibration",
     "effective_cpu_capacity": "effective CPU capacity helper",
+    "7k6e_tree_state_stamp": "7k6e tree-state stamp mandatory (gpu-sim-7k6e)",
     "ledger_node_ids_validated": "ledger node id validator",
     "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
     "05b3_skip_allowlist_keys": "skip allowlist keyed by file::function:TAG:condition (gpu-sim-05b3)",
@@ -40,7 +43,8 @@ MUTATIONS = {
     "nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)",
     "e7yw_trunk_resolution": "e7yw trunk resolution prefers main (gpu-sim-e7yw)",
     "trcz_impostor": "trcz impostor probe hardening (gpu-sim-trcz)",
-    "7k6e_tree_state_stamp": "7k6e tree-state stamp mandatory (gpu-sim-7k6e)",
+    "ccw5_meta_parity": "ccw5 META/META_KEYS equality (gpu-sim-ccw5)",
+    "wknt_error_budget_bounded": "wknt error budget bounded (gpu-sim-wknt)",
 }
 
 
@@ -121,6 +125,43 @@ def _apply_55sb_na_rule_disabled(root):
         'if False and mutation == "n/a" and not exempt and not grandfathered:', 1)
     if mutated == backup:
         raise RuntimeError("55sb mutation anchor not found: the 'n/a' rule moved")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_20ms_drop_grandfather(root):
+    """Mutation for 20ms_wknt_grandfather: un-grandfather the wknt row.
+
+    Removing the entry makes the bound test FAIL (the row is refused again),
+    which is the only plant that falsifies the claim this bead makes.
+    """
+    import os
+    path = os.path.join(root, "scripts", "check_append_only.py")
+    backup = open(path).read()
+    marker = '    "wknt_error_budget_bounded": '
+    lines = [ln for ln in backup.splitlines(True) if not ln.startswith(marker)]
+    mutated = "".join(lines)
+    if mutated == backup:
+        raise RuntimeError("20ms mutation anchor not found: wknt grandfather entry moved")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_yy6o_guard_disabled(root):
+    """Mutation for yy6o_integration_guard: never report the integration tree.
+
+    Disables exactly the condition the bound test asserts, so the test goes red
+    while the plant is applied.
+    """
+    import os
+    path = os.path.join(root, "scripts", "check_append_only.py")
+    backup = open(path).read()
+    mutated = backup.replace('            if "worktrees" not in gitdir:',
+                             '            if False and "worktrees" not in gitdir:', 1)
+    if mutated == backup:
+        raise RuntimeError("yy6o mutation anchor not found: the worktree check moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
@@ -443,6 +484,49 @@ def _apply_trcz_remove_assertion(root):
     return backup, path
 
 
+def _apply_ccw5_meta_mismatch(root):
+    """Mutation for ccw5_meta_parity: remove a key from META in run.sh."""
+    import os
+    path = os.path.join(root, "experiments", "gpu-sim-5uu9", "run.sh")
+    backup = open(path).read()
+    mutated = backup.replace('META = ("loadavg_1_5_15", "foreign_gpu_job", "gate")',
+                            'META = ("loadavg_1_5_15", "foreign_gpu_job")', 1)
+    if mutated == backup:
+        raise RuntimeError("ccw5 mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_wknt_remove_alarm(root):
+    """Mutation for wknt_error_budget_bounded: corrupt the sort key."""
+    import os
+    path = os.path.join(root, "scripts", "error_budget.py")
+    backup = open(path).read()
+    mutated = backup.replace('    f = r["fraction_one_sided"]',
+                            '    f = r["flip_down"]', 1)
+    if mutated == backup:
+        raise RuntimeError("wknt mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
+def _apply_no_pycache_under_experiments(root):
+    """Mutation for no_pycache_under_experiments: drop PYTHONPYCACHEPREFIX from lab.config.json."""
+    import json, os
+    path = os.path.join(root, "lab.config.json")
+    backup = open(path).read()
+    d = json.loads(backup)
+    cmd = d.get("tests", {}).get("command", [])
+    new_cmd = [x for x in cmd if "PYTHONPYCACHEPREFIX" not in str(x)]
+    d["tests"]["command"] = new_cmd
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+        f.write("\n")
+    return backup, path
+
+
 def _apply_7k6e_failopen(root):
     """Mutation for 7k6e_tree_state_stamp: revert fail-closed to fail-open."""
     import os
@@ -482,7 +566,13 @@ MUTATION_FUNCTIONS = {
     "3v6d3_nccl_enforce": _apply_3v6d3_nccl_enforce,
     "hsuv_manifest_relative": _apply_hsuv_manifest_absolute,
     "05b3_skip_allowlist_keys": _apply_05b3_delete_key,
+    "no_pycache_under_experiments": _apply_no_pycache_under_experiments,
+    "55sb_na_rule_disabled": _apply_55sb_na_rule_disabled,
+    "20ms_drop_grandfather": _apply_20ms_drop_grandfather,
     "e7yw_trunk_resolution": _apply_e7yw_resolve_trunk_master,
-    "7k6e_tree_state_stamp": _apply_7k6e_failopen,
     "trcz_impostor": _apply_trcz_remove_assertion,
+    "ccw5_meta_parity": _apply_ccw5_meta_mismatch,
+    "wknt_error_budget_bounded": _apply_wknt_remove_alarm,
+    "7k6e_tree_state_stamp": _apply_7k6e_failopen,
+    "yy6o_integration_guard": _apply_yy6o_guard_disabled,
 }
