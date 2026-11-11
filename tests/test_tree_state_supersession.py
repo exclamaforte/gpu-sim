@@ -232,7 +232,7 @@ def _audit_stamps(repo):
 
 
 class TestEveryStampedArtifact(unittest.TestCase):
-    """Criterion 3 narrowed: over artifacts that opt in with a tree_state block."""
+    """Criterion 3: over artifacts carrying a superseded_by stamp (stamp makes it judgeable)."""
 
     def test_no_artifact_carries_a_null_superseded_by(self):
         """The absent-vs-null rule, asserted over real opt-in artifacts."""
@@ -263,9 +263,9 @@ class TestEveryStampedArtifact(unittest.TestCase):
             if isinstance(sb, dict) and sb.get("commit"):
                 print(f"[tree_state] {path.relative_to(REPO)}: "
                       f"commit_kind={sb.get('commit_kind')}, commit={sb.get('commit')}")
-        print(f"[tree_state] opt-in artifacts checked: {len(checked)}; "
-              f"carrying a stamp: {len(checked) - len(unstamped)}; "
-              f"opted-in but unstamped (reported, not failed): {unstamped}")
+        print(f"[tree_state] artifacts scanned: {len(stamped_artifacts(REPO))}; "
+              f"carrying a stamp: {len(checked)}; "
+              f"stamped-but-unjudged (reported, not failed): {unstamped}")
         self.assertGreater(len(checked), 0,
                            "no opt-in artifact is on master: the suite would "
                            "pass vacuously")
@@ -434,9 +434,24 @@ class TestStampAgreementFailDirection(unittest.TestCase):
         finally:
             td.cleanup()
 
-
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    def test_missing_commit_kind_is_reported(self):
+        """A stamp with no declared commit_kind FAILS naming both options."""
+        td = tempfile.TemporaryDirectory()
+        try:
+            root, landing = self._make_artifact(td, None)
+            art = root / "experiments" / "x" / "a.json"
+            doc = __import__("json").loads(art.read_text())
+            # name a real commit so the only defect is the missing kind
+            doc["tree_state"]["superseded_by"]["commit"] = landing[:7]
+            doc["tree_state"]["superseded_by"].pop("commit_kind", None)
+            art.write_text(__import__("json").dumps(doc) + "\n")
+            bad, unstamped, checked = _audit_stamps(root)
+            assert len(bad) > 0, "a stamp with no commit_kind must be reported"
+            assert any("has no declared commit_kind" in e
+                       and "oldest_add" in e and "last_content_change" in e
+                       for e in bad), bad
+        finally:
+            td.cleanup()
 
 
 class TestFailClosedLanding(unittest.TestCase):
@@ -467,11 +482,13 @@ class TestFailClosedLanding(unittest.TestCase):
                                                  "commit_kind": "oldest_add",
                                                  "reachable_from_master": True}}}) + "\n")
             from scripts.tree_state import stamp_agreement_errors
-            # Need to set REPO for the module
-            import scripts.tree_state as ts
-            ts.REPO_DEFAULT = root
             errs = stamp_agreement_errors("experiments/x/a.json", root)
             assert len(errs) > 0, "unresolvable landing must be reported"
             assert any("could not resolve landing commit" in e for e in errs), errs
         finally:
             td.cleanup()
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+
+
