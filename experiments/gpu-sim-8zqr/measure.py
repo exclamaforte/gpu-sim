@@ -116,12 +116,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--build-dir", default=None)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--allow-partial", action="store_true",
+                    help="allow a partial run (some specs skipped) to exit 0")
     args = ap.parse_args()
     here = Path(__file__).resolve().parent
     build = Path(args.build_dir) if args.build_dir else (here / "build")
     out = Path(args.out) if args.out else (here / "measured.jsonl")
     manifest = json.loads((build / "manifest.json").read_text())
     specs = manifest["specs"]
+    if not specs:
+        print(f"manifest lists no specs: {build}/manifest.json", flush=True)
+        raise SystemExit(1)
     h = SafeHarness(timeout_sec=120)
     # load already measured keys
     done = set()
@@ -135,7 +140,11 @@ def main():
                 pass
     t0 = time.time()
     n_ok = 0
-    with open(out, "a") as fh:
+    n_skipped = 0
+    n_failed = 0
+    n_total = len(specs)
+    fh = None
+    try:
         for d in specs:
             key = (d["family"], d["build_idx"])
             if key in done:
@@ -143,6 +152,7 @@ def main():
             # manifest exe is an absolute path into the source worktree; resolve against build-dir so a moved checkout still finds the binary
             exe = build / "bin" / Path(d["exe"]).name
             if not exe.exists():
+                n_skipped += 1
                 continue
             # empty baseline
             g = tuple(d["grid"]); b = tuple(d["block"])
@@ -164,7 +174,10 @@ def main():
             # scale run
             res = h.run_kernel(str(exe))
             if not res.success:
+                n_failed += 1
                 row = {"family": d["family"], "build_idx": d["build_idx"], "error": f"run_fail rc={res.returncode}", "target_usable": False}
+                if fh is None:
+                    fh = open(out, "a")
                 fh.write(json.dumps(row) + "\n"); fh.flush()
                 continue
             scale_trials = []
@@ -178,15 +191,66 @@ def main():
                     except:
                         pass
             if len(scale_trials) < 10:
+                n_failed += 1
                 row = {"family": d["family"], "build_idx": d["build_idx"], "error": f"few_trials {len(scale_trials)}", "target_usable": False}
+                if fh is None:
+                    fh = open(out, "a")
                 fh.write(json.dumps(row) + "\n"); fh.flush()
                 continue
             row = build_row(d, scale_trials, empty_trials)
+            if fh is None:
+                fh = open(out, "a")
             fh.write(json.dumps(row) + "\n"); fh.flush()
             done.add(key)
             n_ok += 1
             if n_ok % 25 == 0:
                 print(f"measured {n_ok} rows, elapsed {time.time() - t0:.0f}s", flush=True)
+    finally:
+        if fh is not None:
+            fh.close()
+
+    if n_skipped:
+        print(f"SKIPPED {n_skipped}/{n_total} specs: exe missing (build incomplete)", flush=True)
+
+    # write skip count into output metadata sidecar when partial
+    if n_skipped > 0 and n_ok > 0:
+        meta_path = Path(str(out) + ".meta.json")
+        meta_path.write_text(json.dumps({"skipped": n_skipped, "total": n_total,
+                                        "measured": n_ok}) + "\n")
+
+    if n_skipped == n_total and n_total > 0:
+        # remove any empty output file that may have been created
+        try:
+            if out.exists() and out.stat().st_size == 0:
+                out.unlink()
+        except Exception as _e:
+            print(f"warning: could not remove empty output file {out}: {_e}", flush=True)
+        print(f"build incomplete: no binaries in {build}/bin", flush=True)
+        raise SystemExit(1)
+
+    if n_skipped > 0 and not args.allow_partial:
+        try:
+            if out.exists() and out.stat().st_size == 0:
+                out.unlink()
+        except Exception as _e:
+            print(f"warning: could not remove empty output file {out}: {_e}", flush=True)
+        raise SystemExit(1)
+
+    if n_ok == 0 and not (n_skipped == 0 and len(done) >= n_total and n_total > 0):
+        # never leave an empty arm file behind
+        try:
+            if out.exists() and out.stat().st_size == 0:
+                out.unlink()
+        except Exception as _e:
+            print(f"warning: could not remove empty output file {out}: {_e}", flush=True)
+        if n_total > 0:
+            if n_skipped == n_total:
+                print(f"build incomplete: no binaries in {build}/bin", flush=True)
+            else:
+                print(f"no rows measured: {n_skipped} of {n_total} specs skipped (exe missing), "
+                      f"{n_failed} rows recorded errors -- see {out}", flush=True)
+            raise SystemExit(1)
+
     print(f"DONE measured {n_ok} new rows -> {out}")
 
 if __name__ == "__main__":
