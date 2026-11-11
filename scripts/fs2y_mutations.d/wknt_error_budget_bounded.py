@@ -5,8 +5,8 @@ def apply(root):
     import os
     path = os.path.join(root, "scripts", "error_budget.py")
     backup = open(path).read()
-    mutated = backup.replace('        f = r["fraction_one_sided"]',
-                            '        f = r["flip_down"]', 1)
+    mutated = backup.replace('    f = r["fraction_one_sided"]',
+                            '    f = r["flip_down"]', 1)
     if mutated == backup:
         raise RuntimeError("wknt mutation did not apply")
     with open(path, "w") as f:
