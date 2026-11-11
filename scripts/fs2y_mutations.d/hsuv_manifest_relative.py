@@ -1,5 +1,3 @@
-MUTATIONS = {"hsuv_manifest_relative": "hsuv manifest relative paths (gpu-sim-hsuv)"}
-
 def apply(root):
     """Mutation for hsuv_manifest_relative: write an absolute exe path into the
     committed manifest so the relative-path guard fails."""

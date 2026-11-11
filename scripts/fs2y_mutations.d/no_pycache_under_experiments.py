@@ -1,8 +1,6 @@
 """Mutation for no_pycache_under_experiments: drop PYTHONPYCACHEPREFIX from lab.config.json."""
 import json, os
 
-MUTATIONS = {"no_pycache_under_experiments": "pycache suppression under experiments/"}
-
 def apply(root):
     path = os.path.join(root, "lab.config.json")
     backup = open(path).read()

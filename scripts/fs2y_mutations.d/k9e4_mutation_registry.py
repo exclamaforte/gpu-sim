@@ -1,5 +1,3 @@
-MUTATIONS = {"k9e4_mutation_registry": "k9e4 mutation registry one-file-per-mutation (gpu-sim-k9e4)"}
-
 def apply(root):
     """Mutation for k9e4_mutation_registry: remove the loader from fs2y_mutations.py."""
     import os

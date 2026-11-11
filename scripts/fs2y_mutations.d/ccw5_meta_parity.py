@@ -1,5 +1,3 @@
-MUTATIONS = {"ccw5_meta_parity": "ccw5 META/META_KEYS equality (gpu-sim-ccw5)"}
-
 def apply(root):
     """Mutation for ccw5_meta_parity: remove a key from META in run.sh."""
     import os

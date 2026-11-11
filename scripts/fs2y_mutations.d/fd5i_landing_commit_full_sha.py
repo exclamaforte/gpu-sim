@@ -1,5 +1,3 @@
-MUTATIONS = {"fd5i_landing_commit_full_sha": "fd5i landing_commit_for compares full shas (gpu-sim-fd5i)"}
-
 def apply(root):
     """Mutation for fd5i_landing_commit_full_sha: revert landing_commit_for to %h so the full-sha agreement plant fails."""
     import os

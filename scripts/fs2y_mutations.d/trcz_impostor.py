@@ -1,5 +1,3 @@
-MUTATIONS = {"trcz_impostor": "trcz impostor probe hardening (gpu-sim-trcz)"}
-
 def apply(root):
     """Mutation for trcz_impostor: remove the _dirty_at_start/marker assertion."""
     import os

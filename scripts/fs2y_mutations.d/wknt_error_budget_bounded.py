@@ -1,5 +1,3 @@
-MUTATIONS = {"wknt_error_budget_bounded": "wknt error budget bounded (gpu-sim-wknt)"}
-
 def apply(root):
     """Mutation for wknt_error_budget_bounded: corrupt the sort key."""
     import os

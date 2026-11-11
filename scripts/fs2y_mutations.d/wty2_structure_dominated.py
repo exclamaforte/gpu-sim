@@ -1,5 +1,3 @@
-MUTATIONS = {"wty2_structure_dominated": "wty2 structure-dominated verdict on unseen families (gpu-sim-wty2)"}
-
 def apply(root):
     """Mutation for wty2_structure_dominated: corrupt a scalar in committed metrics.json."""
     import json, os

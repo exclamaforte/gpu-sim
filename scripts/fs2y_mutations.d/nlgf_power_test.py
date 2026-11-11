@@ -1,5 +1,3 @@
-MUTATIONS = {"nlgf_power_test": "nlgf 3-replicate power test (v1 single-launch target)"}
-
 def apply(root):
     """Mutation for nlgf_power_test: corrupt a scalar in committed metrics_power.json."""
     import json, os

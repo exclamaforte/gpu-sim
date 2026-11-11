@@ -1,5 +1,3 @@
-MUTATIONS = {"3v6d3_nccl_enforce": "3v6d.3 ncclAllReduce enforces through fabric calendar (gpu-sim-3v6d.3)"}
-
 def apply(root):
     """Mutation for 3v6d3_nccl_enforce: revert enforced bw to raw 900 Gbps (8x delta)."""
     import os

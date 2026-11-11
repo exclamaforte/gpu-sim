@@ -1,5 +1,3 @@
-MUTATIONS = {"05b3_skip_allowlist_keys": "skip allowlist keyed by file::function:TAG:condition (gpu-sim-05b3)"}
-
 def apply(root):
     """Mutation for 05b3_skip_allowlist_keys: delete one registered key."""
     import json, os

@@ -1,5 +1,3 @@
-MUTATIONS = {"55sb_na_rule_disabled": "55sb: disable the 'n/a' refusal so a positive-only row passes again"}
-
 def apply(root):
     """Mutation for 55sb_positive_only: let mutation 'n/a' through again.
 
