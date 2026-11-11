@@ -96,3 +96,39 @@ def test_fully_populated_build_exits_zero():
     assert "DONE measured 1 new rows" in r.stdout
     td.cleanup()
 
+
+
+def test_failing_binary_prints_honest_message():
+    td = tempfile.TemporaryDirectory()
+    root = Path(td.name)
+    (root / "bin").mkdir()
+    spec = {"family": "f", "build_idx": 0, "exe": "fail.out",
+            "grid": [1, 1, 1], "block": [1, 1, 1],
+            "problem_size": 1024, "metadata": {}, "op_type": "gemm",
+            "phys": {}}
+    (root / "manifest.json").write_text(json.dumps({"specs": [spec]}))
+    (root / "bin" / "fail.out").write_text("#!/bin/bash\nexit 3\n")
+    os.chmod(root / "bin" / "fail.out", 0o755)
+    out = root / "out.jsonl"
+    r = _run(root, out)
+    assert r.returncode != 0, r.stdout + r.stderr
+    assert "no rows measured: 0 of 1 specs skipped (exe missing), 1 rows recorded errors" in r.stdout
+    assert "build incomplete: no binaries" not in r.stdout
+    assert out.exists()
+    row = json.loads(out.read_text().splitlines()[0])
+    assert row["error"] == "run_fail rc=3"
+    assert row["target_usable"] is False
+    td.cleanup()
+
+
+def test_empty_manifest_exits_nonzero_and_creates_no_file():
+    td = tempfile.TemporaryDirectory()
+    root = Path(td.name)
+    (root / "bin").mkdir()
+    (root / "manifest.json").write_text(json.dumps({"specs": []}))
+    out = root / "out.jsonl"
+    r = _run(root, out)
+    assert r.returncode != 0, r.stdout + r.stderr
+    assert not out.exists(), "empty manifest must not create an output file"
+    assert f"manifest lists no specs: {root}/manifest.json" in r.stdout
+    td.cleanup()
