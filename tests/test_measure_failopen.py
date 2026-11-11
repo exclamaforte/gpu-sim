@@ -132,3 +132,49 @@ def test_empty_manifest_exits_nonzero_and_creates_no_file():
     assert not out.exists(), "empty manifest must not create an output file"
     assert f"manifest lists no specs: {root}/manifest.json" in r.stdout
     td.cleanup()
+
+
+def test_strict_exits_nonzero_on_negative_kernel():
+    td = tempfile.TemporaryDirectory()
+    root = Path(td.name)
+    (root / "bin").mkdir()
+    spec = {"family": "f", "build_idx": 0, "exe": "present.out",
+            "grid": [1, 1, 1], "block": [1, 1, 1],
+            "problem_size": 1024, "metadata": {}, "op_type": "gemm",
+            "phys": {}}
+    (root / "manifest.json").write_text(json.dumps({"specs": [spec]}))
+    (root / "bin" / "present.out").write_text(
+        "#!/bin/bash\nfor i in $(seq 1 12); do echo '{\"time_ms\": 0.5}'; done\n")
+    os.chmod(root / "bin" / "present.out", 0o755)
+    empty_key = "empty_" + "_".join(map(str, list(spec["grid"]) + list(spec["block"])))
+    (root / "bin" / (empty_key + ".out")).write_text(
+        "#!/bin/bash\nfor i in $(seq 1 5); do echo '{\"time_ms\": 1.0}'; done\n")
+    os.chmod(root / "bin" / (empty_key + ".out"), 0o755)
+    out = root / "out.jsonl"
+    r = _run(root, out, ("--strict",))
+    assert r.returncode != 0, r.stdout + r.stderr
+    assert "1 rows with non-positive kernel_us" in r.stdout
+    assert out.exists()
+    td.cleanup()
+
+
+def test_strict_exits_zero_on_positive_kernel():
+    td = tempfile.TemporaryDirectory()
+    root = Path(td.name)
+    (root / "bin").mkdir()
+    spec = {"family": "f", "build_idx": 0, "exe": "present.out",
+            "grid": [1, 1, 1], "block": [1, 1, 1],
+            "problem_size": 1024, "metadata": {}, "op_type": "gemm",
+            "phys": {}}
+    (root / "manifest.json").write_text(json.dumps({"specs": [spec]}))
+    (root / "bin" / "present.out").write_text(
+        "#!/bin/bash\nfor i in $(seq 1 12); do echo '{\"time_ms\": 2.0}'; done\n")
+    os.chmod(root / "bin" / "present.out", 0o755)
+    empty_key = "empty_" + "_".join(map(str, list(spec["grid"]) + list(spec["block"])))
+    (root / "bin" / (empty_key + ".out")).write_text(
+        "#!/bin/bash\nfor i in $(seq 1 5); do echo '{\"time_ms\": 0.5}'; done\n")
+    os.chmod(root / "bin" / (empty_key + ".out"), 0o755)
+    out = root / "out.jsonl"
+    r = _run(root, out, ("--strict",))
+    assert r.returncode == 0, r.stdout + r.stderr
+    td.cleanup()
