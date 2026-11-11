@@ -25,6 +25,7 @@ MUTATIONS = {
     "no_pycache_under_experiments": "pycache suppression under experiments/",
     "bk9_gate_flop_aware": "flop-aware bk9 gate calibration",
     "effective_cpu_capacity": "effective CPU capacity helper",
+    "7k6e_tree_state_stamp": "7k6e tree-state stamp mandatory (gpu-sim-7k6e)",
     "ledger_node_ids_validated": "ledger node id validator",
     "no_unconditional_skips": "unconditional-skip guard with allowlist (gpu-sim-1486)",
     "05b3_skip_allowlist_keys": "skip allowlist keyed by file::function:TAG:condition (gpu-sim-05b3)",
@@ -530,6 +531,24 @@ def _apply_no_pycache_under_experiments(root):
     return backup, path
 
 
+def _apply_7k6e_failopen(root):
+    """Mutation for 7k6e_tree_state_stamp: revert fail-closed to fail-open."""
+    import os
+    path = os.path.join(root, "scripts", "tree_state.py")
+    backup = open(path).read()
+    old = """            errors.append(f"{path}: superseded_by.commit {stamp} "
+                          f"(oldest_add): could not resolve landing commit")
+            return errors"""
+    new = """            pass
+            return errors"""
+    mutated = backup.replace(old, new, 1)
+    if mutated == backup:
+        raise RuntimeError("7k6e mutation did not apply")
+    with open(path, "w") as f:
+        f.write(mutated)
+    return backup, path
+
+
 MUTATION_FUNCTIONS = {
     "fd5i_landing_commit_full_sha": _apply_fd5i_revert_to_short,
     "3v6d1_fabric_rate": _apply_3v6d1_unhalve,
@@ -558,5 +577,6 @@ MUTATION_FUNCTIONS = {
     "trcz_impostor": _apply_trcz_remove_assertion,
     "ccw5_meta_parity": _apply_ccw5_meta_mismatch,
     "wknt_error_budget_bounded": _apply_wknt_remove_alarm,
+    "7k6e_tree_state_stamp": _apply_7k6e_failopen,
     "yy6o_integration_guard": _apply_yy6o_guard_disabled,
 }

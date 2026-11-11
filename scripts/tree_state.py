@@ -79,10 +79,15 @@ def stamped_artifacts(repo: Path = REPO_DEFAULT) -> list[tuple[Path, dict, dict]
         if not isinstance(doc, dict):
             continue
         ts = doc.get("tree_state")
+        sb = (ts.get("superseded_by") if isinstance(ts, dict) else None) or doc.get("superseded_by")
         if isinstance(ts, dict) and ts.get("branch"):
             out.append((p, doc, ts))
         elif doc.get("branch"):
             out.append((p, doc, {"branch": doc["branch"]}))
+        elif isinstance(sb, dict) and sb.get("commit"):
+            # A carried stamp makes the artifact judgeable even without a
+            # tree_state block (gpu-sim-7k6e): opt-in is no longer load-bearing.
+            out.append((p, doc, {"superseded_by": sb}))
     return out
 
 
@@ -116,14 +121,22 @@ def landing_commit_for(artifact: str | Path,
     every time someone adds a file beside it'). Returns the oldest add's
     full sha (%H); callers resolve stamps via git rev-parse.
     """
-    out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
-               "main", "--", str(artifact))
-    if not out:
+    # Normalize absolute paths to repo-relative (7k6e): git log resolves
+    # absolute paths, but normalizing keeps behavior consistent with
+    # _last_content_change_commit and avoids path-form dependence.
+    _a = Path(artifact)
+    try:
+        if _a.is_absolute():
+            _a = _a.resolve().relative_to(Path(repo).resolve())
+    except (ValueError, OSError):
+        pass
+    artifact = _a
+    out = None
+    for _ref in ("main", "master", "HEAD"):
         out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
-                   "master", "--", str(artifact))
-    if not out:
-        out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
-                   "HEAD", "--", str(artifact))
+                   _ref, "--", str(artifact))
+        if out:
+            break
     if not out:
         return None
     return out.splitlines()[0]
@@ -143,6 +156,56 @@ def resolve_commit(stamp: str | None,
     return _git(repo, "rev-parse", "--verify", f"{stamp}^{{commit}}")
 
 
+def _last_content_change_commit(path, repo=REPO_DEFAULT):
+    """Newest commit touching path whose change is NOT stamp-only.
+
+    A stamp-only commit changes only the superseded_by/commit_kind fields (or
+    adds them); measurement-content commits change other fields. Returns the
+    newest non-stamp-only commit's sha, or None.
+    """
+    import json as _json
+    # Normalize to repo-relative (7k6e): callers such as stamp_agreement_errors
+    # may pass absolute paths, but git show <sha>:<path> requires a
+    # repo-relative path. Only absolute inputs are normalized, so temp-repo
+    # tests that pass relative paths are unaffected.
+    _p = Path(path)
+    try:
+        if _p.is_absolute():
+            _p = _p.resolve().relative_to(Path(repo).resolve())
+    except (ValueError, OSError):
+        pass
+    path = _p
+    log = _git(repo, "log", "--format=%H", "--", str(path))
+    if not log:
+        return None
+    for commit in log.splitlines():
+        # get file content at commit and its parent
+        cur = _git(repo, "show", f"{commit}:{path}")
+        # parent content
+        par = _git(repo, "show", f"{commit}^:{path}")
+        if cur is None:
+            continue
+        if par is None:
+            return commit  # first add counts as content change
+        try:
+            d_cur = _json.loads(cur)
+            d_par = _json.loads(par)
+        except Exception:
+            return commit
+        # strip stamp fields for comparison
+        def _strip(o):
+            if isinstance(o, dict):
+                o = {k: _strip(v) for k, v in o.items()
+                     if k not in ("superseded_by", "commit_kind")}
+                return o
+            if isinstance(o, list):
+                return [_strip(x) for x in o]
+            return o
+        if _strip(d_cur) != _strip(d_par):
+            return commit
+    return None
+
+
 def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
     """Return a list of error strings for an artifact's carried stamp vs its
     per-file landing commit. Empty list means agreement (or unstamped/not
@@ -150,6 +213,13 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
     import json as _json
     errors = []
     path = Path(artifact)
+    # Normalize to repo-relative (7k6e): stamped_artifacts() yields absolute
+    # paths, but git show <sha>:<path> needs a repo-relative path.
+    try:
+        if path.is_absolute():
+            path = path.resolve().relative_to(Path(repo).resolve())
+    except (ValueError, OSError):
+        pass
     full = Path(repo) / path
     if not full.is_file():
         return errors
@@ -160,9 +230,7 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
     if not isinstance(doc, dict):
         return errors
     ts = doc.get("tree_state", {}) if isinstance(doc.get("tree_state"), dict) else {}
-    landing = landing_commit_for(path, repo)
-    if not landing:
-        return errors
+    landing_oldest = landing_commit_for(path, repo)
     sb = ts.get("superseded_by") or doc.get("superseded_by")
     if not sb or not isinstance(sb, dict):
         return errors  # unstamped: reported, not failed
@@ -171,8 +239,28 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
     if resolved is None:
         errors.append(f"{path}: superseded_by.commit {stamp} is unresolvable")
         return errors
-    if resolved != landing:
-        errors.append(f"{path}: superseded_by.commit {stamp} != landing")
+    kind = sb.get("commit_kind")
+    if kind not in ("oldest_add", "last_content_change"):
+        errors.append(f"{path}: superseded_by.commit {stamp} has no declared "
+                      f"commit_kind (must be 'oldest_add' or 'last_content_change')")
+        return errors
+    if kind == "oldest_add":
+        expected = landing_oldest
+        if not expected:
+            errors.append(f"{path}: superseded_by.commit {stamp} "
+                          f"(oldest_add): could not resolve landing commit")
+            return errors
+        if resolved != expected:
+            errors.append(f"{path}: superseded_by.commit {stamp} (oldest_add) "
+                          f"!= landing {expected}")
+    else:  # last_content_change
+        expected = _last_content_change_commit(path, repo)
+        if expected is None:
+            errors.append(f"{path}: superseded_by.commit {stamp} "
+                          f"(last_content_change): could not resolve last content change commit")
+        elif resolved != expected:
+            errors.append(f"{path}: superseded_by.commit {stamp} "
+                          f"(last_content_change) != last content change {expected}")
     if not sb.get("reachable_from_master", True):
         errors.append(f"{path}: superseded_by.commit not reachable from master")
     return errors

@@ -206,8 +206,16 @@ def _audit_stamps(repo):
     repo = _P(repo)
     bad, unstamped, checked = [], [], []
     for path, doc, ts in stamped_artifacts(repo):
-        if not (isinstance(doc.get("tree_state"), dict)
-                and doc["tree_state"].get("branch")):
+        sb = (ts.get("superseded_by") if isinstance(ts, dict) else None) or doc.get("superseded_by")
+        # Judge any artifact that carries a stamp, even without a tree_state
+        # block (gpu-sim-7k6e): the stamp makes it judgeable.
+        if not (isinstance(sb, dict) and sb.get("commit")):
+            # unstamped: still report if it has a tree_state branch
+            if isinstance(doc.get("tree_state"), dict) and doc["tree_state"].get("branch"):
+                rel = path.relative_to(repo)
+                landing = landing_commit_for(rel, repo)
+                if landing:
+                    unstamped.append(f"{rel}: landed at {landing}, no stamp")
             continue
         rel = path.relative_to(repo)
         landing = landing_commit_for(rel, repo)
@@ -248,6 +256,13 @@ class TestEveryStampedArtifact(unittest.TestCase):
         gap on the face of the run.
         """
         bad, unstamped, checked = _audit_stamps(REPO)
+        # per-artifact declared kind + commit (gpu-sim-7k6e)
+        for path, doc, ts in stamped_artifacts(REPO):
+            sb = ts.get("superseded_by") if isinstance(ts, dict) else None
+            sb = sb or doc.get("superseded_by")
+            if isinstance(sb, dict) and sb.get("commit"):
+                print(f"[tree_state] {path.relative_to(REPO)}: "
+                      f"commit_kind={sb.get('commit_kind')}, commit={sb.get('commit')}")
         print(f"[tree_state] opt-in artifacts checked: {len(checked)}; "
               f"carrying a stamp: {len(checked) - len(unstamped)}; "
               f"opted-in but unstamped (reported, not failed): {unstamped}")
@@ -255,6 +270,12 @@ class TestEveryStampedArtifact(unittest.TestCase):
                            "no opt-in artifact is on master: the suite would "
                            "pass vacuously")
         self.assertEqual(bad, [], "\n".join(bad))
+
+    def test_stamped_artifacts_agree(self):
+        """Close the loop: stamped_artifacts() paths must pass stamp_agreement_errors."""
+        for path, doc, ts in stamped_artifacts(REPO):
+            errs = stamp_agreement_errors(path, REPO)
+            self.assertEqual(errs, [], f"{path}: {errs}")
 
     def test_the_detector_flags_a_wrong_stamp(self):
         """THE CHECK MUST BE ABLE TO FAIL (both halves).
@@ -346,6 +367,7 @@ class TestStampAgreementFailDirection(unittest.TestCase):
         art.write_text(__import__("json").dumps(
             {"tree_state": {"branch": "lab/x",
                             "superseded_by": {"commit": stamp,
+                                              "commit_kind": "oldest_add",
                                               "reachable_from_master": True}}}) + "\n")
         subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
         subprocess.run(["git", "-C", str(root), "commit", "-qm", "add artifact"],
@@ -379,6 +401,7 @@ class TestStampAgreementFailDirection(unittest.TestCase):
             art = root / "experiments" / "x" / "a.json"
             doc = __import__("json").loads(art.read_text())
             doc["tree_state"]["superseded_by"]["commit"] = second[:7]
+            doc["tree_state"]["superseded_by"]["commit_kind"] = "oldest_add"
             art.write_text(__import__("json").dumps(doc) + "\n")
             # re-commit the change so landing doesn't move (amend not needed; landing stays first commit's sha for the file's oldest add)
             bad, unstamped, checked = _audit_stamps(root)
@@ -388,5 +411,67 @@ class TestStampAgreementFailDirection(unittest.TestCase):
             td.cleanup()
 
 
+    def test_last_content_change_wrong_commit_reported(self):
+        """A stamp declaring last_content_change but naming the oldest add must fail."""
+        td = tempfile.TemporaryDirectory()
+        try:
+            root, landing = self._make_artifact(td, None)
+            art = root / "experiments" / "x" / "a.json"
+            # Add a second commit that changes a.json content (so last_content_change != landing)
+            doc2 = __import__("json").loads(art.read_text())
+            doc2["data"] = "changed"
+            art.write_text(__import__("json").dumps(doc2) + "\n")
+            subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "content change"], check=True)
+            # Re-stamp with last_content_change kind but name the OLDEST add (landing).
+            # The last content change is the second commit, so this must fail.
+            doc = __import__("json").loads(art.read_text())
+            doc["tree_state"]["superseded_by"]["commit"] = landing[:7]
+            doc["tree_state"]["superseded_by"]["commit_kind"] = "last_content_change"
+            art.write_text(__import__("json").dumps(doc) + "\n")
+            bad, unstamped, checked = _audit_stamps(root)
+            assert len(bad) > 0, "a wrong last_content_change stamp must be reported"
+        finally:
+            td.cleanup()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestFailClosedLanding(unittest.TestCase):
+    """Fail-closed: an artifact whose landing commit cannot resolve must error."""
+
+    def test_unresolvable_landing_is_reported(self):
+        import tempfile, subprocess, json
+        from pathlib import Path
+        td = tempfile.TemporaryDirectory()
+        try:
+            root = Path(td.name)
+            subprocess.run(["git", "-C", str(root), "init", "-q", "-b", "master"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "t@e.com"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "t"], check=True)
+            art_dir = root / "experiments" / "x"
+            art_dir.mkdir(parents=True)
+            art = art_dir / "a.json"
+            # Create a commit to get a real SHA for the stamp
+            (root / "dummy.txt").write_text("x")
+            subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "dummy"], check=True)
+            real_sha = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                      capture_output=True, text=True, check=True).stdout.strip()
+            # Write the artifact WITHOUT committing it (untracked -> no landing)
+            art.write_text(json.dumps({
+                "tree_state": {"branch": "lab/x",
+                               "superseded_by": {"commit": real_sha[:7],
+                                                 "commit_kind": "oldest_add",
+                                                 "reachable_from_master": True}}}) + "\n")
+            from scripts.tree_state import stamp_agreement_errors
+            # Need to set REPO for the module
+            import scripts.tree_state as ts
+            ts.REPO_DEFAULT = root
+            errs = stamp_agreement_errors("experiments/x/a.json", root)
+            assert len(errs) > 0, "unresolvable landing must be reported"
+            assert any("could not resolve landing commit" in e for e in errs), errs
+        finally:
+            td.cleanup()
