@@ -64,12 +64,7 @@ def test_rename_one_key_fails():
     missing = main_keys - fake_branch
     assert missing == {target}, f"expected {{{target}}} missing, got {missing}"
     # The superset assertion must fail with the same message shape.
-    try:
-        assert not missing, f"branch registry missing keys that main has: {sorted(missing)}"
-    except AssertionError as e:
-        assert str(e) == f"branch registry missing keys that main has: [{target!r}]" if False else True
-    # Re-assert the real check bites: recompute missing and expect non-empty.
-    assert main_keys - fake_branch, "plant did not produce a missing key"
+    assert missing == {target}, f"expected {{{target}}} missing, got {missing}"
 
 
 def test_per_shard_description_matches_json():
@@ -77,15 +72,19 @@ def test_per_shard_description_matches_json():
     for json_path in sorted(MUTATIONS_DIR.glob("*.json")):
         key = json_path.stem
         py_path = MUTATIONS_DIR / (key + ".py")
-        if not py_path.exists():
-            continue
         meta = json.loads(json_path.read_text())
+        data_only = bool(meta.get("data_only", False)) or meta.get("function") is None and "function" in meta
+        if not py_path.exists():
+            # a missing .py is only OK for a declared data-only mutation
+            assert data_only, f"{key}: missing .py and not declared data_only"
+            continue
         # load MUTATIONS from .py without side effects
         ns = {}
         exec(compile(py_path.read_text(), str(py_path), "exec"), ns)
         py_mut = ns.get("MUTATIONS")
         if not isinstance(py_mut, dict):
             # data-only shard: no MUTATIONS dict required
+            assert data_only, f"{key}: .py exports no MUTATIONS but not declared data_only"
             continue
         assert py_mut.get(key) == meta.get("description"), (
             f"{key}: .py description {py_mut.get(key)!r} != "
