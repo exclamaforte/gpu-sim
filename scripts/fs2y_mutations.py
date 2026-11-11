@@ -204,7 +204,9 @@ def _apply_fd5i_revert_to_short(root):
     import os
     path = os.path.join(root, "scripts", "tree_state.py")
     backup = open(path).read()
-    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1)
+    if mutated == backup:
+        raise RuntimeError("fd5i mutation anchor not found: the format string moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
@@ -416,7 +418,9 @@ def _apply_fd5i_revert_to_short(root):
     import os
     path = os.path.join(root, "scripts", "tree_state.py")
     backup = open(path).read()
-    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1) + "\n"
+    mutated = backup.replace('log", "--format=%H", "--diff-filter=A"', 'log", "--format=%h", "--diff-filter=A"', 1)
+    if mutated == backup:
+        raise RuntimeError("fd5i mutation anchor not found: the format string moved")
     with open(path, "w") as f:
         f.write(mutated)
     return backup, path
@@ -554,4 +558,5 @@ MUTATION_FUNCTIONS = {
     "trcz_impostor": _apply_trcz_remove_assertion,
     "ccw5_meta_parity": _apply_ccw5_meta_mismatch,
     "wknt_error_budget_bounded": _apply_wknt_remove_alarm,
+    "yy6o_integration_guard": _apply_yy6o_guard_disabled,
 }
