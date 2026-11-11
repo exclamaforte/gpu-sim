@@ -1,3 +1,5 @@
+MUTATIONS = {"5uu9_power_arm": "5uu9 power arm reproducibility"}
+
 """Mutation for 5uu9_power_arm: corrupt a scalar in committed metrics.json."""
 import json, os
 
