@@ -23,7 +23,13 @@ for _json_path in sorted(glob.glob(os.path.join(_MUTATIONS_DIR, "*.json"))):
     MUTATIONS[_key] = _meta.get("description", "")
     _data_only = bool(_meta.get("data_only", False)) or ("function" in _meta and _meta.get("function") is None)
     _py_path = os.path.join(_MUTATIONS_DIR, _key + ".py")
-    if os.path.exists(_py_path):
+    if not os.path.exists(_py_path):
+        if not _data_only:
+            raise RuntimeError(
+                f"mutation {_key!r}: .py is missing; declare \"function\": null / "
+                f"\"data_only\": true in its .json for a data-only mutation, or "
+                f"restore the apply file")
+    else:
         _spec = importlib.util.spec_from_file_location(f"mutation_{_key}", _py_path)
         _mod = importlib.util.module_from_spec(_spec)
         _spec.loader.exec_module(_mod)
