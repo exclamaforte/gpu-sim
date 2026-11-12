@@ -1,0 +1,12 @@
+{
+  "name": "lcnu_spawn_fix",
+  "beads": [
+    "gpu-sim-lcnu"
+  ],
+  "state": "passing",
+  "test": "test_trace_concurrent_writers.test_concurrent_writers_never_tear_a_line",
+  "bound_calls": 1,
+  "mutation": "n/a",
+  "verification": "positive_only",
+  "exempt_reason": "fork->spawn context change; plant cannot reproduce full-suite flakiness in isolation"
+}

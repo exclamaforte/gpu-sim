@@ -56,7 +56,7 @@ def test_concurrent_writers_never_tear_a_line():
     TMP_ROOT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=TMP_ROOT) as d:
         path = os.path.join(d, "trace.jsonl")
-        ctx = mp.get_context("fork")
+        ctx = mp.get_context("spawn")
         procs = [ctx.Process(target=_worker, args=(path, r)) for r in range(NPROC)]
         for p in procs:
             p.start()
