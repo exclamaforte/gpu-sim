@@ -1,16 +1,14 @@
 {
   "bead": "gpu-sim-q9zk",
-  "command": "python3 experiments/gpu-sim-8zqr/measure.py --build-dir .lab/wt/gpu-sim-qaiu/experiments/gpu-sim-u5r4/build_div_sizescale --out <out> --strict",
-  "build_dir": ".lab/wt/gpu-sim-qaiu/experiments/gpu-sim-u5r4/build_div_sizescale",
+  "command": "python3 experiments/gpu-sim-8zqr/measure.py --build-dir .../build_div_sizescale --out ... --strict",
   "exit_code": 1,
-  "done_line": "DONE measured 56 new rows, 1 rows with non-positive kernel_us -> <out>",
+  "done_line": "DONE measured 56 new rows, 1 rows with non-positive kernel_us -> measured_rows_sizescale_strict.jsonl",
   "total_rows": 56,
   "non_positive_count": 1,
   "negative_row": {
-    "kernel_us": -2.224000000000001,
+    "kernel_us": 0.0,
     "target_usable": false,
     "rejection_reason": "non_positive_kernel",
     "log_kernel_us": null
-  },
-  "row_file": "measured_rows_sizescale_strict.jsonl"
+  }
 }
