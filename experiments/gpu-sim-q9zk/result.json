@@ -1,0 +1,15 @@
+{
+  "bead": "gpu-sim-q9zk",
+  "command": "python3 experiments/gpu-sim-8zqr/measure.py --build-dir .../build_div_sizescale --out ... --strict",
+  "exit_code": 1,
+  "done_line": "DONE measured 56 new rows, 1 rows with non-positive kernel_us -> measured_rows_sizescale_strict.jsonl",
+  "total_rows": 56,
+  "non_positive_count": 1,
+  "negative_row": {
+    "kernel_us": 0.0,
+    "target_usable": false,
+    "rejection_reason": "non_positive_kernel",
+    "log_kernel_us": null
+  },
+  "build_manifest": "build_manifest.json"
+}

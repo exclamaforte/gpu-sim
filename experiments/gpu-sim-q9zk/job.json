@@ -1,0 +1,21 @@
+{
+  "bead": "gpu-sim-q9zk",
+  "jobs": [],
+  "cpu_runs": [
+    {
+      "command": "python3 -c \"import json; rows=[json.loads(l) for l in open('experiments/gpu-sim-q9zk/measured_rows_sizescale_strict.jsonl')]; assert sum(1 for r in rows if r.get('rejection_reason')=='non_positive_kernel')==1\"",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-q9zk/verify.log"
+    }
+  ],
+  "gpu_jobs": [
+    {
+      "job_id": "20261112t024957-2e74adc6",
+      "state": "failed",
+      "exit_code": 1,
+      "wall_s": 44,
+      "what": "q9zk r2 strict rerun"
+    }
+  ],
+  "total_wall_s": 44
+}
