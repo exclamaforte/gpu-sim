@@ -18,7 +18,7 @@ def rejection_reason(kernel_us, threshold, gc):
     if kernel_us >= threshold and (not gc) and kernel_us > 0:
         return "accepted"
     if kernel_us <= 0:
-        return "nonpositive_kernel_us"
+        return "non_positive_kernel"
     if gc:
         return "grid_capped"
     if kernel_us < threshold:
@@ -45,7 +45,7 @@ def build():
             old_usable += 1
         old_reason = "accepted" if old_usable_flag else (
             "grid_capped" if old_gc else (
-                "nonpositive_kernel_us" if kernel_us <= 0 else (
+                "non_positive_kernel" if kernel_us <= 0 else (
                     "below_threshold" if kernel_us < old_threshold else "unknown")))
         # new gate
         if compute_bound and residual > 0:

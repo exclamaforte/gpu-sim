@@ -50,7 +50,7 @@ def build_row(d, scale_trials, empty_trials):
     rejection_reason = None
     if not usable:
         if kernel_us <= 0:
-            rejection_reason = "nonpositive_kernel_us"
+            rejection_reason = "non_positive_kernel"
         elif gc:
             rejection_reason = "grid_capped"
         elif kernel_us < threshold:
@@ -100,7 +100,7 @@ def gate_decision(row, compute_bound_families=("gemm_naive", "matmul")):
     usable = (kernel_us >= threshold) and (not gc) and (kernel_us > 0)
     if not usable:
         if kernel_us <= 0:
-            reason = "nonpositive_kernel_us"
+            reason = "non_positive_kernel"
         elif gc:
             reason = "grid_capped"
         elif kernel_us < threshold:

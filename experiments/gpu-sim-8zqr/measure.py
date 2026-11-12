@@ -50,7 +50,7 @@ def build_row(d, scale_trials, empty_trials):
     rejection_reason = None
     if not usable:
         if kernel_us <= 0:
-            rejection_reason = "nonpositive_kernel_us"
+            rejection_reason = "non_positive_kernel"
         elif gc:
             rejection_reason = "grid_capped"
         elif kernel_us < threshold:
@@ -100,7 +100,7 @@ def gate_decision(row, compute_bound_families=("gemm_naive", "matmul")):
     usable = (kernel_us >= threshold) and (not gc) and (kernel_us > 0)
     if not usable:
         if kernel_us <= 0:
-            reason = "nonpositive_kernel_us"
+            reason = "non_positive_kernel"
         elif gc:
             reason = "grid_capped"
         elif kernel_us < threshold:
@@ -118,6 +118,8 @@ def main():
     ap.add_argument("--out", default=None)
     ap.add_argument("--allow-partial", action="store_true",
                     help="allow a partial run (some specs skipped) to exit 0")
+    ap.add_argument("--strict", action="store_true",
+                    help="exit non-zero if any row has a non-positive kernel_us")
     args = ap.parse_args()
     here = Path(__file__).resolve().parent
     build = Path(args.build_dir) if args.build_dir else (here / "build")
@@ -142,6 +144,7 @@ def main():
     n_ok = 0
     n_skipped = 0
     n_failed = 0
+    n_nonpos = 0
     n_total = len(specs)
     fh = None
     try:
@@ -198,6 +201,8 @@ def main():
                 fh.write(json.dumps(row) + "\n"); fh.flush()
                 continue
             row = build_row(d, scale_trials, empty_trials)
+            if row.get("rejection_reason") == "non_positive_kernel":
+                n_nonpos += 1
             if fh is None:
                 fh = open(out, "a")
             fh.write(json.dumps(row) + "\n"); fh.flush()
@@ -251,7 +256,9 @@ def main():
                       f"{n_failed} rows recorded errors -- see {out}", flush=True)
             raise SystemExit(1)
 
-    print(f"DONE measured {n_ok} new rows -> {out}")
+    print(f"DONE measured {n_ok} new rows, {n_nonpos} rows with non-positive kernel_us -> {out}")
+    if args.strict and n_nonpos > 0:
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
