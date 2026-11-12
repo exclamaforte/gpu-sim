@@ -1,12 +1,20 @@
 {
-  "jobs": [
+  "bead": "gpu-sim-q9zk",
+  "jobs": [],
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-q9zk/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-q9zk/output.log"
+    }
+  ],
+  "gpu_jobs": [
     {
       "job_id": "20261112t024957-2e74adc6",
-      "command": "bash experiments/gpu-sim-q9zk/run.sh",
+      "state": "failed",
       "exit_code": 1,
-      "log": "experiments/gpu-sim-q9zk/output.log",
-      "what": "q9zk r2 strict rerun",
-      "wall_s": 44
+      "wall_s": 44,
+      "what": "q9zk r2 strict rerun"
     }
   ],
   "total_wall_s": 44
