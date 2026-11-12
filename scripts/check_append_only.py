@@ -26,6 +26,7 @@ DEPTH_ENV = "OI4M_CHECKER_PID"
 EXEMPT_ROWS = {
     "8zqr_generalization": "replays stageD experiment (~74s); artifact byte-verified by append-only half",
     "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
+    "lcnu_spawn_fix": "fork->spawn context change; plant cannot reproduce full-suite flakiness in isolation",
 }
 
 # Positive-only rows, grandfathered (gpu-sim-55sb). A row that cannot fail is not
