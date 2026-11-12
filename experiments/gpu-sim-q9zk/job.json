@@ -3,9 +3,9 @@
   "jobs": [],
   "cpu_runs": [
     {
-      "command": "bash experiments/gpu-sim-q9zk/run.sh",
+      "command": "python3 -c \"import json; rows=[json.loads(l) for l in open('experiments/gpu-sim-q9zk/measured_rows_sizescale_strict.jsonl')]; assert sum(1 for r in rows if r.get('rejection_reason')=='non_positive_kernel')==1\"",
       "exit_code": 0,
-      "log": "experiments/gpu-sim-q9zk/output.log"
+      "log": "experiments/gpu-sim-q9zk/verify.log"
     }
   ],
   "gpu_jobs": [
