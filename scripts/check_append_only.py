@@ -540,6 +540,14 @@ def check_ledger_test_ids(root):
             if rrun.returncode != 0:
                 errors.append(f"ledger row {name!r}: positive {target!r} did not pass (rc={rrun.returncode})")
                 continue
+    # ypdk: print the verification tally so the coverage gap is visible on every run.
+    if not child:
+        n_plant = sum(1 for e in entries if e.get("verification") == "mutation_plant")
+        n_pos = sum(1 for e in entries if e.get("verification") == "positive_only")
+        n_collect = sum(1 for e in entries if e.get("verification") == "collect_only")
+        n_exempt = sum(1 for e in entries if e.get("name") in EXEMPT_ROWS)
+        print(f"verification tally: plants {n_plant}/{len(entries)}, "
+              f"positive {n_pos}, collect {n_collect}, exempt {n_exempt}")
     # Loud on every clean run: the grandfathered positive-only rows are debt, and a
     # silent pass would be the very defect this bead exists to remove.
     if not child and not errors and POSITIVE_ONLY_GRANDFATHERED:
