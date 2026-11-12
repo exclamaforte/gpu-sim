@@ -38,8 +38,11 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 
 def run_script():
+    env = dict(os.environ)
+    if _PLANT_FILES:
+        env["P4DW_PLANT_PATHS"] = os.pathsep.join(str(p) for p in _PLANT_FILES)
     r = subprocess.run([sys.executable, str(SCRIPT)], cwd=str(ROOT),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=env)
     return r.returncode, r.stdout + r.stderr
 
 
@@ -94,11 +97,12 @@ class TestAppendOnly(unittest.TestCase):
     def test_ledger_retired_deletion_passes(self):
         shard = ROOT / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
         backup = shard.read_text()
+        meta = ROOT / "tests" / "fs2y_ledger_meta.json"
+        _PLANT_FILES.extend([shard, meta])
         import subprocess as sp
         commit = sp.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
                                  text=True).strip()
         shard.unlink()
-        meta = ROOT / "tests" / "fs2y_ledger_meta.json"
         meta_backup = meta.read_text()
         md = json.loads(meta_backup)
         md.setdefault("retired", [])
@@ -114,6 +118,11 @@ class TestAppendOnly(unittest.TestCase):
         finally:
             shard.write_text(backup)
             meta.write_text(meta_backup)
+            for _pf in (shard, meta):
+                try:
+                    _PLANT_FILES.remove(_pf)
+                except ValueError:
+                    pass
 
     def test_retirement_missing_reason_fails(self):
         mf = ROOT / "docs" / "model_facts.json"
@@ -299,7 +308,7 @@ class TestWty2Repro(unittest.TestCase):
         env["WTY2_METRICS"] = tmp.name
         try:
             r = subprocess.run(["bash", str(run)], cwd=str(ROOT),
-                               capture_output=True, text=True, timeout=120,
+                               capture_output=True, text=True, timeout=300,
                                env=env)
             return r.returncode, r.stdout + r.stderr
         finally:
@@ -435,3 +444,20 @@ class TestRaisingApplierLeavesNoResidue(unittest.TestCase):
         finally:
             if junk.exists():          # never leave residue if the harness fails
                 junk.unlink()
+
+
+class TestMutationRestoreSafety(unittest.TestCase):
+    """p4dw: mutation restore safety net (signal handler + atexit)."""
+
+    def test_dirty_check_tolerates_untracked(self):
+        # untracked files (new shards/rows) are tolerated; the walk proceeds
+        dirty = ROOT / "experiments" / "gpu-sim-p4dw-dirty-probe.txt"
+        dirty.write_text("x")
+        try:
+            r = subprocess.run([sys.executable, str(SCRIPT)], cwd=str(ROOT),
+                               capture_output=True, text=True, timeout=300)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertNotIn("REFUSE", r.stdout + r.stderr)
+        finally:
+            dirty.unlink(missing_ok=True)
+

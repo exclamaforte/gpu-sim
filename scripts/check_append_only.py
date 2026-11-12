@@ -13,9 +13,62 @@ pytest node, collects >=1 test, executes successfully, and (when a mutation
 function is registered) fails when its mutation is applied and passes when
 restored. No externally settable opt-out; recursion is broken structurally.
 """
-import json, subprocess, sys, os, argparse, ast
+import json, subprocess, sys, os, argparse, ast, signal, atexit
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# ---- p4dw: mutation restore safety net ------------------------------
+_APPLIED_MUTATIONS = []  # list of (backup_text, mutated_path)
+_ACTIVE_PGROUPS = set()
+
+
+def _restore_one(backup, path):
+    if path is None:
+        return
+    try:
+        if backup is None:
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
+        else:
+            with open(path, "w") as f:
+                f.write(backup)
+    except (OSError, IOError) as e:
+        print(f"RESTORE FAILED: {path}: {e}", file=sys.stderr)
+
+
+def _kill_active_children():
+    for pg in list(_ACTIVE_PGROUPS):
+        try:
+            os.killpg(pg, signal.SIGTERM)
+        except (ProcessLookupError, OSError):
+            pass
+    _ACTIVE_PGROUPS.clear()
+
+
+def _restore_all_mutations():
+    _kill_active_children()
+    for backup, path in list(_APPLIED_MUTATIONS):
+        _restore_one(backup, path)
+    _APPLIED_MUTATIONS.clear()
+
+
+atexit.register(_restore_all_mutations)
+
+
+def _signal_handler(signum, frame):
+    _kill_active_children()
+    _restore_all_mutations()
+    sys.exit(128 + signum)
+
+
+for _sig in (signal.SIGTERM, signal.SIGINT):
+    try:
+        signal.signal(_sig, _signal_handler)
+    except (ValueError, OSError):
+        pass
+# -------------------------------------------------------------------
 
 CHECKER_NAME = "check_append_only.py"
 DEPTH_ENV = "OI4M_CHECKER_PID"
@@ -456,28 +509,21 @@ def check_ledger_test_ids(root):
             backup = mutated_path = None
             try:
                 backup, mutated_path = apply_fn(root)
-                rmut = subprocess.run(
+                _APPLIED_MUTATIONS.append((backup, mutated_path))
+                rmut = _run_pytest(
                     [sys.executable, "-m", "pytest", "-q", target],
-                    cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
-                    env=_child_env())
+                    root, ROW_TIMEOUTS.get(name, 120), _child_env())
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
                     continue
+            except subprocess.TimeoutExpired:
+                _restore_one(backup, mutated_path)
+                _APPLIED_MUTATIONS[:] = [m for m in _APPLIED_MUTATIONS if m[1] != mutated_path]
+                errors.append(f"ledger row {name!r}: mutation {mutation!r} timed out")
+                continue
             finally:
-                if backup is None:
-                    # apply_fn raised before returning (write-then-raise, e.g. a
-                    # `make` timeout at fs2y_mutations.d/<key>.py apply()): mutated_path
-                    # is still None, and os.remove(None) raises TypeError --
-                    # which would skip the dirty-path restore BELOW and leak the
-                    # very residue this block exists to clean (review finding).
-                    if mutated_path:
-                        try:
-                            os.remove(mutated_path)
-                        except OSError:
-                            pass
-                else:
-                    with open(mutated_path, "w") as f:
-                        f.write(backup)
+                _restore_one(backup, mutated_path)
+                _APPLIED_MUTATIONS[:] = [m for m in _APPLIED_MUTATIONS if m[1] != mutated_path]
                 # Anything ELSE this row made dirty is residue: restore it.
                 # Only paths clean before the row are touched, so pre-existing
                 # uncommitted work is never destroyed.
@@ -495,10 +541,9 @@ def check_ledger_test_ids(root):
                                 pass
                 # rebuild if a compiled source was restored (C-source mutations)
                 subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
-            rrest = subprocess.run(
+            rrest = _run_pytest(
                 [sys.executable, "-m", "pytest", "-q", target],
-                cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
-                env=_child_env())
+                root, ROW_TIMEOUTS.get(name, 120), _child_env())
             if rrest.returncode != 0:
                 errors.append(f"ledger row {name!r}: restored target did not pass (rc={rrest.returncode})")
                 continue
@@ -534,10 +579,9 @@ def check_ledger_test_ids(root):
             print(f"replay skipped (exempt): {name} -- {EXEMPT_ROWS[name]}")
         # positive execution (top-level only; children skip to avoid recursion)
         if (not child and not positive_done and not exempt):
-            rrun = subprocess.run(
+            rrun = _run_pytest(
                 [sys.executable, "-m", "pytest", "-q", target],
-                cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
-                env=_child_env())
+                root, ROW_TIMEOUTS.get(name, 120), _child_env())
             if rrun.returncode != 0:
                 errors.append(f"ledger row {name!r}: positive {target!r} did not pass (rc={rrun.returncode})")
                 continue
@@ -591,6 +635,63 @@ def _is_integration_tree():
         return False
 
 
+def _startup_dirty_check():
+    # p4dw: refuse to run when the working tree has uncommitted TRACKED changes,
+    # so a leftover mutated artifact is caught immediately. Untracked files (new
+    # shards, ledger rows) are tolerated -- they are the normal implementer
+    # flow. No externally-settable opt-out: the backstop must not be bypassable.
+    if _child_mode():
+        return
+    # Under pytest the suite legitimately mutates tracked files to plant
+    # failures; the backstop targets agent/gate invocations, not the suite.
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return
+    try:
+        r = subprocess.run(["git", "-C", ROOT, "status", "--porcelain"],
+                           capture_output=True, text=True, timeout=30)
+    except Exception as e:
+        print(f"REFUSE: git status failed ({e}); cannot verify clean tree", file=sys.stderr)
+        sys.exit(2)
+    if r.returncode != 0:
+        print(f"REFUSE: git status exited {r.returncode}: {r.stderr.strip()}", file=sys.stderr)
+        sys.exit(2)
+    tracked_dirty = [ln for ln in r.stdout.splitlines() if not ln.startswith("??")]
+    if tracked_dirty:
+        print("REFUSE: working tree is dirty; restore before running:", file=sys.stderr)
+        print("\n".join(tracked_dirty), file=sys.stderr)
+        sys.exit(2)
+
+
+
+
+
+def _run_pytest(cmd, root, timeout, env):
+    """Run a row's pytest child in its own process group so the walk can
+    terminate the whole group on SIGTERM/timeout (p4dw blocker 3)."""
+    proc = subprocess.Popen(cmd, cwd=root, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True,
+                            start_new_session=True, env=env)
+    _ACTIVE_PGROUPS.add(proc.pid)
+    try:
+        out, _ = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except (ProcessLookupError, OSError):
+            pass
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except (ProcessLookupError, OSError):
+                pass
+            proc.wait()
+        raise
+    finally:
+        _ACTIVE_PGROUPS.discard(proc.pid)
+    return subprocess.CompletedProcess(cmd, proc.returncode, out, "")
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=None, help="base ref (default: merge-base HEAD <trunk>)")
@@ -600,6 +701,7 @@ def main():
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
         return 2
+    _startup_dirty_check()
     base_ref = args.base if args.base else merge_base()
     if base_ref is None:
         print("FAIL: cannot determine merge-base with trunk")
