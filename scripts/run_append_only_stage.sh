@@ -33,8 +33,13 @@ mkdir -p "$tmp_base" 2>/dev/null || {
 tmpwt="$tmp_base/appendonly.$$"
 
 cleanup() {
+  # 'worktree remove' refuses when the tree no longer validates (the walker can
+  # leave the disposable worktree without a .git), so remove the directory and
+  # prune the registration: what must not survive is the REGISTRATION, and
+  # prune is the only command that clears one whose directory is gone.
   git -C "$repo_root" worktree remove --force "$tmpwt" >/dev/null 2>&1 || true
   rm -rf "$tmpwt"
+  git -C "$repo_root" worktree prune >/dev/null 2>&1 || true
 }
 # Cleanup on normal exit AND on interruption: a killed gate must not leave a
 # registered worktree behind (that is the residue class this bead is about).

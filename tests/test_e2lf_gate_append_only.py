@@ -84,7 +84,8 @@ def test_stage_fails_on_induced_violation_and_leaves_no_worktree():
         assert "no registered mutation function" in out, out
         assert _appendonly_worktrees() == [], _appendonly_worktrees()
     finally:
-        _git("worktree", "remove", "--force", str(tw)) if tw.exists() else None
-        subprocess.run(["git", "-C", str(ROOT), "worktree", "prune"],
+        subprocess.run(["git", "-C", str(ROOT), "worktree", "remove", "--force", str(tw)],
                        capture_output=True, text=True)
         shutil.rmtree(tmp, ignore_errors=True)
+        subprocess.run(["git", "-C", str(ROOT), "worktree", "prune"],
+                       capture_output=True, text=True)
