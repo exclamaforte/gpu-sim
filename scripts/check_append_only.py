@@ -635,16 +635,14 @@ def _is_integration_tree():
         return False
 
 
-def _startup_dirty_check():
+def _startup_dirty_check(dirty_ok=False):
     # p4dw: refuse to run when the working tree has uncommitted TRACKED changes,
     # so a leftover mutated artifact is caught immediately. Untracked files (new
     # shards, ledger rows) are tolerated -- they are the normal implementer
     # flow. No externally-settable opt-out: the backstop must not be bypassable.
     if _child_mode():
         return
-    # Under pytest the suite legitimately mutates tracked files to plant
-    # failures; the backstop targets agent/gate invocations, not the suite.
-    if os.environ.get("PYTEST_CURRENT_TEST"):
+    if dirty_ok:
         return
     try:
         r = subprocess.run(["git", "-C", ROOT, "status", "--porcelain"],
@@ -696,12 +694,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=None, help="base ref (default: merge-base HEAD <trunk>)")
     ap.add_argument("--force", action="store_true", help="allow running in the integration tree (dangerous)")
+    ap.add_argument("--dirty-ok", action="store_true", help="tolerate a dirty tracked tree (tests only)")
+    ap.add_argument("--check-dirty-only", action="store_true", help="run only the dirty-tree backstop and exit")
     args = ap.parse_args()
     if _is_integration_tree() and not args.force:
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
         return 2
-    _startup_dirty_check()
+    _startup_dirty_check(dirty_ok=args.dirty_ok)
+    if args.check_dirty_only:
+        print("OK: tree clean")
+        return 0
     base_ref = args.base if args.base else merge_base()
     if base_ref is None:
         print("FAIL: cannot determine merge-base with trunk")

@@ -44,10 +44,27 @@ def test_dirty_check_refuses():
     dirty.write_text("x")
     try:
         r = subprocess.run(
-            [sys.executable, str(SCRIPT)],
-            cwd=str(ROOT), capture_output=True, text=True, timeout=300,
+            [sys.executable, str(SCRIPT), "--check-dirty-only"],
+            cwd=str(ROOT), capture_output=True, text=True, timeout=60,
         )
         assert r.returncode == 0, f"exit {r.returncode}, expected 0: {r.stderr}"
         assert "REFUSE" not in (r.stdout + r.stderr)
     finally:
         dirty.unlink(missing_ok=True)
+
+
+def test_dirty_check_refuses_tracked_docs():
+    """Tracked modification under docs/ must be refused (s5y0)."""
+    target = ROOT / "docs" / "model_facts.json"
+    backup = target.read_text()
+    target.write_text(backup + " ")
+    try:
+        r = subprocess.run(
+            [sys.executable, str(SCRIPT), "--force", "--check-dirty-only"],
+            cwd=str(ROOT), capture_output=True, text=True, timeout=60,
+        )
+        assert r.returncode == 2, f"exit {r.returncode}, expected 2: {r.stderr}"
+        assert "REFUSE" in (r.stdout + r.stderr)
+        assert "docs/model_facts.json" in (r.stdout + r.stderr)
+    finally:
+        target.write_text(backup)
