@@ -607,7 +607,6 @@ def _child_env():
     env = dict(os.environ)
     env[DEPTH_ENV] = str(os.getpid())
     # Prevent stale pycache from masking source mutations (rn6b).
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
     return env
 
 
