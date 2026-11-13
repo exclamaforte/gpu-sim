@@ -249,7 +249,7 @@ def audit(issues: list[dict]) -> dict:
 def _query(args: list[str]) -> tuple[list, int]:
     try:
         proc = subprocess.run(["bd", *args, "--json"], capture_output=True,
-                              text=True, cwd=str(REPO), timeout=30)
+                              text=True, cwd=str(REPO), timeout=300)
     except subprocess.TimeoutExpired:
         return [], 124
     if proc.returncode != 0:
@@ -309,7 +309,7 @@ def _bd_available() -> tuple[bool, str, str]:
     try:
         proc = subprocess.run(["bd", "list", "--all", "--json"],
                               capture_output=True, text=True, cwd=str(REPO),
-                              timeout=60)
+                              timeout=300)
     except (subprocess.TimeoutExpired, OSError) as e:
         return False, "unusable", f"bd query failed to run: {e}"
     if proc.returncode == 0:
