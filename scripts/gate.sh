@@ -143,22 +143,11 @@ if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
 fi
 run_hard "docs section 0 vs model" python3 scripts/check_docs_model_numbers.py
-# gpu-sim-e2lf: run the append-only walk in a disposable worktree, never the
-# integration tree (yy6o's guard refuses there). EXPECTED_HARD is unchanged: a
-# skipped stage is not a passing stage.
-run_append_only() {
-  local tmpwt="$GATE_TMP/appendonly.$$"
-  local rc=0
-  if ! git worktree add --detach "$tmpwt" HEAD >/dev/null 2>&1; then
-    echo "git worktree add failed" >"$GATE_LOG"
-    return 1
-  fi
-  ( cd "$tmpwt" && python3 scripts/check_append_only.py --force ) >"$GATE_LOG" 2>&1 || rc=$?
-  git worktree remove --force "$tmpwt" >/dev/null 2>&1 || true
-  rm -rf "$tmpwt"
-  return $rc
-}
-run_hard "append-only records" run_append_only
+# gpu-sim-e2lf: the append-only walk runs in a DISPOSABLE worktree of HEAD, not
+# in the integration tree (yy6o's guard refuses there). EXPECTED_HARD is
+# unchanged: a skipped stage is not a passing stage. See
+# scripts/run_append_only_stage.sh for why --force is load-bearing there.
+run_hard "append-only records" bash scripts/run_append_only_stage.sh
 run_hard "close_audit unchanged" python3 scripts/check_close_audit_unchanged.py
 run_hard "close audit (concrete artifacts)" python3 scripts/close_requires_artifact.py
 run_hard "interposer guard uniqueness" python3 scripts/check_guard_uniqueness.py

@@ -1,50 +1,90 @@
-"""e2lf: the landing gate runs append-only in a disposable worktree (gpu-sim-e2lf)."""
+"""e2lf: the append-only stage runs in a disposable worktree (gpu-sim-e2lf).
+
+Why the stage exists: the landing gate runs in the integration tree, where
+HEAD == main by construction, and the append-only walk refuses to run there
+(yy6o's guard) because a walk in the integration tree mutates the tree being
+landed.  scripts/run_append_only_stage.sh runs the same walk in a throwaway
+worktree of the same commit, so the check still runs -- and can still fail --
+while the integration tree is never touched.
+
+These tests drive that script directly, which is exactly what
+scripts/gate.sh's "append-only records" stage runs.  Driving the script rather
+than the whole gate keeps the test bounded and avoids a gate that invokes the
+gate while still exercising the real code path, including cleanup.
+
+The decisive assertion in the failing case is the walker's own message naming
+the offending row -- `rc != 0` alone would also be satisfied by a missing file,
+a syntax error or a timeout, which is the failure mode that let three
+"plants" look green earlier in this repo.
+"""
 import json
+import shutil
 import subprocess
-import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "gate.sh"
-ROW = ROOT / "tests" / "fs2y_ledger.d" / "ypdk_tally.json"
+STAGE = ROOT / "scripts" / "run_append_only_stage.sh"
+GATE = ROOT / "scripts" / "gate.sh"
+ROW_REL = Path("tests/fs2y_ledger.d/ypdk_tally.json")
 
 
-def _git(*args):
-    return subprocess.run(["git", "-C", str(ROOT), *args],
-                         capture_output=True, text=True, check=True)
+def _git(*args, cwd=ROOT):
+    return subprocess.run(["git", "-C", str(cwd), *args],
+                          capture_output=True, text=True, check=True)
 
 
-def test_append_only_stage_fails_on_induced_violation_and_cleans_up():
-    """A merged tip whose ledger row carries mutation 'n/a' must make the
-    append-only stage FAIL inside the gate, and the gate must leave no
-    disposable 'appendonly' worktree behind."""
-    original_branch = _git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
-    original_head = _git("rev-parse", "HEAD").stdout.strip()
-    backup = ROW.read_text()
-    temp_branch = "e2lf-test-violation"
+def _run_stage(ref=None):
+    cmd = ["bash", str(STAGE)]
+    if ref:
+        cmd.append(ref)
+    return subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
+                          timeout=900)
+
+
+def _appendonly_worktrees():
+    return [line for line in _git("worktree", "list").stdout.splitlines()
+            if "appendonly" in line]
+
+
+def test_gate_runs_the_stage_script_not_an_inline_walk():
+    """The gate must actually call the extracted stage (and keep it HARD)."""
+    text = GATE.read_text()
+    assert "run_append_only_stage.sh" in text, "gate.sh does not call the stage script"
+    assert 'run_hard "append-only records"' in text, "append-only stage is not a HARD stage"
+
+
+def test_stage_passes_on_a_valid_tip():
+    result = _run_stage()
+    out = result.stdout + result.stderr
+    assert result.returncode == 0, out
+    assert "append-only check passed" in out, out
+    assert _appendonly_worktrees() == [], _appendonly_worktrees()
+
+
+def test_stage_fails_on_induced_violation_and_leaves_no_worktree():
+    tmp = Path(tempfile.mkdtemp(prefix="e2lf-stage-", dir=str(ROOT / ".lab" / "tmp")))
+    tw = tmp / "tw"
     try:
-        _git("checkout", "-b", temp_branch)
-        d = json.loads(ROW.read_text())
-        d["mutation"] = "n/a"
-        ROW.write_text(json.dumps(d, indent=2) + "\n")
-        _git("add", str(ROW.relative_to(ROOT)))
-        _git("commit", "-m", "e2lf induced violation (test)")
-        r = subprocess.run(["bash", str(SCRIPT), "--fast"],
-                           cwd=str(ROOT), capture_output=True, text=True, timeout=600)
-        out = r.stdout + r.stderr
-        assert r.returncode != 0, f"expected gate failure, got rc={r.returncode}"
-        assert "append-only records" in out and "FAIL" in out, out
-        # cleanup: no leftover appendonly worktree
-        wl = subprocess.run(["git", "-C", str(ROOT), "worktree", "list"],
-                            capture_output=True, text=True).stdout
-        assert "appendonly" not in wl, f"leftover worktree: {wl}"
+        _git("worktree", "add", "--detach", str(tw), "HEAD")
+        row = tw / ROW_REL
+        data = json.loads(row.read_text())
+        data["mutation"] = "n/a"
+        row.write_text(json.dumps(data, indent=2) + "\n")
+        _git("add", str(ROW_REL), cwd=tw)
+        _git("-c", "user.email=test@example.invalid", "-c", "user.name=e2lf-test",
+             "commit", "-qm", "e2lf induced violation (test)", cwd=tw)
+        sha = _git("rev-parse", "HEAD", cwd=tw).stdout.strip()
+
+        result = _run_stage(sha)
+        out = result.stdout + result.stderr
+        assert result.returncode != 0, f"stage passed on an induced violation:\n{out}"
+        # the decisive assertion: the walker names the offending row
+        assert "FAIL: ledger row 'ypdk_tally'" in out, out
+        assert "no registered mutation function" in out, out
+        assert _appendonly_worktrees() == [], _appendonly_worktrees()
     finally:
-        # restore branch/commit
-        subprocess.run(["git", "-C", str(ROOT), "checkout", original_branch],
+        _git("worktree", "remove", "--force", str(tw)) if tw.exists() else None
+        subprocess.run(["git", "-C", str(ROOT), "worktree", "prune"],
                        capture_output=True, text=True)
-        subprocess.run(["git", "-C", str(ROOT), "branch", "-D", temp_branch],
-                       capture_output=True, text=True)
-        ROW.write_text(backup)
-        # ensure clean
-        subprocess.run(["git", "-C", str(ROOT), "checkout", "--", str(ROW.relative_to(ROOT))],
-                       capture_output=True, text=True)
+        shutil.rmtree(tmp, ignore_errors=True)
