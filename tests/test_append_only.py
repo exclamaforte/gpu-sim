@@ -39,9 +39,7 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 def run_script():
     env = dict(os.environ)
-    if _PLANT_FILES:
-        env["P4DW_PLANT_PATHS"] = os.pathsep.join(str(p) for p in _PLANT_FILES)
-    r = subprocess.run([sys.executable, str(SCRIPT)], cwd=str(ROOT),
+    r = subprocess.run([sys.executable, str(SCRIPT), "--dirty-ok"], cwd=str(ROOT),
                        capture_output=True, text=True, env=env)
     return r.returncode, r.stdout + r.stderr
 
