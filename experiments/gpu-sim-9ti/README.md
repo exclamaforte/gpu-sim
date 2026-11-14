@@ -35,7 +35,7 @@ passed as source>)`, so the mismatch is not representable.
 
 ## The test that would have caught it (CPU-only, ~90 s, no GPU)
 
-`test_kernel_names.py` — **20 checks, all green**:
+`kernel_names_check.py` — **20 checks, all green**:
 
 * resolver/checker unit behaviour, including the multi-kernel "refuse to
   guess" case and the `extern "C" __global__ __device__` parse;
@@ -95,7 +95,7 @@ test fail for an unrelated reason.
 * `epic_u2o/kernel_names.py` (new) — the resolver and the checker
 * `epic_u2o/generator_stage2..5.py` — 14 sites now derive the name from source
 * `epic_u2o/kernel_driver.py` — `synthesize()` launches the resolved name
-* `experiments/gpu-sim-9ti/test_kernel_names.py` — the executable assertion
+* `experiments/gpu-sim-9ti/kernel_names_check.py` — the executable assertion
 * `experiments/gpu-sim-9ti/negative_control.py` + `.log`, `output.log`, `job.json`
 
 `generator_stage1` was already correct and is covered by the same test.
