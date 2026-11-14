@@ -23,6 +23,15 @@ bd close <id>         # Complete work
 bd dolt push          # Push beads data to remote
 ```
 
+## Trunk notion (gpu-sim-0fwg)
+
+There is ONE trunk: `main`. The `master` alias is retired (gpu-sim-e7yw); do not
+read it as "what has landed" and do not create it. Scripts resolve the trunk via
+`scripts/resolve_trunk.py` (prefers `main`, falls back to `master`/`origin/*`
+only for legacy clones). If a script still names `master` as the base, that is a
+bug: it compares against a stale reference. `scripts/gate.sh` enforces
+`master == main` where the alias still exists.
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.

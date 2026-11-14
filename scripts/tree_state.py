@@ -102,7 +102,7 @@ def landing_commit(bead_dir: str, repo: Path = REPO_DEFAULT) -> str | None:
     the contradiction is preserved in git history, not in behavior.
     """
     out = None
-    for _ref in ("main", "master", "HEAD"):
+    for _ref in ("main", "HEAD"):
         out = _git(repo, "log", "--oneline", "-1", "--diff-filter=A", _ref,
                    "--", f"experiments/{bead_dir}/")
         if out:
@@ -114,7 +114,7 @@ def landing_commit(bead_dir: str, repo: Path = REPO_DEFAULT) -> str | None:
 
 def landing_commit_for(artifact: str | Path,
                        repo: Path = REPO_DEFAULT) -> str | None:
-    """The commit on master that FIRST added THIS FILE (gpu-sim-u2o.6.6.2.1.1.1).
+    """The commit on trunk that FIRST added THIS FILE (gpu-sim-u2o.6.6.2.1.1.1).
 
     Per-file, oldest add: a sibling file added later cannot move it, which
     is the property the bead exists for ('where it landed must not move
@@ -132,7 +132,7 @@ def landing_commit_for(artifact: str | Path,
         pass
     artifact = _a
     out = None
-    for _ref in ("main", "master", "HEAD"):
+    for _ref in ("main", "HEAD"):
         out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
                    _ref, "--", str(artifact))
         if out:
@@ -261,8 +261,8 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
         elif resolved != expected:
             errors.append(f"{path}: superseded_by.commit {stamp} "
                           f"(last_content_change) != last content change {expected}")
-    if not sb.get("reachable_from_master", True):
-        errors.append(f"{path}: superseded_by.commit not reachable from master")
+    if not sb.get("reachable_from_trunk", True):
+        errors.append(f"{path}: superseded_by.commit not reachable from trunk")
     return errors
 
 
@@ -282,7 +282,7 @@ def resolve_superseded_by(branch_field: str, artifact: str | Path,
     the reasoning that asserting supersession we had not checked would be the
     same error in the other direction. That was wrong for the case that matters:
     lab/gpu-sim-u2o.6.6.2-r2 still exists and is still dirty, while its content
-    is on master. A live ref is exactly the hazard -- it looks authoritative and
+    is on trunk. A live ref is exactly the hazard -- it looks authoritative and
     disagrees with the artifact -- so recording its continued existence as a
     FACT alongside the landing commit is more useful than declining to answer.
     """
@@ -291,7 +291,7 @@ def resolve_superseded_by(branch_field: str, artifact: str | Path,
         return None
     commit = landing_commit_for(artifact, repo)
     if not commit:
-        return None                      # content is not on master: OMIT the key
+        return None                      # content is not on trunk: OMIT the key
     return _supersession_record(ref, commit, repo)
 
 
@@ -306,7 +306,7 @@ def _supersession_record(ref: str, commit: str,
     if not ref:
         return None
     _anc = None
-    for _ref in ("main", "master", "HEAD"):
+    for _ref in ("main", "HEAD"):
         _anc = _git(repo, "merge-base", "--is-ancestor", commit, _ref)
         if _anc is not None:
             break
@@ -319,9 +319,9 @@ def _supersession_record(ref: str, commit: str,
         "branch_still_exists": still_live,
         "commit": commit,
         "commit_subject": subject,
-        "reachable_from_master": True,
+        "reachable_from_trunk": True,
         "note": (
-            f"the content landed on master at {commit}; the stamped branch ref "
+            f"the content landed on trunk at {commit}; the stamped branch ref "
             + ("still exists, so it is a live-but-not-current tree and a reader "
                "following the stamp alone would get a tree that disagrees with "
                "this artifact" if still_live else
