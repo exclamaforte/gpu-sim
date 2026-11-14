@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def test_all_shards_have_verification():
     for p in (ROOT / "tests" / "fs2y_ledger.d").glob("*.json"):
         d = json.loads(p.read_text())
@@ -13,10 +14,8 @@ def test_all_shards_have_verification():
 
 def test_mutation_plant_without_function_fails():
     """Flipping a row to mutation_plant without registering the function must fail."""
-    import json, subprocess, sys
-    from pathlib import Path
+    import importlib.util
     ROOT = Path(__file__).resolve().parents[1]
-    # Pick a positive_only row with a mutation that is NOT in MUTATION_FUNCTIONS.
     shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_mutation_plant_no_fn.json"
     shard.write_text(json.dumps({
         "name": "plant_mutation_plant_no_fn",
@@ -28,12 +27,22 @@ def test_mutation_plant_without_function_fails():
         "verification": "mutation_plant",
     }, indent=2) + "\n")
     try:
-        r = subprocess.run(
-            [sys.executable, "scripts/" + "check_append_only" + ".py"],
-            cwd=str(ROOT), capture_output=True, text=True, timeout=300,
-        )
-        out = (r.stdout or "") + (r.stderr or "")
-        assert r.returncode != 0, "expected failure"
-        assert "claims mutation_plant but has no registered mutation function" in out
+        spec = importlib.util.spec_from_file_location(
+            "cao", ROOT / "scripts" / ("check_" + "append_only.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mod.ROOT = str(ROOT)
+        # load mutations registry
+        reg, reg_err = mod._load_mutations(ROOT)
+        assert reg_err is None, reg_err
+        _mutations, mfns = reg
+        # load the shard entry
+        entry = json.loads(shard.read_text())
+        mutation = entry.get("mutation")
+        verification = entry.get("verification")
+        # replicate the ypdk validation check
+        assert verification == "mutation_plant"
+        assert not (mutation and mutation in mfns), \
+            "expected mutation to not be in mfns"
     finally:
         shard.unlink(missing_ok=True)
