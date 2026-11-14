@@ -512,7 +512,7 @@ def check_ledger_test_ids(root):
                 _APPLIED_MUTATIONS.append((backup, mutated_path))
                 rmut = _run_pytest(
                     [sys.executable, "-m", "pytest", "-q", target],
-                    root, ROW_TIMEOUTS.get(name, 120), _child_env())
+                    root, ROW_TIMEOUTS.get(name, 120), _child_env(no_bytecode=True))
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
                     continue
@@ -602,11 +602,22 @@ def check_ledger_test_ids(root):
     return errors
 
 
-def _child_env():
-    """Env for subprocess: propagate depth marker with this process's pid."""
+def _child_env(no_bytecode=False):
+    """Env for subprocess: propagate depth marker with this process's pid.
+
+    When no_bytecode=True, set PYTHONDONTWRITEBYTECODE=1 to prevent stale
+    .pyc from masking source mutations (rn6b).  Used only for the mutated
+    run; restore/positive runs must NOT set it so that
+    no_pycache_under_experiments can assert bytecode is written (kqjs).
+    """
     env = dict(os.environ)
     env[DEPTH_ENV] = str(os.getpid())
-    # Prevent stale pycache from masking source mutations (rn6b).
+    if no_bytecode:
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
+    # Bytecode tension: no_pycache_under_experiments requires bytecode to be
+    # written (positive path, no_bytecode=False); every mutation row requires
+    # it NOT to be written (mutated path, no_bytecode=True) so stale .pyc
+    # cannot mask a same-second same-size rewrite (rn6b).
     return env
 
 
