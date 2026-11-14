@@ -14,6 +14,11 @@ import pytest
 
 # gpu-sim-x1v: refuse to run tests against a stale libfakegpu.so
 REPO = Path(__file__).resolve().parent
+
+# gpu-sim-6f9q: experiments/* contains scripts whose names match test_*.py but
+# which are standalone programs (they call sys.exit at import). Keep pytest from
+# collecting them; they are run directly, not via the suite.
+collect_ignore_glob = ["experiments/*"]
 sys.path.insert(0, str(REPO))
 
 # gpu-sim-1upd: redirect bytecode cache to a gitignored project-local tree so

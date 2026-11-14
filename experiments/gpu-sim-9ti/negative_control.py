@@ -10,7 +10,7 @@ and shows BOTH layers handling it:
 
 The stronger control -- compiling the same spec under the OLD and the NEW
 launch-name logic and asserting old-fails / new-succeeds -- is not here; it is
-a permanent part of test_kernel_names.py, where it also guards against
+a permanent part of kernel_names_check.py, where it also guards against
 resolve_kernel_name() silently ceasing to be used.
 """
 import re, subprocess, sys, tempfile
