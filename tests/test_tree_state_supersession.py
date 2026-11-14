@@ -153,7 +153,7 @@ class TestTheSupersessionRule(unittest.TestCase):
         self.assertIsNotNone(rec)
         self.assertTrue(rec["branch_still_exists"],
                         "the live ref is the hazard and must be recorded")
-        self.assertTrue(rec["reachable_from_master"])
+        self.assertTrue(rec["reachable_from_trunk"])
 
     def test_deleted_ref_is_recorded_as_gone(self):
         rec = resolve_superseded_by(
@@ -368,7 +368,7 @@ class TestStampAgreementFailDirection(unittest.TestCase):
             {"tree_state": {"branch": "lab/x",
                             "superseded_by": {"commit": stamp,
                                               "commit_kind": "oldest_add",
-                                              "reachable_from_master": True}}}) + "\n")
+                                              "reachable_from_trunk": True}}}) + "\n")
         subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
         subprocess.run(["git", "-C", str(root), "commit", "-qm", "add artifact"],
                        check=True)
@@ -480,7 +480,7 @@ class TestFailClosedLanding(unittest.TestCase):
                 "tree_state": {"branch": "lab/x",
                                "superseded_by": {"commit": real_sha[:7],
                                                  "commit_kind": "oldest_add",
-                                                 "reachable_from_master": True}}}) + "\n")
+                                                 "reachable_from_trunk": True}}}) + "\n")
             from scripts.tree_state import stamp_agreement_errors
             errs = stamp_agreement_errors("experiments/x/a.json", root)
             assert len(errs) > 0, "unresolvable landing must be reported"

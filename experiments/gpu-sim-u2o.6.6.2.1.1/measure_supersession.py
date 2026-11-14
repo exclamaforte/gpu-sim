@@ -36,7 +36,8 @@ def main():
             "landed_on_master_at": commit,
             "superseded_by_location": loc,
             "superseded_by_commit": (sb or {}).get("commit"),
-            "resolves_to_master_commit": (sb or {}).get("reachable_from_master"),
+            "resolves_to_master_commit": (sb or {}).get("reachable_from_trunk",
+                                          (sb or {}).get("reachable_from_master")),
             "resolved_without_help": bool(sb and sb.get("commit") == commit),
         })
     props = {

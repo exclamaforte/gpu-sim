@@ -157,6 +157,7 @@ run_hard "claims register" python3 scripts/gen_claims_register.py --check
 run_hard "radius prose" python3 scripts/render_radius_prose.py --check
 run_hard "no vacuous assertions" python3 scripts/check_no_vacuous_asserts.py
 run_hard "gate citations" python3 scripts/check_gate_citations.py
+run_hard "trunk refs agree" python3 scripts/check_trunk_refs.py
 run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
