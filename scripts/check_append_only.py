@@ -96,6 +96,7 @@ POSITIVE_ONLY_GRANDFATHERED = {
     "u6ih_ledger_dir": "gpu-sim-u6ih: binds a product test, no mutation recorded",
     "xv3c_close_audit_unchanged": "gpu-sim-xv3c: binds a product test, no mutation recorded",
     "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",
+    "6f9q_collect_ignore": "gpu-sim-6f9q: binds a product test, no mutation recorded",
     "no_pycache_under_experiments": "gpu-sim-ypdk: binds a product test, no mutation recorded",
     "fs2y_mutations_tracked": "gpu-sim-ypdk: binds a product test, no mutation recorded",
     "effective_cpu_capacity": "gpu-sim-ypdk: binds a product test, no mutation recorded",
