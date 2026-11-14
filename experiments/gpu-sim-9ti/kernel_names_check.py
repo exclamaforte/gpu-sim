@@ -28,7 +28,7 @@ generated spec, that:
 what caught the original bug: the stage2-5 drivers did not compile. The GPU
 is not needed to know that, so neither is it needed to keep them compiling.
 
-No GPU, no torch, no ts queue: python3 experiments/gpu-sim-9ti/test_kernel_names.py
+No GPU, no torch, no ts queue: python3 experiments/gpu-sim-9ti/kernel_names_check.py
 """
 import subprocess
 import sys

@@ -16,7 +16,7 @@ Two layers, because one is not enough:
   spec rather than a naming disagreement.
 * `check_kernel_name(spec)` returns None when the dict agrees with its source
   and a human-readable complaint when it does not. The generators are fixed to
-  agree, and experiments/gpu-sim-9ti/test_kernel_names.py asserts that for
+  agree, and experiments/gpu-sim-9ti/kernel_names_check.py asserts that for
   stages 1..5, so future drift fails on CPU instead of costing a GPU job.
 """
 
