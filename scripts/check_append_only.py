@@ -260,6 +260,72 @@ def _base_ledger_ids(base_ref):
     return ids
 
 
+
+def _grandfather_keys_from_src(src):
+    i = src.find("POSITIVE_ONLY_GRANDFATHERED = {")
+    if i < 0:
+        return set()
+    depth = 0
+    j = i
+    while j < len(src):
+        if src[j] == "{":
+            depth += 1
+        elif src[j] == "}":
+            depth -= 1
+            if depth == 0:
+                break
+        j += 1
+    try:
+        import ast as _ast
+        node = _ast.parse(src[i:j + 1] + "\n").body[0]
+        return {k.value for k in node.value.keys if isinstance(k, _ast.Constant)}
+    except Exception:
+        return set()
+
+
+def check_grandfather_self_service():
+    """Refuse a branch that adds a name to POSITIVE_ONLY_GRANDFATHERED while
+    a ledger row of that name exists (added or pre-existing)."""
+    errors = []
+    trunk = None
+    for ref in ("main", "master"):
+        r = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", ref],
+                           capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip():
+            trunk = ref
+            break
+    if not trunk:
+        return ["grandfather self-service check: cannot resolve trunk; refusing"]
+    r = subprocess.run(["git", "-C", ROOT, "show", f"{trunk}:scripts/check_append_only.py"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return errors
+    trunk_keys = _grandfather_keys_from_src(r.stdout)
+    cur_keys = _grandfather_keys_from_src(open(os.path.join(ROOT, "scripts", "check_append_only.py")).read())
+    added = cur_keys - trunk_keys
+    if not added:
+        return errors
+    r2 = subprocess.run(["git", "-C", ROOT, "diff", "--name-only",
+                         f"{trunk}...HEAD", "--", "tests/fs2y_ledger.d/"],
+                        capture_output=True, text=True)
+    existing_rows = set()
+    import glob as _g
+    for fp in _g.glob(os.path.join(ROOT, "tests", "fs2y_ledger.d", "*.json")):
+        existing_rows.add(os.path.basename(fp).replace(".json", ""))
+    added_rows = set()
+    for line in r2.stdout.splitlines():
+        added_rows.add(os.path.basename(line.strip()).replace(".json", ""))
+    for name in sorted(added):
+        if name in existing_rows or name in added_rows:
+            errors.append(
+                f"ledger row {name!r}: self-service grandfathering refused "
+                f"(gpu-sim-zw79) -- the name was added to POSITIVE_ONLY_GRANDFATHERED "
+                f"while a ledger row of the same name exists. Discharging "
+                f"grandfathered debt requires a real mutation_plant row or PI "
+                f"approval on the bead, not an edit to the exemption list.")
+    return errors
+
+
 def check_ledger(base_ref):
     base_ids = _base_ledger_ids(base_ref)
     head_entries = load_ledger_entries()
@@ -597,8 +663,9 @@ def check_ledger_test_ids(root):
     # silent pass would be the very defect this bead exists to remove.
     if not child and not errors and POSITIVE_ONLY_GRANDFATHERED:
         print(f"note: {len(POSITIVE_ONLY_GRANDFATHERED)} positive-only ledger rows "
-              f"grandfathered (gpu-sim-55sb) -- they bind product tests with no mutation; "
-              f"see POSITIVE_ONLY_GRANDFATHERED for the owning beads")
+              f"grandfathered (gpu-sim-55sb) -- they bind product tests with no mutation:")
+        for _k, _v in sorted(POSITIVE_ONLY_GRANDFATHERED.items()):
+            print(f"  - {_k}: {_v}")
     return errors
 
 
@@ -739,6 +806,11 @@ def main():
             errors.append(e)
     except Exception as e:
         errors.append(f"ledger test-id resolution: {e}")
+    try:
+        for e in check_grandfather_self_service():
+            errors.append(e)
+    except Exception as e:
+        errors.append(f"grandfather self-service check: {e}")
     if errors:
         for e in errors:
             print(f"FAIL: {e}")

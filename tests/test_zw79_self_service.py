@@ -1,0 +1,60 @@
+"""Guard: self-service grandfathering is refused (gpu-sim-zw79)."""
+import json, os, subprocess, sys, tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CHECKER = "check_" + "append_only.py"
+
+
+def _checker_path(root):
+    return str(Path(root) / "scripts" / CHECKER)
+
+
+def _clone(tmp):
+    clone = Path(tmp) / "clone"
+    subprocess.run(["git", "clone", "-q", str(ROOT), str(clone)], check=True)
+    subprocess.run(["git", "-C", str(clone), "config", "user.email", "t@t.com"], check=True)
+    subprocess.run(["git", "-C", str(clone), "config", "user.name", "t"], check=True)
+    subprocess.run(["git", "-C", str(clone), "branch", "-f", "main", "origin/main"], capture_output=True)
+    return clone
+
+
+def _run_checker(clone):
+    r = subprocess.run([sys.executable, _checker_path(clone), "--dirty-ok"],
+                       cwd=str(clone), capture_output=True, text=True, timeout=300)
+    return r
+
+
+def test_selfservice_refused():
+    with tempfile.TemporaryDirectory() as td:
+        clone = _clone(td)
+        # use the worktree checker (possibly mutated by mutation_plant)
+        import shutil
+        shutil.copyfile(_checker_path(ROOT), _checker_path(clone))
+        cao_path = Path(_checker_path(clone))
+        src = cao_path.read_text()
+        src = src.replace(
+            '    "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",\n',
+            '    "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",\n    "plant_selfservice": "gpu-sim-zw79: binds a product test, no mutation recorded",\n', 1)
+        cao_path.write_text(src)
+        row = clone / "tests" / "fs2y_ledger.d" / "plant_selfservice.json"
+        row.write_text(json.dumps({"name": "plant_selfservice", "beads": ["gpu-sim-zw79"],
+            "state": "passing", "test": "test_1q34_lab_clean.test_lab_daemon_state_ignored", "bound_calls": 1,
+            "mutation": "n/a", "verification": "positive_only"}))
+        subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(clone), "commit", "-qm", "plant"], check=True)
+        # run the checker; it should refuse
+        r = _run_checker(clone)
+        assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+        assert "plant_selfservice" in (r.stdout + r.stderr), (r.stdout, r.stderr)
+
+
+def test_ordinary_rework_passes():
+    with tempfile.TemporaryDirectory() as td:
+        clone = _clone(td)
+        # trivial change that adds no ledger row and no grandfather name
+        (clone / "README.md").write_text("ordinary rework\n")
+        subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(clone), "commit", "-qm", "ordinary"], check=True)
+        r = _run_checker(clone)
+        assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
