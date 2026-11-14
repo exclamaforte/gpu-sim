@@ -27,6 +27,29 @@ from pathlib import Path
 
 REPO_DEFAULT = Path(__file__).resolve().parents[1]
 
+def _trunk_ref(repo=REPO_DEFAULT):
+    """Resolve the integration trunk via the shared helper (main, master fallback)."""
+    try:
+        import importlib.util, os
+        spec = importlib.util.spec_from_file_location("rt", os.path.join(str(repo), "scripts", "resolve_trunk.py"))
+        if spec is None or spec.loader is None:
+            raise ImportError("resolve_trunk missing")
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        r = m.resolve_trunk(str(repo))
+        if r:
+            return r
+    except Exception:
+        pass
+    # fallback: main then master then HEAD
+    for ref in ("main", "master"):
+        import subprocess as _sp
+        rr = _sp.run(["git", "-C", str(repo), "rev-parse", "--verify", ref],
+                     capture_output=True, text=True)
+        if rr.returncode == 0 and rr.stdout.strip():
+            return ref
+    return "HEAD"
+
 
 def _git(repo: Path, *args: str) -> str | None:
     try:
@@ -102,7 +125,9 @@ def landing_commit(bead_dir: str, repo: Path = REPO_DEFAULT) -> str | None:
     the contradiction is preserved in git history, not in behavior.
     """
     out = None
-    for _ref in ("main", "HEAD"):
+    for _ref in (_trunk_ref(repo), "HEAD"):
+        if _ref is None:
+            continue
         out = _git(repo, "log", "--oneline", "-1", "--diff-filter=A", _ref,
                    "--", f"experiments/{bead_dir}/")
         if out:
@@ -132,7 +157,9 @@ def landing_commit_for(artifact: str | Path,
         pass
     artifact = _a
     out = None
-    for _ref in ("main", "HEAD"):
+    for _ref in (_trunk_ref(repo), "HEAD"):
+        if _ref is None:
+            continue
         out = _git(repo, "log", "--format=%H", "--diff-filter=A", "--reverse",
                    _ref, "--", str(artifact))
         if out:
@@ -261,7 +288,7 @@ def stamp_agreement_errors(artifact, repo=REPO_DEFAULT):
         elif resolved != expected:
             errors.append(f"{path}: superseded_by.commit {stamp} "
                           f"(last_content_change) != last content change {expected}")
-    if not sb.get("reachable_from_trunk", True):
+    if not sb.get("reachable_from_trunk", sb.get("reachable_from_master", True)):
         errors.append(f"{path}: superseded_by.commit not reachable from trunk")
     return errors
 
@@ -306,7 +333,9 @@ def _supersession_record(ref: str, commit: str,
     if not ref:
         return None
     _anc = None
-    for _ref in ("main", "HEAD"):
+    for _ref in (_trunk_ref(repo), "HEAD"):
+        if _ref is None:
+            continue
         _anc = _git(repo, "merge-base", "--is-ancestor", commit, _ref)
         if _anc is not None:
             break
