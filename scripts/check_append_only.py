@@ -614,6 +614,8 @@ def _child_env(no_bytecode=False):
     env[DEPTH_ENV] = str(os.getpid())
     if no_bytecode:
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+    else:
+        env.pop("PYTHONDONTWRITEBYTECODE", None)
     # Bytecode tension: no_pycache_under_experiments requires bytecode to be
     # written (positive path, no_bytecode=False); every mutation row requires
     # it NOT to be written (mutated path, no_bytecode=True) so stale .pyc
