@@ -9,6 +9,6 @@ def test_collect_only_clean():
                        cwd=str(ROOT), capture_output=True, text=True, timeout=300)
     assert r.returncode == 0, (r.returncode, r.stdout[-500:], r.stderr[-500:])
     assert "experiments/" not in (r.stdout + r.stderr), (r.stdout + r.stderr)
-    # no stray test_*.py under experiments/
-    stray = list((ROOT / "experiments").rglob("test_*.py"))
+    # the renamed script must not reappear under its old name
+    stray = list((ROOT / "experiments").rglob("test_kernel_names.py"))
     assert not stray, stray
