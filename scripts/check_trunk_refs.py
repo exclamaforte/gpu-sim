@@ -31,18 +31,11 @@ def main():
         print("OK: no main ref; trunk check skipped")
         return 0
     targets = []
-    for ref in ("master", "origin/master", "refs/heads/master", "refs/remotes/origin/master"):
+    for ref in ("master", "origin/master"):
         sha = _ref_sha(ref)
         if sha is not None:
             targets.append((ref, sha))
-    # de-dup by ref name
-    seen = set()
-    uniq = []
-    for ref, sha in targets:
-        if ref in seen:
-            continue
-        seen.add(ref)
-        uniq.append((ref, sha))
+    uniq = targets
     errors = []
     for ref, sha in uniq:
         if sha != main_sha:
