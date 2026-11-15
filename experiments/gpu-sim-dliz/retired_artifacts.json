@@ -1,0 +1,11 @@
+{
+  "bead": "gpu-sim-dliz",
+  "retired": [
+    {"dir": "experiments/gpu-sim-k9e4", "metrics": {"tests_passed": 6, "tests_total": 6}, "gpu_jobs": 0, "reason": "code-only bead; fabricated cpu_runs"},
+    {"dir": "experiments/gpu-sim-lcnu", "metrics": {"total": 0}, "gpu_jobs": 0, "reason": "code-only bead; fabricated artifact"},
+    {"dir": "experiments/gpu-sim-rn6b", "metrics": {"tests_passed": 18, "tests_total": 18}, "gpu_jobs": 0, "reason": "code-only bead; fabricated cpu_runs"},
+    {"dir": "experiments/gpu-sim-s5y0", "metrics": {"status": "ok"}, "gpu_jobs": 0, "reason": "no-experiment bead; fabricated artifact (cpu_runs command true)"},
+    {"dir": "experiments/gpu-sim-wknt", "metrics": {"bead": "gpu-sim-wknt", "result": "error_budget.compute() bounded"}, "gpu_jobs": 0, "reason": "bounded-compute timing, not an experiment"}
+  ],
+  "note": "Deleted because metrics.json could not cite a gate (0 gpu_jobs). Evidence: 0 gpu_jobs in each job.json; bead labels no-experiment (except rn6b code-only)."
+}
