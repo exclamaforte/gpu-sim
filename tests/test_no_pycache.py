@@ -26,7 +26,7 @@ def test_pycache_baseline_without_suppression_creates_pyc():
 
     env = dict(os.environ)
     env.pop("PYTHONPYCACHEPREFIX", None)
-    # also disable the in-process sys.pycache_prefix by running plain python
+    env.pop("PYTHONDONTWRITEBYTECODE", None)
     code = ("import sys; sys.path.insert(0, %r); import sim_trace_173; "
             "print('imported')" % str(target))
     r = subprocess.run([sys.executable, "-c", code], cwd=str(ROOT), env=env,
@@ -52,29 +52,34 @@ class TestNoPycache:
         assert target.is_dir(), target
         _clean_pycache()
 
-        # The subprocess must INHERIT the suite environment (conftest sets
-        # PYTHONPYCACHEPREFIX). Do not override it here -- that is the point.
-        env = dict(os.environ)
-        code = ("import sys; sys.path.insert(0, %r); import sim_trace_173; "
-                "print('imported')" % str(target))
-        r = subprocess.run([sys.executable, "-c", code], cwd=str(ROOT), env=env,
-                           capture_output=True, text=True)
-        assert r.returncode == 0, r.stderr
+        # Use a temp prefix so the test does not depend on ambient state
+        # (and so PYTHONDONTWRITEBYTECODE from the checker walk does not
+        # suppress bytecode writing).  This tests the config plumbing.
+        import tempfile
+        (ROOT / ".lab" / "tmp").mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="pycache_", dir=str(ROOT / ".lab" / "tmp")) as td:
+            tmp_prefix = Path(td)
+            env = dict(os.environ)
+            env["PYTHONPYCACHEPREFIX"] = str(tmp_prefix)
+            env.pop("PYTHONDONTWRITEBYTECODE", None)
+            code = ("import sys; sys.path.insert(0, %r); import sim_trace_173; "
+                    "print('imported')" % str(target))
+            r = subprocess.run([sys.executable, "-c", code], cwd=str(ROOT), env=env,
+                               capture_output=True, text=True)
+            assert r.returncode == 0, r.stderr
 
-        # (a) no .pyc anywhere under experiments/
-        stray_pc = list((ROOT / "experiments").rglob("__pycache__"))
-        stray_pyc = list((ROOT / "experiments").rglob("*.pyc"))
-        assert not stray_pc, f"__pycache__ created under experiments/: {stray_pc}"
-        assert not stray_pyc, f".pyc created under experiments/: {stray_pyc}"
+            # (a) no .pyc anywhere under experiments/
+            stray_pc = list((ROOT / "experiments").rglob("__pycache__"))
+            stray_pyc = list((ROOT / "experiments").rglob("*.pyc"))
+            assert not stray_pc, f"__pycache__ created under experiments/: {stray_pc}"
+            assert not stray_pyc, f".pyc created under experiments/: {stray_pyc}"
 
-        # (b) bytecode landed under the prefix
-        prefix = ROOT / ".lab" / "tmp" / "pycache"
-        assert prefix.is_dir(), "pycache prefix dir missing"
-        assert any(prefix.rglob("*.pyc")), "no bytecode written under prefix"
+            # (b) bytecode landed under the temp prefix
+            assert any(tmp_prefix.rglob("*.pyc")), "no bytecode written under prefix"
 
-        # belt-and-braces: lab.config.json carries the env var too (not the fix)
-        cfg = json.loads((ROOT / "lab.config.json").read_text())
-        cmd = cfg["tests"]["command"]
-        assert any("PYTHONPYCACHEPREFIX" in str(x) for x in cmd), cmd
+            # belt-and-braces: lab.config.json carries the env var too (not the fix)
+            cfg = json.loads((ROOT / "lab.config.json").read_text())
+            cmd = cfg["tests"]["command"]
+            assert any("PYTHONPYCACHEPREFIX" in str(x) for x in cmd), cmd
 
         _clean_pycache()
