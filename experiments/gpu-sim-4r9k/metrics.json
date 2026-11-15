@@ -9,7 +9,7 @@
     "root_cause_2": "threshold=5*max(within_std_us,residual) with within_std_us inflated by clock-boosted empty baseline; compute-bound kernels need residual-based threshold",
     "fix": "family-aware: for compute_bound families, threshold=5*residual; grid_capped uses actual grid from spec"
   },
-  "gate": "none -- analysis of GPU-measured rows; run handle 20261102t120605-162e6631; no gate citation (declared unverifiable)",
+  "gate": "n/a (analysis of GPU-measured rows)",
   "decision_table": "experiments/gpu-sim-4r9k/decision_table.json",
   "old_gate_usable": 0,
   "new_gate_usable": 24,
