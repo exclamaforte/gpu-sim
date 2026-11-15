@@ -1,0 +1,6 @@
+{
+  "at": 1793773876.3668897,
+  "reason": "bypass: round 4, closing the reviewer's ONE blocking item, which was a hole in MY OWN guard (main's suite is still red until gpu-sim-fd5i lands). VERIFIED AT 00ce3b2d, all three arms of the allowlist rather than only the one I tightened last time: (a) the reviewer's plant reproduced -- decoy experiments/decoy-out holding marker.txt, U5R4_OUT=<wt>/experiments/decoy-out -> REFUSE 'must be under <wt>/.lab/tmp; refusing to rm -rf it', decoy and marker SURVIVE, which is the arm that used to delete a landed bead's committed artifacts; (b) the plausible-typo arm U5R4_OUT=<wt>/experiments/gpu-sim-u5r4 -> exit 2 with git status showing 0 changes in that bead's dir; (c) the default arm -> METRICS_MATCH rc=0, worktree clean. The allowlist is now /.lab/tmp/* only, which is what the output actually is. Reviewer's non-blocking items from round 3 (U5R4_OUT override honoured, 8zqr/measure.py:141 exe-resolution comment, unit_rule nit) are unchanged and were already confirmed passing. Nothing else changed since 6502e153 except this one case statement.",
+  "role": "pi",
+  "tip": "00ce3b2df6d7e9162d7700b36965b72a37d78457"
+}
