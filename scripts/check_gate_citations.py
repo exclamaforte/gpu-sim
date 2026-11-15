@@ -161,7 +161,11 @@ def main() -> int:
                 grandfathered.add(ln)
     # files modified in the current branch vs its merge base with master/main
     modified = set()
-    base = git("merge-base", "HEAD", resolve_trunk()).stdout.strip()
+    trunk = resolve_trunk()
+    if trunk is None:
+        print("FAIL: cannot resolve trunk (tried main, master); refusing to judge citations")
+        return 1
+    base = git("merge-base", "HEAD", trunk).stdout.strip()
     if not base:
         base = git("merge-base", "HEAD", "main").stdout.strip()
     if base:
