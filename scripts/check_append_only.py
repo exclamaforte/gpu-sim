@@ -295,7 +295,7 @@ def check_grandfather_self_service():
             trunk = ref
             break
     if not trunk:
-        return ["grandfather self-service check: cannot resolve trunk; refusing"]
+        return ["grandfather self-service check: cannot resolve trunk (tried main, master); refusing to judge citations"]
     r = subprocess.run(["git", "-C", ROOT, "show", f"{trunk}:scripts/check_append_only.py"],
                        capture_output=True, text=True)
     if r.returncode != 0:
@@ -305,24 +305,39 @@ def check_grandfather_self_service():
     added = cur_keys - trunk_keys
     if not added:
         return errors
-    r2 = subprocess.run(["git", "-C", ROOT, "diff", "--name-only",
-                         f"{trunk}...HEAD", "--", "tests/fs2y_ledger.d/"],
-                        capture_output=True, text=True)
+    # trunk rows (pre-existing)
+    trunk_rows = set()
+    try:
+        rr = subprocess.run(["git", "-C", ROOT, "ls-tree", "-r", "--name-only", trunk, "--", "tests/fs2y_ledger.d/"],
+                            capture_output=True, text=True)
+        for line in rr.stdout.splitlines():
+            trunk_rows.add(os.path.basename(line.strip()).replace(".json", ""))
+    except Exception:
+        trunk_rows = set()
+    # current rows
     existing_rows = set()
     import glob as _g
     for fp in _g.glob(os.path.join(ROOT, "tests", "fs2y_ledger.d", "*.json")):
         existing_rows.add(os.path.basename(fp).replace(".json", ""))
+    # rows added or modified on the branch
+    r3 = subprocess.run(["git", "-C", ROOT, "diff", "--name-only",
+                         f"{trunk}...HEAD", "--", "tests/fs2y_ledger.d/"],
+                        capture_output=True, text=True)
     added_rows = set()
-    for line in r2.stdout.splitlines():
+    for line in r3.stdout.splitlines():
         added_rows.add(os.path.basename(line.strip()).replace(".json", ""))
     for name in sorted(added):
-        if name in existing_rows or name in added_rows:
+        # refuse if the grandfathered name has ANY row (pre-existing, added, or
+        # converted) -- widened to catch existing-row conversion (item 4).
+        if name in existing_rows or name in added_rows or name in trunk_rows:
             errors.append(
                 f"ledger row {name!r}: self-service grandfathering refused "
                 f"(gpu-sim-zw79) -- the name was added to POSITIVE_ONLY_GRANDFATHERED "
                 f"while a ledger row of the same name exists. Discharging "
-                f"grandfathered debt requires a real mutation_plant row or PI "
-                f"approval on the bead, not an edit to the exemption list.")
+                f"grandfathered debt requires a real mutation_plant row, not an "
+                f"edit to the exemption list. This branch adds the ledger row AND "
+                f"the exemption that lets it pass; grandfathering is for debt that "
+                f"predates the branch.")
     return errors
 
 
