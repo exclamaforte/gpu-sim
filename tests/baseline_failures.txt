@@ -1,2 +1,16 @@
-# base-main sha: 6793ed493d5138a3a15381db501a514a6ca3a27c
-# count: 0
+# base-main sha: 88f2e809
+# count: 12
+# owner: gpu-sim-kte9
+FAILED tests/test_append_only.py::TestAppendOnly::test_ledger_retired_deletion_passes
+FAILED tests/test_append_only.py::TestAppendOnly::test_retired_deletion_passes
+FAILED tests/test_append_only.py::TestAppendOnly::test_unretired_deletion_fails_naming_entry
+FAILED tests/test_append_only.py::TestAppendOnly::test_unretired_deletion_fails_naming_key
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_ledger_node_ids_resolve
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_spoofed_depth_marker_does_not_skip
+# owner: gpu-sim-7xo5
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_plant_class_qualified_module_level_fails
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_plant_nonexistent_file_fails
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_plant_nonexistent_function_fails
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_plant_self_referential_fails
+FAILED tests/test_append_only.py::TestLedgerNodeIds::test_plant_vacuous_fails
+FAILED tests/test_append_only.py::TestMutationRestoreSafety::test_dirty_check_tolerates_untracked
