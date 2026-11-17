@@ -101,6 +101,7 @@ declare -a FAILED=() ADVISED=()
 
 RAN=()
 EXECUTED=()
+EXECUTED=()
 # DECLARED: independent, human-maintained list of hard stage names (order irrelevant).
 DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
   "close_audit unchanged" "close audit (concrete artifacts)"
@@ -110,6 +111,7 @@ DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
 run_hard() {  # name, command...
   local name="$1"; shift
   RAN+=("$name")
+  EXECUTED+=("$name")
   EXECUTED+=("$name")
   printf '%-42s ' "$name"
   # persist per-check log so the audit trail survives a passing run
@@ -157,6 +159,21 @@ run_advisory() {  # name, command...
 echo "=== gpu-sim gates $(date -u +%Y-%m-%dT%H:%MZ) ==="
 [ $FAST -eq 1 ] && echo "(fast mode: test suite skipped)"
 
+# Declared hard stages (independent of execution).
+if [ $FAST -eq 1 ]; then
+  DECLARED=("docs section 0 vs model" "append-only records"
+    "close_audit unchanged" "close audit (concrete artifacts)"
+    "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
+    "claims register" "radius prose" "no vacuous assertions" "gate citations"
+    "trunk refs agree")
+else
+  DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
+    "close_audit unchanged" "close audit (concrete artifacts)"
+    "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
+    "claims register" "radius prose" "no vacuous assertions" "gate citations"
+    "trunk refs agree")
+fi
+
 if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
 fi
@@ -180,59 +197,23 @@ run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
-# gpu-sim-gman: manifest comparison (independent declared vs executed sets).
-EXPECTED_ADVISORY=3
+# gpu-sim-gman: manifest comparison via unit.
 manifest_fail=0
-# Build sorted unique sets.
-missing=()
-undeclared=()
-for d in "${DECLARED[@]}"; do
-  # In fast mode, pytest is intentionally skipped.
-  if [ "$FAST" -eq 1 ] && [ "$d" = "pytest tests/" ]; then continue; fi
-  found=0
-  for e in "${EXECUTED[@]}"; do
-    if [ "$d" = "$e" ]; then found=1; break; fi
-  done
-  if [ "$found" -eq 0 ]; then missing+=("$d"); fi
-done
-for e in "${EXECUTED[@]}"; do
-  found=0
-  for d in "${DECLARED[@]}"; do
-    if [ "$e" = "$d" ]; then found=1; break; fi
-  done
-  if [ "$found" -eq 0 ]; then undeclared+=("$e"); fi
-done
-if [ "${#missing[@]}" -gt 0 ]; then
-  echo "MISSING (declared, not run): ${missing[*]}"
+declared_csv=$(IFS=,; echo "${DECLARED[*]}")
+executed_csv=$(IFS=,; echo "${EXECUTED[*]}")
+if ! python3 scripts/gate_manifest.py --declared "$declared_csv" --executed "$executed_csv"; then
   manifest_fail=1
 fi
-if [ "${#undeclared[@]}" -gt 0 ]; then
-  echo "UNDECLARED (run, not declared): ${undeclared[*]}"
-  manifest_fail=1
-fi
-# Expected declared count (adjusted for fast mode).
-if [ "$FAST" -eq 1 ]; then
-  expected_declared=$(( ${#DECLARED[@]} - 1 ))
-else
-  expected_declared=${#DECLARED[@]}
-fi
-if [ "${#EXECUTED[@]}" -ne "$expected_declared" ]; then
-  echo "MANIFEST: count mismatch: ${#EXECUTED[@]} ran, $expected_declared declared"
-  manifest_fail=1
-fi
-if [ "$FAST" -eq 1 ]; then
-  expected_pass=$(( ${#DECLARED[@]} - 1 ))
-else
-  expected_pass=${#DECLARED[@]}
-fi
-if [ "$pass" -ne "$expected_pass" ]; then
-  echo "MANIFEST FAILED: $pass passed, expected $expected_pass"
+if [ "$pass" -ne "${#DECLARED[@]}" ]; then
+  echo "MANIFEST FAILED: $pass passed, expected ${#DECLARED[@]}"
   manifest_fail=1
 fi
 if [ $manifest_fail -ne 0 ]; then
   printf 'ran: %s\n' "${RAN[*]}"
   exit 1
 fi
+
+
 
 echo
 echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
