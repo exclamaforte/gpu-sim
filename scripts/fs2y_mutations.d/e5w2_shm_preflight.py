@@ -1,15 +1,12 @@
-MUTATIONS = {"e5w2_shm_preflight": "e5w2: remove /dev/shm preflight from gate.sh"}
+MUTATIONS = {"e5w2_shm_preflight": "e5w2: neutralize reclaim in shm_preflight.py"}
 
-import os, re
+import os
 
 def apply(root):
-    path = os.path.join(root, "scripts", "gate.sh")
+    path = os.path.join(root, "scripts", "shm_preflight.py")
     backup = open(path).read()
-    # Remove the preflight block (from "if [ -d /dev/shm ]" to its closing "fi")
-    import re
-    pattern = re.compile(r"if \[ -d /dev/shm \]; then\n.*?^fi\n", re.MULTILINE | re.DOTALL)
-    mutated, n = pattern.subn("", backup, count=1)
-    if n == 0 or mutated == backup:
+    mutated = backup.replace("        if not alive:", "        if False and not alive:", 1)
+    if mutated == backup:
         raise RuntimeError("e5w2 mutation anchor not found")
     with open(path, "w") as f:
         f.write(mutated)

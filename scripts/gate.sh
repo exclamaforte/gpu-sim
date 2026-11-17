@@ -23,45 +23,13 @@ gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
 mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
 
-# Preflight: /dev/shm utilisation (gpu-sim-e5w2). Leaked gpusim-* segments can
-# exhaust tmpfs and turn fabric checks into SIGBUS (rc=-7). Reclaim segments
-# whose owning pid is dead (by liveness, not age), then fail loudly if still
-# above threshold.
-reclaim_shm_segments() {
-  local dir="$1"
-  for seg in "$dir"/gpusim-*; do
-    [ -e "$seg" ] || continue
-    base=$(basename "$seg")
-    pid=""
-    case "$base" in
-      gpusim-corpus-[0-9]*)
-        rest="${base#gpusim-corpus-}"
-        pid="${rest%%-*}"
-        case "$pid" in
-          ''|*[!0-9]*) pid="" ;;
-        esac
-        ;;
-    esac
-    if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
-      if ! kill -0 "$pid" 2>/dev/null; then
-        rm -f "$seg" 2>/dev/null
-      fi
-    fi
-  done
-}
-
+# Preflight: /dev/shm utilisation (gpu-sim-e5w2). Reclaim is in shm_preflight.py
+# so it can be exercised directly by tests (behavioural, not a source scan).
 if [ -d /dev/shm ]; then
-  reclaim_shm_segments /dev/shm
-  shm_total_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $2}')
-  shm_used_kb=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
-  if [ -n "$shm_total_kb" ] && [ "$shm_total_kb" -gt 0 ]; then
-    shm_pct=$((shm_used_kb * 100 / shm_total_kb))
-    shm_threshold="${SHM_THRESHOLD_PCT:-80}"
-    if [ "$shm_pct" -ge "$shm_threshold" ]; then
-      echo "GATE PREFLIGHT FAIL: /dev/shm at ${shm_pct}% (${shm_used_kb}K/${shm_total_kb}K) after reclamation." >&2
-      exit 1
-    fi
-    echo "GATE PREFLIGHT: /dev/shm at ${shm_pct}% (${shm_used_kb}K/${shm_total_kb}K)"
+  python3 scripts/shm_preflight.py --dir /dev/shm --threshold "${SHM_THRESHOLD_PCT:-80}"
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    exit 1
   fi
 fi
 GATE_LOG="$GATE_TMP/gate.$$.out"

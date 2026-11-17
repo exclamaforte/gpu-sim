@@ -52,16 +52,11 @@ LOGFILE=""
 gpu_run_preflight "."
 # /dev/shm preflight (gpu-sim-e5w2): refuse if tmpfs is exhausted.
 gpu_shm_preflight() {
-    local total used pct
-    total=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $2}')
-    used=$(df -k /dev/shm 2>/dev/null | awk 'NR==2{print $3}')
-    if [ -n "$total" ] && [ "$total" -gt 0 ]; then
-        pct=$((used * 100 / total))
-        local threshold="${SHM_THRESHOLD_PCT:-80}"
-        if [ "$pct" -ge "$threshold" ]; then
-            echo "gpu_run: refusing to start: /dev/shm at ${pct}% (exhausted). Reclaim leaked gpusim-* segments." >&2
-            exit 2
-        fi
+    python3 scripts/shm_preflight.py --dir /dev/shm --threshold "${SHM_THRESHOLD_PCT:-80}" >/dev/null 2>&1
+    local rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "gpu_run: refusing to start: /dev/shm exhausted (see shm_preflight)." >&2
+        exit 2
     fi
 }
 gpu_shm_preflight
