@@ -1,8 +1,25 @@
+$ python3 -m pytest tests/test_bch9.py
+...                                                                      [100%]
+3 passed in 109.27s (0:01:49)
+exit=0
+---
+$ python3 experiments/gpu-sim-bch9/gen_metrics.py
 n_rows: 12
-n_flipping_46: 5
-n_invariant: 7
-n_rows_flipping_5: 5
+n_flipping_46: 6
+n_invariant: 6
+n_rows_flipping_5: 6
 elq2 mismatches: 0
-worst_regret_max: 8.7891
+worst_regret_max: 3.3173
 margin_separates: False threshold: None
-OK: metrics.json reproducible (rows=12, flip46=5, invariant=7, worst_regret=8.7891%, n_factors=43)
+exit=0
+---
+$ bash experiments/gpu-sim-bch9/run.sh
+n_rows: 12
+n_flipping_46: 6
+n_invariant: 6
+n_rows_flipping_5: 6
+elq2 mismatches: 0
+worst_regret_max: 3.3173
+margin_separates: False threshold: None
+OK: metrics.json reproducible (rows=12, flip46=6, invariant=6, worst_regret=3.3173%, n_factors=43)
+exit=0
