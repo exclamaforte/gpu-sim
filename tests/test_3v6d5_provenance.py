@@ -9,6 +9,7 @@ def test_refuses_missing_provenance():
     import sys
     sys.path.insert(0, str(REPO))
     from epic_cluster.fabric_spec import load_spec
+    import pytest
     # spec missing provenance for link.nvlink
     spec = {
         "sources": {"model.h100_sxm": "x"},
@@ -18,12 +19,11 @@ def test_refuses_missing_provenance():
     with tempfile.TemporaryDirectory() as td:
         p = Path(td) / "spec.json"
         p.write_text(json.dumps(spec))
-        try:
+        with pytest.raises(ValueError) as exc:
             load_spec(p)
-        except ValueError as e:
-            assert "provenance" in str(e).lower() or "source" in str(e).lower(), str(e)
-            return
-        raise AssertionError("load_spec did not refuse missing provenance")
+        msg = str(exc.value).lower()
+        assert "provenance" in msg or "source" in msg, msg
+        assert "nvlink" in msg or "link" in msg, msg
 
 
 def test_report_spec_name_matches_loaded():

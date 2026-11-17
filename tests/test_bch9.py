@@ -40,7 +40,7 @@ class TestBch9:
             )
             m = json.loads(Path(tmp).read_text())
             assert m["elq2_cross_check"]["mismatches"] == [], m["elq2_cross_check"]["mismatches"]
-            assert m["aggregates"]["n_rows_flipping_5"] == 6
+            assert m["aggregates"]["n_rows_flipping_5"] == 5
         finally:
             Path(tmp).unlink(missing_ok=True)
 

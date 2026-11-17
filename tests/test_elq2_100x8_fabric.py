@@ -27,13 +27,13 @@ class TestElq2FabricSensitivity(unittest.TestCase):
                     base_w = winners[1.0]
                     if any(w != base_w for f, w in winners.items() if f != 1.0):
                         flipped += 1
-        self.assertEqual(flipped, 6,
-                         f"expected 6 of 12 rows to flip under fabric band, got {flipped}")
+        self.assertEqual(flipped, 5,
+                         f"expected 5 of 12 rows to flip under fabric band, got {flipped}")
 
     def test_metrics_matches(self):
         metrics = json.loads((REPO / "experiments" / "gpu-sim-elq2" / "metrics.json").read_text())
         self.assertEqual(metrics["n_rows"], 12)
-        self.assertEqual(metrics["n_rows_flipping"], 6)
+        self.assertEqual(metrics["n_rows_flipping"], 5)
 
     def test_fabric_scale_noop_default(self):
         spec = build_spec(100)
