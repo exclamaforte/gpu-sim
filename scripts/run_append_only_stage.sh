@@ -50,6 +50,9 @@ if ! git -C "$repo_root" worktree add --detach "$tmpwt" "$ref" >/dev/null 2>&1; 
   exit 2
 fi
 
+# Build libfakegpu.so in the disposable worktree (not committed).
+( cd "$tmpwt" && make -j2 >/dev/null 2>&1 ) || true
+
 rc=0
 ( cd "$tmpwt" && python3 scripts/check_append_only.py --force ) || rc=$?
 exit "$rc"

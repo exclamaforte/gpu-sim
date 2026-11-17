@@ -15,6 +15,17 @@ SCRIPT = ROOT / "scripts" / "check_append_only.py"
 # cleans them up via atexit / signal handlers instead of poisoning the next run.
 _PLANT_FILES = []
 
+# Clean up stale plant shards from interrupted runs (gpu-sim-kjzm).
+import pathlib
+for _stale in ("plant_class_qualified.json", "plant_nonexistent_func.json",
+               "plant_nonexistent_file.json", "plant_self_ref.json",
+               "plant_vacuous.json", "plant_mutation_plant_no_fn.json"):
+    _p = pathlib.Path(__file__).resolve().parents[1] / "tests" / "fs2y_ledger.d" / _stale
+    try:
+        _p.unlink(missing_ok=True)
+    except OSError:
+        pass
+
 def _cleanup_plants():
     for pf in list(_PLANT_FILES):
         try:
@@ -161,6 +172,7 @@ class TestLedgerNodeIds(unittest.TestCase):
     def test_plant_class_qualified_module_level_fails(self):
         """Plant (a): class-qualified node for a module-level test must fail."""
         shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_class_qualified.json"
+        shard.unlink(missing_ok=True)
         _PLANT_FILES.append(shard)
         shard.write_text(json.dumps({
             "name": "plant_class_qualified",
