@@ -683,12 +683,34 @@ def main():
     ap.add_argument("--peak-tflops", type=float, default=989.0)  # H100 bf16
     ap.add_argument("--mem-gb", type=float, default=80.0)
     ap.add_argument("--tokens", type=int, default=None)
+    ap.add_argument("--spec", default=None, help="path to fabric spec JSON")
     args = ap.parse_args()
 
     hw = {"peak_flops": args.peak_tflops * 1e12, "mem_gb": args.mem_gb, "fabric": args.fabric}
+    if args.spec:
+        hw["spec_path"] = args.spec
     results, feasible = search(args.n_gpus, hw)
 
+    spec = None
+    spec_name = None
+    if args.spec:
+        import json as _j
+        from pathlib import Path as _P
+        with open(args.spec) as _f:
+            spec = _j.load(_f)
+        spec_name = _P(args.spec).stem
+    # provenance_for wired into the ranking/report path (gpu-sim-3v6d.5)
+    from epic_cluster.fabric_spec import provenance_for
+    prov = ""
+    if spec is not None:
+        for kind in ("nvlink", "ib", "pcie"):
+            p = provenance_for(spec, kind)
+            if p:
+                prov = p
+                break
     print(f"# 5D search: N={args.n_gpus} fabric={args.fabric} peak={args.peak_tflops}TF mem={args.mem_gb}GB")
+    print(f"SPEC: {spec_name if spec_name is not None else args.fabric}")
+    print(f"PROVENANCE: {prov}")
     print(f"total configs: {len(results)} feasible: {len(feasible)}")
     print()
     print("| tp | pp | cp | dp | zero | step_ms_sum | step_ms_max | dominant | mem_GB | feasible |")
