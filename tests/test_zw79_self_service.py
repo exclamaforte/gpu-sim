@@ -1,5 +1,5 @@
 """Guard: self-service grandfathering is refused (gpu-sim-zw79)."""
-import importlib.util, json, os, subprocess, sys, tempfile
+import importlib.util, json, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,17 +19,19 @@ def _clone(tmp):
     return clone
 
 
-def _run_checker(clone):
-    r = subprocess.run([sys.executable, _checker_path(clone), "--dirty-ok"],
-                       cwd=str(clone), capture_output=True, text=True, timeout=300)
-    return r
+def _load(clone):
+    spec = importlib.util.spec_from_file_location("cao_zw79", _checker_path(clone))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.ROOT = Path(clone)
+    return mod
 
 
 def test_selfservice_refused():
-    """End-to-end: a branch adding a self-service grandfather row is refused."""
+    """Direct call: a branch adding a self-service grandfather row is refused."""
+    import shutil
     with tempfile.TemporaryDirectory() as td:
         clone = _clone(td)
-        import shutil
         shutil.copyfile(_checker_path(ROOT), _checker_path(clone))
         cao_path = Path(_checker_path(clone))
         src = cao_path.read_text()
@@ -38,19 +40,23 @@ def test_selfservice_refused():
             '    "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",\n    "plant_selfservice": "gpu-sim-zw79: binds a product test, no mutation recorded",\n', 1)
         cao_path.write_text(src)
         row = clone / "tests" / "fs2y_ledger.d" / "plant_selfservice.json"
+        row.parent.mkdir(parents=True, exist_ok=True)
         row.write_text(json.dumps({"name": "plant_selfservice", "beads": ["gpu-sim-zw79"],
             "state": "passing", "test": "test_1q34_lab_clean.test_lab_daemon_state_ignored", "bound_calls": 1,
             "mutation": "n/a", "verification": "positive_only"}))
         subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
         subprocess.run(["git", "-C", str(clone), "commit", "-qm", "plant"], check=True)
-        r = _run_checker(clone)
-        assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
-        assert "plant_selfservice" in (r.stdout + r.stderr), (r.stdout, r.stderr)
+        subprocess.run(["git", "-C", str(clone), "update-ref", "refs/heads/main", "origin/main"], check=True)
+        mod = _load(clone)
+        res = mod.check_grandfather_self_service()
+        assert isinstance(res, list)
+        assert len(res) == 1, (res,)
+        assert "plant_selfservice" in res[0], (res,)
+        assert "self-service grandfathering refused" in res[0], (res,)
 
 
 def test_ordinary_rework_passes():
     """Direct call: ordinary rework (no grandfather edit) is not refused."""
-    import importlib.util
     with tempfile.TemporaryDirectory() as td:
         clone = _clone(td)
         import shutil
@@ -58,10 +64,7 @@ def test_ordinary_rework_passes():
         (clone / "README.md").write_text("ordinary rework\n")
         subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
         subprocess.run(["git", "-C", str(clone), "commit", "-qm", "ordinary"], check=True)
-        spec = importlib.util.spec_from_file_location("cao_zw79_ord", _checker_path(clone))
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        mod.ROOT = Path(clone)
+        mod = _load(clone)
         res = mod.check_grandfather_self_service()
         assert res == [], (res,)
         assert isinstance(res, list)
