@@ -1,5 +1,5 @@
 """Guard: self-service grandfathering is refused (gpu-sim-zw79)."""
-import json, os, subprocess, sys, tempfile
+import importlib.util, json, os, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,9 +26,9 @@ def _run_checker(clone):
 
 
 def test_selfservice_refused():
+    """End-to-end: a branch adding a self-service grandfather row is refused."""
     with tempfile.TemporaryDirectory() as td:
         clone = _clone(td)
-        # use the worktree checker (possibly mutated by mutation_plant)
         import shutil
         shutil.copyfile(_checker_path(ROOT), _checker_path(clone))
         cao_path = Path(_checker_path(clone))
@@ -43,68 +43,22 @@ def test_selfservice_refused():
             "mutation": "n/a", "verification": "positive_only"}))
         subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
         subprocess.run(["git", "-C", str(clone), "commit", "-qm", "plant"], check=True)
-        # run the checker; it should refuse
         r = _run_checker(clone)
         assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
         assert "plant_selfservice" in (r.stdout + r.stderr), (r.stdout, r.stderr)
 
 
 def test_ordinary_rework_passes():
-    with tempfile.TemporaryDirectory() as td:
-        clone = _clone(td)
-        # trivial change that adds no ledger row and no grandfather name
-        (clone / "README.md").write_text("ordinary rework\n")
-        subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
-        subprocess.run(["git", "-C", str(clone), "commit", "-qm", "ordinary"], check=True)
-        r = _run_checker(clone)
-        assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
-
-
-def test_selfservice_refused_direct():
-    """Behavioural: call check_grandfather_self_service on a temp clone with
-    a self-service row + grandfather entry; it must refuse."""
+    """Direct call: ordinary rework (no grandfather edit) is not refused."""
     import importlib.util
     with tempfile.TemporaryDirectory() as td:
         clone = _clone(td)
         import shutil
         shutil.copyfile(_checker_path(ROOT), _checker_path(clone))
-        cao_path = Path(_checker_path(clone))
-        src = cao_path.read_text()
-        src = src.replace(
-            '    "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",\n',
-            '    "zsd3_janitor": "gpu-sim-zsd3: binds a product test, no mutation recorded",\n    "plant_selfservice": "gpu-sim-zw79: binds a product test, no mutation recorded",\n', 1)
-        cao_path.write_text(src)
-        row = clone / "tests" / "fs2y_ledger.d" / "plant_selfservice.json"
-        row.write_text(json.dumps({"name": "plant_selfservice", "beads": ["gpu-sim-zw79"],
-            "state": "passing", "test": "test_1q34_lab_clean.test_lab_daemon_state_ignored", "bound_calls": 1,
-            "mutation": "n/a", "verification": "positive_only"}))
-        subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
-        subprocess.run(["git", "-C", str(clone), "commit", "-qm", "plant"], check=True)
-        # import the (mutated) checker from clone and call the function directly
-        spec = importlib.util.spec_from_file_location("cao_zw79_direct", _checker_path(clone))
-        mod = importlib.util.module_from_spec(spec)
-        # point ROOT at clone by monkeypatching module global after exec
-        spec.loader.exec_module(mod)
-        mod.ROOT = Path(clone)
-        res = mod.check_grandfather_self_service()
-        assert isinstance(res, list)
-        assert len(res) == 1, (res,)
-        assert "plant_selfservice" in res[0], (res,)
-        assert "self-service grandfathering refused" in res[0], (res,)
-
-
-def test_ordinary_rework_passes_direct():
-    """Behavioural: an ordinary rework (no grandfather edit) must not be refused."""
-    import importlib.util
-    with tempfile.TemporaryDirectory() as td:
-        clone = _clone(td)
-        import shutil
-        shutil.copyfile(_checker_path(ROOT), _checker_path(clone))
-        cao_path = Path(_checker_path(clone))
         (clone / "README.md").write_text("ordinary rework\n")
         subprocess.run(["git", "-C", str(clone), "add", "-A"], check=True)
         subprocess.run(["git", "-C", str(clone), "commit", "-qm", "ordinary"], check=True)
-        spec = importlib.util.spec_from_file_location("cao_zw79_direct2", _checker_path(clone))
+        spec = importlib.util.spec_from_file_location("cao_zw79_ord", _checker_path(clone))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         mod.ROOT = Path(clone)

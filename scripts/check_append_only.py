@@ -287,19 +287,16 @@ def check_grandfather_self_service():
     """Refuse a branch that adds a name to POSITIVE_ONLY_GRANDFATHERED while
     a ledger row of that name exists (added or pre-existing)."""
     errors = []
-    trunk = None
-    for ref in ("main", "master"):
-        r = subprocess.run(["git", "-C", ROOT, "rev-parse", "--verify", ref],
-                           capture_output=True, text=True)
-        if r.returncode == 0 and r.stdout.strip():
-            trunk = ref
-            break
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    from resolve_trunk import resolve_trunk as _resolve_trunk
+    trunk = _resolve_trunk(ROOT)
     if not trunk:
         return ["grandfather self-service check: cannot resolve trunk (tried main, master); refusing to judge citations"]
     r = subprocess.run(["git", "-C", ROOT, "show", f"{trunk}:scripts/check_append_only.py"],
                        capture_output=True, text=True)
     if r.returncode != 0:
-        return errors
+        return ["grandfather self-service check: cannot read trunk's checker "
+                f"({trunk}:scripts/check_append_only.py): refusing"]
     trunk_keys = _grandfather_keys_from_src(r.stdout)
     cur_keys = _grandfather_keys_from_src(open(os.path.join(ROOT, "scripts", "check_append_only.py")).read())
     added = cur_keys - trunk_keys
