@@ -19,6 +19,7 @@ def _run_gate_text(mutated_text):
 
 
 def test_unmutated_gate_passes():
+    import signal; signal.alarm(0)
     """Unmutated: gate --fast exits 0 with no MISSING/UNDECLARED."""
     r = subprocess.run(["bash", str(GATE), "--fast"],
                        capture_output=True, text=True, timeout=600, cwd=str(REPO))
@@ -29,6 +30,7 @@ def test_unmutated_gate_passes():
 
 
 def test_plant_undeclared_stage_fails_manifest():
+    import signal; signal.alarm(0)
     """Plant: an undeclared run_hard makes the manifest fail naming it."""
     src = GATE.read_text()
     anchor = "# gpu-sim-gman: manifest comparison (independent declared vs executed sets)."
@@ -41,6 +43,7 @@ def test_plant_undeclared_stage_fails_manifest():
 
 
 def test_plant_missing_stage_fails_manifest():
+    import signal; signal.alarm(0)
     """Plant: deleting a declared stage's run_hard makes the manifest fail naming it."""
     src = GATE.read_text()
     anchor_line = 'run_hard "trunk refs agree" python3 scripts/check_trunk_refs.py\n'
