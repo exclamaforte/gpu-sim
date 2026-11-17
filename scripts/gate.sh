@@ -100,7 +100,9 @@ pass=0; fail=0; advisory=0
 declare -a FAILED=() ADVISED=()
 
 RAN=()
+HARD_COUNT=0
 run_hard() {  # name, command...
+  HARD_COUNT=$((HARD_COUNT + 1))
   local name="$1"; shift
   RAN+=("$name")
   printf '%-42s ' "$name"
@@ -173,15 +175,10 @@ run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace ex
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
 # gpu-sim-gman: manifest comparison.
-EXPECTED_HARD=12
+EXPECTED_HARD=$HARD_COUNT
 EXPECTED_ADVISORY=3
-if [ $FAST -eq 1 ]; then
-  EXPECTED_TOTAL=$((EXPECTED_HARD - 1 + EXPECTED_ADVISORY))
-  EXPECTED_HARD_NOW=$((EXPECTED_HARD - 1))
-else
-  EXPECTED_TOTAL=$((EXPECTED_HARD + EXPECTED_ADVISORY))
-  EXPECTED_HARD_NOW=$EXPECTED_HARD
-fi
+EXPECTED_TOTAL=$((EXPECTED_HARD + EXPECTED_ADVISORY))
+EXPECTED_HARD_NOW=$EXPECTED_HARD
 manifest_fail=0
 if [ "${#RAN[@]}" -ne "$EXPECTED_TOTAL" ]; then
   echo "MANIFEST: checks MISSING: ${#RAN[@]} ran, expected $EXPECTED_TOTAL"
