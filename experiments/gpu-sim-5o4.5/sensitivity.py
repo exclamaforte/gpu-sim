@@ -7,7 +7,7 @@ from scipy.stats import kendalltau, spearmanr
 
 N = 8
 BASE = {"peak_flops": 989e12, "mem_gb": 80.0, "fabric": "nvlink4_h100",
-        "alpha_s": 1.5e-6, "bw_gbps": 450.0}
+        "alpha_s": 1.0e-6, "bw_gbps": 900.0}
 
 def key(c):
     return (c.tp, c.pp, c.cp, c.dp, c.zero)

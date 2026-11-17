@@ -16,7 +16,7 @@
       "convention": "ring all_to_all",
       "batch": 1,
       "base_winner": "tp=5 pp=10 cp=16 dp=1 zero=0",
-      "base_margin_pct": 2.99,
+      "base_margin_pct": 1.57,
       "distinct_winners": [
         {
           "config": "tp=5 pp=10 cp=16 dp=1 zero=0",
@@ -54,23 +54,23 @@
       "convention": "ring all_to_all",
       "batch": 8,
       "base_winner": "tp=1 pp=25 cp=32 dp=1 zero=0",
-      "base_margin_pct": 0.87,
+      "base_margin_pct": 0.75,
       "distinct_winners": [
         {
           "config": "tp=1 pp=20 cp=40 dp=1 zero=0",
           "factor_lo": 0.81103,
-          "factor_hi": 0.881906
+          "factor_hi": 0.89119
         },
         {
           "config": "tp=1 pp=25 cp=32 dp=1 zero=0",
-          "factor_lo": 0.89119,
+          "factor_lo": 0.900572,
           "factor_hi": 1.233
         }
       ],
       "invariant": false,
-      "base_worst_case_regret_pct": 0.6586,
+      "base_worst_case_regret_pct": 0.6388,
       "minimax_config": "tp=1 pp=25 cp=32 dp=1 zero=0",
-      "minimax_worst_case_regret_pct": 0.6586,
+      "minimax_worst_case_regret_pct": 0.6388,
       "minimax_differs_from_base": false
     },
     {
@@ -78,28 +78,23 @@
       "convention": "default all_gather",
       "batch": 8,
       "base_winner": "tp=1 pp=32 cp=25 dp=1 zero=0",
-      "base_margin_pct": 0.38,
+      "base_margin_pct": 0.88,
       "distinct_winners": [
         {
           "config": "tp=1 pp=25 cp=32 dp=1 zero=0",
           "factor_lo": 0.81103,
-          "factor_hi": 0.89119
+          "factor_hi": 0.900572
         },
         {
           "config": "tp=1 pp=32 cp=25 dp=1 zero=0",
-          "factor_lo": 0.900572,
-          "factor_hi": 1.122095
-        },
-        {
-          "config": "tp=1 pp=25 cp=16 dp=2 zero=2",
-          "factor_lo": 1.133908,
+          "factor_lo": 0.909091,
           "factor_hi": 1.233
         }
       ],
       "invariant": false,
-      "base_worst_case_regret_pct": 0.9445,
+      "base_worst_case_regret_pct": 0.9024,
       "minimax_config": "tp=1 pp=32 cp=25 dp=1 zero=0",
-      "minimax_worst_case_regret_pct": 0.9445,
+      "minimax_worst_case_regret_pct": 0.9024,
       "minimax_differs_from_base": false
     },
     {
@@ -107,7 +102,7 @@
       "convention": "ring all_to_all",
       "batch": 1,
       "base_winner": "tp=1 pp=50 cp=16 dp=1 zero=0",
-      "base_margin_pct": 1.11,
+      "base_margin_pct": 4.11,
       "distinct_winners": [
         {
           "config": "tp=1 pp=50 cp=16 dp=1 zero=0",
@@ -129,15 +124,20 @@
       "base_margin_pct": 0.0,
       "distinct_winners": [
         {
-          "config": "tp=1 pp=32 cp=1 dp=25 zero=2",
+          "config": "tp=2 pp=40 cp=10 dp=1 zero=0",
           "factor_lo": 0.81103,
+          "factor_hi": 0.854629
+        },
+        {
+          "config": "tp=1 pp=32 cp=1 dp=25 zero=2",
+          "factor_lo": 0.863626,
           "factor_hi": 1.233
         }
       ],
-      "invariant": true,
-      "base_worst_case_regret_pct": 0.0,
+      "invariant": false,
+      "base_worst_case_regret_pct": 2.7417,
       "minimax_config": "tp=1 pp=32 cp=1 dp=25 zero=2",
-      "minimax_worst_case_regret_pct": 0.0,
+      "minimax_worst_case_regret_pct": 2.7417,
       "minimax_differs_from_base": false
     },
     {
@@ -145,23 +145,23 @@
       "convention": "ring all_to_all",
       "batch": 8,
       "base_winner": "tp=1 pp=40 cp=20 dp=1 zero=0",
-      "base_margin_pct": 0.02,
+      "base_margin_pct": 0.2,
       "distinct_winners": [
         {
           "config": "tp=1 pp=32 cp=25 dp=1 zero=0",
           "factor_lo": 0.81103,
-          "factor_hi": 0.989582
+          "factor_hi": 0.958975
         },
         {
           "config": "tp=1 pp=40 cp=20 dp=1 zero=0",
-          "factor_lo": 1.0,
+          "factor_lo": 0.969071,
           "factor_hi": 1.233
         }
       ],
       "invariant": false,
-      "base_worst_case_regret_pct": 1.0205,
+      "base_worst_case_regret_pct": 0.7819,
       "minimax_config": "tp=1 pp=40 cp=20 dp=1 zero=0",
-      "minimax_worst_case_regret_pct": 1.0205,
+      "minimax_worst_case_regret_pct": 0.7819,
       "minimax_differs_from_base": false
     },
     {
@@ -169,23 +169,23 @@
       "convention": "default all_gather",
       "batch": 8,
       "base_winner": "tp=1 pp=50 cp=16 dp=1 zero=0",
-      "base_margin_pct": 0.22,
+      "base_margin_pct": 0.44,
       "distinct_winners": [
         {
           "config": "tp=1 pp=40 cp=20 dp=1 zero=0",
           "factor_lo": 0.81103,
-          "factor_hi": 0.958975
+          "factor_hi": 0.929315
         },
         {
           "config": "tp=1 pp=50 cp=16 dp=1 zero=0",
-          "factor_lo": 0.969071,
+          "factor_lo": 0.939098,
           "factor_hi": 1.233
         }
       ],
       "invariant": false,
-      "base_worst_case_regret_pct": 1.1249,
+      "base_worst_case_regret_pct": 0.8293,
       "minimax_config": "tp=1 pp=50 cp=16 dp=1 zero=0",
-      "minimax_worst_case_regret_pct": 1.1249,
+      "minimax_worst_case_regret_pct": 0.8293,
       "minimax_differs_from_base": false
     },
     {
@@ -193,7 +193,7 @@
       "convention": "ring all_to_all",
       "batch": 1,
       "base_winner": "tp=1 pp=100 cp=8 dp=1 zero=0",
-      "base_margin_pct": 7.21,
+      "base_margin_pct": 13.81,
       "distinct_winners": [
         {
           "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
@@ -212,23 +212,23 @@
       "convention": "default all_gather",
       "batch": 1,
       "base_winner": "tp=1 pp=100 cp=8 dp=1 zero=0",
-      "base_margin_pct": 2.58,
+      "base_margin_pct": 8.59,
       "distinct_winners": [
         {
           "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
           "factor_lo": 0.81103,
-          "factor_hi": 1.04278
+          "factor_hi": 1.157908
         },
         {
           "config": "tp=1 pp=50 cp=1 dp=16 zero=2",
-          "factor_lo": 1.053758,
+          "factor_lo": 1.170098,
           "factor_hi": 1.233
         }
       ],
       "invariant": false,
-      "base_worst_case_regret_pct": 8.7891,
+      "base_worst_case_regret_pct": 3.3173,
       "minimax_config": "tp=1 pp=100 cp=8 dp=1 zero=0",
-      "minimax_worst_case_regret_pct": 8.7891,
+      "minimax_worst_case_regret_pct": 3.3173,
       "minimax_differs_from_base": false
     },
     {
@@ -255,7 +255,7 @@
       "convention": "default all_gather",
       "batch": 8,
       "base_winner": "tp=1 pp=100 cp=8 dp=1 zero=0",
-      "base_margin_pct": 2.93,
+      "base_margin_pct": 4.35,
       "distinct_winners": [
         {
           "config": "tp=1 pp=100 cp=8 dp=1 zero=0",
@@ -271,10 +271,10 @@
     }
   ],
   "aggregates": {
-    "n_rows_flipping_5": 5,
-    "n_rows_flipping_46": 5,
-    "n_invariant": 7,
-    "worst_regret_pct_max": 8.7891,
+    "n_rows_flipping_5": 6,
+    "n_rows_flipping_46": 6,
+    "n_invariant": 6,
+    "worst_regret_pct_max": 3.3173,
     "margin_separates": false,
     "margin_threshold_pct": null,
     "grid_artifact": false,
@@ -283,6 +283,6 @@
   "gate": "n/a (CPU-only analysis)",
   "elq2_cross_check": {
     "mismatches": [],
-    "n_rows_flipping_5": 5
+    "n_rows_flipping_5": 6
   }
 }

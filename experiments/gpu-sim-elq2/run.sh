@@ -11,4 +11,4 @@ if ! diff -q experiments/gpu-sim-elq2/metrics.json "$SCRATCH/metrics.scratch.jso
     diff experiments/gpu-sim-elq2/metrics.json "$SCRATCH/metrics.scratch.json" >&2
     exit 1
 fi
-echo "OK: metrics.json reproducible (12 rows, 5 flip within fabric band)"
+echo "OK: metrics.json reproducible (12 rows, 6 flip within fabric band)"
