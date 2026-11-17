@@ -50,6 +50,16 @@ esac
 TIMEOUT="$1"; shift
 LOGFILE=""
 gpu_run_preflight "."
+# /dev/shm preflight (gpu-sim-e5w2): refuse if tmpfs is exhausted.
+gpu_shm_preflight() {
+    python3 scripts/shm_preflight.py --dir /dev/shm --threshold "${SHM_THRESHOLD_PCT:-80}" >/dev/null 2>&1
+    local rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "gpu_run: refusing to start: /dev/shm exhausted (see shm_preflight)." >&2
+        exit 2
+    fi
+}
+gpu_shm_preflight
 if [ "${1:-}" = "--log" ]; then
     LOGFILE="${2:-}"; shift 2
 fi

@@ -22,6 +22,16 @@ gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
 mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
+
+# Preflight: /dev/shm utilisation (gpu-sim-e5w2). Reclaim is in shm_preflight.py
+# so it can be exercised directly by tests (behavioural, not a source scan).
+if [ -d /dev/shm ]; then
+  python3 scripts/shm_preflight.py --dir /dev/shm --threshold "${SHM_THRESHOLD_PCT:-80}"
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    exit 1
+  fi
+fi
 GATE_LOG="$GATE_TMP/gate.$$.out"
 if ! : > "$GATE_LOG" 2>/dev/null; then
   echo "gate: cannot write $GATE_LOG (filesystem full or read-only)" >&2
