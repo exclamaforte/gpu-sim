@@ -156,7 +156,6 @@ run_advisory() {  # name, command...
 
 echo "=== gpu-sim gates $(date -u +%Y-%m-%dT%H:%MZ) ==="
 [ $FAST -eq 1 ] && echo "(fast mode: test suite skipped)"
-[ $FAST -eq 1 ] && echo "SKIPPED: suite (pytest) -- fast mode"
 
 # Declared hard stages (independent of execution).
 if [ $FAST -eq 1 ]; then
