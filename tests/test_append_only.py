@@ -81,8 +81,11 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 
 
-def run_script(plant=None):
-    env = dict(os.environ)
+def run_script(plant=None, env=None):
+    if env is None:
+        env = dict(os.environ)
+    else:
+        env = dict(env)
     with _disposable_worktree() as wt:
         if plant is not None:
             plant(wt)
@@ -271,12 +274,15 @@ class TestLedgerNodeIds(unittest.TestCase):
         import os
         env = dict(os.environ)
         env["OI4M_CHECKER_PID"] = "99999"
-        r = subprocess.run([sys.executable, str(SCRIPT)], cwd=str(ROOT),
-                           capture_output=True, text=True, env=env)
+        # Run inside a disposable worktree (7xo5/e2lf): the marker is rejected
+        # for lack of a matching ancestor pid, not for tree identity, so the
+        # property survives the move off the integration checkout.
+        rc, out = run_script(env=env)
         # baseline ledger passes; rc must still be 0 (full run), proving the
         # spoofed marker did not turn the check into a no-op. The marker is
         # rejected because no ancestor matches.
-        assert r.returncode == 0, r.stdout + r.stderr
+        assert rc == 0, out
+        assert "SKIPPED" not in out, out
 
 
 import json as _json
@@ -441,14 +447,17 @@ class TestMutationRestoreSafety(unittest.TestCase):
     """p4dw: mutation restore safety net (signal handler + atexit)."""
 
     def test_dirty_check_tolerates_untracked(self):
-        # untracked files (new shards/rows) are tolerated; the walk proceeds
-        dirty = ROOT / "experiments" / "gpu-sim-p4dw-dirty-probe.txt"
-        dirty.write_text("x")
-        try:
-            r = subprocess.run([sys.executable, str(SCRIPT)], cwd=str(ROOT),
-                               capture_output=True, text=True, timeout=300)
-            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-            self.assertNotIn("REFUSE", r.stdout + r.stderr)
-        finally:
-            dirty.unlink(missing_ok=True)
+        # untracked files (new shards/rows) are tolerated; the walk proceeds.
+        # The probe is created INSIDE the disposable worktree so the condition
+        # under test is present in the tree the checker actually inspects.
+        probe = Path("experiments") / "gpu-sim-p4dw-dirty-probe.txt"
+
+        def plant(wt):
+            p = wt / probe
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text("x")
+
+        rc, out = run_script(plant=plant)
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("REFUSE", out)
 
