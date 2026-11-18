@@ -100,9 +100,19 @@ pass=0; fail=0; advisory=0
 declare -a FAILED=() ADVISED=()
 
 RAN=()
+EXECUTED=()
+EXECUTED=()
+# DECLARED: independent, human-maintained list of hard stage names (order irrelevant).
+DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
+  "close_audit unchanged" "close audit (concrete artifacts)"
+  "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
+  "claims register" "radius prose" "no vacuous assertions" "gate citations"
+  "trunk refs agree")
 run_hard() {  # name, command...
   local name="$1"; shift
   RAN+=("$name")
+  EXECUTED+=("$name")
+  EXECUTED+=("$name")
   printf '%-42s ' "$name"
   # persist per-check log so the audit trail survives a passing run
   local slug
@@ -149,6 +159,21 @@ run_advisory() {  # name, command...
 echo "=== gpu-sim gates $(date -u +%Y-%m-%dT%H:%MZ) ==="
 [ $FAST -eq 1 ] && echo "(fast mode: test suite skipped)"
 
+# Declared hard stages (independent of execution).
+if [ $FAST -eq 1 ]; then
+  DECLARED=("docs section 0 vs model" "append-only records"
+    "close_audit unchanged" "close audit (concrete artifacts)"
+    "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
+    "claims register" "radius prose" "no vacuous assertions" "gate citations"
+    "trunk refs agree")
+else
+  DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
+    "close_audit unchanged" "close audit (concrete artifacts)"
+    "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
+    "claims register" "radius prose" "no vacuous assertions" "gate citations"
+    "trunk refs agree")
+fi
+
 if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
 fi
@@ -172,29 +197,23 @@ run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
 
-# gpu-sim-gman: manifest comparison.
-EXPECTED_HARD=12
-EXPECTED_ADVISORY=3
-if [ $FAST -eq 1 ]; then
-  EXPECTED_TOTAL=$((EXPECTED_HARD - 1 + EXPECTED_ADVISORY))
-  EXPECTED_HARD_NOW=$((EXPECTED_HARD - 1))
-else
-  EXPECTED_TOTAL=$((EXPECTED_HARD + EXPECTED_ADVISORY))
-  EXPECTED_HARD_NOW=$EXPECTED_HARD
-fi
+# gpu-sim-gman: manifest comparison via unit.
 manifest_fail=0
-if [ "${#RAN[@]}" -ne "$EXPECTED_TOTAL" ]; then
-  echo "MANIFEST: checks MISSING: ${#RAN[@]} ran, expected $EXPECTED_TOTAL"
+declared_csv=$(IFS=,; echo "${DECLARED[*]}")
+executed_csv=$(IFS=,; echo "${EXECUTED[*]}")
+if ! python3 scripts/gate_manifest.py --declared "$declared_csv" --executed "$executed_csv"; then
   manifest_fail=1
 fi
-if [ "$pass" -ne "$EXPECTED_HARD_NOW" ]; then
-  echo "MANIFEST FAILED: $pass passed, expected $EXPECTED_HARD_NOW"
+if [ "$pass" -ne "${#DECLARED[@]}" ]; then
+  echo "MANIFEST FAILED: $pass passed, expected ${#DECLARED[@]}"
   manifest_fail=1
 fi
 if [ $manifest_fail -ne 0 ]; then
   printf 'ran: %s\n' "${RAN[*]}"
   exit 1
 fi
+
+
 
 echo
 echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
