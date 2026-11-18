@@ -50,7 +50,7 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 def run_script():
     env = dict(os.environ)
-    r = subprocess.run([sys.executable, str(SCRIPT), "--dirty-ok"], cwd=str(ROOT),
+    r = subprocess.run([sys.executable, str(SCRIPT), "--force", "--dirty-ok"], cwd=str(ROOT),
                        capture_output=True, text=True, env=env)
     return r.returncode, r.stdout + r.stderr
 
