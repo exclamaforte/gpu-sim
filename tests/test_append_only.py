@@ -1,6 +1,9 @@
 """Append-only guard tests."""
+import contextlib
 import json
+import shutil
 import signal
+import tempfile
 import atexit
 import unittest
 import os
@@ -10,6 +13,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_append_only.py"
+
+@contextlib.contextmanager
+def _disposable_worktree():
+    tmp = tempfile.mkdtemp(prefix="appendonly-wt-")
+    wt = str(Path(tmp) / "wt")
+    subprocess.run(["git", "worktree", "add", "--detach", wt, "HEAD"],
+                   cwd=str(ROOT), check=True, capture_output=True)
+    try:
+        yield Path(wt)
+    finally:
+        subprocess.run(["git", "worktree", "remove", "--force", wt],
+                       cwd=str(ROOT), capture_output=True)
+        shutil.rmtree(tmp, ignore_errors=True)
+        subprocess.run(["git", "worktree", "prune"], cwd=str(ROOT), capture_output=True)
 
 # p4dw-style: track plant files created during tests so an interrupted run
 # cleans them up via atexit / signal handlers instead of poisoning the next run.
@@ -50,9 +67,11 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 def run_script():
     env = dict(os.environ)
-    r = subprocess.run([sys.executable, str(SCRIPT), "--force", "--dirty-ok"], cwd=str(ROOT),
-                       capture_output=True, text=True, env=env)
-    return r.returncode, r.stdout + r.stderr
+    with _disposable_worktree() as wt:
+        script = wt / "scripts" / "check_append_only.py"
+        r = subprocess.run([sys.executable, str(script), "--dirty-ok"], cwd=str(wt),
+                           capture_output=True, text=True, env=env, timeout=300)
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
 class TestAppendOnly(unittest.TestCase):
