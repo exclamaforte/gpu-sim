@@ -53,6 +53,22 @@ def _cleanup_plants():
 
 atexit.register(_cleanup_plants)
 
+import pytest
+
+@pytest.fixture(autouse=True)
+def _clean_stale_plant_shards():
+    # Per-test cleanup so a shard left by an earlier test cannot poison a later one.
+    for _stale in ("plant_class_qualified.json", "plant_nonexistent_func.json",
+                   "plant_nonexistent_file.json", "plant_self_ref.json",
+                   "plant_vacuous.json", "plant_mutation_plant_no_fn.json"):
+        _p = ROOT / "tests" / "fs2y_ledger.d" / _stale
+        try:
+            _p.unlink(missing_ok=True)
+        except OSError:
+            pass
+    yield
+    _cleanup_plants()
+
 def _plant_signal(signum, frame):
     _cleanup_plants()
     raise SystemExit(128 + signum)
