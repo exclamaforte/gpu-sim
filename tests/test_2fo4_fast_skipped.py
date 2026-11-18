@@ -29,3 +29,9 @@ def test_full_mode_does_not_print_skipped():
     rc, out = _run("--pass", "12", "--fail", "0", "--advisory", "0")
     assert rc == 0, out
     assert "SKIPPED: suite (pytest) -- fast mode" not in out, out
+
+
+def test_gate_sh_wires_gate_coverage():
+    text = (ROOT / "scripts" / "gate.sh").read_text()
+    assert "gate_coverage.py" in text, text
+    assert "SKIPPED: suite" not in text, text
