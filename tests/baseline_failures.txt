@@ -1,9 +1,14 @@
 # base-main sha: 88f2e809
-# count: 6
-# owner: gpu-sim-kte9
-FAILED tests/test_append_only.py::TestAppendOnly::test_ledger_retired_deletion_passes
-FAILED tests/test_append_only.py::TestAppendOnly::test_retired_deletion_passes
-FAILED tests/test_append_only.py::TestAppendOnly::test_unretired_deletion_fails_naming_entry
-FAILED tests/test_append_only.py::TestAppendOnly::test_unretired_deletion_fails_naming_key
-FAILED tests/test_append_only.py::TestLedgerNodeIds::test_ledger_node_ids_resolve
-FAILED tests/test_append_only.py::TestLedgerNodeIds::test_spoofed_depth_marker_does_not_skip
+# count: 0
+#
+# Empty on purpose. The six entries this file used to carry were measured
+# PASSING on this branch, twice each, by two independent instruments:
+#   PI       -k "retired_deletion or unretired_deletion or
+#               ledger_node_ids_resolve or spoofed_depth" -> 6 passed in 955.06s
+#   reviewer -k "unretired_deletion_fails_naming_entry or spoofed_depth"
+#            -> 2 passed in 290.94s
+# They fail on main because main's run_script() runs the checker in the
+# integration tree and gets the guard's rc=2 'REFUSE: check_append_only
+# mutates tracked files'; this branch runs it in a disposable worktree, so
+# they pass. An entry for a passing test is not a baseline, it is a lie that
+# also hides the next real regression of that test (gpu-sim-7xo5, 55sb).
