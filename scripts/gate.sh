@@ -156,6 +156,7 @@ run_advisory() {  # name, command...
 
 echo "=== gpu-sim gates $(date -u +%Y-%m-%dT%H:%MZ) ==="
 [ $FAST -eq 1 ] && echo "(fast mode: test suite skipped)"
+[ $FAST -eq 1 ] && echo "SKIPPED: suite (pytest) -- fast mode"
 
 # Declared hard stages (independent of execution).
 if [ $FAST -eq 1 ]; then
@@ -174,6 +175,8 @@ fi
 
 if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
+else
+  echo "SKIPPED: suite (pytest) -- fast mode"
 fi
 run_hard "docs section 0 vs model" python3 scripts/check_docs_model_numbers.py
 # gpu-sim-e2lf: the append-only walk runs in a DISPOSABLE worktree of HEAD, not
@@ -214,7 +217,11 @@ fi
 
 
 echo
-echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
+if [ $FAST -eq 1 ]; then
+  echo "hard: $pass passed, $fail failed, 1 skipped (suite) | advisory findings: $advisory"
+else
+  echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
+fi
 if [ $fail -ne 0 ]; then
   printf 'FAILED: %s\n' "${FAILED[*]}"
   exit 1
