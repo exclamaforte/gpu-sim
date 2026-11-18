@@ -101,7 +101,6 @@ declare -a FAILED=() ADVISED=()
 
 RAN=()
 EXECUTED=()
-EXECUTED=()
 # DECLARED: independent, human-maintained list of hard stage names (order irrelevant).
 DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
   "close_audit unchanged" "close audit (concrete artifacts)"
@@ -111,7 +110,6 @@ DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
 run_hard() {  # name, command...
   local name="$1"; shift
   RAN+=("$name")
-  EXECUTED+=("$name")
   EXECUTED+=("$name")
   printf '%-42s ' "$name"
   # persist per-check log so the audit trail survives a passing run
