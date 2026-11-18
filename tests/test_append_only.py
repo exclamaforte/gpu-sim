@@ -65,9 +65,11 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 
 
-def run_script():
+def run_script(plant=None):
     env = dict(os.environ)
     with _disposable_worktree() as wt:
+        if plant is not None:
+            plant(wt)
         script = wt / "scripts" / "check_append_only.py"
         r = subprocess.run([sys.executable, str(script), "--dirty-ok"], cwd=str(wt),
                            capture_output=True, text=True, env=env, timeout=300)
@@ -76,102 +78,80 @@ def run_script():
 
 class TestAppendOnly(unittest.TestCase):
     def test_unretired_deletion_fails_naming_key(self):
-        mf = ROOT / "docs" / "model_facts.json"
-        backup = mf.read_text()
-        d = json.loads(backup)
-        assert "fabric_band_robustness" in d
-        del d["fabric_band_robustness"]
-        mf.write_text(json.dumps(d, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on unretired deletion"
-            assert "fabric_band_robustness" in out, out
-        finally:
-            mf.write_text(backup)
+        def plant(wt):
+            mf = wt / "docs" / "model_facts.json"
+            d = json.loads(mf.read_text())
+            assert "fabric_band_robustness" in d
+            del d["fabric_band_robustness"]
+            mf.write_text(json.dumps(d, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on unretired deletion"
+        assert "fabric_band_robustness" in out, out
 
     def test_retired_deletion_passes(self):
-        mf = ROOT / "docs" / "model_facts.json"
-        backup = mf.read_text()
-        d = json.loads(backup)
-        assert "fabric_band_robustness" in d
-        del d["fabric_band_robustness"]
-        import subprocess as sp
-        commit = sp.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
-                                 text=True).strip()
-        d.setdefault("_retired_fact_blocks", [])
-        d["_retired_fact_blocks"].append({
-            "key": "fabric_band_robustness",
-            "reason": "test retirement",
-            "commit": commit,
-        })
-        mf.write_text(json.dumps(d, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc == 0, out
-        finally:
-            mf.write_text(backup)
+        def plant(wt):
+            mf = wt / "docs" / "model_facts.json"
+            d = json.loads(mf.read_text())
+            assert "fabric_band_robustness" in d
+            del d["fabric_band_robustness"]
+            import subprocess as sp
+            commit = sp.check_output(["git", "-C", str(wt), "rev-parse", "HEAD"],
+                                     text=True).strip()
+            d.setdefault("_retired_fact_blocks", [])
+            d["_retired_fact_blocks"].append({
+                "key": "fabric_band_robustness",
+                "reason": "test retirement",
+                "commit": commit,
+            })
+            mf.write_text(json.dumps(d, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc == 0, out
 
     def test_ledger_unretired_deletion_fails_naming_entry(self):
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
-        backup = shard.read_text()
-        shard.unlink()
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on unretired deletion"
-            assert "dhfo_memory_check" in out, out
-        finally:
-            shard.write_text(backup)
+        def plant(wt):
+            shard = wt / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
+            shard.unlink()
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on unretired deletion"
+        assert "dhfo_memory_check" in out, out
 
     def test_ledger_retired_deletion_passes(self):
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
-        backup = shard.read_text()
-        meta = ROOT / "tests" / "fs2y_ledger_meta.json"
-        _PLANT_FILES.extend([shard, meta])
-        import subprocess as sp
-        commit = sp.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
-                                 text=True).strip()
-        shard.unlink()
-        meta_backup = meta.read_text()
-        md = json.loads(meta_backup)
-        md.setdefault("retired", [])
-        md["retired"].append({
-            "name": "dhfo_memory_check",
-            "reason": "test retirement",
-            "commit": commit,
-        })
-        meta.write_text(json.dumps(md, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc == 0, out
-        finally:
-            shard.write_text(backup)
-            meta.write_text(meta_backup)
-            for _pf in (shard, meta):
-                try:
-                    _PLANT_FILES.remove(_pf)
-                except ValueError:
-                    pass
+        def plant(wt):
+            shard = wt / "tests" / "fs2y_ledger.d" / "dhfo_memory_check.json"
+            meta = wt / "tests" / "fs2y_ledger_meta.json"
+            import subprocess as sp
+            commit = sp.check_output(["git", "-C", str(wt), "rev-parse", "HEAD"],
+                                     text=True).strip()
+            shard.unlink()
+            meta_backup = meta.read_text()
+            md = json.loads(meta_backup)
+            md.setdefault("retired", [])
+            md["retired"].append({
+                "name": "dhfo_memory_check",
+                "reason": "test retirement",
+                "commit": commit,
+            })
+            meta.write_text(json.dumps(md, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc == 0, out
 
     def test_retirement_missing_reason_fails(self):
-        mf = ROOT / "docs" / "model_facts.json"
-        backup = mf.read_text()
-        d = json.loads(backup)
-        assert "fabric_band_robustness" in d
-        del d["fabric_band_robustness"]
-        import subprocess as sp
-        commit = sp.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
-                                 text=True).strip()
-        d.setdefault("_retired_fact_blocks", [])
-        d["_retired_fact_blocks"].append({
-            "key": "fabric_band_robustness",
-            "commit": commit,
-        })
-        mf.write_text(json.dumps(d, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on missing reason"
-        finally:
-            mf.write_text(backup)
+        def plant(wt):
+            mf = wt / "docs" / "model_facts.json"
+            d = json.loads(mf.read_text())
+            assert "fabric_band_robustness" in d
+            del d["fabric_band_robustness"]
+            import subprocess as sp
+            commit = sp.check_output(["git", "-C", str(wt), "rev-parse", "HEAD"],
+                                     text=True).strip()
+            d.setdefault("_retired_fact_blocks", [])
+            d["_retired_fact_blocks"].append({
+                "key": "fabric_band_robustness",
+                "commit": commit,
+            })
+            mf.write_text(json.dumps(d, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on missing reason"
 
 
 
@@ -190,119 +170,85 @@ class TestLedgerNodeIds(unittest.TestCase):
 
     def test_plant_class_qualified_module_level_fails(self):
         """Plant (a): class-qualified node for a module-level test must fail."""
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_class_qualified.json"
-        shard.unlink(missing_ok=True)
-        _PLANT_FILES.append(shard)
-        shard.write_text(json.dumps({
-            "name": "plant_class_qualified",
-            "beads": ["gpu-sim-u6ih"],
-            "state": "passing",
-            "test": "tests/test_no_pycache.py::NonexistentClass::test_lab_config_sets_pycache_suppression",
-            "bound_calls": 1,
-            "mutation": "append_only_guard",
-        }, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on class-qualified module-level node"
-            assert "does not resolve" in out or "collects 0" in out, out
-        finally:
-            shard.unlink(missing_ok=True)
-            try: _PLANT_FILES.remove(shard)
-            except ValueError: pass
+        def plant(wt):
+            shard = wt / "tests" / "fs2y_ledger.d" / "plant_class_qualified.json"
+            shard.write_text(json.dumps({
+                "name": "plant_class_qualified",
+                "beads": ["gpu-sim-u6ih"],
+                "state": "passing",
+                "test": "tests/test_no_pycache.py::NonexistentClass::test_lab_config_sets_pycache_suppression",
+                "bound_calls": 1,
+                "mutation": "append_only_guard",
+            }, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on class-qualified module-level node"
+        assert "does not resolve" in out or "collects 0" in out, out
 
     def test_plant_nonexistent_function_fails(self):
         """Plant (b): node naming a function that does not exist must fail."""
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_nonexistent_func.json"
-        _PLANT_FILES.append(shard)
-        shard.write_text(json.dumps({
-            "name": "plant_nonexistent_func",
-            "beads": ["gpu-sim-u6ih"],
-            "state": "passing",
-            "test": "tests/test_no_pycache.py::nonexistent_func_xyz",
-            "bound_calls": 1,
-            "mutation": "append_only_guard",
-        }, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on nonexistent function"
-            assert "does not resolve" in out or "collects 0" in out, out
-        finally:
-            shard.unlink(missing_ok=True)
-            try: _PLANT_FILES.remove(shard)
-            except ValueError: pass
+        def plant(wt):
+            shard = wt / "tests" / "fs2y_ledger.d" / "plant_nonexistent_func.json"
+            shard.write_text(json.dumps({
+                "name": "plant_nonexistent_func",
+                "beads": ["gpu-sim-u6ih"],
+                "state": "passing",
+                "test": "tests/test_no_pycache.py::nonexistent_func_xyz",
+                "bound_calls": 1,
+                "mutation": "append_only_guard",
+            }, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on nonexistent function"
+        assert "does not resolve" in out or "collects 0" in out, out
 
     def test_plant_nonexistent_file_fails(self):
         """Plant (c): node naming a file that does not exist must fail."""
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_nonexistent_file.json"
-        _PLANT_FILES.append(shard)
-        shard.write_text(json.dumps({
-            "name": "plant_nonexistent_file",
-            "beads": ["gpu-sim-u6ih"],
-            "state": "passing",
-            "test": "tests/test_nonexistent_file_xyz.py::test_foo",
-            "bound_calls": 1,
-            "mutation": "append_only_guard",
-        }, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on nonexistent file"
-            assert "does not resolve" in out or "collects 0" in out, out
-        finally:
-            shard.unlink(missing_ok=True)
-            try: _PLANT_FILES.remove(shard)
-            except ValueError: pass
+        def plant(wt):
+            shard = wt / "tests" / "fs2y_ledger.d" / "plant_nonexistent_file.json"
+            shard.write_text(json.dumps({
+                "name": "plant_nonexistent_file",
+                "beads": ["gpu-sim-u6ih"],
+                "state": "passing",
+                "test": "tests/test_nonexistent_file_xyz.py::test_foo",
+                "bound_calls": 1,
+                "mutation": "append_only_guard",
+            }, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on nonexistent file"
+        assert "does not resolve" in out or "collects 0" in out, out
 
     def test_plant_self_referential_fails(self):
         """A row naming a test in test_append_only (imports checker) must be refused."""
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_self_ref.json"
-        _PLANT_FILES.append(shard)
-        shard.write_text(json.dumps({
-            "name": "plant_self_ref",
-            "beads": ["gpu-sim-u6ih"],
-            "state": "passing",
-            "test": "tests/test_append_only.py::TestAppendOnly::test_retired_deletion_passes",
-            "bound_calls": 1,
-            "mutation": "append_only_guard",
-        }, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on self-referential row"
-            assert "self-referential" in out, out
-        finally:
-            shard.unlink(missing_ok=True)
-            try: _PLANT_FILES.remove(shard)
-            except ValueError: pass
+        def plant(wt):
+            shard = wt / "tests" / "fs2y_ledger.d" / "plant_self_ref.json"
+            shard.write_text(json.dumps({
+                "name": "plant_self_ref",
+                "beads": ["gpu-sim-u6ih"],
+                "state": "passing",
+                "test": "tests/test_append_only.py::TestAppendOnly::test_retired_deletion_passes",
+                "bound_calls": 1,
+                "mutation": "append_only_guard",
+            }, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on self-referential row"
+        assert "self-referential" in out, out
 
     def test_plant_vacuous_fails(self):
         """A vacuous row (assert True) must fail the mutation check."""
-        plant_file = ROOT / "tests" / "test_vacuous_plant.py"
-        _PLANT_FILES.append(plant_file)
-        plant_backup = None
-        if plant_file.exists():
-            plant_backup = plant_file.read_text()
-        plant_file.write_text("def test_vacuous():\n    assert True\n")
-        shard = ROOT / "tests" / "fs2y_ledger.d" / "plant_vacuous.json"
-        _PLANT_FILES.append(shard)
-        shard.write_text(json.dumps({
-            "name": "plant_vacuous",
-            "beads": ["gpu-sim-u6ih"],
-            "state": "passing",
-            "test": "tests/test_vacuous_plant.py::test_vacuous",
-            "bound_calls": 1,
-            "mutation": "ledger_node_ids_validated",
-        }, indent=2) + "\n")
-        try:
-            rc, out = run_script()
-            assert rc != 0, "expected failure on vacuous row"
-            assert "did not fail" in out, out
-        finally:
-            shard.unlink(missing_ok=True)
-            try: _PLANT_FILES.remove(shard)
-            except ValueError: pass
-            if plant_backup is None:
-                plant_file.unlink(missing_ok=True)
-            else:
-                plant_file.write_text(plant_backup)
+        def plant(wt):
+            plant_file = wt / "tests" / "test_vacuous_plant.py"
+            plant_file.write_text("def test_vacuous():\n    assert True\n")
+            shard = wt / "tests" / "fs2y_ledger.d" / "plant_vacuous.json"
+            shard.write_text(json.dumps({
+                "name": "plant_vacuous",
+                "beads": ["gpu-sim-u6ih"],
+                "state": "passing",
+                "test": "tests/test_vacuous_plant.py::test_vacuous",
+                "bound_calls": 1,
+                "mutation": "ledger_node_ids_validated",
+            }, indent=2) + "\n")
+        rc, out = run_script(plant=plant)
+        assert rc != 0, "expected failure on vacuous row"
+        assert "did not fail" in out, out
 
     def test_spoofed_depth_marker_does_not_skip(self):
         """An ambient/spoofed OI4M_CHECKER_PID must not enable child/skip mode."""
