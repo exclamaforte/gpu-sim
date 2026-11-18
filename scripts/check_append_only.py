@@ -526,7 +526,7 @@ def check_ledger_test_ids(root):
             errors.append(f"ledger row {name!r}: invalid verification strength {verification!r}")
             continue
         if verification == "mutation_plant":
-            if not (mutation and mutation in mutations):
+            if not (mutation and mutation in mfns):
                 errors.append(f"ledger row {name!r}: claims mutation_plant but has no registered mutation function")
                 continue
 

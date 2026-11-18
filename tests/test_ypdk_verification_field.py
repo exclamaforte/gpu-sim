@@ -37,7 +37,7 @@ def test_mutation_plant_without_function_fails():
             "state": "passing",
             "test": "tests/test_no_pycache.py::test_lab_config_sets_pycache_suppression",
             "bound_calls": 1,
-            "mutation": "n/a",
+            "mutation": "ypdk_named_no_fn",
             "verification": "mutation_plant",
         }, indent=2) + "\n")
         # load checker against troot
