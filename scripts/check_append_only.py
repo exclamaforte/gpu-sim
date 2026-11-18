@@ -80,6 +80,7 @@ EXEMPT_ROWS = {
     "8zqr_generalization": "replays stageD experiment (~74s); artifact byte-verified by append-only half",
     "bch9_fabric_band": "replays fabric-band measurement (~55s); artifact byte-verified by append-only half",
     "lcnu_spawn_fix": "fork->spawn context change; plant cannot reproduce full-suite flakiness in isolation",
+    "kte9_worktree_routing": "routes the last two checker call sites through run_script (disposable worktree); tree-identity refusal is not reproducible in isolation",
 }
 
 # Positive-only rows, grandfathered (gpu-sim-55sb). A row that cannot fail is not
