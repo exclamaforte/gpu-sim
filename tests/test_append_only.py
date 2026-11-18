@@ -282,6 +282,7 @@ class TestLedgerNodeIds(unittest.TestCase):
         # spoofed marker did not turn the check into a no-op. The marker is
         # rejected because no ancestor matches.
         assert rc == 0, out
+        assert "SKIPPED" not in out, out
 
 
 import json as _json
