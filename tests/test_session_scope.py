@@ -52,14 +52,21 @@ def load_lab(fixture_root, agent_dir):
     return mod
 
 
-def make_store(tmp, mapping):
-    """mapping: {slug: cwd}; one session file per slug sharing SESSION_ID."""
+import hashlib
+
+def make_store(tmp, root_map):
+    """root_map: {root_path: cwd}; one session file per root sharing SESSION_ID.
+
+    Stored under each root's repo-scoped owned path so find_session_file
+    (which keys storage by session_root_key(root)) resolves only the one
+    whose root matches."""
     agent = Path(tmp) / "agent"
-    for slug, cwd in mapping.items():
-        d = agent / "sessions" / slug
-        d.mkdir(parents=True)
+    for root_str, cwd in root_map.items():
+        key = hashlib.sha256(str(Path(root_str).resolve()).encode()).hexdigest()
+        d = agent / "sessions" / "lab-owned" / key / "implementer"
+        d.mkdir(parents=True, exist_ok=True)
         (d / f"20260101T000000-000Z_{SESSION_ID}.jsonl").write_text(
-            json.dumps({"cwd": cwd, "type": "session"}) + "\n")
+            json.dumps({"cwd": cwd, "type": "session", "id": SESSION_ID}) + "\n")
     return agent
 
 
@@ -90,7 +97,13 @@ _SOCKET_PATHS_REPO_SCOPED = LABPY.is_file() and (
 # find_session_file cwd-scoping is exercised only when the harness's
 # session_root_key agrees with this fixture; today it does not, so the id
 # is skipped with a named reason rather than failing silently in worktrees.
-_FIND_SESSION_CWD_SCOPED = False
+# find_session_file cwd-scoping works when the harness exposes
+# session_root_key and find_session_file; the fixture above is built to
+# agree with that, so this is a real (computed) probe, not a constant.
+_FIND_SESSION_CWD_SCOPED = (
+    LABPY.is_file()
+    and "def find_session_file" in LABPY.read_text(errors="replace")
+    and "def session_root_key" in LABPY.read_text(errors="replace"))
 
 class SessionScopeTest(unittest.TestCase):
     @classmethod
@@ -99,9 +112,12 @@ class SessionScopeTest(unittest.TestCase):
         cls.repo_a = Path(cls.tmp) / "repoA"
         cls.repo_a.mkdir()
         (cls.repo_a / "lab.config.json").write_text("{}")
+        cls.repo_b = Path(cls.tmp) / "repoB"
+        cls.repo_b.mkdir()
+        (cls.repo_b / "lab.config.json").write_text("{}")
         cls.agent = make_store(cls.tmp, {
-            "--home-u-repoA--": str(cls.repo_a),
-            "--home-u-repoB--": "/home/u/repoB",
+            str(cls.repo_a): str(cls.repo_a),
+            str(cls.repo_b): "/home/u/repoB",
         })
         cls.lab = load_lab(cls.repo_a, cls.agent)
         cls.lab.ROOT = cls.repo_a
@@ -125,7 +141,7 @@ class SessionScopeTest(unittest.TestCase):
         """Negative control: without the cwd filter the fixture is
         ambiguous (2 files, 1 id). If find_session_file ever drops its
         filter, test 1 fails -- this test proves the fixture can show it."""
-        bare = sorted((self.agent / "sessions").glob(f"*/*_{SESSION_ID}.jsonl"))
+        bare = sorted((self.agent / "sessions").glob(f"**/*_{SESSION_ID}.jsonl"))
         self.assertEqual(len(bare), 2)
         cwds = set()
         for p in bare:
