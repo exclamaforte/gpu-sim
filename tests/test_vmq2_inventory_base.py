@@ -16,16 +16,15 @@ def _committed_note_sha():
 
 def _clone_without_local_master(root, dest):
     subprocess.run(["git", "clone", "-q", str(root), str(dest)], check=True)
-    for b in ("master", "main"):
-        subprocess.run(["git", "-C", str(dest), "branch", "-D", b],
-                       capture_output=True, text=True)
+    # Local main/master are not present in a fresh clone; nothing to delete.
+    # The refs that matter are pinned explicitly by _pin_refs afterwards.
 
 
 def _pin_refs(clone, sha):
     for ref in ("refs/heads/main", "refs/remotes/origin/main",
                 "refs/heads/master", "refs/remotes/origin/master"):
         subprocess.run(["git", "-C", str(clone), "update-ref", ref, sha],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, check=True)
 
 
 def test_bad_base_exits_nonzero():
