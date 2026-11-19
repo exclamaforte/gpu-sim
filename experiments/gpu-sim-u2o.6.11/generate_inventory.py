@@ -111,6 +111,7 @@ def main() -> int:
     import argparse
     _ap = argparse.ArgumentParser()
     _ap.add_argument("--base", default=None)
+    _ap.add_argument("--rewrite", action="store_true", default=False)
     _args, _rest = _ap.parse_known_args()
     if _args.base is not None:
         base_ref = _args.base
@@ -136,13 +137,17 @@ def main() -> int:
         m = re.search(r"base: ([0-9a-fA-F]{7,40})", inv_path.read_text())
         if m:
             recorded_sha = m.group(1)
-    if recorded_sha and not base_sha.startswith(recorded_sha) and not recorded_sha.startswith(base_sha):
+    if (recorded_sha and not _args.rewrite
+            and not base_sha.startswith(recorded_sha)
+            and not recorded_sha.startswith(base_sha)):
         print(f"ERROR: base sha mismatch: note records {recorded_sha} (from note), "
               f"resolved {base_sha} (from {base_ref}); refusing to rewrite",
               file=sys.stderr)
         return 1
 
-    stamp = datetime.now(timezone.utc).isoformat()
+    _ts = subprocess.run(["git", "show", "-s", "--format=%cI", base_sha],
+                          capture_output=True, text=True, cwd=str(REPO))
+    stamp = _ts.stdout.strip() if _ts.returncode == 0 and _ts.stdout.strip() else datetime.now(timezone.utc).isoformat()
     # NORMALISE TO BARE NAMES. An earlier revision kept full paths in one set
     # and bare names in another, so `name in tracked` was always false, every
     # source file was misfiled as "another unmerged bead", and the TRACK set
@@ -168,9 +173,14 @@ def main() -> int:
     # master already has; deriving over `added` is the set the removal
     # instruction actually depends on.)
     n_remove = len(added)
+    # Canonicalise the ref name to its bare branch name (strip any
+    # origin/ prefix) so the artifact does not depend on whether the base
+    # was resolved as a local or a remote-tracking ref: a clone with only
+    # origin/main and a worktree with a local main both emit "main".
+    base_ref_note = base_ref.rsplit("/", 1)[-1] if "/" in base_ref else base_ref
     base_note = ("" if n_remove else
-                 f" NOTE: base: {base_sha[:8]} (resolved from ref {base_ref}) "
-                 f"at {stamp}. "
+                 f" NOTE: base: {base_sha[:8]} (resolved from ref {base_ref_note} at "
+                 f"{stamp}). "
                  f"Derived against that commit, which already contains these "
                  f"paths, so nothing needs removing. The removal instruction "
                  f"below is only meaningful against a base that predates this "

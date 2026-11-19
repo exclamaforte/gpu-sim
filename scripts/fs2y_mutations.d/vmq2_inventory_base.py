@@ -11,7 +11,9 @@ def apply(root):
         '        raise RuntimeError(f"base ref {base!r} does not resolve: {r.stderr.strip()}")',
         '        return set()  # mutated: swallow failure', 1)
     # also remove the mismatch guard so a bad base silently rewrites
-    old_guard = '''    if recorded_sha and not base_sha.startswith(recorded_sha) and not recorded_sha.startswith(base_sha):
+    old_guard = '''    if (recorded_sha and not _args.rewrite
+            and not base_sha.startswith(recorded_sha)
+            and not recorded_sha.startswith(base_sha)):
         print(f"ERROR: base sha mismatch: note records {recorded_sha} (from note), "
               f"resolved {base_sha} (from {base_ref}); refusing to rewrite",
               file=sys.stderr)
