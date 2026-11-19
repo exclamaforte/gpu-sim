@@ -17,10 +17,14 @@ cd "$(dirname "$0")/.."
 
 # gpu-sim-gtree: say WHICH tree this gate is evaluating.
 gate_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Resolve the MAIN repository root even when running inside a linked worktree,
+# so per-run logs survive removal of the disposable worktree that was gated.
+git_common_dir="$(git -C "$gate_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "$gate_root/.git")"
+repo_root="$(cd "$git_common_dir/.." && pwd)"
 gate_head="$(git -C "$gate_root" log -1 --format='%h %s' 2>/dev/null | cut -c1-60)"
 gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 gate_ts="$(date -u +%Y%m%dT%H%M%SZ)"
-GATE_RUN_LOG_DIR="$gate_root/.lab/gate-logs/${gate_tip:0:8}-${gate_ts}"
+GATE_RUN_LOG_DIR="$repo_root/.lab/gate-logs/${gate_tip:0:8}-${gate_ts}"
 mkdir -p "$GATE_RUN_LOG_DIR" 2>/dev/null || true
 
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
@@ -98,6 +102,7 @@ end_report() {
     echo "FAIL: dirty digest changed during the run (start=${start_digest} end=${end_digest})"
     rc=1
   fi
+  echo "gate logs: $GATE_RUN_LOG_DIR"
   rm -f "$GATE_LOG" "$start_raw" "$end_raw"
   exit $rc
 }
@@ -152,9 +157,13 @@ run_hard() {  # name, command...
         echo "    --- failing ids / summary ---"
         printf '%s\n' "$id_lines" | tail -n 40 | sed 's/^/    /'
       fi
-      local total withheld
+      local total id_count printed withheld
       total=$(wc -l < "$GATE_LOG")
-      withheld=$((total > 25 ? total - 25 : 0))
+      id_count=$(printf '%s\n' "$id_lines" | wc -l)
+      if [ -z "$id_lines" ]; then id_count=0; fi
+      printed=$(( id_count < 40 ? id_count : 40 ))
+      printed=$(( printed + 25 ))
+      withheld=$(( total > printed ? total - printed : 0 ))
       if [ "$withheld" -gt 0 ]; then
         echo "    ... $withheld more lines withheld (full log: $run_log)"
       fi
