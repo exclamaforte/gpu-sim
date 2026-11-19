@@ -147,32 +147,12 @@ run_hard() {  # name, command...
     fi
   else
     cp "$GATE_LOG" "$check_log" 2>/dev/null || true
-    cp "$GATE_LOG" "$run_log" 2>/dev/null || true
     echo "FAIL"; fail=$((fail+1)); FAILED+=("$name")
     if [ -s "$GATE_LOG" ]; then
-      # Print failing ids / summary lines first (pytest puts them at the END).
-      local id_lines
-      id_lines=$(grep -nE '^(FAILED|ERROR) |failed,|passed,|error during collection' "$GATE_LOG" 2>/dev/null || true)
-      if [ -n "$id_lines" ]; then
-        echo "    --- failing ids / summary ---"
-        printf '%s\n' "$id_lines" | tail -n 40 | sed 's/^/    /'
-      fi
-      local total id_count printed withheld
-      total=$(wc -l < "$GATE_LOG")
-      id_count=$(printf '%s\n' "$id_lines" | wc -l)
-      if [ -z "$id_lines" ]; then id_count=0; fi
-      printed=$(( id_count < 40 ? id_count : 40 ))
-      printed=$(( printed + 25 ))
-      withheld=$(( total > printed ? total - printed : 0 ))
-      if [ "$withheld" -gt 0 ]; then
-        echo "    ... $withheld more lines withheld (full log: $run_log)"
-      fi
-      echo "    --- tail ---"
-      tail -n 25 "$GATE_LOG" | sed 's/^/    /'
+      python3 scripts/gate_stage_report.py --stage "$name" --log "$GATE_LOG" --copy-to "$GATE_RUN_LOG_DIR"
     else
       echo "    (no output: check produced no log -- did it fail to start?)"
     fi
-    echo "    full log: $run_log"
   fi
 }
 
