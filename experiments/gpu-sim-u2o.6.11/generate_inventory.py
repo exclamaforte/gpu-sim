@@ -179,8 +179,8 @@ def main() -> int:
     # origin/main and a worktree with a local main both emit "main".
     base_ref_note = base_ref.rsplit("/", 1)[-1] if "/" in base_ref else base_ref
     base_note = ("" if n_remove else
-                 f" NOTE: base: {base_sha[:8]} (resolved from ref {base_ref_note} at "
-                 f"{stamp}). "
+                 f" NOTE: base: {base_sha[:8]} (resolved from ref {base_ref_note}; "
+                 f"base commit date {stamp}). "
                  f"Derived against that commit, which already contains these "
                  f"paths, so nothing needs removing. The removal instruction "
                  f"below is only meaningful against a base that predates this "
