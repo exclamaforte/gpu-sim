@@ -5,9 +5,9 @@
   "cpu_runs": [
     {
       "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-mve4/run.sh",
-      "exit": 0,
       "log": "experiments/gpu-sim-mve4/output.log",
-      "what": "hermetic gate fix: pin k9e4 base sha; e7yw compare to named ref"
+      "what": "hermetic gate fix: pin k9e4 base sha; e7yw compare to named ref",
+      "exit_code": 0
     }
   ],
   "cpu_runs_note": "CPU-only tests; no GPU used."
