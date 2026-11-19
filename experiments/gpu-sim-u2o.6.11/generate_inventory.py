@@ -20,6 +20,8 @@ Run:  python3 experiments/gpu-sim-u2o.6.11/generate_inventory.py
 import json
 import subprocess
 import sys
+import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -116,6 +118,20 @@ def main() -> int:
         return 1
     base_sha = resolve_sha(base_ref)
     base = base_sha
+
+    recorded_sha = None
+    inv_path = HERE / "tracks_inventory.md"
+    if inv_path.is_file():
+        m = re.search(r"base: ([0-9a-fA-F]{7,40})", inv_path.read_text())
+        if m:
+            recorded_sha = m.group(1)
+    if recorded_sha and not base_sha.startswith(recorded_sha) and not recorded_sha.startswith(base_sha):
+        print(f"ERROR: base sha mismatch: note records {recorded_sha} (from note), "
+              f"resolved {base_sha} (from {base_ref}); refusing to rewrite",
+              file=sys.stderr)
+        return 1
+
+    stamp = datetime.now(timezone.utc).isoformat()
     # NORMALISE TO BARE NAMES. An earlier revision kept full paths in one set
     # and bare names in another, so `name in tracked` was always false, every
     # source file was misfiled as "another unmerged bead", and the TRACK set
@@ -142,7 +158,8 @@ def main() -> int:
     # instruction actually depends on.)
     n_remove = len(added)
     base_note = ("" if n_remove else
-                 f" NOTE: base: {base_sha[:8]} (resolved from ref {base_ref}). "
+                 f" NOTE: base: {base_sha[:8]} (resolved from ref {base_ref}) "
+                 f"at {stamp}. "
                  f"Derived against that commit, which already contains these "
                  f"paths, so nothing needs removing. The removal instruction "
                  f"below is only meaningful against a base that predates this "
