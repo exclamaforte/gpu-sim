@@ -19,12 +19,37 @@ def _load_branch_keys():
     return set(getattr(mod, "MUTATIONS", {}))
 
 
+# Pin the comparison base to a single commit resolved once, so the test is
+# hermetic: it never re-reads the live "main" ref (which moves with every land
+# and makes a branch tip red by construction).
+def _pinned_base_sha():
+    for args in (["merge-base", "HEAD", "main"],
+                 ["merge-base", "HEAD", "master"]):
+        try:
+            out = subprocess.check_output(
+                ["git", "-C", str(ROOT)] + args, text=True,
+                stderr=subprocess.DEVNULL).strip()
+            if out:
+                return out
+        except subprocess.CalledProcessError:
+            continue
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
+    except subprocess.CalledProcessError:
+        return None
+
+PINNED_BASE_SHA = _pinned_base_sha()
+
+
 def _load_main_keys():
     main_keys = set()
+    if not PINNED_BASE_SHA:
+        return main_keys
     try:
         d_files = subprocess.check_output(
-            ["git", "-C", str(ROOT), "ls-tree", "-r", "main", "--name-only",
-             "scripts/fs2y_mutations.d/"],
+            ["git", "-C", str(ROOT), "ls-tree", "-r", PINNED_BASE_SHA,
+             "--name-only", "scripts/fs2y_mutations.d/"],
             text=True,
         )
         for line in d_files.splitlines():
@@ -35,7 +60,8 @@ def _load_main_keys():
     if not main_keys:
         try:
             out = subprocess.check_output(
-                ["git", "-C", str(ROOT), "show", "main:scripts/fs2y_mutations.py"],
+                ["git", "-C", str(ROOT), "show",
+                 f"{PINNED_BASE_SHA}:scripts/fs2y_mutations.py"],
                 text=True,
             )
             ns = {"__file__": str(ROOT / "scripts" / "fs2y_mutations.py")}
@@ -50,7 +76,7 @@ def test_branch_registry_is_superset_of_main():
     main_keys = _load_main_keys()
     branch_keys = _load_branch_keys()
     missing = main_keys - branch_keys
-    assert not missing, f"branch registry missing keys that main has: {sorted(missing)}"
+    assert not missing, f"branch registry missing keys that {PINNED_BASE_SHA} has: {sorted(missing)}"
 
 
 def test_rename_one_key_fails():

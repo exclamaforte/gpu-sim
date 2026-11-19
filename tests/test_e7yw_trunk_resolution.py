@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from resolve_trunk import resolve_trunk, trunk_sha
@@ -13,15 +15,28 @@ def test_resolve_trunk_prefers_main():
     assert ref == "main", f"expected main, got {ref}"
 
 
+def _independent_expected_sha():
+    # Read the named ref's sha DIRECTLY, not through resolve_trunk, so the
+    # comparison cannot be tautological.
+    return subprocess.check_output(
+        ["git", "-C", str(ROOT), "rev-parse", "main"], text=True).strip()
+
+
 def test_resolved_base_equals_integration_branch():
-    import sys, os, subprocess
-    sys.path.insert(0, str(ROOT / "scripts"))
-    # Replicate merge_base logic without importing the checker.
-    import resolve_trunk
-    trunk = resolve_trunk.resolve_trunk(str(ROOT)) or "main"
-    r = subprocess.run(["git", "-C", str(ROOT), "merge-base", "HEAD", trunk],
-                       capture_output=True, text=True)
-    base = r.stdout.strip()
-    integration_sha = trunk_sha(str(ROOT))
-    assert base == integration_sha, (
-        f"resolved base {base} != integration branch sha {integration_sha}")
+    expected = _independent_expected_sha()
+    actual = trunk_sha(str(ROOT))
+    assert actual == expected, (
+        f"trunk_sha {actual} != independently-read main sha {expected}")
+
+
+def test_resolved_base_negative_arm():
+    # Point the comparison at a different commit: it must NOT match.
+    main_sha = _independent_expected_sha()
+    # Use the root commit as a deterministically-unrelated commit, so the
+    # arm does not depend on the branch's distance from main.
+    other = subprocess.check_output(
+        ["git", "-C", str(ROOT), "rev-list", "--max-parents=0", "HEAD"],
+        text=True).strip().splitlines()[0]
+    assert other != main_sha, "root commit must differ from main for this arm"
+    assert trunk_sha(str(ROOT)) != other, (
+        "trunk_sha must not equal an unrelated commit")
