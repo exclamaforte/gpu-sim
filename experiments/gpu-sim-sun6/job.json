@@ -1,0 +1,14 @@
+{
+  "bead": "gpu-sim-sun6",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= python3 -m pytest tests/test_session_scope.py -q",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-sun6/output.log",
+      "what": "session-scope location-independence"
+    }
+  ],
+  "cpu_runs_note": "CPU-only tests; no GPU used."
+}
