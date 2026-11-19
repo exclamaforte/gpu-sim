@@ -4,7 +4,7 @@
   "gpu_used": false,
   "cpu_runs": [
     {
-      "command": "CUDA_VISIBLE_DEVICES= nice -n 10 experiments/gpu-sim-mve4/run.sh",
+      "command": "CUDA_VISIBLE_DEVICES= python3 -m pytest tests/test_k9e4_registry_superset.py tests/test_k9e4_pin_loadbearing.py tests/test_e7yw_trunk_resolution.py -q",
       "log": "experiments/gpu-sim-mve4/output.log",
       "what": "hermetic gate fix: pin k9e4 base sha; e7yw compare to named ref",
       "exit_code": 0
