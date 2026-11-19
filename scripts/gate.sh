@@ -19,6 +19,9 @@ cd "$(dirname "$0")/.."
 gate_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 gate_head="$(git -C "$gate_root" log -1 --format='%h %s' 2>/dev/null | cut -c1-60)"
 gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
+gate_ts="$(date -u +%Y%m%dT%H%M%SZ)"
+GATE_RUN_LOG_DIR="$gate_root/.lab/gate-logs/${gate_tip:0:8}-${gate_ts}"
+mkdir -p "$GATE_RUN_LOG_DIR" 2>/dev/null || true
 
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
 mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
@@ -121,8 +124,10 @@ run_hard() {  # name, command...
   slug=$(printf '%s' "$name" | tr ' /' '__' | tr -cd 'A-Za-z0-9_-')
   mkdir -p "$gate_root/.lab/gate-logs" 2>/dev/null || true
   local check_log="$gate_root/.lab/gate-logs/${slug}.log"
+  local run_log="$GATE_RUN_LOG_DIR/${slug}.log"
   if "$@" >"$GATE_LOG" 2>&1; then
     cp "$GATE_LOG" "$check_log" 2>/dev/null || true
+    cp "$GATE_LOG" "$run_log" 2>/dev/null || true
     echo "PASS"; pass=$((pass+1))
     # re-print audit lines (BYPASSED, retroactive, exempt, skipped (exempt), grandfather)
     local audit_lines
@@ -137,12 +142,28 @@ run_hard() {  # name, command...
     fi
   else
     cp "$GATE_LOG" "$check_log" 2>/dev/null || true
+    cp "$GATE_LOG" "$run_log" 2>/dev/null || true
     echo "FAIL"; fail=$((fail+1)); FAILED+=("$name")
     if [ -s "$GATE_LOG" ]; then
-      sed -n '1,12p' "$GATE_LOG" | sed 's/^/    /'
+      # Print failing ids / summary lines first (pytest puts them at the END).
+      local id_lines
+      id_lines=$(grep -nE '^(FAILED|ERROR) |failed,|passed,|error during collection' "$GATE_LOG" 2>/dev/null || true)
+      if [ -n "$id_lines" ]; then
+        echo "    --- failing ids / summary ---"
+        printf '%s\n' "$id_lines" | tail -n 40 | sed 's/^/    /'
+      fi
+      local total withheld
+      total=$(wc -l < "$GATE_LOG")
+      withheld=$((total > 25 ? total - 25 : 0))
+      if [ "$withheld" -gt 0 ]; then
+        echo "    ... $withheld more lines withheld (full log: $run_log)"
+      fi
+      echo "    --- tail ---"
+      tail -n 25 "$GATE_LOG" | sed 's/^/    /'
     else
       echo "    (no output: check produced no log -- did it fail to start?)"
     fi
+    echo "    full log: $run_log"
   fi
 }
 
@@ -232,4 +253,5 @@ fi
 if [ $advisory -ne 0 ]; then
   printf 'advisory (pre-existing, tracked elsewhere): %s\n' "${ADVISED[*]}"
 fi
+echo "gate logs: $GATE_RUN_LOG_DIR"
 echo "GATE OK"
