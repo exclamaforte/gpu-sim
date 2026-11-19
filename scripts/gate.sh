@@ -174,6 +174,8 @@ fi
 
 if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
+else
+  :
 fi
 run_hard "docs section 0 vs model" python3 scripts/check_docs_model_numbers.py
 # gpu-sim-e2lf: the append-only walk runs in a DISPOSABLE worktree of HEAD, not
@@ -214,7 +216,11 @@ fi
 
 
 echo
-echo "hard: $pass passed, $fail failed | advisory findings: $advisory"
+if [ $FAST -eq 1 ]; then
+  python3 scripts/gate_coverage.py --fast --pass $pass --fail $fail --advisory $advisory
+else
+  python3 scripts/gate_coverage.py --pass $pass --fail $fail --advisory $advisory
+fi
 if [ $fail -ne 0 ]; then
   printf 'FAILED: %s\n' "${FAILED[*]}"
   exit 1
