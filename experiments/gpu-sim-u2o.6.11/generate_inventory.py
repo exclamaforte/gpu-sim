@@ -28,6 +28,13 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]   # experiments/<id>/ -> worktree root
 EP = REPO / "epic_u2o"
 
+import sys as _sys
+_sys.path.insert(0, str(REPO / 'scripts'))
+try:
+    from resolve_trunk import resolve_trunk as _resolve_trunk
+except Exception:
+    _resolve_trunk = None
+
 # The reviewer's finding, restated as a rule rather than a one-off: a
 # classification is valid only for the tree state it was derived from.
 VOLATILE = {
@@ -74,8 +81,12 @@ def in_master(base: str = "master") -> set:
 
 
 def resolve_base() -> str:
-    """Resolve a base ref: try main, master, origin/main, origin/master."""
-    for ref in ("main", "master", "origin/main", "origin/master"):
+    """Resolve a base ref: shared trunk resolver first, then origin/* fallbacks."""
+    if _resolve_trunk is not None:
+        tr = _resolve_trunk(str(REPO))
+        if tr:
+            return tr
+    for ref in ("origin/main", "origin/master", "main", "master"):
         r = subprocess.run(["git", "rev-parse", "--verify", ref],
                            capture_output=True, text=True, cwd=str(REPO))
         if r.returncode == 0 and r.stdout.strip():
