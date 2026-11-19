@@ -139,7 +139,7 @@ that row is stale by definition.
 
 ## Merging this bead will refuse, and that is expected
 
-This branch tracks 0 paths that already exist UNTRACKED in the main NOTE: derived against 'master', which already contains these paths, so nothing needs removing. The removal instruction below is only meaningful against a base that predates this branch -- pass that ref explicitly to regenerate it.
+This branch tracks 0 paths that already exist UNTRACKED in the main NOTE: base: 88f2e809 (resolved from ref 88f2e809). Derived against that commit, which already contains these paths, so nothing needs removing. The removal instruction below is only meaningful against a base that predates this branch -- pass that ref explicitly to regenerate it.
 working tree, so `git merge` aborts with 'untracked working tree
 files would be overwritten by merge'. That is inherent -- you cannot
 track a file that already sits untracked in the tree without the tree
