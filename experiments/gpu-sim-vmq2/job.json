@@ -1,0 +1,14 @@
+{
+  "bead": "gpu-sim-vmq2",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= python3 -m pytest tests/test_vmq2_inventory_base.py -q",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-vmq2/output.log",
+      "what": "vmq2 base ref resolution"
+    }
+  ],
+  "cpu_runs_note": "CPU-only tests; no GPU used."
+}
