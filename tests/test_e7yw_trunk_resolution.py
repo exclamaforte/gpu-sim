@@ -32,8 +32,11 @@ def test_resolved_base_equals_integration_branch():
 def test_resolved_base_negative_arm():
     # Point the comparison at a different commit: it must NOT match.
     main_sha = _independent_expected_sha()
+    # Use the root commit as a deterministically-unrelated commit, so the
+    # arm does not depend on the branch's distance from main.
     other = subprocess.check_output(
-        ["git", "-C", str(ROOT), "rev-parse", "HEAD~1"], text=True).strip()
-    assert other != main_sha, "HEAD~1 must differ from main for this arm"
+        ["git", "-C", str(ROOT), "rev-list", "--max-parents=0", "HEAD"],
+        text=True).strip().splitlines()[0]
+    assert other != main_sha, "root commit must differ from main for this arm"
     assert trunk_sha(str(ROOT)) != other, (
         "trunk_sha must not equal an unrelated commit")
