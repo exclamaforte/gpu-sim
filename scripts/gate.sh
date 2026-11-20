@@ -17,8 +17,15 @@ cd "$(dirname "$0")/.."
 
 # gpu-sim-gtree: say WHICH tree this gate is evaluating.
 gate_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Resolve the MAIN repository root even when running inside a linked worktree,
+# so per-run logs survive removal of the disposable worktree that was gated.
+git_common_dir="$(git -C "$gate_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "$gate_root/.git")"
+repo_root="$(cd "$git_common_dir/.." && pwd)"
 gate_head="$(git -C "$gate_root" log -1 --format='%h %s' 2>/dev/null | cut -c1-60)"
 gate_tip="$(git -C "$gate_root" rev-parse HEAD 2>/dev/null || echo unknown)"
+gate_ts="$(date -u +%Y%m%dT%H%M%SZ)"
+GATE_RUN_LOG_DIR="$repo_root/.lab/gate-logs/${gate_tip:0:8}-${gate_ts}"
+mkdir -p "$GATE_RUN_LOG_DIR" 2>/dev/null || true
 
 GATE_TMP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.lab/tmp"
 mkdir -p "$GATE_TMP" || { echo "gate: cannot create $GATE_TMP" >&2; exit 1; }
@@ -95,6 +102,7 @@ end_report() {
     echo "FAIL: dirty digest changed during the run (start=${start_digest} end=${end_digest})"
     rc=1
   fi
+  echo "gate logs: $GATE_RUN_LOG_DIR"
   rm -f "$GATE_LOG" "$start_raw" "$end_raw"
   exit $rc
 }
@@ -121,8 +129,10 @@ run_hard() {  # name, command...
   slug=$(printf '%s' "$name" | tr ' /' '__' | tr -cd 'A-Za-z0-9_-')
   mkdir -p "$gate_root/.lab/gate-logs" 2>/dev/null || true
   local check_log="$gate_root/.lab/gate-logs/${slug}.log"
+  local run_log="$GATE_RUN_LOG_DIR/${slug}.log"
   if "$@" >"$GATE_LOG" 2>&1; then
     cp "$GATE_LOG" "$check_log" 2>/dev/null || true
+    cp "$GATE_LOG" "$run_log" 2>/dev/null || true
     echo "PASS"; pass=$((pass+1))
     # re-print audit lines (BYPASSED, retroactive, exempt, skipped (exempt), grandfather)
     local audit_lines
@@ -139,7 +149,7 @@ run_hard() {  # name, command...
     cp "$GATE_LOG" "$check_log" 2>/dev/null || true
     echo "FAIL"; fail=$((fail+1)); FAILED+=("$name")
     if [ -s "$GATE_LOG" ]; then
-      sed -n '1,12p' "$GATE_LOG" | sed 's/^/    /'
+      python3 scripts/gate_stage_report.py --stage "$name" --log "$GATE_LOG" --copy-to "$GATE_RUN_LOG_DIR"
     else
       echo "    (no output: check produced no log -- did it fail to start?)"
     fi
@@ -232,4 +242,5 @@ fi
 if [ $advisory -ne 0 ]; then
   printf 'advisory (pre-existing, tracked elsewhere): %s\n' "${ADVISED[*]}"
 fi
+echo "gate logs: $GATE_RUN_LOG_DIR"
 echo "GATE OK"
