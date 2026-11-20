@@ -33,7 +33,8 @@ if [ -d /dev/shm ]; then
   fi
 fi
 # Preflight: reap leaked append-only worktrees (gpu-sim-k3gb).
-python3 scripts/reap_appendonly_worktrees.py --repo "$gate_root" || true
+python3 scripts/reap_appendonly_worktrees.py || \
+  echo "PREFLIGHT: append-only worktree reaper failed (see message above); gate continues with un-reaped worktrees" >&2
 
 GATE_LOG="$GATE_TMP/gate.$$.out"
 if ! : > "$GATE_LOG" 2>/dev/null; then
