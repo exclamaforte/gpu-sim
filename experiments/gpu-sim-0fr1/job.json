@@ -1,0 +1,14 @@
+{
+  "bead": "gpu-sim-0fr1",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= python3 -m pytest tests/test_0fr1_shard_format.py -q",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-0fr1/output.log",
+      "what": "0fr1 shard format"
+    }
+  ],
+  "cpu_runs_note": "CPU-only tests; no GPU used."
+}
