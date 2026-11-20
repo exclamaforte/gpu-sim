@@ -40,41 +40,13 @@ cleanup() {
   git -C "$repo_root" worktree remove --force "$tmpwt" >/dev/null 2>&1 || true
   rm -rf "$tmpwt"
   git -C "$repo_root" worktree prune >/dev/null 2>&1 || true
-  # Remove the record now that the worktree is gone.
-  python3 - "$main_root" "$tmpwt" <<'PYUNRECORD'
-import json, os, sys
-root, path = sys.argv[1], sys.argv[2]
-rf = os.path.join(root, ".lab", "tmp", "appendonly-worktrees.json")
-if not os.path.exists(rf):
-    raise SystemExit(0)
-try:
-    data = json.load(open(rf))
-except Exception:
-    data = []
-data = [r for r in data if r.get("path") != path]
-with open(rf, "w") as f:
-    json.dump(data, f)
-PYUNRECORD
+  python3 "$repo_root/scripts/appendonly_worktrees.py" unrecord "$tmpwt" >/dev/null 2>&1 || true
 }
 # Cleanup on normal exit AND on interruption: a killed gate must not leave a
 # registered worktree behind (that is the residue class this bead is about).
 trap cleanup EXIT INT TERM HUP
 
-# Record the disposable worktree path so a reaper can remove it by name if
-# this process is killed mid-walk (gpu-sim-k3gb).
-python3 - "$main_root" "$tmpwt" "$$" <<'PYRECORD'
-import json, os, sys
-root, path, pid = sys.argv[1], sys.argv[2], int(sys.argv[3])
-rf = os.path.join(root, ".lab", "tmp", "appendonly-worktrees.json")
-os.makedirs(os.path.dirname(rf), exist_ok=True)
-try:
-    data = json.load(open(rf)) if os.path.exists(rf) else []
-except Exception:
-    data = []
-data.append({"path": path, "pid": pid})
-with open(rf, "w") as f:
-    json.dump(data, f)
-PYRECORD
+python3 "$repo_root/scripts/appendonly_worktrees.py" record "$tmpwt" --pid "$$" >/dev/null 2>&1 || true
 
 if ! git -C "$repo_root" worktree add --detach "$tmpwt" "$ref" >/dev/null 2>&1; then
   echo "append-only stage: git worktree add --detach $tmpwt $ref failed" >&2

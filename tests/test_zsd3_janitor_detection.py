@@ -52,8 +52,10 @@ def sandbox():
     everything it dirties stays inside the sandbox.
     """
     d = tempfile.mkdtemp(prefix="zsd3-probe-", dir=os.path.join(REPO, ".lab", "tmp"))
+    _run([sys.executable, str(REPO / "scripts" / "appendonly_worktrees.py"), "record", d, "--pid", str(os.getpid())], REPO)
     add = _run(["git", "worktree", "add", "--detach", d, "HEAD"], REPO)
     if add.returncode != 0:
+        _run([sys.executable, str(REPO / "scripts" / "appendonly_worktrees.py"), "unrecord", d], REPO)
         shutil.rmtree(d, ignore_errors=True)
         pytest.skip(f"cannot create scratch worktree: {add.stderr}")
     try:
@@ -72,6 +74,7 @@ def sandbox():
         _run(["git", "worktree", "remove", "--force", d], REPO)
         _run(["git", "worktree", "prune"], REPO)
         shutil.rmtree(d, ignore_errors=True)
+        _run([sys.executable, str(REPO / "scripts" / "appendonly_worktrees.py"), "unrecord", d], REPO)
 
 
 def _run_probe(sandbox: Path, body: str) -> subprocess.CompletedProcess:

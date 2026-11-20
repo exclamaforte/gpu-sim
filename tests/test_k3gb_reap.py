@@ -7,7 +7,7 @@ REAPER = ROOT / "scripts" / "reap_appendonly_worktrees.py"
 
 
 def _restore_record(orig):
-    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.json"
+    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.jsonl"
     if orig is None:
         try:
             record.unlink()
@@ -18,30 +18,38 @@ def _restore_record(orig):
 
 
 def test_reap_removes_recorded_path():
-    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.json"
+    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.jsonl"
     orig = record.read_text() if record.exists() else None
-    with tempfile.TemporaryDirectory(dir=ROOT / ".lab" / "tmp") as td:
-        td = Path(td)
-        wt = td / "fake-wt"
-        wt.mkdir()
-        (wt / "x.txt").write_text("hi")
-        try:
-            record.write_text(json.dumps([{"path": str(wt), "pid": 999999}]))
-            r = subprocess.run(
-                [sys.executable, str(REAPER), "--repo", str(ROOT)],
-                capture_output=True, text=True,
-            )
-            assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
-            assert str(wt) in r.stdout
-            assert not wt.exists(), "recorded path not removed"
-            data = json.loads(record.read_text())
-            assert all(r2.get("path") != str(wt) for r2 in data), "record not cleared"
-        finally:
-            _restore_record(orig)
+    # use a real registered worktree
+    import tempfile as _t
+    td = Path(_t.mkdtemp(prefix="k3gb-reap-", dir=ROOT / ".lab" / "tmp"))
+    wt = td / "wt"
+    subprocess.run(["git", "-C", str(ROOT), "worktree", "add", "--detach", str(wt), "HEAD"],
+                   check=True, capture_output=True)
+    try:
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "appendonly_worktrees.py"),
+                        "record", str(wt), "--pid", "999999", "--repo", str(ROOT)], cwd=str(ROOT), check=True, capture_output=True)
+        r = subprocess.run(
+            [sys.executable, str(REAPER), "--repo", str(ROOT)],
+            capture_output=True, text=True,
+        )
+        assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+        assert str(wt) in r.stdout
+        assert not wt.exists(), "recorded path not removed"
+        # registry now empty
+        if record.exists():
+            assert record.read_text().strip() == "", "record not cleared"
+    finally:
+        subprocess.run(["git", "-C", str(ROOT), "worktree", "remove", "--force", str(wt)],
+                       capture_output=True, text=True)
+        subprocess.run(["git", "-C", str(ROOT), "worktree", "prune"], capture_output=True, text=True)
+        import shutil
+        shutil.rmtree(td, ignore_errors=True)
+        _restore_record(orig)
 
 
 def test_live_process_not_reaped():
-    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.json"
+    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.jsonl"
     orig = record.read_text() if record.exists() else None
     with tempfile.TemporaryDirectory(dir=ROOT / ".lab" / "tmp") as td:
         td = Path(td)
@@ -51,7 +59,8 @@ def test_live_process_not_reaped():
         # spawn a long-lived process
         proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
         try:
-            record.write_text(json.dumps([{"path": str(wt), "pid": proc.pid}]))
+            subprocess.run([sys.executable, str(ROOT / "scripts" / "appendonly_worktrees.py"),
+                            "record", str(wt), "--pid", str(proc.pid), "--repo", str(ROOT)], cwd=str(ROOT), check=True, capture_output=True)
             r = subprocess.run(
                 [sys.executable, str(REAPER), "--repo", str(ROOT)],
                 capture_output=True, text=True,
@@ -65,10 +74,10 @@ def test_live_process_not_reaped():
 
 
 def test_corrupt_registry_fails():
-    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.json"
+    record = ROOT / ".lab" / "tmp" / "appendonly-worktrees.jsonl"
     orig = record.read_text() if record.exists() else None
     try:
-        record.write_text("{not json")
+        record.write_text("{not json\n")
         r = subprocess.run(
             [sys.executable, str(REAPER), "--repo", str(ROOT)],
             capture_output=True, text=True,
