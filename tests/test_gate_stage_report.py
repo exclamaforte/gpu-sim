@@ -10,7 +10,12 @@ def test_failing_ids_printed_and_copied():
     with tempfile.TemporaryDirectory(dir=ROOT / ".lab" / "tmp") as td:
         td = Path(td)
         log = td / "stage.log"
-        log.write_text("line1\nFAILED tests/a.py::test_one\n2 failed, 3 passed\n")
+        # 60 lines: FAILED ids near the top, passing tail -> tail alone hides them
+        body = ["line %d" % i for i in range(1, 31)]
+        body.append("FAILED tests/a.py::test_one")
+        body.append("FAILED tests/b.py::test_two")
+        body += ["passing line %d" % i for i in range(1, 31)]
+        log.write_text("\n".join(body) + "\n")
         outdir = td / "out"
         r = subprocess.run(
             [sys.executable, str(SCRIPT), "--stage", "trunk refs agree",

@@ -4,14 +4,12 @@ def apply(root):
     import os
     path = os.path.join(root, "scripts", "gate_stage_report.py")
     backup = open(path).read()
-    mutated = backup.replace('        print("    " + ln)\n', "", 1)
-    # remove the id printing block
-    mutated = mutated.replace(
-        '''    if id_lines:
-        print("    --- failing ids / summary ---")
+    old = '''    if id_lines:
+        print("--- failing ids / summary ---")
         for ln in id_lines[-40:]:
             print("    " + ln)
-''', "", 1)
+'''
+    mutated = backup.replace(old, "    if id_lines:\n        pass  # mutated: drop ids\n", 1)
     if mutated == backup:
         raise RuntimeError("3s8w mutation did not apply")
     with open(path, "w") as f:
