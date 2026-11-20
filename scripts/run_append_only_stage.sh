@@ -23,6 +23,10 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || {
   echo "append-only stage: not inside a git repository" >&2
   exit 2
 }
+# Registry must live in the MAIN checkout, not the (possibly disposable) tree,
+# so a leaked tree cannot take its own record with it (gpu-sim-k3gb).
+main_root="$(git rev-parse --git-common-dir 2>/dev/null)" || main_root="$repo_root/.git"
+main_root="$(cd "$main_root/.." && pwd)"
 
 tmp_base="${GATE_TMP:-$repo_root/.lab/tmp}"
 mkdir -p "$tmp_base" 2>/dev/null || {
@@ -37,7 +41,7 @@ cleanup() {
   rm -rf "$tmpwt"
   git -C "$repo_root" worktree prune >/dev/null 2>&1 || true
   # Remove the record now that the worktree is gone.
-  python3 - "$repo_root" "$tmpwt" <<'PYUNRECORD'
+  python3 - "$main_root" "$tmpwt" <<'PYUNRECORD'
 import json, os, sys
 root, path = sys.argv[1], sys.argv[2]
 rf = os.path.join(root, ".lab", "tmp", "appendonly-worktrees.json")
@@ -58,7 +62,7 @@ trap cleanup EXIT INT TERM HUP
 
 # Record the disposable worktree path so a reaper can remove it by name if
 # this process is killed mid-walk (gpu-sim-k3gb).
-python3 - "$repo_root" "$tmpwt" "$$" <<'PYRECORD'
+python3 - "$main_root" "$tmpwt" "$$" <<'PYRECORD'
 import json, os, sys
 root, path, pid = sys.argv[1], sys.argv[2], int(sys.argv[3])
 rf = os.path.join(root, ".lab", "tmp", "appendonly-worktrees.json")

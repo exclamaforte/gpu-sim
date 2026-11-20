@@ -7,17 +7,24 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default=None)
     args = ap.parse_args()
-    repo = Path(args.repo) if args.repo else Path.cwd()
+    if args.repo:
+        repo = Path(args.repo)
+    else:
+        # resolve the MAIN checkout, not a disposable worktree (gpu-sim-k3gb)
+        common = subprocess.check_output(["git","rev-parse","--git-common-dir"], text=True, cwd=str(Path.cwd())).strip()
+        repo = (Path(common).resolve().parent)
     record = repo / ".lab" / "tmp" / "appendonly-worktrees.json"
     if not record.is_file():
         print("no recorded append-only worktrees")
         return 0
     try:
         data = json.loads(record.read_text())
-    except Exception:
-        data = []
+    except Exception as e:
+        print(f"reap: corrupt registry {record}: {e}", file=sys.stderr)
+        return 1
     if not isinstance(data, list):
-        data = []
+        print(f"reap: corrupt registry {record}: not a list", file=sys.stderr)
+        return 1
     remaining = []
     reaped = 0
     for rec in data:
