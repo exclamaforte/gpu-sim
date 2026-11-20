@@ -94,10 +94,9 @@ def test_unregistered_mutation_fails():
 
 
 def test_descriptions_are_short():
-    mutations = _load_mutations()
-    for name, desc in mutations.items():
-        assert isinstance(desc, str) is True
-        assert len(desc.strip()) > 0
-        assert len(desc) <= 120, f"{name}: description too long"
-        assert desc.lower().startswith(("pass", "fail", "ok")) is False, (
-            f"{name}: description reads like a verdict")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("check_shard_format", ROOT / "scripts" / "check_shard_format.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    errors = mod.check(ROOT)
+    assert not errors, "\n".join(errors)
