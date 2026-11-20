@@ -129,6 +129,12 @@ ROW_TIMEOUTS = {
     "wknt_error_budget_bounded": 300,
 }
 
+# gpu-sim-94pp: collect-only resolution runs a real pytest subprocess per ledger row. Under a
+# fully loaded box (suite + a gate) 120s was observed to expire, which turned a slow machine into
+# a red ledger row. Bounded, but generous, and the timeout path names itself (see the
+# TimeoutExpired handler below) so "slow box" and "broken node" cannot read as the same failure.
+COLLECT_ONLY_TIMEOUT = 180
+
 
 def git_show(ref, path):
     r = subprocess.run(["git", "-C", ROOT, "show", f"{ref}:{path}"],
@@ -632,10 +638,20 @@ def check_ledger_test_ids(root):
         seen.add(target)
 
         # collect-only resolution
-        r = subprocess.run(
-            [sys.executable, "-m", "pytest", "--collect-only", "-q", target],
-            cwd=root, capture_output=True, text=True, timeout=ROW_TIMEOUTS.get(name, 120),
-            env=_child_env())
+        # gpu-sim-94pp: a load timeout here used to surface as a bare Command repr inside the
+        # generic "ledger test-id resolution: {e}" handler, so "the plant was refused" and "the
+        # machine was slow" arrived as the same sentence.
+        try:
+            r = subprocess.run(
+                [sys.executable, "-m", "pytest", "--collect-only", "-q", target],
+                cwd=root, capture_output=True, text=True,
+                timeout=ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT),
+                env=_child_env())
+        except subprocess.TimeoutExpired:
+            errors.append(
+                f"ledger row {name!r}: TIMEOUT (infrastructure, not a ledger defect) -- "
+                f"collect-only for {target!r} exceeded {ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT)}s")
+            continue
         out = (r.stdout or "") + (r.stderr or "")
         collected = 0
         for line in out.splitlines():
@@ -788,7 +804,13 @@ def main():
     ap.add_argument("--dirty-ok", action="store_true", help="tolerate a dirty tracked tree (tests only)")
     ap.add_argument("--check-dirty-only", action="store_true", help="run only the dirty-tree backstop and exit")
     args = ap.parse_args()
-    if _is_integration_tree() and not args.force:
+    # gpu-sim-94pp: this refusal exists because the script MUTATES tracked files, and a mutation
+    # in the integration tree poisons any gate that snapshots it.  --check-dirty-only mutates
+    # nothing (it reads `git status` and exits), so refusing it made the guard's own sentence --
+    # "mutates tracked files" -- false for that mode, and left the read-only path untestable from
+    # the very tree it protects.  Every mutating path below still refuses.
+    read_only = args.check_dirty_only
+    if _is_integration_tree() and not args.force and not read_only:
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
         return 2
