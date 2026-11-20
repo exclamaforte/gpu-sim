@@ -18,6 +18,8 @@ a syntax error or a timeout, which is the failure mode that let three
 "plants" look green earlier in this repo.
 """
 import json
+import sys
+import os
 import re
 import shutil
 import subprocess
