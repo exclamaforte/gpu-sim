@@ -20,7 +20,7 @@ def main():
     lines = text.splitlines()
     id_lines = [ln for ln in lines
                 if re.match(r"^(FAILED|ERROR) ", ln)
-                or "failed," in ln or "passed," in ln
+                or "failed," in ln
                 or "error during collection" in ln]
     if id_lines:
         print("--- failing ids / summary ---")
@@ -28,8 +28,11 @@ def main():
             print("    " + ln)
     total = len(lines)
     printed_ids = min(len(id_lines), 40)
-    printed = printed_ids + 25
-    withheld = total - printed if total > printed else 0
+    tail_n = min(len(lines), 25)
+    # distinct source lines actually shown
+    shown = set(id_lines[-printed_ids:]) | set(lines[-tail_n:])
+    chrome = 4  # header, withheld notice, tail header, full-log line (approx)
+    withheld = total - len(shown) if total > len(shown) else 0
     if withheld > 0:
         print(f"    ... {withheld} more lines withheld (full log: {run_log})")
     print("    --- tail ---")
