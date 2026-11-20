@@ -34,8 +34,12 @@ def run(cmd, cwd=None):
 def sandbox():
     """A detached worktree of REPO. Mutations here cannot touch the main tree."""
     d = tempfile.mkdtemp(prefix="jvs-wt-", dir=os.path.join(REPO, ".lab", "tmp"))
+    run([sys.executable, os.path.join(REPO, "scripts", "appendonly_worktrees.py"),
+         "record", d, "--pid", str(os.getpid())], cwd=REPO)
     add = run(["git", "worktree", "add", "--detach", d, "HEAD"])
     if add.returncode != 0:
+        run([sys.executable, os.path.join(REPO, "scripts", "appendonly_worktrees.py"),
+             "unrecord", d], cwd=REPO)
         shutil.rmtree(d, ignore_errors=True)
         pytest.skip(f"cannot create scratch worktree: {add.stderr}")
     try:
@@ -44,6 +48,8 @@ def sandbox():
         run(["git", "worktree", "remove", "--force", d])
         run(["git", "worktree", "prune"])
         shutil.rmtree(d, ignore_errors=True)
+        run([sys.executable, os.path.join(REPO, "scripts", "appendonly_worktrees.py"),
+             "unrecord", d], cwd=REPO)
 
 
 def test_self_contained_passes():

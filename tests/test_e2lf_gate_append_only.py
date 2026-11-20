@@ -18,6 +18,8 @@ a syntax error or a timeout, which is the failure mode that let three
 "plants" look green earlier in this repo.
 """
 import json
+import sys
+import os
 import re
 import shutil
 import subprocess
@@ -75,6 +77,7 @@ def test_stage_fails_on_induced_violation_and_leaves_no_worktree():
     tmp = Path(tempfile.mkdtemp(prefix="e2lf-stage-", dir=str(ROOT / ".lab" / "tmp")))
     tw = tmp / "tw"
     try:
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "appendonly_worktrees.py"), "record", str(tw), "--pid", str(os.getpid())], cwd=str(ROOT), capture_output=True)
         _git("worktree", "add", "--detach", str(tw), "HEAD")
         row = tw / ROW_REL
         data = json.loads(row.read_text())
@@ -95,6 +98,7 @@ def test_stage_fails_on_induced_violation_and_leaves_no_worktree():
     finally:
         subprocess.run(["git", "-C", str(ROOT), "worktree", "remove", "--force", str(tw)],
                        capture_output=True, text=True)
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "appendonly_worktrees.py"), "unrecord", str(tw)], cwd=str(ROOT), capture_output=True)
         shutil.rmtree(tmp, ignore_errors=True)
         subprocess.run(["git", "-C", str(ROOT), "worktree", "prune"],
                        capture_output=True, text=True)

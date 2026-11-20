@@ -7,10 +7,14 @@ commit="${1:?commit required}"
 bead="${2:?bead id required}"
 
 repo_root="$(git rev-parse --show-toplevel)"
+common_dir="$(git rev-parse --git-common-dir)"
+main_root="$(cd "$common_dir/.." && pwd)"
 mkdir -p "${repo_root}/.lab/tmp"
+mkdir -p "${main_root}/.lab/tmp"
 scratch="$(mktemp -d "${repo_root}/.lab/tmp/scratch.XXXXXX")"
-trap 'git -C "$repo_root" worktree remove --force "$scratch" 2>/dev/null || true; rm -rf "$scratch"' EXIT
+trap 'git -C "$repo_root" worktree remove --force "$scratch" 2>/dev/null || true; rm -rf "$scratch"; python3 "$repo_root/scripts/appendonly_worktrees.py" unrecord "$scratch" >/dev/null 2>&1 || true' EXIT
 
+python3 "$repo_root/scripts/appendonly_worktrees.py" record "$scratch" --pid "$$" >/dev/null 2>&1 || true
 git -C "$repo_root" worktree add --detach "$scratch" "$commit" >/dev/null 2>&1
 runsh="$scratch/experiments/$bead/run.sh"
 if [[ ! -f "$runsh" ]]; then

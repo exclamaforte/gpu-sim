@@ -18,6 +18,9 @@ SCRIPT = ROOT / "scripts" / "check_append_only.py"
 def _disposable_worktree():
     tmp = tempfile.mkdtemp(prefix="appendonly-wt-")
     wt = str(Path(tmp) / "wt")
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "appendonly_worktrees.py"),
+                    "record", wt, "--pid", str(os.getpid())],
+                   cwd=str(ROOT), check=True, capture_output=True)
     subprocess.run(["git", "worktree", "add", "--detach", wt, "HEAD"],
                    cwd=str(ROOT), check=True, capture_output=True)
     try:
@@ -27,6 +30,8 @@ def _disposable_worktree():
                        cwd=str(ROOT), capture_output=True)
         shutil.rmtree(tmp, ignore_errors=True)
         subprocess.run(["git", "worktree", "prune"], cwd=str(ROOT), capture_output=True)
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "appendonly_worktrees.py"),
+                        "unrecord", wt], cwd=str(ROOT), capture_output=True)
 
 # p4dw-style: track plant files created during tests so an interrupted run
 # cleans them up via atexit / signal handlers instead of poisoning the next run.
