@@ -1,0 +1,14 @@
+{
+  "bead": "gpu-sim-k3gb",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_runs": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES= python3 -m pytest tests/test_k3gb_reap.py -q",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-k3gb/output.log",
+      "what": "k3gb reap-by-name"
+    }
+  ],
+  "cpu_runs_note": "CPU-only tests; no GPU used."
+}
