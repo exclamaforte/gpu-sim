@@ -13,7 +13,7 @@ text it means to change is absent, so a silent no-op cannot count as a plant.
 import os
 
 MUTATIONS = {
-    "94pp_read_only_refused": "94pp: drop the read-only exemption from the integration-tree refusal",
+    "94pp_read_only_refused": "94pp: put the integration-tree refusal back in front of the --check-dirty-only exemption, so the read-only mode is refused again",
 }
 
 PATH = ("scripts", "check_append_only.py")
