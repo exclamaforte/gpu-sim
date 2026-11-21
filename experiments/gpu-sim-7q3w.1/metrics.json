@@ -1,0 +1,23 @@
+{
+  "probe_exit_code": 0,
+  "nccl_version_cu12": "2.32.6",
+  "nccl_version_cu13": "2.32.6",
+  "plugin_abi": "v11",
+  "probe_order_observed": "v11 accepted on both wheels (probes v11->v10->...->v6, max exported v11)",
+  "allreduce_result": "not claimed: plugin refused by NCCL (getProperties non-success); probe completed via Socket fallback",
+  "cu12_wheel_sha256": "2a6e6d5ddfc08970eca872be3dfa2650b24fa10a2043974465a9cae9c64ed6d8",
+  "cu13_wheel_sha256": "76e7aad00482092baf01e13e66f441d54c96b5cf1e3f143dee27db7f731d41ba",
+  "gate": "scripts/gate.sh --fast PASS (tip 4ce77db87d7a9918e82b17ef81cf338992783514); UNVERIFIABLE FOR THIS TIP: handle none, cu12+cu13 measured (output.log, output_cu12.log), real GPU runs; delta unavailable: predates gate tip output",
+  "cu12_accepted_abi": "v11",
+  "cu13_accepted_abi": "v11",
+  "cu12_log": "experiments/gpu-sim-7q3w.1/output_cu12.log",
+  "cu12_nccl_banner": "NCCL version 2.32.6+cuda12.9",
+  "cu13_nccl_banner": "NCCL version 2.32.6+cuda13.5",
+  "accepted_abi_note": "NCCL 2.32.x accepts v12 when v12 is exported (tree m3d.4 log); this plugin exports only v6..v11 (max v11), so v11 is our fallback, not the loader's preference.",
+  "exit_code_distribution_cu13": "20/20 rc=0 (N=20 sequential, route (b) getProperties returns non-success but NCCL falls back to Socket; no SIGSEGV)",
+  "exit_code_distribution_cu12": "20/20 rc=0 (N=20 sequential)",
+  "accepted_abi_per_wheel": "cu12: v11 (fallback; NCCL 2.32.x accepts v12 when exported); cu13: v11 (fallback)",
+  "plugin_refusal": "getProperties returns non-success; NCCL refuses the plugin deterministically and falls back to Socket (no SIGSEGV)",
+  "vtable_note": "stub by design: vtable members return 0 and write nothing; getProperties returns non-success so NCCL never reads the uninitialized struct",
+  "probe_exit_code_note": "0 because NCCL falls back to Socket after refusing the plugin (getProperties non-success); no SIGSEGV."
+}

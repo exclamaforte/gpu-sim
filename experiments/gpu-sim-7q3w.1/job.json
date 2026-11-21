@@ -1,0 +1,20 @@
+{
+  "bead": "gpu-sim-7q3w.1",
+  "ts_jobs": [],
+  "gpu_used": true,
+  "cpu_runs": [
+    {
+      "command": "scripts/gpu_run.sh 600s --log experiments/gpu-sim-7q3w.1/output.log -- bash experiments/gpu-sim-7q3w.1/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-7q3w.1/output.log",
+      "what": "7q3w.1 real libnccl load behind interposer"
+    },
+    {
+      "command": "scripts/gpu_run.sh 300s --log experiments/gpu-sim-7q3w.1/output_cu12.log -- bash experiments/gpu-sim-7q3w.1/run_cu12.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-7q3w.1/output_cu12.log",
+      "what": "7q3w.1 real libnccl load behind interposer (cu12)"
+    }
+  ],
+  "cpu_runs_note": "GPU probe runs (device 0) under scripts/gpu_run.sh; cu13 and cu12 each with own bound/log."
+}
