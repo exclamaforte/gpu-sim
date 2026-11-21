@@ -8,6 +8,7 @@ export NUMEXPR_NUM_THREADS=1
 export CUDA_VISIBLE_DEVICES=0
 cd "$(git rev-parse --show-toplevel)"
 ROOT="$(pwd)"
+TMPROOT="${FU0H_TMP_ROOT:-$ROOT}"
 EXP="$ROOT/experiments/gpu-sim-7q3w.1"
 LIBDIR="$EXP/libs/cu13"
 NCCLINC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"
@@ -16,7 +17,7 @@ CUDALIB="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
 WHEELDIR="$EXP/wheels"
 # fu0h-reaper-start
 # Reap build dirs left by SIGKILLED runs (only when the owning PID is dead).
-for _d in "$ROOT"/.lab/tmp/7q3w-build-*; do
+for _d in "$TMPROOT"/.lab/tmp/7q3w-build-*; do
   [ -d "$_d" ] || continue
   _pid="${_d##*7q3w-build-}"
   case "$_pid" in ''|*[!0-9]*) continue ;; esac
@@ -25,7 +26,7 @@ for _d in "$ROOT"/.lab/tmp/7q3w-build-*; do
   fi
 done
 # fu0h-reaper-end
-BUILDDIR="$ROOT/.lab/tmp/7q3w-build-$$"
+BUILDDIR="$TMPROOT/.lab/tmp/7q3w-build-$$"
 mkdir -p "$BUILDDIR"
 PLUGIN="$BUILDDIR/libncclNetPlugin.so"
 PROBE="$BUILDDIR/probe_load"
