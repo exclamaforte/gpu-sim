@@ -497,7 +497,7 @@ def _dirty_paths(root) -> set:
     return out
 
 
-def check_ledger_test_ids(root):
+def check_ledger_test_ids(root, replay=True):
     """Resolve every ledger row's test node; fail closed on resolution errors,
     missing registry, unregistered mutation, self-reference, or vacuous test."""
     ddir = os.path.join(root, "tests", "fs2y_ledger.d")
@@ -511,6 +511,11 @@ def check_ledger_test_ids(root):
         return [reg_err]
     mutations, mfns = reg
 
+    # gpu-sim-mi5v: `replay=False` skips ONLY the mutation apply/run/restore
+    # block below (one pytest run per ledger row, twice: mutated + restored).
+    # Every registry, verification-strength, node-resolution and
+    # self-reference assertion still runs, so a plant that names a nonexistent
+    # node is still caught. The gate runs the default (replay=True).
     child = _child_mode()
     errors = []
     seen = set()
@@ -582,7 +587,7 @@ def check_ledger_test_ids(root):
             continue
         # mutation-derived plant: apply mutation, run target (expect fail),
         # restore, run target (expect pass). Only when a function exists.
-        if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
+        if (not child and not exempt and replay and mutation and mutation not in ("n/a", "doc-only")
                 and mutation in mfns):
             apply_fn = mfns[mutation]
             # Snapshot what was ALREADY dirty so the restore below can never
@@ -876,7 +881,13 @@ def main():
     except Exception as e:
         errors.append(f"tests/fs2y_ledger.json: {e}")
     if args.no_ledger_replay:
-        print("NOTE: ledger test-id replay skipped (--no-ledger-replay, cheap mode)")
+        # Cheap mode skips the ledger replay wholesale: the per-row mutation
+        # apply/run/restore AND the per-row pytest collect-only that resolves
+        # each row's node (80 subprocesses). The retirement logic above --
+        # which is what the append-only tests assert -- is untouched, and the
+        # NOTE line makes the skipped half visible in every cheap run.
+        print("NOTE: ledger replay skipped (--no-ledger-replay, cheap mode): "
+              "no mutation plant is applied and no row's test node is resolved")
     else:
         try:
             for e in check_ledger_test_ids(ROOT):
