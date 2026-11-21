@@ -1,62 +1,107 @@
-"""gpu-sim-nfxi: a row timeout must never be readable as "the plant bit".
+"""gpu-sim-nfxi (cause 2): a row timeout must never read as a bitten plant.
 
-check_append_only.py's _run_pytest used to RE-RAISE subprocess.TimeoutExpired.  That escaped
-into the generic "ledger test-id resolution: Command '[...]'" handler, so a slow machine
-arrived as a ledger defect.  The damaging part is not the message: in the mutation branch a
-bare rc != 0 is exactly what a SUCCESSFUL plant looks like, so a timeout could have been
-recorded as a plant that bit -- evidence that does not exist.
+check_append_only's _run_pytest re-raised subprocess.TimeoutExpired, so a slow machine arrived as a
+ledger defect ("ledger test-id resolution: Command '[...]'"); worse, at the mutation-run site rc != 0
+is the DESIRED outcome, so a timeout could have been credited as a plant that bit.
 
-This module forces the situation instead of waiting for a loaded box: it takes one REAL ledger
-row that has a registered mutation (so the mutation-run branch is exercised, the branch that
-matters), sets that row's timeout to a millisecond, and requires the checker to say TIMEOUT --
-and to say nothing about the plant.
-
-The row is resolved from the ledger directory rather than hardcoded, so the test does not rot
-when a shard is renamed; if no row with a mutation exists the test fails loudly rather than
-skipping (a skip here would be indistinguishable from a pass).
+NOTE: this module names the checker, so the ledger's self-reference rule refuses any row bound to it
+(gpu-sim-t108). The bead's liveness row is therefore bound to the cause-1 test in
+tests/test_nfxi_gate_declared.py; this file still guards the property in the suite, and the plants
+below prove it bites.
 """
 
 import importlib.util
-import json
-import os
+import subprocess
+import tempfile
+import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LEDGER_DIR = ROOT / "tests" / "fs2y_ledger.d"
-CHECKER = ROOT / "scripts" / ("check_append" + "_only.py")
+CHECKER = ROOT / "scripts" / "check_append_only.py"
 
 
-def _load():
+def _load_checker():
     spec = importlib.util.spec_from_file_location("cao_nfxi", CHECKER)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-def _row_with_mutation():
-    for path in sorted(LEDGER_DIR.glob("*.json")):
-        data = json.loads(path.read_text())
-        mut = data.get("mutation")
-        if data.get("state") == "passing" and mut and mut not in ("n/a", "doc-only"):
-            return data["name"], data["test"]
-    raise AssertionError(
-        "no passing ledger row with a registered mutation -- the timeout arm cannot be"
-        " exercised, so this test would prove nothing")
+def test_run_pytest_reports_124_on_timeout():
+    """The conversion itself: a killed run is rc=124 with a named marker, not an exception and
+    not a bare failure. This also pins the `out` initialisation (a timeout that fires before the
+    assignment used to raise UnboundLocalError)."""
+    mod = _load_checker()
+    t0 = time.time()
+    r = mod._run_pytest([sys.executable, "-c", "import time; time.sleep(30)"],
+                        ROOT, 0.05, mod._child_env())
+    elapsed = time.time() - t0
+    assert r.returncode == 124, f"expected the timeout code 124, got {r.returncode}"
+    assert "ROW TIMEOUT" in r.stdout, r.stdout
+    assert "infrastructure, not a ledger defect" in r.stdout, r.stdout
+    assert elapsed < 10, f"the killed run took {elapsed:.1f}s"
 
 
-def test_row_timeout_is_named_and_is_not_a_bite(monkeypatch):
-    name, target = _row_with_mutation()
-    mod = _load()
-    mod.ROOT = str(ROOT)
-    monkeypatch.setitem(mod.ROW_TIMEOUTS, name, 0.001)
+def test_row_timeout_is_not_a_bitten_plant(monkeypatch):
+    """The dangerous site: the mutation run, where rc != 0 means the plant BIT. A timeout there
+    must report TIMEOUT and must not report that the mutation failed (which would be a plant
+    credited by infrastructure)."""
+    mod = _load_checker()
+    # project-local scratch: /tmp is quota-limited tmpfs (gpu-sim-u6j5)
+    scratch = ROOT / ".lab" / "tmp"
+    scratch.mkdir(parents=True, exist_ok=True)
+    _td = tempfile.TemporaryDirectory(dir=scratch)
+    victim = Path(_td.name) / "victim.txt"
+    victim.write_text("ORIGINAL\n")
 
-    errors = mod.check_ledger_test_ids(str(ROOT))
-    mine = [e for e in errors if name in e]
-    assert mine, f"row {name!r} produced no error at a 1ms timeout -- it was not run"
-    text = " ".join(mine)
-    assert "TIMEOUT (infrastructure, not a ledger defect)" in text, (
-        f"row {name!r} at a 1ms timeout did not name the timeout: {mine[:2]}")
-    for wrong in ("did not fail", "did not pass", "restored target did not pass",
-                  "Command '["):
-        assert wrong not in text, (
-            f"row {name!r} at a 1ms timeout was reported as {wrong!r}: {mine[:2]}")
+    def fake_apply(root):
+        victim.write_text("MUTATED\n")
+        return ("ORIGINAL\n", str(victim))
+
+    row = {
+        "name": "nfxi_timeout_probe",
+        "beads": ["gpu-sim-nfxi"],
+        "state": "passing",
+        "test": "tests/test_nfxi_gate_declared.py::test_run_pytest_reports_124_on_timeout",
+        "bound_calls": 1,
+        "mutation": "nfxi_timeout_probe",
+        "verification": "mutation_plant",
+    }
+    monkeypatch.setattr(mod, "load_ledger_entries", lambda root=None: [row])
+    monkeypatch.setattr(
+        mod, "_load_mutations",
+        # (registry, error) where registry is (MUTATIONS, MUTATION_FUNCTIONS)
+        lambda root=None: (({row["mutation"]: "probe plant (gpu-sim-nfxi)"},
+                            {row["mutation"]: fake_apply}), None))
+    # let the collect-only resolution succeed, then drive the run result by hand
+    real_run = subprocess.run
+
+    def fake_run(cmd, *a, **kw):
+        if isinstance(cmd, list) and "--collect-only" in cmd:
+            return subprocess.CompletedProcess(cmd, 0, "1 test collected\n", "")
+        return real_run(cmd, *a, **kw)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    seq = [1, 0]
+
+    def fake_pytest(cmd, root, timeout, env):
+        return subprocess.CompletedProcess(cmd, seq.pop(0) if seq else 0, "", "")
+
+    monkeypatch.setattr(mod, "_run_pytest", fake_pytest)
+
+    # polarity control: fail then pass is a plant that bit -> no error at all
+    errs = [e for e in mod.check_ledger_test_ids(ROOT) if row["name"] in e]
+    assert errs == [], f"a normally-biting plant reported errors: {errs}"
+
+    # the danger: 124 at the run that MUST fail
+    seq[:] = [124]
+    errs = [e for e in mod.check_ledger_test_ids(ROOT) if row["name"] in e]
+    assert errs, "a mutation-run timeout produced no error at all"
+    assert any("TIMEOUT (infrastructure, not a ledger defect)" in e and "mutation run" in e
+               for e in errs), errs
+    assert not any("did not fail" in e for e in errs), (
+        "a timeout was reported as a mutation that failed (i.e. a plant credited by "
+        f"infrastructure): {errs}")
+    assert mod._APPLIED_MUTATIONS == [], "the applied mutation was not restored"
+    _td.cleanup()
