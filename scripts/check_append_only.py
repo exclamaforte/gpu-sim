@@ -830,13 +830,26 @@ def main():
     ap.add_argument("--force", action="store_true", help="allow running in the integration tree (dangerous)")
     ap.add_argument("--dirty-ok", action="store_true", help="tolerate a dirty tracked tree (tests only)")
     ap.add_argument("--check-dirty-only", action="store_true", help="run only the dirty-tree backstop and exit")
+    # gpu-sim-mi5v: the ledger test-id replay (a pytest collect-only subprocess per
+    # ledger row, ~80 rows) is the entire cost of this check and is INDEPENDENT of
+    # the retirement logic the append-only tests assert.  Cheap mode skips ONLY that
+    # replay; every retirement verdict is unchanged.  It is refused together with
+    # --force so it can never become an escape hatch from the gate, which runs the
+    # full mode.  tests/test_mi5v_cheap_mode.py pins the equivalence with a plant.
+    ap.add_argument("--no-ledger-replay", action="store_true",
+                    help="skip the per-row ledger test-id replay (cheap mode; "
+                         "retirement verdicts unchanged; not allowed with --force)")
     args = ap.parse_args()
     # gpu-sim-94pp: this refusal exists because the script MUTATES tracked files, and a mutation
     # in the integration tree poisons any gate that snapshots it.  --check-dirty-only mutates
     # nothing (it reads `git status` and exits), so refusing it made the guard's own sentence --
     # "mutates tracked files" -- false for that mode, and left the read-only path untestable from
     # the very tree it protects.  Every mutating path below still refuses.
-    read_only = args.check_dirty_only
+    if args.no_ledger_replay and args.force:
+        print("REFUSE: --no-ledger-replay cannot be combined with --force; "
+              "the gate must run the full ledger replay.")
+        return 2
+    read_only = args.check_dirty_only or args.no_ledger_replay
     if _is_integration_tree() and not args.force and not read_only:
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
@@ -862,11 +875,14 @@ def main():
             errors.append(f"tests/fs2y_ledger.json lost ledger entry '{k}' (not retired)")
     except Exception as e:
         errors.append(f"tests/fs2y_ledger.json: {e}")
-    try:
-        for e in check_ledger_test_ids(ROOT):
-            errors.append(e)
-    except Exception as e:
-        errors.append(f"ledger test-id resolution: {e}")
+    if args.no_ledger_replay:
+        print("NOTE: ledger test-id replay skipped (--no-ledger-replay, cheap mode)")
+    else:
+        try:
+            for e in check_ledger_test_ids(ROOT):
+                errors.append(e)
+        except Exception as e:
+            errors.append(f"ledger test-id resolution: {e}")
     try:
         for e in check_grandfather_self_service():
             errors.append(e)

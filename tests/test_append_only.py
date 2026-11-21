@@ -86,17 +86,28 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 
 
-def run_script(plant=None, env=None):
+# gpu-sim-mi5v: these tests assert the RETIREMENT logic. The ledger test-id
+# replay (one pytest collect-only subprocess per ledger row, ~80 rows) is
+# independent of it and cost ~196s per call -- 14 calls, ~46 of the suite's
+# 66 minutes, and the 300s per-test budget was hit under load. Cheap mode skips
+# ONLY the replay; the checker refuses --no-ledger-replay with --force, and
+# tests/test_mi5v_cheap_mode.py pins cheap-vs-full verdict equivalence with a
+# plant, so this cannot become "suite tests mode B, gate runs mode A".
+SUBPROCESS_TIMEOUT_S = 120   # below conftest's 300s per-test budget: no race
+
+
+def run_script(plant=None, env=None, cheap=True, timeout=SUBPROCESS_TIMEOUT_S):
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
+    args = ["--dirty-ok"] + (["--no-ledger-replay"] if cheap else [])
     with _disposable_worktree() as wt:
         if plant is not None:
             plant(wt)
         script = wt / "scripts" / "check_append_only.py"
-        r = subprocess.run([sys.executable, str(script), "--dirty-ok"], cwd=str(wt),
-                           capture_output=True, text=True, env=env, timeout=300)
+        r = subprocess.run([sys.executable, str(script), *args], cwd=str(wt),
+                           capture_output=True, text=True, env=env, timeout=timeout)
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
