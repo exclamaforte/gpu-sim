@@ -97,14 +97,12 @@ CHEAP_TIMEOUT_S = 120     # below conftest's 300s per-test budget: no race
 FULL_TIMEOUT_S = 290      # ditto, for the calls that still need the replay
 
 
-def run_script(plant=None, env=None, cheap=True, mutation_replay=True):
+def run_script(plant=None, env=None, cheap=True):
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
     args = ["--dirty-ok"] + (["--no-ledger-replay"] if cheap else [])
-    if not mutation_replay:
-        args.append("--no-mutation-replay")
     timeout = CHEAP_TIMEOUT_S if cheap else FULL_TIMEOUT_S
     with _disposable_worktree() as wt:
         if plant is not None:
@@ -204,7 +202,7 @@ class TestAppendOnly(unittest.TestCase):
 class TestLedgerNodeIds(unittest.TestCase):
     def test_ledger_node_ids_resolve(self):
         """Every ledger row's test node resolves and collects >=1 test."""
-        rc, out = run_script(cheap=False, mutation_replay=False)
+        rc, out = run_script(cheap=False)
         assert rc == 0, out
 
     def test_plant_class_qualified_module_level_fails(self):
@@ -219,7 +217,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(cheap=False, mutation_replay=False, plant=plant)
+        rc, out = run_script(cheap=False, plant=plant)
         assert rc != 0, "expected failure on class-qualified module-level node"
         assert "does not resolve" in out or "collects 0" in out, out
 
@@ -235,7 +233,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(cheap=False, mutation_replay=False, plant=plant)
+        rc, out = run_script(cheap=False, plant=plant)
         assert rc != 0, "expected failure on nonexistent function"
         assert "does not resolve" in out or "collects 0" in out, out
 
@@ -251,7 +249,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(cheap=False, mutation_replay=False, plant=plant)
+        rc, out = run_script(cheap=False, plant=plant)
         assert rc != 0, "expected failure on nonexistent file"
         assert "does not resolve" in out or "collects 0" in out, out
 
@@ -267,7 +265,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(cheap=False, mutation_replay=False, plant=plant)
+        rc, out = run_script(cheap=False, plant=plant)
         assert rc != 0, "expected failure on self-referential row"
         assert "self-referential" in out, out
 
@@ -285,7 +283,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "ledger_node_ids_validated",
             }, indent=2) + "\n")
-        rc, out = run_script(cheap=False, mutation_replay=False, plant=plant)
+        rc, out = run_script(cheap=False, plant=plant)
         assert rc != 0, "expected failure on vacuous row"
         assert "did not fail" in out, out
 
@@ -297,7 +295,7 @@ class TestLedgerNodeIds(unittest.TestCase):
         # Run inside a disposable worktree (7xo5/e2lf): the marker is rejected
         # for lack of a matching ancestor pid, not for tree identity, so the
         # property survives the move off the integration checkout.
-        rc, out = run_script(cheap=False, mutation_replay=False, env=env)
+        rc, out = run_script(cheap=False, env=env)
         # baseline ledger passes; rc must still be 0 (full run), proving the
         # spoofed marker did not turn the check into a no-op. The marker is
         # rejected because no ancestor matches.

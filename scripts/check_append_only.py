@@ -841,10 +841,6 @@ def main():
     # replay; every retirement verdict is unchanged.  It is refused together with
     # --force so it can never become an escape hatch from the gate, which runs the
     # full mode.  tests/test_mi5v_cheap_mode.py pins the equivalence with a plant.
-    ap.add_argument("--no-mutation-replay", action="store_true",
-                    help="skip ONLY the per-row mutation apply/run/restore; node-id "
-                         "resolution and every registry assertion still run "
-                         "(not allowed with --force)")
     ap.add_argument("--no-ledger-replay", action="store_true",
                     help="skip the per-row ledger test-id replay (cheap mode; "
                          "retirement verdicts unchanged; not allowed with --force)")
@@ -854,15 +850,11 @@ def main():
     # nothing (it reads `git status` and exits), so refusing it made the guard's own sentence --
     # "mutates tracked files" -- false for that mode, and left the read-only path untestable from
     # the very tree it protects.  Every mutating path below still refuses.
-    if args.no_mutation_replay and args.force:
-        print("REFUSE: --no-mutation-replay cannot be combined with --force; "
-              "the gate must replay every mutation.")
-        return 2
     if args.no_ledger_replay and args.force:
         print("REFUSE: --no-ledger-replay cannot be combined with --force; "
               "the gate must run the full ledger replay.")
         return 2
-    read_only = args.check_dirty_only or args.no_ledger_replay or args.no_mutation_replay
+    read_only = args.check_dirty_only or args.no_ledger_replay
     if _is_integration_tree() and not args.force and not read_only:
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
@@ -898,7 +890,7 @@ def main():
               "no mutation plant is applied and no row's test node is resolved")
     else:
         try:
-            for e in check_ledger_test_ids(ROOT, replay=not args.no_mutation_replay):
+            for e in check_ledger_test_ids(ROOT):
                 errors.append(e)
         except Exception as e:
             errors.append(f"ledger test-id resolution: {e}")
