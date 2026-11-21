@@ -8,19 +8,35 @@ export NUMEXPR_NUM_THREADS=1
 export CUDA_VISIBLE_DEVICES=0
 cd "$(git rev-parse --show-toplevel)"
 ROOT="$(pwd)"
+TMPROOT="${FU0H_TMP_ROOT:-$ROOT}"
 EXP="$ROOT/experiments/gpu-sim-7q3w.1"
 LIBDIR="$EXP/libs/cu13"
 NCCLINC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"
 CUDAINC="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include"
 CUDALIB="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
 WHEELDIR="$EXP/wheels"
-BUILDDIR="$ROOT/.lab/tmp/7q3w-build-$$"
+# fu0h-reaper-start
+# Reap build dirs left by SIGKILLED runs (only when the owning PID is dead).
+for _d in "$TMPROOT"/.lab/tmp/7q3w-build-*; do
+  [ -d "$_d" ] || continue
+  _pid="${_d##*7q3w-build-}"
+  case "$_pid" in ''|*[!0-9]*) continue ;; esac
+  if ! kill -0 "$_pid" 2>/dev/null; then
+    rm -rf "$_d"
+  fi
+done
+# fu0h-reaper-end
+BUILDDIR="$TMPROOT/.lab/tmp/7q3w-build-$$"
 mkdir -p "$BUILDDIR"
 PLUGIN="$BUILDDIR/libncclNetPlugin.so"
 PROBE="$BUILDDIR/probe_load"
 trap 'rm -rf "$BUILDDIR"' EXIT
 # project-local wheel cache
-if [ ! -f "$LIBDIR/libnccl.so.2" ]; then
+(
+  mkdir -p "$LIBDIR"
+  exec 9>"$LIBDIR/.extract.lock"
+  flock -w 300 9 || { echo "fu0h: timed out waiting for extraction lock" >&2; exit 1; }
+  if [ ! -s "$LIBDIR/libnccl.so.2" ] || [ "$(stat -c%s "$LIBDIR/libnccl.so.2" 2>/dev/null || echo 0)" -lt 100000000 ]; then
   mkdir -p "$LIBDIR/nvidia/nccl/lib" "$WHEELDIR"
   if ! ls "$WHEELDIR"/nvidia_nccl_cu13-*.whl >/dev/null 2>&1; then
     pip download nvidia-nccl-cu13 --no-deps -d "$WHEELDIR" >/dev/null 2>&1
@@ -29,9 +45,10 @@ if [ ! -f "$LIBDIR/libnccl.so.2" ]; then
   cd "$LIBDIR"
   unzip -o "$WHL" "nvidia/nccl/lib/libnccl.so*" >/dev/null 2>&1
   cp nvidia/nccl/lib/libnccl.so.2 libnccl.so.2
-  ln -sf libnccl.so.2 libnccl.so
   cd "$ROOT"
-fi
+  fi
+)
+ln -sf libnccl.so.2 "$LIBDIR/libnccl.so"
 # build plugin + probe
 gcc -shared -fPIC -O0 -Wno-incompatible-pointer-types -o "$PLUGIN" "$EXP/plugin_v11.c"
 gcc -I"$NCCLINC" -I"$CUDAINC" -L"$LIBDIR" -L"$CUDALIB" \
