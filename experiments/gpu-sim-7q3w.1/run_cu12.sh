@@ -14,6 +14,7 @@ WHEELDIR="$EXP/wheels"
 NCCLINC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"
 CUDAINC="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include"
 CUDALIB="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
+# fu0h-reaper-start
 # Reap build dirs left by SIGKILLED runs (only when the owning PID is dead).
 for _d in "$ROOT"/.lab/tmp/7q3w-cu12-build-*; do
   [ -d "$_d" ] || continue
@@ -23,6 +24,7 @@ for _d in "$ROOT"/.lab/tmp/7q3w-cu12-build-*; do
     rm -rf "$_d"
   fi
 done
+# fu0h-reaper-end
 BUILDDIR="$ROOT/.lab/tmp/7q3w-cu12-build-$$"
 mkdir -p "$BUILDDIR"
 PLUGIN="$BUILDDIR/libncclNetPlugin.so"
