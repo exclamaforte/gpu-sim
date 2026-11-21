@@ -1,4 +1,11 @@
-"""Guard: fu0h reaper removes dead-PID build dirs (gpu-sim-fu0h)."""
+"""Guard: fu0h reaper removes dead-PID build dirs (gpu-sim-fu0h).
+
+This row binds run.sh only; the cu12 twin (run_cu12.sh) carries the same reaper
+block and is covered by the same property manually. The corrupt-registry-no-rewrite
+property does not apply here: the fu0h shell reaper has no registry, so it
+cannot rewrite one; that property lives in
+tests/test_k3gb_reap.py::test_corrupt_registry_fails.
+"""
 import os
 import shutil
 import subprocess
