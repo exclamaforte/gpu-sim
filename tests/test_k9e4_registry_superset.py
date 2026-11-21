@@ -95,23 +95,9 @@ def test_rename_one_key_fails():
 
 def test_per_shard_description_matches_json():
     """Every shard's .py MUTATIONS dict must equal its .json description."""
-    for json_path in sorted(MUTATIONS_DIR.glob("*.json")):
-        key = json_path.stem
-        py_path = MUTATIONS_DIR / (key + ".py")
-        meta = json.loads(json_path.read_text())
-        data_only = bool(meta.get("data_only", False)) or meta.get("function") is None and "function" in meta
-        if not py_path.exists():
-            # a missing .py is only OK for a declared data-only mutation
-            assert data_only, f"{key}: missing .py and not declared data_only"
-            continue
-        # load MUTATIONS from .py without side effects
-        ns = {}
-        exec(compile(py_path.read_text(), str(py_path), "exec"), ns)
-        py_mut = ns.get("MUTATIONS")
-        if not isinstance(py_mut, dict):
-            # data-only shard: no MUTATIONS dict required
-            assert data_only, f"{key}: .py exports no MUTATIONS but not declared data_only"
-            continue
-        assert py_mut.get(key) == meta.get("description"), (
-            f"{key}: .py description {py_mut.get(key)!r} != "
-            f".json description {meta.get('description')!r}")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("check_shard_format", ROOT / "scripts" / "check_shard_format.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    errors = mod.check(ROOT)
+    assert not errors, "\n".join(errors)

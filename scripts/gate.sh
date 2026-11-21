@@ -118,7 +118,7 @@ DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
   "close_audit unchanged" "close audit (concrete artifacts)"
   "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
   "claims register" "radius prose" "no vacuous assertions" "gate citations"
-  "trunk refs agree")
+  "trunk refs agree" "shard format")
 run_hard() {  # name, command...
   local name="$1"; shift
   RAN+=("$name")
@@ -177,7 +177,7 @@ if [ $FAST -eq 1 ]; then
     "close_audit unchanged" "close audit (concrete artifacts)"
     "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
     "claims register" "radius prose" "no vacuous assertions" "gate citations"
-    "trunk refs agree")
+    "trunk refs agree" "shard format")
 else
   DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
     "close_audit unchanged" "close audit (concrete artifacts)"
@@ -207,6 +207,7 @@ run_hard "radius prose" python3 scripts/render_radius_prose.py --check
 run_hard "no vacuous assertions" python3 scripts/check_no_vacuous_asserts.py
 run_hard "gate citations" python3 scripts/check_gate_citations.py
 run_hard "trunk refs agree" python3 scripts/check_trunk_refs.py
+run_hard "shard format" python3 scripts/check_shard_format.py
 run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
