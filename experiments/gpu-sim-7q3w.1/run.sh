@@ -20,7 +20,11 @@ PLUGIN="$BUILDDIR/libncclNetPlugin.so"
 PROBE="$BUILDDIR/probe_load"
 trap 'rm -rf "$BUILDDIR"' EXIT
 # project-local wheel cache
-if [ ! -f "$LIBDIR/libnccl.so.2" ]; then
+(
+  mkdir -p "$LIBDIR"
+  exec 9>"$LIBDIR/.extract.lock"
+  flock 9
+  if [ ! -s "$LIBDIR/libnccl.so.2" ] || [ "$(stat -c%s "$LIBDIR/libnccl.so.2" 2>/dev/null || echo 0)" -lt 100000000 ]; then
   mkdir -p "$LIBDIR/nvidia/nccl/lib" "$WHEELDIR"
   if ! ls "$WHEELDIR"/nvidia_nccl_cu13-*.whl >/dev/null 2>&1; then
     pip download nvidia-nccl-cu13 --no-deps -d "$WHEELDIR" >/dev/null 2>&1
@@ -31,7 +35,8 @@ if [ ! -f "$LIBDIR/libnccl.so.2" ]; then
   cp nvidia/nccl/lib/libnccl.so.2 libnccl.so.2
   ln -sf libnccl.so.2 libnccl.so
   cd "$ROOT"
-fi
+  fi
+)
 # build plugin + probe
 gcc -shared -fPIC -O0 -Wno-incompatible-pointer-types -o "$PLUGIN" "$EXP/plugin_v11.c"
 gcc -I"$NCCLINC" -I"$CUDAINC" -L"$LIBDIR" -L"$CUDALIB" \
