@@ -497,7 +497,7 @@ def _dirty_paths(root) -> set:
     return out
 
 
-def check_ledger_test_ids(root, replay=True):
+def check_ledger_test_ids(root, only_rows=None):
     """Resolve every ledger row's test node; fail closed on resolution errors,
     missing registry, unregistered mutation, self-reference, or vacuous test."""
     ddir = os.path.join(root, "tests", "fs2y_ledger.d")
@@ -516,6 +516,11 @@ def check_ledger_test_ids(root, replay=True):
     # Every registry, verification-strength, node-resolution and
     # self-reference assertion still runs, so a plant that names a nonexistent
     # node is still caught. The gate runs the default (replay=True).
+    # gpu-sim-mi5v: `only_rows` restricts the EXPENSIVE per-row work (collect-only,
+    # positive run, mutation apply/run/restore) to the named rows. Every cheap
+    # validation -- registry membership, verification strength, doc-only/positive-
+    # only rules -- still runs for every row, so a plant cannot hide behind the
+    # filter. tests/test_append_only.py uses it with the row it just planted.
     child = _child_mode()
     errors = []
     seen = set()
@@ -543,6 +548,8 @@ def check_ledger_test_ids(root, replay=True):
 
         if not node:
             errors.append(f"ledger row {name!r}: missing 'test' field")
+            continue
+        if only_rows is not None and name not in only_rows:
             continue
         target, err = _normalize_ledger_node(node)
         if err:
@@ -587,7 +594,7 @@ def check_ledger_test_ids(root, replay=True):
             continue
         # mutation-derived plant: apply mutation, run target (expect fail),
         # restore, run target (expect pass). Only when a function exists.
-        if (not child and not exempt and replay and mutation and mutation not in ("n/a", "doc-only")
+        if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
                 and mutation in mfns):
             apply_fn = mfns[mutation]
             # Snapshot what was ALREADY dirty so the restore below can never
@@ -841,6 +848,9 @@ def main():
     # replay; every retirement verdict is unchanged.  It is refused together with
     # --force so it can never become an escape hatch from the gate, which runs the
     # full mode.  tests/test_mi5v_cheap_mode.py pins the equivalence with a plant.
+    ap.add_argument("--rows", default=None,
+                    help="comma-separated ledger row names to replay (default: all); "
+                         "cheap validations still run for every row")
     ap.add_argument("--no-ledger-replay", action="store_true",
                     help="skip the per-row ledger test-id replay (cheap mode; "
                          "retirement verdicts unchanged; not allowed with --force)")
@@ -863,6 +873,9 @@ def main():
     if args.check_dirty_only:
         print("OK: tree clean")
         return 0
+    only_rows = None
+    if args.rows:
+        only_rows = {n.strip() for n in args.rows.split(",") if n.strip()}
     base_ref = args.base if args.base else merge_base()
     if base_ref is None:
         print("FAIL: cannot determine merge-base with trunk")
@@ -890,7 +903,7 @@ def main():
               "no mutation plant is applied and no row's test node is resolved")
     else:
         try:
-            for e in check_ledger_test_ids(ROOT):
+            for e in check_ledger_test_ids(ROOT, only_rows=only_rows):
                 errors.append(e)
         except Exception as e:
             errors.append(f"ledger test-id resolution: {e}")
