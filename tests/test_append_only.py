@@ -93,15 +93,17 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 # ONLY the replay; the checker refuses --no-ledger-replay with --force, and
 # tests/test_mi5v_cheap_mode.py pins cheap-vs-full verdict equivalence with a
 # plant, so this cannot become "suite tests mode B, gate runs mode A".
-SUBPROCESS_TIMEOUT_S = 120   # below conftest's 300s per-test budget: no race
+CHEAP_TIMEOUT_S = 120     # below conftest's 300s per-test budget: no race
+FULL_TIMEOUT_S = 290      # ditto, for the calls that still need the replay
 
 
-def run_script(plant=None, env=None, cheap=True, timeout=SUBPROCESS_TIMEOUT_S):
+def run_script(plant=None, env=None, cheap=True):
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
     args = ["--dirty-ok"] + (["--no-ledger-replay"] if cheap else [])
+    timeout = CHEAP_TIMEOUT_S if cheap else FULL_TIMEOUT_S
     with _disposable_worktree() as wt:
         if plant is not None:
             plant(wt)
