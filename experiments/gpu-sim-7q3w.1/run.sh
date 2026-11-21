@@ -14,6 +14,15 @@ NCCLINC="/home/gabe/.local/lib/python3.14/site-packages/nvidia/nccl/include"
 CUDAINC="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include"
 CUDALIB="/home/gabe/.local/cuda-sysroot/opt/cuda/targets/x86_64-linux/lib"
 WHEELDIR="$EXP/wheels"
+# Reap build dirs left by SIGKILLED runs (only when the owning PID is dead).
+for _d in "$ROOT"/.lab/tmp/7q3w-build-*; do
+  [ -d "$_d" ] || continue
+  _pid="${_d##*7q3w-build-}"
+  case "$_pid" in ''|*[!0-9]*) continue ;; esac
+  if ! kill -0 "$_pid" 2>/dev/null; then
+    rm -rf "$_d"
+  fi
+done
 BUILDDIR="$ROOT/.lab/tmp/7q3w-build-$$"
 mkdir -p "$BUILDDIR"
 PLUGIN="$BUILDDIR/libncclNetPlugin.so"
@@ -23,7 +32,7 @@ trap 'rm -rf "$BUILDDIR"' EXIT
 (
   mkdir -p "$LIBDIR"
   exec 9>"$LIBDIR/.extract.lock"
-  flock 9
+  flock -w 300 9 || { echo "fu0h: timed out waiting for extraction lock" >&2; exit 1; }
   if [ ! -s "$LIBDIR/libnccl.so.2" ] || [ "$(stat -c%s "$LIBDIR/libnccl.so.2" 2>/dev/null || echo 0)" -lt 100000000 ]; then
   mkdir -p "$LIBDIR/nvidia/nccl/lib" "$WHEELDIR"
   if ! ls "$WHEELDIR"/nvidia_nccl_cu13-*.whl >/dev/null 2>&1; then
@@ -33,10 +42,10 @@ trap 'rm -rf "$BUILDDIR"' EXIT
   cd "$LIBDIR"
   unzip -o "$WHL" "nvidia/nccl/lib/libnccl.so*" >/dev/null 2>&1
   cp nvidia/nccl/lib/libnccl.so.2 libnccl.so.2
-  ln -sf libnccl.so.2 libnccl.so
   cd "$ROOT"
   fi
 )
+ln -sf libnccl.so.2 "$LIBDIR/libnccl.so"
 # build plugin + probe
 gcc -shared -fPIC -O0 -Wno-incompatible-pointer-types -o "$PLUGIN" "$EXP/plugin_v11.c"
 gcc -I"$NCCLINC" -I"$CUDAINC" -L"$LIBDIR" -L"$CUDALIB" \
