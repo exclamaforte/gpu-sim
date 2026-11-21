@@ -147,3 +147,23 @@ instead. Tools that accept an output path must default to a project-local dir,
 not `/tmp`; hardcoding `/tmp` is a bug. `scripts/gpu_run.sh` and `scripts/bd-exp.sh`
 run a quota preflight before long runs and refuse to start if the target dir has
 less than 1 GiB free.
+
+## Disposable worktrees: under the repo, never `$HOME` (4k2x)
+
+A throwaway worktree (`git worktree add --detach <path> <commit>`) is allowed for
+measuring or verifying a commit. Its PATH is not negotiable: `<repo>/.lab/tmp/`,
+created and removed by `scripts/disposable_worktree.sh`:
+
+```
+scripts/disposable_worktree.sh -- <command...>          # runs in a fresh tree at HEAD
+scripts/disposable_worktree.sh --commit <sha> -- <cmd>  # ... or at a named commit
+```
+
+The script derives the path from the repo and removes the tree on every exit
+path (success, failure, signal), so a run cannot leave one behind. Never
+`git worktree add ~/clean<bead>`: on 2026-11-21 that habit had left **19
+worktrees in `/home/gabe` (13 GB)** — `clean43`, `cleanfu2..5`, `clean7q2..8`,
+`cleanenj2/3`, `cleanmain`, `cleanqf/2`. They were invisible to `gc_temp_labs`
+(not in a temp dir), invisible to the worktree hygiene check (clean, just
+abandoned), registered in this repo's worktree list, and removable only by hand.
+A tree you create and do not remove is a leak, not a scratch.
