@@ -35,7 +35,7 @@ def main():
             continue
         if size > REMOTE_BLOB_LIMIT_BYTES:
             # commit that introduced this path
-            log = git("log", "--diff-filter=A", "--format=%H", "-1", "HEAD", "--", path)
+            log = git("log", "--full-history", "--diff-filter=A", "--format=%H", "-1", "HEAD", "--", path)
             commit = log.stdout.strip().splitlines()[0] if log.stdout.strip() else "unknown"
             offenders.append((path, size, sha, commit))
     if offenders:
