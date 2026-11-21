@@ -114,7 +114,13 @@ declare -a FAILED=() ADVISED=()
 RAN=()
 EXECUTED=()
 # DECLARED: independent, human-maintained list of hard stage names (order irrelevant).
-DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
+#
+# gpu-sim-nfxi: this list is written ONCE. It used to be written three times (a base copy
+# plus a per-mode copy for --fast and for the full gate), and gpu-sim-0fr1's new "shard
+# format" stage was added to two of the three -- so --fast was green (13 ran, 13 declared)
+# while the FULL gate went red (14 ran, 13 declared) on main. Adding a stage is now a
+# ONE-place edit, and the mode only decides whether "pytest tests/" is excluded.
+_DECLARED_ALL=("pytest tests/" "docs section 0 vs model" "append-only records"
   "close_audit unchanged" "close audit (concrete artifacts)"
   "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
   "claims register" "radius prose" "no vacuous assertions" "gate citations"
@@ -171,20 +177,17 @@ run_advisory() {  # name, command...
 echo "=== gpu-sim gates $(date -u +%Y-%m-%dT%H:%MZ) ==="
 [ $FAST -eq 1 ] && echo "(fast mode: test suite skipped)"
 
-# Declared hard stages (independent of execution).
-if [ $FAST -eq 1 ]; then
-  DECLARED=("docs section 0 vs model" "append-only records"
-    "close_audit unchanged" "close audit (concrete artifacts)"
-    "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
-    "claims register" "radius prose" "no vacuous assertions" "gate citations"
-    "trunk refs agree" "shard format")
-else
-  DECLARED=("pytest tests/" "docs section 0 vs model" "append-only records"
-    "close_audit unchanged" "close audit (concrete artifacts)"
-    "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
-    "claims register" "radius prose" "no vacuous assertions" "gate citations"
-    "trunk refs agree")
-fi
+# Declared hard stages, DERIVED from the single list above (nfxi).
+# --fast runs everything except the suite, and the suite is REPORTED as skipped by
+# scripts/gate_coverage.py rather than silently dropped from the declaration.
+DECLARED=()
+for _stage in "${_DECLARED_ALL[@]}"; do
+  if [ $FAST -eq 1 ] && [ "$_stage" = "pytest tests/" ]; then
+    continue
+  fi
+  DECLARED+=("$_stage")
+done
+unset _stage
 
 if [ $FAST -eq 0 ]; then
   run_hard "pytest tests/" python3 -m pytest tests/ -q
