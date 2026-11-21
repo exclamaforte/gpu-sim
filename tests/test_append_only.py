@@ -285,7 +285,9 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "ledger_node_ids_validated",
             }, indent=2) + "\n")
-        rc, out = run_script(cheap=False, rows="plant_vacuous", plant=plant)
+        # this plant is detected inside the row's positive execution path, which
+        # needs the unfiltered walk; keep it full (gpu-sim-mi5v)
+        rc, out = run_script(cheap=False, plant=plant)
         assert rc != 0, "expected failure on vacuous row"
         assert "did not fail" in out, out
 
