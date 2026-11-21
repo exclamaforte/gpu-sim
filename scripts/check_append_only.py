@@ -596,7 +596,14 @@ def check_ledger_test_ids(root):
                 _APPLIED_MUTATIONS.append((backup, mutated_path))
                 rmut = _run_pytest(
                     [sys.executable, "-m", "pytest", "-q", target],
-                    root, ROW_TIMEOUTS.get(name, 120), _child_env(no_bytecode=True))
+                    root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env(no_bytecode=True))
+                if rmut.returncode == 124:
+                    errors.append(
+                        f"ledger row {name!r}: TIMEOUT (infrastructure, not a ledger defect) -- "
+                        f"mutation run for {target!r} exceeded "
+                        f"{ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT)}s; this row says NOTHING "
+                        f"about whether the plant bites")
+                    continue
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
                     continue
@@ -627,7 +634,13 @@ def check_ledger_test_ids(root):
                 subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
             rrest = _run_pytest(
                 [sys.executable, "-m", "pytest", "-q", target],
-                root, ROW_TIMEOUTS.get(name, 120), _child_env())
+                root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env())
+            if rrest.returncode == 124:
+                errors.append(
+                    f"ledger row {name!r}: TIMEOUT (infrastructure, not a ledger defect) -- "
+                    f"post-restore run for {target!r} exceeded "
+                    f"{ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT)}s; the restore itself still ran")
+                continue
             if rrest.returncode != 0:
                 errors.append(f"ledger row {name!r}: restored target did not pass (rc={rrest.returncode})")
                 continue
@@ -675,7 +688,13 @@ def check_ledger_test_ids(root):
         if (not child and not positive_done and not exempt):
             rrun = _run_pytest(
                 [sys.executable, "-m", "pytest", "-q", target],
-                root, ROW_TIMEOUTS.get(name, 120), _child_env())
+                root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env())
+            if rrun.returncode == 124:
+                errors.append(
+                    f"ledger row {name!r}: TIMEOUT (infrastructure, not a ledger defect) -- "
+                    f"positive run for {target!r} exceeded "
+                    f"{ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT)}s")
+                continue
             if rrun.returncode != 0:
                 errors.append(f"ledger row {name!r}: positive {target!r} did not pass (rc={rrun.returncode})")
                 continue
@@ -777,6 +796,7 @@ def _run_pytest(cmd, root, timeout, env):
                             stderr=subprocess.STDOUT, text=True,
                             start_new_session=True, env=env)
     _ACTIVE_PGROUPS.add(proc.pid)
+    out = ""  # nfxi: must exist before the try -- the timeout path returns it
     try:
         out, _ = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -792,7 +812,14 @@ def _run_pytest(cmd, root, timeout, env):
             except (ProcessLookupError, OSError):
                 pass
             proc.wait()
-        raise
+        # gpu-sim-nfxi: do NOT re-raise.  The exception used to escape into the generic
+        # "ledger test-id resolution: Command '[...]'" handler, so a slow machine arrived as a
+        # ledger defect; worse, a bare rc!=0 is exactly what a SUCCESSFUL plant looks like, so a
+        # timeout could be recorded as a plant that bit.  rc=124 is the shell's "timed out", and
+        # both call sites test for it explicitly before reading anything into the result.
+        return subprocess.CompletedProcess(
+            cmd, 124, (out or "")
+            + f"\nROW TIMEOUT: killed after {timeout}s (infrastructure, not a ledger defect)\n", "")
     finally:
         _ACTIVE_PGROUPS.discard(proc.pid)
     return subprocess.CompletedProcess(cmd, proc.returncode, out, "")
