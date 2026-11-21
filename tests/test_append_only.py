@@ -97,12 +97,14 @@ CHEAP_TIMEOUT_S = 120     # below conftest's 300s per-test budget: no race
 FULL_TIMEOUT_S = 290      # ditto, for the calls that still need the replay
 
 
-def run_script(plant=None, env=None, cheap=True):
+def run_script(plant=None, env=None, cheap=True, rows=None):
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
     args = ["--dirty-ok"] + (["--no-ledger-replay"] if cheap else [])
+    if rows:
+        args += ["--rows", rows]
     timeout = CHEAP_TIMEOUT_S if cheap else FULL_TIMEOUT_S
     with _disposable_worktree() as wt:
         if plant is not None:
