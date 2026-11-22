@@ -103,14 +103,30 @@ def run_script(plant=None, env=None, cheap=True, rows=None, whole_ledger=False,
     # author remembering it. An unbounded full walk costs ~196s per call and
     # was what turned this file into a 300s-budget failure under load, so the
     # unbounded form is now only reachable by an explicit, greppable opt-in.
+    #
+    # The opt-in carries a REASON, not just a flag: a bare `whole_ledger=True`
+    # is another casual bypass, and the point of the guard is that the next
+    # 196s walk is both greppable in the suite and justified in its log. So the
+    # parameter is the justification string, printed where the walk is invoked.
+    if whole_ledger and not (isinstance(whole_ledger, str) and whole_ledger.strip()):
+        raise AssertionError(
+            "run_script(whole_ledger=...) requires a recorded reason: pass "
+            "whole_ledger='<why this walk cannot be bounded>', not True -- the "
+            "unbounded walk is ~196s and its justification must be visible in "
+            "the log and in the suite source")
     if not cheap and not rows and not resolve_node_ids and not whole_ledger:
         raise AssertionError(
             "run_script(cheap=False) without rows= is the unbounded 196s ledger "
-            "walk; pass rows=<row>, resolve_node_ids=True, or whole_ledger=True")
+            "walk; pass rows=<row>, resolve_node_ids=True, or "
+            "whole_ledger='<reason>'")
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
+    if whole_ledger:
+        # the point of use: whoever reads the test output sees the justified walk
+        print(f"run_script: unbounded ledger walk, whole_ledger reason: "
+              f"{whole_ledger}", flush=True)
     args = ["--dirty-ok"]
     if resolve_node_ids:
         args.append("--resolve-node-ids")

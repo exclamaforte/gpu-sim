@@ -65,8 +65,16 @@ def _mini_repo(td, delete_key=False, row_nodes=()):
     # A real ledger row (and the module it names) so the resolve-only walk has
     # something to resolve.
     (repo / "tests" / "test_ok.py").write_text(
+        "import pytest\n\n"
         "def test_a():\n    assert True\n\n"
-        "class TestK:\n    def test_b(self):\n        assert True\n")
+        "class TestK:\n    def test_b(self):\n        assert True\n\n"
+        # gpu-sim-mi5v: an id with a SPACE in it. `pytest --collect-only -q`
+        # prints this node verbatim, and a parser that splits the line on ' '
+        # truncates it to 'test_p[a' -- so cheap resolution reports a row
+        # unresolvable that the per-row walk resolves. The parametrized id is
+        # the fixture's whole purpose; do not 'simplify' it away.
+        "@pytest.mark.parametrize('p', ['a b', 'c'])\n"
+        "def test_p(p):\n    assert p\n")
     for i, node in enumerate(row_nodes):
         (repo / "tests" / "fs2y_ledger.d" / f"row_{i}.json").write_text(json.dumps({
             "name": f"row_{i}", "beads": ["gpu-sim-mi5v"], "state": "passing",
@@ -130,6 +138,26 @@ class TestCheapModeEquivalence(unittest.TestCase):
             self.assertNotEqual(res[0], 0, "resolve-only passed an unresolvable node")
             self.assertTrue(any("does not resolve" in l for l in full[1]), full)
             self.assertTrue(any("does not resolve" in l for l in res[1]), res)
+
+    def test_resolve_only_agrees_with_full_on_a_node_id_containing_a_space(self):
+        """The case where the cheap mode silently became a DIFFERENT check.
+
+        A parametrized node id can contain a space ('test_p[a b]'). The batched
+        collect used to split each collected line on ' ', so resolve-only mode
+        saw 'tests/test_ok.py::test_p[a' and failed a row that the per-row walk
+        (node id passed as one argv element) resolved. Both modes must return
+        the same verdict here, or "cheap == full" is only true for ids without
+        spaces -- exactly the assumption that turned this file into a 300s
+        budget failure in the first place.
+        """
+        with tempfile.TemporaryDirectory(dir=str(ROOT / ".lab" / "tmp")) as td:
+            repo = _mini_repo(td, row_nodes=["tests/test_ok.py::test_p[a b]"])
+            full = _run(repo, cheap=False)
+            res = _run(repo, "resolve")
+            self.assertEqual(full[0], 0, full)
+            self.assertEqual(res, full,
+                             "resolve-only disagrees with the full walk on a "
+                             "node id containing a space")
 
     def test_cheap_mode_is_refused_with_force(self):
         r = subprocess.run([sys.executable, str(CHECKER), "--force", "--no-ledger-replay"],

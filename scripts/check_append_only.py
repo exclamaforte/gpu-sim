@@ -543,7 +543,17 @@ def _collect_all_node_ids(root, entries):
             for line in ((r.stdout or "") + (r.stderr or "")).splitlines():
                 line = line.strip()
                 if "::" in line and not line.startswith("="):
-                    ids.add(line.split(" ")[0])
+                    # gpu-sim-mi5v: take the WHOLE line. `pytest --collect-only
+                    # -q` prints one node id per line, and a parametrized id can
+                    # contain a space: 'tests/test_ok.py::test_p[a b]'. Splitting
+                    # on ' ' truncated it to '...::test_p[a', which resolve-only
+                    # mode then reported as unresolvable while the per-row walk
+                    # (which passes the node id as an argv element, spaces
+                    # intact) resolved it fine. That made the cheap mode a
+                    # DIFFERENT check, which is the 0fr1/nfxi disease this file
+                    # exists to prevent. The batch result is only trusted for a
+                    # successful collect, so the fallback cannot mask this.
+                    ids.add(line)
     _BATCH_IDS[key] = ids
     return ids
 
