@@ -1,0 +1,17 @@
+{
+  "bead": "gpu-sim-f1sl",
+  "gpu_used": false,
+  "cpu_only": true,
+  "why_no_gpu": "test-fixture bug; no CUDA and no GPU work",
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-f1sl/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-f1sl/output.log",
+      "what": "two worktree fixtures: 8 passed, 0 skipped, failure path proved",
+      "wall_s": 9.4,
+      "started_at_utc": "2026-11-22T22:52:23.225571+00:00",
+      "finished_at_utc": "2026-11-22T22:52:32.602306+00:00"
+    }
+  ]
+}

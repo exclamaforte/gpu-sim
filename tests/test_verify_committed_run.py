@@ -41,7 +41,10 @@ def sandbox():
         run([sys.executable, os.path.join(REPO, "scripts", "appendonly_worktrees.py"),
              "unrecord", d], cwd=REPO)
         shutil.rmtree(d, ignore_errors=True)
-        pytest.skip(f"cannot create scratch worktree: {add.stderr}")
+        pytest.fail(
+            f"cannot create scratch worktree at {d}: git worktree add "
+            f"rc={add.returncode}\nstdout={add.stdout}\nstderr={add.stderr}"
+        )
     try:
         yield d
     finally:
@@ -89,6 +92,20 @@ def test_uncommitted_dependency_fails(sandbox):
     r = run(["bash", SCRIPT, "HEAD", bead], cwd=sandbox)
     assert r.returncode != 0, "expected failure for uncommitted dependency"
 
+def test_worktree_add_failure_fails_not_skips(monkeypatch):
+    """A broken fixture must be a FAILURE with the git error, never a skip."""
+    real_run = subprocess.run
+
+    def failing(cmd, *args, **kwargs):
+        if isinstance(cmd, list) and cmd[:3] == ["git", "worktree", "add"]:
+            return subprocess.CompletedProcess(cmd, 1, "", "simulated worktree add failure")
+        return real_run(cmd, *args, **kwargs)
+
+    monkeypatch.setattr(subprocess, "run", failing)
+    with pytest.raises(pytest.fail.Exception) as exc:
+        next(sandbox.__wrapped__())
+    assert "cannot create scratch worktree at" in str(exc.value)
+    assert "simulated worktree add failure" in str(exc.value)
 
 if __name__ == "__main__":
     test_self_contained_passes()

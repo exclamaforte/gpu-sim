@@ -57,7 +57,10 @@ def sandbox():
     if add.returncode != 0:
         _run([sys.executable, str(REPO / "scripts" / "appendonly_worktrees.py"), "unrecord", d], REPO)
         shutil.rmtree(d, ignore_errors=True)
-        pytest.skip(f"cannot create scratch worktree: {add.stderr}")
+        pytest.fail(
+            f"cannot create scratch worktree at {d}: git worktree add "
+            f"rc={add.returncode}\nstdout={add.stdout}\nstderr={add.stderr}"
+        )
     try:
         shutil.copy(REPO / "conftest.py", Path(d) / "conftest.py")
         # conftest's pytest_configure runs the libfakegpu.so freshness guard,
@@ -151,3 +154,19 @@ def test_residue_from_a_run_is_reported_and_left_in_place(sandbox):
         "a test that leaves a TRACKED file modified must fail, otherwise the "
         "residue is inherited by later tests and swept into a commit"
     )
+
+
+def test_worktree_add_failure_fails_not_skips(monkeypatch):
+    """A broken fixture must be a FAILURE with the git error, never a skip."""
+    real_run = subprocess.run
+
+    def failing(cmd, *args, **kwargs):
+        if isinstance(cmd, list) and cmd[:3] == ["git", "worktree", "add"]:
+            return subprocess.CompletedProcess(cmd, 1, "", "simulated worktree add failure")
+        return real_run(cmd, *args, **kwargs)
+
+    monkeypatch.setattr(subprocess, "run", failing)
+    with pytest.raises(pytest.fail.Exception) as exc:
+        next(sandbox.__wrapped__())
+    assert "cannot create scratch worktree at" in str(exc.value)
+    assert "simulated worktree add failure" in str(exc.value)
