@@ -52,7 +52,7 @@
   },
   "arm_exit_code": 1,
   "arm_exit_note": "gpu_arm.sh exits 1 BY DESIGN at this tip: the red (b) assertion is red; (c) is NOT_EXERCISED and contributes no failing predicate. A green exit here would mean the reds were hidden.",
-  "gate": "scripts/gate.sh --fast PASS; UNVERIFIABLE FOR THIS TIP: handle none, cu12+cu13; delta none: no run record exists for this tip (CPU-only arms, never submitted to gpqueue)",
+  "gate": "scripts/gate.sh --fast PASS at tip 9566e294 (15 hard stages passed, 0 failed; suite skipped in --fast); gate logs .lab/gate-logs/9566e294-20261122T180945Z. UNVERIFIABLE FOR THIS TIP: handle none, the CPU-only arms are not gpqueue jobs; delta none: no run record for this tip, deliberately -- it would be a CPU-only duplicate.",
   "artifacts_sha256": {
     "run.sh": "3d30283e70b18f156ba9c937bd0a52eb3f71a9554766a3d0252e0ac439c80b3a",
     "gpu_arm.sh": "beb7d793bdc2cca8bef4e089591e4e6c641b30ee9fd9b7aa06239725ca67701f",
