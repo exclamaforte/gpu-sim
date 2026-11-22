@@ -42,6 +42,14 @@ fi
 # Preflight: reap leaked append-only worktrees (gpu-sim-k3gb).
 python3 scripts/reap_appendonly_worktrees.py || \
   echo "PREFLIGHT: append-only worktree reaper failed (see message above); gate continues with un-reaped worktrees" >&2
+# gpu-sim-c3hd: reclaim leaked scratch under .lab/tmp (pytest basetemp trees, gate
+# scratch, lab-suite-* dirs). The classifier never touches a directory a live
+# process owns -- cwd OR cmdline -- never follows a symlink, and prunes anything
+# inside a checked-out tree; the age floor is 48h. Without this the box refills
+# btrfs METADATA and rename() starts failing with ENOSPC while df reports tens of
+# GiB free (gpu-sim-cywp), which is how a whole session gets lost.
+python3 scripts/reap_scratch_labs.py --apply --older-than-hours 48 || \
+  echo "PREFLIGHT: scratch reaper failed (see message above); gate continues with un-reaped scratch" >&2
 
 GATE_LOG="$GATE_TMP/gate.$$.out"
 if ! : > "$GATE_LOG" 2>/dev/null; then

@@ -167,6 +167,20 @@ fails with the numbers and the remedy before the box becomes unusable. The cure
 is almost always reclaiming leaked scratch (see the scratch section above), not
 balancing the filesystem.
 
+## Reaping leaked `.lab/tmp` scratch (gpu-sim-c3hd)
+
+`.lab/tmp` is a pile that grows, and on a btrfs root that pile is what
+exhausts METADATA: when it did, every atomic write failed `ENOSPC: no space left
+on device, rename ...` while `df` reported 70 GiB free (gpu-sim-cywp).
+`scripts/reap_scratch_labs.py` (gpu-sim-c3hd) reclaims it, and the gate runs it
+with `--apply --older-than-hours 48` in the tree it is gating. It deletes a
+directory only when its basename matches a known scratch pattern, no live process
+owns it (cwd **or** cmdline), it is not inside a checked-out tree, and it is
+either older than 48h or registered with a pid that is provably gone. Its first
+real run reclaimed 4.67 GiB over 3725 directories. Dry run is the default; add
+`--root <tree>/.lab/tmp` to clean a tree other than your own.
+
+
 ## Disposable worktrees: under the repo, never `$HOME` (4k2x)
 
 A throwaway worktree (`git worktree add --detach <path> <commit>`) is allowed for
