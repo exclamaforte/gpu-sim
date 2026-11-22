@@ -385,6 +385,11 @@ calendar in `epic_cluster/nccl_cost.py` (`FABRICS` for `nvlink4_h100` and
 `ib_400g`); they are not sourced B300 NVLink or ConnectX-8 figures. The clock
 field remains `UNVERIFIED` and `make_b300_spec.py` refuses to invent it. A
 reviewer should not read the latency fields as measurements.
+The D1 bandwidth fields use one spelling: `models.nvlink_bw_gbs = 1800.0`
+GB/s, `links[].bw_gbs = 1800.0` with `units: "GB/s per direction"`; the NIC's
+`bw_gbs = 100.0` is unchanged. No `*_gbps` field or Gbit/s number is stored;
+`gen_spec.py` emits `B300_MEM_BW_GBS` / `B300_NVLINK_BW_GBS`, and any bit-rate
+consumer must derive it as 8x rather than adding a second number.
 
 ### 12.4 RAM error budget (numbers from actual runs)
 

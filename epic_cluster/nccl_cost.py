@@ -38,6 +38,7 @@ from dataclasses import dataclass, asdict
 # bandwidth available to a single ring link.
 FABRICS = {
     "nvlink4_h100": {"alpha_s": 1.0e-6, "bw_gbps": 450.0},   # 900 GB/s bidir / 2
+    "nvlink5_b300": {"alpha_s": 1.0e-6, "bw_gbps": 1800.0},  # D1: GB/s per direction, explicit units
     "pcie5_x16":    {"alpha_s": 8.0e-6, "bw_gbps": 25.0},    # ~50 GB/s bidir / 2
     "ib_400g":      {"alpha_s": 5.0e-6, "bw_gbps": 50.0},
 }

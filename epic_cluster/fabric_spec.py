@@ -9,6 +9,7 @@ REPO = Path(__file__).resolve().parents[1]
 
 KIND_TO_FABRIC = {
     "nvlink": "nvlink4_h100",
+    "nvlink5": "nvlink5_b300",
     "ib": "ib_400g",
     "pcie": "pcie5_x16",
 }
@@ -40,7 +41,8 @@ def classify_links(spec: dict) -> dict[str, list[dict]]:
 
 
 def _one_way_bw(link: dict) -> float:
-    bw = float(link["bw_gbps"])
+    # D1 uses the unambiguous name bw_gbs (GB/s); older specs still use bw_gbps.
+    bw = float(link["bw_gbs"] if "bw_gbs" in link else link["bw_gbps"])
     if link.get("bw_is_bidirectional"):
         bw = bw / 2.0
     return bw

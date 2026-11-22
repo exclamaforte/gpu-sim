@@ -44,6 +44,12 @@ SOURCES = {
         "developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-"
         "the-ai-factory-era/"
     ),
+    "link.nvlink5": (
+        "NVIDIA B300 NVLink 5: 1.8 TB/s bidirectional per GPU (18 links x 100 GB/s); "
+        "D1's per-link record is 1800 GB/s with explicit units, not Gbit/s. "
+        "developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-"
+        "the-ai-factory-era/"
+    ),
     "link.nic": (
         "ConnectX-8 SuperNIC: 800 Gb/s per GPU, 1:1 GPU-to-NIC. "
         "supermicro.com/datasheet/datasheet_SuperCluster_B300_Front_IO.pdf"
@@ -76,7 +82,7 @@ def model():
         "mem_bw_gbs": 8000,
         "compute_capability": [10, 3],
         "arch": "sm_103",
-        "nvlink_bw_gbps": 1800.0,
+        "nvlink_bw_gbs": 1800.0,
         "pcie_gen": 6,
         "pcie_width": 16,
         "pci_bus_base": 11,          # 0x0b; every modelled device sits on this node-local base
@@ -117,9 +123,10 @@ def links():
                 out.append({
                     "a": {"node": f"node{n}", "device": a},
                     "b": {"node": f"node{n}", "device": b},
-                    "kind": "nvlink",
-                    "bw_gbps": 900.0,  # per-link calendar value: 1800 bidirectional / 2; derive_fabrics halves again to 450 one-way
-                    "bw_is_bidirectional": True,
+                    "kind": "nvlink5",
+                    "bw_gbs": 1800.0,  # GB/s, not Gbit/s; explicit units below
+                    "units": "GB/s per direction",
+                    "bw_is_bidirectional": False,
                     "latency_us": NV_LATENCY_US,
                     "latency_source": SOURCES["latency.nvlink"],
                     "mtu": 4096,
