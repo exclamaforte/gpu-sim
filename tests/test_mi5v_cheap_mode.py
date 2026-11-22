@@ -1,0 +1,98 @@
+"""Pin: cheap mode must not be a different check from the gate's full mode (gpu-sim-mi5v).
+
+tests/test_append_only.py runs the retirement tests in cheap mode
+(--no-ledger-replay) so ~46 minutes of ledger replay leaves the suite. That is
+only sound if cheap mode gives the SAME verdict as full mode on the same tree:
+"the suite tests mode B while the gate runs mode A" is the 0fr1/nfxi disease.
+
+These tests build a MINI repo (no ledger to replay, so full mode is fast) and
+compare (rc, FAIL lines) between the two modes on a passing fixture and on two
+failing fixtures. The registered mutation makes cheap mode always pass, which
+must make the failing-fixture comparisons fail.
+"""
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CHECKER = ROOT / "scripts" / "check_append_only.py"
+
+
+def _mini_repo(td, delete_key=False):
+    """Smallest tree the checker accepts: git repo + facts + one ledger row."""
+    repo = Path(td) / "repo"
+    (repo / "docs").mkdir(parents=True)
+    (repo / "tests" / "fs2y_ledger.d").mkdir(parents=True)
+    (repo / "scripts" / "fs2y_mutations.d").mkdir(parents=True)
+    # The checker resolves ROOT from its OWN path, so it must live in the
+    # fixture: running the real one with cwd=<fixture> replayed the real ledger
+    # (measured: 120s timeout before this copy existed).
+    (repo / "scripts" / "check_append_only.py").write_text(CHECKER.read_text())
+    # the grandfather check imports this helper from scripts/
+    (repo / "scripts" / "fs2y_mutations.py").write_text(
+        (ROOT / "scripts" / "fs2y_mutations.py").read_text())
+    (repo / "scripts" / "resolve_trunk.py").write_text(
+        (ROOT / "scripts" / "resolve_trunk.py").read_text())
+    facts = {"keep_me": {"v": 1}, "gone_me": {"v": 2}}
+    (repo / "docs" / "model_facts.json").write_text(json.dumps(facts, indent=2) + "\n")
+    git = lambda *a: subprocess.run(["git", "-C", str(repo), *a], check=True,
+                                    capture_output=True, text=True)
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    # Move HEAD off main so the checker does not treat the fixture as the
+    # integration tree (it refuses to run there without --force, and cheap mode
+    # refuses --force by design -- the equivalence comparison needs both modes).
+    git("checkout", "-q", "-b", "probe")
+    (repo / "README").write_text("probe\n")
+    git("add", "-A")
+    git("commit", "-qm", "probe")
+    if delete_key:
+        # The deletion must be in the WORKING TREE against a base that still has
+        # the key: committing the deletion would make base == head and the loss
+        # invisible (the checker compares base_ref's file to the worktree's).
+        del facts["gone_me"]
+        (repo / "docs" / "model_facts.json").write_text(json.dumps(facts, indent=2) + "\n")
+    return repo
+
+
+def _run(repo, cheap):
+    args = [sys.executable, str(repo / "scripts" / "check_append_only.py"),
+            "--dirty-ok", "--base", "main"]
+    if cheap:
+        args.append("--no-ledger-replay")
+    r = subprocess.run(args, cwd=str(repo), capture_output=True, text=True, timeout=120)
+    fails = tuple(l for l in ((r.stdout or "") + (r.stderr or "")).splitlines()
+                  if l.startswith("FAIL:"))
+    return r.returncode, fails
+
+
+class TestCheapModeEquivalence(unittest.TestCase):
+    def test_cheap_and_full_agree_on_a_passing_fixture(self):
+        with tempfile.TemporaryDirectory(dir=str(ROOT / ".lab" / "tmp")) as td:
+            repo = _mini_repo(td)
+            self.assertEqual(_run(repo, cheap=True), _run(repo, cheap=False),
+                             "cheap and full disagree on a passing fixture")
+
+    def test_cheap_and_full_agree_on_a_failing_fixture(self):
+        with tempfile.TemporaryDirectory(dir=str(ROOT / ".lab" / "tmp")) as td:
+            repo = _mini_repo(td, delete_key=True)
+            cheap, full = _run(repo, cheap=True), _run(repo, cheap=False)
+            self.assertNotEqual(full[0], 0, "fixture did not fail in full mode")
+            self.assertEqual(cheap, full,
+                             "cheap mode does not reproduce the full-mode failure")
+
+    def test_cheap_mode_is_refused_with_force(self):
+        r = subprocess.run([sys.executable, str(CHECKER), "--force", "--no-ledger-replay"],
+                           cwd=str(ROOT), capture_output=True, text=True, timeout=60)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("cannot be combined with --force", r.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
