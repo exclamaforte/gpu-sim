@@ -98,8 +98,12 @@ def _map_global_names(text):
 class TestIbvExports(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not shutil.which("readelf") or not shutil.which("gcc"):
-            raise unittest.SkipTest("needs gcc + readelf")
+        # No SkipTest: this repo's conftest already refuses to run pytest without
+        # a working gcc (it builds libfakegpu), and a skip site here would be a hole
+        # in the row -- the property must be MEASURED, so a missing tool is a
+        # failure that names itself, not a quietly green test.
+        missing = [t for t in ("gcc", "readelf") if not shutil.which(t)]
+        assert not missing, f"cannot measure the export table without {missing}"
         cls.syms = _dynsyms(_build())
 
     def test_mandatory_verbs_exported_at_ibverbs_1_1(self):

@@ -20,6 +20,14 @@
 # need the synthetic sysfs (per-rank mount namespace).  See provenance.md.
 set -euo pipefail
 
+# One thread per numeric library (tests/test_pin_coverage.py): the arms here are
+# single-threaded by construction, and an unpinned BLAS pool on this box competes
+# with the two-CPU quota the whole experiment runs under.
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
 cd "$(git rev-parse --show-toplevel)"
 ROOT="$(pwd)"
 EXP="$ROOT/experiments/gpu-sim-7q3w.3"
