@@ -112,10 +112,10 @@ def run_script(plant=None, env=None, cheap=True, rows=None, whole_ledger=False,
     else:
         env = dict(env)
     args = ["--dirty-ok"]
-    if cheap:
-        args.append("--no-ledger-replay")
     if resolve_node_ids:
         args.append("--resolve-node-ids")
+    elif cheap:
+        args.append("--no-ledger-replay")
     if rows:
         args += ["--rows", rows]
     timeout = CHEAP_TIMEOUT_S if (cheap or resolve_node_ids) else FULL_TIMEOUT_S

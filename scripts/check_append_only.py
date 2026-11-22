@@ -524,6 +524,12 @@ def _collect_all_node_ids(root, entries):
         if f and os.path.exists(os.path.join(root, f)) and f not in files:
             files.append(f)
     ids = None
+    if files and not os.path.exists(os.path.join(root, "libfakegpu.so")):
+        # conftest's freshness guard refuses ANY pytest run in a tree without the
+        # built lib (rc=3, measured), and resolve-only mode skips the mutation
+        # block whose restore step is what used to build it. Build once, on the
+        # same pattern, instead of failing every row with an infrastructure error.
+        subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
     if files:
         try:
             r = subprocess.run(
