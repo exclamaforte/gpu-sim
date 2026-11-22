@@ -199,26 +199,49 @@ int main(void) {
         CHECK(wc[0].byte_len == 64, "byte_len %u", wc[0].byte_len);
     }
 
-    /* --- bandwidth ratio: 2x line rate => ~2x completion delay ---------- */
+    /* --- bandwidth: 2x line rate => half the modelled charge --------------
+     * The assertion is on the shim's OWN charge (deterministic), not on wall
+     * clock: a 1 MiB arm takes ~839 us at 10 Gb/s, and one scheduler slice on
+     * a loaded box reordered a wall-clock ratio to 32x while the model was
+     * correct.  The latency arm above already proves poll waits for the wire;
+     * this one proves the bytes/bandwidth term scales exactly.  The wall-clock
+     * numbers are printed, with only a gross sanity bound. */
     setenv("FAKEIB_LATENCY_US", "0", 1);
     size_t big = 1 << 20;
     sge.length = (uint32_t)big;
+    uint64_t *charge = (uint64_t *)dlsym(RTLD_DEFAULT, "fakeib_last_charge_ns");
+    uint64_t *charge_bytes = (uint64_t *)dlsym(RTLD_DEFAULT, "fakeib_last_charge_bytes");
+    CHECK(charge && charge_bytes, "last-charge counters exported");
     setenv("FAKEIB_BW_GBPS", "10", 1);
     wr.wr_id = 0x2222;
     t0 = now_ns();
     CHECK(probe_post_send(qp, &wr, &badwr) == 0, "post_send 10G");
+    uint64_t charge10 = charge ? *charge : 0;
+    uint64_t cbytes10 = charge_bytes ? *charge_bytes : 0;
     CHECK(poll_until(scq, 1, wc, 5000) == 1, "10G completion");
     uint64_t slow = now_ns() - t0;
     setenv("FAKEIB_BW_GBPS", "20", 1);
     wr.wr_id = 0x3333;
     t0 = now_ns();
     CHECK(probe_post_send(qp, &wr, &badwr) == 0, "post_send 20G");
+    uint64_t charge20 = charge ? *charge : 0;
+    uint64_t cbytes20 = charge_bytes ? *charge_bytes : 0;
     CHECK(poll_until(scq, 1, wc, 5000) == 1, "20G completion");
     uint64_t fast = now_ns() - t0;
-    double ratio = (double)slow / (double)fast;
-    printf("bandwidth arm: 10G=%llu ns 20G=%llu ns ratio=%.2f\n",
-           (unsigned long long)slow, (unsigned long long)fast, ratio);
-    CHECK(ratio > 1.6 && ratio < 2.4, "2x line rate should halve completion time, ratio %.2f", ratio);
+    double cratio = charge20 ? (double)charge10 / (double)charge20 : 0.0;
+    printf("bandwidth arm: charge 10G=%llu ns 20G=%llu ns ratio=%.2f "
+           "(bytes %llu/%llu); wall 10G=%llu ns 20G=%llu ns\n",
+           (unsigned long long)charge10, (unsigned long long)charge20, cratio,
+           (unsigned long long)cbytes10, (unsigned long long)cbytes20,
+           (unsigned long long)slow, (unsigned long long)fast);
+    CHECK(cratio > 1.9 && cratio < 2.1,
+          "2x line rate must halve the modelled charge, ratio %.2f", cratio);
+    CHECK(cbytes10 == big && cbytes20 == big, "charge bytes %llu/%llu want %zu",
+          (unsigned long long)cbytes10, (unsigned long long)cbytes20, big);
+    CHECK(slow < fast * 4, "gross wall-clock sanity: 10G %llu ns vs 20G %llu ns",
+          (unsigned long long)slow, (unsigned long long)fast);
+    setenv("FAKEIB_LATENCY_US", "1.2", 1);
+    setenv("FAKEIB_BW_GBPS", "400", 1);
     setenv("FAKEIB_LATENCY_US", "1.2", 1);
     setenv("FAKEIB_BW_GBPS", "400", 1);
 

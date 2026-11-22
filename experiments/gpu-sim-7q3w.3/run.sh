@@ -8,13 +8,16 @@
 #      diffed against the committed pin abi_diff_expected.txt
 #   3  build the shim; the shim's _Static_asserts are part of the build
 #   4  dlopen("libibverbs.so.1") + dlsym the names NCCL dlsyms
+#   6  wire_probe: two real processes exchange (qpn,rkey,addr) like NCCL does
 #   5  abi_probe: QP state machine, one WR -> exactly one timed completion,
 #      empty poll = 0, RDMA WRITE/WRITE_WITH_IMM/READ byte movement,
 #      comp-channel event, dmabuf counter, modelled latency and 2x bandwidth
+#      and drive WRITE / WRITE_WITH_IMM / READ across a MAP_SHARED ring, with
+#      the 20 ms latency arm timed on the sender's own completion
 #
 # The NCCL-against-this-shim arms (device named by NCCL, IB transport chosen,
 # all-reduce numerics, topology injection) are NOT in this script yet: they
-# need the synthetic sysfs and the cross-process wire.  See provenance.md.
+# need the synthetic sysfs (per-rank mount namespace).  See provenance.md.
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
@@ -67,5 +70,13 @@ grep -q '^PROBE OK$' "$BUILD/probe.log" || fail "probe did not print PROBE OK"
 RATIO=$(sed -n 's/.*ratio=\([0-9.]*\).*/\1/p' "$BUILD/probe.log")
 awk -v r="$RATIO" 'BEGIN { if (r < 1.6 || r > 2.4) { printf "ratio %s out of [1.6,2.4]\n", r; exit 1 } }' \
     || fail "2x line-rate ratio"
+
+stage "6. wire_probe: two real processes, one shim"
+$CC -O1 -Wall -Wextra -I"$EXP/vendor" -o "$BUILD/wire_probe" "$EXP/wire_probe.c" \
+    -L"$BUILD" -libverbs -Wl,-rpath,"$BUILD"
+GPU_SIM_ROOT="$ROOT" timeout 60 "$BUILD/wire_probe" > "$BUILD/wire.log" 2>&1 \
+    || { cat "$BUILD/wire.log"; fail "wire_probe"; }
+cat "$BUILD/wire.log"
+grep -q '^WIRE OK$' "$BUILD/wire.log" || fail "wire probe did not print WIRE OK"
 echo
-echo "SHIM SELF-CHECK OK (stages 1-5; NCCL arms pending: sysfs + wire)"
+echo "SHIM SELF-CHECK OK (stages 1-6; NCCL arms pending: synthetic sysfs + NCCL harness)"

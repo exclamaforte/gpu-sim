@@ -119,6 +119,13 @@ uint64_t fakeib_qp_transition_refusals;
 uint64_t fakeib_rnr_drops;
 uint64_t fakeib_remote_access_errors;
 uint64_t fakeib_cq_full_drops;
+/* last modelled charge, exported so the acceptance can assert the bytes/bandwidth
+ * term deterministically instead of racing a loaded box's scheduler */
+uint64_t fakeib_last_charge_ns;
+uint64_t fakeib_last_charge_bytes;
+/* defined in the cross-process wire (ibverbs_ring.inc); declared here because
+ * the counters file reports them */
+uint64_t fakeib_ring_records_out, fakeib_ring_records_in, fakeib_ring_stall_drops;
 
 static void counters_dump(void) {
     const char *path = getenv("FAKEIB_COUNTERS_FILE");
@@ -131,7 +138,8 @@ static void counters_dump(void) {
             "\"completions\":%llu,\"bytes_written\":%llu,\"bytes_read\":%llu,"
             "\"writes\":%llu,\"reads\":%llu,\"sends\":%llu,\"recvs\":%llu,"
             "\"qp_transition_refusals\":%llu,\"rnr_drops\":%llu,"
-            "\"remote_access_errors\":%llu,\"cq_full_drops\":%llu}\n",
+            "\"remote_access_errors\":%llu,\"cq_full_drops\":%llu,"
+            "\"ring_out\":%llu,\"ring_in\":%llu,\"ring_stall_drops\":%llu}\n",
             (int)strtol(getenv("FAKEIB_RANK") ? getenv("FAKEIB_RANK") : "0", NULL, 10),
             (unsigned long long)fakeib_dmabuf_registrations,
             (unsigned long long)fakeib_reg_mr_calls,
@@ -145,7 +153,10 @@ static void counters_dump(void) {
             (unsigned long long)fakeib_qp_transition_refusals,
             (unsigned long long)fakeib_rnr_drops,
             (unsigned long long)fakeib_remote_access_errors,
-            (unsigned long long)fakeib_cq_full_drops);
+            (unsigned long long)fakeib_cq_full_drops,
+            (unsigned long long)fakeib_ring_records_out,
+            (unsigned long long)fakeib_ring_records_in,
+            (unsigned long long)fakeib_ring_stall_drops);
     fclose(f);
 }
 __attribute__((destructor)) static void fakeib_fini(void) { counters_dump(); }
@@ -623,6 +634,9 @@ static int deliver_inbound(uint32_t dest_qpn, uint32_t kind, uint64_t wr_id,
                            uint64_t remote_addr, uint64_t rkey, uint32_t imm,
                            const void *payload, size_t len, uint64_t ready_ns) {
     struct fake_qp *q = qp_by_num(dest_qpn);
+    if (getenv("FAKEIB_TRACE"))
+        fprintf(stderr, "FAKEIB[%d] deliver_inbound qpn=0x%x kind=%u nbytes=%zu\n",
+                my_rank(), dest_qpn, kind, len);
     if (!q) { __atomic_add_fetch(&fakeib_remote_access_errors, 1, __ATOMIC_RELAXED); return 2; }
     struct ibv_wc wc;
     memset(&wc, 0, sizeof wc);
@@ -725,6 +739,10 @@ static void loopback_wr(struct fake_qp *q, struct ibv_send_wr *w, uint64_t ready
     if (complete && signalled) cq_push(q->send_cq, &wc, ready_ns);
 }
 
+/* The cross-process wire lives in its own file: it needs the loopback helpers
+ * above and is included here, exactly once. */
+#include "ibverbs_ring.inc"
+
 static int shim_ops_post_send(struct ibv_qp *qp, struct ibv_send_wr *wr,
                               struct ibv_send_wr **bad_wr) {
     struct fake_qp *q = (struct fake_qp *)qp;
@@ -735,13 +753,30 @@ static int shim_ops_post_send(struct ibv_qp *qp, struct ibv_send_wr *wr,
     }
     for (struct ibv_send_wr *w = wr; w; w = w->next) {
         size_t bytes = wr_payload_bytes(w->sg_list, w->num_sge);
-        uint64_t ready_ns = now_ns() + model_wire_ns(bytes);
+        uint64_t charge_ns = model_wire_ns(bytes);
+        __atomic_store_n(&fakeib_last_charge_ns, charge_ns, __ATOMIC_RELAXED);
+        __atomic_store_n(&fakeib_last_charge_bytes, (uint64_t)bytes, __ATOMIC_RELAXED);
+        uint64_t ready_ns = now_ns() + charge_ns;
         __atomic_add_fetch(&fakeib_post_send_calls, 1, __ATOMIC_RELAXED);
-        /* Cross-process routing lands here; until the peer table is open a WR
-         * to another rank is a modelled-local delivery, which is what the
-         * loopback arm measures. */
-        loopback_wr(q, w, ready_ns);
+        /* peer_rank is set at RTR from the exchanged GID/LID; rank -1 means no
+         * address was ever supplied, and a WR there is a hard error, not a
+         * silent loopback. */
+        if (q->peer_rank < 0) {
+            __atomic_add_fetch(&fakeib_remote_access_errors, 1, __ATOMIC_RELAXED);
+            if (w->send_flags & IBV_SEND_SIGNALED) {
+                struct ibv_wc wc;
+                memset(&wc, 0, sizeof wc);
+                wc.wr_id = w->wr_id;
+                wc.qp_num = q->qp.qp_num;
+                wc.status = IBV_WC_REM_ACCESS_ERR;
+                cq_push(q->send_cq, &wc, ready_ns);
+            }
+        } else if (q->peer_rank == my_rank()) {
+            loopback_wr(q, w, ready_ns);
+        } else {
+            ring_send_wr(q, w, ready_ns);
     }
+    }   /* for (w) */
     return 0;
 }
 
@@ -788,6 +823,9 @@ int shim_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr, struct ibv_r
 }
 
 static int shim_ops_poll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *wc) {
+    /* Drain inbound wire records first: this is where a peer's RDMA WRITE lands
+     * in our buffers and where its READ response becomes our completion. */
+    pump_rings();
     struct fake_cq *c = (struct fake_cq *)cq;
     if (!c || !wc || num_entries <= 0) return 0;
     int n = 0;

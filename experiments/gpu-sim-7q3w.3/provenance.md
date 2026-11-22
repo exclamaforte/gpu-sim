@@ -62,8 +62,12 @@ Measured (stage 5, this box):
 
 * 40 ms latency arm: immediate poll returns 0, first completion at
   ≈40.0 ms (the check is on the wire, not on the wall clock of the test).
-* 2× line rate on 1 MiB: 10 Gb/s → 839 869 ns, 20 Gb/s → 419 760 ns,
-  **ratio 2.00** (acceptance band [1.6, 2.4]).
+* 2× line rate on 1 MiB, asserted on the shim's own modelled charge
+  (`fakeib_last_charge_ns`): **ratio 2.00** (band [1.9, 2.1]).  The same arm
+  prints the wall-clock times but does not assert on them: on a loaded box one
+  scheduler slice made the WALL ratio 32.76 while the charge ratio was exactly
+  2.00.  A wall-clock ratio measures the box; the charge ratio measures the
+  model.
 
 ## 4. Counters
 
@@ -74,8 +78,6 @@ Exported and also appended as JSON to `$FAKEIB_COUNTERS_FILE` at exit:
 `remote_access_errors`, `cq_full_drops`. The acceptance's "dmabuf counter
 non-zero" item is the first of these; `abi_probe` already asserts it.
 
-## 5. What is measured here vs what is still missing
-
 Measured now: the shim loads by SONAME like NCCL loads it; the 38-name dlsym
 surface is complete; the QP state machine accepts RESET→INIT→RTR→RTS and refuses
 RTS→INIT; one posted WR gives exactly one completion with the right `wr_id`,
@@ -84,12 +86,40 @@ opcode and `byte_len`; an empty CQ returns 0; RDMA WRITE, WRITE_WITH_IMM
 comp-channel event fires; `ibv_reg_dmabuf_mr` increments its counter; the wire
 model gates completions and scales with line rate.
 
-Missing (next commits): the cross-process wire (per-pair MAP_SHARED ring,
-`rkey` resolved on the receiving rank, WRITE/READ/SEND/IMM), the synthetic
-sysfs so NCCL builds two nodes with an IB NET edge, and the NCCL acceptance arms
-(a)–(f) from the bead.
+Also measured, cross-process (`wire_probe`, two real processes): the two ranks
+exchange (qpn,rkey,addr) over pipes exactly as NCCL does and drive RDMA WRITE,
+WRITE_WITH_IMM (receiver IMM completion + imm data) and READ across the
+MAP_SHARED ring; the sender's completion for a 20 ms latency arm lands at
+≥20 ms measured on its own clock.
 
-## 6. Reproduce
+## 6. The cross-process ring, and its model's limits
+
+One byte-ring file per (from,to) rank pair under `FAKEIB_RING_DIR` (default
+`.lab/tmp/7q3w3-rings`), `FAKEIB_RING_MB` = 64 MiB per direction, records
+8-aligned with a `len/kind/wr_id/addr/rkey/imm/dest_qpn/ready_ns/nbytes/status/tag`
+header.  `FAKEIB_NRANKS` (default 2) tells each rank which pair-rings to open in
+both directions at startup, because a receiver cannot see an inbound ring until
+it opens the file.  A full ring is a 30 s stall then a counted WR failure, never
+a silent drop.  `rkey` is resolved on the RECEIVING rank in its own MR table (so
+both processes may own rkey 1); `remote_addr - iova` is the offset inside that
+MR.
+
+Deliberate model limits, stated so nobody mistakes them for hardware: an
+invalid rkey/range is counted on the RECEIVER (`remote_access_errors`) and does
+not come back as the sender's WC status; a SEND completes at post time (the
+ring carries it) instead of waiting for the peer's posted recv WR; the bytes are
+in the ring immediately and only the completion is delayed by the model.  The
+NCCL data path uses RDMA WRITE / WRITE_WITH_IMM / READ only (net_ib's p2p.cc),
+so the first two limits do not sit on the collective path.
+
+## 7. What is still missing
+
+Missing (next commits): the synthetic sysfs (a per-rank mount namespace with a
+fake /sys/class/infiniband, so NCCL builds two nodes with an IB NET edge) and
+the NCCL acceptance arms (a)–(f) from the bead.  The wire itself is built and
+measured (section 6).
+
+## 8. Reproduce
 
 ```bash
 cd .lab/wt/gpu-sim-7q3w.3
