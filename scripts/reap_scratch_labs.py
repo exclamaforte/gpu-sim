@@ -92,9 +92,31 @@ def read_records(root):
     return out
 
 
+def prune_records(root):
+    """Drop records whose pid+starttime is provably gone, so the registry cannot grow
+    without bound (reviewer nit: records were added and never released)."""
+    p = registry_path(root)
+    if not p.is_file():
+        return 0
+    live = []
+    for rec in read_records(root):
+        pid = rec.get("pid")
+        if isinstance(pid, int) and starttime_of(pid) == rec.get("starttime"):
+            live.append(rec)
+    dropped = len(read_records(root)) - len(live)
+    if dropped:
+        tmp = p.with_suffix(".tmp")
+        with open(tmp, "w") as f:
+            for rec in live:
+                f.write(json.dumps(rec) + "\n")
+        os.replace(tmp, p)
+    return dropped
+
+
 def append_record(root, path, pid):
     p = registry_path(root)
     p.parent.mkdir(parents=True, exist_ok=True)
+    prune_records(root)      # bounded: stale pids are provably gone before we add one
     rec = {"path": str(path), "pid": pid, "starttime": starttime_of(pid),
            "at": time.time()}
     with open(p, "a") as f:
@@ -109,45 +131,100 @@ def append_record(root, path, pid):
 
 
 # --------------------------------------------------------------- liveness ---
-def live_owners(root):
-    """One pass over /proc: cwds, and the cmdlines that mention `root` at all.
+def started_at_epoch(pid):
+    """Wall-clock start time: field 22 is TICKS SINCE BOOT, and comparing that against
+    an st_mtime is a category error the first draft of the parent rule made."""
+    ticks = starttime_of(pid)
+    if ticks is None:
+        return None
+    try:
+        btime = None
+        for line in Path("/proc/stat").read_text().splitlines():
+            if line.startswith("btime "):
+                btime = int(line.split()[1])
+                break
+        if btime is None:
+            return None
+        return btime + ticks / os.sysconf("SC_CLK_TCK")
+    except (OSError, ValueError):
+        return None
 
-    Both halves matter. The cwd set catches a process RUNNING inside the tree;
-    the cmdline set catches `pytest --basetemp <dir>` and friends, where the
-    directory is an argument rather than a cwd. The cmdline half is prefiltered
-    by the root string in this single pass: doing it per candidate cost 3744
-    candidates x ~1000 processes of /proc reads (34 s) in the first version of
-    this file, which is too slow for a gate preflight.
+
+def live_owners(root):
+    """Two maps of live token -> earliest start time of a process naming it.
+
+    Returns (cwds, cmdlines). Both are token-keyed because ownership of a DIRECTORY
+    PARENT has to be age-checked: a scratch older than the process that names its
+    parent cannot have been created by that process (see owned_by_live_process).
     """
-    cwds, cmdlines = set(), []
+    cwds, cmdlines = {}, {}
     needle = str(root).encode()
     for entry in os.listdir("/proc"):
         if not entry.isdigit():
             continue
+        pid = int(entry)
+        started = started_at_epoch(pid)
+        if started is None:
+            continue
         try:
-            # a zombie's cwd link reads as "... (deleted)" or fails; both are
-            # fine -- a zombie owns nothing.
-            cwds.add(os.readlink(f"/proc/{entry}/cwd"))
+            # A "(deleted)" suffix means the directory was removed under a LIVE
+            # process (a zombie has exited, which is a different thing). The path it
+            # names no longer exists, and a scratch recreated at the same name is a
+            # NEW inode with no live user, so "owns nothing" is right -- but for the
+            # inode reason, not because the process is a zombie.
+            cwds[os.readlink(f"/proc/{entry}/cwd")] = min(
+                cwds.get(os.readlink(f"/proc/{entry}/cwd"), started), started)
         except OSError:
             pass
         try:
             cmd = Path(f"/proc/{entry}/cmdline").read_bytes()
         except OSError:
             continue
-        if needle in cmd:
-            cmdlines.append(cmd)
+        if needle not in cmd:
+            continue
+        for arg in cmd.split(b"\0"):
+            if arg:
+                cmdlines[arg] = min(cmdlines.get(arg, started), started)
     return cwds, cmdlines
 
 
 def owned_by_live_process(path, owners):
+    """True when a live process is using `path` -- or may be about to create it.
+
+    Exact matches and descendants are unconditional: a process inside the scratch owns
+    it. The PARENT is a different matter, and two live probes in review are why it is
+    here at all: pytest is spawned with `--basetemp <dir>` and creates
+    `<basetemp>/<test>` while running, so a process whose argument or cwd IS the parent
+    is mid-flight on a scratch that may not exist yet. Deleting that scratch is exactly
+    what this reaper exists to prevent.
+
+    The parent rule is age-gated, because otherwise one live process holding
+    `<root>/implementer` would protect every sibling forever (measured: it kept six
+    scratch dirs, five of them untouched for days). A directory that is OLDER than the
+    process naming its parent cannot be a child that process just created, so it is
+    still a candidate. Ancestors above the parent never count: `.lab/tmp` itself would
+    then be protected by any process in the tree.
+    """
     cwds, cmdlines = owners
     s = str(path)
     prefix = s.rstrip("/") + "/"
+    parent = os.path.dirname(s)
     for cwd in cwds:
         if cwd == s or cwd.startswith(prefix):
             return True
-    needle = s.encode()
-    return any(needle in cmd for cmd in cmdlines)
+    if s.encode() in cmdlines:
+        return True
+    try:
+        mtime = os.stat(s).st_mtime
+    except OSError:
+        return True          # cannot stat it: do not delete on a guess
+    for cwd, started in cwds.items():
+        if cwd == parent and mtime >= started:
+            return True
+    for arg, started in cmdlines.items():
+        if arg in (parent.encode(), (parent + "/").encode()) and mtime >= started:
+            return True
+    return any(arg.startswith(prefix.encode()) for arg in cmdlines)
 
 
 def registered_live(records, path):

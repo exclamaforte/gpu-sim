@@ -108,6 +108,8 @@ class TestScratchReaper(unittest.TestCase):
         self.assertIn("lab-suite-live", kept)
         self.assertIn("live process", kept["lab-suite-live"])
         self.assertIn("lab-suite-arg", kept)
+        self.assertIn("live process", kept["lab-suite-arg"],
+                      "the cmdline-named scratch must be kept BY THE LIVE-OWNER rule")
         self.assertIn("registered owner is alive", kept["lab-suite-recorded"])
         # the dry run must have removed nothing at all
         for p in (self.old, self.fresh, self.live, self.arg, self.recorded,
@@ -132,6 +134,61 @@ class TestScratchReaper(unittest.TestCase):
         self.assertTrue((self.checkout / "experiments" / "lab-suite-x").exists())
         # the plain file was never a candidate
         self.assertTrue((self.root / "implementer" / "notes.txt").exists())
+
+    def test_a_live_process_whose_cwd_is_the_PARENT_owns_a_young_scratch(self):
+        """Reviewer probe: a child cwd=<root>/implementer mid-run on
+        <root>/implementer/lab-suite-cwd-parent. The old classifier deleted it."""
+        parent = self.root / "implementer"
+        scratch = parent / "lab-suite-cwd-parent"
+        scratch.mkdir()
+        proc = subprocess.Popen([sys.executable, "-c",
+                                 "import time; time.sleep(60)"], cwd=str(parent))
+        try:
+            r = _run(self.root, "--json", "--older-than-hours", "0")
+            summary = json.loads(r.stdout)
+            kept = {Path(c["path"]).name: c["why"] for c in summary["kept"]}
+            self.assertIn("lab-suite-cwd-parent", kept, summary)
+            self.assertIn("live process", kept["lab-suite-cwd-parent"])
+        finally:
+            proc.kill()
+            proc.wait()
+
+    def test_a_live_process_naming_the_PARENT_on_its_cmdline_owns_a_young_scratch(self):
+        """Reviewer probe: --basetemp <root>/implementer, scratch .../pytest-live-basetemp."""
+        parent = self.root / "implementer"
+        scratch = parent / "pytest-live-basetemp"
+        scratch.mkdir()
+        proc = subprocess.Popen([sys.executable, "-c",
+                                 "import time; time.sleep(60)", "--basetemp",
+                                 str(parent)])
+        try:
+            r = _run(self.root, "--json", "--older-than-hours", "0")
+            summary = json.loads(r.stdout)
+            kept = {Path(c["path"]).name: c["why"] for c in summary["kept"]}
+            self.assertIn("pytest-live-basetemp", kept, summary)
+            self.assertIn("live process", kept["pytest-live-basetemp"])
+        finally:
+            proc.kill()
+            proc.wait()
+
+    def test_a_scratch_OLDER_than_the_parent_holder_is_still_a_candidate(self):
+        """The parent rule must not become 'nothing is ever reaped': the fixture's own
+        five-day-old siblings under the same parent stay candidates while the parent is
+        held by a live process."""
+        scratch = self.root / "implementer" / "lab-suite-cwd-old-sibling"
+        scratch.mkdir()
+        os.utime(scratch, (time.time() - 5 * 86400,) * 2)
+        parent = self.root / "implementer"
+        proc = subprocess.Popen([sys.executable, "-c",
+                                 "import time; time.sleep(60)"], cwd=str(parent))
+        try:
+            r = _run(self.root, "--json")
+            summary = json.loads(r.stdout)
+            cands = {Path(c["path"]).name for c in summary["candidates"]}
+            self.assertIn("lab-suite-cwd-old-sibling", cands, summary)
+        finally:
+            proc.kill()
+            proc.wait()
 
     def test_age_floor_is_the_only_reason_the_fresh_dir_survives(self):
         """Lowering the floor must make it a candidate: proves the floor is what
