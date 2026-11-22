@@ -35,6 +35,17 @@ static int failures;
 
 static int my_rank_;
 
+/* WIRE_TRACE=1: stderr phases, unbuffered, so a hang names the step instead of
+ * being a two-line log with no ordering.  A hang here cannot be reproduced on
+ * demand; the trace is what makes the next one diagnosable. */
+#define TRACE(...) do {                                                    \
+    if (getenv("WIRE_TRACE")) {                                            \
+        fprintf(stderr, "[r%d] ", my_rank_);                               \
+        fprintf(stderr, __VA_ARGS__);                                     \
+        fprintf(stderr, "\n");                                            \
+    }                                                                      \
+} while (0)
+
 static uint64_t now_ns(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -123,8 +134,6 @@ static int connect_qp(struct ibv_qp *qp, const struct handshake *peer, int peer_
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
     /* Fresh ring dir for this run: stale rings are a different peer, and the
-     * two ranks must agree on the path (set before fork). */
-    /* Fresh ring dir for this run: stale rings are a different peer, and the
      * two ranks must agree on the path (set before fork).  GPU_SIM_ROOT is the
      * worktree root; never a hardcoded $HOME. */
     char ringdir[256];
@@ -134,8 +143,17 @@ int main(int argc, char **argv) {
     if (!mkdtemp(ringdir)) { perror("mkdtemp"); return 1; }
     setenv("FAKEIB_RING_DIR", ringdir, 1);
 
-    int to_child[2], to_parent[2], ack[2];
-    if (pipe(to_child) || pipe(to_parent) || pipe(ack)) { perror("pipe"); return 1; }
+    /* One pipe PER DIRECTION.  A single pipe gave both ranks a read end on the
+     * same byte stream, and rank1's d-wait loop (non-blocking) could read the
+     * 'i' it had just written, leaving rank0 blocked forever on a read that
+     * could never be satisfied.  Two pipes, one reader each, no stealing -- and
+     * a dead peer now shows up as EOF instead of a hang. */
+    int to_child[2], to_parent[2];
+    int acks_up[2], ack_down[2];   /* rank1 -> rank0 'a','i'; rank0 -> rank1 'd' */
+    if (pipe(to_child) || pipe(to_parent) || pipe(acks_up) || pipe(ack_down)) {
+        perror("pipe");
+        return 1;
+    }
 
     pid_t pid = fork();
     if (pid < 0) { perror("fork"); return 1; }
@@ -148,8 +166,12 @@ int main(int argc, char **argv) {
 
     int wfd = is_rank0_ ? to_child[1] : to_parent[1];  /* my handshake out */
     int rfd = is_rank0_ ? to_parent[0] : to_child[0];  /* peer handshake in */
-    int ackr = ack[0];                                 /* alternating acks */
-    int ackw = ack[1];
+    int ackr = is_rank0_ ? acks_up[0] : ack_down[0];
+    int ackw = is_rank0_ ? ack_down[1] : acks_up[1];
+    /* Drop the ends this process must never touch (a dead peer is then EOF,
+     * not a second reader that swallows our own bytes). */
+    if (is_rank0_) { close(acks_up[1]); close(ack_down[0]); }
+    else           { close(acks_up[0]); close(ack_down[1]); }
 
     int num = 0;
     struct ibv_device **list = ibv_get_device_list(&num);
@@ -175,6 +197,8 @@ int main(int argc, char **argv) {
     if (write_full(wfd, &mine, sizeof mine) != 0) { perror("hs write"); return 1; }
     if (read_full(rfd, &peer, sizeof peer) != 0) { perror("hs read"); return 1; }
     CHECK(connect_qp(qp, &peer, is_rank0_ ? 1 : 0) == 0, "connect_qp");
+    TRACE("connected, peer qpn=%u addr=0x%llx", peer.qpn,
+          (unsigned long long)peer.addr);
 
     char ackbyte = 0;
     struct ibv_wc wc[4];
@@ -200,7 +224,9 @@ int main(int argc, char **argv) {
         setenv("FAKEIB_LATENCY_US", "20000", 1);
         uint64_t t0 = now_ns();
         CHECK(probe_post_send(qp, &wr, &badwr) == 0, "post WRITE");
+        TRACE("posted WRITE");
         CHECK(poll_until(scq, 1, wc, 2000) == 1, "WRITE completion");
+        TRACE("WRITE wc, waiting ack a");
         uint64_t dt = now_ns() - t0;
         CHECK(dt >= 20000000ull, "WRITE completion at %llu ns, want >= 20 ms",
               (unsigned long long)dt);
@@ -208,6 +234,7 @@ int main(int argc, char **argv) {
                (unsigned long long)dt);
         setenv("FAKEIB_LATENCY_US", "1.2", 1);
         CHECK(read_full(ackr, &ackbyte, 1) == 0 && ackbyte == 'a', "rank1 saw WRITE bytes");
+        TRACE("got ack '%c' (WRITE bytes)", ackbyte);
 
         memset(&wr, 0, sizeof wr);
         wr.wr_id = 0x1002;
@@ -219,8 +246,11 @@ int main(int argc, char **argv) {
         wr.wr.rdma.remote_addr = peer.addr + 4096;
         wr.wr.rdma.rkey = peer.rkey;
         CHECK(probe_post_send(qp, &wr, &badwr) == 0, "post WRITE_WITH_IMM");
+        TRACE("posted WRITE_WITH_IMM");
         CHECK(poll_until(scq, 1, wc, 2000) == 1, "WRITE_WITH_IMM send completion");
+        TRACE("IMM wc, waiting ack i");
         CHECK(read_full(ackr, &ackbyte, 1) == 0 && ackbyte == 'i', "rank1 saw IMM");
+        TRACE("got ack '%c' (IMM)", ackbyte);
 
         char got[4096];
         memset(got, 0, sizeof got);
@@ -235,7 +265,9 @@ int main(int argc, char **argv) {
         wr.wr.rdma.remote_addr = peer.addr + 4096;
         wr.wr.rdma.rkey = peer.rkey;
         CHECK(probe_post_send(qp, &wr, &badwr) == 0, "post READ");
+        TRACE("posted READ");
         CHECK(poll_until(scq, 1, wc, 2000) == 1, "READ completion");
+        TRACE("READ wc (before checks)");
         CHECK(wc[0].opcode == IBV_WC_RDMA_READ, "read opcode %d", wc[0].opcode);
         CHECK(wc[0].byte_len == sizeof got, "read byte_len %u", wc[0].byte_len);
         CHECK(memcmp(got, payload, sizeof payload) == 0, "READ returned the peer's bytes");
@@ -263,15 +295,19 @@ int main(int argc, char **argv) {
             probe_poll_cq(rcq, 4, wc);   /* also drives pump_rings() */
         }
         CHECK(seen, "peer's RDMA WRITE bytes never landed");
+        TRACE("peer bytes landed, writing a");
         ackbyte = 'a';
+        TRACE("wrote ack a");
         write_full(ackw, &ackbyte, 1);
 
         CHECK(poll_until(rcq, 1, wc, 2000) == 1, "IMM receiver completion");
+        TRACE("IMM seen, writing i");
         CHECK(wc[0].wr_id == 0x2001, "IMM wr_id 0x%llx", (unsigned long long)wc[0].wr_id);
         CHECK(wc[0].opcode == IBV_WC_RECV_RDMA_WITH_IMM, "IMM opcode %d", wc[0].opcode);
         CHECK(wc[0].imm_data == 0xfeedface, "IMM data 0x%x", wc[0].imm_data);
         CHECK(buf[4096] == (char)(0 * 11 + 5), "IMM write landed in the right MR range");
         ackbyte = 'i';
+        TRACE("wrote ack i, waiting d");
         write_full(ackw, &ackbyte, 1);
 
         /* rank0's READ needs us to keep pumping the rings while we wait for
@@ -280,13 +316,16 @@ int main(int argc, char **argv) {
         fcntl(ackr, F_SETFL, fl | O_NONBLOCK);
         uint64_t dl = now_ns() + 2000000000ull;
         int done = 0;
+        int iters = 0;
         while (now_ns() < dl) {
+            if (++iters % 2000 == 0) TRACE("waiting ack d, iter=%d", iters);
             probe_poll_cq(rcq, 4, wc);     /* drives pump_rings() */
             if (read(ackr, &ackbyte, 1) == 1 && ackbyte == 'd') { done = 1; break; }
             struct timespec ts = {0, 100000};
             nanosleep(&ts, NULL);
         }
         CHECK(done, "rank0 finished READ");
+        TRACE("ack d %s after %d iters", done ? "seen" : "MISSED", iters);
     }
 
     ibv_destroy_qp(qp);
@@ -311,7 +350,9 @@ int main(int argc, char **argv) {
         rmdir(ringdir);
         if (failures) { printf("WIRE FAILED: %d failure(s)\n", failures); return 1; }
         printf("WIRE OK\n");
+        TRACE("parent: WIRE OK");
         return 0;
     }
     return failures ? 1 : 0;
+    TRACE("exiting, failures=%d", failures);
 }

@@ -68,7 +68,7 @@ $CC -O1 -Wall -Wextra -I"$EXP/vendor" -o "$BUILD/abi_probe" "$EXP/abi_probe.c" \
 cat "$BUILD/probe.log"
 grep -q '^PROBE OK$' "$BUILD/probe.log" || fail "probe did not print PROBE OK"
 RATIO=$(sed -n 's/.*ratio=\([0-9.]*\).*/\1/p' "$BUILD/probe.log")
-awk -v r="$RATIO" 'BEGIN { if (r < 1.6 || r > 2.4) { printf "ratio %s out of [1.6,2.4]\n", r; exit 1 } }' \
+awk -v r="$RATIO" 'BEGIN { if (r < 1.9 || r > 2.1) { printf "ratio %s out of [1.9,2.1] (modelled charge)\n", r; exit 1 } }' \
     || fail "2x line-rate ratio"
 
 stage "6. wire_probe: two real processes, one shim"
@@ -78,5 +78,29 @@ GPU_SIM_ROOT="$ROOT" timeout 60 "$BUILD/wire_probe" > "$BUILD/wire.log" 2>&1 \
     || { cat "$BUILD/wire.log"; fail "wire_probe"; }
 cat "$BUILD/wire.log"
 grep -q '^WIRE OK$' "$BUILD/wire.log" || fail "wire probe did not print WIRE OK"
+
+stage "7. sysfs spoof: the ONE path NCCL's IB init reads"
+# NCCL reads /sys/class/infiniband/<dev>/device via realpath (and nothing else
+# on the IB path -- see sysfs_spoof.c).  /sys is read-only here, so the spoof
+# is an LD_PRELOAD prefix rewrite into a tree we own.
+$CC -O1 -Wall -Wextra -fPIC -shared -o "$BUILD/sysfs_spoof.so" "$EXP/sysfs_spoof.c" -ldl
+$CC -O1 -Wall -Wextra -o "$BUILD/realpath_probe" "$EXP/realpath_probe.c"
+rm -rf "$BUILD/sysfs"
+for r in 0 1; do bash "$EXP/fake_sysfs.sh" "$r" "$BUILD/sysfs/rank$r"; done
+LD_PRELOAD="$BUILD/sysfs_spoof.so" FAKEIB_SYSFS="$BUILD/sysfs/rank0" \
+    "$BUILD/realpath_probe" > "$BUILD/realpath.log" 2>&1 \
+    || { cat "$BUILD/realpath.log"; fail "realpath probe"; }
+cat "$BUILD/realpath.log"
+grep -q '^REALPATH OK$' "$BUILD/realpath.log" || fail "realpath probe did not print REALPATH OK"
+# The two ranks must NOT report the same NIC bridge: NCCL merges ranks that
+# share a PCI path into one node, which would delete the cross-node edge we
+# are building.  The no-GPU fallback legitimately shares one bridge, so only
+# enforce it when the host has a display/3D device.
+if grep -q 0x030000 /sys/bus/pci/devices/*/class 2>/dev/null; then
+    b0=$(realpath -e "$BUILD/sysfs/rank0/infiniband/mlx5_0/device")
+    b1=$(realpath -e "$BUILD/sysfs/rank1/infiniband/mlx5_0/device")
+    [ "$b0" != "$b1" ] || fail "both ranks point their NIC at $b0; NCCL would merge them into one node"
+    echo "distinct NIC bridges: rank0 $b0 / rank1 $b1"
+fi
 echo
-echo "SHIM SELF-CHECK OK (stages 1-6; NCCL arms pending: synthetic sysfs + NCCL harness)"
+echo "SHIM SELF-CHECK OK (stages 1-7; NCCL arms pending: 2-GPU NCCL harness)"

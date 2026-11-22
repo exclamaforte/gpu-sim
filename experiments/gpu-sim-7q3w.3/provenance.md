@@ -112,18 +112,60 @@ in the ring immediately and only the completion is delayed by the model.  The
 NCCL data path uses RDMA WRITE / WRITE_WITH_IMM / READ only (net_ib's p2p.cc),
 so the first two limits do not sit on the collective path.
 
-## 7. What is still missing
+## 7. The sysfs surface is exactly one realpath
 
-Missing (next commits): the synthetic sysfs (a per-rank mount namespace with a
-fake /sys/class/infiniband, so NCCL builds two nodes with an IB NET edge) and
-the NCCL acceptance arms (a)–(f) from the bead.  The wire itself is built and
-measured (section 6).
+The bead allowed a mount namespace or LD_PRELOAD for the fake
+`/sys/class/infiniband`.  The mount namespace is a measured dead end here:
+`unshare -m --map-root-user` creates the namespace, but `/sys/class` has no
+`infiniband` entry to bind over, cannot be `mkdir`'d, and an overlay over `/sys`
+is refused.  So this goes through LD_PRELOAD, and it is small because the
+surface is small: in NCCL v2.32.6-1 the IB transport reads exactly ONE sysfs
+path, `src/transport/net_ib/init.cc:73` (sha256 `98f7b028f488…`):
 
-## 8. Reproduce
+    snprintf(devicePath, PATH_MAX, "/sys/class/infiniband/%s/device", devName);
+    char* p = realpath(devicePath, NULL);
 
-```bash
-cd .lab/wt/gpu-sim-7q3w.3
-CUDA_VISIBLE_DEVICES= experiments/gpu-sim-7q3w.3/run.sh
-```
+and then truncates the last character of the result to merge the ports of one
+PCI device.  Everything else the IB path needs comes from the verbs calls the
+shim answers; the `/sys/class/infiniband/.../gid_attrs/types` read in
+`net_ib/connect.cc:279` is on the RoCE code path only.
 
-CPU only, no GPU queue needed, scratch under `.lab/tmp/` (project-local).
+`sysfs_spoof.c` therefore interposes `realpath` and rewrites just the prefix
+`/sys/class/infiniband/` into a tree built by `fake_sysfs.sh`.  Because the
+tree's `device` entry is a symlink to a real PCI bridge directory, the path
+NCCL gets back is a real `/sys/devices/...` path, which is what its
+truncation expects.  `realpath_probe.c` pins both halves: the IB path resolves,
+and `/sys/class/net`, `/sys/bus/pci/devices` and a nonexistent `mlx5_9` are
+untouched (a prefix rewrite that also caught the PCI scan would fail three
+layers later as "no path between GPUs").  Attribute files in the tree are
+decoration: this interposer rewrites `realpath` only, and the probe prints that
+limitation instead of asserting around it.
+
+`fake_sysfs.sh` picks each rank's GPU from sysfs alone (PCI class 0x030000 =
+VGA, 0x030200 = 3D), never from CUDA: this has to run CPU-side, and a CUDA call
+to answer a question sysfs answers would need the GPU queue.  Each rank points
+its HCA at *its own* GPU's bridge, and run.sh fails if the two ranks resolve to
+the same bridge: NCCL merges ranks that share a PCI path into one node, which
+would delete the cross-node edge this whole experiment is building.
+
+## 8. A harness bug worth recording
+
+The first version of `wire_probe` used ONE pipe for all acknowledgements, so
+both ranks held a read end on the same byte stream.  rank1's `d`-wait loop is
+non-blocking and could read the `i` it had just written to rank0, which then
+blocked forever in a read that could never be satisfied.  It looked like a
+flake: 9 failures in 30 runs, two different symptoms depending on which side
+gave up first, and one run that hung until its 60 s timeout.  One pipe per
+direction removed the double reader (and turned a dead peer into EOF instead of
+a hang); 40/40 runs pass.  The lesson is in the code comment, not just here: a
+shared read end is not a race you can retry your way out of.
+
+## 9. What is still missing
+
+Missing: the NCCL arms (a)–(f) from the bead.  They need two devices, so they
+run as a queued GPU job (`scripts/gpu_run.sh`, the 7q3w.1 precedent), and they
+need the harness that starts two ranks in two UTS namespaces with different
+hostnames -- the shim, the wire and the sysfs tree are ready for it.  This
+section is the exact resume point.
+
+## 10. Reproduce
