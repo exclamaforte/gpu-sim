@@ -1,7 +1,9 @@
 /* nccl_arm.c -- the acceptance arms of gpu-sim-7q3w.3, driven through real NCCL.
  *
- * Two ranks, two processes, one GPU each (CUDA_VISIBLE_DEVICES selects which,
- * so both ranks call cudaSetDevice(0) -- a rank number is not a device number).
+ * Two ranks, two processes.  ARM_CUDA_DEV picks the device (default 0): on a
+ * real multi-GPU box CUDA_VISIBLE_DEVICES remaps each rank to device 0, but
+ * this box has ONE NVIDIA GPU, so the two devices come from the repo's fake
+ * CUDA layer (FAKEGPU_NUM_DEVICES=2) and the rank IS the device ordinal.
  * Everything below NCCL is ours: libibverbs.so.1 is the shim, /sys/class/
  * infiniband is the LD_PRELOAD rewrite, and the bytes cross processes through
  * the ring.  If NCCL's IB transport were not running on our fabric there would
@@ -115,7 +117,19 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    CUDACHECK(cudaSetDevice(0));
+    int cuda_dev = 0;
+    if (getenv("ARM_CUDA_DEV")) cuda_dev = atoi(getenv("ARM_CUDA_DEV"));
+    CUDACHECK(cudaSetDevice(cuda_dev));
+    {
+        int ndev = -1;
+        CUDACHECK(cudaGetDeviceCount(&ndev));
+        printf("ARM note rank=%d cuda_device=%d devices_visible=%d\n", rank, cuda_dev, ndev);
+        if (ndev < world) {
+            fprintf(stderr, "ARM FAIL rank %d: only %d CUDA device(s) visible for world %d "
+                    "(set FAKEGPU_NUM_DEVICES or CUDA_VISIBLE_DEVICES)\n", rank, ndev, world);
+            return 2;
+        }
+    }
     float *d_in = NULL, *d_out = NULL;
     size_t bytes = n * sizeof(float);
     /* cudaMalloc wants void**; casting through void* keeps -Wincompatible-

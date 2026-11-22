@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>   /* memfd_create, for the dmabuf registration test */
 #include <time.h>
 #include <unistd.h>
 
@@ -68,6 +69,13 @@ int main(void) {
     struct ibv_port_attr pa;
     CHECK(ibv_query_port(ctx, 1, &pa) == 0, "query_port");
     CHECK(pa.state == IBV_PORT_ACTIVE, "port state %d", pa.state);
+    /* NCCL skips a port that is neither IB nor Ethernet (net_ib/init.cc:511);
+     * leaving link_layer unset sent NCCL to Socket with everything else right,
+     * and only the GPU arm noticed.  Assert it here so the CPU stages do too. */
+    CHECK(pa.link_layer == IBV_LINK_LAYER_INFINIBAND, "link_layer %d", pa.link_layer);
+    CHECK(pa.active_speed == 128 && pa.active_width == 2,
+          "NDR 4x expected (speed 128, width 2), got %d/%d", pa.active_speed,
+          pa.active_width);
     CHECK(pa.active_mtu == IBV_MTU_4096, "mtu %d", pa.active_mtu);
     CHECK(pa.gid_tbl_len == 1, "gid_tbl_len %d", pa.gid_tbl_len);
 
@@ -350,12 +358,29 @@ int main(void) {
     ssize_t rd = read(chan->fd, &ev, sizeof ev);
     CHECK(rd == (ssize_t)sizeof ev && ev >= 1, "comp-channel event fired (rd=%zd)", rd);
 
-    /* --- dmabuf (GDR) counter ----------------------------------------- */
-    struct ibv_mr *dmr = ibv_reg_dmabuf_mr(pd, 0, 4096, 0x100000000ull, -1,
-                                          IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE);
-    CHECK(dmr != NULL, "reg_dmabuf_mr");
+    /* --- dmabuf (GDR) counter -----------------------------------------
+     * A real registration carries a real fd (NCCL gets it from CUDA); the
+     * shim treats fd < 0 as NCCL's capability PROBE (net_ib/gdr.cc:57) and
+     * must not count it.  Both halves are asserted here, because counting the
+     * probe made the first NCCL arm report a registration that never happened. */
     uint64_t *dmabuf_ctr = (uint64_t *)dlsym(RTLD_DEFAULT, "fakeib_dmabuf_registrations");
-    CHECK(dmabuf_ctr && *dmabuf_ctr >= 1, "dmabuf registration counter non-zero");
+    CHECK(dmabuf_ctr != NULL, "dmabuf counter exported");
+    uint64_t before = dmabuf_ctr ? *dmabuf_ctr : 0;
+    struct ibv_mr *probe_mr = ibv_reg_dmabuf_mr(pd, 0, 0, 0, -1,
+                                                IBV_ACCESS_LOCAL_WRITE);
+    CHECK(probe_mr == NULL && errno != EOPNOTSUPP && errno != EPROTONOSUPPORT,
+          "fd=-1 probe returns a non-fatal error (mr=%p errno=%d)",
+          (void *)probe_mr, errno);
+    CHECK(dmabuf_ctr && *dmabuf_ctr == before, "the probe did not count as a registration");
+    int memfd = memfd_create("fakeib-dmabuf", 0);
+    CHECK(memfd >= 0, "memfd_create");
+    struct ibv_mr *dmr = ibv_reg_dmabuf_mr(pd, 0, 4096, 0x100000000ull, memfd,
+                                          IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE);
+    CHECK(dmr != NULL, "reg_dmabuf_mr with a real fd");
+    CHECK(dmabuf_ctr && *dmabuf_ctr == before + 1,
+          "dmabuf registration counter moved exactly once (%llu -> %llu)",
+          (unsigned long long)before, (unsigned long long)(dmabuf_ctr ? *dmabuf_ctr : 0));
+    if (memfd >= 0) close(memfd);
 
     /* --- counters sanity ---------------------------------------------- */
     uint64_t *op = (uint64_t *)dlsym(RTLD_DEFAULT, "fakeib_post_send_calls");

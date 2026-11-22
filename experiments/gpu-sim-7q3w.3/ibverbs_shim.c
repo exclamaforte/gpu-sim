@@ -172,6 +172,23 @@ static int my_rank(void) {
     return r;
 }
 
+/* FAKEIB_TRACE=1: name the verbs call that is stuck.  The first NCCL arm ran
+ * five minutes at 0.2% GPU with the IB transport adopted and NOTHING in the
+ * logs after "Assigned NET plugin IB": a hang with no attribution.  This is
+ * what turns the next one into a line number. */
+static int shim_trace_on(void) {
+    static int t = -1;
+    if (t < 0) t = getenv("FAKEIB_TRACE") ? 1 : 0;
+    return t;
+}
+#define FBT(...) do {                                                       \
+    if (shim_trace_on()) {                                                  \
+        fprintf(stderr, "FAKEIB[%d] ", my_rank());                          \
+        fprintf(stderr, __VA_ARGS__);                                       \
+        fprintf(stderr, "\n");                                              \
+    }                                                                       \
+} while (0)
+
 /* ---- devices ------------------------------------------------------------- */
 #define MAX_DEVS 16
 static int g_ndev;
@@ -410,9 +427,17 @@ struct ibv_mr *ibv_reg_mr_iova2(struct ibv_pd *pd, void *addr, size_t len,
 }
 struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t len,
                                  uint64_t iova, int fd, int access) {
-    (void)offset; (void)fd;
+    (void)offset;
     /* GDR: the dmabuf is opaque to the shim; the modelled buffer is the iova
-     * range itself.  The counter is what the acceptance asserts on. */
+     * range itself.  NCCL's DMA-BUF capability probe (net_ib/gdr.cc:57) calls
+     * this with fd = -1 and only reads errno, so fd < 0 is a PROBE and must not
+     * count as a registration -- counting it made the first arm run report
+     * dmabuf_registrations=1 with nothing registered.  A real registration must
+     * also succeed for the counter to move. */
+    if (fd < 0) {
+        errno = EBADF;               /* not EOPNOTSUPP/EPROTONOSUPPORT: supported */
+        return NULL;
+    }
     struct ibv_mr *mr = mk_mr(pd, (void *)(uintptr_t)iova, iova, len, access);
     if (mr) __atomic_add_fetch(&fakeib_dmabuf_registrations, 1, __ATOMIC_RELAXED);
     return mr;
@@ -547,6 +572,8 @@ int ibv_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int mask) {
         const struct ibv_ah_attr *ah = &attr->ah_attr;
         if (ah->is_global) {
             q->peer_rank = ah->grh.dgid.raw[15];
+            FBT("modify_qp qpn=0x%x RTR peer_rank=%d peer_qpn=0x%x dgid15=%d dlid=%u",
+                q->qp.qp_num, q->peer_rank, q->peer_qpn, ah->grh.dgid.raw[15], ah->dlid);
             q->peer_qpn = attr->dest_qp_num;
         } else {
             /* Our LID encodes rank+1 (see ibv_query_port). */
@@ -754,6 +781,7 @@ static int shim_ops_post_send(struct ibv_qp *qp, struct ibv_send_wr *wr,
     for (struct ibv_send_wr *w = wr; w; w = w->next) {
         size_t bytes = wr_payload_bytes(w->sg_list, w->num_sge);
         uint64_t charge_ns = model_wire_ns(bytes);
+        FBT("post_send qpn=0x%x opcode=%d len=%zu", q->qp.qp_num, (int)w->opcode, bytes);
         __atomic_store_n(&fakeib_last_charge_ns, charge_ns, __ATOMIC_RELAXED);
         __atomic_store_n(&fakeib_last_charge_bytes, (uint64_t)bytes, __ATOMIC_RELAXED);
         uint64_t ready_ns = now_ns() + charge_ns;
@@ -839,6 +867,16 @@ static int shim_ops_poll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *w
         __atomic_add_fetch(&fakeib_completions, 1, __ATOMIC_RELAXED);
     }
     pthread_mutex_unlock(&c->lock);
+    if (shim_trace_on()) {
+        static __thread uint64_t polls;
+        if (n)
+            FBT("poll_cq cq=%p -> %d wc, first qpn=0x%x opcode=%d status=%d",
+                (void *)cq, n, wc[0].qp_num, (int)wc[0].opcode, (int)wc[0].status);
+        else if ((++polls % 2000000) == 0)
+            FBT("poll_cq cq=%p -> 0 (rings out=%llu in=%llu)", (void *)cq,
+                (unsigned long long)fakeib_ring_records_out,
+                (unsigned long long)fakeib_ring_records_in);
+    }
     return n;
 }
 
@@ -879,6 +917,10 @@ int ibv_query_device(struct ibv_context *ctx, struct ibv_device_attr *attr) {
     attr->vendor_part_id = 0x1023;            /* ConnectX-7 */
     attr->max_mr_size = (uint64_t)1 << 40;
     attr->page_size_cap = 4096 | 2097152;
+    /* Without this, NCCL's port loop is `for (port = 1; port <= phys_port_cnt)`
+     * over nothing and reports "NET/IB : No device found." with a port that
+     * answers ACTIVE.  Second thing the arm caught that no CPU probe did. */
+    attr->phys_port_cnt = 1;
     attr->max_qp = 131072;
     attr->max_qp_wr = 32768;
     attr->max_sge = 30;
@@ -906,6 +948,11 @@ int shim_query_port(struct ibv_context *ctx, uint8_t port, struct ibv_port_attr 
     memset(attr, 0, sizeof *attr);
     if (port != 1) return EINVAL;
     attr->state = IBV_PORT_ACTIVE;
+    /* NCCL's device loop (net_ib/init.cc:511) skips any port whose link_layer is
+     * neither IB nor Ethernet, and a memset(0) attr is neither.  Leaving this
+     * unset made NCCL log "NET/IB : No device found." and fall back to Socket
+     * while every other verbs answer was correct -- the arm found it. */
+    attr->link_layer = IBV_LINK_LAYER_INFINIBAND;
     attr->max_mtu = IBV_MTU_4096;
     attr->active_mtu = IBV_MTU_4096;
     attr->gid_tbl_len = 1;
@@ -952,7 +999,17 @@ int ibv_query_pkey(struct ibv_context *ctx, uint8_t port, int index, uint16_t *p
 int ibv_get_async_event(struct ibv_context *ctx, struct ibv_async_event *event) {
     (void)ctx;
     if (event) memset(event, 0, sizeof *event);
-    return ENOSYS;
+    /* A real device BLOCKS here until it has an event or dies.  This shim models
+     * a device that never reports an async error, so blocking is the faithful
+     * behaviour -- and it is what NCCL 2.32's async-event thread needs:
+     * returning ENOSYS let ncclIbAsyncThreadMain fall through into code that
+     * dereferences state this device never produced (measured: NULL+0x1c,
+     * provenance sec. 10).  A signal still interrupts nanosleep and the thread
+     * is detached, so a hung test still dies on SIGTERM. */
+    for (;;) {
+        struct timespec ts = {1, 0};
+        nanosleep(&ts, NULL);
+    }
 }
 void ibv_ack_async_event(struct ibv_async_event *event) { (void)event; }
 const char *ibv_event_type_str(enum ibv_event_type e) {

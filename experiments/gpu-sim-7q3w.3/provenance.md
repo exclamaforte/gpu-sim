@@ -160,12 +160,63 @@ direction removed the double reader (and turned a dead peer into EOF instead of
 a hang); 40/40 runs pass.  The lesson is in the code comment, not just here: a
 shared read end is not a race you can retry your way out of.
 
-## 9. What is still missing
+## 9. The NCCL arms: what runs, and what is blocked on hardware
 
-Missing: the NCCL arms (a)–(f) from the bead.  They need two devices, so they
-run as a queued GPU job (`scripts/gpu_run.sh`, the 7q3w.1 precedent), and they
-need the harness that starts two ranks in two UTS namespaces with different
-hostnames -- the shim, the wire and the sysfs tree are ready for it.  This
-section is the exact resume point.
+Arm (a) is **measured**: with the shim built with `ibverbs.map`, the sysfs
+spoof, and an async-event block, NCCL's own IB transport is selected and used:
+
+    NCCL INFO NET/IB : Using [0]mlx5_0:1/IB [RO]; OOB enp14s0:...
+    NCCL INFO Channel 00/0 : 0[0] -> 1[0] [send] via NET/IB/0
+    NCCL INFO Channel 01/0 : 1[0] -> 0[0] [receive] via NET/IB/0
+
+with no net plugin loaded (`NET/Plugin: Could not find: libnccl-net.so` is NCCL
+saying there is none).  Four defects had to be fixed to get there, and none was
+visible to a CPU-only probe before it:
+
+1. **dlvsym, not dlsym.** NCCL builds its verbs table with
+   `dlvsym(handle, name, "IBVERBS_1.1")` (misc/ibvsymbols.cc) and tears the whole
+   table down on one NULL, so an unversioned shim made NCCL use Socket with a
+   perfectly good shim in the process.  `ibverbs.map` plus stage 4's
+   `dlvsym_probe` close that class of bug; the arm builds with the map too.
+2. **`ibv_query_port` never set `link_layer`** (and `ibv_query_device` never set
+   `phys_port_cnt`).  Both default to 0 after a memset, NCCL skips such a port
+   silently, and the log says only "NET/IB : No device found."  Stage 5 now
+   asserts link_layer, speed 128 / width 2, and the port count.
+3. **`ibv_get_async_event` returned ENOSYS.** A real device blocks there;
+   returning an error let `ncclIbAsyncThreadMain` run into state this fake device
+   never produced.  Measured from a core dump: NULL dereference at `+0x1c`,
+   reproducible with **one** rank, and absent when the shim was not loaded.  The
+   shim now blocks (interruptible by a signal), which is the faithful behaviour.
+4. **libfakegpu.so cannot be LD_PRELOADed into a process that uses real NCCL:**
+   it exports `ncclAllReduce` and friends (the simulator's own collectives), so
+   it preempts NCCL's and the arm silently measures the simulator -- observed
+   directly: 1048576 wrong elements, no NCCL_DEBUG output, no bytes on the wire.
+   Installed as `libcudart.so.13` in a library directory instead, libnccl comes
+   earlier in the global scope and stays itself.  Only the runtime is faked: the
+   real driver must answer `cuDriverGetVersion` (with the fake driver NCCL
+   reports "CUDA driver version is insufficient").
+
+What the arm still cannot show on this box, with the reason measured rather
+than guessed:
+
+* **Two real devices.** `/proc/driver/nvidia/gpus` has ONE entry
+  (0000:01:00.0); the second PCI display device is not an NVIDIA GPU.  Two ranks
+  get two *virtual* devices from the fake CUDA layer, which is enough for NCCL's
+  topology and transport selection.  The arm is CPU-bound work and must not hold
+  the GPU queue -- the first attempt was killed for 0.2% GPU use.
+* **Numerics.** The collective is carried out by device kernels; the simulator
+  does not execute NCCL's kernels, so `d_out` never becomes the sum.  The arm
+  reports `bad=1048576` instead of pretending.  Transport *correctness* is
+  covered by stage 6, which moves WRITE/WRITE_WITH_IMM/READ bytes between two
+  real processes and compares them exactly.
+* **The data path through the QPs.** Channels are assigned to NET/IB, but
+  `post_send_calls` stays 0 in the shim's counters: NCCL 2.32's default proxy is
+  its RMA/IB plugin (`NCCL_RMA_DISABLE=1` avoids the GIN/RMA init crash), so the
+  bytes never reach the classic `ibv_post_send` path this shim models.  That is
+  the next seam, and it is a failing assertion in `gpu_arm.sh`, not a footnote.
+* **Arm (c), the dmabuf counter.** The real driver cannot export a dma-buf for
+  memory the fake runtime allocated, so NCCL never has a real fd.  The counter
+  now counts only real registrations (fd >= 0; NCCL's capability probe uses
+  fd = -1), and the arm asserts it stays **0** with exactly that explanation.
 
 ## 10. Reproduce

@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # gpu_arm.sh -- the NCCL acceptance arms of gpu-sim-7q3w.3.
 #
-# GPU-QUEUED ONLY. Two ranks need a device each, so this must run under
-# scripts/gpu_run.sh (7q3w.1 precedent), never bare from a CPU-only shell:
+# CPU-BOUND WORK: run it directly, NOT through gpqueue.
 #
-#   scripts/gpu_run.sh 900s --log experiments/gpu-sim-7q3w.3/gpu_arm.log \
-#       -- bash experiments/gpu-sim-7q3w.3/gpu_arm.sh
+#   timeout 900 bash experiments/gpu-sim-7q3w.3/gpu_arm.sh
+#
+# The first version of this script was a GPU-queue job because it took two real
+# devices.  This box has ONE NVIDIA GPU, and the queue killed the job for
+# underuse (0.2% GPU over 5 min) -- correctly: the work was host-side waiting
+# for a rank that could not start.  Both ranks now get a device from the repo's
+# fake CUDA layer (FAKEGPU_NUM_DEVICES=2), so there is no real GPU work left to
+# schedule, and holding the queue's only GPU for a host-side simulation is
+# exactly what that policy forbids.
 #
 # Everything below NCCL is ours: libibverbs.so.1 = the shim, /sys/class/
 # infiniband = the LD_PRELOAD realpath rewrite, bytes = the MAP_SHARED rings.
@@ -54,7 +60,13 @@ mkdir -p "$RUN"
 note "run dir $RUN"
 
 # ---------------------------------------------------------------- build ----
-$CC -O2 -Wall -Wextra -I"$EXP/vendor" -o "$RUN/libibverbs.so.1" "$EXP/ibverbs_shim.c" -shared -fPIC -ldl -lpthread \
+# --version-script is not optional: NCCL resolves its verbs with
+# dlvsym(name, "IBVERBS_1.1"), and an unversioned shim makes it fall back to
+# Socket.  run.sh stage 4 proves the versioning; this build must use it too, or
+# the arm measures a shim NCCL never sees (it did once: the log named this
+# directory's libibverbs.so as the library that failed dlvsym).
+$CC -O2 -Wall -Wextra -I"$EXP/vendor" -Wl,--version-script="$EXP/ibverbs.map" \
+    -o "$RUN/libibverbs.so.1" "$EXP/ibverbs_shim.c" -shared -fPIC -ldl -lpthread \
     || fail "shim build"
 ln -sfn libibverbs.so.1 "$RUN/libibverbs.so"
 $CC -O1 -Wall -Wextra -fPIC -shared -o "$RUN/sysfs_spoof.so" "$EXP/sysfs_spoof.c" -ldl || fail "spoof build"
@@ -70,25 +82,71 @@ b1=$(realpath -e "$RUN/sysfs/rank1/infiniband/mlx5_0/device")
 note "NIC bridges: rank0 $b0 / rank1 $b1"
 [[ $(nproc) -ge 2 ]] || note "one CPU: the shim's poll loops will fight each other"
 
-export LD_LIBRARY_PATH="$RUN:$LIBS:$CUDA/lib"
+# The CUDA layer is the repo's simulator, not the real driver: one real GPU
+# cannot give two ranks two devices, and the point of this bead is the layer
+# BELOW NCCL.  libfakegpu.so comes from the main tree (a worktree has no build
+# products), and check_libfakegpu_fresh.py owns its freshness on main.
+FAKEGPU="$MAIN/libfakegpu.so"
+[[ -f "$FAKEGPU" ]] || fail "libfakegpu.so missing at $FAKEGPU (build it on main: make libfakegpu)"
+# NOT preloaded: libfakegpu.so also exports ncclAllReduce/ncclCommInitRank/...
+# (the simulator has its own collective implementation).  As LD_PRELOAD it
+# preempts real NCCL's symbols and the arm silently measures the simulator:
+# that is exactly what run-1795349638 did -- "allreduce" completed with 1048576
+# wrong elements, no NCCL_DEBUG output at all, and no bytes on our wire.  A
+# version script cannot fix it after the fact (objcopy --localize-symbol does
+# not touch .dynsym), so it is installed as the CUDA *library* instead:
+# libcudart.so.13 / libcuda.so.1 symlinks in a directory that comes first.
+# ld.so then loads it to satisfy libnccl's DT_NEEDED, and libnccl itself is
+# earlier in the global scope than its own dependency, so NCCL's collectives
+# stay NCCL's.  The arm's assertions check the difference: NCCL_DEBUG output
+# must exist and bytes must move on our wire.
+FAKECUDA="$RUN/fakecuda"
+mkdir -p "$FAKECUDA"
+# Only the RUNTIME is faked.  libcuda.so.1 stays the real driver: NCCL's driver
+# wrapper checks cuDriverGetVersion (libfakegpu does not export it) and reported
+# "Cuda failure 'CUDA driver version is insufficient for CUDA runtime version'",
+# which stopped ncclCommInitRank dead.  The real driver answering cu* calls about
+# fake addresses costs GDR/dmabuf (arm (c)) -- measured separately rather than
+# pretended.
+for so in libcudart.so libcudart.so.13; do
+    ln -sfn "$FAKEGPU" "$FAKECUDA/$so"
+done
+export LD_LIBRARY_PATH="$FAKECUDA:$RUN:$LIBS:$CUDA/lib"
 export LD_PRELOAD="$RUN/sysfs_spoof.so"
+export FAKEGPU_NUM_DEVICES=2          # two ranks, two virtual devices, one real GPU
+export FAKEGPU_TOPO=                 # no synthetic topology file: default graph
 export FAKEIB_RING_DIR="$RUN/rings"
 export FAKEIB_RING_MB=64
 export FAKEIB_NRANKS=2
 export FAKEIB_BW_GBPS=400
 export FAKEIB_LATENCY_US=1.2
+export FAKEIB_TRACE="${ARM_TRACE:-}"   # ARM_TRACE=1 names the verbs call that hangs
 export NCCL_DEBUG=INFO
 export NCCL_DEBUG_SUBSYS=INIT,NET,GRAPH,TRANSPORT
 export NCCL_IB_HCA=mlx5_0
+# NCCL 2.32 initializes two optional subsystems that crash on the fake device
+# before any collective: ncclGinProxyInit (GPU-initiated networking) and the
+# RMA/IB proxy plugin.  NCCL logs "Assigned plugin RMA_IB_PROXY" immediately
+# before the segfault (coredumpctl: ncclGinProxyInit, ncclIbAsyncThreadMain).
+# They serve paths this experiment does not model; enabling them is separate
+# work, and their absence stays visible because the arm asserts the transport.
+export NCCL_GIN_ENABLE=0
+export NCCL_RMA_DISABLE=1
 export NCCL_ARM_DIR="$RUN/hs"
 mkdir -p "$NCCL_ARM_DIR" "$FAKEIB_RING_DIR"
 
 rank_log() { echo "$RUN/rank$1.log"; }
 
-# Each rank: its own UTS hostname, its own CUDA device, its own sysfs tree.
+# Each rank: its own UTS hostname, its own virtual CUDA device, its own sysfs
+# tree.  The CUDA device comes from the fake layer (FAKEGPU_NUM_DEVICES=2), not
+# from CUDA_VISIBLE_DEVICES: this box has ONE NVIDIA GPU, so remapping a real
+# index 1 is what made rank1 log 'no CUDA-capable device is detected' in job
+# 20261122t113451-e1f979af while rank0 waited for it.  With the fake layer the
+# device ordinal IS the logical GPU, and its PCI bus id is distinct per ordinal
+# (cudaDeviceGetPCIBusId), which is what NCCL's topology needs.
 run_rank() {
     local r=$1
-    CUDA_VISIBLE_DEVICES=$r \
+    ARM_CUDA_DEV=$r \
     FAKEIB_RANK=$r \
     FAKEIB_SYSFS="$RUN/sysfs/rank$r" \
     FAKEIB_COUNTERS_FILE="$RUN/counters-rank$r.json" \
@@ -111,20 +169,34 @@ chk() { if ! eval "$1"; then echo "ASSERT FAIL: $2"; failures=$((failures+1)); e
 
 for r in 0 1; do
     L=$(rank_log "$r")
-    chk "grep -q 'ARM ok allreduce' '$L'" "rank$r all-reduce numerics line"
+    # bad=0, not just "the line exists": the arm prints its allreduce line
+    # either way, so a bare grep passed on 1048576 wrong elements (it did).
+    chk "grep -q 'ARM ok allreduce .* bad=0$' '$L'" "rank$r all-reduce numerics (bad=0)"
     chk "grep -q 'ARM OK rank=$r' '$L'" "rank$r exit line"
     # (a) NCCL named OUR device and chose IB, with no plugin in the picture
     chk "grep -q 'NET/IB : Using \[0\]mlx5_0' '$L'" "rank$r: NCCL_DEBUG names our mlx5_0 as an IB device"
     chk "grep -q 'via NET/IB' '$L'" "rank$r: channel went via NET/IB, not P2P/SHM"
-    chk "! grep -qi 'net plugin\\|NET/Plugin' '$L'" "rank$r: no net plugin was loaded (it must be NCCL's own IB)"
+    # "Could not find: libnccl-net.so" is NCCL's normal "no plugin installed"
+    # line, so the assertion must be about what was LOADED: Socket being
+    # initialized or assigned is the failure this arm exists to catch.
+    chk "! grep -q 'Initialized NET plugin Socket' '$L'" "rank$r: no net plugin was loaded (it must be NCCL's own IB)"
+    chk "! grep -q 'Assigned NET plugin Socket' '$L'" "rank$r: Socket was never assigned to the comm"
     chk "! grep -q 'Could not find real path' '$L'" "rank$r: the sysfs spoof answered NCCL's realpath"
 done
-# (c) the shim saw dmabuf registrations and moved bytes / (b) is stage 5
+# Transport-level evidence: did bytes actually cross our QPs?  post_send_calls
+# and bytes_written are the shim's own counters, not NCCL's opinion.
 for r in 0 1; do
     C="$RUN/counters-rank$r.json"
     chk "[[ -s '$C' ]]" "rank$r counters dumped"
-    chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"dmabuf_registrations\"]>0 and d[\"bytes_written\"]>0 else 1)'" \
-        "rank$r: dmabuf registrations > 0 and bytes_written > 0"
+    chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"bytes_written\"]>0 and d[\"post_send_calls\"]>0 else 1)'" \
+        "rank$r: NCCL posted WRs and moved bytes on our QPs"
+    # Arm (c) is NOT reachable on this box: the real libcuda cannot export
+    # dma-bufs for memory the fake cudart allocated, so NCCL never gets a real
+    # fd.  The honest assertion is therefore that the counter stays 0 -- it now
+    # counts only real registrations (fd >= 0), so a 1 here would mean something
+    # we did not model started working, and that must be looked at, not ignored.
+    chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"dmabuf_registrations\"]==0 else 1)'" \
+        "rank$r: dmabuf counter is 0 (arm (c) needs a driver that can export fake memory)"
 done
 chk "[[ ! -e '$RUN/rank0.rc' ]]" "rank0 exited 0"
 chk "[[ ! -e '$RUN/rank1.rc' ]]" "rank1 exited 0"
