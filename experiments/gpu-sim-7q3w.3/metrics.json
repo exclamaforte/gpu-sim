@@ -1,0 +1,48 @@
+{
+  "bead": "gpu-sim-7q3w.3",
+  "scope": "SCOPE AMENDMENT (bead body): IN a-e; OUT numerics (gpu-sim-7q3w.5) and GDR/dmabuf (gpu-sim-7q3w.6)",
+  "result": {
+    "a_transport_selection": {
+      "verdict": "PASS",
+      "evidence": "gpu_arm.sh: rank0 and rank1 both 'NCCL_DEBUG names our mlx5_0 as an IB device', 'channel went via NET/IB, not P2P/SHM', 'no net plugin was loaded', 'Socket was never assigned to the comm' -- NCCL's OWN IB transport, not our NET plugin, not Socket"
+    },
+    "b_collective_numerics": {
+      "verdict": "RED",
+      "owner": "gpu-sim-7q3w.5",
+      "why": "NCCL's proxy advances from device KERNEL progress and the simulator's kernel launches are no-ops, so no transfer ever starts; the arm asserts 'NCCL posted WRs and moved bytes on our QPs' and it FAILS (shim counters reg_mr/post_send/bytes_written stay 0, NCCL logs networkRmaSupport 0). Recorded as RED, not omitted and not softened. Numerics are 7q3w.5's acceptance."
+    },
+    "c_gdr_dmabuf": {
+      "verdict": "RED",
+      "owner": "gpu-sim-7q3w.6",
+      "why": "the real driver cannot export a dma-buf for fake-runtime memory; the counter counts only fd >= 0 and the arm asserts dmabuf_registrations == 0 -- it passes only in the sense that the capability probe (fd<0) is not a registration. The GDR/dmabuf path is 7q3w.6's acceptance."
+    },
+    "d_sysfs_surface": {
+      "verdict": "PASS",
+      "evidence": "REALPATH OK: the one path NCCL's IB init reads (/sys/class/infiniband/<dev>/device) is rewritten per rank to distinct PCI bridges (0000:00:01.1 vs 0000:00:08.1), while six untouched paths (including mlx5_9 -> NULL) prove the interception is narrow"
+    },
+    "e_transport_byte_identity": {
+      "verdict": "PASS at stage 6",
+      "evidence": "wire_probe: RDMA WRITE / WRITE_WITH_IMM / READ across two real processes through one shim; 'WIRE OK', including 'READ returned the peer's bytes' (memcmp over 4096 payload bytes) and 'peer's RDMA WRITE bytes never landed' guarded. This is the land criterion the reviewer enforces before any land."
+    }
+  },
+  "shim": {
+    "built_bytes": 46440,
+    "charge_model": "charge 10G=838860 ns 20G=419430 ns ratio=2.00 (bytes 1048576/1048576) -- the model's charge, not wall, is what the arm asserts"
+  },
+  "conditions": {
+    "cpu_only": true,
+    "gpqueue": false,
+    "note": "no device is touched: the shim + LD_PRELOAD sysfs spoof against real libnccl; wall is a property of the box and is not part of any claim"
+  },
+  "arm_exit_code": 1,
+  "arm_exit_note": "gpu_arm.sh exits 1 BY DESIGN at this tip: the red (b)/(c) assertions above are red. A green exit here would mean the reds were hidden.",
+  "gate": "scripts/gate.sh --fast PASS; UNVERIFIABLE FOR THIS TIP: handle none, cu12+cu13; delta none: no run record exists for this tip (CPU-only arms, never submitted to gpqueue)",
+  "artifacts_sha256": {
+    "run.sh": "3d30283e70b18f156ba9c937bd0a52eb3f71a9554766a3d0252e0ac439c80b3a",
+    "gpu_arm.sh": "a551ccc6e743b1d9c28168b9618ffd55a3077a1d1c5931c23defa2b4637b0d96",
+    "ibverbs_shim.c": "7e6062981cad00bbfee77c932a74421df50ea68195e7287fc490ca957ec245dd",
+    "ibverbs.map": "ca5fe8588c7f7232f6ce1d6a79f9688dcae7f119fdcc7a1f816eebbaa7d17733",
+    "wire_probe.c": "cf743a878173cb580886839944d20360e853fe197876bc742d20e92c0e37a4e0",
+    "nccl_arm.c": "19d003b6f957b29751e1bd008f12aa8d162a620e7e874fd3e3de27077b3ba71e"
+  }
+}

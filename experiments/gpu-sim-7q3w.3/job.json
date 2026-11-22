@@ -1,0 +1,31 @@
+{
+  "bead": "gpu-sim-7q3w.3",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_only": true,
+  "why_no_gpu": "the shim, the sysfs spoof and NCCL's own IB init all run without touching a device; earlier GPU runs of this bead are recorded in provenance.md sec. 9 and are not what output.log captures.",
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-7q3w.3/run.sh",
+      "exit_code": 0,
+      "log": "experiments/gpu-sim-7q3w.3/output.log",
+      "what": "stages 1-7: vendored header SHA256, ABI pin diff, shim build with its _Static_asserts, dlopen/dlvsym name lists, abi_probe QP state machine, wire_probe cross-process bytes, sysfs realpath spoof"
+    },
+    {
+      "command": "bash experiments/gpu-sim-7q3w.3/gpu_arm.sh",
+      "exit_code": 1,
+      "appended_to": "experiments/gpu-sim-7q3w.3/output.log",
+      "what": "the NCCL arm: arm (a) transport selection PASSES; arms (b) numerics and (c) dmabuf are RED and exit 1, by design, with 7q3w.5 / 7q3w.6 named as owners"
+    }
+  ],
+  "wall_bound_s": 1200,
+  "wall_bound_note": "run.sh measured ~1 s (builds and probes, no device); gpu_arm.sh ~2 s. The bound exists so a loaded box cannot be misread as a failing arm.",
+  "arm_sources_sha256": {
+    "run.sh": "3d30283e70b18f156ba9c937bd0a52eb3f71a9554766a3d0252e0ac439c80b3a",
+    "gpu_arm.sh": "a551ccc6e743b1d9c28168b9618ffd55a3077a1d1c5931c23defa2b4637b0d96",
+    "ibverbs_shim.c": "7e6062981cad00bbfee77c932a74421df50ea68195e7287fc490ca957ec245dd",
+    "ibverbs.map": "ca5fe8588c7f7232f6ce1d6a79f9688dcae7f119fdcc7a1f816eebbaa7d17733",
+    "wire_probe.c": "cf743a878173cb580886839944d20360e853fe197876bc742d20e92c0e37a4e0",
+    "nccl_arm.c": "19d003b6f957b29751e1bd008f12aa8d162a620e7e874fd3e3de27077b3ba71e"
+  }
+}
