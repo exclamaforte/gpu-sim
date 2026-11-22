@@ -264,3 +264,36 @@ concurrently, each with its own VDEV_NODE:
 `_accelerator_graph_capture_health_check()` with `cudaErrorNoDevice` even though
 the shims were fine.  The probe must run in the agent shell with the real device
 visible; use the run tool only for waiting, then run the probe manually.
+
+## 10. Deliverable increment 2: torch.distributed, world_size 8, agreement
+
+`probe_distributed.py` starts eight concurrent ranks, one per node
+(`VDEV_NODE=0..7`), joins a gloo process group over loopback, and prints each
+rank's node index plus the eight PCI bus ids it sees.  The group then does a
+real `all_reduce` of `rank+1`; SUM(1..8)=36.0 must appear on every rank.
+
+Measured (one invocation, MemAvailable 8656 MiB start / 7902 MiB end):
+
+    DIST OK: 8 ranks x 8 B300, 64 distinct bus ids (0x0b+n*0x20),
+             all_reduce=36.0 on every rank, rss_sum=4741 MiB,
+             mem_available_start=8656 MiB end=7902 MiB
+             preflight_required=5824 MiB
+    per-rank RSS MiB: 594 593 591 594 589 593 593 594
+    each rank: device_count=8, name='NVIDIA B300', 8 bus ids
+    node 0: 0x0b..0x12, node 1: 0x2b..0x32, ..., node 7: 0xeb..0xf2
+    all_reduce_values: [36.0 x 8]
+
+Checks: eight_ranks, each_rank_is_its_node, process_group_world_size_8,
+every_rank_sees_8, every_rank_names_b300, nvml_and_cudart_agree,
+64_distinct_pci_bus_ids, bus_set_is_d1_exact, all_gather_sees_every_node,
+all_reduce_agrees -- all true.
+
+The agreement checker is fail-able, and that was measured, not assumed:
+`--inject-disagreement` makes rank 3 add 1.0 after the reduction.  The control
+run detected `[36, 36, 36, 37, 36, 36, 36, 36]` and printed it verbatim, exit 0
+for the control (a disagreement is the result the checker exists for).  A real
+disagreement in the non-injected run would print the same values and exit 1.
+
+This is the gloo CPU control plane.  It makes no NCCL data-path claim; that is
+7q3w.3/7q3w.5.  Increment (3) (the 12.6M training run) starts only after this
+posts.
