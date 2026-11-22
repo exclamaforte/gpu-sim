@@ -148,6 +148,25 @@ not `/tmp`; hardcoding `/tmp` is a bug. `scripts/gpu_run.sh` and `scripts/bd-exp
 run a quota preflight before long runs and refuse to start if the target dir has
 less than 1 GiB free.
 
+## `df` is not authoritative here: btrfs metadata is the real limit (gpu-sim-cywp)
+
+`/home` is btrfs with metadata DUP and the device fully allocated. On
+2026-11-22 every atomic write failed `ENOSPC: no space left on device, rename ...`
+while `df -h /home` said 70 GiB free -- because the **metadata** block group was
+full and no new chunk could be allocated. Appending to a file still worked (it
+reuses existing extents), which makes the error look impossible.
+
+When a write fails ENOSPC with free space in `df`, check the metadata numbers
+first, not the data ones:
+
+    btrfs filesystem df --raw /home        # Metadata, DUP: total=, used=
+    btrfs filesystem usage --raw /home     # Device unallocated: (1 MiB = cannot grow)
+
+`scripts/check_fs_headroom.py` does exactly this and is a hard gate stage, so it
+fails with the numbers and the remedy before the box becomes unusable. The cure
+is almost always reclaiming leaked scratch (see the scratch section above), not
+balancing the filesystem.
+
 ## Disposable worktrees: under the repo, never `$HOME` (4k2x)
 
 A throwaway worktree (`git worktree add --detach <path> <commit>`) is allowed for
