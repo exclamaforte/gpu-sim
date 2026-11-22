@@ -18,12 +18,15 @@ Measured with the same probe, twice, ~25 minutes apart on the same machine:
 | MemAvailable, first sample | **4224 MiB** (another agent held ~10.8 GiB) |
 | MemAvailable, second sample | 8991 MiB |
 | child: `import torch` peak RSS | 543 MiB |
-| child: torch + 12M-param transformer + AdamW step | **970 MiB** |
-| 8 nodes x 970 MiB | 7760 MiB |
+| child: torch + 12.6M-param transformer + AdamW step | **1148 MiB** |
+| 8 nodes x 1148 MiB | 9184 MiB |
 
-So the bead's estimate (~0.7 GiB/node) was low by ~40% once a real model and
-optimizer are resident: the design needs **7.8 GiB**, which fits the second sample
-(1.2 GiB spare) and does **not** fit the first one at all. The consequence is a
+**The old 970 MiB row was the 3.16M model, not the 12M one.**  The model was
+labelled ~12M but `sum(p.numel())` = 3,159,040; the corrected d_model=512 /
+ff=2048 / 4-layer shape is 12,609,536 params and measures 1148 MiB.  So the
+bead's estimate (~0.7 GiB/node) was low by ~64% once the real model and
+optimizer are resident: the design needs **9.2 GiB**, which fits neither sample
+(8991 MiB is 193 MiB short even before a margin).  The consequence is a
 design requirement, not a note: the launcher needs a RAM preflight (like
 `scripts/gpu_run.sh`'s quota preflight) that refuses with the measured numbers
 rather than letting 8 ranks get OOM-killed mid-run -- and the evidence bundle must
@@ -297,3 +300,35 @@ disagreement in the non-injected run would print the same values and exit 1.
 This is the gloo CPU control plane.  It makes no NCCL data-path claim; that is
 7q3w.3/7q3w.5.  Increment (3) (the 12.6M training run) starts only after this
 posts.
+
+## 11. Deliverable increment 3: 12.6M transformer, 8 ranks, equal checkpoints
+
+`probe_training.py` builds the 12,609,536-parameter transformer on every rank,
+wraps it in `DistributedDataParallel` over gloo, and takes three real AdamW
+steps.  Each rank trains on its own rank-sharded tokens, so the equal checkpoint
+is a product of the gradient all-reduce, not identical inputs.
+
+Measured (one invocation, MemAvailable 11638 MiB start / 13231 MiB end):
+
+    TRAIN OK: 8 ranks x 12,609,536 params, 3 real AdamW steps,
+              checkpoint_sha256=f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555
+              equal on all 8 ranks; rss_sum=9856 MiB
+              mem_available_start=11638 MiB end=13231 MiB
+              preflight_required=10576 MiB
+    rank 0 losses: 0.9999922514, 0.9975503683, 0.9929448366
+    every rank printed 3 finite losses (different data -> slightly different
+    loss values); every rank: device_count=8, name='NVIDIA B300'
+
+All 8 ranks wrote `rankN.pt`; the reported hash is canonical over state_dict
+key order, dtype, shape and CPU tensor bytes (container metadata excluded).  A
+separate 12.6M-element gloo all_reduce produced the same SHA-256 on all eight
+ranks, so the DDP equality is measured rather than assumed.
+
+The equality checker is fail-able: `--inject-checkpoint-difference` perturbs
+one parameter on rank 3 after training.  The control run detected seven copies
+of `f30a6a...` and rank 3's `ba0f82e95780d75e85c32bcc06c85b8fb3af99b8cbc580fd63e29dd01141b803`,
+and printed the per-rank hashes verbatim.
+
+The training math is CPU float32.  It is a real distributed training run (DDP
+gradient all-reduce, rank-sharded data, AdamW); it makes no NCCL data-path
+claim.  The GPU identity is A1's, and the NCCL path is 7q3w.3/7q3w.5.
