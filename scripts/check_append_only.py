@@ -497,7 +497,68 @@ def _dirty_paths(root) -> set:
     return out
 
 
-def check_ledger_test_ids(root):
+_BATCH_IDS = {}
+def _collect_all_node_ids(root, entries):
+    """One `pytest --collect-only` for every module the ledger names.
+
+    Returns the set of fully-qualified node ids pytest collected, or None when
+    the batch run cannot answer (collect error), in which case the caller does
+    the per-row form and keeps the per-row error message.
+    """
+    key = root
+    if key in _BATCH_IDS:
+        return _BATCH_IDS[key]
+    files = []
+    for e in entries:
+        node = e.get("test") or ""
+        if not node:
+            continue
+        # Rows come in two spellings: path form (tests/x.py::C::t) and the old
+        # dotted form (test_x.C.t). Normalize exactly as the per-row walk does,
+        # or the batch silently resolves only the newer half of the ledger
+        # (measured: 18 of 80 rows before this).
+        target, err = _normalize_ledger_node(node)
+        if err:
+            continue
+        f = target.split("::")[0]
+        if f and os.path.exists(os.path.join(root, f)) and f not in files:
+            files.append(f)
+    ids = None
+    if files and not os.path.exists(os.path.join(root, "libfakegpu.so")):
+        # conftest's freshness guard refuses ANY pytest run in a tree without the
+        # built lib (rc=3, measured), and resolve-only mode skips the mutation
+        # block whose restore step is what used to build it. Build once, on the
+        # same pattern, instead of failing every row with an infrastructure error.
+        subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
+    if files:
+        try:
+            r = subprocess.run(
+                [sys.executable, "-m", "pytest", "--collect-only", "-q", *files],
+                cwd=root, capture_output=True, text=True,
+                timeout=max(COLLECT_ONLY_TIMEOUT, 120), env=_child_env())
+        except subprocess.TimeoutExpired:
+            r = None
+        if r is not None and r.returncode == 0:
+            ids = set()
+            for line in ((r.stdout or "") + (r.stderr or "")).splitlines():
+                line = line.strip()
+                if "::" in line and not line.startswith("="):
+                    # gpu-sim-mi5v: take the WHOLE line. `pytest --collect-only
+                    # -q` prints one node id per line, and a parametrized id can
+                    # contain a space: 'tests/test_ok.py::test_p[a b]'. Splitting
+                    # on ' ' truncated it to '...::test_p[a', which resolve-only
+                    # mode then reported as unresolvable while the per-row walk
+                    # (which passes the node id as an argv element, spaces
+                    # intact) resolved it fine. That made the cheap mode a
+                    # DIFFERENT check, which is the 0fr1/nfxi disease this file
+                    # exists to prevent. The batch result is only trusted for a
+                    # successful collect, so the fallback cannot mask this.
+                    ids.add(line)
+    _BATCH_IDS[key] = ids
+    return ids
+
+
+def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
     """Resolve every ledger row's test node; fail closed on resolution errors,
     missing registry, unregistered mutation, self-reference, or vacuous test."""
     ddir = os.path.join(root, "tests", "fs2y_ledger.d")
@@ -511,7 +572,24 @@ def check_ledger_test_ids(root):
         return [reg_err]
     mutations, mfns = reg
 
+    # gpu-sim-mi5v: `replay=False` skips ONLY the mutation apply/run/restore
+    # block below (one pytest run per ledger row, twice: mutated + restored).
+    # Every registry, verification-strength, node-resolution and
+    # self-reference assertion still runs, so a plant that names a nonexistent
+    # node is still caught. The gate runs the default (replay=True).
+    # gpu-sim-mi5v: `only_rows` restricts the EXPENSIVE per-row work (collect-only,
+    # positive run, mutation apply/run/restore) to the named rows. Every cheap
+    # validation -- registry membership, verification strength, doc-only/positive-
+    # only rules -- still runs for every row, so a plant cannot hide behind the
+    # filter. tests/test_append_only.py uses it with the row it just planted.
     child = _child_mode()
+    if not child and not os.path.exists(os.path.join(root, "libfakegpu.so")):
+        # A tree with no built lib fails EVERY pytest run at conftest's freshness
+        # guard (rc=3). Measured: in a fresh worktree the mutated run then looked
+        # like it had "bitten" and the restored run passed, so a VACUOUS plant
+        # came out green. Build once, before the walk, and the walk sees tests.
+        subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
+    _batch_ids = None
     errors = []
     seen = set()
     for entry in entries:
@@ -539,6 +617,8 @@ def check_ledger_test_ids(root):
         if not node:
             errors.append(f"ledger row {name!r}: missing 'test' field")
             continue
+        if only_rows is not None and name not in only_rows:
+            continue
         target, err = _normalize_ledger_node(node)
         if err:
             errors.append(f"ledger row {name!r}: {err}")
@@ -551,6 +631,20 @@ def check_ledger_test_ids(root):
                           f"(imports or execs {CHECKER_NAME}); a ledger row must name a PRODUCT test")
             continue
 
+        if resolve_only:
+            # gpu-sim-mi5v: resolution is a property of the WHOLE ledger, but
+            # paying one pytest process per row (80 rows) is what made this
+            # walk cost minutes. Collect every target module once, up front,
+            # then answer each row by membership. The verdicts are the same
+            # because both forms ask pytest the same question -- and if the
+            # batch collect fails (a plant pointing at a broken module) we
+            # fall back to the per-row form so the error stays per-row.
+            if _batch_ids is None:
+                _batch_ids = _collect_all_node_ids(root, entries)
+            if _batch_ids is not None:
+                if target not in _batch_ids:
+                    errors.append(f"ledger row {name!r}: node {target!r} does not resolve")
+                continue
         positive_done = False
         exempt = name in EXEMPT_ROWS
         # gpu-sim-55sb: an assertion that cannot fail is not evidence.
@@ -582,8 +676,8 @@ def check_ledger_test_ids(root):
             continue
         # mutation-derived plant: apply mutation, run target (expect fail),
         # restore, run target (expect pass). Only when a function exists.
-        if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
-                and mutation in mfns):
+        if (not child and not resolve_only and not exempt and mutation
+                and mutation not in ("n/a", "doc-only") and mutation in mfns):
             apply_fn = mfns[mutation]
             # Snapshot what was ALREADY dirty so the restore below can never
             # discard real work; an applier may write a file and only then
@@ -603,6 +697,12 @@ def check_ledger_test_ids(root):
                         f"mutation run for {target!r} exceeded "
                         f"{ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT)}s; this row says NOTHING "
                         f"about whether the plant bites")
+                    continue
+                if rmut.returncode == 3:
+                    errors.append(
+                        f"ledger row {name!r}: mutation run ended in a pytest INTERNALERROR "
+                        f"(rc=3); that is infrastructure, not a plant that bit -- the row "
+                        f"says NOTHING about {mutation!r}")
                     continue
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
@@ -685,7 +785,7 @@ def check_ledger_test_ids(root):
         if (not child and exempt):
             print(f"replay skipped (exempt): {name} -- {EXEMPT_ROWS[name]}")
         # positive execution (top-level only; children skip to avoid recursion)
-        if (not child and not positive_done and not exempt):
+        if (not child and not resolve_only and not positive_done and not exempt):
             rrun = _run_pytest(
                 [sys.executable, "-m", "pytest", "-q", target],
                 root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env())
@@ -830,13 +930,37 @@ def main():
     ap.add_argument("--force", action="store_true", help="allow running in the integration tree (dangerous)")
     ap.add_argument("--dirty-ok", action="store_true", help="tolerate a dirty tracked tree (tests only)")
     ap.add_argument("--check-dirty-only", action="store_true", help="run only the dirty-tree backstop and exit")
+    # gpu-sim-mi5v: the ledger test-id replay (a pytest collect-only subprocess per
+    # ledger row, ~80 rows) is the entire cost of this check and is INDEPENDENT of
+    # the retirement logic the append-only tests assert.  Cheap mode skips ONLY that
+    # replay; every retirement verdict is unchanged.  It is refused together with
+    # --force so it can never become an escape hatch from the gate, which runs the
+    # full mode.  tests/test_mi5v_cheap_mode.py pins the equivalence with a plant.
+    ap.add_argument("--rows", default=None,
+                    help="comma-separated ledger row names to replay (default: all); "
+                         "cheap validations still run for every row")
+    ap.add_argument("--resolve-node-ids", action="store_true",
+                    help="resolve EVERY ledger row's test node without replaying "
+                         "mutation plants (batched collect-only); verdicts match "
+                         "the full walk (gpu-sim-mi5v)")
+    ap.add_argument("--no-ledger-replay", action="store_true",
+                    help="skip the per-row ledger test-id replay (cheap mode; "
+                         "retirement verdicts unchanged; not allowed with --force)")
     args = ap.parse_args()
     # gpu-sim-94pp: this refusal exists because the script MUTATES tracked files, and a mutation
     # in the integration tree poisons any gate that snapshots it.  --check-dirty-only mutates
     # nothing (it reads `git status` and exits), so refusing it made the guard's own sentence --
     # "mutates tracked files" -- false for that mode, and left the read-only path untestable from
     # the very tree it protects.  Every mutating path below still refuses.
-    read_only = args.check_dirty_only
+    if args.resolve_node_ids and args.no_ledger_replay:
+        print("REFUSE: --resolve-node-ids and --no-ledger-replay are different "
+              "modes; pick one.")
+        return 2
+    if args.no_ledger_replay and args.force:
+        print("REFUSE: --no-ledger-replay cannot be combined with --force; "
+              "the gate must run the full ledger replay.")
+        return 2
+    read_only = args.check_dirty_only or args.no_ledger_replay or args.resolve_node_ids
     if _is_integration_tree() and not args.force and not read_only:
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
@@ -845,6 +969,9 @@ def main():
     if args.check_dirty_only:
         print("OK: tree clean")
         return 0
+    only_rows = None
+    if args.rows:
+        only_rows = {n.strip() for n in args.rows.split(",") if n.strip()}
     base_ref = args.base if args.base else merge_base()
     if base_ref is None:
         print("FAIL: cannot determine merge-base with trunk")
@@ -862,11 +989,24 @@ def main():
             errors.append(f"tests/fs2y_ledger.json lost ledger entry '{k}' (not retired)")
     except Exception as e:
         errors.append(f"tests/fs2y_ledger.json: {e}")
-    try:
-        for e in check_ledger_test_ids(ROOT):
-            errors.append(e)
-    except Exception as e:
-        errors.append(f"ledger test-id resolution: {e}")
+    if args.no_ledger_replay:
+        # Cheap mode skips the ledger replay wholesale: the per-row mutation
+        # apply/run/restore AND the per-row pytest collect-only that resolves
+        # each row's node (80 subprocesses). The retirement logic above --
+        # which is what the append-only tests assert -- is untouched, and the
+        # NOTE line makes the skipped half visible in every cheap run.
+        print("NOTE: ledger replay skipped (--no-ledger-replay, cheap mode): "
+              "no mutation plant is applied and no row's test node is resolved")
+    else:
+        try:
+            if args.resolve_node_ids:
+                print("NOTE: --resolve-node-ids: every row's node is resolved, "
+                      "but no mutation plant is applied (no replay)")
+            for e in check_ledger_test_ids(ROOT, only_rows=only_rows,
+                                           resolve_only=args.resolve_node_ids):
+                errors.append(e)
+        except Exception as e:
+            errors.append(f"ledger test-id resolution: {e}")
     try:
         for e in check_grandfather_self_service():
             errors.append(e)

@@ -60,14 +60,23 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "multiproc: marks tests that spawn multiple processes (skip under contention)")
 
 
+PER_TEST_BUDGET_S = 300
+
+
 def _handler(signum, frame):
-    raise TimeoutError("per-test wall budget exceeded (300s)")
+    # gpu-sim-mi5v: a budget hit must not read as a product defect. Without this
+    # marker the traceback of a slow test was indistinguishable from a real
+    # failure ("unretired deletion ... TimeoutError"), and main went red on a
+    # test that passes on an idle box.
+    print(f"\nTEST TIMEOUT (infrastructure, not a product defect): "
+          f"per-test wall budget {PER_TEST_BUDGET_S}s exceeded", file=sys.stderr)
+    raise TimeoutError("per-test wall budget exceeded (%ds)" % PER_TEST_BUDGET_S)
 
 
 @pytest.fixture(autouse=True)
 def _per_test_timeout():
     signal.signal(signal.SIGALRM, _handler)
-    signal.alarm(300)
+    signal.alarm(PER_TEST_BUDGET_S)
     yield
     signal.alarm(0)
 

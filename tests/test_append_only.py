@@ -86,17 +86,61 @@ for _sig in (signal.SIGTERM, signal.SIGINT):
 
 
 
-def run_script(plant=None, env=None):
+# gpu-sim-mi5v: these tests assert the RETIREMENT logic. The ledger test-id
+# replay (one pytest collect-only subprocess per ledger row, ~80 rows) is
+# independent of it and cost ~196s per call -- 14 calls, ~46 of the suite's
+# 66 minutes, and the 300s per-test budget was hit under load. Cheap mode skips
+# ONLY the replay; the checker refuses --no-ledger-replay with --force, and
+# tests/test_mi5v_cheap_mode.py pins cheap-vs-full verdict equivalence with a
+# plant, so this cannot become "suite tests mode B, gate runs mode A".
+CHEAP_TIMEOUT_S = 120     # below conftest's 300s per-test budget: no race
+FULL_TIMEOUT_S = 290      # ditto, for the calls that still need the replay
+
+
+def run_script(plant=None, env=None, cheap=True, rows=None, whole_ledger=False,
+               resolve_node_ids=False):
+    # gpu-sim-mi5v: the rule "bound the replay" must not depend on the next
+    # author remembering it. An unbounded full walk costs ~196s per call and
+    # was what turned this file into a 300s-budget failure under load, so the
+    # unbounded form is now only reachable by an explicit, greppable opt-in.
+    #
+    # The opt-in carries a REASON, not just a flag: a bare `whole_ledger=True`
+    # is another casual bypass, and the point of the guard is that the next
+    # 196s walk is both greppable in the suite and justified in its log. So the
+    # parameter is the justification string, printed where the walk is invoked.
+    if whole_ledger and not (isinstance(whole_ledger, str) and whole_ledger.strip()):
+        raise AssertionError(
+            "run_script(whole_ledger=...) requires a recorded reason: pass "
+            "whole_ledger='<why this walk cannot be bounded>', not True -- the "
+            "unbounded walk is ~196s and its justification must be visible in "
+            "the log and in the suite source")
+    if not cheap and not rows and not resolve_node_ids and not whole_ledger:
+        raise AssertionError(
+            "run_script(cheap=False) without rows= is the unbounded 196s ledger "
+            "walk; pass rows=<row>, resolve_node_ids=True, or "
+            "whole_ledger='<reason>'")
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
+    if whole_ledger:
+        # the point of use: whoever reads the test output sees the justified walk
+        print(f"run_script: unbounded ledger walk, whole_ledger reason: "
+              f"{whole_ledger}", flush=True)
+    args = ["--dirty-ok"]
+    if resolve_node_ids:
+        args.append("--resolve-node-ids")
+    elif cheap:
+        args.append("--no-ledger-replay")
+    if rows:
+        args += ["--rows", rows]
+    timeout = CHEAP_TIMEOUT_S if (cheap or resolve_node_ids) else FULL_TIMEOUT_S
     with _disposable_worktree() as wt:
         if plant is not None:
             plant(wt)
         script = wt / "scripts" / "check_append_only.py"
-        r = subprocess.run([sys.executable, str(script), "--dirty-ok"], cwd=str(wt),
-                           capture_output=True, text=True, env=env, timeout=300)
+        r = subprocess.run([sys.executable, str(script), *args], cwd=str(wt),
+                           capture_output=True, text=True, env=env, timeout=timeout)
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
@@ -189,7 +233,10 @@ class TestAppendOnly(unittest.TestCase):
 class TestLedgerNodeIds(unittest.TestCase):
     def test_ledger_node_ids_resolve(self):
         """Every ledger row's test node resolves and collects >=1 test."""
-        rc, out = run_script()
+        # Resolution only: every row's node is resolved in ONE batched
+        # collect-only, no mutation plant is replayed. Equivalence with the full
+        # walk is pinned in tests/test_mi5v_cheap_mode.py.
+        rc, out = run_script(resolve_node_ids=True)
         assert rc == 0, out
 
     def test_plant_class_qualified_module_level_fails(self):
@@ -204,7 +251,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(plant=plant)
+        rc, out = run_script(cheap=False, rows="plant_class_qualified", plant=plant)
         assert rc != 0, "expected failure on class-qualified module-level node"
         assert "does not resolve" in out or "collects 0" in out, out
 
@@ -220,7 +267,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(plant=plant)
+        rc, out = run_script(cheap=False, rows="plant_nonexistent_func", plant=plant)
         assert rc != 0, "expected failure on nonexistent function"
         assert "does not resolve" in out or "collects 0" in out, out
 
@@ -236,7 +283,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(plant=plant)
+        rc, out = run_script(cheap=False, rows="plant_nonexistent_file", plant=plant)
         assert rc != 0, "expected failure on nonexistent file"
         assert "does not resolve" in out or "collects 0" in out, out
 
@@ -252,7 +299,7 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "append_only_guard",
             }, indent=2) + "\n")
-        rc, out = run_script(plant=plant)
+        rc, out = run_script(cheap=False, rows="plant_self_ref", plant=plant)
         assert rc != 0, "expected failure on self-referential row"
         assert "self-referential" in out, out
 
@@ -270,7 +317,9 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "ledger_node_ids_validated",
             }, indent=2) + "\n")
-        rc, out = run_script(plant=plant)
+        # The vacuous row is detected by applying its registered mutation and
+        # seeing rc=0, so the bound is exact: replay only the planted row.
+        rc, out = run_script(cheap=False, rows="plant_vacuous", plant=plant)
         assert rc != 0, "expected failure on vacuous row"
         assert "did not fail" in out, out
 
@@ -282,7 +331,7 @@ class TestLedgerNodeIds(unittest.TestCase):
         # Run inside a disposable worktree (7xo5/e2lf): the marker is rejected
         # for lack of a matching ancestor pid, not for tree identity, so the
         # property survives the move off the integration checkout.
-        rc, out = run_script(env=env)
+        rc, out = run_script(cheap=False, rows="05b3_skip_allowlist_keys", env=env)
         # baseline ledger passes; rc must still be 0 (full run), proving the
         # spoofed marker did not turn the check into a no-op. The marker is
         # rejected because no ancestor matches.
