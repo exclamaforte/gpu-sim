@@ -84,3 +84,40 @@ makes no claim that a gate could cite.
 The probe imports nothing heavy itself (every torch measurement runs in a child, so
 the parent's RSS cannot contaminate the number) and writes no files outside a
 `.lab/tmp` scratch directory that it removes.
+
+## 5. The driver shim: the device illusion works, torch does not bind to it yet
+
+Per the PI ruling (virtual devices alias the real GPU; identity modelled, arithmetic
+real) the shim is `shim/vdev.c` + generated pass-through trampolines
+(`shim/gen_forwarders.py`): 23 overrides (enumeration, identity, B300 memory figure,
+primary contexts) and 714 generated trampolines for every other `cu*` the real driver
+exports, so no hand-written prototype can silently corrupt a call.
+
+**Measured, working:** with the shim on `LD_LIBRARY_PATH` a direct driver-API caller gets
+exactly the illusion --
+
+    cuInit -> 0;  cuDeviceGetCount -> 8;  cuDeviceGetName(0) -> "NVIDIA B300"
+
+**Measured, NOT working:** `import torch; torch.cuda.device_count()` under the same
+environment reports **1** and `NVIDIA GeForce RTX 5090`. The shim is not in the path at
+all; the real driver is. Four failures found the hard way, each now documented in code:
+
+1. our file named `libcuda.so.1` with DT_SONAME `libcuda.so.1` makes `dlopen` of the
+   real driver return *ourselves* -> infinite `cuInit` recursion (gdb: 12 frames);
+2. loading the real driver with `RTLD_GLOBAL` lets its internal PLT calls resolve to our
+   symbols -> same recursion;
+3. `dlmopen(LM_ID_NEWLM, ...)` gives a clean namespace but the NVIDIA driver crashes in
+   its own mutex there -- not an option;
+4. exporting a trampoline for `cuGetExportTable` makes libnvidia-ml call our jump into a
+   dispatcher that is not meant to be reached that way (SIGSEGV inside `nvmlInit`); the
+   generator now refuses to export it.
+
+**Why torch still bypasses us:** it resolves the driver through RVALUE/RUNPATH or an
+absolute path (the same reason a private soname-rewritten copy plus `LD_PRELOAD` still
+reports the real device), so interposition has to happen at the `dlopen`/`dlsym` layer
+for the driver name, not at the symbol layer. That is the next step, and it is a loader
+problem, not a driver-API problem: the overrides themselves are already measured correct.
+
+No A1 claim is made here. `device_count == 8 and get_device_name(0) == "NVIDIA B300"`
+has been observed for a direct driver-API caller, NOT for torch, and the difference is
+the whole point of the alias design.
