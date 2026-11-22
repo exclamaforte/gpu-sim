@@ -72,8 +72,9 @@ __attribute__((visibility("default"))) const char* nccl_plugin_abi(void) {
   return "props=112 vtable=176 tag=v2.32.6-1";
 }
 
-static void dump_counters(void) {
-  const char* path = getenv("FAKEIB_PLUGIN_COUNTERS");
+static int g_dumped;   /* set by the explicit dump, which suppresses the atexit one */
+
+static void write_counters_file(const char* path, const counters_t* c) {
   if (!path) return;
   char tmp[4096];
   snprintf(tmp, sizeof tmp,
@@ -83,26 +84,47 @@ static void dump_counters(void) {
            "\"isend_calls\":%llu,\"irecv_calls\":%llu,\"test_calls\":%llu,"
            "\"close_calls\":%llu,\"bytes_claimed\":%llu,\"devs_reported\":%llu,"
            "\"props_speed\":%llu,\"props_guid\":%llu}",
-           (unsigned long long)g_c.getProperties_calls,
-           (unsigned long long)g_c.devices_calls,
-           (unsigned long long)g_c.init_calls,
-           (unsigned long long)g_c.listen_calls,
-           (unsigned long long)g_c.connect_calls,
-           (unsigned long long)g_c.accept_calls,
-           (unsigned long long)g_c.regMr_calls,
-           (unsigned long long)g_c.deregMr_calls,
-           (unsigned long long)g_c.isend_calls,
-           (unsigned long long)g_c.irecv_calls,
-           (unsigned long long)g_c.test_calls,
-           (unsigned long long)g_c.close_calls,
-           (unsigned long long)g_c.bytes_claimed,
-           (unsigned long long)g_c.devs_reported,
-           (unsigned long long)g_c.props_speed,
-           (unsigned long long)g_c.props_guid);
+           (unsigned long long)c->getProperties_calls,
+           (unsigned long long)c->devices_calls,
+           (unsigned long long)c->init_calls,
+           (unsigned long long)c->listen_calls,
+           (unsigned long long)c->connect_calls,
+           (unsigned long long)c->accept_calls,
+           (unsigned long long)c->regMr_calls,
+           (unsigned long long)c->deregMr_calls,
+           (unsigned long long)c->isend_calls,
+           (unsigned long long)c->irecv_calls,
+           (unsigned long long)c->test_calls,
+           (unsigned long long)c->close_calls,
+           (unsigned long long)c->bytes_claimed,
+           (unsigned long long)c->devs_reported,
+           (unsigned long long)c->props_speed,
+           (unsigned long long)c->props_guid);
   FILE* f = fopen(path, "w");
   if (!f) return;
   fputs(tmp, f);
   fclose(f);
+}
+
+/* gpu-sim-7q3w.2 (reviewer finding): the arm used to print the counters BEFORE
+   ncclCommDestroy, which is when NCCL actually drives the data path -- so the
+   printed line said isend=0 while the atexit-dumped file said 16. Two numbers
+   for one fact is exactly the defect the bead is about. This entry point takes
+   ONE snapshot, writes it, and hands the same snapshot back, so the printed line
+   and the file cannot disagree; it also suppresses the atexit write so nothing
+   overwrites the snapshot after the arm printed it. */
+__attribute__((visibility("default")))
+int nccl_plugin_dump(const char* path, counters_t* out) {
+  counters_t snap = g_c;
+  if (out) *out = snap;
+  write_counters_file(path, &snap);
+  g_dumped = 1;
+  return 0;
+}
+
+static void dump_counters(void) {
+  if (g_dumped) return;
+  write_counters_file(getenv("FAKEIB_PLUGIN_COUNTERS"), &g_c);
 }
 
 __attribute__((constructor)) static void on_load(void) {

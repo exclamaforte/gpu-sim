@@ -30,9 +30,11 @@ step "0. stage the wheels' own libnccl (the only heavy step; caches are gitignor
 # covers experiments/*/libs/ and experiments/*/wheels/, so this stage makes a
 # fresh clone reproduce the arm instead of fighting the enforcer.
 stage_wheel() {
-  local w=$1 lib="$EXP/libs/$1/libnccl.so.2"
-  [[ -s "$lib" ]] && { echo "  $w: libnccl already staged"; return 0; }
-  mkdir -p "$EXP/libs/$w" "$EXP/wheels"
+  local w=$1 lib="$EXP/libs/$1/libnccl.so.2" hdr="$EXP/vendor/nccl-$1.h"
+  # the HEADER is staged even when the lib is already there: the per-wheel
+  # agreement check below compares each wheel's own nccl.h against the tag, and
+  # skipping it on a warm tree would silently re-check nothing (reviewer finding).
+  mkdir -p "$EXP/libs/$w" "$EXP/wheels" "$EXP/vendor"
   local whl
   whl=$(ls "$EXP/wheels"/nvidia_nccl_${w}-*.whl 2>/dev/null | head -1)
   if [[ -z "$whl" ]]; then
@@ -41,18 +43,24 @@ stage_wheel() {
       -d "$EXP/wheels" >/dev/null 2>&1 || { bad "$w: pip download failed"; return 1; }
     whl=$(ls "$EXP/wheels"/nvidia_nccl_${w}-*.whl | head -1)
   fi
-  python3 - "$whl" "$lib" "$EXP/vendor/nccl.h" <<'PY'
-import sys, zipfile
+  # Each wheel's OWN header goes to its own path: the point of the check is that
+  # BOTH wheels agree with the vendored tag, and writing both to vendor/nccl.h
+  # meant the loop re-checked whichever wheel ran last (reviewer finding).
+  python3 - "$whl" "$lib" "$hdr" <<'PY'
+import os, sys, zipfile
 whl, lib, hdr = sys.argv[1:4]
 z = zipfile.ZipFile(whl)
-with z.open("nvidia/nccl/lib/libnccl.so.2") as f, open(lib, "wb") as o:
-    o.write(f.read())
+if not os.path.exists(lib):
+    with z.open("nvidia/nccl/lib/libnccl.so.2") as f, open(lib, "wb") as o:
+        o.write(f.read())
 try:
     with z.open("nvidia/nccl/include/nccl.h") as f, open(hdr, "wb") as o:
         o.write(f.read())
 except KeyError:
-    pass
+    open(hdr, "w").write("")
 PY
+  [ -s "$hdr" ] && cp -f "$hdr" "$EXP/vendor/nccl.h"
+  echo "  $w: lib $( [ -s "$lib" ] && echo staged || echo MISSING ), header $( [ -s "$hdr" ] && echo staged || echo MISSING )"
   ln -sfn libnccl.so.2 "$EXP/libs/$w/libnccl.so"
   echo "  $w: staged $(basename "$whl")"
 }
@@ -70,12 +78,12 @@ echo "  vendored header files: $(grep -c . "$OUT/vendor.sha256")"
 grep -q "Apache-2.0" "$EXP/vendor/example/nccl/net.h" \
   && ok "public plugin header carries its Apache-2.0 SPDX line" \
   || bad "public plugin header lost its licence header"
-# the wheels' own headers must agree with the vendored one on the version
+# each wheel's OWN header must agree with the vendored tag on the version
 for w in cu12 cu13; do
-  if grep -q "define NCCL_VERSION_CODE 23206" "$EXP/vendor/nccl.h"; then
-    ok "wheel nccl.h is 2.32.6 (23206), so the tag and the wheels agree"
+  if grep -q "define NCCL_VERSION_CODE 23206" "$EXP/vendor/nccl-$w.h" 2>/dev/null; then
+    ok "$w: its own nccl.h is 2.32.6 (23206), so the tag and this wheel agree"
   else
-    bad "wheel nccl.h is not 23206 -- tag and wheels disagree"
+    bad "$w: its own nccl.h is not 23206 (or was not extracted) -- tag and wheel disagree"
   fi
   lib="$EXP/libs/$w/libnccl.so.2"
   [[ -s "$lib" ]] || { bad "libnccl missing for $w (run arm_2rank.sh once to stage it)"; continue; }
@@ -181,10 +189,10 @@ NCCL_DEBUG=WARN RUN_DIR="$CRUN" bash "$EXP/arm_2rank.sh" cu13 > "$CRUN/control.l
     || ok "control: NCCL's INFO load line is absent at WARN (the positive arm's evidence is NCCL's own)"
 }
 
-step "6. summary"
-python3 - "$OUT" "$N" <<'PY'
-import json, os, sys
-out, n = sys.argv[1], int(sys.argv[2])
+step "6. summary (values PARSED from the counters files, not restated)"
+python3 - "$OUT" "$N" "$(uptime | sed 's/.*load average: //')" "$SECONDS" <<'PY'
+import glob, json, os, sys
+out, n, load, wall = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
 def dist(w):
     path = os.path.join(out, w, "rcs.txt")
     if not os.path.exists(path): return {}
@@ -193,6 +201,11 @@ def dist(w):
         rc = line.strip().split("rc=")[-1]
         d[rc] = d.get(rc, 0) + 1
     return d
+# the measured block comes from the run that just happened: a hardcoded summary
+# would keep saying 4/16/16/20971520 even if the arm changed (reviewer finding).
+measured, parsed_from = {}, None
+for cand in sorted(glob.glob(os.path.join(out, "cu13", "run*", "counters-rank0.json"))):
+    measured = json.load(open(cand)); parsed_from = os.path.relpath(cand, out); break
 summary = {
     "bead": "gpu-sim-7q3w.2",
     "vendor_tag": open("experiments/gpu-sim-7q3w.2/vendor/nccl/nccl.tag").read().strip(),
@@ -200,13 +213,17 @@ summary = {
     "runs_per_arm": n,
     "exit_code_distribution": {w: dist(w) for w in ("cu12", "cu13")},
     "measured": {
-        "props_speed_mbps": 400000,
-        "accept_calls_rank0": 4,
-        "isend_calls_rank0": 16,
-        "irecv_calls_rank0": 16,
-        "bytes_claimed_rank0": 20971520,
-        "channel": "via NET/fakeib-net/0",
+        "parsed_from": parsed_from,
+        "props_speed_mbps": measured.get("props_speed"),
+        "props_guid": measured.get("props_guid"),
+        "accept_calls_rank0": measured.get("accept_calls"),
+        "isend_calls_rank0": measured.get("isend_calls"),
+        "irecv_calls_rank0": measured.get("irecv_calls"),
+        "bytes_claimed_rank0": measured.get("bytes_claimed"),
+        "channel": "via NET/fakeib-net/0 (no via NET/Socket in any log)",
     },
+    "conditions": {"load_average": load, "wall_seconds": wall,
+                   "cpu_only": True, "gpqueue": False},
     "honest_gaps": [
         "data path is a NULL transport: bytes_claimed counts what NCCL asked for, not bytes moved (epic steps 3-5)",
         "collective numerics are wrong (bad=1048576) because the simulator executes no device kernels",

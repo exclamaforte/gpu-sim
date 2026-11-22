@@ -94,6 +94,10 @@ for r in 0 1; do
   grep -qE "via NET/(Plugin|fakeib-net)" "$L" && ok "rank$r: a channel was assigned via our net plugin" \
     || bad "rank$r: no channel went via our net plugin (Socket fallback?)"
   grep -qE "via (P2P|SHM)" "$L" && bad "rank$r: intra-node transport used, ranks were not seen as 2 nodes" || true
+  # the bead's claim is 'no Socket fallback', so assert the ABSENCE too: grepping
+  # for a plugin channel alone is satisfied by a log that also has Socket.
+  grep -qE "via NET/Socket" "$L" && bad "rank$r: a channel fell back to NET/Socket" \
+    || ok "rank$r: no channel went via NET/Socket"
   grep -q "NULL DATA PATH" "$L" && ok "rank$r: the null data path announced itself" \
     || bad "rank$r: null data path did not announce itself"
 done
@@ -119,6 +123,15 @@ need(c["isend_calls"] + c["irecv_calls"] >= 1,
      f"rank{r} NCCL posted work through our plugin (isend={c['isend_calls']} irecv={c['irecv_calls']})")
 need(c["bytes_claimed"] > 0, f"rank{r} counters record claimed bytes ({c['bytes_claimed']})")
 PY
+done
+
+# Reviewer's blocking finding: the printed counters line used to read isend=0
+# while the file said 16, because it was printed before ncclCommDestroy. It is now
+# printed from the same snapshot that writes the file; this makes the agreement a
+# test rather than a hope (check_counters.py).
+for r in 0 1; do
+  python3 "$EXP/check_counters.py" "$RUN/rank$r.log" "$RUN/counters-rank$r.json" "$r" \
+    || FAILS=$((FAILS+1))
 done
 
 echo "--- rank0 transport lines ---"

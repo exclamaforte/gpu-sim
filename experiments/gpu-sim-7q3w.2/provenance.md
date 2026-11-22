@@ -134,6 +134,30 @@ wrapper checks `cuDriverGetVersion`, which `libfakegpu` does not export.
   on the fake device before any collective (measured in `7q3w.3`); they are off
   here for the same reason, not silently.
 
+## 6b. Reviewer findings, and what changed (round 2)
+
+The first submission printed the counters **before** `ncclCommDestroy` -- which is
+when the data path actually runs, because the simulator's device kernels are
+no-ops and NCCL's proxy only moves during teardown. So the arm's own log said
+`isend=0 ... bytes_claimed=0` while the JSON the harness asserted on said
+`16 / 20971520`: two numbers for one fact, which is the defect class this bead
+exists to remove. Fixed at the source rather than by reordering a print: the
+plugin now exposes `nccl_plugin_dump(path, out)`, which takes ONE snapshot, writes
+it and hands the same struct back (and suppresses the `atexit` write so nothing
+can overwrite it later). The arm calls it after `ncclCommDestroy` and prints the
+returned snapshot, and `check_counters.py` asserts the printed line equals the
+file field for field -- verified to bite by feeding it a log with `isend=0`:
+`ASSERT FAIL: ... isend: printed 0 vs file 16`.
+
+Three smaller findings, all taken: (i) the no-Socket claim is now asserted as an
+absence (`no channel went via NET/Socket`, per rank, rather than only grepping for
+a plugin channel); (ii) the summary's `measured` block is PARSED from the counters
+file of the run that just happened (`parsed_from`, plus `conditions.load_average`
+and `wall_seconds`) instead of restating 4/16/16/20971520; (iii) each wheel's own
+`nccl.h` is extracted to `vendor/nccl-<wheel>.h` and checked against the tag
+individually -- before this, stage 0 wrote both wheels' headers to one path, so the
+loop checked whichever ran last.
+
 ## 7. Reproduce
 
     bash experiments/gpu-sim-7q3w.2/run.sh 20

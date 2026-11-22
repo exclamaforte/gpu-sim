@@ -124,28 +124,35 @@ int main(int argc, char **argv) {
   printf("ARM info allreduce n=%zu bad=%zu value0=%.3f expected=3.0 "
          "(kernels are not executed by the simulator)\n", n, bad, (double)h[0]);
 
-  /* The plugin's counters are the measurement.  It was dlopened by NCCL, so it
-     is already in this process: RTLD_NOLOAD finds it without a second load. */
+  /* THE COUNTERS ARE READ AFTER ncclCommDestroy, and that is the whole fix: the
+     data path is driven during comm teardown (with the simulator's kernels being
+     no-ops, the proxy only runs then), so the earlier pre-destroy print read
+     isend=0 while the atexit dump read 16. The plugin's nccl_plugin_dump() takes
+     ONE snapshot, writes it and returns it, so the line below and the JSON file
+     the harness asserts on are the same numbers by construction. */
+  ncclCommDestroy(comm);
+
   const char *plugin = getenv("NCCL_NET_PLUGIN");
   void *h_plug = plugin ? dlopen(plugin, RTLD_NOW | RTLD_NOLOAD) : NULL;
-  counters_t *c = NULL;
+  counters_t snap;
+  int have = 0;
   if (h_plug) {
-    counters_t *(*get)(void) = (counters_t * (*)(void)) dlsym(h_plug, "nccl_plugin_counters");
-    if (get) c = get();
+    int (*dump)(const char*, counters_t*) =
+        (int (*)(const char*, counters_t*)) dlsym(h_plug, "nccl_plugin_dump");
+    if (dump && dump(getenv("FAKEIB_PLUGIN_COUNTERS"), &snap) == 0) have = 1;
   }
-  if (c) {
+  if (have) {
     printf("ARM counters rank=%d getProperties=%llu devices=%llu init=%llu "
            "listen=%llu connect=%llu accept=%llu regMr=%llu isend=%llu "
            "irecv=%llu test=%llu bytes_claimed=%llu speed=%llu guid=0x%llx\n",
-           rank, c->getProperties_calls, c->devices_calls, c->init_calls,
-           c->listen_calls, c->connect_calls, c->accept_calls, c->regMr_calls,
-           c->isend_calls, c->irecv_calls, c->test_calls, c->bytes_claimed,
-           c->props_speed, c->props_guid);
+           rank, snap.getProperties_calls, snap.devices_calls, snap.init_calls,
+           snap.listen_calls, snap.connect_calls, snap.accept_calls,
+           snap.regMr_calls, snap.isend_calls, snap.irecv_calls, snap.test_calls,
+           snap.bytes_claimed, snap.props_speed, snap.props_guid);
   } else {
     printf("ARM counters rank=%d UNAVAILABLE (plugin not resident?)\n", rank);
   }
 
-  ncclCommDestroy(comm);
   cudaFree(d_in);
   cudaFree(d_out);
   free(h);
