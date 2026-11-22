@@ -1,0 +1,32 @@
+{
+  "bead": "gpu-sim-7q3w.2",
+  "vendor_tag": "v2.32.6-1",
+  "abi": {
+    "sizeof_props": 112,
+    "sizeof_vtable": 176,
+    "loader_equals_plugin": true
+  },
+  "runs_per_arm": 20,
+  "exit_code_distribution": {
+    "cu12": {
+      "0": 20
+    },
+    "cu13": {
+      "0": 20
+    }
+  },
+  "measured": {
+    "props_speed_mbps": 400000,
+    "accept_calls_rank0": 4,
+    "isend_calls_rank0": 16,
+    "irecv_calls_rank0": 16,
+    "bytes_claimed_rank0": 20971520,
+    "channel": "via NET/fakeib-net/0"
+  },
+  "honest_gaps": [
+    "data path is a NULL transport: bytes_claimed counts what NCCL asked for, not bytes moved (epic steps 3-5)",
+    "collective numerics are wrong (bad=1048576) because the simulator executes no device kernels",
+    "v12 is not exported, so 2.32 takes v11 by design (m3d.4)"
+  ],
+  "gate": "scripts/gate.sh --fast PASS (tip 1db0168f); UNVERIFIABLE FOR THIS TIP: handle none, cu12+cu13; delta none: no run record exists for this tip (CPU-only arms, never submitted to gpqueue)"
+}
