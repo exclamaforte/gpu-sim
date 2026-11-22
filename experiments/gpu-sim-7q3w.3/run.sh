@@ -52,14 +52,28 @@ diff -u "$EXP/abi_diff_expected.txt" "$BUILD/abi.diff" || \
 echo "ABI pin OK: 3 size differences, every field the shim touches agrees"
 
 stage "3. build shim (its _Static_asserts pin the NCCL ABI at compile time)"
+# --version-script: NCCL resolves its verbs table with dlvsym(name, "IBVERBS_1.1")
+# (ibvsymbols.cc), so an unversioned shim makes NCCL fall back to Socket with
+# only a WARN.  That was the first GPU run of this bead; see ibverbs.map.
 $CC -shared -fPIC -O2 -Wall -Wextra -I"$EXP/vendor" \
+    -Wl,--version-script="$EXP/ibverbs.map" \
     -o "$BUILD/libibverbs.so.1" "$EXP/ibverbs_shim.c" -lpthread
 ln -sfn libibverbs.so.1 "$BUILD/libibverbs.so"
 echo "shim built: $(stat -c%s "$BUILD/libibverbs.so.1") bytes"
 
-stage "4. dlopen by SONAME + dlsym NCCL's name list"
+stage "4. dlopen by SONAME + dlsym/dlvsym NCCL's name lists"
 $CC -O1 -Wall -Wextra -o "$BUILD/dlopen_check" "$EXP/dlopen_check.c" -ldl
 LD_LIBRARY_PATH="$BUILD" "$BUILD/dlopen_check" libibverbs.so.1 || fail "dlsym surface"
+# NCCL's own table: dlvsym(name, "IBVERBS_1.1") for 26 names, plus the
+# cherry-picked versions.  A NULL here is the difference between NCCL using
+# our IB transport and NCCL silently using Socket.
+$CC -O1 -Wall -Wextra -o "$BUILD/dlvsym_probe" "$EXP/dlvsym_probe.c" -ldl
+LD_LIBRARY_PATH="$BUILD" "$BUILD/dlvsym_probe" libibverbs.so.1 \
+    > "$BUILD/dlvsym.log" 2>&1 || { cat "$BUILD/dlvsym.log"; fail "dlvsym surface"; }
+cat "$BUILD/dlvsym.log"
+# and the same through the UNVERSIONED soname, which is what NCCL dlopens first
+LD_LIBRARY_PATH="$BUILD" "$BUILD/dlvsym_probe" libibverbs.so \
+    >> "$BUILD/dlvsym.log" 2>&1 || { cat "$BUILD/dlvsym.log"; fail "dlvsym via libibverbs.so"; }
 
 stage "5. abi_probe (semantics, timing, counters)"
 $CC -O1 -Wall -Wextra -I"$EXP/vendor" -o "$BUILD/abi_probe" "$EXP/abi_probe.c" \
