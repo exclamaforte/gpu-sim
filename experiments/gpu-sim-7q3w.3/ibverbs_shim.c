@@ -105,6 +105,7 @@ static uint64_t now_ns(void) {
 
 /* ---- counters the acceptance test asserts on ----------------------------- */
 uint64_t fakeib_dmabuf_registrations;
+uint64_t fakeib_dmabuf_attempts;   /* every call, including the fd<0 probe */
 uint64_t fakeib_reg_mr_calls;
 uint64_t fakeib_post_send_calls;
 uint64_t fakeib_post_recv_calls;
@@ -133,7 +134,7 @@ static void counters_dump(void) {
     FILE *f = fopen(path, "a");
     if (!f) return;
     fprintf(f,
-            "{\"rank\":%d,\"dmabuf_registrations\":%llu,\"reg_mr_calls\":%llu,"
+            "{\"rank\":%d,\"dmabuf_registrations\":%llu,\"dmabuf_attempts\":%llu,\"reg_mr_calls\":%llu,"
             "\"post_send_calls\":%llu,\"post_recv_calls\":%llu,"
             "\"completions\":%llu,\"bytes_written\":%llu,\"bytes_read\":%llu,"
             "\"writes\":%llu,\"reads\":%llu,\"sends\":%llu,\"recvs\":%llu,"
@@ -142,6 +143,7 @@ static void counters_dump(void) {
             "\"ring_out\":%llu,\"ring_in\":%llu,\"ring_stall_drops\":%llu}\n",
             (int)strtol(getenv("FAKEIB_RANK") ? getenv("FAKEIB_RANK") : "0", NULL, 10),
             (unsigned long long)fakeib_dmabuf_registrations,
+            (unsigned long long)fakeib_dmabuf_attempts,
             (unsigned long long)fakeib_reg_mr_calls,
             (unsigned long long)fakeib_post_send_calls,
             (unsigned long long)fakeib_post_recv_calls,
@@ -427,6 +429,7 @@ struct ibv_mr *ibv_reg_mr_iova2(struct ibv_pd *pd, void *addr, size_t len,
 }
 struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t len,
                                  uint64_t iova, int fd, int access) {
+    __atomic_fetch_add(&fakeib_dmabuf_attempts, 1, __ATOMIC_RELAXED);
     (void)offset;
     /* GDR: the dmabuf is opaque to the shim; the modelled buffer is the iova
      * range itself.  NCCL's DMA-BUF capability probe (net_ib/gdr.cc:57) calls

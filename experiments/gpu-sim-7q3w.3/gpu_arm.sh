@@ -120,6 +120,35 @@ export FAKEIB_RING_MB=64
 export FAKEIB_NRANKS=2
 export FAKEIB_BW_GBPS=400
 export FAKEIB_LATENCY_US=1.2
+# ---- acceptance (d): N>=20 determinism, every exit code recorded -------------
+# A single green run is not evidence (7q3w.1's lesson), so the arm re-executes itself
+# N times and reports the DISTRIBUTION. ARM_INNER stops the recursion.
+if [[ -z "${ARM_INNER:-}" ]]; then
+    N="${ARM_N:-20}"
+    rcs=(); sig=""
+    for i in $(seq 1 "$N"); do
+        rc=0
+        out="$(ARM_INNER=1 bash "$0" 2>&1)" || rc=$?   # set -e: capture, do not abort
+        rcs+=("$rc")
+        # the modelled quantities must be identical run to run: compare the
+        # assertion pattern (ok/fail per line), not the wall time
+        pat="$(printf '%s
+' "$out" | grep -cE '^ASSERT ok') ok / $(printf '%s
+' "$out" | grep -cE '^ASSERT FAIL') fail"
+        sig+="$pat"$'\n'
+    done
+    zero=0; for rc in "${rcs[@]}"; do if [[ "$rc" == 0 ]]; then zero=$((zero+1)); fi; done
+    distinct_patterns="$(printf '%s' "$sig" | sort -u | grep -c .)"
+    echo "N=$N exit-code distribution: rc=0 $zero/$N; nonzero $((N-zero))/$N ($(printf '%s\n' "${rcs[@]}" | sort | uniq -c | tr '\n' ' '))"
+    echo "N=$N determinism: distinct assertion patterns = $distinct_patterns (must be 1); pattern: $(printf '%s' "$sig" | sort -u | head -1)"
+    if [[ "$distinct_patterns" != 1 ]]; then
+        echo "ASSERT FAIL: (d) determinism: $distinct_patterns different assertion patterns in $N runs"
+        exit 1
+    fi
+    echo "ASSERT ok: (d) determinism: $N/$N runs produced the same assertion pattern and the same exit code"
+    exit $(( zero == N ? 0 : 1 ))
+fi
+
 export FAKEIB_TRACE="${ARM_TRACE:-}"   # ARM_TRACE=1 names the verbs call that hangs
 export NCCL_DEBUG=INFO
 export NCCL_DEBUG_SUBSYS=INIT,NET,GRAPH,TRANSPORT
@@ -199,8 +228,13 @@ for r in 0 1; do
     # fd.  The honest assertion is therefore that the counter stays 0 -- it now
     # counts only real registrations (fd >= 0), so a 1 here would mean something
     # we did not model started working, and that must be looked at, not ignored.
+    # arm (c): TWO predicates, because "registered nothing" is only meaningful if
+    # something was actually TRIED. The attempt counter makes a run that silently
+    # never calls ibv_reg_dmabuf_mr FAIL instead of printing a green line.
+    chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"dmabuf_attempts\"]>0 else 1)'" \
+        "rank$r: dmabuf capability probe was ATTEMPTED (dmabuf_attempts>0; 0 means the arm never tried)"
     chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"dmabuf_registrations\"]==0 else 1)'" \
-        "rank$r: dmabuf counter is 0 (arm (c) needs a driver that can export fake memory)"
+        "rank$r: NOT EXERCISED: dmabuf registration needs a driver that exports dma-buf; the capability probe returned fd<0, so nothing was registered (NOT a red and NOT an ok -- owner: gpu-sim-7q3w.6)"
 done
 chk "[[ ! -e '$RUN/rank0.rc' ]]" "rank0 exited 0"
 chk "[[ ! -e '$RUN/rank1.rc' ]]" "rank1 exited 0"

@@ -22,7 +22,27 @@
     },
     "e_transport_byte_identity": {
       "verdict": "PASS at stage 6",
-      "evidence": "wire_probe: RDMA WRITE / WRITE_WITH_IMM / READ across two real processes through one shim; 'WIRE OK', including 'READ returned the peer's bytes' (memcmp over 4096 payload bytes) and 'peer's RDMA WRITE bytes never landed' guarded. This is the land criterion the reviewer enforces before any land."
+      "evidence": "wire_probe prints 'WIRE OK' on success; the check that WOULD print 'READ returned the peer's bytes' passed (it is the failure message of that check, quoted by the reviewer as such), and the payload memcmp is over 4096 bytes across two real processes"
+    },
+    "lettering": "AMENDED IN LIST vs THE ARM'S LETTERS (reviewer nit 3): the ruling's letters are (b)=ABI _Static_assert, (c)=sysfs+FAKEIB_*, (d)=determinism; the arm's letters are (b)=numerics, (c)=dmabuf. Both mappings are now explicit here and in every line below.",
+    "b_amendment_ABI": {
+      "verdict": "PASS",
+      "evidence": "stage 3 builds the shim with 27 _Static_asserts pinning NCCL's verbs ABI against vendor/nccl/ibvcore.h; the build fails if the ABI moves"
+    },
+    "c_amendment_sysfs": {
+      "verdict": "PASS",
+      "evidence": "REALPATH OK: one path (/sys/class/infiniband/<dev>/device) rewritten per rank to distinct PCI bridges; FAKEIB_* env drives speed/bandwidth/latency"
+    },
+    "d_amendment_determinism": {
+      "verdict": "PASS",
+      "n": 20,
+      "evidence": "gpu_arm.sh re-executes itself N=20 (ARM_N) and prints the exit-code distribution and the assertion pattern per run: 'N=20 exit-code distribution: rc=0 0/20; nonzero 20/20'; 'N=20 determinism: distinct assertion patterns = 1 (must be 1); pattern: 17 ok / 7 fail'",
+      "note": "the arm exits 1 in every run BY DESIGN: arm (b) is red. A green exit would mean the reds were hidden."
+    },
+    "c_dmabuf": {
+      "verdict": "NOT_EXERCISED",
+      "owner": "gpu-sim-7q3w.6",
+      "evidence": "TWO predicates now, because 'registered nothing' means nothing if nothing was tried: (i) dmabuf_attempts > 0 -- the capability probe WAS attempted (measured: dmabuf_attempts 1); (ii) dmabuf_registrations == 0 -- nothing registered, because the probe returned fd<0. The line is printed as 'NOT EXERCISED: ...', not as an ok and not as a red: there is no failing predicate for a path the driver cannot export."
     }
   },
   "shim": {
