@@ -65,7 +65,13 @@ def main():
             # libnvidia-ml looks cuGetExportTable up in the global scope, finds this
             # trampoline, and a NULL jump there is a SIGSEGV inside nvmlInit.
             f.write(f"\t.globl {n}\n\t.type {n}, @function\n{n}:\n"
-                    f"\tmovq fwd_{n}@GOTPCREL(%rip), %rax\n\ttestq %rax, %rax\n"
+                    # GOTPCREL gives the ADDRESS OF THE VARIABLE; the function
+                    # pointer is its CONTENTS. The first version omitted the
+                    # load and jumped into .data: SEGV_ACCERR the first time a
+                    # forwarded symbol was called (core 4023312, reproduced
+                    # from probe_vdev.py, 2026-11-22).
+                    f"\tmovq fwd_{n}@GOTPCREL(%rip), %rax\n\tmovq (%rax), %rax\n"
+                    f"\ttestq %rax, %rax\n"
                     f"\tje 1f\n\tjmp *%rax\n1:\tmovl $801, %eax\n\tret\n"
                     f"\t.size {n}, .-{n}\n")
     with open(f"{out}/forwarders.c", "w") as f:

@@ -27,11 +27,12 @@ SHIM = EXP / "shim"
 BUILD = REPO / ".lab" / "tmp" / "vdev-build"
 
 CHILD = r'''
-import json, os, resource, sys
+import ctypes, json, os, resource, sys
 import torch
 out = {}
 out["torch"] = torch.__version__
 out["device_count"] = torch.cuda.device_count()
+out["cudart_count"] = torch._C._cuda_getDeviceCount()
 names, total, cc = [], [], []
 for i in range(out["device_count"]):
     names.append(torch.cuda.get_device_name(i))
@@ -42,6 +43,33 @@ out["names"] = names
 out["total_memory_gib"] = [round(t / 2**30, 1) for t in total]
 out["compute_capability"] = cc
 out["is_available"] = torch.cuda.is_available()
+# A1's other half: NVML's view of the same device, in the same invocation.
+nv = ctypes.CDLL("libnvidia-ml.so.1")
+nv.nvmlInit_v2.restype = ctypes.c_int
+nv.nvmlDeviceGetCount_v2.argtypes = [ctypes.POINTER(ctypes.c_uint)]
+nv.nvmlDeviceGetCount_v2.restype = ctypes.c_int
+nv.nvmlDeviceGetHandleByIndex_v2.argtypes = [ctypes.c_uint, ctypes.POINTER(ctypes.c_void_p)]
+nv.nvmlDeviceGetHandleByIndex_v2.restype = ctypes.c_int
+nv.nvmlDeviceGetName.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint]
+nv.nvmlDeviceGetName.restype = ctypes.c_int
+nv.nvmlDeviceGetMemoryInfo.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+nv.nvmlDeviceGetMemoryInfo.restype = ctypes.c_int
+out["nvml_init_rc"] = int(nv.nvmlInit_v2())
+cnt = ctypes.c_uint(0)
+out["nvml_count_rc"] = int(nv.nvmlDeviceGetCount_v2(ctypes.byref(cnt)))
+out["nvml_count"] = int(cnt.value)
+dev = ctypes.c_void_p()
+rc = nv.nvmlDeviceGetHandleByIndex_v2(0, ctypes.byref(dev))
+out["nvml_handle_rc"] = int(rc)
+buf = ctypes.create_string_buffer(96)
+rc = nv.nvmlDeviceGetName(dev, buf, 96)
+out["nvml_name_rc"] = int(rc)
+out["nvml_name"] = buf.value.decode() if rc == 0 else None
+mem = (ctypes.c_ulonglong * 3)()
+rc = nv.nvmlDeviceGetMemoryInfo(dev, mem)
+out["nvml_mem_rc"] = int(rc)
+out["nvml_total_gib"] = round(mem[0] / 2**30, 1) if rc == 0 else None
+out["nvml_free_gib"] = round(mem[1] / 2**30, 1) if rc == 0 else None
 # arithmetic: really executed by the real GPU behind the alias
 torch.manual_seed(0)
 a = torch.randn(512, 512, device="cuda:0")
@@ -50,28 +78,46 @@ ref = a.cpu() @ a.cpu()
 out["matmul_max_abs_err"] = float((b.cpu() - ref).abs().max())
 out["fake_device"] = b.device.type + ":" + str(b.device.index)
 out["peak_rss_mib"] = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024)
+with open("/proc/meminfo") as f:
+    for line in f:
+        if line.startswith("MemAvailable:"):
+            out["mem_available_mib"] = int(line.split()[1]) // 1024
 print("VDEV " + json.dumps(out))
 '''
 
 
 def build():
     BUILD.mkdir(parents=True, exist_ok=True)
-    if not (BUILD / "libcuda-vdev.so.1").exists() or os.environ.get("VDEV_REBUILD"):
-        subprocess.run([sys.executable, str(SHIM / "gen_forwarders.py"), str(BUILD)], check=True)
-        inc = Path.home() / ".local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include"
-        # DT_SONAME deliberately NOT libcuda.so.1: our file is reached through a
-        # symlink of that name, and if its soname were the same, glibc's dlopen of the
-        # real driver would match the already-loaded map by soname and hand back OURSELF
-        # (measured: infinite recursion inside cuInit, gdb bt 12 frames of cuInit).
-        subprocess.run(["gcc", "-shared", "-fPIC", "-O1", "-I" + str(inc),
-                        "-Wl,-soname,libcuda-vdev.so.1",
-                        "-o", str(BUILD / "libcuda-vdev.so.1"),
-                        str(SHIM / "vdev.c"), str(BUILD / "forwarders.c"),
-                        str(BUILD / "forwarders.S"), "-ldl"], check=True)
-        link = BUILD / "libcuda.so.1"
+    inc = Path.home() / ".local/cuda-sysroot/opt/cuda/targets/x86_64-linux/include"
+    # D1 is the only source of identity; every shim includes the generated header.
+    subprocess.run([sys.executable, str(SHIM / "gen_spec.py"), str(BUILD)], check=True)
+    subprocess.run([sys.executable, str(SHIM / "gen_forwarders.py"), str(BUILD)], check=True)
+    subprocess.run([sys.executable, str(SHIM / "gen_nvml_forwarders.py"), str(BUILD)], check=True)
+    # DT_SONAME deliberately NOT libcuda.so.1: our file is reached through a
+    # symlink of that name, and if its soname were the same, glibc's dlopen of the
+    # real driver would match the already-loaded map by soname and hand back OURSELF
+    # (measured: infinite recursion inside cuInit, gdb bt 12 frames of cuInit).
+    subprocess.run(["gcc", "-shared", "-fPIC", "-O1", "-I" + str(inc),
+                    "-I" + str(BUILD), "-Wl,-soname,libcuda-vdev.so.1",
+                    "-o", str(BUILD / "libcuda-vdev.so.1"),
+                    str(SHIM / "vdev.c"), str(BUILD / "forwarders.c"),
+                    str(BUILD / "forwarders.S"), "-ldl"], check=True)
+    subprocess.run(["gcc", "-shared", "-fPIC", "-O1",
+                    "-DNVML_NO_UNVERSIONED_FUNC_DEFS", "-I" + str(inc),
+                    "-I" + str(BUILD), "-Wl,-soname,libnvidia-ml-vdev.so.1",
+                    "-o", str(BUILD / "libnvidia-ml-vdev.so.1"),
+                    str(SHIM / "nvml.c"), str(BUILD / "nvml_forwarders.c"),
+                    str(BUILD / "nvml_forwarders.S"), "-ldl"], check=True)
+    subprocess.run(["gcc", "-shared", "-fPIC", "-O1", "-I" + str(inc),
+                    "-I" + str(BUILD), "-Wl,-soname,libcudart-vdev.so.1",
+                    "-o", str(BUILD / "libcudart-vdev.so.1"),
+                    str(SHIM / "cudart.c"), "-ldl"], check=True)
+    for name, target in (("libcuda.so.1", "libcuda-vdev.so.1"),
+                         ("libnvidia-ml.so.1", "libnvidia-ml-vdev.so.1")):
+        link = BUILD / name
         if link.is_symlink() or link.exists():
             link.unlink()
-        link.symlink_to("libcuda-vdev.so.1")
+        link.symlink_to(target)
     return BUILD
 
 
@@ -82,6 +128,7 @@ def main():
     build()
     env = dict(os.environ)
     env["LD_LIBRARY_PATH"] = str(BUILD) + (":" + env["LD_LIBRARY_PATH"] if env.get("LD_LIBRARY_PATH") else "")
+    env["LD_PRELOAD"] = str(BUILD / "libcudart-vdev.so.1")
     env["VDEV_NVDEV"] = str(args.n)
     with tempfile.TemporaryDirectory(dir=str(REPO / ".lab" / "tmp")) as td:
         cp = subprocess.run([sys.executable, "-c", CHILD], env=env, cwd=td,
@@ -94,8 +141,13 @@ def main():
     got = json.loads(line[0][5:])
     checks = {
         "device_count_is_N": got["device_count"] == args.n,
+        "cudart_count_is_N": got["cudart_count"] == args.n,
+        "nvml_count_is_N": got["nvml_count"] == args.n,
         "every_device_named_B300": all("B300" in n for n in got["names"]),
+        "nvml_name_matches_cudart": got["nvml_name"] == got["names"][0],
         "b300_memory_identity": all(t > 200 for t in got["total_memory_gib"]),
+        "nvml_total_matches": got["nvml_total_gib"] == got["total_memory_gib"][0],
+        "capability_is_real_12_0": all(c == "12.0" for c in got["compute_capability"]),
         "cuda_available": got["is_available"] is True,
         "matmul_ran_on_the_alias": got["matmul_max_abs_err"] < 1e-3,
     }
@@ -105,6 +157,7 @@ def main():
         return 1
     print(f"VDEV OK: device_count={got['device_count']} name={got['names'][0]} "
           f"total={got['total_memory_gib'][0]} GiB peak_rss={got['peak_rss_mib']} MiB "
+          f"mem_available={got.get('mem_available_mib')} MiB "
           f"matmul_err={got['matmul_max_abs_err']:.2e}")
     return 0
 

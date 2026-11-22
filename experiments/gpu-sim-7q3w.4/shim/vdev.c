@@ -34,9 +34,7 @@
 #undef cuGetProcAddress
 #undef cuDeviceGetUuid
 
-#define NVDEV 8                /* 8 GPUs per node; the node count is the launcher's business */
-#define B300_TOTAL_MEM (288ull << 30)   /* 288 GiB HBM3e, the B300 identity */
-#define B300_SMS 160
+#include "b300_spec.h"    /* D1 is the only source of these values */
 
 extern void *fwd_real_handle;
 static CUresult (*real_cuInit)(unsigned);
@@ -93,11 +91,11 @@ CUresult cuInit(unsigned flags) { return real_cuInit ? real_cuInit(flags) : CUDA
 
 CUresult cuDriverGetVersion(int *v) { return real_cuDriverGetVersion(v); }
 
-CUresult cuDeviceGetCount(int *n) { if (!n) return CUDA_ERROR_INVALID_VALUE; *n = NVDEV; return CUDA_SUCCESS; }
+CUresult cuDeviceGetCount(int *n) { if (!n) return CUDA_ERROR_INVALID_VALUE; *n = B300_NVDEV; return CUDA_SUCCESS; }
 
 CUresult cuDeviceGet(CUdevice *d, int ordinal) {
     if (!d) return CUDA_ERROR_INVALID_VALUE;
-    if (ordinal < 0 || ordinal >= NVDEV) return CUDA_ERROR_INVALID_DEVICE;
+    if (ordinal < 0 || ordinal >= B300_NVDEV) return CUDA_ERROR_INVALID_DEVICE;
     *d = ordinal;
     return CUDA_SUCCESS;
 }
@@ -105,7 +103,7 @@ CUresult cuDeviceGet(CUdevice *d, int ordinal) {
 CUresult cuDeviceGetName(char *name, int len, CUdevice dev) {
     (void)dev;
     if (!name || len <= 0) return CUDA_ERROR_INVALID_VALUE;
-    snprintf(name, (size_t)len, "NVIDIA B300");
+    snprintf(name, (size_t)len, "%s", B300_NAME);
     return CUDA_SUCCESS;
 }
 
@@ -129,7 +127,7 @@ CUresult cuDeviceGetPCIBusId(char *bus, int len, CUdevice dev) {
 CUresult cuDeviceTotalMem_v2(size_t *bytes, CUdevice dev) {
     (void)dev;
     if (!bytes) return CUDA_ERROR_INVALID_VALUE;
-    *bytes = (size_t)B300_TOTAL_MEM;
+    *bytes = (size_t)B300_TOTAL_MEM_BYTES;
     return CUDA_SUCCESS;
 }
 CUresult cuDeviceTotalMem(size_t *bytes, CUdevice dev) { return cuDeviceTotalMem_v2(bytes, dev); }
@@ -137,7 +135,7 @@ CUresult cuDeviceTotalMem(size_t *bytes, CUdevice dev) { return cuDeviceTotalMem
 CUresult cuDeviceGetAttribute(int *value, CUdevice_attribute attr, CUdevice dev) {
     if (!value) return CUDA_ERROR_INVALID_VALUE;
     switch (attr) {
-        case CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT: *value = B300_SMS; return CUDA_SUCCESS;
+        case CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT: *value = B300_SM_COUNT; return CUDA_SUCCESS;
         default: break;   /* compute capability, memory clocks, everything measured: real */
     }
     CUdevice real_dev = 0;   /* aliasing: every virtual device IS device 0 */
@@ -151,18 +149,18 @@ CUresult cuMemGetInfo_v2(size_t *free_b, size_t *total_b) {
     CUresult rc = real_cuMemGetInfo_v2(&f, &t);
     if (rc != CUDA_SUCCESS) return rc;
     *free_b = f;            /* real free: the allocator must not over-commit */
-    *total_b = (size_t)B300_TOTAL_MEM;   /* identity */
+    *total_b = (size_t)B300_TOTAL_MEM_BYTES;   /* identity */
     return CUDA_SUCCESS;
 }
 CUresult cuMemGetInfo(size_t *f, size_t *t) { return cuMemGetInfo_v2(f, t); }
 
 /* ---------- contexts: created on the REAL device, per virtual device ---------- */
-#define MAX_CTX NVDEV
+#define MAX_CTX B300_NVDEV
 static CUcontext ctx_of[MAX_CTX];
 
 CUresult cuDevicePrimaryCtxRetain(CUcontext *pctx, CUdevice dev) {
     if (!pctx) return CUDA_ERROR_INVALID_VALUE;
-    if (dev < 0 || dev >= NVDEV) return CUDA_ERROR_INVALID_DEVICE;
+    if (dev < 0 || dev >= B300_NVDEV) return CUDA_ERROR_INVALID_DEVICE;
     CUresult rc = real_cuDevicePrimaryCtxRetain(pctx, 0);
     if (rc == CUDA_SUCCESS) ctx_of[dev] = *pctx;
     return rc;
@@ -185,7 +183,7 @@ CUresult cuDevicePrimaryCtxSetFlags_v2(CUdevice dev, unsigned flags) {
 }
 
 CUresult cuCtxCreate_v2(CUcontext *pctx, unsigned flags, CUdevice dev) {
-    if (dev < 0 || dev >= NVDEV) return CUDA_ERROR_INVALID_DEVICE;
+    if (dev < 0 || dev >= B300_NVDEV) return CUDA_ERROR_INVALID_DEVICE;
     return real_cuCtxCreate_v2(pctx, flags, 0);   /* alias to the real device */
 }
 CUresult cuCtxCreate(CUcontext *pctx, unsigned flags, CUdevice dev) { return cuCtxCreate_v2(pctx, flags, dev); }
