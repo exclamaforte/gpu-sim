@@ -2,7 +2,7 @@
   "bead": "gpu-sim-7q3w.4",
   "captured_at_utc": "2026-11-22T22:13:05.976829+00:00",
   "scope": "8 OS processes x 8 virtual devices (A1/D2). Increments 2 and 3 use world_size 8, one rank per node; A5 compares that 8-way run with a single-rank reference. A3 is gpu-sim-s2vc, A6 is gpu-sim-ae2v, and A4 remains gpu-sim-7q3w.5: no NCCL data-path or topology claim is made.",
-  "gate": "scripts/gate.sh --fast 15/15 PASS at tip 4e69699b, gate dir .lab/gate-logs/4e69699b-20261122T221502Z; UNVERIFIABLE FOR THIS TIP: handle none, delta metrics.json only (gate citation added after the gate)",
+  "gate": "scripts/gate.sh --fast 15/15 PASS at tip 3bbae3d0, gate dir .lab/gate-logs/3bbae3d0-20261122T222037Z; UNVERIFIABLE FOR THIS TIP: handle none, delta metrics.json only (gate citation and A1 map are the only changes after the gate)",
   "result": {
     "a2_node_isolation": {
       "verdict": "PASS",
@@ -177,7 +177,7 @@
     }
   },
   "a_item_map": {
-    "A1": "probe_vdev.py: 8 virtual B300 devices via NVML; checks device_count_is_N, name_is_D1, total_mem_is_D1, sm_count_is_D1, uuid_prefix, nvml_private_count, matmul_err. Run = increment 1.",
+    "A1": "probe_vdev.py: 8 virtual B300 devices via NVML; checks device_count_is_N, name_is_D1, total_mem_is_D1, sm_count_is_D1, uuid_prefix, nvml_private_count, matmul_err. The A1 run was posted at 211fb8e2 (findings section 8; VDEV OK node=3); this capture's node children re-assert the same identity but do not rerun the full A1 probe.",
     "A2": "probe_a2.py: probe_nodes.py normal run must have 64 distinct D1 PCI bus ids and each child exactly 8; the --all-node 0 run must FAIL the same checks (distinct ids = 8 != 64) and exit nonzero, as expected. Run = increment 0.",
     "A3": "moved to gpu-sim-s2vc (NCCL topology XML/IB choice); not claimed here.",
     "A4": "gpu-sim-7q3w.5 owns NCCL numerics; increment 2 is a gloo control-plane all_reduce only.",
