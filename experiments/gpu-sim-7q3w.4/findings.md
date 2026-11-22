@@ -239,3 +239,28 @@ Measured in one child with `VDEV_NODE=3` (`probe_vdev.py --node 3`):
 No shim contains a 288/GiB/8/B300/1.8/800 identity literal: the name, memory,
 SM count, PCI base/stride and UUID prefix all come from the generated
 `b300_spec.h`.  The real card's capability (12.0) is forwarded, as A1 requires.
+
+## 9. Deliverable increment 1: eight concurrent node processes and the preflight
+
+The capacity probe's "~12M params" label was wrong: its d_model=256, 4-layer
+model is 3,159,040 params, and the 936 MiB figure belonged to that shape.  The
+corrected d_model=512 / ff=2048 / 4-layer model is 12,609,536 params and measures
+1148 MiB/node with AdamW after one CPU step.  The preflight budget is therefore
+8*1148 + 1024 margin = 10208 MiB, not 7488 + 1024.
+
+The preflight refused when it should: at MemAvailable 9889 MiB it printed REFUSE
+and launched nothing.  At MemAvailable 11570 MiB it ran all eight children
+concurrently, each with its own VDEV_NODE:
+
+    CONCURRENT OK: 8 processes device_count=8 name=NVIDIA B300
+                   rss_sum=9128 MiB (budget 9184 MiB)
+                   mem_available_start=11570 MiB end=10305 MiB
+                   preflight_required=10208 MiB
+    per-node RSS MiB: 1141 1133 1154 1127 1137 1147 1140 1149
+    each child: params=12609536, device_count=8, name='NVIDIA B300'
+
+**Tool trap:** the detached `run` tool is CPU-only by contract and hides CUDA
+(`CUDA_VISIBLE_DEVICES=""`), so the first background attempt died inside AdamW's
+`_accelerator_graph_capture_health_check()` with `cudaErrorNoDevice` even though
+the shims were fine.  The probe must run in the agent shell with the real device
+visible; use the run tool only for waiting, then run the probe manually.

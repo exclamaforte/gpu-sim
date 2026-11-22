@@ -99,14 +99,14 @@ def run_child(code, env=None, timeout=300):
 MODEL_CHILD = """
 import torch, torch.nn as nn
 torch.manual_seed(0)
-# ~12M params: a 4-layer, d_model=256 transformer block stack, float32. This is
+# ~12.6M params: a 4-layer, d_model=512 transformer block stack, float32. This is
 # the shape the bead asks for (10-50M), and CPU-only on purpose: the point here is
 # memory, not speed.
 m = nn.TransformerEncoder(
-    nn.TransformerEncoderLayer(d_model=256, nhead=8, dim_feedforward=1024,
+    nn.TransformerEncoderLayer(d_model=512, nhead=8, dim_feedforward=2048,
                                batch_first=True), num_layers=4)
 opt = torch.optim.AdamW(m.parameters(), lr=1e-3)
-x = torch.randn(8, 64, 256)
+x = torch.randn(8, 64, 512)
 y = m(x).sum()
 y.backward()
 opt.step()
@@ -140,9 +140,9 @@ FORK_CHILD = """
 import os, sys, torch, torch.nn as nn
 torch.manual_seed(0)
 m = nn.TransformerEncoder(
-    nn.TransformerEncoderLayer(d_model=256, nhead=8, dim_feedforward=1024,
+    nn.TransformerEncoderLayer(d_model=512, nhead=8, dim_feedforward=2048,
                                batch_first=True), num_layers=4)
-x = torch.randn(8, 64, 256)
+x = torch.randn(8, 64, 512)
 pids = []
 for _ in range(8):
     pid = os.fork()
