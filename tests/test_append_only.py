@@ -97,15 +97,28 @@ CHEAP_TIMEOUT_S = 120     # below conftest's 300s per-test budget: no race
 FULL_TIMEOUT_S = 290      # ditto, for the calls that still need the replay
 
 
-def run_script(plant=None, env=None, cheap=True, rows=None):
+def run_script(plant=None, env=None, cheap=True, rows=None, whole_ledger=False,
+               resolve_node_ids=False):
+    # gpu-sim-mi5v: the rule "bound the replay" must not depend on the next
+    # author remembering it. An unbounded full walk costs ~196s per call and
+    # was what turned this file into a 300s-budget failure under load, so the
+    # unbounded form is now only reachable by an explicit, greppable opt-in.
+    if not cheap and not rows and not resolve_node_ids and not whole_ledger:
+        raise AssertionError(
+            "run_script(cheap=False) without rows= is the unbounded 196s ledger "
+            "walk; pass rows=<row>, resolve_node_ids=True, or whole_ledger=True")
     if env is None:
         env = dict(os.environ)
     else:
         env = dict(env)
-    args = ["--dirty-ok"] + (["--no-ledger-replay"] if cheap else [])
+    args = ["--dirty-ok"]
+    if cheap:
+        args.append("--no-ledger-replay")
+    if resolve_node_ids:
+        args.append("--resolve-node-ids")
     if rows:
         args += ["--rows", rows]
-    timeout = CHEAP_TIMEOUT_S if cheap else FULL_TIMEOUT_S
+    timeout = CHEAP_TIMEOUT_S if (cheap or resolve_node_ids) else FULL_TIMEOUT_S
     with _disposable_worktree() as wt:
         if plant is not None:
             plant(wt)
@@ -204,7 +217,10 @@ class TestAppendOnly(unittest.TestCase):
 class TestLedgerNodeIds(unittest.TestCase):
     def test_ledger_node_ids_resolve(self):
         """Every ledger row's test node resolves and collects >=1 test."""
-        rc, out = run_script(cheap=False)
+        # Resolution only: every row's node is resolved in ONE batched
+        # collect-only, no mutation plant is replayed. Equivalence with the full
+        # walk is pinned in tests/test_mi5v_cheap_mode.py.
+        rc, out = run_script(resolve_node_ids=True)
         assert rc == 0, out
 
     def test_plant_class_qualified_module_level_fails(self):
@@ -285,9 +301,9 @@ class TestLedgerNodeIds(unittest.TestCase):
                 "bound_calls": 1,
                 "mutation": "ledger_node_ids_validated",
             }, indent=2) + "\n")
-        # this plant is detected inside the row's positive execution path, which
-        # needs the unfiltered walk; keep it full (gpu-sim-mi5v)
-        rc, out = run_script(cheap=False, plant=plant)
+        # The vacuous row is detected by applying its registered mutation and
+        # seeing rc=0, so the bound is exact: replay only the planted row.
+        rc, out = run_script(cheap=False, rows="plant_vacuous", plant=plant)
         assert rc != 0, "expected failure on vacuous row"
         assert "did not fail" in out, out
 

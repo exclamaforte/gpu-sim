@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check_append_only.py"
 
 
-def _mini_repo(td, delete_key=False):
+def _mini_repo(td, delete_key=False, row_nodes=()):
     """Smallest tree the checker accepts: git repo + facts + one ledger row."""
     repo = Path(td) / "repo"
     (repo / "docs").mkdir(parents=True)
@@ -36,6 +36,10 @@ def _mini_repo(td, delete_key=False):
         (ROOT / "scripts" / "fs2y_mutations.py").read_text())
     (repo / "scripts" / "resolve_trunk.py").write_text(
         (ROOT / "scripts" / "resolve_trunk.py").read_text())
+    # One real registry mutation, so a fixture row's mutation field resolves.
+    for fn in ("append_only_guard.py", "append_only_guard.json"):
+        (repo / "scripts" / "fs2y_mutations.d" / fn).write_text(
+            (ROOT / "scripts" / "fs2y_mutations.d" / fn).read_text())
     facts = {"keep_me": {"v": 1}, "gone_me": {"v": 2}}
     (repo / "docs" / "model_facts.json").write_text(json.dumps(facts, indent=2) + "\n")
     git = lambda *a: subprocess.run(["git", "-C", str(repo), *a], check=True,
@@ -58,13 +62,29 @@ def _mini_repo(td, delete_key=False):
         # invisible (the checker compares base_ref's file to the worktree's).
         del facts["gone_me"]
         (repo / "docs" / "model_facts.json").write_text(json.dumps(facts, indent=2) + "\n")
+    # A real ledger row (and the module it names) so the resolve-only walk has
+    # something to resolve.
+    (repo / "tests" / "test_ok.py").write_text(
+        "def test_a():\n    assert True\n\n"
+        "class TestK:\n    def test_b(self):\n        assert True\n")
+    for i, node in enumerate(row_nodes):
+        (repo / "tests" / "fs2y_ledger.d" / f"row_{i}.json").write_text(json.dumps({
+            "name": f"row_{i}", "beads": ["gpu-sim-mi5v"], "state": "passing",
+            "test": node, "bound_calls": 1,
+            "mutation": "append_only_guard",
+        }, indent=2) + "\n")
+    git("add", "-A")
+    git("commit", "-qm", "rows", "--allow-empty")
     return repo
 
 
 def _run(repo, cheap):
+    """cheap=True -> --no-ledger-replay; "resolve" -> --resolve-node-ids."""
     args = [sys.executable, str(repo / "scripts" / "check_append_only.py"),
             "--dirty-ok", "--base", "main"]
-    if cheap:
+    if cheap == "resolve":
+        args.append("--resolve-node-ids")
+    elif cheap:
         args.append("--no-ledger-replay")
     r = subprocess.run(args, cwd=str(repo), capture_output=True, text=True, timeout=120)
     fails = tuple(l for l in ((r.stdout or "") + (r.stderr or "")).splitlines()
@@ -86,6 +106,30 @@ class TestCheapModeEquivalence(unittest.TestCase):
             self.assertNotEqual(full[0], 0, "fixture did not fail in full mode")
             self.assertEqual(cheap, full,
                              "cheap mode does not reproduce the full-mode failure")
+
+    def test_resolve_only_agrees_with_full_on_a_resolving_ledger(self):
+        """Resolution verdicts are identical: batched collect vs the full walk."""
+        with tempfile.TemporaryDirectory(dir=str(ROOT / ".lab" / "tmp")) as td:
+            repo = _mini_repo(td, row_nodes=["tests/test_ok.py::test_a",
+                                             "tests/test_ok.py::TestK::test_b"])
+            full = _run(repo, cheap=False)
+            res = _run(repo, "resolve")
+            self.assertEqual(full[0], 0, full)
+            self.assertEqual(res, full,
+                             "resolve-only disagrees with the full walk on a "
+                             "ledger whose nodes all resolve")
+
+    def test_resolve_only_and_full_both_reject_an_unresolvable_node(self):
+        """A row naming a missing test must fail BOTH modes -- the pin that the
+        cheap resolution cannot be satisfied by simply walking fewer nodes."""
+        with tempfile.TemporaryDirectory(dir=str(ROOT / ".lab" / "tmp")) as td:
+            repo = _mini_repo(td, row_nodes=["tests/test_ok.py::does_not_exist"])
+            full = _run(repo, cheap=False)
+            res = _run(repo, "resolve")
+            self.assertNotEqual(full[0], 0, "fixture did not fail in full mode")
+            self.assertNotEqual(res[0], 0, "resolve-only passed an unresolvable node")
+            self.assertTrue(any("does not resolve" in l for l in full[1]), full)
+            self.assertTrue(any("does not resolve" in l for l in res[1]), res)
 
     def test_cheap_mode_is_refused_with_force(self):
         r = subprocess.run([sys.executable, str(CHECKER), "--force", "--no-ledger-replay"],

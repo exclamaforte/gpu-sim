@@ -497,7 +497,52 @@ def _dirty_paths(root) -> set:
     return out
 
 
-def check_ledger_test_ids(root, only_rows=None):
+_BATCH_IDS = {}
+def _collect_all_node_ids(root, entries):
+    """One `pytest --collect-only` for every module the ledger names.
+
+    Returns the set of fully-qualified node ids pytest collected, or None when
+    the batch run cannot answer (collect error), in which case the caller does
+    the per-row form and keeps the per-row error message.
+    """
+    key = root
+    if key in _BATCH_IDS:
+        return _BATCH_IDS[key]
+    files = []
+    for e in entries:
+        node = e.get("test") or ""
+        if not node:
+            continue
+        # Rows come in two spellings: path form (tests/x.py::C::t) and the old
+        # dotted form (test_x.C.t). Normalize exactly as the per-row walk does,
+        # or the batch silently resolves only the newer half of the ledger
+        # (measured: 18 of 80 rows before this).
+        target, err = _normalize_ledger_node(node)
+        if err:
+            continue
+        f = target.split("::")[0]
+        if f and os.path.exists(os.path.join(root, f)) and f not in files:
+            files.append(f)
+    ids = None
+    if files:
+        try:
+            r = subprocess.run(
+                [sys.executable, "-m", "pytest", "--collect-only", "-q", *files],
+                cwd=root, capture_output=True, text=True,
+                timeout=max(COLLECT_ONLY_TIMEOUT, 120), env=_child_env())
+        except subprocess.TimeoutExpired:
+            r = None
+        if r is not None and r.returncode == 0:
+            ids = set()
+            for line in ((r.stdout or "") + (r.stderr or "")).splitlines():
+                line = line.strip()
+                if "::" in line and not line.startswith("="):
+                    ids.add(line.split(" ")[0])
+    _BATCH_IDS[key] = ids
+    return ids
+
+
+def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
     """Resolve every ledger row's test node; fail closed on resolution errors,
     missing registry, unregistered mutation, self-reference, or vacuous test."""
     ddir = os.path.join(root, "tests", "fs2y_ledger.d")
@@ -522,6 +567,7 @@ def check_ledger_test_ids(root, only_rows=None):
     # only rules -- still runs for every row, so a plant cannot hide behind the
     # filter. tests/test_append_only.py uses it with the row it just planted.
     child = _child_mode()
+    _batch_ids = None
     errors = []
     seen = set()
     for entry in entries:
@@ -563,6 +609,20 @@ def check_ledger_test_ids(root, only_rows=None):
                           f"(imports or execs {CHECKER_NAME}); a ledger row must name a PRODUCT test")
             continue
 
+        if resolve_only:
+            # gpu-sim-mi5v: resolution is a property of the WHOLE ledger, but
+            # paying one pytest process per row (80 rows) is what made this
+            # walk cost minutes. Collect every target module once, up front,
+            # then answer each row by membership. The verdicts are the same
+            # because both forms ask pytest the same question -- and if the
+            # batch collect fails (a plant pointing at a broken module) we
+            # fall back to the per-row form so the error stays per-row.
+            if _batch_ids is None:
+                _batch_ids = _collect_all_node_ids(root, entries)
+            if _batch_ids is not None:
+                if target not in _batch_ids:
+                    errors.append(f"ledger row {name!r}: node {target!r} does not resolve")
+                continue
         positive_done = False
         exempt = name in EXEMPT_ROWS
         # gpu-sim-55sb: an assertion that cannot fail is not evidence.
@@ -594,8 +654,8 @@ def check_ledger_test_ids(root, only_rows=None):
             continue
         # mutation-derived plant: apply mutation, run target (expect fail),
         # restore, run target (expect pass). Only when a function exists.
-        if (not child and not exempt and mutation and mutation not in ("n/a", "doc-only")
-                and mutation in mfns):
+        if (not child and not resolve_only and not exempt and mutation
+                and mutation not in ("n/a", "doc-only") and mutation in mfns):
             apply_fn = mfns[mutation]
             # Snapshot what was ALREADY dirty so the restore below can never
             # discard real work; an applier may write a file and only then
@@ -697,7 +757,7 @@ def check_ledger_test_ids(root, only_rows=None):
         if (not child and exempt):
             print(f"replay skipped (exempt): {name} -- {EXEMPT_ROWS[name]}")
         # positive execution (top-level only; children skip to avoid recursion)
-        if (not child and not positive_done and not exempt):
+        if (not child and not resolve_only and not positive_done and not exempt):
             rrun = _run_pytest(
                 [sys.executable, "-m", "pytest", "-q", target],
                 root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env())
@@ -851,6 +911,10 @@ def main():
     ap.add_argument("--rows", default=None,
                     help="comma-separated ledger row names to replay (default: all); "
                          "cheap validations still run for every row")
+    ap.add_argument("--resolve-node-ids", action="store_true",
+                    help="resolve EVERY ledger row's test node without replaying "
+                         "mutation plants (batched collect-only); verdicts match "
+                         "the full walk (gpu-sim-mi5v)")
     ap.add_argument("--no-ledger-replay", action="store_true",
                     help="skip the per-row ledger test-id replay (cheap mode; "
                          "retirement verdicts unchanged; not allowed with --force)")
@@ -860,11 +924,15 @@ def main():
     # nothing (it reads `git status` and exits), so refusing it made the guard's own sentence --
     # "mutates tracked files" -- false for that mode, and left the read-only path untestable from
     # the very tree it protects.  Every mutating path below still refuses.
+    if args.resolve_node_ids and args.no_ledger_replay:
+        print("REFUSE: --resolve-node-ids and --no-ledger-replay are different "
+              "modes; pick one.")
+        return 2
     if args.no_ledger_replay and args.force:
         print("REFUSE: --no-ledger-replay cannot be combined with --force; "
               "the gate must run the full ledger replay.")
         return 2
-    read_only = args.check_dirty_only or args.no_ledger_replay
+    read_only = args.check_dirty_only or args.no_ledger_replay or args.resolve_node_ids
     if _is_integration_tree() and not args.force and not read_only:
         print("REFUSE: check_append_only mutates tracked files; run it in a bead worktree, not the integration tree.")
         print("Usage: cd .lab/wt/<bead> && python3 scripts/check_append_only.py")
@@ -903,7 +971,11 @@ def main():
               "no mutation plant is applied and no row's test node is resolved")
     else:
         try:
-            for e in check_ledger_test_ids(ROOT, only_rows=only_rows):
+            if args.resolve_node_ids:
+                print("NOTE: --resolve-node-ids: every row's node is resolved, "
+                      "but no mutation plant is applied (no replay)")
+            for e in check_ledger_test_ids(ROOT, only_rows=only_rows,
+                                           resolve_only=args.resolve_node_ids):
                 errors.append(e)
         except Exception as e:
             errors.append(f"ledger test-id resolution: {e}")
