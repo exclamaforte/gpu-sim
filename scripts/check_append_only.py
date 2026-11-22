@@ -573,6 +573,12 @@ def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
     # only rules -- still runs for every row, so a plant cannot hide behind the
     # filter. tests/test_append_only.py uses it with the row it just planted.
     child = _child_mode()
+    if not child and not os.path.exists(os.path.join(root, "libfakegpu.so")):
+        # A tree with no built lib fails EVERY pytest run at conftest's freshness
+        # guard (rc=3). Measured: in a fresh worktree the mutated run then looked
+        # like it had "bitten" and the restored run passed, so a VACUOUS plant
+        # came out green. Build once, before the walk, and the walk sees tests.
+        subprocess.run(["make"], cwd=root, capture_output=True, text=True, timeout=300)
     _batch_ids = None
     errors = []
     seen = set()
@@ -681,6 +687,12 @@ def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
                         f"mutation run for {target!r} exceeded "
                         f"{ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT)}s; this row says NOTHING "
                         f"about whether the plant bites")
+                    continue
+                if rmut.returncode == 3:
+                    errors.append(
+                        f"ledger row {name!r}: mutation run ended in a pytest INTERNALERROR "
+                        f"(rc=3); that is infrastructure, not a plant that bit -- the row "
+                        f"says NOTHING about {mutation!r}")
                     continue
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
