@@ -102,8 +102,10 @@ def test_worktree_add_failure_fails_not_skips(monkeypatch):
         return real_run(cmd, *args, **kwargs)
 
     monkeypatch.setattr(subprocess, "run", failing)
-    with pytest.raises(pytest.fail.Exception) as exc:
+    with pytest.raises((pytest.fail.Exception, pytest.skip.Exception)) as exc:
         next(sandbox.__wrapped__())
+    if exc.type is pytest.skip.Exception:
+        pytest.fail("fixture SKIPPED instead of failing: " + str(exc.value))
     assert "cannot create scratch worktree at" in str(exc.value)
     assert "simulated worktree add failure" in str(exc.value)
 
