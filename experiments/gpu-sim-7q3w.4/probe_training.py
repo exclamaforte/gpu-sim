@@ -30,6 +30,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from probe_vdev import BUILD, REPO, build  # noqa: E402
+from checkpoint_agreement import check_checkpoint_hashes  # noqa: E402
 
 NODES = 8
 STEPS = 3
@@ -44,10 +45,13 @@ MARGIN_MIB = 1024
 REQUIRED_MIB = NODES * PER_RANK_MIB + MARGIN_MIB
 
 CHILD = r'''
-import ctypes, hashlib, json, os, resource
+import json, os, resource, sys
 import torch
 import torch.nn as nn
 import torch.distributed as dist
+
+sys.path.insert(0, os.environ["EXP_DIR"])
+from checkpoint_agreement import canonical_state_dict_sha256
 
 torch.set_num_threads(1)
 
@@ -94,17 +98,10 @@ if os.environ.get("INJECT_CHECKPOINT_DIFFERENCE") == "1" and rank == 3:
     with torch.no_grad():
         next(model.parameters()).add_(0.01)
 
-# Canonical checkpoint hash: key order, dtype, shape and CPU tensor bytes.
-# torch.save's container metadata is not part of the checkpoint's contents.
+# One canonical hash, shared with the ledger-bound test (checkpoint_agreement.py):
+# key order, dtype, shape and CPU tensor bytes; container metadata is excluded.
 sd = model.state_dict()
-h = hashlib.sha256()
-for k in sorted(sd):
-    t = sd[k].detach().cpu().contiguous()
-    h.update(k.encode())
-    h.update(str(t.dtype).encode())
-    h.update(str(tuple(t.shape)).encode())
-    h.update(t.numpy().tobytes())
-out["checkpoint_sha256"] = h.hexdigest()
+out["checkpoint_sha256"] = canonical_state_dict_sha256(sd)
 out["params"] = sum(p.numel() for p in model.parameters())
 
 torch.save(sd, os.path.join(ckpt_dir, f"rank{rank}.pt"))
@@ -162,6 +159,7 @@ def main():
     env["LD_PRELOAD"] = (str(BUILD / "libnvidia-ml.so.1") + ":"
                         + str(BUILD / "libcudart-vdev.so.1"))
     env["VDEV_NVDEV"] = "8"
+    env["EXP_DIR"] = str(HERE)
     env["MASTER_ADDR"] = "127.0.0.1"
     env["MASTER_PORT"] = str(port)
     env["WORLD_SIZE"] = str(args.nodes)
@@ -226,7 +224,8 @@ def main():
         }
 
     hashes = [r["checkpoint_sha256"] for r in per_rank.values()]
-    equal_hash = len(set(hashes)) == 1
+    agreement = check_checkpoint_hashes(hashes)
+    equal_hash = agreement["agrees"]
     checks = {
         "eight_ranks": len(per_rank) == args.nodes,
         "each_rank_is_its_node": all(
@@ -255,6 +254,7 @@ def main():
     result = {
         "per_rank": per_rank,
         "checkpoint_hashes": hashes,
+        "checkpoint_agreement": agreement,
         "checkpoints": ckpt_files,
         "checks": checks,
         "rss_sum_mib": sum(r["peak_rss_mib"] for r in per_rank.values()),
