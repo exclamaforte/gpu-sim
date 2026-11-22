@@ -94,8 +94,15 @@ draws"):
 | cu13 | 20 | 20x `rc=0` | 20/20 | 0 | 0 | ~34 s |
 
 `RUN OK: v11 plugin accepted and used on both wheels, 20/20 runs each`,
-68 s total, CPU only. `metrics.json` in this directory is the machine-readable
-summary including the honest gaps below.
+**69 s wall at load 15.13** (1/5/15 min), CPU only -- the wall time is a property
+of the box, so the load is quoted with it and the same numbers live in
+`metrics.json`'s `conditions` block (`load_average`, `wall_seconds`); the figure below is the run
+re-measured after this branch was rebased onto main 7f54d408, because the numbers
+cite a moment, not a commit. An earlier
+draft of this section said 68 s with no load tag; that figure is gone rather than
+reconciled, because a timing without its load is not a measurement.
+`metrics.json` in this directory is the machine-readable summary including the
+honest gaps below.
 
 The **control** (`run.sh` stage 5) is what makes the positive arm mean something:
 with `NCCL_DEBUG=WARN` our constructor's `PLUGIN_LOADED` line (plain `stderr`,
