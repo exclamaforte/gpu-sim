@@ -124,7 +124,7 @@ _DECLARED_ALL=("pytest tests/" "docs section 0 vs model" "append-only records"
   "close_audit unchanged" "close audit (concrete artifacts)"
   "interposer guard uniqueness" "libfakegpu freshness" "prose-number provenance"
   "claims register" "radius prose" "no vacuous assertions" "gate citations"
-  "trunk refs agree" "shard format")
+  "trunk refs agree" "shard format" "fs metadata headroom")
 run_hard() {  # name, command...
   local name="$1"; shift
   RAN+=("$name")
@@ -211,6 +211,11 @@ run_hard "no vacuous assertions" python3 scripts/check_no_vacuous_asserts.py
 run_hard "gate citations" python3 scripts/check_gate_citations.py
 run_hard "trunk refs agree" python3 scripts/check_trunk_refs.py
 run_hard "shard format" python3 scripts/check_shard_format.py
+# gpu-sim-cywp: on btrfs, 'df' reports the DATA profile.  A full METADATA block
+# group makes rename() fail ENOSPC with tens of GiB 'free' -- which is every
+# editor write, git checkout and gate write on this box.  Fail with the numbers
+# and the remedy instead of letting the next agent debug a lying error message.
+run_hard "fs metadata headroom" python3 scripts/check_fs_headroom.py
 run_advisory "worktree hygiene" python3 scripts/check_worktree_hygiene.py
 run_advisory "byte reconciliation" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-wrvw/trace_fixture.jsonl --tp 2 --pp 1 --cp 1 --dp 2 --zero 3 --steps 2 --batch 8
 run_advisory "byte reconciliation cp" python3 scripts/reconcile_bytes.py --trace experiments/gpu-sim-juzb/trace_fixture.jsonl --tp 1 --pp 1 --cp 2 --dp 1 --zero 0 --steps 2 --batch 8 --cp-grad-mode production
