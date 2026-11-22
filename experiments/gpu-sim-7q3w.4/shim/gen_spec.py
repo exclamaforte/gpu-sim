@@ -41,8 +41,9 @@ def main():
         f"#define B300_PCIE_GEN {m['pcie_gen']}",
         f"#define B300_PCIE_WIDTH {m['pcie_width']}",
         f"#define B300_TDP_W {m['tdp_w']}",
-        "/* virtual PCI bus ids live at 0x0b + device, one node per process */",
-        "#define B300_PCI_BUS_BASE 0x0b",
+        f"/* virtual PCI bus ids: base + node*stride + local index (D1) */",
+        f"#define B300_PCI_BUS_BASE {m['pci_bus_base']}",
+        f"#define B300_PCI_BUS_NODE_STRIDE {m['pci_bus_node_stride']}",
         "#endif",
     ]
     with open(os.path.join(out, "b300_spec.h"), "w") as f:

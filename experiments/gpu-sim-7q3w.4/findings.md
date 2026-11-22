@@ -168,3 +168,34 @@ identity (name, 288 GiB, PCI ids, SM count, PCIe gen) is modelled, arithmetic is
 and free bytes/capability are forwarded.  No NVLink/IB fabric, no per-node sysfs yet;
 those are D2 and 7q3w.3/.5.  The `total_memory` vs `cudaMemGetInfo` split (288 GiB
 identity vs real free) is deliberate and is what keeps allocations from over-committing.
+
+## 7. D2 first line: eight node processes, 64 disjoint bus ids
+
+`probe_nodes.py` launches eight processes concurrently, each with its own
+`VDEV_NODE=n`, and asks both NVML and cudart for the PCI bus ids.  D1 now carries
+`pci_bus_base` (0x0b) and `pci_bus_node_stride` (0x20); `gen_spec.py` emits both
+into `b300_spec.h`, and no shim contains the stride as a literal.  Node n, local
+device i reports bus `0x0b + 0x20*n + i`, so node n's eight ids are contiguous and
+disjoint from every other node's.
+
+Measured (one invocation, `python3 experiments/gpu-sim-7q3w.4/probe_nodes.py`):
+
+    NODES OK: 8 processes x 8 B300, 64 distinct bus ids (0x0b+n*0x20)
+              total_peak_rss=4666 MiB min_mem_available=11158 MiB
+    8/8 checks: eight_node_processes, every_node_sees_8, every_node_names_b300,
+                nvml_and_cudart_agree, 64_distinct_pci_bus_ids,
+                bus_set_is_d1_exact, nodes_have_distinct_first_bus, node_n_first_bus
+
+**The measurement trap this found:** the child first loaded
+`ctypes.CDLL("libcudart.so.13")` directly and `cudaDeviceGetPCIBusId` returned the
+REAL runtime's single device (bus 1, then errors for 1..7).  A direct handle to the
+real soname binds the real library's own internal symbol, so the LD_PRELOAD
+override is bypassed.  `ctypes.CDLL(None)` (global scope) resolves to the
+preloaded shim, which is the layer torch's imports actually bind; with that
+correction NVML and cudart agree on all 64 ids.  This is the same class of trap as
+the `GOTPCREL` crash: a probe can silently measure the real library and still
+print a plausible number.
+
+**Remaining D2 gap:** this is the per-node GPU/NVML identity.  The per-node
+sysfs/NIC view (a node sees only its own ConnectX) is not in this increment; the
+7q3w.3 `sysfs_spoof.c` is the transport's one-path rewrite, not a per-node tree.

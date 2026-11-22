@@ -71,6 +71,9 @@ def model():
         "nvlink_bw_gbps": 1800.0,
         "pcie_gen": 6,
         "pcie_width": 16,
+        "pci_bus_base": 11,          # 0x0b; every modelled device sits on this node-local base
+        "pci_bus_node_stride": 32,   # 0x20; eight devices per node, next node starts 0x20 later
+        "pci_bus_source": "modelled: node n device i -> bus 0x0b + 0x20*n + i; the 0x20 stride keeps the eight devices of a node contiguous and the next node disjoint", 
         "tdp_w": 1400,
         "clock_mhz": None,
         "source": SOURCES["model.b300_sxm"],

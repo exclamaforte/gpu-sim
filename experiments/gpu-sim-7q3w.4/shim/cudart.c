@@ -22,6 +22,7 @@
 #include <dlfcn.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static void *real_cudart(void) {
@@ -35,6 +36,14 @@ static void *real_cudart(void) {
 #define REAL(name) dlsym(real_cudart(), name)
 
 static __thread int vdev_current = 0;
+
+static unsigned vdev_node(void) {
+    const char *e = getenv("VDEV_NODE");
+    int n = e ? atoi(e) : 0;
+    if (n < 0 || n >= B300_NODES) n = 0;
+    return (unsigned)n;
+}
+#define VDEV_BUS_BASE (B300_PCI_BUS_BASE + vdev_node() * B300_PCI_BUS_NODE_STRIDE)
 
 cudaError_t cudaGetDeviceCount(int *count) {
     if (!count) return cudaErrorInvalidValue;
@@ -70,13 +79,14 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device) {
     prop->totalGlobalMem = (size_t)B300_TOTAL_MEM_BYTES;
     prop->multiProcessorCount = B300_SM_COUNT;
     prop->pciDomainID = 0;
-    prop->pciBusID = B300_PCI_BUS_BASE + device;
+    prop->pciBusID = (int)(VDEV_BUS_BASE + (unsigned)device);
     prop->pciDeviceID = 0;
     /* distinct UUID per virtual device, as the driver shim does, so consumers
      * that dedupe by UUID do not collapse the eight devices into one. */
     memset(&prop->uuid, 0, sizeof prop->uuid);
-    memcpy(prop->uuid.bytes, "VDEV-B300-", 10);
-    prop->uuid.bytes[10] = (unsigned char)('0' + (device % 10));
+    memcpy(prop->uuid.bytes, "VDEV-", 5);
+    prop->uuid.bytes[5] = (unsigned char)('0' + vdev_node());
+    prop->uuid.bytes[6] = (unsigned char)('0' + (device % 10));
     return cudaSuccess;
 }
 
@@ -86,7 +96,7 @@ cudaError_t cudaDeviceGetAttribute(int *value, enum cudaDeviceAttr attr, int dev
     switch (attr) {
         case cudaDevAttrMultiProcessorCount: *value = B300_SM_COUNT; return cudaSuccess;
         case cudaDevAttrPciDomainId: *value = 0; return cudaSuccess;
-        case cudaDevAttrPciBusId: *value = B300_PCI_BUS_BASE + device; return cudaSuccess;
+        case cudaDevAttrPciBusId: *value = (int)(VDEV_BUS_BASE + (unsigned)device); return cudaSuccess;
         case cudaDevAttrPciDeviceId: *value = 0; return cudaSuccess;
         default: break;
     }
@@ -99,7 +109,7 @@ cudaError_t cudaDeviceGetPCIBusId(char *pciBusId, int len, int device) {
     if (!pciBusId || len <= 0) return cudaErrorInvalidValue;
     if (device < 0 || device >= B300_NVDEV) return cudaErrorInvalidDevice;
     snprintf(pciBusId, (size_t)len, "%04X:%02X:%02X.%X",
-             0u, (unsigned)(B300_PCI_BUS_BASE + device), 0u, 0u);
+             0u, (unsigned)(VDEV_BUS_BASE + (unsigned)device), 0u, 0u);
     return cudaSuccess;
 }
 

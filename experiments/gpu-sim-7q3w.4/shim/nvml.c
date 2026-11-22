@@ -24,6 +24,7 @@
 #include <dlfcn.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern void *nvml_fwd_real_handle;   /* set by generated nvml_forwarders.c */
@@ -31,6 +32,17 @@ extern void *nvml_fwd_real_handle;   /* set by generated nvml_forwarders.c */
 static void *real_sym(const char *name) {
     return nvml_fwd_real_handle ? dlsym(nvml_fwd_real_handle, name) : NULL;
 }
+
+/* The node this process presents.  D2: one process per simulated node; the
+ * PCI bus ids must differ between nodes so a rank cannot see another node's
+ * device set as its own. */
+static unsigned vdev_node(void) {
+    const char *e = getenv("VDEV_NODE");
+    int n = e ? atoi(e) : 0;
+    if (n < 0 || n >= B300_NODES) n = 0;
+    return (unsigned)n;
+}
+#define VDEV_BUS_BASE (B300_PCI_BUS_BASE + vdev_node() * B300_PCI_BUS_NODE_STRIDE)
 
 /* A fake handle is a small non-NULL integer; the real library is only ever
  * asked about real device 0 (the one GPU behind all virtual devices). */
@@ -115,9 +127,10 @@ nvmlReturn_t nvmlDeviceGetHandleByPciBusId_v2(const char *pciBusId, nvmlDevice_t
     if (sscanf(pciBusId, "%x:%x:%x.%x", &domain, &bus, &dev, &fn) != 4)
         return NVML_ERROR_INVALID_ARGUMENT;
     (void)domain; (void)dev; (void)fn;
-    if (bus < B300_PCI_BUS_BASE || bus >= B300_PCI_BUS_BASE + B300_NVDEV)
+    unsigned base = B300_PCI_BUS_BASE + vdev_node() * B300_PCI_BUS_NODE_STRIDE;
+    if (bus < base || bus >= base + B300_NVDEV)
         return NVML_ERROR_NOT_FOUND;
-    *device = fake_handle(bus - B300_PCI_BUS_BASE);
+    *device = fake_handle(bus - base);
     return NVML_SUCCESS;
 }
 nvmlReturn_t nvmlDeviceGetHandleByPciBusId(const char *pciBusId, nvmlDevice_t *device) {
@@ -142,7 +155,7 @@ nvmlReturn_t nvmlDeviceGetName(nvmlDevice_t device, char *name, unsigned int len
 nvmlReturn_t nvmlDeviceGetUUID(nvmlDevice_t device, char *uuid, unsigned int length) {
     int idx = fake_index(device);
     if (idx < 0 || !uuid || length == 0) return NVML_ERROR_INVALID_ARGUMENT;
-    snprintf(uuid, length, "GPU-VDEV-B300-%04d", idx);
+    snprintf(uuid, length, "GPU-VDEV-N%u-B300-%04d", vdev_node(), (unsigned)idx);
     return NVML_SUCCESS;
 }
 
@@ -150,7 +163,7 @@ static void fill_pci(nvmlDevice_t device, unsigned int *domain, unsigned int *bu
                      unsigned int *dev, char *bus_id, size_t bus_id_len,
                      char *legacy, size_t legacy_len) {
     int idx = fake_index(device);
-    unsigned b = B300_PCI_BUS_BASE + (idx < 0 ? 0 : (unsigned)idx);
+    unsigned b = VDEV_BUS_BASE + (idx < 0 ? 0 : (unsigned)idx);
     *domain = 0;
     *bus = b;
     *dev = 0;

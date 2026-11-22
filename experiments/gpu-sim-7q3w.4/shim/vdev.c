@@ -36,6 +36,14 @@
 
 #include "b300_spec.h"    /* D1 is the only source of these values */
 
+static unsigned vdev_node(void) {
+    const char *e = getenv("VDEV_NODE");
+    int n = e ? atoi(e) : 0;
+    if (n < 0 || n >= B300_NODES) n = 0;
+    return (unsigned)n;
+}
+#define VDEV_BUS_BASE (B300_PCI_BUS_BASE + vdev_node() * B300_PCI_BUS_NODE_STRIDE)
+
 extern void *fwd_real_handle;
 static CUresult (*real_cuInit)(unsigned);
 static CUresult (*real_cuDriverGetVersion)(int *);
@@ -113,14 +121,16 @@ CUresult cuDeviceGetUuid(CUuuid *uuid, CUdevice dev) {
     /* also exported as _v2 by the real driver; the forwarder covers that spelling */
     if (!uuid) return CUDA_ERROR_INVALID_VALUE;
     memset(uuid, 0, sizeof *uuid);
-    memcpy(uuid->bytes, "VDEV-B300-0", 11);
-    uuid->bytes[10] = (unsigned char)('0' + (dev % 10));
+    memcpy(uuid->bytes, "VDEV-", 5);
+    uuid->bytes[5] = (unsigned char)('0' + vdev_node());
+    uuid->bytes[6] = (unsigned char)('0' + (dev % 10));
     return CUDA_SUCCESS;
 }
 
 CUresult cuDeviceGetPCIBusId(char *bus, int len, CUdevice dev) {
     if (!bus || len <= 0) return CUDA_ERROR_INVALID_VALUE;
-    snprintf(bus, (size_t)len, "0000:%02x:00.0", (unsigned)(dev + 1));
+    snprintf(bus, (size_t)len, "0000:%02x:00.0",
+             (unsigned)(VDEV_BUS_BASE + (unsigned)dev));
     return CUDA_SUCCESS;
 }
 
