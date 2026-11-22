@@ -110,7 +110,8 @@ def main():
     env["LD_LIBRARY_PATH"] = str(BUILD) + (
         ":" + env["LD_LIBRARY_PATH"] if env.get("LD_LIBRARY_PATH") else ""
     )
-    env["LD_PRELOAD"] = str(BUILD / "libcudart-vdev.so.1")
+    env["LD_PRELOAD"] = (str(BUILD / "libnvidia-ml.so.1") + ":"
+                        + str(BUILD / "libcudart-vdev.so.1"))
     env["VDEV_NVDEV"] = "8"
 
     procs = []

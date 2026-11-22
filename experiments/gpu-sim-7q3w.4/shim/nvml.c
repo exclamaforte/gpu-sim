@@ -155,7 +155,7 @@ nvmlReturn_t nvmlDeviceGetName(nvmlDevice_t device, char *name, unsigned int len
 nvmlReturn_t nvmlDeviceGetUUID(nvmlDevice_t device, char *uuid, unsigned int length) {
     int idx = fake_index(device);
     if (idx < 0 || !uuid || length == 0) return NVML_ERROR_INVALID_ARGUMENT;
-    snprintf(uuid, length, "GPU-VDEV-N%u-B300-%04d", vdev_node(), (unsigned)idx);
+    snprintf(uuid, length, "%s-N%u-D%02u", B300_UUID_PREFIX, vdev_node(), (unsigned)idx);
     return NVML_SUCCESS;
 }
 

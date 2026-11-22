@@ -63,6 +63,7 @@ SOURCES = {
 def model():
     return {
         "name": "NVIDIA B300",
+        "uuid_prefix": "GPU-VDEV",   # D1 names the UUID family; node/device appended by the shims
         "sm_count": 160,
         "mem_bytes": 288 * GIB,
         "mem_bw_gbs": 8000,

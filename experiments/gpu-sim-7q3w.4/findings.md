@@ -199,3 +199,43 @@ print a plausible number.
 **Remaining D2 gap:** this is the per-node GPU/NVML identity.  The per-node
 sysfs/NIC view (a node sees only its own ConnectX) is not in this increment; the
 7q3w.3 `sysfs_spoof.c` is the transport's one-path rewrite, not a per-node tree.
+
+## 8. A1's first sentence: torch's own NVML load and the `_v2` trap
+
+The PI read the requirement out of this venv's source: torch opens
+`CDLL("libnvidia-ml.so.1")` itself at `torch/cuda/__init__.py:950` and `:1004`
+(pynvml is not installed), and the COMPLETE set of entry points it calls is four:
+`nvmlInit`, `nvmlDeviceGetCount_v2`, `nvmlDeviceGetHandleByIndex_v2`,
+`nvmlDeviceGetUUID`.  The `_v2` suffixes are mandatory: a shim exporting only the
+unsuffixed names raises `AttributeError`, torch catches it, returns -1, and falls
+back to `_cuda_getDeviceCount` -- which looks like "NVML was never consulted" when
+it was consulted and refused.  Both spellings are exported in `shim/nvml.c`.
+
+The load is the same class of trap as the cudart one in sec. 7.  A path-only
+`LD_LIBRARY_PATH` entry loses if anything pulls the vendor library in first.
+The robust form, now used by both probes: the file is named
+`libnvidia-ml.so.1`, built with `-Wl,-soname,libnvidia-ml.so.1`, and
+`LD_PRELOAD`ed, so torch's `CDLL("libnvidia-ml.so.1")` matches OUR already-loaded
+object by soname.  `/proc/self/maps` in the child shows both
+`.lab/tmp/vdev-build/libnvidia-ml.so.1` (the preload, which torch binds) and
+`/usr/lib/libnvidia-ml.so.615.78.08` (the real library, loaded RTLD_LOCAL by the
+shim's constructor by ABSOLUTE path for the 400+ forwarded entry points).  The
+absolute path is what avoids the self-dlopen recursion the driver shim hit.
+
+UUIDs: D1 now carries `uuid_prefix: "GPU-VDEV"`; `gen_spec.py` emits
+`B300_UUID_PREFIX`, and NVML, cudart and the driver all produce the SAME
+`GPU-VDEV-N<node>-D<device>` string (16 bytes in `cudaDeviceProp.uuid`, 15 chars
+plus NUL).  With `CUDA_VISIBLE_DEVICES` unset torch's `_device_count_nvml()`
+uses `nvmlDeviceGetUUID`; 8 distinct node-local UUIDs is what keeps the count at
+8 instead of -1.
+
+Measured in one child with `VDEV_NODE=3` (`probe_vdev.py --node 3`):
+
+    VDEV OK: node=3 device_count=8 nvml_private=8 name=NVIDIA B300 total=288.0 GiB
+             peak_rss=917 MiB mem_available=13378 MiB matmul_err=4.01e-05
+    14/14 checks, including nvml_private_count_is_N, nvml_uuids_distinct,
+    nvml_uuids_are_node_local, nvml_preloaded_object_mapped, and the matmul
+
+No shim contains a 288/GiB/8/B300/1.8/800 identity literal: the name, memory,
+SM count, PCI base/stride and UUID prefix all come from the generated
+`b300_spec.h`.  The real card's capability (12.0) is forwarded, as A1 requires.

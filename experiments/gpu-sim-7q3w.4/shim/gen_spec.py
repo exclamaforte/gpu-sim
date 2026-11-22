@@ -30,6 +30,7 @@ def main():
         "#ifndef B300_SPEC_H",
         "#define B300_SPEC_H",
         f'#define B300_NAME "{m["name"]}"',
+        f'#define B300_UUID_PREFIX "{m["uuid_prefix"]}"',
         f"#define B300_NVDEV {n_dev}",
         f"#define B300_NODES {n_nodes}",
         f"#define B300_TOTAL_MEM_BYTES ({m['mem_bytes']}ull)",

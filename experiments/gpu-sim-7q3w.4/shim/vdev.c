@@ -121,9 +121,8 @@ CUresult cuDeviceGetUuid(CUuuid *uuid, CUdevice dev) {
     /* also exported as _v2 by the real driver; the forwarder covers that spelling */
     if (!uuid) return CUDA_ERROR_INVALID_VALUE;
     memset(uuid, 0, sizeof *uuid);
-    memcpy(uuid->bytes, "VDEV-", 5);
-    uuid->bytes[5] = (unsigned char)('0' + vdev_node());
-    uuid->bytes[6] = (unsigned char)('0' + (dev % 10));
+    snprintf((char *)uuid->bytes, sizeof uuid->bytes,
+             "%s-N%u-D%02u", B300_UUID_PREFIX, vdev_node(), (unsigned)dev);
     return CUDA_SUCCESS;
 }
 

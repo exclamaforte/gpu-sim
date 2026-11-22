@@ -84,9 +84,8 @@ cudaError_t cudaGetDeviceProperties(struct cudaDeviceProp *prop, int device) {
     /* distinct UUID per virtual device, as the driver shim does, so consumers
      * that dedupe by UUID do not collapse the eight devices into one. */
     memset(&prop->uuid, 0, sizeof prop->uuid);
-    memcpy(prop->uuid.bytes, "VDEV-", 5);
-    prop->uuid.bytes[5] = (unsigned char)('0' + vdev_node());
-    prop->uuid.bytes[6] = (unsigned char)('0' + (device % 10));
+    snprintf((char *)prop->uuid.bytes, sizeof prop->uuid.bytes,
+             "%s-N%u-D%02u", B300_UUID_PREFIX, vdev_node(), (unsigned)device);
     return cudaSuccess;
 }
 

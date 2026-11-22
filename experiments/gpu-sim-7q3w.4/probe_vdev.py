@@ -33,6 +33,8 @@ out = {}
 out["torch"] = torch.__version__
 out["device_count"] = torch.cuda.device_count()
 out["cudart_count"] = torch._C._cuda_getDeviceCount()
+out["_device_count_nvml"] = torch.cuda._device_count_nvml()
+out["node"] = int(os.environ.get("VDEV_NODE", "0"))
 names, total, cc = [], [], []
 for i in range(out["device_count"]):
     names.append(torch.cuda.get_device_name(i))
@@ -70,6 +72,22 @@ rc = nv.nvmlDeviceGetMemoryInfo(dev, mem)
 out["nvml_mem_rc"] = int(rc)
 out["nvml_total_gib"] = round(mem[0] / 2**30, 1) if rc == 0 else None
 out["nvml_free_gib"] = round(mem[1] / 2**30, 1) if rc == 0 else None
+# The UUID path torch uses when CUDA_VISIBLE_DEVICES is unset, and the object
+# /proc/self/maps says supplied libnvidia-ml.so.1 (the preload must be ours).
+nv.nvmlDeviceGetUUID.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint]
+nv.nvmlDeviceGetUUID.restype = ctypes.c_int
+out["nvml_uuids"] = []
+for i in range(out["nvml_count"]):
+    d = ctypes.c_void_p()
+    hrc = nv.nvmlDeviceGetHandleByIndex_v2(i, ctypes.byref(d))
+    ub = ctypes.create_string_buffer(96)
+    urc = nv.nvmlDeviceGetUUID(d, ub, 96) if hrc == 0 else -1
+    out["nvml_uuids"].append(ub.value.decode() if urc == 0 else None)
+out["nvml_maps_paths"] = sorted({
+    parts[5] for parts in
+    (ln.split(None, 5) for ln in open("/proc/self/maps") if "libnvidia-ml" in ln)
+    if len(parts) > 5
+})
 # arithmetic: really executed by the real GPU behind the alias
 torch.manual_seed(0)
 a = torch.randn(512, 512, device="cuda:0")
@@ -104,32 +122,39 @@ def build():
                     str(BUILD / "forwarders.S"), "-ldl"], check=True)
     subprocess.run(["gcc", "-shared", "-fPIC", "-O1",
                     "-DNVML_NO_UNVERSIONED_FUNC_DEFS", "-I" + str(inc),
-                    "-I" + str(BUILD), "-Wl,-soname,libnvidia-ml-vdev.so.1",
-                    "-o", str(BUILD / "libnvidia-ml-vdev.so.1"),
+                    "-I" + str(BUILD), "-Wl,-soname,libnvidia-ml.so.1",
+                    "-o", str(BUILD / "libnvidia-ml.so.1"),
                     str(SHIM / "nvml.c"), str(BUILD / "nvml_forwarders.c"),
                     str(BUILD / "nvml_forwarders.S"), "-ldl"], check=True)
     subprocess.run(["gcc", "-shared", "-fPIC", "-O1", "-I" + str(inc),
                     "-I" + str(BUILD), "-Wl,-soname,libcudart-vdev.so.1",
                     "-o", str(BUILD / "libcudart-vdev.so.1"),
                     str(SHIM / "cudart.c"), "-ldl"], check=True)
-    for name, target in (("libcuda.so.1", "libcuda-vdev.so.1"),
-                         ("libnvidia-ml.so.1", "libnvidia-ml-vdev.so.1")):
-        link = BUILD / name
-        if link.is_symlink() or link.exists():
-            link.unlink()
-        link.symlink_to(target)
+    # The driver shim's soname deliberately differs from libcuda.so.1 (it is
+    # reached through a symlink; a matching soname made cuInit recurse).  The
+    # NVML shim is the opposite: torch opens "libnvidia-ml.so.1" itself, so
+    # that file name AND soname must be the shim, and it is LD_PRELOADed.
+    link = BUILD / "libcuda.so.1"
+    if link.is_symlink() or link.exists():
+        link.unlink()
+    link.symlink_to("libcuda-vdev.so.1")
     return BUILD
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=8)
+    ap.add_argument("--node", type=int, default=0)
     args = ap.parse_args()
     build()
     env = dict(os.environ)
     env["LD_LIBRARY_PATH"] = str(BUILD) + (":" + env["LD_LIBRARY_PATH"] if env.get("LD_LIBRARY_PATH") else "")
-    env["LD_PRELOAD"] = str(BUILD / "libcudart-vdev.so.1")
+    # NVML by soname, preloaded: torch does CDLL("libnvidia-ml.so.1") itself,
+    # and a name match to the already-loaded object is the only robust binding.
+    env["LD_PRELOAD"] = (str(BUILD / "libnvidia-ml.so.1") + ":"
+                        + str(BUILD / "libcudart-vdev.so.1"))
     env["VDEV_NVDEV"] = str(args.n)
+    env["VDEV_NODE"] = str(args.node)
     with tempfile.TemporaryDirectory(dir=str(REPO / ".lab" / "tmp")) as td:
         cp = subprocess.run([sys.executable, "-c", CHILD], env=env, cwd=td,
                             capture_output=True, text=True, timeout=300)
@@ -139,14 +164,24 @@ def main():
         print(f"FAIL: the child printed no VDEV line (rc={cp.returncode})")
         return 1
     got = json.loads(line[0][5:])
+    # D1 is the only source of the identity the probe asserts; the 12.0 in the
+    # capability check is the REAL card's, which A1 requires to be forwarded.
+    d1 = next(iter(json.loads((REPO / "specs" / "b300_8x8.json").read_text())["models"].values()))
+    d1_name = d1["name"]
+    d1_total_gib = round(d1["mem_bytes"] / 2**30, 1)
+    uuid_prefix = d1["uuid_prefix"]
     checks = {
         "device_count_is_N": got["device_count"] == args.n,
         "cudart_count_is_N": got["cudart_count"] == args.n,
         "nvml_count_is_N": got["nvml_count"] == args.n,
-        "every_device_named_B300": all("B300" in n for n in got["names"]),
+        "nvml_private_count_is_N": got["_device_count_nvml"] == args.n,
+        "every_device_named_D1": all(n == d1_name for n in got["names"]),
         "nvml_name_matches_cudart": got["nvml_name"] == got["names"][0],
-        "b300_memory_identity": all(t > 200 for t in got["total_memory_gib"]),
+        "identity_memory_is_D1": all(t == d1_total_gib for t in got["total_memory_gib"]),
         "nvml_total_matches": got["nvml_total_gib"] == got["total_memory_gib"][0],
+        "nvml_uuids_distinct": len(set(got["nvml_uuids"])) == args.n and None not in got["nvml_uuids"],
+        "nvml_uuids_are_node_local": all(u.startswith(f"{uuid_prefix}-N{args.node}-D") for u in got["nvml_uuids"]),
+        "nvml_preloaded_object_mapped": any(str(BUILD / "libnvidia-ml.so.1") in p for p in got["nvml_maps_paths"]),
         "capability_is_real_12_0": all(c == "12.0" for c in got["compute_capability"]),
         "cuda_available": got["is_available"] is True,
         "matmul_ran_on_the_alias": got["matmul_max_abs_err"] < 1e-3,
@@ -155,7 +190,8 @@ def main():
     if not all(checks.values()):
         print("FAIL: " + ", ".join(k for k, v in checks.items() if not v))
         return 1
-    print(f"VDEV OK: device_count={got['device_count']} name={got['names'][0]} "
+    print(f"VDEV OK: node={args.node} device_count={got['device_count']} "
+          f"nvml_private={got['_device_count_nvml']} name={got['names'][0]} "
           f"total={got['total_memory_gib'][0]} GiB peak_rss={got['peak_rss_mib']} MiB "
           f"mem_available={got.get('mem_available_mib')} MiB "
           f"matmul_err={got['matmul_max_abs_err']:.2e}")
