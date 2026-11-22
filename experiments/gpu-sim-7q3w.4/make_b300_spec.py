@@ -4,10 +4,11 @@
 The values and their sources are the PI-sourced table in the bead comment of
 2026-11-22T17:08Z.  Nothing here is guessed: a field the PI marked UNVERIFIED stays
 null (or carries an explicit "UNVERIFIED" source) and must not be used in an
-assertion.  The NVLink latency is deliberately NOT invented -- the PI's comment says
-no sourced per-link latency was found for B300/ConnectX-8 and requires either a
-source or a documented modelling choice.  Here it is null with an UNVERIFIED tag;
-the fabric model must supply the derived value and label it in the error budget.
+assertion.  The per-link latency is a MODELLING CHOICE, not a vendor figure: the
+PI could not source a B300 NVLink or ConnectX-8 per-hop latency and required the
+derivation to be named.  D1 uses the fabric calendar's existing per-hop alphas
+(1.0 us NVLink, 5.0 us IB/NIC; epic_cluster/nccl_cost.py FABRICS) and marks every
+such field with that provenance; the clock remains UNVERIFIED.
 
     python3 experiments/gpu-sim-7q3w.4/make_b300_spec.py
     # writes specs/b300_8x8.json, deterministic (no timestamps, no wall clock)
@@ -21,6 +22,9 @@ OUT = os.path.join(REPO, "specs", "b300_8x8.json")
 GIB = 1 << 30
 NODES = 8
 GPUS_PER_NODE = 8
+# MODELLING CHOICE, not vendor numbers: the lab fabric calendar's per-hop alphas.
+NV_LATENCY_US = 1.0
+NIC_LATENCY_US = 5.0
 
 SOURCES = {
     "model.b300_sxm": (
@@ -45,13 +49,16 @@ SOURCES = {
         "supermicro.com/datasheet/datasheet_SuperCluster_B300_Front_IO.pdf"
     ),
     "latency.nvlink": (
-        "UNVERIFIED: no sourced per-link latency for B300 NVLink was found. "
-        "Do not use in an assertion; the fabric model must supply a derived value "
-        "and name the derivation in its error budget."
+        "MODELLING CHOICE, not a vendor figure: derived from the fabric calendar's "
+        "per-hop alpha for NVLink, 1.0 us (epic_cluster/nccl_cost.py "
+        "FABRICS['nvlink4_h100']). The B300 NVLink per-link latency is unsourced; "
+        "this is a model parameter, not a measurement."
     ),
     "latency.nic": (
-        "UNVERIFIED: no sourced per-hop ConnectX-8 latency was found. "
-        "Do not use in an assertion; a modelling choice must be named."
+        "MODELLING CHOICE, not a vendor figure: derived from the fabric calendar's "
+        "per-hop alpha for IB/NIC, 5.0 us (epic_cluster/nccl_cost.py "
+        "FABRICS['ib_400g']). The ConnectX-8 per-hop latency is unsourced; this "
+        "is a model parameter, not a measurement."
     ),
     "clock.b300_sxm": (
         "UNVERIFIED: the sourced B300 table gives no SM clock. Do not use in an "
@@ -91,6 +98,8 @@ def nodes():
                         for i in range(GPUS_PER_NODE)],
             "nics": [{"id": i, "kind": "connectx-8", "line_rate_gbps": 800,
                       "bw_gbs": 100.0,
+                      "latency_us": NIC_LATENCY_US,
+                      "latency_source": SOURCES["latency.nic"],
                       "source": SOURCES["link.nic"]}
                      for i in range(GPUS_PER_NODE)],
             "gpu_mem_bytes": GPUS_PER_NODE * 288 * GIB,
@@ -111,7 +120,7 @@ def links():
                     "kind": "nvlink",
                     "bw_gbps": 1800.0,
                     "bw_is_bidirectional": True,
-                    "latency_us": None,
+                    "latency_us": NV_LATENCY_US,
                     "latency_source": SOURCES["latency.nvlink"],
                     "mtu": 4096,
                     "loss_ppm": 0,
@@ -130,9 +139,11 @@ def main():
         "nodes": nodes(),
         "links": links(),
         "unverified": {
+            "sm_clock_mhz": SOURCES["clock.b300_sxm"],
+        },
+        "modelling_choices": {
             "nvlink_latency_us": SOURCES["latency.nvlink"],
             "nic_latency_us": SOURCES["latency.nic"],
-            "sm_clock_mhz": SOURCES["clock.b300_sxm"],
         },
     }
     with open(OUT, "w") as f:

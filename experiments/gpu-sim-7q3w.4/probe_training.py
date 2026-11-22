@@ -21,6 +21,7 @@ NCCL data path is 7q3w.3/7q3w.5 and is not claimed by this probe.
 import argparse
 import json
 import os
+import contextlib
 import socket
 import subprocess
 import sys
@@ -139,14 +140,20 @@ def main():
     ap.add_argument("--nodes", type=int, default=NODES)
     ap.add_argument("--steps", type=int, default=STEPS)
     ap.add_argument("--inject-checkpoint-difference", action="store_true")
+    ap.add_argument("--checkpoint-dir", type=Path, default=None,
+                    help="persistent checkpoint directory (A5 reference needs rank0.pt)")
+    ap.add_argument("--force-refuse-mib", type=int, default=None,
+                    help="forced measured start for the REFUSE control (no ranks launched)")
     args = ap.parse_args()
 
-    start_mem = mem_available_mib()
+    start_mem = (args.force_refuse_mib
+                 if args.force_refuse_mib is not None else mem_available_mib())
     if start_mem < REQUIRED_MIB:
+        forced = " (forced control)" if args.force_refuse_mib is not None else ""
         print(
             f"REFUSE: MemAvailable {start_mem} MiB < required {REQUIRED_MIB} MiB "
             f"({args.nodes}*{PER_RANK_MIB} + {MARGIN_MIB} margin); "
-            f"no rank launched. measured_start={start_mem} MiB"
+            f"no rank launched. measured_start={start_mem} MiB{forced}"
         )
         return 2
 
@@ -168,9 +175,16 @@ def main():
     if args.inject_checkpoint_difference:
         env["INJECT_CHECKPOINT_DIFFERENCE"] = "1"
 
-    with tempfile.TemporaryDirectory(dir=str(REPO / ".lab" / "tmp")) as td:
-        ckpt_dir = Path(td) / "checkpoints"
-        ckpt_dir.mkdir()
+    scratch = (contextlib.nullcontext(str(args.checkpoint_dir.parent))
+               if args.checkpoint_dir else
+               tempfile.TemporaryDirectory(dir=str(REPO / ".lab" / "tmp")))
+    with scratch as td:
+        if args.checkpoint_dir:
+            ckpt_dir = args.checkpoint_dir
+            ckpt_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            ckpt_dir = Path(td) / "checkpoints"
+            ckpt_dir.mkdir()
         env["CKPT_DIR"] = str(ckpt_dir)
         procs = []
         for n in range(args.nodes):
@@ -266,6 +280,7 @@ def main():
         "preflight_required_mib": REQUIRED_MIB,
         "injected_checkpoint_difference": args.inject_checkpoint_difference,
     }
+    result["checkpoint_dir"] = str(ckpt_dir)
     print(json.dumps(result, indent=2))
 
     if args.inject_checkpoint_difference:

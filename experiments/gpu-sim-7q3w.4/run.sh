@@ -26,6 +26,10 @@ export MKL_NUM_THREADS=1
 
 run_one() {
     case "$1" in
+        0)
+            echo "=== increment 0: A2 node isolation + its negative control ==="
+            python3 "$EXP/probe_a2.py"
+            ;;
         1)
             echo "=== increment 1: eight concurrent node processes + RAM preflight ==="
             python3 "$EXP/probe_concurrent.py"
@@ -38,19 +42,31 @@ run_one() {
             echo "=== increment 3: 12.6M transformer + AdamW, 8 DDP ranks, equal checkpoints ==="
             python3 "$EXP/probe_training.py"
             ;;
+        4)
+            echo "=== increment 4: A5 8-way DDP vs single-rank reference ==="
+            python3 "$EXP/probe_reference.py"
+            ;;
+        5)
+            echo "=== REFUSE control: 10496 < 10576 ==="
+            python3 "$EXP/probe_training.py" --force-refuse-mib 10496 || true
+            ;;
         *)
-            echo "usage: $0 [1|2|3]" >&2
+            echo "usage: $0 [0|1|2|3|4|5]" >&2
             exit 2
             ;;
     esac
 }
 
 if [ "$ONLY" = "all" ]; then
+    run_one 0
+    echo
     run_one 1
     echo
     run_one 2
     echo
     run_one 3
+    echo
+    run_one 4
 else
     run_one "$ONLY"
 fi

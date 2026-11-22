@@ -332,3 +332,75 @@ and printed the per-rank hashes verbatim.
 The training math is CPU float32.  It is a real distributed training run (DDP
 gradient all-reduce, rank-sharded data, AdamW); it makes no NCCL data-path
 claim.  The GPU identity is A1's, and the NCCL path is 7q3w.3/7q3w.5.
+
+
+## 12 Deliverable package: A-items, D4, D1 latency, error budget
+
+### 12.1 A-item -> probe map (one line each)
+
+- **A1** -> `probe_vdev.py`; checks `device_count_is_N`, `name_is_D1`,
+  `total_mem_is_D1`, `sm_count_is_D1`, `uuid_prefix`, `nvml_private_count`,
+  `matmul_err`; run is increment 1 (8 virtual B300 on one node).
+- **A2** -> `probe_a2.py`, which drives `probe_nodes.py` twice: the normal run
+  must produce `64_distinct_pci_bus_ids`; the `--disable-isolation` run must
+  FAIL `64_distinct_pci_bus_ids`, `bus_set_is_d1_exact` and
+  `nodes_have_distinct_first_bus`. Run is increment 0.
+- **A3** -> moved to `gpu-sim-s2vc` (NCCL topology XML/IB choice). Not claimed.
+- **A4** -> `gpu-sim-7q3w.5` (NCCL numerical path). Increment 2 is a gloo
+  control-plane all_reduce, not an A4 result.
+- **A5** -> `probe_reference.py`: one 8-way DDP run and one 1-way run with the
+  same seed and per-(rank, step) data generators; compare final mean loss over
+  the eight shards and the max-abs parameter delta. Tolerance `1e-5` absolute.
+  Run is increment 4; the measured line is `A5 OK` in `output.log`.
+- **A6** -> moved to `gpu-sim-ae2v` (fabric timing). Not claimed.
+- **A7** -> not separately rerun here. Increment 3's checkpoint hash was
+  reproduced by the PI; the 20-run exit distribution remains `7q3w.3`.
+- **A8** -> the RAM error budget in section 12.4 and `metrics.json`.
+
+### 12.2 D4 (model/launcher) coverage
+
+D4 is covered by the three probes below; it is not a separate unprobed claim:
+
+- model: `probe_training.py` / `probe_reference.py` -- 4-layer
+  TransformerEncoder, d_model 512, ff 2048, **12,609,536 parameters**, AdamW
+  lr=1e-3, 3 steps, 8 DDP ranks, rank-sharded data;
+- launcher: `run.sh` selects one increment; `capture.py` waits for that
+  increment's own preflight floor, records exit code and MemAvailable
+  before/after, and writes `output.log`, `metrics.json`, `job.json`;
+- identity: `probe_vdev.py` (A1) and `probe_nodes.py`/`probe_a2.py` (A2/D2)
+  supply the 8x8 virtual-cluster identity the model runs on.
+
+D1 identity is `probe_vdev.py`; D2 is `probe_nodes.py` + `probe_a2.py`; D3 is
+`probe_vdev.py` (real driver/cudart/NVML through the shims) plus
+`probe_distributed.py` (one rank per node).
+
+### 12.3 D1 per-link latency: MODELLING CHOICE, not a vendor number
+
+`specs/b300_8x8.json` sets NVLink per-hop `latency_us = 1.0` and NIC per-hop
+`latency_us = 5.0`. These are **MODELLING CHOICES** derived from the fabric
+calendar in `epic_cluster/nccl_cost.py` (`FABRICS` for `nvlink4_h100` and
+`ib_400g`); they are not sourced B300 NVLink or ConnectX-8 figures. The clock
+field remains `UNVERIFIED` and `make_b300_spec.py` refuses to invent it. A
+reviewer should not read the latency fields as measurements.
+
+### 12.4 RAM error budget (numbers from actual runs)
+
+- preflight floor for the 8-rank training increment: **10576 MiB** =
+  8 x 1194 (measured 2-rank DDP RSS) + 1024 MiB margin;
+- PI's passing training run: `mem_available_start=10633` MiB -- **57 MiB**
+  above the floor; end 13231 MiB;
+- this capture's training run: `mem_available_start=11638` / end 13231 MiB
+  (the increment-3 quadruple already posted at `c210e804`);
+- PI's refusal run: `mem_available_start=10496` MiB < 10576 -- **REFUSE**, no
+  rank launched (exit 2).
+
+**Error-budget sentence:** fits on a quiet box with a few hundred MiB of
+margin; does not fit on a busy one, and the preflight refuses rather than
+OOM-killing. The refusal is fail-able evidence, reproduced in `output.log` by
+increment 5 (`--force-refuse-mib 10496`) with the same preflight line.
+
+### 12.5 Identity literals
+
+A grep of `shim/*.c` finds `288` only in comments; `B300`/`8`/capacity/SM
+numbers are consumed through the generated `b300_spec.h` macros. The shims do
+not hard-code the identity numbers used by the assertions.

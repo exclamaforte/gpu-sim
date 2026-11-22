@@ -104,6 +104,10 @@ def bus_number(bus_id):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--nodes", type=int, default=8)
+    ap.add_argument("--disable-isolation", action="store_true",
+                    help="force every child to VDEV_NODE=0 (A2 negative control)")
+    ap.add_argument("--negative-control", action="store_true",
+                    help="require the isolation checks to FAIL when disabled")
     args = ap.parse_args()
     build()
     env = dict(os.environ)
@@ -118,7 +122,7 @@ def main():
     with tempfile.TemporaryDirectory(dir=str(REPO / ".lab" / "tmp")) as td:
         for n in range(args.nodes):
             e = dict(env)
-            e["VDEV_NODE"] = str(n)
+            e["VDEV_NODE"] = "0" if args.disable_isolation else str(n)
             procs.append(
                 subprocess.Popen(
                     [sys.executable, "-c", CHILD],
@@ -175,7 +179,8 @@ def main():
         "nodes_have_distinct_first_bus": len({v["first_bus"] for v in per_node.values()})
         == args.nodes,
         "node_n_first_bus": all(
-            per_node[n]["first_bus"] == base + n * stride for n in range(args.nodes)
+            n in per_node and per_node[n]["first_bus"] == base + n * stride
+            for n in range(args.nodes)
         ),
     }
     result = {
@@ -188,6 +193,35 @@ def main():
         ),
     }
     print(json.dumps(result, indent=2))
+    if args.negative_control:
+        if not args.disable_isolation:
+            print("A2 NEGATIVE CONTROL FAILED: --negative-control needs --disable-isolation")
+            return 1
+        isolation_failed = (
+            not checks["64_distinct_pci_bus_ids"]
+            and not checks["bus_set_is_d1_exact"]
+            and not checks["nodes_have_distinct_first_bus"]
+        )
+        identity_ok = (
+            checks["eight_node_processes"]
+            and checks["every_node_sees_8"]
+            and checks["every_node_names_b300"]
+            and checks["nvml_and_cudart_agree"]
+        )
+        if isolation_failed and identity_ok:
+            print(
+                "A2 NEGATIVE CONTROL OK: isolation disabled (all VDEV_NODE=0) -> "
+                f"64_distinct_pci_bus_ids={checks['64_distinct_pci_bus_ids']}, "
+                f"bus_set_is_d1_exact={checks['bus_set_is_d1_exact']}, "
+                f"nodes_have_distinct_first_bus={checks['nodes_have_distinct_first_bus']}; "
+                "the isolation assertion is fail-able."
+            )
+            return 0
+        print(
+            "A2 NEGATIVE CONTROL FAILED: isolation was disabled but the checker "
+            f"did not fail as required; checks={checks}"
+        )
+        return 1
     if not all(checks.values()):
         print("FAIL: " + ", ".join(k for k, v in checks.items() if not v))
         return 1
