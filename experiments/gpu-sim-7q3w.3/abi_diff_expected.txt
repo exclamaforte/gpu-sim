@@ -1,0 +1,12 @@
+22c22
+< sizeof(ibv_send_wr)                      128
+---
+> sizeof(ibv_send_wr)                      80
+66c66
+< sizeof(ibv_qp_init_attr)                 64
+---
+> sizeof(ibv_qp_init_attr)                 72
+73c73
+< sizeof(ibv_qp_attr)                      144
+---
+> sizeof(ibv_qp_attr)                      136

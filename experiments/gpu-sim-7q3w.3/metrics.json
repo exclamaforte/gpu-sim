@@ -1,0 +1,64 @@
+{
+  "bead": "gpu-sim-7q3w.3",
+  "scope": "SCOPE AMENDMENT (bead body): IN a-e; OUT numerics (gpu-sim-7q3w.5) and GDR/dmabuf (gpu-sim-7q3w.6)",
+  "result": {
+    "a_transport_selection": {
+      "verdict": "PASS",
+      "evidence": "gpu_arm.sh: rank0 and rank1 both 'NCCL_DEBUG names our mlx5_0 as an IB device', 'channel went via NET/IB, not P2P/SHM', 'no net plugin was loaded', 'Socket was never assigned to the comm' -- NCCL's OWN IB transport, not our NET plugin, not Socket"
+    },
+    "b_collective_numerics": {
+      "verdict": "RED",
+      "owner": "gpu-sim-7q3w.5",
+      "why": "NCCL's proxy advances from device KERNEL progress and the simulator's kernel launches are no-ops, so no transfer ever starts; the arm asserts 'NCCL posted WRs and moved bytes on our QPs' and it FAILS (shim counters reg_mr/post_send/bytes_written stay 0, NCCL logs networkRmaSupport 0). Recorded as RED, not omitted and not softened. Numerics are 7q3w.5's acceptance."
+    },
+    "d_sysfs_surface": {
+      "verdict": "PASS",
+      "evidence": "REALPATH OK: the one path NCCL's IB init reads (/sys/class/infiniband/<dev>/device) is rewritten per rank to distinct PCI bridges (0000:00:01.1 vs 0000:00:08.1), while six untouched paths (including mlx5_9 -> NULL) prove the interception is narrow"
+    },
+    "e_transport_byte_identity": {
+      "verdict": "PASS at stage 6",
+      "evidence": "wire_probe prints 'WIRE OK' on success; the check that WOULD print 'READ returned the peer's bytes' passed (it is the failure message of that check, quoted by the reviewer as such), and the payload memcmp is over 4096 bytes across two real processes"
+    },
+    "lettering": "AMENDED IN LIST vs THE ARM'S LETTERS (reviewer nit 3): the ruling's letters are (b)=ABI _Static_assert, (c)=sysfs+FAKEIB_*, (d)=determinism; the arm's letters are (b)=numerics, (c)=dmabuf. Both mappings are now explicit here and in every line below.",
+    "b_amendment_ABI": {
+      "verdict": "PASS",
+      "evidence": "stage 3 builds the shim with 27 _Static_asserts pinning NCCL's verbs ABI against vendor/nccl/ibvcore.h; the build fails if the ABI moves"
+    },
+    "c_amendment_sysfs": {
+      "verdict": "PASS",
+      "evidence": "REALPATH OK: one path (/sys/class/infiniband/<dev>/device) rewritten per rank to distinct PCI bridges; FAKEIB_* env drives speed/bandwidth/latency"
+    },
+    "d_amendment_determinism": {
+      "verdict": "PASS",
+      "n": 20,
+      "evidence": "gpu_arm.sh re-executes itself N=20 (ARM_N); the summary prints 'N=20 exit-code distribution: rc=0 0/20; nonzero 20/20 (20 1)' and 'N=20 determinism: distinct signatures (sorted assertion set + exit code) = 1 (must be 1)'. Each run's own log is arm-b-run-<i>.log; output.log keeps the full output of run 1 and a REDS VISIBLE section that echoes every failing ASSERT line verbatim with its run number (7 per run), followed by the deduped failing set. The signature is the sorted ASSERT text plus rc, not a count, so two runs failing different assertions cannot look identical.",
+      "note": "the arm exits 1 in every run BY DESIGN: arm (b) numerics is red. (c) is NOT_EXERCISED (owner gpu-sim-7q3w.6) and contributes no failing predicate. A green exit would mean the reds were hidden.",
+      "reds_visible": "output.log has a REDS VISIBLE section: every failing ASSERT line verbatim with its run number (7 per run), then the deduped failing set, then the full output of run 1. The per-run logs are arm-b-run-<i>.log in the run dir."
+    },
+    "c_dmabuf": {
+      "verdict": "NOT_EXERCISED",
+      "owner": "gpu-sim-7q3w.6",
+      "evidence": "TWO predicates now, because 'registered nothing' means nothing if nothing was tried: (i) dmabuf_attempts > 0 -- the capability probe WAS attempted (measured: dmabuf_attempts 1); (ii) dmabuf_registrations == 0 -- nothing registered, because the probe returned fd<0. The line is printed as 'NOT EXERCISED: ...', not as an ok and not as a red: there is no failing predicate for a path the driver cannot export."
+    }
+  },
+  "shim": {
+    "built_bytes": 46440,
+    "charge_model": "charge 10G=838860 ns 20G=419430 ns ratio=2.00 (bytes 1048576/1048576) -- the model's charge, not wall, is what the arm asserts"
+  },
+  "conditions": {
+    "cpu_only": true,
+    "gpqueue": false,
+    "note": "no device is touched: the shim + LD_PRELOAD sysfs spoof against real libnccl; wall is a property of the box and is not part of any claim"
+  },
+  "arm_exit_code": 1,
+  "arm_exit_note": "gpu_arm.sh exits 1 BY DESIGN at this tip: the red (b) assertion is red; (c) is NOT_EXERCISED and contributes no failing predicate. A green exit here would mean the reds were hidden.",
+  "gate": "scripts/gate.sh --fast PASS at tip 9566e294 (15 hard stages passed, 0 failed; suite skipped in --fast); gate logs .lab/gate-logs/9566e294-20261122T180945Z. UNVERIFIABLE FOR THIS TIP: handle none, the CPU-only arms are not gpqueue jobs; delta none: no run record for this tip, deliberately -- it would be a CPU-only duplicate.",
+  "artifacts_sha256": {
+    "run.sh": "3d30283e70b18f156ba9c937bd0a52eb3f71a9554766a3d0252e0ac439c80b3a",
+    "gpu_arm.sh": "beb7d793bdc2cca8bef4e089591e4e6c641b30ee9fd9b7aa06239725ca67701f",
+    "ibverbs_shim.c": "875abd7b6a411c6d78a0fe41d5c90ae6e755e171d8e8ad46340fa2ab72ede028",
+    "ibverbs.map": "ca5fe8588c7f7232f6ce1d6a79f9688dcae7f119fdcc7a1f816eebbaa7d17733",
+    "wire_probe.c": "cf743a878173cb580886839944d20360e853fe197876bc742d20e92c0e37a4e0",
+    "nccl_arm.c": "19d003b6f957b29751e1bd008f12aa8d162a620e7e874fd3e3de27077b3ba71e"
+  }
+}

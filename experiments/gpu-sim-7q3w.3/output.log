@@ -1,0 +1,364 @@
+
+=== 1. vendored headers: SHA256 ===
+infiniband/ib_user_ioctl_cmds.h: OK
+infiniband/ib_user_ioctl_verbs.h: OK
+infiniband/ib_user_verbs.h: OK
+infiniband/verbs_api.h: OK
+infiniband/verbs.h: OK
+ibvcore.h: OK
+vendored headers OK (rdma-core v59.3 reference; NCCL v2.32.6-1 ABI)
+
+=== 2. ABI dump: compiled-against vs reference ===
+ABI pin OK: 3 size differences, every field the shim touches agrees
+
+=== 3. build shim (its _Static_asserts pin the NCCL ABI at compile time) ===
+In file included from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/ibverbs_shim.c:53:
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1050:39: warning: ‘struct ibv_device_attr_ex’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 |                                struct ibv_device_attr_ex *attr,
+      |                                       ^~~~~~~~~~~~~~~~~~
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1049:45: warning: ‘struct ibv_query_device_ex_input’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1049 |                                const struct ibv_query_device_ex_input *input,
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+shim built: 50584 bytes
+
+=== 4. dlopen by SONAME + dlsym/dlvsym NCCL's name lists ===
+DLSYM OK: 38 names, soname libibverbs.so.1
+dlvsym ibv_reg_mr_iova2       @IBVERBS_1.8  present  (ibv_reg_mr_iova2 (1.8): nice to have)
+dlvsym ibv_reg_dmabuf_mr      @IBVERBS_1.12 present  (ARM (c) needs this: dmabuf registration)
+dlvsym ibv_query_ece          @IBVERBS_1.10 present  (ECE query (1.10))
+dlvsym ibv_set_ece            @IBVERBS_1.10 present  (ECE set (1.10))
+dlvsym ibv_query_port_speed   @IBVERBS_1.16 present  (port speed (1.16); NCCL falls back to active_speed)
+DLVSYM OK: 23 mandatory at IBVERBS_1.1, dmabuf at 1.12
+
+=== 5. abi_probe (semantics, timing, counters) ===
+In file included from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/fakeib_api.h:15,
+                 from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/abi_probe.c:24:
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1050:39: warning: ‘struct ibv_device_attr_ex’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 |                                struct ibv_device_attr_ex *attr,
+      |                                       ^~~~~~~~~~~~~~~~~~
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1049:45: warning: ‘struct ibv_query_device_ex_input’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1049 |                                const struct ibv_query_device_ex_input *input,
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+FAKEIB: refused QP transition 3 -> 1
+device: mlx5_0
+bandwidth arm: charge 10G=838860 ns 20G=419430 ns ratio=2.00 (bytes 1048576/1048576); wall 10G=846149 ns 20G=421360 ns
+PROBE OK
+
+=== 6. wire_probe: two real processes, one shim ===
+In file included from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/fakeib_api.h:15,
+                 from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/wire_probe.c:26:
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1050:39: warning: ‘struct ibv_device_attr_ex’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 |                                struct ibv_device_attr_ex *attr,
+      |                                       ^~~~~~~~~~~~~~~~~~
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1049:45: warning: ‘struct ibv_query_device_ex_input’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1049 |                                const struct ibv_query_device_ex_input *input,
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+rank0: cross-process WRITE completion after 20142562 ns (latency arm)
+WIRE OK
+
+=== 7. sysfs spoof: the ONE path NCCL's IB init reads ===
+fake sysfs rank 0: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/7q3w3-build-1242500/sysfs/rank0/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:01.1 (gpu 0000:01:00.0 shares bridge /sys/devices/pci0000:00/0000:00:01.1 with mlx5_0)
+fake sysfs rank 1: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/7q3w3-build-1242500/sysfs/rank1/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:08.1 (gpu 0000:7a:00.0 shares bridge /sys/devices/pci0000:00/0000:00:08.1 with mlx5_0)
+ok   /sys/class/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:01.1
+note /sys/class/infiniband/mlx5_0/node_guid: attribute open() not intercepted (realpath only), as documented
+ok   /sys/class/infiniband/mlx5_9/device -> NULL (untouched)
+ok   /sys/class/net -> /sys/class/net
+ok   /sys/bus/pci/devices -> /sys/bus/pci/devices
+ok   /sys/class/infiniband/../net -> NULL (untouched)
+REALPATH OK
+distinct NIC bridges: rank0 /sys/devices/pci0000:00/0000:00:01.1 / rank1 /sys/devices/pci0000:00/0000:00:08.1
+
+SHIM SELF-CHECK OK (stages 1-7)
+NCCL arms: CPU-only, not the GPU queue ->  bash /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/gpu_arm.sh
+  arm (a) transport selection is measured there; numerics and the data path
+  are blocked on the simulator executing NCCL's kernels (provenance sec. 9).
+RUN_SH_RC=0
+--- run dir /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917
+In file included from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/ibverbs_shim.c:53:
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1050:39: warning: ‘struct ibv_device_attr_ex’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 |                                struct ibv_device_attr_ex *attr,
+      |                                       ^~~~~~~~~~~~~~~~~~
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1049:45: warning: ‘struct ibv_query_device_ex_input’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1049 |                                const struct ibv_query_device_ex_input *input,
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+fake sysfs rank 0: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917/sysfs/rank0/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:01.1 (gpu 0000:01:00.0 shares bridge /sys/devices/pci0000:00/0000:00:01.1 with mlx5_0)
+fake sysfs rank 1: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917/sysfs/rank1/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:08.1 (gpu 0000:7a:00.0 shares bridge /sys/devices/pci0000:00/0000:00:08.1 with mlx5_0)
+--- NIC bridges: rank0 /sys/devices/pci0000:00/0000:00:01.1 / rank1 /sys/devices/pci0000:00/0000:00:08.1
+
+N=20 exit-code distribution: rc=0 0/20; nonzero 20/20 (     20 1 )
+N=20 determinism: distinct signatures (sorted assertion set + exit code) = 1 (must be 1)
+ASSERT ok: (d) determinism: 20/20 runs produced the same sorted assertion set and the same exit code (no rc>=128)
+
+REDS VISIBLE (verbatim, every failing ASSERT line with its run number):
+run 1: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 1: ASSERT FAIL: rank0 exit line
+run 1: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 1: ASSERT FAIL: rank1 exit line
+run 1: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 1: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 1: ASSERT FAIL: rank0 exited 0
+run 2: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 2: ASSERT FAIL: rank0 exit line
+run 2: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 2: ASSERT FAIL: rank1 exit line
+run 2: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 2: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 2: ASSERT FAIL: rank0 exited 0
+run 3: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 3: ASSERT FAIL: rank0 exit line
+run 3: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 3: ASSERT FAIL: rank1 exit line
+run 3: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 3: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 3: ASSERT FAIL: rank0 exited 0
+run 4: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 4: ASSERT FAIL: rank0 exit line
+run 4: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 4: ASSERT FAIL: rank1 exit line
+run 4: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 4: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 4: ASSERT FAIL: rank0 exited 0
+run 5: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 5: ASSERT FAIL: rank0 exit line
+run 5: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 5: ASSERT FAIL: rank1 exit line
+run 5: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 5: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 5: ASSERT FAIL: rank0 exited 0
+run 6: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 6: ASSERT FAIL: rank0 exit line
+run 6: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 6: ASSERT FAIL: rank1 exit line
+run 6: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 6: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 6: ASSERT FAIL: rank0 exited 0
+run 7: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 7: ASSERT FAIL: rank0 exit line
+run 7: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 7: ASSERT FAIL: rank1 exit line
+run 7: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 7: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 7: ASSERT FAIL: rank0 exited 0
+run 8: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 8: ASSERT FAIL: rank0 exit line
+run 8: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 8: ASSERT FAIL: rank1 exit line
+run 8: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 8: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 8: ASSERT FAIL: rank0 exited 0
+run 9: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 9: ASSERT FAIL: rank0 exit line
+run 9: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 9: ASSERT FAIL: rank1 exit line
+run 9: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 9: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 9: ASSERT FAIL: rank0 exited 0
+run 10: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 10: ASSERT FAIL: rank0 exit line
+run 10: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 10: ASSERT FAIL: rank1 exit line
+run 10: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 10: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 10: ASSERT FAIL: rank0 exited 0
+run 11: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 11: ASSERT FAIL: rank0 exit line
+run 11: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 11: ASSERT FAIL: rank1 exit line
+run 11: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 11: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 11: ASSERT FAIL: rank0 exited 0
+run 12: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 12: ASSERT FAIL: rank0 exit line
+run 12: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 12: ASSERT FAIL: rank1 exit line
+run 12: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 12: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 12: ASSERT FAIL: rank0 exited 0
+run 13: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 13: ASSERT FAIL: rank0 exit line
+run 13: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 13: ASSERT FAIL: rank1 exit line
+run 13: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 13: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 13: ASSERT FAIL: rank0 exited 0
+run 14: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 14: ASSERT FAIL: rank0 exit line
+run 14: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 14: ASSERT FAIL: rank1 exit line
+run 14: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 14: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 14: ASSERT FAIL: rank0 exited 0
+run 15: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 15: ASSERT FAIL: rank0 exit line
+run 15: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 15: ASSERT FAIL: rank1 exit line
+run 15: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 15: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 15: ASSERT FAIL: rank0 exited 0
+run 16: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 16: ASSERT FAIL: rank0 exit line
+run 16: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 16: ASSERT FAIL: rank1 exit line
+run 16: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 16: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 16: ASSERT FAIL: rank0 exited 0
+run 17: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 17: ASSERT FAIL: rank0 exit line
+run 17: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 17: ASSERT FAIL: rank1 exit line
+run 17: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 17: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 17: ASSERT FAIL: rank0 exited 0
+run 18: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 18: ASSERT FAIL: rank0 exit line
+run 18: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 18: ASSERT FAIL: rank1 exit line
+run 18: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 18: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 18: ASSERT FAIL: rank0 exited 0
+run 19: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 19: ASSERT FAIL: rank0 exit line
+run 19: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 19: ASSERT FAIL: rank1 exit line
+run 19: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 19: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 19: ASSERT FAIL: rank0 exited 0
+run 20: ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+run 20: ASSERT FAIL: rank0 exit line
+run 20: ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+run 20: ASSERT FAIL: rank1 exit line
+run 20: ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+run 20: ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+run 20: ASSERT FAIL: rank0 exited 0
+
+distinct failing assertions (verbatim, deduped):
+ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+ASSERT FAIL: rank0 exited 0
+ASSERT FAIL: rank0 exit line
+ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+ASSERT FAIL: rank1 exit line
+ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+
+--- full output of run 1 (/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917/arm-b-run-1.log) ---
+--- run dir /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917
+In file included from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/ibverbs_shim.c:53:
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1050:39: warning: ‘struct ibv_device_attr_ex’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 |                                struct ibv_device_attr_ex *attr,
+      |                                       ^~~~~~~~~~~~~~~~~~
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1049:45: warning: ‘struct ibv_query_device_ex_input’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1049 |                                const struct ibv_query_device_ex_input *input,
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+fake sysfs rank 0: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917/sysfs/rank0/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:01.1 (gpu 0000:01:00.0 shares bridge /sys/devices/pci0000:00/0000:00:01.1 with mlx5_0)
+fake sysfs rank 1: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917/sysfs/rank1/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:08.1 (gpu 0000:7a:00.0 shares bridge /sys/devices/pci0000:00/0000:00:08.1 with mlx5_0)
+--- NIC bridges: rank0 /sys/devices/pci0000:00/0000:00:01.1 / rank1 /sys/devices/pci0000:00/0000:00:08.1
+--- launching rank1 then rank0 (each in its own UTS namespace)
+--- --- rank0 (last 40 lines) ---
+nccl-rank0:1245462:1245780 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 2
+nccl-rank0:1245462:1245778 [0] NCCL INFO proxy listening socket at 192.168.0.180<53299>
+nccl-rank0:1245462:1245462 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so
+nccl-rank0:1245462:1245462 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+nccl-rank0:1245462:1245462 [0] NCCL INFO 2 coll channels, 2 collnet channels, 0 nvls channels, 2 p2p channels, 1 p2p channels per peer
+nccl-rank0:1245462:1245462 [0] NCCL INFO Rank 0 RMA strides: baseStride 0 userCtxStride 1 defaultUserStride 1 networkRmaSupport 0 (crossNic 1 contiguousRanksPerHost 1 numRmaCtx 1)
+nccl-rank0:1245462:1245462 [0] NCCL INFO symmetricSupport 0, cuMemEnable 1, globalGinSupport 0, cuMemGdrSupport 0, contiguousRanksPerHost 1, crossNicSupport 1
+nccl-rank0:1245462:1245462 [0] NCCL INFO CC Off, workFifoBytes 1048576
+nccl-rank0:1245462:1245462 [0] NCCL INFO ncclCommInitRank comm 0x55a42fa84e60 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 1000 commId 0x37d73936808912c3 - Init COMPLETE
+nccl-rank0:1245462:1245462 [0] NCCL INFO Init timings - ncclCommInitRank: rank 0 nranks 2 total 0.52 (kernels 0.38, alloc 0.02, bootstrap 0.12, allgathers 0.00, topo 0.00, graphs 0.00, connections 0.00, rest 0.00)
+ARM ok init rank=0 world=2
+nccl-rank0:1245462:1245789 [0] NCCL INFO [Proxy Progress] Device 0 CPU core 23
+nccl-rank0:1245462:1245462 [0] NCCL INFO Channel 00/0 : 1[0] -> 0[0] [receive] via NET/IB/0
+nccl-rank0:1245462:1245462 [0] NCCL INFO Channel 01/0 : 1[0] -> 0[0] [receive] via NET/IB/0
+nccl-rank0:1245462:1245462 [0] NCCL INFO Channel 00/0 : 0[0] -> 1[0] [send] via NET/IB/0
+nccl-rank0:1245462:1245462 [0] NCCL INFO Channel 01/0 : 0[0] -> 1[0] [send] via NET/IB/0
+
+[2026-11-22 10:08:39] nccl-rank0:1245462:1245778 [0] misc/ibvwrap.cc:391 (wrap_ibv_query_ece) NCCL WARN Call to ibv_query_ece failed with error Function not implemented errno 38
+nccl-rank0:1245462:1245778 [0] NCCL INFO transport/net_ib/connect.cc:788 (ncclIbSenderQpsCreate) -> 2
+nccl-rank0:1245462:1245778 [0] NCCL INFO transport/net_ib/connect.cc:999 (ncclIbConnectImpl) -> 2
+nccl-rank0:1245462:1245778 [0] NCCL INFO transport/net.cc:912 (sendProxyConnect) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO transport.cc:248 (ncclTransportP2pSetup) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO transport/generic.cc:28 (ncclTransportRingConnect) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO group.cc:232 (ncclCollPreconnect) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO group.cc:337 (ncclCollPreconnectFunc) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO group.cc:147 (ncclAsyncJobMain) -> 2 [Async thread]
+nccl-rank0:1245462:1245462 [0] NCCL INFO group.cc:841 (groupLaunchLegacy) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO group.cc:1152 (ncclGroupEndInternal) -> 2
+nccl-rank0:1245462:1245462 [0] NCCL INFO enqueue/enqueue.cc:3611 (ncclEnqueueCheck) -> 2
+ARM FAIL /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/nccl_arm.c:152: ncclAllReduce(d_in, d_out, n, ncclFloat, ncclSum, comm, NULL) -> unhandled system error (run with NCCL_DEBUG=INFO for details)
+
+[2026-11-22 10:08:39] nccl-rank0:1245462:1245778 [0] misc/ibvwrap.cc:391 (wrap_ibv_query_ece) NCCL WARN Call to ibv_query_ece failed with error Function not implemented errno 38
+nccl-rank0:1245462:1245778 [0] NCCL INFO transport/net_ib/connect.cc:788 (ncclIbSenderQpsCreate) -> 2
+nccl-rank0:1245462:1245778 [0] NCCL INFO transport/net_ib/connect.cc:999 (ncclIbConnectImpl) -> 2
+nccl-rank0:1245462:1245778 [0] NCCL INFO transport/net.cc:912 (sendProxyConnect) -> 2
+ARM ok allreduce n=1048576 value=-1.0 expected=3.0 bad=1048576
+ARM FAIL /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/nccl_arm.c:186: 1048576 of 1048576 elements are not 3.0
+
+[2026-11-22 10:08:39] nccl-rank0:1245462:1245462 [0] init.cc:3440 (commReclaim) NCCL ATTN cleanup comm 0x37d73936808912c3 rank 0 failed in destroy/abort, error 1
+ARM FAILED: 2 failure(s)
+--- --- rank1 (last 40 lines) ---
+nccl-rank1:1245622:1245777 [0] NCCL INFO [Proxy Service] Device 0 CPU core 8
+nccl-rank1:1245622:1245779 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 23
+nccl-rank1:1245622:1245777 [0] NCCL INFO proxy listening socket at 192.168.0.180<53779>
+nccl-rank1:1245622:1245622 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so
+nccl-rank1:1245622:1245622 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+nccl-rank1:1245622:1245622 [0] NCCL INFO 2 coll channels, 2 collnet channels, 0 nvls channels, 2 p2p channels, 1 p2p channels per peer
+nccl-rank1:1245622:1245622 [0] NCCL INFO Rank 1 RMA strides: baseStride 0 userCtxStride 1 defaultUserStride 1 networkRmaSupport 0 (crossNic 1 contiguousRanksPerHost 1 numRmaCtx 1)
+nccl-rank1:1245622:1245622 [0] NCCL INFO symmetricSupport 0, cuMemEnable 1, globalGinSupport 0, cuMemGdrSupport 0, contiguousRanksPerHost 1, crossNicSupport 1
+nccl-rank1:1245622:1245622 [0] NCCL INFO ncclCommInitRank comm 0x55891c5ffb80 rank 1 nranks 2 cudaDev 0 nvmlDev 0 busId 1000 commId 0x37d73936808912c3 - Init COMPLETE
+nccl-rank1:1245622:1245622 [0] NCCL INFO Init timings - ncclCommInitRank: rank 1 nranks 2 total 0.39 (kernels 0.36, alloc 0.01, bootstrap 0.01, allgathers 0.00, topo 0.00, graphs 0.00, connections 0.00, rest 0.00)
+ARM ok init rank=1 world=2
+nccl-rank1:1245622:1245787 [0] NCCL INFO [Proxy Progress] Device 0 CPU core 22
+nccl-rank1:1245622:1245622 [0] NCCL INFO Channel 00/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+nccl-rank1:1245622:1245622 [0] NCCL INFO Channel 01/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+nccl-rank1:1245622:1245622 [0] NCCL INFO Channel 00/0 : 1[0] -> 0[0] [send] via NET/IB/0
+nccl-rank1:1245622:1245622 [0] NCCL INFO Channel 01/0 : 1[0] -> 0[0] [send] via NET/IB/0
+
+[2026-11-22 10:08:39] nccl-rank1:1245622:1245777 [0] misc/ibvwrap.cc:391 (wrap_ibv_query_ece) NCCL WARN Call to ibv_query_ece failed with error Function not implemented errno 38
+nccl-rank1:1245622:1245777 [0] NCCL INFO transport/net_ib/connect.cc:788 (ncclIbSenderQpsCreate) -> 2
+nccl-rank1:1245622:1245777 [0] NCCL INFO transport/net_ib/connect.cc:999 (ncclIbConnectImpl) -> 2
+nccl-rank1:1245622:1245777 [0] NCCL INFO transport/net.cc:912 (sendProxyConnect) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO transport.cc:248 (ncclTransportP2pSetup) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO transport/generic.cc:28 (ncclTransportRingConnect) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO group.cc:232 (ncclCollPreconnect) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO group.cc:337 (ncclCollPreconnectFunc) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO group.cc:147 (ncclAsyncJobMain) -> 2 [Async thread]
+nccl-rank1:1245622:1245622 [0] NCCL INFO group.cc:841 (groupLaunchLegacy) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO group.cc:1152 (ncclGroupEndInternal) -> 2
+nccl-rank1:1245622:1245622 [0] NCCL INFO enqueue/enqueue.cc:3611 (ncclEnqueueCheck) -> 2
+ARM FAIL /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/nccl_arm.c:152: ncclAllReduce(d_in, d_out, n, ncclFloat, ncclSum, comm, NULL) -> unhandled system error (run with NCCL_DEBUG=INFO for details)
+
+[2026-11-22 10:08:39] nccl-rank1:1245622:1245777 [0] misc/ibvwrap.cc:391 (wrap_ibv_query_ece) NCCL WARN Call to ibv_query_ece failed with error Function not implemented errno 38
+nccl-rank1:1245622:1245777 [0] NCCL INFO transport/net_ib/connect.cc:788 (ncclIbSenderQpsCreate) -> 2
+nccl-rank1:1245622:1245777 [0] NCCL INFO transport/net_ib/connect.cc:999 (ncclIbConnectImpl) -> 2
+nccl-rank1:1245622:1245777 [0] NCCL INFO transport/net.cc:912 (sendProxyConnect) -> 2
+ARM ok allreduce n=1048576 value=-1.0 expected=3.0 bad=1048576
+ARM FAIL /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/experiments/gpu-sim-7q3w.3/nccl_arm.c:186: 1048576 of 1048576 elements are not 3.0
+
+[2026-11-22 10:08:39] nccl-rank1:1245622:1245622 [0] init.cc:3440 (commReclaim) NCCL ATTN cleanup comm 0x37d73936808912c3 rank 1 failed in destroy/abort, error 1
+ARM FAILED: 2 failure(s)
+ASSERT FAIL: rank0 all-reduce numerics (bad=0)
+ASSERT FAIL: rank0 exit line
+ASSERT ok: rank0: NCCL_DEBUG names our mlx5_0 as an IB device
+ASSERT ok: rank0: channel went via NET/IB, not P2P/SHM
+ASSERT ok: rank0: no net plugin was loaded (it must be NCCL's own IB)
+ASSERT ok: rank0: Socket was never assigned to the comm
+ASSERT ok: rank0: the sysfs spoof answered NCCL's realpath
+ASSERT FAIL: rank1 all-reduce numerics (bad=0)
+ASSERT FAIL: rank1 exit line
+ASSERT ok: rank1: NCCL_DEBUG names our mlx5_0 as an IB device
+ASSERT ok: rank1: channel went via NET/IB, not P2P/SHM
+ASSERT ok: rank1: no net plugin was loaded (it must be NCCL's own IB)
+ASSERT ok: rank1: Socket was never assigned to the comm
+ASSERT ok: rank1: the sysfs spoof answered NCCL's realpath
+ASSERT ok: rank0 counters dumped
+ASSERT FAIL: rank0: NCCL posted WRs and moved bytes on our QPs
+ASSERT ok: rank0: dmabuf capability probe was ATTEMPTED (dmabuf_attempts>0; 0 means the arm never tried)
+ASSERT ok: rank0: NOT EXERCISED: dmabuf registration needs a driver that exports dma-buf; the capability probe returned fd<0, so nothing was registered (NOT a red and NOT an ok -- owner: gpu-sim-7q3w.6)
+ASSERT ok: rank1 counters dumped
+ASSERT FAIL: rank1: NCCL posted WRs and moved bytes on our QPs
+ASSERT ok: rank1: dmabuf capability probe was ATTEMPTED (dmabuf_attempts>0; 0 means the arm never tried)
+ASSERT ok: rank1: NOT EXERCISED: dmabuf registration needs a driver that exports dma-buf; the capability probe returned fd<0, so nothing was registered (NOT a red and NOT an ok -- owner: gpu-sim-7q3w.6)
+ASSERT FAIL: rank0 exited 0
+ASSERT ok: rank1 exited 0
+
+GPU ARM FAILED: 7 assertion(s) -- run dir kept at /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.3/.lab/tmp/build-7q3w3-gpu/run-1795370917
+GPU_ARM_RC=1

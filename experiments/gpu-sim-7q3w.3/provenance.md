@@ -1,0 +1,227 @@
+# gpu-sim-7q3w.3 — libibverbs.so.1 shim: provenance and state
+
+Status: **phase 1 of the bead.** The shim's own semantics, the ABI pin and the
+timing model are built and measured (`run.sh` stages 1–5, green). The NCCL arms
+(device named by NCCL, IB transport chosen, all-reduce numerics, topology
+injection) are **not** done yet: they need the synthetic sysfs and the
+cross-process wire. Do not read this as acceptance for the bead.
+
+## 1. Which header is compiled against, and why it is not the distro's
+
+The ABI that crosses this shim is **NCCL's**, not rdma-core's newest. Two
+headers were measured with `abi_layout.c` (the same program, one `-I` apart):
+
+| struct | rdma-core v59.3 | NCCL v2.32.6 `ibvcore.h` |
+|---|---|---|
+| `ibv_send_wr` | 128 | 80 |
+| `ibv_qp_init_attr` | 64 | 72 |
+| `ibv_qp_attr` | 144 | 136 |
+
+All other `sizeof`/`offsetof` values the shim touches are identical (the dumps
+are in `abi_diff_expected.txt`, diffed by `run.sh` stage 2). The three
+differences are trailing members added/removed between the two snapshots:
+`_Static_assert`s in `ibverbs_shim.c` therefore pin **the NCCL sizes**, and the
+shim compiles against `vendor/nccl/ibvcore.h`.
+
+Vendored files and their recorded SHA256 (`vendor/SHA256SUMS`,
+`vendor/nccl/SHA256SUMS`):
+
+* `vendor/nccl/ibvcore.h` — NCCL tag `v2.32.6-1`
+  (`src/include/ibvcore.h`), sha256 `3111a55c…c41f70d`. This is the header the
+  wheel's `libnccl.so.2` was built against (NVIDIA keeps it in-tree for exactly
+  the no-rdma-core build case).
+* `vendor/infiniband/{verbs.h,verbs_api.h,ib_user_verbs.h,ib_user_ioctl_*.h}` —
+  rdma-core **v59.3** (`libibverbs/verbs.h` byte-identical to the upstream tag,
+  verified 2026-11-22). Kept as the measured counter-example, not as the build
+  header.
+
+A header swap that changes a field the shim touches moves the diff in stage 2
+and fails the run; a wrong size that would corrupt NCCL's stack (the
+`ibv_query_qp` `memset` case) fails the build instead.
+
+## 2. The inline trap (why exporting symbols is not enough)
+
+NCCL does **not** dlsym `ibv_post_send`, `ibv_post_recv` or `ibv_poll_cq`.
+Those are static inlines in `src/include/ibvwrap.h` that dispatch through
+`qp->context->ops.post_send`, `qp->context->ops.post_recv` and
+`cq->context->ops.poll_cq`. `ibv_open_device` therefore fills the ops table
+(`poll_cq` at byte 88, `post_send` at 200, `post_recv` at 208, asserted at
+compile time). A shim that exports the symbols and leaves `ops` zeroed
+segfaults on the first NCCL poll; `dlopen_check` and `abi_probe` both exercise
+the ops path, not the exported names.
+
+## 3. Timing model
+
+Every completion is queued with `ready_ns = now + bytes/(bandwidth) + latency`
+and `poll_cq` returns it only once `CLOCK_MONOTONIC` has reached `ready_ns`. No
+sleeps in the shim. Defaults model one NDR port: **400 Gb/s**, **1.2 µs**. Two
+env overrides exist so the acceptance's 2× assertion drives the same code path a
+spec file will: `FAKEIB_BW_GBPS`, `FAKEIB_LATENCY_US`.
+
+Measured (stage 5, this box):
+
+* 40 ms latency arm: immediate poll returns 0, first completion at
+  ≈40.0 ms (the check is on the wire, not on the wall clock of the test).
+* 2× line rate on 1 MiB, asserted on the shim's own modelled charge
+  (`fakeib_last_charge_ns`): **ratio 2.00** (band [1.9, 2.1]).  The same arm
+  prints the wall-clock times but does not assert on them: on a loaded box one
+  scheduler slice made the WALL ratio 32.76 while the charge ratio was exactly
+  2.00.  A wall-clock ratio measures the box; the charge ratio measures the
+  model.
+
+## 4. Counters
+
+Exported and also appended as JSON to `$FAKEIB_COUNTERS_FILE` at exit:
+`fakeib_dmabuf_registrations` (GDR arm), `reg_mr_calls`, `post_send_calls`,
+`post_recv_calls`, `completions`, `bytes_written`, `bytes_read`, `writes`,
+`reads`, `sends`, `recvs`, `qp_transition_refusals`, `rnr_drops`,
+`remote_access_errors`, `cq_full_drops`. The acceptance's "dmabuf counter
+non-zero" item is the first of these; `abi_probe` already asserts it.
+
+Measured now: the shim loads by SONAME like NCCL loads it; the 38-name dlsym
+surface is complete; the QP state machine accepts RESET→INIT→RTR→RTS and refuses
+RTS→INIT; one posted WR gives exactly one completion with the right `wr_id`,
+opcode and `byte_len`; an empty CQ returns 0; RDMA WRITE, WRITE_WITH_IMM
+(including the receiver's IMM completion) and READ move the bytes; the
+comp-channel event fires; `ibv_reg_dmabuf_mr` increments its counter; the wire
+model gates completions and scales with line rate.
+
+Also measured, cross-process (`wire_probe`, two real processes): the two ranks
+exchange (qpn,rkey,addr) over pipes exactly as NCCL does and drive RDMA WRITE,
+WRITE_WITH_IMM (receiver IMM completion + imm data) and READ across the
+MAP_SHARED ring; the sender's completion for a 20 ms latency arm lands at
+≥20 ms measured on its own clock.
+
+## 6. The cross-process ring, and its model's limits
+
+One byte-ring file per (from,to) rank pair under `FAKEIB_RING_DIR` (default
+`.lab/tmp/7q3w3-rings`), `FAKEIB_RING_MB` = 64 MiB per direction, records
+8-aligned with a `len/kind/wr_id/addr/rkey/imm/dest_qpn/ready_ns/nbytes/status/tag`
+header.  `FAKEIB_NRANKS` (default 2) tells each rank which pair-rings to open in
+both directions at startup, because a receiver cannot see an inbound ring until
+it opens the file.  A full ring is a 30 s stall then a counted WR failure, never
+a silent drop.  `rkey` is resolved on the RECEIVING rank in its own MR table (so
+both processes may own rkey 1); `remote_addr - iova` is the offset inside that
+MR.
+
+Deliberate model limits, stated so nobody mistakes them for hardware: an
+invalid rkey/range is counted on the RECEIVER (`remote_access_errors`) and does
+not come back as the sender's WC status; a SEND completes at post time (the
+ring carries it) instead of waiting for the peer's posted recv WR; the bytes are
+in the ring immediately and only the completion is delayed by the model.  The
+NCCL data path uses RDMA WRITE / WRITE_WITH_IMM / READ only (net_ib's p2p.cc),
+so the first two limits do not sit on the collective path.
+
+## 7. The sysfs surface is exactly one realpath
+
+The bead allowed a mount namespace or LD_PRELOAD for the fake
+`/sys/class/infiniband`.  The mount namespace is a measured dead end here:
+`unshare -m --map-root-user` creates the namespace, but `/sys/class` has no
+`infiniband` entry to bind over, cannot be `mkdir`'d, and an overlay over `/sys`
+is refused.  So this goes through LD_PRELOAD, and it is small because the
+surface is small: in NCCL v2.32.6-1 the IB transport reads exactly ONE sysfs
+path, `src/transport/net_ib/init.cc:73` (sha256 `98f7b028f488…`):
+
+    snprintf(devicePath, PATH_MAX, "/sys/class/infiniband/%s/device", devName);
+    char* p = realpath(devicePath, NULL);
+
+and then truncates the last character of the result to merge the ports of one
+PCI device.  Everything else the IB path needs comes from the verbs calls the
+shim answers; the `/sys/class/infiniband/.../gid_attrs/types` read in
+`net_ib/connect.cc:279` is on the RoCE code path only.
+
+`sysfs_spoof.c` therefore interposes `realpath` and rewrites just the prefix
+`/sys/class/infiniband/` into a tree built by `fake_sysfs.sh`.  Because the
+tree's `device` entry is a symlink to a real PCI bridge directory, the path
+NCCL gets back is a real `/sys/devices/...` path, which is what its
+truncation expects.  `realpath_probe.c` pins both halves: the IB path resolves,
+and `/sys/class/net`, `/sys/bus/pci/devices` and a nonexistent `mlx5_9` are
+untouched (a prefix rewrite that also caught the PCI scan would fail three
+layers later as "no path between GPUs").  Attribute files in the tree are
+decoration: this interposer rewrites `realpath` only, and the probe prints that
+limitation instead of asserting around it.
+
+`fake_sysfs.sh` picks each rank's GPU from sysfs alone (PCI class 0x030000 =
+VGA, 0x030200 = 3D), never from CUDA: this has to run CPU-side, and a CUDA call
+to answer a question sysfs answers would need the GPU queue.  Each rank points
+its HCA at *its own* GPU's bridge, and run.sh fails if the two ranks resolve to
+the same bridge: NCCL merges ranks that share a PCI path into one node, which
+would delete the cross-node edge this whole experiment is building.
+
+## 8. A harness bug worth recording
+
+The first version of `wire_probe` used ONE pipe for all acknowledgements, so
+both ranks held a read end on the same byte stream.  rank1's `d`-wait loop is
+non-blocking and could read the `i` it had just written to rank0, which then
+blocked forever in a read that could never be satisfied.  It looked like a
+flake: 9 failures in 30 runs, two different symptoms depending on which side
+gave up first, and one run that hung until its 60 s timeout.  One pipe per
+direction removed the double reader (and turned a dead peer into EOF instead of
+a hang); 40/40 runs pass.  The lesson is in the code comment, not just here: a
+shared read end is not a race you can retry your way out of.
+
+## 9. The NCCL arms: what runs, and what is blocked on hardware
+
+Arm (a) is **measured**: with the shim built with `ibverbs.map`, the sysfs
+spoof, and an async-event block, NCCL's own IB transport is selected and used:
+
+    NCCL INFO NET/IB : Using [0]mlx5_0:1/IB [RO]; OOB enp14s0:...
+    NCCL INFO Channel 00/0 : 0[0] -> 1[0] [send] via NET/IB/0
+    NCCL INFO Channel 01/0 : 1[0] -> 0[0] [receive] via NET/IB/0
+
+with no net plugin loaded (`NET/Plugin: Could not find: libnccl-net.so` is NCCL
+saying there is none).  Four defects had to be fixed to get there, and none was
+visible to a CPU-only probe before it:
+
+1. **dlvsym, not dlsym.** NCCL builds its verbs table with
+   `dlvsym(handle, name, "IBVERBS_1.1")` (misc/ibvsymbols.cc) and tears the whole
+   table down on one NULL, so an unversioned shim made NCCL use Socket with a
+   perfectly good shim in the process.  `ibverbs.map` plus stage 4's
+   `dlvsym_probe` close that class of bug; the arm builds with the map too.
+2. **`ibv_query_port` never set `link_layer`** (and `ibv_query_device` never set
+   `phys_port_cnt`).  Both default to 0 after a memset, NCCL skips such a port
+   silently, and the log says only "NET/IB : No device found."  Stage 5 now
+   asserts link_layer, speed 128 / width 2, and the port count.
+3. **`ibv_get_async_event` returned ENOSYS.** A real device blocks there;
+   returning an error let `ncclIbAsyncThreadMain` run into state this fake device
+   never produced.  Measured from a core dump: NULL dereference at `+0x1c`,
+   reproducible with **one** rank, and absent when the shim was not loaded.  The
+   shim now blocks (interruptible by a signal), which is the faithful behaviour.
+4. **libfakegpu.so cannot be LD_PRELOADed into a process that uses real NCCL:**
+   it exports `ncclAllReduce` and friends (the simulator's own collectives), so
+   it preempts NCCL's and the arm silently measures the simulator -- observed
+   directly: 1048576 wrong elements, no NCCL_DEBUG output, no bytes on the wire.
+   Installed as `libcudart.so.13` in a library directory instead, libnccl comes
+   earlier in the global scope and stays itself.  Only the runtime is faked: the
+   real driver must answer `cuDriverGetVersion` (with the fake driver NCCL
+   reports "CUDA driver version is insufficient").
+
+What the arm still cannot show on this box, with the reason measured rather
+than guessed:
+
+* **Two real devices.** `/proc/driver/nvidia/gpus` has ONE entry
+  (0000:01:00.0); the second PCI display device is not an NVIDIA GPU.  Two ranks
+  get two *virtual* devices from the fake CUDA layer, which is enough for NCCL's
+  topology and transport selection.  The arm is CPU-bound work and must not hold
+  the GPU queue -- the first attempt was killed for 0.2% GPU use.
+* **Numerics.** The collective is carried out by device kernels; the simulator
+  does not execute NCCL's kernels, so `d_out` never becomes the sum.  The arm
+  reports `bad=1048576` instead of pretending.  Transport *correctness* is
+  covered by stage 6, which moves WRITE/WRITE_WITH_IMM/READ bytes between two
+  real processes and compares them exactly.
+* **The data path through the QPs** -- and this is the SAME root cause as the
+  numerics, measured rather than assumed to be two problems.  With
+  `NCCL_RMA_DISABLE=0` (NCCL's own RMA/IB proxy -- the path that posts data WRs
+  in 2.32) the arm no longer crashes (GIN was the crasher) but every shim
+  counter is zero: `reg_mr_calls: 0`, `post_send_calls: 0`, `bytes_written: 0`,
+  and NCCL logs `networkRmaSupport 0`.  The proxy advances from device *kernel*
+  progress, and the simulator's kernel launches are no-ops, so the proxy never
+  starts a transfer.  `NCCL_RMA_DISABLE=1` (default here) skips the subsystem;
+  `=0` is the knob for whoever gives the simulator real kernels.  The assertion
+  stays red in `gpu_arm.sh` on purpose.
+* **Arm (c), the dmabuf counter.** The real driver cannot export a dma-buf for
+  memory the fake runtime allocated, so NCCL never has a real fd.  The counter
+  now counts only real registrations (fd >= 0; NCCL's capability probe uses
+  fd = -1), and the arm asserts it stays **0** with exactly that explanation.
+
+## 10. Reproduce
