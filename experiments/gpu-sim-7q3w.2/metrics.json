@@ -1,0 +1,42 @@
+{
+  "bead": "gpu-sim-7q3w.2",
+  "vendor_tag": "v2.32.6-1",
+  "abi": {
+    "sizeof_props": 112,
+    "sizeof_vtable": 176,
+    "loader_equals_plugin": true
+  },
+  "runs_per_arm": 20,
+  "exit_code_distribution": {
+    "cu12": {
+      "0": 20
+    },
+    "cu13": {
+      "0": 20
+    }
+  },
+  "measured": {
+    "parsed_from": "cu13/run01/counters-rank0.json",
+    "props_speed_mbps": 400000,
+    "props_guid": 18072412041498329088,
+    "accept_calls_rank0": 4,
+    "isend_calls_rank0": 16,
+    "irecv_calls_rank0": 16,
+    "bytes_claimed_rank0": 20971520,
+    "channel": "via NET/fakeib-net/0 (no via NET/Socket in any log)"
+  },
+  "conditions": {
+    "load_average": "15.13, 13.97, 14.00",
+    "wall_seconds": 69,
+    "cpu_only": true,
+    "gpqueue": false,
+    "rebased_onto_main": "7f54d408"
+  },
+  "honest_gaps": [
+    "data path is a NULL transport: bytes_claimed counts what NCCL asked for, not bytes moved (epic steps 3-5)",
+    "collective numerics are wrong (bad=1048576) because the simulator executes no device kernels",
+    "v12 is not exported, so 2.32 takes v11 by design (m3d.4)"
+  ],
+  "gate": "scripts/gate.sh --fast PASS; UNVERIFIABLE FOR THIS TIP: handle none, cu12+cu13; delta none: no run record exists for this tip (CPU-only arms, never submitted to gpqueue)",
+  "gate_note": "the citation is form C (declared unverifiable, no tip): a tip-bearing citation goes stale the moment a row is committed after the gate, which the citation rule correctly refuses. The gate run for this tip is in the bead comment (7288a6d8). [rebased onto main 7f54d408 and the arm re-run: 20/20 both wheels, 69 s at load 15.13, counters isend=16 irecv=16 bytes_claimed=20971520 agreeing with file.]"
+}

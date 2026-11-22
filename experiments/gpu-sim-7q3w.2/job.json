@@ -1,0 +1,31 @@
+{
+  "bead": "gpu-sim-7q3w.2",
+  "ts_jobs": [],
+  "gpu_used": false,
+  "cpu_only": true,
+  "why_no_gpu": "the arm loads real libnccl behind our NET plugin and reads its props/counters: no device is touched, and a CPU-bound job on the GPU queue is killed at ~0.2% GPU use. The ABI it measures is NCCL's, not the driver's.",
+  "cpu_runs": [
+    {
+      "command": "bash experiments/gpu-sim-7q3w.2/run.sh 20",
+      "exit_code": 0,
+      "wall_s": 63,
+      "log": "experiments/gpu-sim-7q3w.2/output.log",
+      "what": "the arm: 20 runs per wheel (cu12, cu13); plugin accepted and used, 0 signals, 0 other non-zero exits"
+    },
+    {
+      "command": "python3 experiments/gpu-sim-7q3w.2/check_counters.py <run>/cu13/run01/rank0.log <run>/cu13/run01/counters-rank0.json 0",
+      "exit_code": 0,
+      "what": "the agreement check the arm asserts on: the printed counters line vs the counters file (rc=0 agree; a log doctored to isend=0 gives rc=1 naming 'isend: printed 0 vs file 16')"
+    }
+  ],
+  "wall_bound_s": 900,
+  "wall_bound_note": "run.sh 20 measured 63 s wall at load 13.46 in the run whose log is output.log (the same arm has measured 69-70 s at load 15-19). The 900 s bound exists so a loaded box cannot be misread as a failing arm.",
+  "arm_sources_sha256": {
+    "run.sh": "416811cbf2bdf46d0e234fe431e19fae5f28f67e017c3b91f25bf9b0c59609d4",
+    "arm_plugin.c": "ec1c01b3525e6a28b675c9161b59e6104de086faf04f8d2f64d8c4715fc88adf",
+    "plugin_accept.c": "652315ca8b6cf41c77ed8c794a3bff6ed8879020041e102eebcedbe19f5debb2",
+    "abi_measure.c": "814961fd28381ff62a5571ae009be9a1b70d266687a22359e1a4bdc187ccd76d",
+    "check_counters.py": "a34a8e739bf7de46cba061ed1feae768686eb7115214dec370c22595e7969fa7"
+  },
+  "arm_sources_note": "output.log is the capture of run.sh at the tip recorded in the bead comment; these sha256s let a reader check that the code which produced it is the code in the tree."
+}

@@ -1,0 +1,87 @@
+
+=== 0. stage the wheels' own libnccl (the only heavy step; caches are gitignored) ===
+  cu12: lib staged, header staged
+  cu12: staged nvidia_nccl_cu12-2.32.6-py3-none-manylinux_2_27_x86_64.whl
+  cu13: lib staged, header staged
+  cu13: staged nvidia_nccl_cu13-2.32.6-py3-none-manylinux_2_27_x86_64.whl
+
+=== 1. provenance: vendored headers (v2.32.6-1) are the source of the struct ===
+ASSERT ok: vendored public headers carry tag v2.32.6-1
+  vendored header files: 32
+ASSERT ok: public plugin header carries its Apache-2.0 SPDX line
+ASSERT ok: cu12: its own nccl.h is 2.32.6 (23206), so the tag and this wheel agree
+ASSERT ok: cu12: NCCL version 2.32.6+cuda12.9
+ASSERT ok: cu13: its own nccl.h is 2.32.6 (23206), so the tag and this wheel agree
+ASSERT ok: cu13: NCCL version 2.32.6+cuda13.5
+
+=== 2. ABI: loader header and plugin header must agree on EVERY field ===
+ASSERT ok: every sizeof/offsetof matches: sizeof(ncclNetProperties_v11_t)=112
+ASSERT ok: measured: sizeof(ncclNetProperties_v11_t)=112
+ASSERT ok: measured: sizeof(ncclNet_v11_t)=176
+ASSERT ok: measured: vProps offset=64
+ASSERT ok: measured: maxMultiRequestSize offset=104
+
+=== 3. build the plugin from the public header, and check what it exports ===
+ASSERT ok: plugin built (18160 bytes)
+ASSERT ok: exports ncclNetPlugin_v11
+ASSERT ok: does NOT export v12, so NCCL must take v11 (2.32 prefers v12 when present)
+ASSERT ok: ncclNetPlugin_v11 is 176 bytes in .dynsym
+
+=== 4. acceptance arms: 20 sequential runs per wheel ===
+ASSERT ok: cu12: 20/20 runs reported ARM OK
+ASSERT ok: cu12: 20/20 runs measured accept() > 0
+ASSERT ok: cu12: no SIGSEGV (139) or abort (134) in 20 runs
+ASSERT ok: cu12: no other non-zero exit in 20 runs
+  cu12 exit codes: 1 rc=0 2 rc=0 3 rc=0 4 rc=0 5 rc=0 6 rc=0 7 rc=0 8 rc=0 9 rc=0 10 rc=0 11 rc=0 12 rc=0 13 rc=0 14 rc=0 15 rc=0 16 rc=0 17 rc=0 18 rc=0 19 rc=0 20 rc=0 
+ASSERT ok: cu13: 20/20 runs reported ARM OK
+ASSERT ok: cu13: 20/20 runs measured accept() > 0
+ASSERT ok: cu13: no SIGSEGV (139) or abort (134) in 20 runs
+ASSERT ok: cu13: no other non-zero exit in 20 runs
+  cu13 exit codes: 1 rc=0 2 rc=0 3 rc=0 4 rc=0 5 rc=0 6 rc=0 7 rc=0 8 rc=0 9 rc=0 10 rc=0 11 rc=0 12 rc=0 13 rc=0 14 rc=0 15 rc=0 16 rc=0 17 rc=0 18 rc=0 19 rc=0 20 rc=0 
+
+=== 5. control: WARN must NOT produce NCCL's INFO load line ===
+ASSERT ok: control: our constructor still loaded the plugin
+ASSERT ok: control: NCCL's INFO load line is absent at WARN (the positive arm's evidence is NCCL's own)
+
+=== 6. summary (values PARSED from the counters files, not restated) ===
+{
+  "bead": "gpu-sim-7q3w.2",
+  "vendor_tag": "v2.32.6-1",
+  "abi": {
+    "sizeof_props": 112,
+    "sizeof_vtable": 176,
+    "loader_equals_plugin": true
+  },
+  "runs_per_arm": 20,
+  "exit_code_distribution": {
+    "cu12": {
+      "0": 20
+    },
+    "cu13": {
+      "0": 20
+    }
+  },
+  "measured": {
+    "parsed_from": "cu13/run01/counters-rank0.json",
+    "props_speed_mbps": 400000,
+    "props_guid": 18072412041498329088,
+    "accept_calls_rank0": 4,
+    "isend_calls_rank0": 16,
+    "irecv_calls_rank0": 16,
+    "bytes_claimed_rank0": 20971520,
+    "channel": "via NET/fakeib-net/0 (no via NET/Socket in any log)"
+  },
+  "conditions": {
+    "load_average": "13.46, 13.86, 13.98",
+    "wall_seconds": 63,
+    "cpu_only": true,
+    "gpqueue": false
+  },
+  "honest_gaps": [
+    "data path is a NULL transport: bytes_claimed counts what NCCL asked for, not bytes moved (epic steps 3-5)",
+    "collective numerics are wrong (bad=1048576) because the simulator executes no device kernels",
+    "v12 is not exported, so 2.32 takes v11 by design (m3d.4)"
+  ]
+}
+
+RUN OK: v11 plugin accepted and used on both wheels, 20/20 runs each (artifacts: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.2/experiments/gpu-sim-7q3w.2/runs/20261122T154935Z)
