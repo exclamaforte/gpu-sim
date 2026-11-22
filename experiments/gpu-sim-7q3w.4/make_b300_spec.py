@@ -118,7 +118,7 @@ def links():
                     "a": {"node": f"node{n}", "device": a},
                     "b": {"node": f"node{n}", "device": b},
                     "kind": "nvlink",
-                    "bw_gbps": 1800.0,
+                    "bw_gbps": 900.0,  # per-link calendar value: 1800 bidirectional / 2; derive_fabrics halves again to 450 one-way
                     "bw_is_bidirectional": True,
                     "latency_us": NV_LATENCY_US,
                     "latency_source": SOURCES["latency.nvlink"],

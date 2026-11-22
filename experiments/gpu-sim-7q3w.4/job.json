@@ -10,55 +10,55 @@
       "exit_code": 0,
       "log": "experiments/gpu-sim-7q3w.4/output.log",
       "what": "A2 node isolation + negative control",
-      "wall_s": 14.7,
+      "wall_s": 15.5,
       "attempts": 1,
       "preflight_required_mib": 6000,
-      "mem_available_mib_before": 16096,
-      "mem_available_mib_after": 16080
+      "mem_available_mib_before": 13128,
+      "mem_available_mib_after": 13227
     },
     {
       "command": "bash experiments/gpu-sim-7q3w.4/run.sh 1",
       "exit_code": 0,
       "log": "experiments/gpu-sim-7q3w.4/output.log",
       "what": "eight concurrent node processes + RAM preflight",
-      "wall_s": 14.8,
+      "wall_s": 17.8,
       "attempts": 1,
       "preflight_required_mib": 10208,
-      "mem_available_mib_before": 16080,
-      "mem_available_mib_after": 16880
+      "mem_available_mib_before": 13227,
+      "mem_available_mib_after": 13668
     },
     {
       "command": "bash experiments/gpu-sim-7q3w.4/run.sh 2",
       "exit_code": 0,
       "log": "experiments/gpu-sim-7q3w.4/output.log",
       "what": "torch.distributed world_size 8, one rank per node",
-      "wall_s": 8.1,
+      "wall_s": 7.5,
       "attempts": 1,
       "preflight_required_mib": 5824,
-      "mem_available_mib_before": 16880,
-      "mem_available_mib_after": 17187
+      "mem_available_mib_before": 13668,
+      "mem_available_mib_after": 12947
     },
     {
       "command": "bash experiments/gpu-sim-7q3w.4/run.sh 3",
       "exit_code": 0,
       "log": "experiments/gpu-sim-7q3w.4/output.log",
       "what": "12.6M transformer + AdamW, 8 DDP ranks, equal checkpoints",
-      "wall_s": 21.5,
+      "wall_s": 21.8,
       "attempts": 1,
       "preflight_required_mib": 10576,
-      "mem_available_mib_before": 17187,
-      "mem_available_mib_after": 17345
+      "mem_available_mib_before": 12946,
+      "mem_available_mib_after": 14000
     },
     {
       "command": "bash experiments/gpu-sim-7q3w.4/run.sh 4",
       "exit_code": 0,
       "log": "experiments/gpu-sim-7q3w.4/output.log",
       "what": "A5 8-way DDP vs single-rank reference",
-      "wall_s": 27.5,
+      "wall_s": 30.6,
       "attempts": 1,
       "preflight_required_mib": 10576,
-      "mem_available_mib_before": 17345,
-      "mem_available_mib_after": 16109
+      "mem_available_mib_before": 13987,
+      "mem_available_mib_after": 12966
     }
   ],
   "refuse_control": {

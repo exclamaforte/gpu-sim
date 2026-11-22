@@ -392,7 +392,7 @@ reviewer should not read the latency fields as measurements.
   8 x 1194 (measured 2-rank DDP RSS) + 1024 MiB margin;
 - PI's passing training run: `mem_available_start=10633` MiB -- **57 MiB**
   above the floor; end 13231 MiB;
-- this capture's training run: `mem_available_start=17088` / end 17346 MiB
+- this capture's training run: `mem_available_start=13471` / end 14026 MiB
   (the increment-3 quadruple in `output.log`; the earlier `c210e804` run's
   11638/13231 is not the artifact run);
 - PI's refusal run: `mem_available_start=10496` MiB < 10576 -- **REFUSE**, no

@@ -1,7 +1,8 @@
 {
   "bead": "gpu-sim-7q3w.4",
-  "captured_at_utc": "2026-11-22T22:02:45.872207+00:00",
+  "captured_at_utc": "2026-11-22T22:13:05.976829+00:00",
   "scope": "8 OS processes x 8 virtual devices (A1/D2). Increments 2 and 3 use world_size 8, one rank per node; A5 compares that 8-way run with a single-rank reference. A3 is gpu-sim-s2vc, A6 is gpu-sim-ae2v, and A4 remains gpu-sim-7q3w.5: no NCCL data-path or topology claim is made.",
+  "gate": "none -- CPU-only capture artifact; the final gate result is recorded in the bead submission comment",
   "result": {
     "a2_node_isolation": {
       "verdict": "PASS",
@@ -13,7 +14,7 @@
     },
     "increment_1_concurrent_nodes": {
       "verdict": "PASS",
-      "ok_line": "CONCURRENT OK: 8 processes device_count=8 name=NVIDIA B300 rss_sum=9030 MiB (budget 9184 MiB) mem_available_start=16038 MiB end=16702 MiB preflight_required=10208 MiB",
+      "ok_line": "CONCURRENT OK: 8 processes device_count=8 name=NVIDIA B300 rss_sum=8999 MiB (budget 9184 MiB) mem_available_start=13101 MiB end=13675 MiB preflight_required=10208 MiB",
       "checks": {
         "eight_processes": true,
         "every_process_sees_8": true,
@@ -24,14 +25,14 @@
         "mem_available_recorded": true,
         "preflight_passed": true
       },
-      "rss_sum_mib": 9030,
-      "mem_available_mib_start": 16038,
-      "mem_available_mib_end": 16702,
-      "min_child_mem_available_mib": 10549
+      "rss_sum_mib": 8999,
+      "mem_available_mib_start": 13101,
+      "mem_available_mib_end": 13675,
+      "min_child_mem_available_mib": 7112
     },
     "increment_2_torch_distributed": {
       "verdict": "PASS",
-      "ok_line": "DIST OK: 8 ranks x 8 B300, 64 distinct bus ids (0x0b+n*0x20), all_reduce=36.0 on every rank, rss_sum=4690 MiB, mem_available_start=16960 MiB end=17180 MiB preflight_required=5824 MiB",
+      "ok_line": "DIST OK: 8 ranks x 8 B300, 64 distinct bus ids (0x0b+n*0x20), all_reduce=36.0 on every rank, rss_sum=4728 MiB, mem_available_start=13431 MiB end=12948 MiB preflight_required=5824 MiB",
       "checks": {
         "eight_ranks": true,
         "each_rank_is_its_node": true,
@@ -44,15 +45,15 @@
         "all_gather_sees_every_node": true,
         "all_reduce_agrees": true
       },
-      "rss_sum_mib": 4690,
-      "mem_available_mib_start": 16960,
-      "mem_available_mib_end": 17180,
+      "rss_sum_mib": 4728,
+      "mem_available_mib_start": 13431,
+      "mem_available_mib_end": 12948,
       "preflight_required_mib": 5824,
-      "min_child_mem_available_mib": 14456
+      "min_child_mem_available_mib": 10321
     },
     "increment_3_training": {
       "verdict": "PASS",
-      "ok_line": "TRAIN OK: 8 ranks x 12,609,536 params, 3 real AdamW steps, rank-sharded data, checkpoint_sha256=f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555 equal on all 8 ranks; rss_sum=9970 MiB, mem_available_start=17088 MiB end=17346 MiB preflight_required=10576 MiB",
+      "ok_line": "TRAIN OK: 8 ranks x 12,609,536 params, 3 real AdamW steps, rank-sharded data, checkpoint_sha256=f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555 equal on all 8 ranks; rss_sum=9921 MiB, mem_available_start=13471 MiB end=14026 MiB preflight_required=10576 MiB",
       "checks": {
         "eight_ranks": true,
         "each_rank_is_its_node": true,
@@ -65,11 +66,11 @@
         "checkpoint_hash_equal": true,
         "all_checkpoint_files_saved": true
       },
-      "rss_sum_mib": 9970,
-      "mem_available_mib_start": 17088,
-      "mem_available_mib_end": 17346,
+      "rss_sum_mib": 9921,
+      "mem_available_mib_start": 13471,
+      "mem_available_mib_end": 14026,
       "preflight_required_mib": 10576,
-      "min_child_mem_available_mib": 10530,
+      "min_child_mem_available_mib": 6685,
       "checkpoint_hashes": [
         "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
         "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
@@ -108,7 +109,7 @@
         "final_loss_within_tolerance": true,
         "max_param_delta_within_tolerance": true
       },
-      "mem_available_mib_start": 16893,
+      "mem_available_mib_start": 13522,
       "eight_way_final_loss": 0.9889694154262543,
       "one_way_final_loss": 0.9889694303274155,
       "final_loss_delta": 1.4901161193847656e-08,
@@ -143,8 +144,8 @@
   "error_budget": {
     "ram": {
       "preflight_required_mib": 10576,
-      "this_run_mem_available_start_mib": 17088,
-      "this_run_mem_available_end_mib": 17346,
+      "this_run_mem_available_start_mib": 13471,
+      "this_run_mem_available_end_mib": 14026,
       "pi_passing_run_start_mib": 10633,
       "pi_refusal_start_mib": 10496,
       "pi_refusal_required_mib": 10576,

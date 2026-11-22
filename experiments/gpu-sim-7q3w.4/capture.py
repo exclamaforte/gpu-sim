@@ -247,6 +247,10 @@ def main():
             "single-rank reference. A3 is gpu-sim-s2vc, A6 is gpu-sim-ae2v, and "
             "A4 remains gpu-sim-7q3w.5: no NCCL data-path or topology claim is made."
         ),
+        "gate": (
+            "none -- CPU-only capture artifact; the final gate result is "
+            "recorded in the bead submission comment"
+        ),
         "result": result,
         "evidence": {
             "run_sh": "experiments/gpu-sim-7q3w.4/run.sh",
