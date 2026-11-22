@@ -11,11 +11,6 @@
       "owner": "gpu-sim-7q3w.5",
       "why": "NCCL's proxy advances from device KERNEL progress and the simulator's kernel launches are no-ops, so no transfer ever starts; the arm asserts 'NCCL posted WRs and moved bytes on our QPs' and it FAILS (shim counters reg_mr/post_send/bytes_written stay 0, NCCL logs networkRmaSupport 0). Recorded as RED, not omitted and not softened. Numerics are 7q3w.5's acceptance."
     },
-    "c_gdr_dmabuf": {
-      "verdict": "RED",
-      "owner": "gpu-sim-7q3w.6",
-      "why": "the real driver cannot export a dma-buf for fake-runtime memory; the counter counts only fd >= 0 and the arm asserts dmabuf_registrations == 0 -- it passes only in the sense that the capability probe (fd<0) is not a registration. The GDR/dmabuf path is 7q3w.6's acceptance."
-    },
     "d_sysfs_surface": {
       "verdict": "PASS",
       "evidence": "REALPATH OK: the one path NCCL's IB init reads (/sys/class/infiniband/<dev>/device) is rewritten per rank to distinct PCI bridges (0000:00:01.1 vs 0000:00:08.1), while six untouched paths (including mlx5_9 -> NULL) prove the interception is narrow"
@@ -36,8 +31,9 @@
     "d_amendment_determinism": {
       "verdict": "PASS",
       "n": 20,
-      "evidence": "gpu_arm.sh re-executes itself N=20 (ARM_N) and prints the exit-code distribution and the assertion pattern per run: 'N=20 exit-code distribution: rc=0 0/20; nonzero 20/20'; 'N=20 determinism: distinct assertion patterns = 1 (must be 1); pattern: 17 ok / 7 fail'",
-      "note": "the arm exits 1 in every run BY DESIGN: arm (b) is red. A green exit would mean the reds were hidden."
+      "evidence": "gpu_arm.sh re-executes itself N=20 (ARM_N); the summary prints 'N=20 exit-code distribution: rc=0 0/20; nonzero 20/20 (20 1)' and 'N=20 determinism: distinct signatures (sorted assertion set + exit code) = 1 (must be 1)'. Each run's own log is arm-b-run-<i>.log; output.log keeps the full output of run 1 and a REDS VISIBLE section that echoes every failing ASSERT line verbatim with its run number (7 per run), followed by the deduped failing set. The signature is the sorted ASSERT text plus rc, not a count, so two runs failing different assertions cannot look identical.",
+      "note": "the arm exits 1 in every run BY DESIGN: arm (b) numerics is red. (c) is NOT_EXERCISED (owner gpu-sim-7q3w.6) and contributes no failing predicate. A green exit would mean the reds were hidden.",
+      "reds_visible": "output.log has a REDS VISIBLE section: every failing ASSERT line verbatim with its run number (7 per run), then the deduped failing set, then the full output of run 1. The per-run logs are arm-b-run-<i>.log in the run dir."
     },
     "c_dmabuf": {
       "verdict": "NOT_EXERCISED",
@@ -55,12 +51,12 @@
     "note": "no device is touched: the shim + LD_PRELOAD sysfs spoof against real libnccl; wall is a property of the box and is not part of any claim"
   },
   "arm_exit_code": 1,
-  "arm_exit_note": "gpu_arm.sh exits 1 BY DESIGN at this tip: the red (b)/(c) assertions above are red. A green exit here would mean the reds were hidden.",
+  "arm_exit_note": "gpu_arm.sh exits 1 BY DESIGN at this tip: the red (b) assertion is red; (c) is NOT_EXERCISED and contributes no failing predicate. A green exit here would mean the reds were hidden.",
   "gate": "scripts/gate.sh --fast PASS; UNVERIFIABLE FOR THIS TIP: handle none, cu12+cu13; delta none: no run record exists for this tip (CPU-only arms, never submitted to gpqueue)",
   "artifacts_sha256": {
     "run.sh": "3d30283e70b18f156ba9c937bd0a52eb3f71a9554766a3d0252e0ac439c80b3a",
-    "gpu_arm.sh": "a551ccc6e743b1d9c28168b9618ffd55a3077a1d1c5931c23defa2b4637b0d96",
-    "ibverbs_shim.c": "7e6062981cad00bbfee77c932a74421df50ea68195e7287fc490ca957ec245dd",
+    "gpu_arm.sh": "beb7d793bdc2cca8bef4e089591e4e6c641b30ee9fd9b7aa06239725ca67701f",
+    "ibverbs_shim.c": "875abd7b6a411c6d78a0fe41d5c90ae6e755e171d8e8ad46340fa2ab72ede028",
     "ibverbs.map": "ca5fe8588c7f7232f6ce1d6a79f9688dcae7f119fdcc7a1f816eebbaa7d17733",
     "wire_probe.c": "cf743a878173cb580886839944d20360e853fe197876bc742d20e92c0e37a4e0",
     "nccl_arm.c": "19d003b6f957b29751e1bd008f12aa8d162a620e7e874fd3e3de27077b3ba71e"

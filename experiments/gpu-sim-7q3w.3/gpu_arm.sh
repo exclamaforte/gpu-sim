@@ -125,27 +125,57 @@ export FAKEIB_LATENCY_US=1.2
 # N times and reports the DISTRIBUTION. ARM_INNER stops the recursion.
 if [[ -z "${ARM_INNER:-}" ]]; then
     N="${ARM_N:-20}"
-    rcs=(); sig=""
+    rcs=(); sigs=(); reds=""
     for i in $(seq 1 "$N"); do
         rc=0
-        out="$(ARM_INNER=1 bash "$0" 2>&1)" || rc=$?   # set -e: capture, do not abort
+        out="$RUN/arm-b-run-$i.log"
+        # tee: every run keeps its own stdout/stderr, so the summary's reds
+        # can be traced back to the exact run that printed them.
+        set +e
+        ARM_INNER=1 bash "$0" 2>&1 | tee "$out" >/dev/null
+        rc=${PIPESTATUS[0]}
+        set -e
         rcs+=("$rc")
-        # the modelled quantities must be identical run to run: compare the
-        # assertion pattern (ok/fail per line), not the wall time
-        pat="$(printf '%s
-' "$out" | grep -cE '^ASSERT ok') ok / $(printf '%s
-' "$out" | grep -cE '^ASSERT FAIL') fail"
-        sig+="$pat"$'\n'
+        # (d) determinism: the SORTED ASSERTION TEXTS (ok and FAIL) plus the exit
+        # code -- not a count.  Two runs failing different assertions with the
+        # same 17/7 counts must not be counted identical.
+        sigtext="$(grep -E '^ASSERT (ok|FAIL):' "$out" | sed -E 's/^ASSERT (ok|FAIL): //' | sort || true)"
+        sighash="$(printf '%s\n' "$sigtext" | sha256sum | cut -d' ' -f1)"
+        sigs+=("$rc:$sighash")
+        # REDS VISIBLE: every failing assertion, verbatim, with its run number.
+        while IFS= read -r line; do
+            if [[ "$line" == ASSERT\ FAIL:* ]]; then
+                reds+="run $i: $line"$'\n'
+            fi
+        done < "$out"
     done
     zero=0; for rc in "${rcs[@]}"; do if [[ "$rc" == 0 ]]; then zero=$((zero+1)); fi; done
-    distinct_patterns="$(printf '%s' "$sig" | sort -u | grep -c .)"
+    distinct="$(printf '%s\n' "${sigs[@]}" | sort -u | grep -c . || true)"
+    echo
     echo "N=$N exit-code distribution: rc=0 $zero/$N; nonzero $((N-zero))/$N ($(printf '%s\n' "${rcs[@]}" | sort | uniq -c | tr '\n' ' '))"
-    echo "N=$N determinism: distinct assertion patterns = $distinct_patterns (must be 1); pattern: $(printf '%s' "$sig" | sort -u | head -1)"
-    if [[ "$distinct_patterns" != 1 ]]; then
-        echo "ASSERT FAIL: (d) determinism: $distinct_patterns different assertion patterns in $N runs"
+    echo "N=$N determinism: distinct signatures (sorted assertion set + exit code) = $distinct (must be 1)"
+    if [[ "$distinct" != 1 ]]; then
+        echo "ASSERT FAIL: (d) determinism: $distinct different (assertion set, exit code) signatures in $N runs"
         exit 1
     fi
-    echo "ASSERT ok: (d) determinism: $N/$N runs produced the same assertion pattern and the same exit code"
+    # A signal death is 128+signal (139 SIGSEGV, 134 SIGABRT): "no SIGSEGV"
+    # is now a predicate, not an inference from rc=1.
+    signals=0
+    for rc in "${rcs[@]}"; do if (( rc >= 128 )); then signals=$((signals+1)); fi; done
+    if (( signals > 0 )); then
+        echo "ASSERT FAIL: (d) no signal death: $signals/$N runs exited >=128 (139=SIGSEGV, 134=SIGABRT)"
+        exit 1
+    fi
+    echo "ASSERT ok: (d) determinism: $N/$N runs produced the same sorted assertion set and the same exit code (no rc>=128)"
+    echo
+    echo "REDS VISIBLE (verbatim, every failing ASSERT line with its run number):"
+    if [[ -n "$reds" ]]; then printf '%s' "$reds"; else echo "(none)"; fi
+    echo
+    echo "distinct failing assertions (verbatim, deduped):"
+    printf '%s' "$reds" | sed -E 's/^run [0-9]+: //' | sort -u
+    echo
+    echo "--- full output of run 1 ($RUN/arm-b-run-1.log) ---"
+    cat "$RUN/arm-b-run-1.log"
     exit $(( zero == N ? 0 : 1 ))
 fi
 
