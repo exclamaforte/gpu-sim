@@ -2,6 +2,11 @@
 # Reproduce the f1sl fix: the two worktree fixtures must FAIL (not skip) when
 # `git worktree add` fails, and both test files must run with zero skips.
 set -euo pipefail
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
 OUT="${1:-$REPO/.lab/tmp/f1sl-replay.log}"
