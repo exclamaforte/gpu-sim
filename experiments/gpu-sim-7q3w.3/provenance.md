@@ -209,11 +209,16 @@ than guessed:
   reports `bad=1048576` instead of pretending.  Transport *correctness* is
   covered by stage 6, which moves WRITE/WRITE_WITH_IMM/READ bytes between two
   real processes and compares them exactly.
-* **The data path through the QPs.** Channels are assigned to NET/IB, but
-  `post_send_calls` stays 0 in the shim's counters: NCCL 2.32's default proxy is
-  its RMA/IB plugin (`NCCL_RMA_DISABLE=1` avoids the GIN/RMA init crash), so the
-  bytes never reach the classic `ibv_post_send` path this shim models.  That is
-  the next seam, and it is a failing assertion in `gpu_arm.sh`, not a footnote.
+* **The data path through the QPs** -- and this is the SAME root cause as the
+  numerics, measured rather than assumed to be two problems.  With
+  `NCCL_RMA_DISABLE=0` (NCCL's own RMA/IB proxy -- the path that posts data WRs
+  in 2.32) the arm no longer crashes (GIN was the crasher) but every shim
+  counter is zero: `reg_mr_calls: 0`, `post_send_calls: 0`, `bytes_written: 0`,
+  and NCCL logs `networkRmaSupport 0`.  The proxy advances from device *kernel*
+  progress, and the simulator's kernel launches are no-ops, so the proxy never
+  starts a transfer.  `NCCL_RMA_DISABLE=1` (default here) skips the subsystem;
+  `=0` is the knob for whoever gives the simulator real kernels.  The assertion
+  stays red in `gpu_arm.sh` on purpose.
 * **Arm (c), the dmabuf counter.** The real driver cannot export a dma-buf for
   memory the fake runtime allocated, so NCCL never has a real fd.  The counter
   now counts only real registrations (fd >= 0; NCCL's capability probe uses

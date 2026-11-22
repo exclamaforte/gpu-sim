@@ -117,4 +117,7 @@ if grep -q 0x030000 /sys/bus/pci/devices/*/class 2>/dev/null; then
     echo "distinct NIC bridges: rank0 $b0 / rank1 $b1"
 fi
 echo
-echo "SHIM SELF-CHECK OK (stages 1-7; NCCL arms pending: 2-GPU NCCL harness)"
+echo "SHIM SELF-CHECK OK (stages 1-7)"
+echo "NCCL arms: CPU-only, not the GPU queue ->  bash $EXP/gpu_arm.sh"
+echo "  arm (a) transport selection is measured there; numerics and the data path"
+echo "  are blocked on the simulator executing NCCL's kernels (provenance sec. 9)."

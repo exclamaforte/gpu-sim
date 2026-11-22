@@ -130,8 +130,12 @@ export NCCL_IB_HCA=mlx5_0
 # before the segfault (coredumpctl: ncclGinProxyInit, ncclIbAsyncThreadMain).
 # They serve paths this experiment does not model; enabling them is separate
 # work, and their absence stays visible because the arm asserts the transport.
-export NCCL_GIN_ENABLE=0
-export NCCL_RMA_DISABLE=1
+# Overridable so the next seam can be measured without editing this file:
+# NCCL_RMA_DISABLE=0 runs NCCL's RMA/IB proxy, which is what posts the data WRs
+# in 2.32 (with it disabled, channels are assigned to NET/IB but the shim's
+# post_send counter never moves -- see provenance sec. 9).
+export NCCL_GIN_ENABLE=${NCCL_GIN_ENABLE-0}
+export NCCL_RMA_DISABLE=${NCCL_RMA_DISABLE-1}
 export NCCL_ARM_DIR="$RUN/hs"
 mkdir -p "$NCCL_ARM_DIR" "$FAKEIB_RING_DIR"
 
