@@ -48,7 +48,7 @@ run_one() {
             ;;
         5)
             echo "=== REFUSE control: 10496 < 10576 ==="
-            python3 "$EXP/probe_training.py" --force-refuse-mib 10496 || true
+            python3 "$EXP/probe_training.py" --force-refuse-mib 10496
             ;;
         *)
             echo "usage: $0 [0|1|2|3|4|5]" >&2

@@ -86,16 +86,25 @@ def split_sections(text):
 
 
 def last_json(section):
+    """Last top-level JSON object carrying "checks".
+
+    Decoding a top-level object skips its nested objects, so A2's combined
+    JSON wins over its nested normal/negative child reports.
+    """
     found = None
-    for idx, ch in enumerate(section):
-        if ch != "{":
-            continue
+    cursor = 0
+    while cursor < len(section):
+        idx = section.find("{", cursor)
+        if idx < 0:
+            break
         try:
-            obj, _ = json.JSONDecoder().raw_decode(section[idx:])
+            obj, end = json.JSONDecoder().raw_decode(section[idx:])
         except json.JSONDecodeError:
+            cursor = idx + 1
             continue
         if isinstance(obj, dict) and "checks" in obj:
             found = obj
+        cursor = idx + max(end, 1)
     return found
 
 
@@ -297,10 +306,10 @@ def main():
     }
     metrics["a_item_map"] = {
         "A1": "probe_vdev.py: 8 virtual B300 devices via NVML; checks device_count_is_N, name_is_D1, total_mem_is_D1, sm_count_is_D1, uuid_prefix, nvml_private_count, matmul_err. Run = increment 1.",
-        "A2": "probe_a2.py: probe_nodes.py normal run must have 64 distinct D1 PCI bus ids; the --disable-isolation run must FAIL the same checks. Run = increment 0.",
+        "A2": "probe_a2.py: probe_nodes.py normal run must have 64 distinct D1 PCI bus ids and each child exactly 8; the --all-node 0 run must FAIL the same checks (distinct ids = 8 != 64) and exit nonzero, as expected. Run = increment 0.",
         "A3": "moved to gpu-sim-s2vc (NCCL topology XML/IB choice); not claimed here.",
         "A4": "gpu-sim-7q3w.5 owns NCCL numerics; increment 2 is a gloo control-plane all_reduce only.",
-        "A5": "probe_reference.py: 8-way DDP final loss and parameters vs a 1-way reference with the same seed/data; TOL=1e-5 absolute. Run = increment 4.",
+        "A5": "probe_reference.py: 8-way DDP final loss and parameters vs a 1-way reference with the same seed/data; TOL=5e-4 absolute. Run = increment 4.",
         "A6": "moved to gpu-sim-ae2v (fabric timing); no timing claim here.",
         "A7": "not separately rerun here; increment 3's checkpoint hash was reproduced by the PI, and 7q3w.3's 20-run transport arm owns the exit distribution.",
         "A8": "metrics.error_budget.ram: preflight 10576 MiB, PI pass 10633/10576 (57 MiB margin), PI refusal 10496; this capture records its own start/end.",

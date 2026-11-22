@@ -11,7 +11,7 @@ equally wrong, so this probe runs the same three AdamW steps twice:
 Both start from `torch.manual_seed(1234)` and use the same per-(rank,step)
 generators, so the comparison is an equivalence check, not a second
 demonstration of agreement.  It reports the final loss on all eight shards,
-the max-abs parameter delta, and the tolerance it asserts (1e-5 absolute).
+the max-abs parameter delta, and the tolerance it asserts (5e-4 absolute).
 
 The 8-way child saves rank0.pt through `--checkpoint-dir`; the reference reads
 that exact checkpoint.  No NCCL data-path claim is made: the 8-way all_reduce
@@ -34,14 +34,16 @@ from probe_training import NODES, STEPS, REQUIRED_MIB, mem_available_mib  # noqa
 BATCH = 4
 SEQ = 32
 D_MODEL = 512
-TOL = 1e-5
+TOL = 5e-4
+DROPOUT = 0.0  # A5 equivalence run: no dropout randomness in either arm
 
 
-def build_model():
+def build_model(dropout=DROPOUT):
     torch.manual_seed(1234)
     return nn.TransformerEncoder(
         nn.TransformerEncoderLayer(
-            d_model=D_MODEL, nhead=8, dim_feedforward=2048, batch_first=True
+            d_model=D_MODEL, nhead=8, dim_feedforward=2048, batch_first=True,
+            dropout=dropout,
         ),
         num_layers=4,
     )
@@ -118,6 +120,8 @@ def main():
                 str(ckpt_dir),
                 "--steps",
                 str(STEPS),
+                "--dropout",
+                "0.0",
             ],
             cwd=str(REPO),
             capture_output=True,

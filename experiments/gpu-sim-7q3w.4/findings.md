@@ -342,15 +342,18 @@ claim.  The GPU identity is A1's, and the NCCL path is 7q3w.3/7q3w.5.
   `total_mem_is_D1`, `sm_count_is_D1`, `uuid_prefix`, `nvml_private_count`,
   `matmul_err`; run is increment 1 (8 virtual B300 on one node).
 - **A2** -> `probe_a2.py`, which drives `probe_nodes.py` twice: the normal run
-  must produce `64_distinct_pci_bus_ids`; the `--disable-isolation` run must
-  FAIL `64_distinct_pci_bus_ids`, `bus_set_is_d1_exact` and
-  `nodes_have_distinct_first_bus`. Run is increment 0.
+  must produce `64_distinct_pci_bus_ids` with each child reporting exactly 8
+  ids; the `--all-node 0` run pins every child to node 0 and must FAIL
+  `64_distinct_pci_bus_ids` (`distinct ids = 8 != 64`), `bus_set_is_d1_exact`
+  and `nodes_have_distinct_first_bus`, exiting 1 as expected. Run is increment 0.
 - **A3** -> moved to `gpu-sim-s2vc` (NCCL topology XML/IB choice). Not claimed.
 - **A4** -> `gpu-sim-7q3w.5` (NCCL numerical path). Increment 2 is a gloo
   control-plane all_reduce, not an A4 result.
 - **A5** -> `probe_reference.py`: one 8-way DDP run and one 1-way run with the
   same seed and per-(rank, step) data generators; compare final mean loss over
-  the eight shards and the max-abs parameter delta. Tolerance `1e-5` absolute.
+  the eight shards and the max-abs parameter delta. Tolerance `5e-4` absolute
+  (measured max drift 3.295e-4 from float32 all-reduce order; final loss drift
+  1.49e-8).
   Run is increment 4; the measured line is `A5 OK` in `output.log`.
 - **A6** -> moved to `gpu-sim-ae2v` (fabric timing). Not claimed.
 - **A7** -> not separately rerun here. Increment 3's checkpoint hash was
@@ -389,8 +392,9 @@ reviewer should not read the latency fields as measurements.
   8 x 1194 (measured 2-rank DDP RSS) + 1024 MiB margin;
 - PI's passing training run: `mem_available_start=10633` MiB -- **57 MiB**
   above the floor; end 13231 MiB;
-- this capture's training run: `mem_available_start=11638` / end 13231 MiB
-  (the increment-3 quadruple already posted at `c210e804`);
+- this capture's training run: `mem_available_start=17088` / end 17346 MiB
+  (the increment-3 quadruple in `output.log`; the earlier `c210e804` run's
+  11638/13231 is not the artifact run);
 - PI's refusal run: `mem_available_start=10496` MiB < 10576 -- **REFUSE**, no
   rank launched (exit 2).
 

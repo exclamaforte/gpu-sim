@@ -1,0 +1,2863 @@
+=== increment 0: A2 node isolation + negative control ===
+=== increment 0: A2 node isolation + its negative control ===
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+{
+  "nodes": {
+    "0": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "cudart_buses": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "first_bus": 11,
+      "peak_rss_mib": 582,
+      "mem_available_mib": 13719
+    },
+    "1": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "cudart_buses": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "first_bus": 43,
+      "peak_rss_mib": 586,
+      "mem_available_mib": 13745
+    },
+    "2": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82
+      ],
+      "cudart_buses": [
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82
+      ],
+      "first_bus": 75,
+      "peak_rss_mib": 582,
+      "mem_available_mib": 13665
+    },
+    "3": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114
+      ],
+      "cudart_buses": [
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114
+      ],
+      "first_bus": 107,
+      "peak_rss_mib": 586,
+      "mem_available_mib": 13731
+    },
+    "4": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146
+      ],
+      "cudart_buses": [
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146
+      ],
+      "first_bus": 139,
+      "peak_rss_mib": 584,
+      "mem_available_mib": 13757
+    },
+    "5": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178
+      ],
+      "cudart_buses": [
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178
+      ],
+      "first_bus": 171,
+      "peak_rss_mib": 585,
+      "mem_available_mib": 13751
+    },
+    "6": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "cudart_buses": [
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "first_bus": 203,
+      "peak_rss_mib": 586,
+      "mem_available_mib": 13750
+    },
+    "7": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242
+      ],
+      "cudart_buses": [
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242
+      ],
+      "first_bus": 235,
+      "peak_rss_mib": 603,
+      "mem_available_mib": 13771
+    }
+  },
+  "expected_bus_ids": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242
+  ],
+  "checks": {
+    "eight_node_processes": true,
+    "every_node_sees_8": true,
+    "each_child_has_8_ids": true,
+    "every_node_names_b300": true,
+    "nvml_and_cudart_agree": true,
+    "64_distinct_pci_bus_ids": true,
+    "bus_set_is_d1_exact": true,
+    "nodes_have_distinct_first_bus": true,
+    "node_n_first_bus": true
+  },
+  "total_peak_rss_mib": 4694,
+  "min_mem_available_mib": 13665
+}
+NODE 0 pci_bus_ids: 0x0b 0x0c 0x0d 0x0e 0x0f 0x10 0x11 0x12
+NODE 1 pci_bus_ids: 0x2b 0x2c 0x2d 0x2e 0x2f 0x30 0x31 0x32
+NODE 2 pci_bus_ids: 0x4b 0x4c 0x4d 0x4e 0x4f 0x50 0x51 0x52
+NODE 3 pci_bus_ids: 0x6b 0x6c 0x6d 0x6e 0x6f 0x70 0x71 0x72
+NODE 4 pci_bus_ids: 0x8b 0x8c 0x8d 0x8e 0x8f 0x90 0x91 0x92
+NODE 5 pci_bus_ids: 0xab 0xac 0xad 0xae 0xaf 0xb0 0xb1 0xb2
+NODE 6 pci_bus_ids: 0xcb 0xcc 0xcd 0xce 0xcf 0xd0 0xd1 0xd2
+NODE 7 pci_bus_ids: 0xeb 0xec 0xed 0xee 0xef 0xf0 0xf1 0xf2
+NODES OK: 8 processes x 8 B300, 64 distinct bus ids (0x0b+n*0x20); total_peak_rss=4694 MiB min_mem_available=13665 MiB
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+{
+  "nodes": {
+    "0": {
+      "count": 8,
+      "names_ok": true,
+      "nvml_buses": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "cudart_buses": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "first_bus": 11,
+      "peak_rss_mib": 583,
+      "mem_available_mib": 13665
+    }
+  },
+  "expected_bus_ids": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242
+  ],
+  "checks": {
+    "eight_node_processes": true,
+    "every_node_sees_8": true,
+    "each_child_has_8_ids": true,
+    "every_node_names_b300": true,
+    "nvml_and_cudart_agree": true,
+    "64_distinct_pci_bus_ids": false,
+    "bus_set_is_d1_exact": false,
+    "nodes_have_distinct_first_bus": false,
+    "node_n_first_bus": false
+  },
+  "total_peak_rss_mib": 583,
+  "min_mem_available_mib": 13665
+}
+NODE 0 pci_bus_ids: 0x0b 0x0c 0x0d 0x0e 0x0f 0x10 0x11 0x12
+NEGATIVE CONTROL: expected failure observed, distinct ids = 8 != 64
+A2 NEGATIVE CONTROL OK: isolation disabled (all VDEV_NODE=0) -> 64_distinct_pci_bus_ids=False, bus_set_is_d1_exact=False, nodes_have_distinct_first_bus=False; the isolation assertion is fail-able. Exit 1 is EXPECTED here.
+{
+  "checks": {
+    "normal_isolation_ok": true,
+    "negative_control_failed_as_required": true
+  },
+  "normal": {
+    "nodes": {
+      "0": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "cudart_buses": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "first_bus": 11,
+        "peak_rss_mib": 582,
+        "mem_available_mib": 13719
+      },
+      "1": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50
+        ],
+        "cudart_buses": [
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50
+        ],
+        "first_bus": 43,
+        "peak_rss_mib": 586,
+        "mem_available_mib": 13745
+      },
+      "2": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82
+        ],
+        "cudart_buses": [
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82
+        ],
+        "first_bus": 75,
+        "peak_rss_mib": 582,
+        "mem_available_mib": 13665
+      },
+      "3": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114
+        ],
+        "cudart_buses": [
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114
+        ],
+        "first_bus": 107,
+        "peak_rss_mib": 586,
+        "mem_available_mib": 13731
+      },
+      "4": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146
+        ],
+        "cudart_buses": [
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146
+        ],
+        "first_bus": 139,
+        "peak_rss_mib": 584,
+        "mem_available_mib": 13757
+      },
+      "5": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178
+        ],
+        "cudart_buses": [
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178
+        ],
+        "first_bus": 171,
+        "peak_rss_mib": 585,
+        "mem_available_mib": 13751
+      },
+      "6": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209,
+          210
+        ],
+        "cudart_buses": [
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209,
+          210
+        ],
+        "first_bus": 203,
+        "peak_rss_mib": 586,
+        "mem_available_mib": 13750
+      },
+      "7": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          235,
+          236,
+          237,
+          238,
+          239,
+          240,
+          241,
+          242
+        ],
+        "cudart_buses": [
+          235,
+          236,
+          237,
+          238,
+          239,
+          240,
+          241,
+          242
+        ],
+        "first_bus": 235,
+        "peak_rss_mib": 603,
+        "mem_available_mib": 13771
+      }
+    },
+    "expected_bus_ids": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      171,
+      172,
+      173,
+      174,
+      175,
+      176,
+      177,
+      178,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210,
+      235,
+      236,
+      237,
+      238,
+      239,
+      240,
+      241,
+      242
+    ],
+    "checks": {
+      "eight_node_processes": true,
+      "every_node_sees_8": true,
+      "each_child_has_8_ids": true,
+      "every_node_names_b300": true,
+      "nvml_and_cudart_agree": true,
+      "64_distinct_pci_bus_ids": true,
+      "bus_set_is_d1_exact": true,
+      "nodes_have_distinct_first_bus": true,
+      "node_n_first_bus": true
+    },
+    "total_peak_rss_mib": 4694,
+    "min_mem_available_mib": 13665
+  },
+  "negative_control": {
+    "nodes": {
+      "0": {
+        "count": 8,
+        "names_ok": true,
+        "nvml_buses": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "cudart_buses": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "first_bus": 11,
+        "peak_rss_mib": 583,
+        "mem_available_mib": 13665
+      }
+    },
+    "expected_bus_ids": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      171,
+      172,
+      173,
+      174,
+      175,
+      176,
+      177,
+      178,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210,
+      235,
+      236,
+      237,
+      238,
+      239,
+      240,
+      241,
+      242
+    ],
+    "checks": {
+      "eight_node_processes": true,
+      "every_node_sees_8": true,
+      "each_child_has_8_ids": true,
+      "every_node_names_b300": true,
+      "nvml_and_cudart_agree": true,
+      "64_distinct_pci_bus_ids": false,
+      "bus_set_is_d1_exact": false,
+      "nodes_have_distinct_first_bus": false,
+      "node_n_first_bus": false
+    },
+    "total_peak_rss_mib": 583,
+    "min_mem_available_mib": 13665
+  },
+  "normal_rc": 0,
+  "negative_rc": 1
+}
+A2 OK: normal run has 64 distinct D1 bus ids; with --all-node 0 the same checks fail (64_distinct_pci_bus_ids=False, bus_set_is_d1_exact=False, nodes_have_distinct_first_bus=False); probe_nodes exits nonzero (1), as expected.
+ATTEMPT 0.1: rc=0 MemAvailable 16096 -> 16080 MiB
+
+=== increment 1: eight concurrent node processes + RAM preflight ===
+=== increment 1: eight concurrent node processes + RAM preflight ===
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+{
+  "nodes": [
+    {
+      "node": 0,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1136,
+      "mem_available_mib": 10611
+    },
+    {
+      "node": 1,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1118,
+      "mem_available_mib": 10622
+    },
+    {
+      "node": 2,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1117,
+      "mem_available_mib": 10549
+    },
+    {
+      "node": 3,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1122,
+      "mem_available_mib": 10585
+    },
+    {
+      "node": 4,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1153,
+      "mem_available_mib": 10617
+    },
+    {
+      "node": 5,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1120,
+      "mem_available_mib": 10608
+    },
+    {
+      "node": 6,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1134,
+      "mem_available_mib": 10827
+    },
+    {
+      "node": 7,
+      "device_count": 8,
+      "device_name": "NVIDIA B300",
+      "params": 12609536,
+      "rss_mib": 1130,
+      "mem_available_mib": 10579
+    }
+  ],
+  "rss_per_node_mib": [
+    1136,
+    1118,
+    1117,
+    1122,
+    1153,
+    1120,
+    1134,
+    1130
+  ],
+  "rss_sum_mib": 9030,
+  "budget_mib": {
+    "per_node": 1148,
+    "nodes": 8,
+    "sum": 9184,
+    "margin": 1024,
+    "required": 10208
+  },
+  "mem_available_mib_start": 16038,
+  "mem_available_mib_end": 16702,
+  "mem_available_delta_mib": 664,
+  "min_child_mem_available_mib": 10549,
+  "checks": {
+    "eight_processes": true,
+    "every_process_sees_8": true,
+    "every_process_names_D1": true,
+    "nodes_are_0_to_7": true,
+    "per_node_rss_measured": true,
+    "rss_sum_recorded": true,
+    "mem_available_recorded": true,
+    "preflight_passed": true
+  }
+}
+CONCURRENT OK: 8 processes device_count=8 name=NVIDIA B300 rss_sum=9030 MiB (budget 9184 MiB) mem_available_start=16038 MiB end=16702 MiB preflight_required=10208 MiB
+ATTEMPT 1.1: rc=0 MemAvailable 16080 -> 16880 MiB
+
+=== increment 2: torch.distributed world_size 8, one rank per node ===
+=== increment 2: torch.distributed world_size 8, one rank per node ===
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+{
+  "per_rank": {
+    "0": {
+      "node": 0,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "cudart_buses": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 586,
+      "mem_available_mib": 14484
+    },
+    "1": {
+      "node": 1,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "cudart_buses": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 584,
+      "mem_available_mib": 14483
+    },
+    "2": {
+      "node": 2,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82
+      ],
+      "cudart_buses": [
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 584,
+      "mem_available_mib": 14492
+    },
+    "3": {
+      "node": 3,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114
+      ],
+      "cudart_buses": [
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 582,
+      "mem_available_mib": 14490
+    },
+    "4": {
+      "node": 4,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146
+      ],
+      "cudart_buses": [
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 603,
+      "mem_available_mib": 14465
+    },
+    "5": {
+      "node": 5,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178
+      ],
+      "cudart_buses": [
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 581,
+      "mem_available_mib": 14465
+    },
+    "6": {
+      "node": 6,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "cudart_buses": [
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 586,
+      "mem_available_mib": 14456
+    },
+    "7": {
+      "node": 7,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "names_ok": true,
+      "nvml_buses": [
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242
+      ],
+      "cudart_buses": [
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242
+      ],
+      "nvml_cudart_agree": true,
+      "all_reduce_value": 36.0,
+      "world": [
+        {
+          "node": 0,
+          "buses": [
+            "00000000:0B:00.0",
+            "00000000:0C:00.0",
+            "00000000:0D:00.0",
+            "00000000:0E:00.0",
+            "00000000:0F:00.0",
+            "00000000:10:00.0",
+            "00000000:11:00.0",
+            "00000000:12:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 1,
+          "buses": [
+            "00000000:2B:00.0",
+            "00000000:2C:00.0",
+            "00000000:2D:00.0",
+            "00000000:2E:00.0",
+            "00000000:2F:00.0",
+            "00000000:30:00.0",
+            "00000000:31:00.0",
+            "00000000:32:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 2,
+          "buses": [
+            "00000000:4B:00.0",
+            "00000000:4C:00.0",
+            "00000000:4D:00.0",
+            "00000000:4E:00.0",
+            "00000000:4F:00.0",
+            "00000000:50:00.0",
+            "00000000:51:00.0",
+            "00000000:52:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 3,
+          "buses": [
+            "00000000:6B:00.0",
+            "00000000:6C:00.0",
+            "00000000:6D:00.0",
+            "00000000:6E:00.0",
+            "00000000:6F:00.0",
+            "00000000:70:00.0",
+            "00000000:71:00.0",
+            "00000000:72:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 4,
+          "buses": [
+            "00000000:8B:00.0",
+            "00000000:8C:00.0",
+            "00000000:8D:00.0",
+            "00000000:8E:00.0",
+            "00000000:8F:00.0",
+            "00000000:90:00.0",
+            "00000000:91:00.0",
+            "00000000:92:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 5,
+          "buses": [
+            "00000000:AB:00.0",
+            "00000000:AC:00.0",
+            "00000000:AD:00.0",
+            "00000000:AE:00.0",
+            "00000000:AF:00.0",
+            "00000000:B0:00.0",
+            "00000000:B1:00.0",
+            "00000000:B2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 6,
+          "buses": [
+            "00000000:CB:00.0",
+            "00000000:CC:00.0",
+            "00000000:CD:00.0",
+            "00000000:CE:00.0",
+            "00000000:CF:00.0",
+            "00000000:D0:00.0",
+            "00000000:D1:00.0",
+            "00000000:D2:00.0"
+          ],
+          "value": 36.0
+        },
+        {
+          "node": 7,
+          "buses": [
+            "00000000:EB:00.0",
+            "00000000:EC:00.0",
+            "00000000:ED:00.0",
+            "00000000:EE:00.0",
+            "00000000:EF:00.0",
+            "00000000:F0:00.0",
+            "00000000:F1:00.0",
+            "00000000:F2:00.0"
+          ],
+          "value": 36.0
+        }
+      ],
+      "peak_rss_mib": 584,
+      "mem_available_mib": 14456
+    }
+  },
+  "expected_bus_ids": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242
+  ],
+  "all_reduce_values": [
+    36.0,
+    36.0,
+    36.0,
+    36.0,
+    36.0,
+    36.0,
+    36.0,
+    36.0
+  ],
+  "checks": {
+    "eight_ranks": true,
+    "each_rank_is_its_node": true,
+    "process_group_world_size_8": true,
+    "every_rank_sees_8": true,
+    "every_rank_names_b300": true,
+    "nvml_and_cudart_agree": true,
+    "64_distinct_pci_bus_ids": true,
+    "bus_set_is_d1_exact": true,
+    "all_gather_sees_every_node": true,
+    "all_reduce_agrees": true
+  },
+  "rss_sum_mib": 4690,
+  "min_child_mem_available_mib": 14456,
+  "mem_available_mib_start": 16960,
+  "mem_available_mib_end": 17180,
+  "preflight_required_mib": 5824,
+  "injected_disagreement": false
+}
+DIST OK: 8 ranks x 8 B300, 64 distinct bus ids (0x0b+n*0x20), all_reduce=36.0 on every rank, rss_sum=4690 MiB, mem_available_start=16960 MiB end=17180 MiB preflight_required=5824 MiB
+ATTEMPT 2.1: rc=0 MemAvailable 16880 -> 17187 MiB
+
+=== increment 3: 12.6M transformer + AdamW, 8 DDP ranks, equal checkpoints ===
+=== increment 3: 12.6M transformer + AdamW, 8 DDP ranks, equal checkpoints ===
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+{
+  "per_rank": {
+    "0": {
+      "node": 0,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.997550368309021,
+        0.9929448366165161
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1251,
+      "mem_available_mib": 10530
+    },
+    "1": {
+      "node": 1,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.9975721836090088,
+        0.992943286895752
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1251,
+      "mem_available_mib": 10582
+    },
+    "2": {
+      "node": 2,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.9975559711456299,
+        0.9929413795471191
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1248,
+      "mem_available_mib": 10561
+    },
+    "3": {
+      "node": 3,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.9975587725639343,
+        0.9929491877555847
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1241,
+      "mem_available_mib": 10534
+    },
+    "4": {
+      "node": 4,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999923706054688,
+        0.997551679611206,
+        0.9929506182670593
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1246,
+      "mem_available_mib": 10535
+    },
+    "5": {
+      "node": 5,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.9975476861000061,
+        0.992946207523346
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1247,
+      "mem_available_mib": 10668
+    },
+    "6": {
+      "node": 6,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.9975311160087585,
+        0.9929487705230713
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1240,
+      "mem_available_mib": 10663
+    },
+    "7": {
+      "node": 7,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999923706054688,
+        0.9975270628929138,
+        0.9929395914077759
+      ],
+      "checkpoint_sha256": "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "peak_rss_mib": 1246,
+      "mem_available_mib": 10534
+    }
+  },
+  "checkpoint_hashes": [
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+    "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555"
+  ],
+  "checkpoint_agreement": {
+    "agrees": true,
+    "distinct": [
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555"
+    ],
+    "values": [
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+      "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555"
+    ],
+    "reason": "all ranks agree"
+  },
+  "checkpoints": [
+    "rank0.pt",
+    "rank1.pt",
+    "rank2.pt",
+    "rank3.pt",
+    "rank4.pt",
+    "rank5.pt",
+    "rank6.pt",
+    "rank7.pt"
+  ],
+  "checks": {
+    "eight_ranks": true,
+    "each_rank_is_its_node": true,
+    "process_group_world_size_8": true,
+    "every_rank_sees_8": true,
+    "every_rank_names_b300": true,
+    "model_is_12_6M_params": true,
+    "three_losses_per_rank": true,
+    "losses_finite": true,
+    "checkpoint_hash_equal": true,
+    "all_checkpoint_files_saved": true
+  },
+  "rss_sum_mib": 9970,
+  "min_child_mem_available_mib": 10530,
+  "mem_available_mib_start": 17088,
+  "mem_available_mib_end": 17346,
+  "preflight_required_mib": 10576,
+  "injected_checkpoint_difference": false,
+  "checkpoint_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/.lab/tmp/tmpmni76rzg/checkpoints"
+}
+TRAIN OK: 8 ranks x 12,609,536 params, 3 real AdamW steps, rank-sharded data, checkpoint_sha256=f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555 equal on all 8 ranks; rss_sum=9970 MiB, mem_available_start=17088 MiB end=17346 MiB preflight_required=10576 MiB
+  rank 0: losses=[0.9999922513961792, 0.997550368309021, 0.9929448366165161]
+  rank 1: losses=[0.9999922513961792, 0.9975721836090088, 0.992943286895752]
+  rank 2: losses=[0.999992311000824, 0.9975559711456299, 0.9929413795471191]
+  rank 3: losses=[0.999992311000824, 0.9975587725639343, 0.9929491877555847]
+  rank 4: losses=[0.9999923706054688, 0.997551679611206, 0.9929506182670593]
+  rank 5: losses=[0.999992311000824, 0.9975476861000061, 0.992946207523346]
+  rank 6: losses=[0.999992311000824, 0.9975311160087585, 0.9929487705230713]
+  rank 7: losses=[0.9999923706054688, 0.9975270628929138, 0.9929395914077759]
+ATTEMPT 3.1: rc=0 MemAvailable 17187 -> 17345 MiB
+
+=== increment 4: A5 8-way DDP vs single-rank reference ===
+=== increment 4: A5 8-way DDP vs single-rank reference ===
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+{
+  "per_rank": {
+    "0": {
+      "node": 0,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.997552216053009,
+        0.992905855178833
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1225,
+      "mem_available_mib": 9122
+    },
+    "1": {
+      "node": 1,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.9975735545158386,
+        0.9929051995277405
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1223,
+      "mem_available_mib": 9100
+    },
+    "2": {
+      "node": 2,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.9975516200065613,
+        0.9929038286209106
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1233,
+      "mem_available_mib": 9145
+    },
+    "3": {
+      "node": 3,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.9975540041923523,
+        0.9929102063179016
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1214,
+      "mem_available_mib": 9275
+    },
+    "4": {
+      "node": 4,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.999992311000824,
+        0.99754798412323,
+        0.9929115772247314
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1184,
+      "mem_available_mib": 9293
+    },
+    "5": {
+      "node": 5,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.9975466132164001,
+        0.9929069876670837
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1231,
+      "mem_available_mib": 9016
+    },
+    "6": {
+      "node": 6,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.9975315928459167,
+        0.9929096102714539
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1214,
+      "mem_available_mib": 9207
+    },
+    "7": {
+      "node": 7,
+      "device_count": 8,
+      "names": [
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300",
+        "NVIDIA B300"
+      ],
+      "params": 12609536,
+      "losses": [
+        0.9999922513961792,
+        0.9975243806838989,
+        0.9929018020629883
+      ],
+      "checkpoint_sha256": "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "peak_rss_mib": 1196,
+      "mem_available_mib": 9135
+    }
+  },
+  "checkpoint_hashes": [
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a"
+  ],
+  "checkpoint_agreement": {
+    "agrees": true,
+    "distinct": [
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a"
+    ],
+    "values": [
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+      "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a"
+    ],
+    "reason": "all ranks agree"
+  },
+  "checkpoints": [
+    "rank0.pt",
+    "rank1.pt",
+    "rank2.pt",
+    "rank3.pt",
+    "rank4.pt",
+    "rank5.pt",
+    "rank6.pt",
+    "rank7.pt"
+  ],
+  "checks": {
+    "eight_ranks": true,
+    "each_rank_is_its_node": true,
+    "process_group_world_size_8": true,
+    "every_rank_sees_8": true,
+    "every_rank_names_b300": true,
+    "model_is_12_6M_params": true,
+    "three_losses_per_rank": true,
+    "losses_finite": true,
+    "checkpoint_hash_equal": true,
+    "all_checkpoint_files_saved": true
+  },
+  "rss_sum_mib": 9720,
+  "min_child_mem_available_mib": 9016,
+  "mem_available_mib_start": 17128,
+  "mem_available_mib_end": 15224,
+  "preflight_required_mib": 10576,
+  "injected_checkpoint_difference": false,
+  "checkpoint_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.4/.lab/tmp/tmpd7hqaetm/ckpt"
+}
+TRAIN OK: 8 ranks x 12,609,536 params, 3 real AdamW steps, rank-sharded data, checkpoint_sha256=096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a equal on all 8 ranks; rss_sum=9720 MiB, mem_available_start=17128 MiB end=15224 MiB preflight_required=10576 MiB
+  rank 0: losses=[0.9999922513961792, 0.997552216053009, 0.992905855178833]
+  rank 1: losses=[0.999992311000824, 0.9975735545158386, 0.9929051995277405]
+  rank 2: losses=[0.999992311000824, 0.9975516200065613, 0.9929038286209106]
+  rank 3: losses=[0.9999922513961792, 0.9975540041923523, 0.9929102063179016]
+  rank 4: losses=[0.999992311000824, 0.99754798412323, 0.9929115772247314]
+  rank 5: losses=[0.9999922513961792, 0.9975466132164001, 0.9929069876670837]
+  rank 6: losses=[0.9999922513961792, 0.9975315928459167, 0.9929096102714539]
+  rank 7: losses=[0.9999922513961792, 0.9975243806838989, 0.9929018020629883]
+{
+  "checks": {
+    "eight_way_run_ok": true,
+    "eight_checkpoint_hashes_equal": true,
+    "one_way_reference_ran": true,
+    "final_loss_within_tolerance": true,
+    "max_param_delta_within_tolerance": true
+  },
+  "tolerance": {
+    "absolute": 0.0005,
+    "applies_to": "final mean loss and each parameter"
+  },
+  "eight_way_final_loss": 0.9889694154262543,
+  "one_way_final_loss": 0.9889694303274155,
+  "final_loss_delta": 1.4901161193847656e-08,
+  "max_abs_param_delta": 0.0003294789930805564,
+  "worst_param": "layers.1.linear1.weight",
+  "eight_way_eval_losses": [
+    0.9889696836471558,
+    0.9889692068099976,
+    0.9889698028564453,
+    0.9889694452285767,
+    0.9889693856239319,
+    0.9889692664146423,
+    0.9889691472053528,
+    0.9889693856239319
+  ],
+  "one_way_eval_losses": [
+    0.9889696836471558,
+    0.9889692068099976,
+    0.9889698028564453,
+    0.9889693856239319,
+    0.9889694452285767,
+    0.9889692664146423,
+    0.9889691472053528,
+    0.9889695048332214
+  ],
+  "eight_way_checkpoint_hashes": [
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a",
+    "096f6c58b584c5e110e533b90a1672dadf08efd2d129607e1388fbc6b49e727a"
+  ],
+  "steps": 3,
+  "n_shards": 8,
+  "mem_available_mib_start": 16893
+}
+A5 OK: 8-way_final_loss=0.988969415 1-way_final_loss=0.988969430 loss_delta=1.490e-08 max_abs_param_delta=3.295e-04 tolerance=5e-04 worst_param=layers.1.linear1.weight
+ATTEMPT 4.1: rc=0 MemAvailable 17345 -> 16109 MiB
+
+=== increment 5: REFUSE control (10496 < 10576) ===
+=== REFUSE control: 10496 < 10576 ===
+REFUSE: MemAvailable 10496 MiB < required 10576 MiB (8*1194 + 1024 margin); no rank launched. measured_start=10496 MiB (forced control)
+REFUSE CONTROL: rc=2 MemAvailable_now=16109 MiB

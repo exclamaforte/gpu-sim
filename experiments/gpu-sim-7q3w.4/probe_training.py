@@ -60,6 +60,7 @@ node = int(os.environ["VDEV_NODE"])
 rank = int(os.environ["RANK"])
 world_size = int(os.environ["WORLD_SIZE"])
 steps = int(os.environ["TRAIN_STEPS"])
+dropout = float(os.environ.get("TRAIN_DROPOUT", "0.1"))
 ckpt_dir = os.environ["CKPT_DIR"]
 out = {"node": node, "rank": rank, "world_size": world_size, "steps": steps}
 out["device_count"] = torch.cuda.device_count()
@@ -75,7 +76,8 @@ out["pg_rank"] = dist.get_rank()
 torch.manual_seed(1234)
 model = nn.TransformerEncoder(
     nn.TransformerEncoderLayer(
-        d_model=512, nhead=8, dim_feedforward=2048, batch_first=True
+        d_model=512, nhead=8, dim_feedforward=2048, batch_first=True,
+        dropout=dropout,
     ),
     num_layers=4,
 )
@@ -139,6 +141,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--nodes", type=int, default=NODES)
     ap.add_argument("--steps", type=int, default=STEPS)
+    ap.add_argument("--dropout", type=float, default=0.1,
+                    help="Transformer dropout (A5 uses 0.0 so the 8-way run and the 1-way reference are the same deterministic function)")
     ap.add_argument("--inject-checkpoint-difference", action="store_true")
     ap.add_argument("--checkpoint-dir", type=Path, default=None,
                     help="persistent checkpoint directory (A5 reference needs rank0.pt)")
@@ -171,6 +175,7 @@ def main():
     env["MASTER_PORT"] = str(port)
     env["WORLD_SIZE"] = str(args.nodes)
     env["TRAIN_STEPS"] = str(args.steps)
+    env["TRAIN_DROPOUT"] = str(args.dropout)
     env["OMP_NUM_THREADS"] = "1"
     if args.inject_checkpoint_difference:
         env["INJECT_CHECKPOINT_DIFFERENCE"] = "1"

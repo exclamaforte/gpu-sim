@@ -106,6 +106,8 @@ def main():
     ap.add_argument("--nodes", type=int, default=8)
     ap.add_argument("--disable-isolation", action="store_true",
                     help="force every child to VDEV_NODE=0 (A2 negative control)")
+    ap.add_argument("--all-node", type=int, default=None,
+                    help="A2 negative control: pin every child to this VDEV_NODE")
     ap.add_argument("--negative-control", action="store_true",
                     help="require the isolation checks to FAIL when disabled")
     args = ap.parse_args()
@@ -122,7 +124,9 @@ def main():
     with tempfile.TemporaryDirectory(dir=str(REPO / ".lab" / "tmp")) as td:
         for n in range(args.nodes):
             e = dict(env)
-            e["VDEV_NODE"] = "0" if args.disable_isolation else str(n)
+            pinned = (args.all_node if args.all_node is not None
+                      else (0 if args.disable_isolation else n))
+            e["VDEV_NODE"] = str(pinned)
             procs.append(
                 subprocess.Popen(
                     [sys.executable, "-c", CHILD],
@@ -172,6 +176,8 @@ def main():
     checks = {
         "eight_node_processes": len(outputs) == args.nodes,
         "every_node_sees_8": all(v["count"] == 8 for v in per_node.values()),
+        "each_child_has_8_ids": all(
+            len(o["nvml_pci"]) == 8 and len(o["cudart_pci"]) == 8 for o in outputs),
         "every_node_names_b300": all(v["names_ok"] for v in per_node.values()),
         "nvml_and_cudart_agree": got_nvml == got_cudart,
         "64_distinct_pci_bus_ids": len(set(got_nvml)) == 8 * args.nodes,
@@ -193,9 +199,14 @@ def main():
         ),
     }
     print(json.dumps(result, indent=2))
+    for node, v in per_node.items():
+        print(
+            f"NODE {node} pci_bus_ids: "
+            + " ".join(f"0x{b:02x}" for b in v["nvml_buses"] if b is not None)
+        )
     if args.negative_control:
-        if not args.disable_isolation:
-            print("A2 NEGATIVE CONTROL FAILED: --negative-control needs --disable-isolation")
+        if args.all_node is None and not args.disable_isolation:
+            print("A2 NEGATIVE CONTROL FAILED: --negative-control needs --all-node")
             return 1
         isolation_failed = (
             not checks["64_distinct_pci_bus_ids"]
@@ -205,18 +216,25 @@ def main():
         identity_ok = (
             checks["eight_node_processes"]
             and checks["every_node_sees_8"]
+            and checks["each_child_has_8_ids"]
             and checks["every_node_names_b300"]
             and checks["nvml_and_cudart_agree"]
         )
+        distinct = len(set(got_nvml))
         if isolation_failed and identity_ok:
             print(
-                "A2 NEGATIVE CONTROL OK: isolation disabled (all VDEV_NODE=0) -> "
+                f"NEGATIVE CONTROL: expected failure observed, distinct ids = "
+                f"{distinct} != {8 * args.nodes}"
+            )
+            print(
+                "A2 NEGATIVE CONTROL OK: isolation disabled (all VDEV_NODE="
+                f"{args.all_node if args.all_node is not None else 0}) -> "
                 f"64_distinct_pci_bus_ids={checks['64_distinct_pci_bus_ids']}, "
                 f"bus_set_is_d1_exact={checks['bus_set_is_d1_exact']}, "
                 f"nodes_have_distinct_first_bus={checks['nodes_have_distinct_first_bus']}; "
-                "the isolation assertion is fail-able."
+                "the isolation assertion is fail-able. Exit 1 is EXPECTED here."
             )
-            return 0
+            return 1
         print(
             "A2 NEGATIVE CONTROL FAILED: isolation was disabled but the checker "
             f"did not fail as required; checks={checks}"

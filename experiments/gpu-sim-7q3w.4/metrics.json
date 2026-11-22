@@ -1,0 +1,196 @@
+{
+  "bead": "gpu-sim-7q3w.4",
+  "captured_at_utc": "2026-11-22T22:02:45.872207+00:00",
+  "scope": "8 OS processes x 8 virtual devices (A1/D2). Increments 2 and 3 use world_size 8, one rank per node; A5 compares that 8-way run with a single-rank reference. A3 is gpu-sim-s2vc, A6 is gpu-sim-ae2v, and A4 remains gpu-sim-7q3w.5: no NCCL data-path or topology claim is made.",
+  "result": {
+    "a2_node_isolation": {
+      "verdict": "PASS",
+      "ok_line": "A2 OK: normal run has 64 distinct D1 bus ids; with --all-node 0 the same checks fail (64_distinct_pci_bus_ids=False, bus_set_is_d1_exact=False, nodes_have_distinct_first_bus=False); probe_nodes exits nonzero (1), as expected.",
+      "checks": {
+        "normal_isolation_ok": true,
+        "negative_control_failed_as_required": true
+      }
+    },
+    "increment_1_concurrent_nodes": {
+      "verdict": "PASS",
+      "ok_line": "CONCURRENT OK: 8 processes device_count=8 name=NVIDIA B300 rss_sum=9030 MiB (budget 9184 MiB) mem_available_start=16038 MiB end=16702 MiB preflight_required=10208 MiB",
+      "checks": {
+        "eight_processes": true,
+        "every_process_sees_8": true,
+        "every_process_names_D1": true,
+        "nodes_are_0_to_7": true,
+        "per_node_rss_measured": true,
+        "rss_sum_recorded": true,
+        "mem_available_recorded": true,
+        "preflight_passed": true
+      },
+      "rss_sum_mib": 9030,
+      "mem_available_mib_start": 16038,
+      "mem_available_mib_end": 16702,
+      "min_child_mem_available_mib": 10549
+    },
+    "increment_2_torch_distributed": {
+      "verdict": "PASS",
+      "ok_line": "DIST OK: 8 ranks x 8 B300, 64 distinct bus ids (0x0b+n*0x20), all_reduce=36.0 on every rank, rss_sum=4690 MiB, mem_available_start=16960 MiB end=17180 MiB preflight_required=5824 MiB",
+      "checks": {
+        "eight_ranks": true,
+        "each_rank_is_its_node": true,
+        "process_group_world_size_8": true,
+        "every_rank_sees_8": true,
+        "every_rank_names_b300": true,
+        "nvml_and_cudart_agree": true,
+        "64_distinct_pci_bus_ids": true,
+        "bus_set_is_d1_exact": true,
+        "all_gather_sees_every_node": true,
+        "all_reduce_agrees": true
+      },
+      "rss_sum_mib": 4690,
+      "mem_available_mib_start": 16960,
+      "mem_available_mib_end": 17180,
+      "preflight_required_mib": 5824,
+      "min_child_mem_available_mib": 14456
+    },
+    "increment_3_training": {
+      "verdict": "PASS",
+      "ok_line": "TRAIN OK: 8 ranks x 12,609,536 params, 3 real AdamW steps, rank-sharded data, checkpoint_sha256=f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555 equal on all 8 ranks; rss_sum=9970 MiB, mem_available_start=17088 MiB end=17346 MiB preflight_required=10576 MiB",
+      "checks": {
+        "eight_ranks": true,
+        "each_rank_is_its_node": true,
+        "process_group_world_size_8": true,
+        "every_rank_sees_8": true,
+        "every_rank_names_b300": true,
+        "model_is_12_6M_params": true,
+        "three_losses_per_rank": true,
+        "losses_finite": true,
+        "checkpoint_hash_equal": true,
+        "all_checkpoint_files_saved": true
+      },
+      "rss_sum_mib": 9970,
+      "mem_available_mib_start": 17088,
+      "mem_available_mib_end": 17346,
+      "preflight_required_mib": 10576,
+      "min_child_mem_available_mib": 10530,
+      "checkpoint_hashes": [
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+        "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555"
+      ],
+      "checkpoint_agreement": {
+        "agrees": true,
+        "distinct": [
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555"
+        ],
+        "values": [
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555",
+          "f30a6a97343ded9c45d86f37421435680031cfd64152069e7b605e12e8afc555"
+        ],
+        "reason": "all ranks agree"
+      }
+    },
+    "a5_reference": {
+      "verdict": "PASS",
+      "ok_line": "A5 OK: 8-way_final_loss=0.988969415 1-way_final_loss=0.988969430 loss_delta=1.490e-08 max_abs_param_delta=3.295e-04 tolerance=5e-04 worst_param=layers.1.linear1.weight",
+      "checks": {
+        "eight_way_run_ok": true,
+        "eight_checkpoint_hashes_equal": true,
+        "one_way_reference_ran": true,
+        "final_loss_within_tolerance": true,
+        "max_param_delta_within_tolerance": true
+      },
+      "mem_available_mib_start": 16893,
+      "eight_way_final_loss": 0.9889694154262543,
+      "one_way_final_loss": 0.9889694303274155,
+      "final_loss_delta": 1.4901161193847656e-08,
+      "max_abs_param_delta": 0.0003294789930805564,
+      "tolerance": {
+        "absolute": 0.0005,
+        "applies_to": "final mean loss and each parameter"
+      }
+    },
+    "refuse_control": {
+      "verdict": "PASS",
+      "ok_line": "REFUSE: MemAvailable 10496 MiB < required 10576 MiB (8*1194 + 1024 margin); no rank launched. measured_start=10496 MiB (forced control)",
+      "exit_code": 2,
+      "note": "forced measured start reproducing the PI's real refusal; no ranks launched"
+    }
+  },
+  "evidence": {
+    "run_sh": "experiments/gpu-sim-7q3w.4/run.sh",
+    "capture_py": "experiments/gpu-sim-7q3w.4/capture.py",
+    "output_log": "experiments/gpu-sim-7q3w.4/output.log",
+    "job_json": "experiments/gpu-sim-7q3w.4/job.json"
+  },
+  "d1_latency": {
+    "marking": "MODELLING CHOICE (not a vendor figure)",
+    "nvlink_us": 1.0,
+    "nic_us": 5.0,
+    "source": {
+      "nic_latency_us": "MODELLING CHOICE, not a vendor figure: derived from the fabric calendar's per-hop alpha for IB/NIC, 5.0 us (epic_cluster/nccl_cost.py FABRICS['ib_400g']). The ConnectX-8 per-hop latency is unsourced; this is a model parameter, not a measurement.",
+      "nvlink_latency_us": "MODELLING CHOICE, not a vendor figure: derived from the fabric calendar's per-hop alpha for NVLink, 1.0 us (epic_cluster/nccl_cost.py FABRICS['nvlink4_h100']). The B300 NVLink per-link latency is unsourced; this is a model parameter, not a measurement."
+    }
+  },
+  "error_budget": {
+    "ram": {
+      "preflight_required_mib": 10576,
+      "this_run_mem_available_start_mib": 17088,
+      "this_run_mem_available_end_mib": 17346,
+      "pi_passing_run_start_mib": 10633,
+      "pi_refusal_start_mib": 10496,
+      "pi_refusal_required_mib": 10576,
+      "statement": "fits on a quiet box with a few hundred MiB of margin; does not fit on a busy one, and the preflight refuses rather than OOM-killing. The PI measured a passing start at 10633 MiB (57 MiB above 10576) and a refusal at 10496 MiB; this capture's start/end are above."
+    },
+    "what_is_real": [
+      "torch float32 forward/backward/AdamW on the host",
+      "gloo all_reduce and DDP gradient averaging",
+      "the 12,609,536-parameter model and its losses/checkpoint bytes"
+    ],
+    "what_is_modelled": [
+      "B300 name/capacity/SM count/UUID/PCI bus ids from D1",
+      "64 virtual devices over 8 OS processes",
+      "per-hop NVLink/NIC latency (fabric-calendar modelling choice)"
+    ],
+    "not_modelled": [
+      "NCCL data path (gpu-sim-7q3w.5)",
+      "NCCL topology XML/IB choice (gpu-sim-s2vc)",
+      "fabric timing (gpu-sim-ae2v)",
+      "SASS execution, real PCIe/NVLink protocol behaviour, hardware errors"
+    ],
+    "a5": {
+      "tolerance": {
+        "absolute": 0.0005,
+        "applies_to": "final mean loss and each parameter"
+      },
+      "final_loss_delta": 1.4901161193847656e-08,
+      "max_abs_param_delta": 0.0003294789930805564
+    }
+  },
+  "a_item_map": {
+    "A1": "probe_vdev.py: 8 virtual B300 devices via NVML; checks device_count_is_N, name_is_D1, total_mem_is_D1, sm_count_is_D1, uuid_prefix, nvml_private_count, matmul_err. Run = increment 1.",
+    "A2": "probe_a2.py: probe_nodes.py normal run must have 64 distinct D1 PCI bus ids and each child exactly 8; the --all-node 0 run must FAIL the same checks (distinct ids = 8 != 64) and exit nonzero, as expected. Run = increment 0.",
+    "A3": "moved to gpu-sim-s2vc (NCCL topology XML/IB choice); not claimed here.",
+    "A4": "gpu-sim-7q3w.5 owns NCCL numerics; increment 2 is a gloo control-plane all_reduce only.",
+    "A5": "probe_reference.py: 8-way DDP final loss and parameters vs a 1-way reference with the same seed/data; TOL=5e-4 absolute. Run = increment 4.",
+    "A6": "moved to gpu-sim-ae2v (fabric timing); no timing claim here.",
+    "A7": "not separately rerun here; increment 3's checkpoint hash was reproduced by the PI, and 7q3w.3's 20-run transport arm owns the exit distribution.",
+    "A8": "metrics.error_budget.ram: preflight 10576 MiB, PI pass 10633/10576 (57 MiB margin), PI refusal 10496; this capture records its own start/end."
+  },
+  "d4_coverage": {
+    "model": "probe_training.py and probe_reference.py: 4-layer TransformerEncoder, d_model=512, ff=2048, 12,609,536 params, AdamW lr=1e-3, 3 steps, 8 DDP ranks, rank-sharded data.",
+    "launcher": "run.sh picks one increment; capture.py waits for that increment's preflight floor, records exit codes and MemAvailable before/after, and writes output.log/metrics.json/job.json.",
+    "d1": "probe_vdev.py (identity) + probe_nodes.py/probe_a2.py (64 devices over 8 nodes).",
+    "d2": "probe_nodes.py and probe_a2.py: 8 OS processes x 8 devices, 64 distinct D1 bus ids, negative control fails without isolation.",
+    "d3": "probe_vdev.py: real driver/cudart/NVML identity through the shims; probe_distributed.py: one rank per node.",
+    "d4": "probe_training.py + probe_reference.py + run.sh + capture.py, as above; this is the model/launcher pair, not a claim of GPU kernels."
+  }
+}
