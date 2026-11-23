@@ -11,6 +11,15 @@
 # The assertion is EXACT: bad=0 and max_abs_err=0.0, not a tolerance.
 set -euo pipefail
 
+# One thread per numeric library (tests/test_pin_coverage.py): these arms are
+# single-threaded by construction and the box is under a two-CPU quota; the
+# NCCL ranks and the shim's pump thread are the only real consumers.
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
 ROOT=${GPU_SIM_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}
 EXP5="$ROOT/experiments/gpu-sim-7q3w.5"
 EXP3="$ROOT/experiments/gpu-sim-7q3w.3"
