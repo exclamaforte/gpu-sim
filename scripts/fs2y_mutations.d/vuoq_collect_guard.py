@@ -1,3 +1,5 @@
+MUTATIONS = {"vuoq_collect_guard": "vuoq: drop the collect-first guard so a syntax-breaking mutation certifies coverage again"}
+
 """Mutation for vuoq_collect_guard (gpu-sim-vuoq).
 
 Restores the pre-fix behavior in the product module: the classifier never
