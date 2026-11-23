@@ -20,6 +20,32 @@ def nearest_residual(n):
 
 def med(xs): return statistics.median(xs) if xs else 0.0
 
+# gpu-sim-mgxy: both series are launch sequences that start cold. Trial 0 is the
+# slowest in most runs (gpu-sim-qfgy), so the first launches are discarded before
+# either series is summarised.
+WARM_LAUNCHES = 5
+
+
+def warm(xs):
+    """Drop the cold launches; keep the series whole if trimming would gut it."""
+    return xs[WARM_LAUNCHES:] if len(xs) > 2 * WARM_LAUNCHES else list(xs)
+
+
+def floor_ms(empty_trials):
+    """Launch floor = the FASTEST warm empty launch, not the median.
+
+    Cost only ever ADDS to a launch, so a pure-launch kernel's floor is its
+    minimum well-conditioned launch; a median also carries the cold and
+    jittered samples. Measured (experiments/gpu-sim-mgxy/instrument_null.py,
+    20 repeats): the NULL cell -- the empty binary measured against ITSELF --
+    is negative in 10/20 repeats under the median floor, range
+    [-1.33, +1.62]us, so with a median floor a negative kernel_us is the
+    estimator's own noise and says nothing about the kernel. The warm minimum
+    drops the null cell to 1/20, range [-0.16, +1.82]us.
+    """
+    w = warm(empty_trials)
+    return min(w) if w else 0.0
+
 def build_row(d, scale_trials, empty_trials):
     """Build one measured row from a spec dict + trial series.
 
@@ -28,9 +54,13 @@ def build_row(d, scale_trials, empty_trials):
     grid_limits.grid_capped symbol (runtime lookup), so a monkeypatch is
     honored and its verdict reaches the row.
     """
-    scale_med_ms = med(scale_trials)
-    empty_med_ms = med(empty_trials) if empty_trials else 0.0
+    scale_med_ms = med(warm(scale_trials))
+    empty_med_ms = floor_ms(empty_trials)
     kernel_us = (scale_med_ms - empty_med_ms) * 1000.0
+    floor_jitter_us = 0.0
+    if empty_trials:
+        _w = sorted(warm(empty_trials))
+        floor_jitter_us = (_w[-1] - _w[0]) * 1000.0
     if len(empty_trials) >= 5:
         es = sorted(empty_trials)
         p05 = es[max(0, int(len(es) * 0.05))]
@@ -70,6 +100,14 @@ def build_row(d, scale_trials, empty_trials):
         "empty_p05_ms": (sorted(empty_trials)[max(0, int(len(empty_trials) * 0.05))] if empty_trials else None),
         "empty_p95_ms": (sorted(empty_trials)[min(len(empty_trials) - 1, int(len(empty_trials) * 0.95))] if empty_trials else None),
         "within_std_us": within_us,
+        "estimator": "warm_min_floor",
+        "empty_floor_ms": empty_med_ms,
+        "floor_jitter_us": floor_jitter_us,
+        # gpu-sim-mgxy: a negative that sits inside the floor's own jitter is
+        # the estimator's noise, not a measurement of the kernel. Flagged
+        # either way (gpu-sim-7m60); never clamped.
+        "within_floor_noise": bool(kernel_us <= 0 and floor_jitter_us > 0
+                                   and abs(kernel_us) <= floor_jitter_us),
         "residual_us": residual,
         "threshold_us": threshold,
         "grid_capped": bool(gc),
