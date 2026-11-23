@@ -86,6 +86,12 @@ def test_row_timeout_is_not_a_bitten_plant(monkeypatch):
     seq = [1, 0]
 
     def fake_pytest(cmd, root, timeout, env):
+        # gpu-sim-als2: vuoq added a --collect-only PREFLIGHT before the mutation
+        # run, so it must not consume the fail/pass sequence that drives the
+        # plant -- otherwise the mutation run reads the restored-run's 0 and
+        # every row reports 'did not fail (rc=0)'.
+        if isinstance(cmd, list) and "--collect-only" in cmd:
+            return subprocess.CompletedProcess(cmd, 0, "1 test collected\n", "")
         return subprocess.CompletedProcess(cmd, seq.pop(0) if seq else 0, "", "")
 
     monkeypatch.setattr(mod, "_run_pytest", fake_pytest)

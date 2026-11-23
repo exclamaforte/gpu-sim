@@ -36,6 +36,11 @@ def _mini_repo(td, delete_key=False, row_nodes=()):
         (ROOT / "scripts" / "fs2y_mutations.py").read_text())
     (repo / "scripts" / "resolve_trunk.py").write_text(
         (ROOT / "scripts" / "resolve_trunk.py").read_text())
+    # gpu-sim-als2: check_append_only.py imports plant_verify from scripts/ to
+    # decide whether a plant failed as a TEST OUTCOME (gpu-sim-vuoq), so this
+    # module must sit beside the copy or the import dies before any row runs.
+    (repo / "scripts" / "plant_verify.py").write_text(
+        (ROOT / "scripts" / "plant_verify.py").read_text())
     # One real registry mutation, so a fixture row's mutation field resolves.
     for fn in ("append_only_guard.py", "append_only_guard.json"):
         (repo / "scripts" / "fs2y_mutations.d" / fn).write_text(
