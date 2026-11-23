@@ -1,0 +1,44 @@
+--- control dir /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/control-20261122T174332 (nrep=5, wedge timeout=20s)
+--- A1: allreduce + p2p, pump at device open (acceptance)
+   A rep 1: rc=0 wall=4.63s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- B1: p2p alone, pump at device open (isolation; trace on)
+   B rep 1: rc=0 wall=4.02s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- C1: p2p alone, NO progress thread (pump necessary)
+   C rep 1: rc=1 wall=22.35s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- D1: p2p alone, LAZY pump start = pre-fix shape (mechanism)
+   D rep 1: rc=1 wall=22.33s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- A2: allreduce + p2p, pump at device open (acceptance)
+   A rep 2: rc=0 wall=4.09s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- B2: p2p alone, pump at device open (isolation; trace on)
+   B rep 2: rc=0 wall=3.89s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- C2: p2p alone, NO progress thread (pump necessary)
+   C rep 2: rc=1 wall=22.60s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- D2: p2p alone, LAZY pump start = pre-fix shape (mechanism)
+   D rep 2: rc=1 wall=22.61s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- A3: allreduce + p2p, pump at device open (acceptance)
+   A rep 3: rc=0 wall=4.01s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- B3: p2p alone, pump at device open (isolation; trace on)
+   B rep 3: rc=0 wall=4.11s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- C3: p2p alone, NO progress thread (pump necessary)
+   C rep 3: rc=1 wall=22.94s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- D3: p2p alone, LAZY pump start = pre-fix shape (mechanism)
+   D rep 3: rc=1 wall=22.60s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- A4: allreduce + p2p, pump at device open (acceptance)
+   A rep 4: rc=0 wall=3.98s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- B4: p2p alone, pump at device open (isolation; trace on)
+   B rep 4: rc=0 wall=3.85s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- C4: p2p alone, NO progress thread (pump necessary)
+   C rep 4: rc=1 wall=22.67s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- D4: p2p alone, LAZY pump start = pre-fix shape (mechanism)
+   D rep 4: rc=1 wall=22.58s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- A5: allreduce + p2p, pump at device open (acceptance)
+   A rep 5: rc=0 wall=3.95s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- B5: p2p alone, pump at device open (isolation; trace on)
+   B rep 5: rc=0 wall=3.51s rank0_rc=0 rank1_rc=0 conn=1 saw=1 post=1 got=1
+--- C5: p2p alone, NO progress thread (pump necessary)
+   C rep 5: rc=1 wall=22.51s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+--- D5: p2p alone, LAZY pump start = pre-fix shape (mechanism)
+   D rep 5: rc=1 wall=22.62s rank0_rc=124 rank1_rc=124 conn=1 saw=0 post=0 got=0
+
+P2P CONTROL DONE: 20 runs; records in /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/control-20261122T174332/records.jsonl
+CONTROL_DIR=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/control-20261122T174332

@@ -1,0 +1,520 @@
+{
+  "bead": "gpu-sim-7q3w.5",
+  "captured_at_utc": "2026-11-23T02:01:44.946508+00:00",
+  "scope": "2 genuine NCCL ranks on this box's one real GPU behind the 7q3w.4 aliased-device shims, over the modelled IB wire. A measured BOTH the result claims (exact 1 MiB allreduce, rank r fills r+1 => 3.0; and a 4096-byte send/recv that must be BYTE-IDENTICAL), and the control separates two different questions: C (no progress thread) shows the async pump is NECESSARY; D (FAKEIB_LAZY_PUMP=1, the pre-fix lazy start) shows that STARTING IT AT DEVICE OPEN is the fix. B is the p2p claim on its own, with no prior collective. Each phase ran 5x.",
+  "shape_chosen": {
+    "answer": "neither (a) host compute nor (b) kernel execution",
+    "why": "With 7q3w.4's aliasing the kernel launches are REAL, so the arithmetic is real float32 on this box's GPU; only the TRANSPORT between the two processes is modelled."
+  },
+  "config": {
+    "nrep": 5,
+    "wedge_timeout_s": 20
+  },
+  "phases": {
+    "A": {
+      "n": 5,
+      "rcs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "rank_rc": [
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        }
+      ],
+      "wall_s": [
+        4.63,
+        4.09,
+        4.01,
+        3.98,
+        3.95
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_posts_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_gets_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_p2p_line": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "wedge_last_rings": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "p2p_mismatches": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "allreduce_bad": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "B": {
+      "n": 5,
+      "rcs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "rank_rc": [
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        }
+      ],
+      "wall_s": [
+        4.02,
+        3.89,
+        4.11,
+        3.85,
+        3.51
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_posts_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_gets_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_p2p_line": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "wedge_last_rings": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "p2p_mismatches": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "allreduce_bad": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "C": {
+      "n": 5,
+      "rcs": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "rank_rc": [
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        }
+      ],
+      "wall_s": [
+        22.35,
+        22.6,
+        22.94,
+        22.67,
+        22.51
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank0_posts_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_gets_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_p2p_line": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "wedge_last_rings": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "p2p_mismatches": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allreduce_bad": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "D": {
+      "n": 5,
+      "rcs": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "rank_rc": [
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        }
+      ],
+      "wall_s": [
+        22.33,
+        22.61,
+        22.6,
+        22.58,
+        22.62
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank0_posts_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_gets_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_p2p_line": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "wedge_last_rings": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "p2p_mismatches": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allreduce_bad": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    }
+  },
+  "margin": {
+    "phase_B_wall_s": {
+      "min": 3.51,
+      "median": 3.89,
+      "max": 4.11,
+      "values": [
+        4.02,
+        3.89,
+        4.11,
+        3.85,
+        3.51
+      ]
+    },
+    "phase_C_D_wall_s": {
+      "min": 22.33,
+      "median": 22.6,
+      "max": 22.94,
+      "values": [
+        22.35,
+        22.6,
+        22.94,
+        22.67,
+        22.51,
+        22.33,
+        22.61,
+        22.6,
+        22.58,
+        22.62
+      ]
+    },
+    "ratio_min_wedge_wall_over_max_B_wall": 5.43,
+    "meaning": "B completes in well under a quarter of the rank timeout, while every C and D run was still wedged when the timeout killed it; the wedge is a deadlock, not a slow path."
+  },
+  "wedge_signature": {
+    "where": "rank1 (receiver) log of every C and D run",
+    "shape": "rank1 (receiver) posts its 64-byte connection info -- ring_put(1,0) kind=2 nbytes=64, so its poll line reads out=1 in=0 -- and rank0 (sender) has NO deliver_inbound line at all: it never saw the record, never posted the 4096-byte data WR, and rank1 never received a payload. The passing runs (B) show the missing pair: rank0 posts len=4096 and rank1 delivers nbytes=4096."
+  },
+  "result": {
+    "checks": {
+      "A_all_runs_exit_zero": true,
+      "A_allreduce_exact_every_run": true,
+      "A_p2p_byte_identical_every_run": true,
+      "A_wire_clean_every_run": true,
+      "B_all_runs_exit_zero": true,
+      "B_p2p_byte_identical_every_run": true,
+      "B_wire_clean_every_run": true,
+      "B_no_allreduce_claim_any_run": true,
+      "C_wedges_every_run": true,
+      "D_wedges_every_run": true,
+      "B_sender_posted_the_payload_every_run": true,
+      "B_receiver_delivered_the_payload_every_run": true,
+      "B_wall_under_quarter_of_wedge_timeout": true,
+      "C_D_wall_at_least_wedge_timeout": true,
+      "much_margin_between_B_and_C_D": true,
+      "nccl_named_our_ib_device_every_run": true,
+      "no_socket_fallback_any_run": true
+    }
+  },
+  "error_budget": {
+    "measured_real": "NCCL 2.32.6 chose our mlx5_0 (NET/IB, no Socket fallback in any run); its own kernels ran on the real GPU; rank0's trace shows the 4096-byte payload posted to the wire; counters show post_send_calls/bytes_written/ring records > 0 and no rnr_drops or remote_access_errors in every passing run.",
+    "modelled": "The wire: libibverbs is a shim and the fabric is a MAP_SHARED byte ring per rank pair with modelled bandwidth/latency on completion readiness. Inbound progress is asynchronous (pump thread, 50 us default), which adds real delivery latency; that latency is the pump, not the modelled wire time.",
+    "not_modelled": "No physical NIC or DMA, no GDR/dmabuf registration (7q3w.6, NOT EXERCISED by design), no second GPU and therefore no B300 compute time (a collective's compute time is this 5090's). No 8-way collective or training step here, and no performance claim (ae2v).",
+    "model_defect_found_and_fixed": "Inbound records used to be delivered only inside poll_cq, so a sender spinning on the peer-written host FIFO could never be progressed; then the progress thread itself was started lazily from poll_cq, which a p2p-alone sender never calls. Both are measured: C and D wedge, B does not."
+  },
+  "gate": "scripts/gate.sh --fast PASS at tip 9959349c (15 hard stages passed, 0 failed, 1 skipped = the suite, which --fast skips); gate logs .lab/gate-logs/9959349c-20261123T022834Z. This tip adds the ledger row and mutation binding the wedge predicate; experiments/gpu-sim-7q3w.5/ is otherwise byte-identical to 6180b8cb, and this metrics file is the only change after the gate. UNVERIFIABLE FOR THIS TIP: handle none, because the rows are a gpqueue GPU job (20261123t014332-bef05369) and gpqueue keeps no .lab/runs record; the gate directory is the record. delta: this citation only. Earlier, the gate at 6180b8cb was RED on this very file (append-only row dliz_gate_citations: 'no run handle cited'), and the gate at 03202cc4 was 13/15 on v5l3_pin_coverage (numeric-thread pins missing from run.sh, fixed before 6180b8cb).",
+  "evidence": {
+    "run_sh": "experiments/gpu-sim-7q3w.5/run.sh",
+    "control_sh": "experiments/gpu-sim-7q3w.5/control_p2p.sh",
+    "capture_py": "experiments/gpu-sim-7q3w.5/capture.py",
+    "output_log": "experiments/gpu-sim-7q3w.5/output.log",
+    "manifest": "experiments/gpu-sim-7q3w.5/manifest.json",
+    "per_run_logs": [
+      "A-1.log",
+      "A-2.log",
+      "A-3.log",
+      "A-4.log",
+      "A-5.log",
+      "B-1.log",
+      "B-2.log",
+      "B-3.log",
+      "B-4.log",
+      "B-5.log",
+      "C-1.log",
+      "C-2.log",
+      "C-3.log",
+      "C-4.log",
+      "C-5.log",
+      "D-1.log",
+      "D-2.log",
+      "D-3.log",
+      "D-4.log",
+      "D-5.log"
+    ],
+    "job_json": "experiments/gpu-sim-7q3w.5/job.json"
+  }
+}

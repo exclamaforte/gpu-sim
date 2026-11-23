@@ -285,8 +285,58 @@ static void rings_init(void) {
         ring_open(r, me);
     }
 }
-static void pump_rings(void) {
+/* gpu-sim-7q3w.5: inbound progress must not require the RECEIVER to call
+ * poll_cq first.  Measured, not assumed: NCCL's IB p2p send setup spins on a
+ * host-memory FIFO that the peer's 64-byte RDMA WRITE must fill; the old model
+ * only copied that write into the receiver's memory inside poll_cq, which the
+ * sender never called because it was spinning on the FIFO.  Both ranks waited
+ * on each other (rank1 sat in poll_cq with rings out=49 in=48 forever).  On real
+ * hardware the NIC writes the buffer asynchronously, so the model gets a pump
+ * thread too.  All draining is serialised by g_pump_lock, which keeps inbound
+ * delivery single-threaded (the RQ consume order stays deterministic). */
+static pthread_mutex_t g_pump_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_once_t g_pump_once = PTHREAD_ONCE_INIT;
+static void pump_rings(void);
+
+static void *pump_thread_fn(void *arg) {
+    (void)arg;
+    const char *e = getenv("FAKEIB_PUMP_US");
+    long us = (e && atol(e) > 0) ? atol(e) : 50;   /* added delivery latency bound */
+    struct timespec ts = {0, us * 1000};
+    for (;;) {
+        pump_rings();
+        nanosleep(&ts, NULL);
+    }
+    return NULL;
+}
+
+static void pump_thread_start(void) {
+    if (getenv("FAKEIB_NO_PUMP_THREAD")) return;   /* A/B: off restores 7q3w.3 */
+    pthread_t t;
+    if (pthread_create(&t, NULL, pump_thread_fn, NULL) == 0) pthread_detach(t);
+}
+
+/* Open the pair rings and start the pump thread WITHOUT waiting for a poll_cq.
+ * Measured (gpu-sim-7q3w.5 control, phase B): a p2p-alone SENDER never calls
+ * ibv_poll_cq -- it spins on the host FIFO the peer's RDMA WRITE must fill -- so
+ * starting the pump lazily from pump_rings() left rank0 with no inbound progress
+ * at all (it logged not one FAKEIB line) and the 64-byte connection write sat in
+ * the ring forever.  Every rank opens its device, so that is the eager hook. */
+static void fakeib_pump_ensure(void) {
+    /* FAKEIB_LAZY_PUMP=1 restores the pre-fix shape exactly: this hook does
+     * nothing and the progress thread is started by the first poll_cq
+     * (pump_rings).  That is the MECHANISM control -- phase D.  Without it,
+     * "the pump is necessary" (phase C, thread absent) is measured, but
+     * "starting it at device open is what fixes a p2p-alone sender" is only a
+     * hypothesis consistent with the data. */
+    if (getenv("FAKEIB_LAZY_PUMP")) return;
     pthread_once(&g_rings_once, rings_init);
+    pthread_once(&g_pump_once, pump_thread_start);
+}
+
+static void pump_rings(void) {
+    fakeib_pump_ensure();
+    pthread_mutex_lock(&g_pump_lock);
     if (getenv("FAKEIB_TRACE")) {
         static int n_trace;
         if (n_trace++ < 3)
@@ -329,6 +379,7 @@ static void pump_rings(void) {
             }
         }
     }
+    pthread_mutex_unlock(&g_pump_lock);
 }
 
 /* One WR against a peer in another process. */

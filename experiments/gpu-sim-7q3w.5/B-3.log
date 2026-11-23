@@ -1,0 +1,171 @@
+--- run dir /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523
+In file included from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/experiments/gpu-sim-7q3w.3/ibverbs_shim.c:53:
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1050:39: warning: ‘struct ibv_device_attr_ex’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 |                                struct ibv_device_attr_ex *attr,
+      |                                       ^~~~~~~~~~~~~~~~~~
+/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/experiments/gpu-sim-7q3w.3/vendor/nccl/ibvcore.h:1049:45: warning: ‘struct ibv_query_device_ex_input’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1049 |                                const struct ibv_query_device_ex_input *input,
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+--- building aliased-device shims
+wrote b300_spec.h from /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/specs/b300_8x8.json: name=NVIDIA B300 devs=8 nodes=8
+714 forwarded + 23 overridden
+396 NVML forwards + 35 overrides
+#define B300_NVDEV 1
+#define B300_PCI_BUS_BASE 1
+#define B300_NVDEV 1
+#define B300_PCI_BUS_BASE 122
+fake sysfs rank 0: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523/sysfs/rank0/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:01.1 (gpu 0000:01:00.0 shares bridge /sys/devices/pci0000:00/0000:00:01.1 with mlx5_0)
+fake sysfs rank 1: /home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523/sysfs/rank1/infiniband/mlx5_0/device -> /sys/devices/pci0000:00/0000:00:08.1 (gpu 0000:7a:00.0 shares bridge /sys/devices/pci0000:00/0000:00:08.1 with mlx5_0)
+--- NIC bridges: rank0 /sys/devices/pci0000:00/0000:00:01.1 / rank1 /sys/devices/pci0000:00/0000:00:08.1
+--- launching rank1 then rank0 (each in its own UTS namespace)
+--- --- rank0 tail ---
+NUMERICS note rank=0 ndev=1 requested_device=0
+nccl-rank0:3716551:3716551 [0] NCCL INFO cudaDriverVersion 13040
+nccl-rank0:3716551:3716551 [0] NCCL INFO NCCL version 2.32.6+cuda13.5
+nccl-rank0:3716551:3716551 [0] NCCL INFO NCCL git version unknown unknown
+nccl-rank0:3716551:3716551 [0] NCCL INFO NET/Plugin: Could not find: libnccl-net.so
+nccl-rank0:3716551:3716551 [0] NCCL INFO Failed to open libmlx5.so[.1]
+nccl-rank0:3716551:3716551 [0] NCCL INFO NCCL_IB_HCA set to mlx5_0
+FAKEIB[0] ring_open(0,1) path=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523/rings/ring-0-1.bin creator=1 cap=67108864
+FAKEIB[0] ring_open(1,0) path=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523/rings/ring-1-0.bin creator=1 cap=67108864
+FAKEIB[0] pump rings=2
+nccl-rank0:3716551:3716551 [0] NCCL INFO NET/IB : Using [0]mlx5_0:1/IB [RO]; OOB enp14s0:192.168.0.180<0>
+nccl-rank0:3716551:3716551 [0] NCCL INFO Initialized NET plugin IB
+nccl-rank0:3716551:3716551 [0] NCCL INFO Assigned NET plugin IB to comm
+nccl-rank0:3716551:3716551 [0] NCCL INFO RMA/Plugin: Could not find: libnccl-rma.so
+nccl-rank0:3716551:3716551 [0] NCCL INFO RMA/Plugin: Initialized plugin 
+nccl-rank0:3716551:3716551 [0] NCCL INFO RMA/Plugin: Assigned plugin RMA_IB_PROXY to comm
+nccl-rank0:3716551:3716551 [0] NCCL INFO GIN/Plugin: Could not find: libnccl-gin.so
+nccl-rank0:3716551:3716551 [0] NCCL INFO Using network IB
+FAKEIB[0] pump rings=2
+FAKEIB[0] pump rings=2
+nccl-rank0:3716551:3716551 [0] NCCL INFO Loaded NVML from libnvidia-ml.so.1
+nccl-rank0:3716551:3716551 [0] NCCL INFO [Rank 0] ncclCommInitRank comm 0x55df7a377b10 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 1000 commId 0x16849d976175f320 - Init START
+nccl-rank0:3716551:3716551 [0] NCCL INFO RAS client listening socket at ::1<28028>
+nccl-rank0:3716551:3716551 [0] NCCL INFO Bootstrap timings total 0.035423 (create 0.000063, send 0.000229, recv 0.033589, ring 0.000083, delay 0.000001)
+nccl-rank0:3716551:3716551 [0] NCCL INFO CUDA did not report clique information for device 0 (cuDeviceGetCliqueCount returned 801)
+nccl-rank0:3716551:3716551 [0] NCCL INFO ncclTopoGetCpuAffinity: Affinity for GPU 0 is empty, ignoring. (GPU affinity =  ; CPU affinity = 0-31).
+nccl-rank0:3716551:3716551 [0] NCCL INFO Rank 0: 1 Net devices
+nccl-rank0:3716551:3716551 [0] NCCL INFO Rank 0: 0 CollNet devices
+nccl-rank0:3716551:3716551 [0] NCCL INFO Local Net device counts across ranks: min 1 max 1
+nccl-rank0:3716551:3716551 [0] NCCL INFO Local CollNet device counts across ranks: min 0 max 0
+nccl-rank0:3716551:3716551 [0] NCCL INFO comm 0x55df7a377b10 rank 0 nRanks 2 nNodes 2 localRanks 1 localRank 0 MNNVL 0
+nccl-rank0:3716551:3716551 [0] NCCL INFO Channel 00/02 : 0 1
+nccl-rank0:3716551:3716551 [0] NCCL INFO Channel 01/02 : 0 1
+nccl-rank0:3716551:3716551 [0] NCCL INFO Trees [0] 1/-1/-1->0->-1 [1] -1/-1/-1->0->1
+nccl-rank0:3716551:3716551 [0] NCCL INFO P2P Chunksize set to 131072
+nccl-rank0:3716551:3716551 [0] NCCL INFO Simple Buffer Size set to 4194304
+nccl-rank0:3716551:3716551 [0] NCCL INFO Tuning P2P operations with maxP2pPeers = 2
+nccl-rank0:3716551:3716551 [0] NCCL INFO PROFILER/Plugin: Could not find: libnccl-profiler.so
+nccl-rank0:3716551:3716551 [0] NCCL INFO Check P2P Type isAllDirectP2p 1 directMode 0 isAllCudaP2p 1
+nccl-rank0:3716551:3717559 [0] NCCL INFO [Proxy Service] Device 0 CPU core 16
+nccl-rank0:3716551:3717561 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 7
+nccl-rank0:3716551:3717559 [0] NCCL INFO proxy listening socket at 192.168.0.180<52371>
+nccl-rank0:3716551:3716551 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so
+nccl-rank0:3716551:3716551 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+nccl-rank0:3716551:3716551 [0] NCCL INFO 2 coll channels, 2 collnet channels, 0 nvls channels, 2 p2p channels, 1 p2p channels per peer
+nccl-rank0:3716551:3716551 [0] NCCL INFO Rank 0 RMA strides: baseStride 0 userCtxStride 1 defaultUserStride 1 networkRmaSupport 0 (crossNic 1 contiguousRanksPerHost 1 numRmaCtx 1)
+nccl-rank0:3716551:3716551 [0] NCCL INFO symmetricSupport 0, cuMemEnable 1, globalGinSupport 0, cuMemGdrSupport 0, contiguousRanksPerHost 1, crossNicSupport 1
+nccl-rank0:3716551:3716551 [0] NCCL INFO CC Off, workFifoBytes 1048576
+nccl-rank0:3716551:3716551 [0] NCCL INFO ncclCommInitRank comm 0x55df7a377b10 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 1000 commId 0x16849d976175f320 - Init COMPLETE
+nccl-rank0:3716551:3716551 [0] NCCL INFO Init timings - ncclCommInitRank: rank 0 nranks 2 total 0.48 (kernels 0.42, alloc 0.01, bootstrap 0.04, allgathers 0.00, topo 0.01, graphs 0.00, connections 0.00, rest 0.00)
+NUMERICS init rank=0 world=2
+NUMERICS p2p-arm rank=0 nbytes=4096
+nccl-rank0:3716551:3717599 [0] NCCL INFO [Proxy Progress] Device 0 CPU core 12
+nccl-rank0:3716551:3716551 [0] NCCL INFO Channel 01/1 : 0[0] -> 1[0] [send] via NET/IB/0/Shared
+FAKEIB[0] deliver_inbound qpn=0x1000 kind=0 nbytes=64
+NUMERICS p2p rank=0 nbytes=4096 sent=1
+FAKEIB[0] post_send qpn=0x1000 opcode=1 len=4096
+FAKEIB[0] ring_put(0,1) kind=3 nbytes=4096 tail=4160
+FAKEIB[0] poll_cq cq=0x7f26c800d610 -> 1 wc, first qpn=0x1000 opcode=1 status=0
+NUMERICS ok rank=0
+--- --- rank1 tail ---
+NUMERICS note rank=1 ndev=1 requested_device=0
+nccl-rank1:3715930:3715930 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+nccl-rank1:3715930:3715930 [0] NCCL INFO cudaDriverVersion 13040
+nccl-rank1:3715930:3715930 [0] NCCL INFO Bootstrap: Using enp14s0:192.168.0.180<0>
+nccl-rank1:3715930:3715930 [0] NCCL INFO NCCL version 2.32.6+cuda13.5
+nccl-rank1:3715930:3715930 [0] NCCL INFO NCCL git version unknown unknown
+nccl-rank1:3715930:3715930 [0] NCCL INFO NET/Plugin: Could not find: libnccl-net.so
+nccl-rank1:3715930:3715930 [0] NCCL INFO Failed to open libmlx5.so[.1]
+nccl-rank1:3715930:3715930 [0] NCCL INFO NCCL_IB_HCA set to mlx5_0
+FAKEIB[1] ring_open(1,0) path=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523/rings/ring-1-0.bin creator=0 cap=67108864
+FAKEIB[1] ring_open(0,1) path=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523/rings/ring-0-1.bin creator=0 cap=67108864
+FAKEIB[1] pump rings=2
+nccl-rank1:3715930:3715930 [0] NCCL INFO NET/IB : Using [0]mlx5_0:1/IB [RO]; OOB enp14s0:192.168.0.180<0>
+nccl-rank1:3715930:3715930 [0] NCCL INFO Initialized NET plugin IB
+nccl-rank1:3715930:3715930 [0] NCCL INFO Assigned NET plugin IB to comm
+FAKEIB[1] pump rings=2
+nccl-rank1:3715930:3715930 [0] NCCL INFO RMA/Plugin: Could not find: libnccl-rma.so
+nccl-rank1:3715930:3715930 [0] NCCL INFO RMA/Plugin: Initialized plugin 
+nccl-rank1:3715930:3715930 [0] NCCL INFO RMA/Plugin: Assigned plugin RMA_IB_PROXY to comm
+nccl-rank1:3715930:3715930 [0] NCCL INFO GIN/Plugin: Could not find: libnccl-gin.so
+nccl-rank1:3715930:3715930 [0] NCCL INFO Using network IB
+FAKEIB[1] pump rings=2
+nccl-rank1:3715930:3715930 [0] NCCL INFO Loaded NVML from libnvidia-ml.so.1
+nccl-rank1:3715930:3715930 [0] NCCL INFO [Rank 1] ncclCommInitRank comm 0x55a5b532dd80 rank 1 nranks 2 cudaDev 0 nvmlDev 0 busId 1000 commId 0x16849d976175f320 - Init START
+nccl-rank1:3715930:3715930 [0] NCCL INFO Socket handshake magic 0x564ab9f2fc4b9d6c (built-in default)
+nccl-rank1:3715930:3715930 [0] NCCL INFO RAS client listening socket at ::1<28028>
+nccl-rank1:3715930:3715930 [0] NCCL INFO Bootstrap timings total 0.001928 (create 0.000047, send 0.000175, recv 0.000108, ring 0.000028, delay 0.000001)
+nccl-rank1:3715930:3715930 [0] NCCL INFO CUDA did not report clique information for device 0 (cuDeviceGetCliqueCount returned 801)
+nccl-rank1:3715930:3715930 [0] NCCL INFO ncclTopoGetCpuAffinity: Affinity for GPU 0 is empty, ignoring. (GPU affinity =  ; CPU affinity = 0-31).
+nccl-rank1:3715930:3715930 [0] NCCL INFO Rank 1: 1 Net devices
+nccl-rank1:3715930:3715930 [0] NCCL INFO Rank 1: 0 CollNet devices
+nccl-rank1:3715930:3715930 [0] NCCL INFO comm 0x55a5b532dd80 rank 1 nRanks 2 nNodes 2 localRanks 1 localRank 0 MNNVL 0
+nccl-rank1:3715930:3715930 [0] NCCL INFO Trees [0] -1/-1/-1->1->0 [1] 0/-1/-1->1->-1
+nccl-rank1:3715930:3715930 [0] NCCL INFO P2P Chunksize set to 131072
+nccl-rank1:3715930:3715930 [0] NCCL INFO Simple Buffer Size set to 4194304
+nccl-rank1:3715930:3715930 [0] NCCL INFO Tuning P2P operations with maxP2pPeers = 2
+nccl-rank1:3715930:3715930 [0] NCCL INFO PROFILER/Plugin: Could not find: libnccl-profiler.so
+nccl-rank1:3715930:3715930 [0] NCCL INFO Check P2P Type isAllDirectP2p 1 directMode 0 isAllCudaP2p 1
+nccl-rank1:3715930:3717558 [0] NCCL INFO [Proxy Service] Device 0 CPU core 4
+nccl-rank1:3715930:3717560 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 6
+nccl-rank1:3715930:3717558 [0] NCCL INFO proxy listening socket at 192.168.0.180<47551>
+nccl-rank1:3715930:3715930 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so
+nccl-rank1:3715930:3715930 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+nccl-rank1:3715930:3715930 [0] NCCL INFO 2 coll channels, 2 collnet channels, 0 nvls channels, 2 p2p channels, 1 p2p channels per peer
+nccl-rank1:3715930:3715930 [0] NCCL INFO Rank 1 RMA strides: baseStride 0 userCtxStride 1 defaultUserStride 1 networkRmaSupport 0 (crossNic 1 contiguousRanksPerHost 1 numRmaCtx 1)
+nccl-rank1:3715930:3715930 [0] NCCL INFO symmetricSupport 0, cuMemEnable 1, globalGinSupport 0, cuMemGdrSupport 0, contiguousRanksPerHost 1, crossNicSupport 1
+nccl-rank1:3715930:3715930 [0] NCCL INFO ncclCommInitRank comm 0x55a5b532dd80 rank 1 nranks 2 cudaDev 0 nvmlDev 0 busId 1000 commId 0x16849d976175f320 - Init COMPLETE
+nccl-rank1:3715930:3715930 [0] NCCL INFO Init timings - ncclCommInitRank: rank 1 nranks 2 total 0.47 (kernels 0.44, alloc 0.01, bootstrap 0.00, allgathers 0.00, topo 0.01, graphs 0.00, connections 0.00, rest 0.00)
+NUMERICS init rank=1 world=2
+NUMERICS p2p-arm rank=1 nbytes=4096
+nccl-rank1:3715930:3717593 [0] NCCL INFO [Proxy Progress] Device 0 CPU core 14
+nccl-rank1:3715930:3715930 [0] NCCL INFO Channel 01/1 : 0[0] -> 1[0] [receive] via NET/IB/0/Shared
+FAKEIB[1] post_send qpn=0x1000 opcode=0 len=64
+FAKEIB[1] ring_put(1,0) kind=2 nbytes=64 tail=128
+FAKEIB[1] poll_cq cq=0x7f4b5800d6e0 -> 1 wc, first qpn=0x1000 opcode=1 status=0
+FAKEIB[1] deliver_inbound qpn=0x1000 kind=1 nbytes=4096
+FAKEIB[1] poll_cq cq=0x7f4b5800d6e0 -> 1 wc, first qpn=0x1000 opcode=129 status=0
+NUMERICS p2p rank=1 nbytes=4096 mismatches=0
+NUMERICS ok rank=1
+--- --- NCCL transport evidence (from each rank log) ---
+rank0: nccl-rank0:3716551:3716551 [0] NCCL INFO NET/IB : Using [0]mlx5_0:1/IB [RO]; OOB enp14s0:192.168.0.180<0>
+rank0: nccl-rank0:3716551:3716551 [0] NCCL INFO Initialized NET plugin IB
+rank0: nccl-rank0:3716551:3716551 [0] NCCL INFO Using network IB
+rank0: nccl-rank0:3716551:3716551 [0] NCCL INFO Channel 01/1 : 0[0] -> 1[0] [send] via NET/IB/0/Shared
+rank1: nccl-rank1:3715930:3715930 [0] NCCL INFO NET/IB : Using [0]mlx5_0:1/IB [RO]; OOB enp14s0:192.168.0.180<0>
+rank1: nccl-rank1:3715930:3715930 [0] NCCL INFO Initialized NET plugin IB
+rank1: nccl-rank1:3715930:3715930 [0] NCCL INFO Using network IB
+rank1: nccl-rank1:3715930:3715930 [0] NCCL INFO Channel 01/1 : 0[0] -> 1[0] [receive] via NET/IB/0/Shared
+ASSERT ok: rank0: process exit line
+ASSERT ok: rank0: NCCL named our mlx5_0 as the IB device
+ASSERT ok: rank0: channel went via NET/IB, not P2P/SHM
+ASSERT ok: rank0: no Socket fallback
+ASSERT ok: rank0: counters dumped
+ASSERT ok: rank0: NCCL posted WRs and moved bytes on our QPs
+ASSERT ok: rank1: process exit line
+ASSERT ok: rank1: NCCL named our mlx5_0 as the IB device
+ASSERT ok: rank1: channel went via NET/IB, not P2P/SHM
+ASSERT ok: rank1: no Socket fallback
+ASSERT ok: rank1: counters dumped
+ASSERT ok: rank1: NCCL posted WRs and moved bytes on our QPs
+ASSERT ok: rank0: p2p 4096-byte payload handed to the wire
+ASSERT ok: rank1: 0 of 4096 received bytes differ from sent bytes (exact)
+ASSERT ok: rank0: no dropped recv WR and no remote access error on the wire
+ASSERT ok: rank1: no dropped recv WR and no remote access error on the wire
+ASSERT ok: rank0 exited 0
+ASSERT ok: rank1 exited 0
+
+NUMERICS RUN OK: byte-identical 4096-byte send/recv through genuine NCCL on the modelled IB wire (allreduce arm skipped)
+RUN_DIR=/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T174523
