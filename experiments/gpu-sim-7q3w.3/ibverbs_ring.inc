@@ -316,11 +316,20 @@ static void pump_thread_start(void) {
     if (pthread_create(&t, NULL, pump_thread_fn, NULL) == 0) pthread_detach(t);
 }
 
-static void pump_rings(void) {
+/* Open the pair rings and start the pump thread WITHOUT waiting for a poll_cq.
+ * Measured (gpu-sim-7q3w.5 control, phase B): a p2p-alone SENDER never calls
+ * ibv_poll_cq -- it spins on the host FIFO the peer's RDMA WRITE must fill -- so
+ * starting the pump lazily from pump_rings() left rank0 with no inbound progress
+ * at all (it logged not one FAKEIB line) and the 64-byte connection write sat in
+ * the ring forever.  Every rank opens its device, so that is the eager hook. */
+static void fakeib_pump_ensure(void) {
     pthread_once(&g_rings_once, rings_init);
     pthread_once(&g_pump_once, pump_thread_start);
+}
+
+static void pump_rings(void) {
+    fakeib_pump_ensure();
     pthread_mutex_lock(&g_pump_lock);
-    pthread_once(&g_rings_once, rings_init);
     if (getenv("FAKEIB_TRACE")) {
         static int n_trace;
         if (n_trace++ < 3)

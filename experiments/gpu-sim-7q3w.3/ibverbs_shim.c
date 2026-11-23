@@ -921,6 +921,9 @@ struct ibv_context *ibv_open_device(struct ibv_device *dev) {
     ctx->device = dev;
     ctx->cmd_fd = -1;
     ctx->async_fd = -1;
+    /* Start inbound progress here, not on the first poll: a p2p sender can block
+     * on a peer-written FIFO without ever polling (see fakeib_pump_ensure). */
+    fakeib_pump_ensure();
     /* The inline trap: NCCL reaches post_send/post_recv/poll_cq ONLY here. */
     ctx->ops.query_device = NULL;      /* real symbol is dlsym'd */
     ctx->ops.poll_cq = shim_ops_poll_cq;
