@@ -1,0 +1,111 @@
+{
+  "bead": "gpu-sim-7q3w.5",
+  "captured_at_utc": "2026-11-23T00:08:42.327827+00:00",
+  "scope": "FIRST EXPERIMENT ONLY: 2 genuine NCCL ranks, 1 MiB float32 allreduce, rank r fills with r+1 so the exact sum is 3.0; exact comparison (0 elements wrong, max_abs_err 0.0), not a tolerance. The 4096-byte send/recv arm is present but deferred (NUMERICS_P2P=1); the first p2p attempt sat in the fabric poll loop, so this artifact makes no p2p claim.",
+  "shape": {
+    "ranks": 2,
+    "n_float32": 262144,
+    "bytes": 1048576,
+    "fill": "rank r fills every element with r+1",
+    "expected_exact_sum": 3.0
+  },
+  "transport": {
+    "chosen": "NCCL NET/IB",
+    "hca": "mlx5_0",
+    "socket_fallback": false,
+    "devices": "one aliased real GPU per rank via the landed 7q3w.4 vdev shims; ECE verbs return success with zeroed options"
+  },
+  "result": {
+    "allreduce": {
+      "0": {
+        "n": 262144,
+        "expected": 3.0,
+        "value": 3.0,
+        "max_abs_err": 0.0,
+        "bad": 0
+      },
+      "1": {
+        "n": 262144,
+        "expected": 3.0,
+        "value": 3.0,
+        "max_abs_err": 0.0,
+        "bad": 0
+      }
+    },
+    "counters": {
+      "0": {
+        "rank": 0,
+        "dmabuf_registrations": 0,
+        "dmabuf_attempts": 1,
+        "reg_mr_calls": 22,
+        "post_send_calls": 48,
+        "post_recv_calls": 16,
+        "completions": 34,
+        "bytes_written": 4196352,
+        "bytes_read": 0,
+        "writes": 96,
+        "reads": 0,
+        "sends": 0,
+        "recvs": 0,
+        "qp_transition_refusals": 0,
+        "rnr_drops": 0,
+        "remote_access_errors": 0,
+        "cq_full_drops": 0,
+        "ring_out": 48,
+        "ring_in": 48,
+        "ring_stall_drops": 0
+      },
+      "1": {
+        "rank": 1,
+        "dmabuf_registrations": 0,
+        "dmabuf_attempts": 1,
+        "reg_mr_calls": 22,
+        "post_send_calls": 48,
+        "post_recv_calls": 16,
+        "completions": 34,
+        "bytes_written": 4196352,
+        "bytes_read": 0,
+        "writes": 96,
+        "reads": 0,
+        "sends": 0,
+        "recvs": 0,
+        "qp_transition_refusals": 0,
+        "rnr_drops": 0,
+        "remote_access_errors": 0,
+        "cq_full_drops": 0,
+        "ring_out": 48,
+        "ring_in": 48,
+        "ring_stall_drops": 0
+      }
+    },
+    "rank_exit_codes": {
+      "0": 0,
+      "1": 0
+    },
+    "checks": {
+      "both_ranks_have_allreduce": true,
+      "expected_sum_is_3": true,
+      "value_is_exactly_3": true,
+      "zero_elements_wrong": true,
+      "max_abs_err_is_zero": true,
+      "both_ranks_exit_zero": true,
+      "both_ranks_posted_sends": true,
+      "both_ranks_posted_recvs": true,
+      "nccl_named_our_ib_device": true,
+      "no_socket_fallback": true,
+      "no_p2p_claim_in_this_arm": true
+    }
+  },
+  "error_budget": {
+    "real": "NCCL's own IB transport selected mlx5_0; its real GPU kernels computed the allreduce through the 7q3w.4 aliased device; both ranks post real WRs and move bytes on the shim rings.",
+    "modelled": "The fabric is the libibverbs shim plus MAP_SHARED rings; the bytes cross a modelled wire, not a physical NIC.",
+    "not_modelled": "No 8-node/8-GPU topology, no 8-way collective, no training step, and no p2p result in this first arm."
+  },
+  "gate": "none -- the final gate result is cited in the submission comment; no earlier gate is claimed here",
+  "evidence": {
+    "run_sh": "experiments/gpu-sim-7q3w.5/run.sh",
+    "capture_py": "experiments/gpu-sim-7q3w.5/capture.py",
+    "output_log": "experiments/gpu-sim-7q3w.5/output.log",
+    "job_json": "experiments/gpu-sim-7q3w.5/job.json"
+  }
+}
