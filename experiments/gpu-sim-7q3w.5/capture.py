@@ -33,10 +33,15 @@ REPO = HERE.parents[1]
 GPQUEUE = Path("/home/gabe/Documents/gpqueue/gpqueue.py")
 JOB_LOG_DIR = Path("/home/gabe/.local/state/gpqueue/jobs")
 
+# The shim's tracer and the app share stderr and do not serialise their writes,
+# so a trace prefix can land in front of an app line (measured:
+# 'FAKEIB[0] NUMERICS p2p rank=0 nbytes=4096 sent=1').  The optional prefix keeps
+# the parse exact about CONTENT without pretending the streams are atomic.
+PREFIX = r"^(?:FAKEIB\[\d+\] )?"
 AR_RE = re.compile(
-    r"^NUMERICS allreduce rank=(\d+) n=(\d+) expected=([\d.]+) "
+    PREFIX + r"NUMERICS allreduce rank=(\d+) n=(\d+) expected=([\d.]+) "
     r"value=([\d.]+) max_abs_err=([\d.eE+-]+) bad=(\d+)$", re.M)
-P2P_RE = re.compile(r"^NUMERICS p2p rank=(\d+) nbytes=(\d+) mismatches=(\d+)$", re.M)
+P2P_RE = re.compile(PREFIX + r"NUMERICS p2p rank=(\d+) nbytes=(\d+) (.+)$", re.M)
 WEDGE_RE = re.compile(r"poll_cq .* -> 0 \(rings out=(\d+) in=(\d+)\)")
 
 
@@ -71,9 +76,16 @@ def run_evidence(rec):
             "value": float(m.group(4)), "max_abs_err": float(m.group(5)),
             "bad": int(m.group(6)),
         }
-    p2p = {int(m.group(1)): {"nbytes": int(m.group(2)),
-                             "mismatches": int(m.group(3))}
-           for m in P2P_RE.finditer(both)}
+    p2p = {}
+    for m in P2P_RE.finditer(both):
+        tail = m.group(3)
+        entry = {"nbytes": int(m.group(2))}
+        mm = re.search(r"mismatches=(\d+)", tail)
+        if mm:
+            entry["mismatches"] = int(mm.group(1))
+        if "sent=1" in tail:
+            entry["sent"] = 1
+        p2p[int(m.group(1))] = entry
     counters = {}
     for r in (0, 1):
         cp = Path(run_dir) / f"counters-rank{r}.json"
@@ -107,9 +119,12 @@ def exact_ar(ev):
 
 
 def exact_p2p(ev, nbytes=4096):
+    # rank0 reports "sent=1", rank1 reports "mismatches=N": the claim is that the
+    # sender posted the payload AND the received bytes equal the sent bytes.
     return (set(ev["p2p"]) == {"0", "1"} and
-            all(v["nbytes"] == nbytes and v["mismatches"] == 0
-                for v in ev["p2p"].values()))
+            ev["p2p"]["0"].get("sent") == 1 and
+            ev["p2p"]["1"].get("mismatches") == 0 and
+            all(v["nbytes"] == nbytes for v in ev["p2p"].values()))
 
 
 def clean_wire(ev):
@@ -171,9 +186,19 @@ def main():
         if len(by_phase[phase]) != nrep:
             raise SystemExit(f"phase {phase}: {len(by_phase[phase])} runs, want {nrep}")
 
+    # gate.sh writes .lab/gate-logs/ into the INTEGRATION tree, not into this
+    # worktree, so a repo-relative gate path is resolved against REPO.
     gate_dir = Path(args.gate)
     if not gate_dir.is_dir():
-        raise SystemExit(f"gate dir does not exist: {gate_dir}")
+        # gate.sh writes .lab/gate-logs/ into the INTEGRATION tree (the common
+        # git dir's parent), not into this worktree.
+        common = subprocess.run(
+            ["git", "-C", str(REPO), "rev-parse", "--path-format=absolute",
+             "--git-common-dir"], capture_output=True, text=True, check=True)
+        gate_dir = Path(common.stdout.strip()).parent / args.gate
+    if not gate_dir.is_dir():
+        raise SystemExit(f"gate dir does not exist: {args.gate} (tried the "
+                         f"integration tree too)")
 
     # Copy the per-run run.sh logs and the manifest next to this script: the
     # control dir lives under .lab/tmp (gitignored, reaped), the artifact must not.

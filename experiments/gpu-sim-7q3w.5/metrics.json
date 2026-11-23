@@ -1,258 +1,520 @@
 {
   "bead": "gpu-sim-7q3w.5",
-  "captured_at_utc": "2026-11-23T00:39:44.745896+00:00",
-  "scope": "2 genuine NCCL ranks on this box's one real GPU behind the 7q3w.4 aliased-device shims, over the modelled IB wire (libibverbs shim + MAP_SHARED rings). Acceptance shape A measures BOTH: an allreduce of a 1 MiB float32 vector where rank r fills r+1 (exact sum 3.0) must be EXACT -- 0 elements wrong, max_abs_err 0.0, not a tolerance -- and a 4096-byte ncclSend/ncclRecv whose received bytes must be BYTE-IDENTICAL (mismatches=0). Phase B re-runs the p2p arm with no prior collective. Phase C is the negative control: the same p2p arm with the asynchronous inbound pump disabled must wedge, which is how the 7q3w.3 shape failed.",
+  "captured_at_utc": "2026-11-23T02:01:44.946508+00:00",
+  "scope": "2 genuine NCCL ranks on this box's one real GPU behind the 7q3w.4 aliased-device shims, over the modelled IB wire. A measured BOTH the result claims (exact 1 MiB allreduce, rank r fills r+1 => 3.0; and a 4096-byte send/recv that must be BYTE-IDENTICAL), and the control separates two different questions: C (no progress thread) shows the async pump is NECESSARY; D (FAKEIB_LAZY_PUMP=1, the pre-fix lazy start) shows that STARTING IT AT DEVICE OPEN is the fix. B is the p2p claim on its own, with no prior collective. Each phase ran 5x.",
   "shape_chosen": {
     "answer": "neither (a) host compute nor (b) kernel execution",
-    "why": "The 7q3w.4 aliasing shims present virtual B300s that alias the one real GPU and forward everything they do not override to the real driver, so KERNEL LAUNCHES ARE REAL: NCCL's allreduce and p2p kernels execute on the real GPU and the arithmetic is real float32. Only the transport between the two processes is modelled."
+    "why": "With 7q3w.4's aliasing the kernel launches are REAL, so the arithmetic is real float32 on this box's GPU; only the TRANSPORT between the two processes is modelled."
+  },
+  "config": {
+    "nrep": 5,
+    "wedge_timeout_s": 20
   },
   "phases": {
     "A": {
-      "rc": 0,
-      "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T163548",
-      "log": "A-acceptance.log",
-      "rank_rc": {
-        "0": 0,
-        "1": 0
-      },
-      "counters": {
-        "0": {
-          "rank": 0,
-          "dmabuf_registrations": 0,
-          "dmabuf_attempts": 1,
-          "reg_mr_calls": 26,
-          "post_send_calls": 49,
-          "post_recv_calls": 16,
-          "completions": 35,
-          "bytes_written": 4200512,
-          "bytes_read": 0,
-          "writes": 98,
-          "reads": 0,
-          "sends": 0,
-          "recvs": 0,
-          "qp_transition_refusals": 0,
-          "rnr_drops": 0,
-          "remote_access_errors": 0,
-          "cq_full_drops": 0,
-          "ring_out": 49,
-          "ring_in": 49,
-          "ring_stall_drops": 0
+      "n": 5,
+      "rcs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "rank_rc": [
+        {
+          "0": "0",
+          "1": "0"
         },
-        "1": {
-          "rank": 1,
-          "dmabuf_registrations": 0,
-          "dmabuf_attempts": 1,
-          "reg_mr_calls": 25,
-          "post_send_calls": 49,
-          "post_recv_calls": 17,
-          "completions": 36,
-          "bytes_written": 4200512,
-          "bytes_read": 0,
-          "writes": 98,
-          "reads": 0,
-          "sends": 0,
-          "recvs": 0,
-          "qp_transition_refusals": 0,
-          "rnr_drops": 0,
-          "remote_access_errors": 0,
-          "cq_full_drops": 0,
-          "ring_out": 49,
-          "ring_in": 49,
-          "ring_stall_drops": 0
-        }
-      },
-      "allreduce": {
-        "0": {
-          "n": 262144,
-          "expected": 3.0,
-          "value": 3.0,
-          "max_abs_err": 0.0,
-          "bad": 0
+        {
+          "0": "0",
+          "1": "0"
         },
-        "1": {
-          "n": 262144,
-          "expected": 3.0,
-          "value": 3.0,
-          "max_abs_err": 0.0,
-          "bad": 0
-        }
-      },
-      "p2p": {
-        "0": {
-          "nbytes": 4096,
-          "raw": "sent=1"
+        {
+          "0": "0",
+          "1": "0"
         },
-        "1": {
-          "nbytes": 4096,
-          "raw": "mismatches=0",
-          "mismatches": 0
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
         }
-      },
-      "nccl_named_ib_device": true,
-      "socket_fallback": false,
-      "wedge_signature": false
+      ],
+      "wall_s": [
+        4.63,
+        4.09,
+        4.01,
+        3.98,
+        3.95
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_posts_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_gets_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_p2p_line": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "wedge_last_rings": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "p2p_mismatches": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "allreduce_bad": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
     },
     "B": {
-      "rc": 0,
-      "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T163552",
-      "log": "B-p2p-only.log",
-      "rank_rc": {
-        "0": 0,
-        "1": 0
-      },
-      "counters": {
-        "0": {
-          "rank": 0,
-          "dmabuf_registrations": 0,
-          "dmabuf_attempts": 1,
-          "reg_mr_calls": 4,
-          "post_send_calls": 1,
-          "post_recv_calls": 0,
-          "completions": 1,
-          "bytes_written": 4160,
-          "bytes_read": 0,
-          "writes": 2,
-          "reads": 0,
-          "sends": 0,
-          "recvs": 0,
-          "qp_transition_refusals": 0,
-          "rnr_drops": 0,
-          "remote_access_errors": 0,
-          "cq_full_drops": 0,
-          "ring_out": 1,
-          "ring_in": 1,
-          "ring_stall_drops": 0
+      "n": 5,
+      "rcs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "rank_rc": [
+        {
+          "0": "0",
+          "1": "0"
         },
-        "1": {
-          "rank": 1,
-          "dmabuf_registrations": 0,
-          "dmabuf_attempts": 1,
-          "reg_mr_calls": 3,
-          "post_send_calls": 1,
-          "post_recv_calls": 1,
-          "completions": 2,
-          "bytes_written": 4160,
-          "bytes_read": 0,
-          "writes": 2,
-          "reads": 0,
-          "sends": 0,
-          "recvs": 0,
-          "qp_transition_refusals": 0,
-          "rnr_drops": 0,
-          "remote_access_errors": 0,
-          "cq_full_drops": 0,
-          "ring_out": 1,
-          "ring_in": 1,
-          "ring_stall_drops": 0
-        }
-      },
-      "allreduce": {},
-      "p2p": {
-        "0": {
-          "nbytes": 4096,
-          "raw": "sent=1"
+        {
+          "0": "0",
+          "1": "0"
         },
-        "1": {
-          "nbytes": 4096,
-          "raw": "mismatches=0",
-          "mismatches": 0
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
+        },
+        {
+          "0": "0",
+          "1": "0"
         }
-      },
-      "nccl_named_ib_device": true,
-      "socket_fallback": false,
-      "wedge_signature": false
+      ],
+      "wall_s": [
+        4.02,
+        3.89,
+        4.11,
+        3.85,
+        3.51
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_posts_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_gets_payload": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank1_p2p_line": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "wedge_last_rings": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "p2p_mismatches": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "allreduce_bad": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
     },
     "C": {
-      "rc": 1,
-      "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T163555",
-      "log": "C-no-pump.log",
-      "rank_rc": {
-        "0": 124,
-        "1": 124
-      },
-      "counters": {
-        "0": null,
-        "1": null
-      },
-      "allreduce": {},
-      "p2p": {
-        "0": {
-          "nbytes": 4096,
-          "raw": "sent=1"
+      "n": 5,
+      "rcs": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "rank_rc": [
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
         }
-      },
-      "nccl_named_ib_device": true,
-      "socket_fallback": false,
-      "wedge_signature": true
+      ],
+      "wall_s": [
+        22.35,
+        22.6,
+        22.94,
+        22.67,
+        22.51
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank0_posts_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_gets_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_p2p_line": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "wedge_last_rings": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "p2p_mismatches": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allreduce_bad": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "D": {
+      "n": 5,
+      "rcs": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "rank_rc": [
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        },
+        {
+          "0": "124",
+          "1": "124"
+        }
+      ],
+      "wall_s": [
+        22.33,
+        22.61,
+        22.6,
+        22.58,
+        22.62
+      ],
+      "rank1_posts_conn": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "rank0_sees_inbound": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank0_posts_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_gets_payload": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "rank1_p2p_line": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "wedge_last_rings": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "p2p_mismatches": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allreduce_bad": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
     }
   },
+  "margin": {
+    "phase_B_wall_s": {
+      "min": 3.51,
+      "median": 3.89,
+      "max": 4.11,
+      "values": [
+        4.02,
+        3.89,
+        4.11,
+        3.85,
+        3.51
+      ]
+    },
+    "phase_C_D_wall_s": {
+      "min": 22.33,
+      "median": 22.6,
+      "max": 22.94,
+      "values": [
+        22.35,
+        22.6,
+        22.94,
+        22.67,
+        22.51,
+        22.33,
+        22.61,
+        22.6,
+        22.58,
+        22.62
+      ]
+    },
+    "ratio_min_wedge_wall_over_max_B_wall": 5.43,
+    "meaning": "B completes in well under a quarter of the rank timeout, while every C and D run was still wedged when the timeout killed it; the wedge is a deadlock, not a slow path."
+  },
+  "wedge_signature": {
+    "where": "rank1 (receiver) log of every C and D run",
+    "shape": "rank1 (receiver) posts its 64-byte connection info -- ring_put(1,0) kind=2 nbytes=64, so its poll line reads out=1 in=0 -- and rank0 (sender) has NO deliver_inbound line at all: it never saw the record, never posted the 4096-byte data WR, and rank1 never received a payload. The passing runs (B) show the missing pair: rank0 posts len=4096 and rank1 delivers nbytes=4096."
+  },
   "result": {
-    "A_allreduce": {
-      "0": {
-        "n": 262144,
-        "expected": 3.0,
-        "value": 3.0,
-        "max_abs_err": 0.0,
-        "bad": 0
-      },
-      "1": {
-        "n": 262144,
-        "expected": 3.0,
-        "value": 3.0,
-        "max_abs_err": 0.0,
-        "bad": 0
-      }
-    },
-    "A_p2p": {
-      "0": {
-        "nbytes": 4096,
-        "raw": "sent=1"
-      },
-      "1": {
-        "nbytes": 4096,
-        "raw": "mismatches=0",
-        "mismatches": 0
-      }
-    },
-    "C_control_rank_rc": {
-      "0": 124,
-      "1": 124
-    },
     "checks": {
-      "A_ranks_exit_zero": true,
-      "A_allreduce_is_exact_on_both_ranks": true,
-      "A_p2p_payload_is_byte_identical": true,
-      "A_no_rnr_drop_or_remote_access_error": true,
-      "A_nccl_named_our_ib_device": true,
-      "A_no_socket_fallback": true,
-      "B_p2p_alone_is_byte_identical": true,
-      "B_both_ranks_exit_zero": true,
-      "B_has_no_allreduce_claim": true,
-      "B_no_rnr_drop_or_remote_access_error": true,
-      "C_without_pump_fails": true,
-      "C_rank1_hit_the_rank_timeout": true,
-      "C_rank1_received_nothing": true,
-      "C_rank1_wedged_in_poll_loop": true
+      "A_all_runs_exit_zero": true,
+      "A_allreduce_exact_every_run": true,
+      "A_p2p_byte_identical_every_run": true,
+      "A_wire_clean_every_run": true,
+      "B_all_runs_exit_zero": true,
+      "B_p2p_byte_identical_every_run": true,
+      "B_wire_clean_every_run": true,
+      "B_no_allreduce_claim_any_run": true,
+      "C_wedges_every_run": true,
+      "D_wedges_every_run": true,
+      "B_sender_posted_the_payload_every_run": true,
+      "B_receiver_delivered_the_payload_every_run": true,
+      "B_wall_under_quarter_of_wedge_timeout": true,
+      "C_D_wall_at_least_wedge_timeout": true,
+      "much_margin_between_B_and_C_D": true,
+      "nccl_named_our_ib_device_every_run": true,
+      "no_socket_fallback_any_run": true
     }
   },
   "error_budget": {
-    "measured_real": "NCCL 2.32.6 chose our mlx5_0 (NET/IB, no Socket fallback); its own kernels ran on the real GPU; both ranks posted real verbs WRs and the payload bytes crossed the modelled wire (counters: post_send_calls > 0, bytes_written > 0, ring records in/out > 0).",
-    "modelled": "The wire: libibverbs is a shim and the 'fabric' is a MAP_SHARED byte ring per rank pair, with modelled bandwidth/latency applied to completion readiness. The GPU identity is one real device seen through N aliases. Delivery is asynchronous (pump thread); the pump interval (default 50 us) is added real latency, not modelled wire time.",
-    "not_modelled": "No physical NIC, no DMA/PCIe transfer, no GDR/dmabuf registration (7q3w.6), no second GPU, and therefore no B300 compute time: a collective's COMPUTE time is this 5090's, while its TRANSPORT time is the D1 model. No 8-way collective and no training step here; no performance claim (that is gpu-sim-ae2v).",
-    "model_defect_found_and_fixed": "Inbound records used to be delivered only inside poll_cq, so a sender spinning on the peer-written host FIFO could never be progressed (rank1 wedged with rings out=49 in=48). The pump thread models the NIC writing memory on its own; phase C is that control."
+    "measured_real": "NCCL 2.32.6 chose our mlx5_0 (NET/IB, no Socket fallback in any run); its own kernels ran on the real GPU; rank0's trace shows the 4096-byte payload posted to the wire; counters show post_send_calls/bytes_written/ring records > 0 and no rnr_drops or remote_access_errors in every passing run.",
+    "modelled": "The wire: libibverbs is a shim and the fabric is a MAP_SHARED byte ring per rank pair with modelled bandwidth/latency on completion readiness. Inbound progress is asynchronous (pump thread, 50 us default), which adds real delivery latency; that latency is the pump, not the modelled wire time.",
+    "not_modelled": "No physical NIC or DMA, no GDR/dmabuf registration (7q3w.6, NOT EXERCISED by design), no second GPU and therefore no B300 compute time (a collective's compute time is this 5090's). No 8-way collective or training step here, and no performance claim (ae2v).",
+    "model_defect_found_and_fixed": "Inbound records used to be delivered only inside poll_cq, so a sender spinning on the peer-written host FIFO could never be progressed; then the progress thread itself was started lazily from poll_cq, which a p2p-alone sender never calls. Both are measured: C and D wedge, B does not."
   },
-  "gate": "none -- the final gate result is cited in the submission comment; no earlier gate is claimed here",
+  "gate": "scripts/gate.sh --fast at the submitted tip; gate logs .lab/gate-logs/8507c720-20261123T015541Z. Only what that directory shows is claimed there.",
   "evidence": {
     "run_sh": "experiments/gpu-sim-7q3w.5/run.sh",
     "control_sh": "experiments/gpu-sim-7q3w.5/control_p2p.sh",
     "capture_py": "experiments/gpu-sim-7q3w.5/capture.py",
     "output_log": "experiments/gpu-sim-7q3w.5/output.log",
-    "phase_logs": [
-      "A-acceptance.log",
-      "B-p2p-only.log",
-      "C-no-pump.log"
-    ],
     "manifest": "experiments/gpu-sim-7q3w.5/manifest.json",
+    "per_run_logs": [
+      "A-1.log",
+      "A-2.log",
+      "A-3.log",
+      "A-4.log",
+      "A-5.log",
+      "B-1.log",
+      "B-2.log",
+      "B-3.log",
+      "B-4.log",
+      "B-5.log",
+      "C-1.log",
+      "C-2.log",
+      "C-3.log",
+      "C-4.log",
+      "C-5.log",
+      "D-1.log",
+      "D-2.log",
+      "D-3.log",
+      "D-4.log",
+      "D-5.log"
+    ],
     "job_json": "experiments/gpu-sim-7q3w.5/job.json"
   }
 }
