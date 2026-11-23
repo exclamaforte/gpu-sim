@@ -61,6 +61,12 @@ def non_assertion_failure(run):
     m = re.search(r"^E\s+(ImportError|ModuleNotFoundError)\b", text, re.M)
     if m:
         return f"an {m.group(1)} (import failure, not a test outcome)"
+    # gpu-sim-njh1: a test-body EXCEPTION is not an assertion (see the row).
+    m2 = re.search(r"^(?:FAILED \S+ - |E\s+)(NameError|AttributeError|TypeError|"
+                   r"KeyError|IndexError|UnboundLocalError|ZeroDivisionError|"
+                   r"StopIteration|RuntimeError)\b", text, re.M)
+    if m2:
+        return f"a {m2.group(1)} raised inside the bound test (an exception, not an assertion)"
     if run.returncode == 2:
         return "a pytest usage/interrupt error (rc=2)"
     if run.returncode == 4:

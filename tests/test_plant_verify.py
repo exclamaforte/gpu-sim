@@ -65,3 +65,20 @@ def test_mutation_diff_reports_the_replaced_span(tmp_path):
     p.write_text("def f():\n    raise SystemExit(1)\n        return 2\n")
     diff = plant_verify.mutation_diff(before, str(p))
     assert "+++ after" in diff and "return 2" in diff, diff
+
+
+def test_body_exception_is_not_a_plant(tmp_path):
+    """gpu-sim-njh1 (vuoq residual): a NameError raised INSIDE the bound test is
+    not an assertion, so it must not certify coverage.  The mutation ran, the
+    run was nonzero -- and said nothing about the rule."""
+    import plant_verify
+    import subprocess
+
+    t = tmp_path / "test_njh1_fixture.py"
+    t.write_text("def test_ok():\n    raise NameError('mutation removed the name')\n")
+    run = subprocess.run([sys.executable, "-m", "pytest", "-q", str(t)],
+                         capture_output=True, text=True, cwd=str(REPO))
+    assert run.returncode == 1
+    assert plant_verify.collection_failure(run) == ""
+    why = plant_verify.non_assertion_failure(run)
+    assert "NameError" in why and "not an assertion" in why, why
