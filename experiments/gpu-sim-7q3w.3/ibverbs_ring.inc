@@ -285,7 +285,41 @@ static void rings_init(void) {
         ring_open(r, me);
     }
 }
+/* gpu-sim-7q3w.5: inbound progress must not require the RECEIVER to call
+ * poll_cq first.  Measured, not assumed: NCCL's IB p2p send setup spins on a
+ * host-memory FIFO that the peer's 64-byte RDMA WRITE must fill; the old model
+ * only copied that write into the receiver's memory inside poll_cq, which the
+ * sender never called because it was spinning on the FIFO.  Both ranks waited
+ * on each other (rank1 sat in poll_cq with rings out=49 in=48 forever).  On real
+ * hardware the NIC writes the buffer asynchronously, so the model gets a pump
+ * thread too.  All draining is serialised by g_pump_lock, which keeps inbound
+ * delivery single-threaded (the RQ consume order stays deterministic). */
+static pthread_mutex_t g_pump_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_once_t g_pump_once = PTHREAD_ONCE_INIT;
+static void pump_rings(void);
+
+static void *pump_thread_fn(void *arg) {
+    (void)arg;
+    const char *e = getenv("FAKEIB_PUMP_US");
+    long us = (e && atol(e) > 0) ? atol(e) : 50;   /* added delivery latency bound */
+    struct timespec ts = {0, us * 1000};
+    for (;;) {
+        pump_rings();
+        nanosleep(&ts, NULL);
+    }
+    return NULL;
+}
+
+static void pump_thread_start(void) {
+    if (getenv("FAKEIB_NO_PUMP_THREAD")) return;   /* A/B: off restores 7q3w.3 */
+    pthread_t t;
+    if (pthread_create(&t, NULL, pump_thread_fn, NULL) == 0) pthread_detach(t);
+}
+
 static void pump_rings(void) {
+    pthread_once(&g_rings_once, rings_init);
+    pthread_once(&g_pump_once, pump_thread_start);
+    pthread_mutex_lock(&g_pump_lock);
     pthread_once(&g_rings_once, rings_init);
     if (getenv("FAKEIB_TRACE")) {
         static int n_trace;
@@ -329,6 +363,7 @@ static void pump_rings(void) {
             }
         }
     }
+    pthread_mutex_unlock(&g_pump_lock);
 }
 
 /* One WR against a peer in another process. */

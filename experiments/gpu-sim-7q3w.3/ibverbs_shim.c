@@ -487,6 +487,11 @@ struct fake_qp {
     int peer_rank;
     struct posted_recv *rq;
     uint64_t rq_cap, rq_head, rq_tail;   /* posted, not yet consumed */
+    /* gpu-sim-7q3w.5: inbound progress is asynchronous (a pump thread models
+     * the NIC writing memory on its own), so a WRITE_WITH_IMM can now land in
+     * deliver_inbound() while another thread is in ibv_post_recv() reallocating
+     * or appending to this array.  One lock per RQ makes that safe. */
+    pthread_mutex_t rq_lock;
 };
 #define MAX_QPS 1024
 static struct fake_qp *g_qps[MAX_QPS];
@@ -540,6 +545,7 @@ struct ibv_qp *ibv_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr) {
     q->recv_cq = (struct fake_cq *)attr->recv_cq;
     q->sq_sig_all = attr->sq_sig_all;
     q->peer_rank = -1;
+    pthread_mutex_init(&q->rq_lock, NULL);
     /* Never advertise more than asked: NCCL sizes its WR arrays from these. */
     q->cap.max_send_wr = attr->cap.max_send_wr ? attr->cap.max_send_wr : 128;
     q->cap.max_recv_wr = attr->cap.max_recv_wr ? attr->cap.max_recv_wr : 128;
@@ -553,9 +559,13 @@ struct ibv_qp *ibv_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr) {
 int ibv_destroy_qp(struct ibv_qp *qp) {
     struct fake_qp *q = (struct fake_qp *)qp;
     if (!q) return 0;
+    /* Unregister first so a pending inbound record fails qp_by_num() instead of
+     * landing in a dead QP.  The allocation is deliberately NOT freed: with the
+     * gpu-sim-7q3w.5 pump thread, a record can be being delivered concurrently,
+     * and a tombstoned QP (still readable) is cheaper than a use-after-free.
+     * Nothing in these arms creates enough QPs for the retained bytes to matter. */
     qp_unregister(q);
-    free(q->rq);
-    free(q);
+    q->rq_head = q->rq_tail;            /* drop posted recvs */
     return 0;
 }
 
@@ -684,8 +694,12 @@ static int deliver_inbound(uint32_t dest_qpn, uint32_t kind, uint64_t wr_id,
         __atomic_add_fetch(&fakeib_bytes_written, len, __ATOMIC_RELAXED);
         __atomic_add_fetch(&fakeib_writes, 1, __ATOMIC_RELAXED);
         if (kind == IBV_WR_RDMA_WRITE) return rc;   /* no receiver completion */
-        /* *_WITH_IMM consumes a posted recv WR on the receiver. */
+        /* *_WITH_IMM consumes a posted recv WR on the receiver.  The RQ is
+         * shared with ibv_post_recv() once inbound progress is asynchronous
+         * (gpu-sim-7q3w.5 pump thread), so hold rq_lock across consume+push. */
+        pthread_mutex_lock(&q->rq_lock);
         if (q->rq_head == q->rq_tail) {
+            pthread_mutex_unlock(&q->rq_lock);
             __atomic_add_fetch(&fakeib_rnr_drops, 1, __ATOMIC_RELAXED);
             return 1;
         }
@@ -696,10 +710,13 @@ static int deliver_inbound(uint32_t dest_qpn, uint32_t kind, uint64_t wr_id,
         wc.imm_data = imm;
         wc.wc_flags = IBV_WC_WITH_IMM;
         cq_push(q->recv_cq, &wc, ready_ns);
+        pthread_mutex_unlock(&q->rq_lock);
         return rc;
     }
     if (kind == IBV_WR_SEND) {
+        pthread_mutex_lock(&q->rq_lock);
         if (q->rq_head == q->rq_tail) {
+            pthread_mutex_unlock(&q->rq_lock);
             __atomic_add_fetch(&fakeib_rnr_drops, 1, __ATOMIC_RELAXED);
             return 1;
         }
@@ -711,6 +728,7 @@ static int deliver_inbound(uint32_t dest_qpn, uint32_t kind, uint64_t wr_id,
         wc.byte_len = (uint32_t)got;
         wc.src_qp = 0;
         cq_push(q->recv_cq, &wc, ready_ns);
+        pthread_mutex_unlock(&q->rq_lock);
         __atomic_add_fetch(&fakeib_recvs, 1, __ATOMIC_RELAXED);
         return 0;
     }
@@ -815,11 +833,16 @@ static int shim_ops_post_recv(struct ibv_qp *qp, struct ibv_recv_wr *wr,
                               struct ibv_recv_wr **bad_wr) {
     struct fake_qp *q = (struct fake_qp *)qp;
     if (!q) { if (bad_wr) *bad_wr = wr; return EINVAL; }
+    pthread_mutex_lock(&q->rq_lock);   /* see deliver_inbound: async inbound */
     for (struct ibv_recv_wr *w = wr; w; w = w->next) {
         if (q->rq_tail - q->rq_head >= q->rq_cap) {
             uint64_t ncap = q->rq_cap ? q->rq_cap * 2 : 64;
             struct posted_recv *nr = realloc(q->rq, ncap * sizeof *nr);
-            if (!nr) { if (bad_wr) *bad_wr = w; return ENOMEM; }
+            if (!nr) {
+                pthread_mutex_unlock(&q->rq_lock);
+                if (bad_wr) *bad_wr = w;
+                return ENOMEM;
+            }
             q->rq = nr;
             q->rq_cap = ncap;
         }
@@ -832,6 +855,7 @@ static int shim_ops_post_recv(struct ibv_qp *qp, struct ibv_recv_wr *wr,
         q->rq_tail++;
         __atomic_add_fetch(&fakeib_post_recv_calls, 1, __ATOMIC_RELAXED);
     }
+    pthread_mutex_unlock(&q->rq_lock);
     return 0;
 }
 

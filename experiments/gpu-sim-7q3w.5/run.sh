@@ -106,6 +106,14 @@ export FAKEIB_RING_MB=64
 export FAKEIB_NRANKS=2
 export FAKEIB_BW_GBPS=400
 export FAKEIB_LATENCY_US=1.2
+# --- gpu-sim-7q3w.5 p2p arm -------------------------------------------------
+# ARM_P2P=1 adds a 2-rank isend/irecv whose payload is asserted BYTE-IDENTICAL
+# (mismatches=0), not a counter check.  ARM_SKIP_AR=1 drops the allreduce so the
+# p2p path can be measured alone.
+P2P=${ARM_P2P:-0}
+P2P_BYTES=${P2P_BYTES:-4096}
+SKIP_AR=${ARM_SKIP_AR:-0}
+RANK_TIMEOUT=${RANK_TIMEOUT:-180}
 mkdir -p "$NCCL_ARM_DIR" "$FAKEIB_RING_DIR"
 
 run_rank() {
@@ -114,9 +122,11 @@ run_rank() {
     ARM_CUDA_DEV=0 VDEV_NODE=$r VDEV_REAL_CUDA=/usr/lib/libcuda.so.1 \
     FAKEIB_RANK=$r FAKEIB_SYSFS="$RUN/sysfs/rank$r" \
     FAKEIB_COUNTERS_FILE="$RUN/counters-rank$r.json" \
+    NUMERICS_P2P="$P2P" NUMERICS_P2P_BYTES="$P2P_BYTES" \
+    NUMERICS_SKIP_ALLREDUCE="$SKIP_AR" \
     LD_LIBRARY_PATH="$V:$RUN:$LIBS:$CUDA/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     LD_PRELOAD="$RUN/sysfs_spoof.so:$V/libcudart-vdev.so.1" \
-    timeout 180 unshare -u -r -- sh -c "hostname nccl-rank$r; exec '$RUN/nccl_numerics' $r 2 $N" \
+    timeout "$RANK_TIMEOUT" unshare -u -r -- sh -c "hostname nccl-rank$r; exec '$RUN/nccl_numerics' $r 2 $N" \
         >"$RUN/rank$r.log" 2>&1
 }
 
@@ -143,8 +153,10 @@ chk() { if eval "$1"; then echo "ASSERT ok: $2"; else echo "ASSERT FAIL: $2"; fa
 
 for r in 0 1; do
     L="$RUN/rank$r.log"
-    chk "grep -q 'NUMERICS allreduce .* bad=0$' '$L'" "rank$r: allreduce elements wrong = 0 (exact)"
-    chk "grep -q 'NUMERICS allreduce .* max_abs_err=0.000e+00' '$L'" "rank$r: max_abs_err = 0.0 (exact)"
+    if [[ "$SKIP_AR" != "1" ]]; then
+        chk "grep -q 'NUMERICS allreduce .* bad=0$' '$L'" "rank$r: allreduce elements wrong = 0 (exact)"
+        chk "grep -q 'NUMERICS allreduce .* max_abs_err=0.000e+00' '$L'" "rank$r: max_abs_err = 0.0 (exact)"
+    fi
     chk "grep -q 'NUMERICS ok rank=$r' '$L'" "rank$r: process exit line"
     chk "grep -q 'NET/IB : Using \\[0\\]mlx5_0' '$L'" "rank$r: NCCL named our mlx5_0 as the IB device"
     chk "grep -q 'via NET/IB' '$L'" "rank$r: channel went via NET/IB, not P2P/SHM"
@@ -154,6 +166,19 @@ for r in 0 1; do
     chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"bytes_written\"]>0 and d[\"post_send_calls\"]>0 else 1)'" \
         "rank$r: NCCL posted WRs and moved bytes on our QPs"
 done
+
+if [[ "$P2P" == "1" ]]; then
+    # The p2p claim is the RESULT: exact equality of the received bytes.
+    chk "grep -q 'NUMERICS p2p rank=0 nbytes=$P2P_BYTES sent=1' '$RUN/rank0.log'" \
+        "rank0: p2p $P2P_BYTES-byte payload handed to the wire"
+    chk "grep -q 'NUMERICS p2p rank=1 nbytes=$P2P_BYTES mismatches=0$' '$RUN/rank1.log'" \
+        "rank1: 0 of $P2P_BYTES received bytes differ from sent bytes (exact)"
+    for r in 0 1; do
+        C="$RUN/counters-rank$r.json"
+        chk "python3 -c 'import json,sys; d=json.load(open(\"$C\")); sys.exit(0 if d[\"rnr_drops\"]==0 and d[\"remote_access_errors\"]==0 else 1)'" \
+            "rank$r: no dropped recv WR and no remote access error on the wire"
+    done
+fi
 chk "grep -qx 0 '$RUN/rank0.rc'" "rank0 exited 0"
 chk "grep -qx 0 '$RUN/rank1.rc'" "rank1 exited 0"
 
@@ -162,6 +187,12 @@ if (( failures )); then
     echo "NUMERICS RUN FAILED: $failures assertion(s); run dir kept at $RUN"
     exit 1
 fi
-echo "NUMERICS RUN OK: exact 2-rank allreduce through genuine NCCL on the modelled IB wire (p2p arm deferred)"
+if [[ "$P2P" == "1" && "$SKIP_AR" != "1" ]]; then
+    echo "NUMERICS RUN OK: exact 2-rank allreduce AND byte-identical $P2P_BYTES-byte send/recv through genuine NCCL on the modelled IB wire"
+elif [[ "$P2P" == "1" ]]; then
+    echo "NUMERICS RUN OK: byte-identical $P2P_BYTES-byte send/recv through genuine NCCL on the modelled IB wire (allreduce arm skipped)"
+else
+    echo "NUMERICS RUN OK: exact 2-rank allreduce through genuine NCCL on the modelled IB wire"
+fi
 echo "RUN_DIR=$RUN"
 rm -rf "$RUN/rings"

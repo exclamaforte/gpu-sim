@@ -139,7 +139,11 @@ int main(int argc, char **argv) {
     if (failures) return 1;
 
     /* Warmup, then the measured allreduce.  Both are real NCCL collectives;
-     * the warmup pays QP/MR setup before the value we assert. */
+     * the warmup pays QP/MR setup before the value we assert.  NUMERICS_SKIP_ALLREDUCE=1
+     * isolates the p2p arm (the allreduce is the primary claim, not a precondition). */
+    const int skip_ar = getenv("NUMERICS_SKIP_ALLREDUCE") &&
+                       !strcmp(getenv("NUMERICS_SKIP_ALLREDUCE"), "1");
+    if (!skip_ar) {
     NCCLCHECK(ncclAllReduce(d_in, d_out, n, ncclFloat, ncclSum, comm, NULL));
     CUDACHECK(cudaDeviceSynchronize());
     CUDACHECK(cudaMemset(d_out, 0, nbytes));
@@ -164,13 +168,18 @@ int main(int argc, char **argv) {
           rank, bad, n, expected, max_abs_err);
     CHECK(max_abs_err == 0.0, "rank %d: max_abs_err %.3e is not exact zero",
           rank, max_abs_err);
+    }
 
-    /* Point-to-point is a separate arm (NUMERICS_P2P=1).  It is not the
-     * first experiment's claim; when this run started, the receive side sat
-     * in the fabric poll loop after the 4096-byte send, so it is kept off the
-     * default path until the p2p semantics are measured on their own. */
+    /* Point-to-point arm (NUMERICS_P2P=1).  The payload is asserted
+     * BYTE-IDENTICAL on the receiver: mismatches=0, not a counter check.  The
+     * size is a parameter because NCCL's path depends on it (the 4096-byte send
+     * used the proxy "Shared" channel; a bigger one uses the device path). */
     if (getenv("NUMERICS_P2P") && !strcmp(getenv("NUMERICS_P2P"), "1")) {
-        const size_t p2p_n = 4096;
+        size_t p2p_n = 4096;
+        if (getenv("NUMERICS_P2P_BYTES"))
+            p2p_n = (size_t)strtoull(getenv("NUMERICS_P2P_BYTES"), NULL, 10);
+        if (p2p_n == 0) { fprintf(stderr, "NUMERICS FAIL p2p_n=0\n"); return 2; }
+        printf("NUMERICS p2p-arm rank=%d nbytes=%zu\n", rank, p2p_n);
         unsigned char *d_send = NULL, *d_recv = NULL;
         unsigned char *h_send = malloc(p2p_n), *h_recv = malloc(p2p_n);
         if (!h_send || !h_recv) { perror("malloc"); return 2; }
