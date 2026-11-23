@@ -108,6 +108,12 @@ class TestSurvivesCase:
             "    import pathlib; pathlib.Path(" + repr(str(marker)) + ").parent.mkdir(parents=True, exist_ok=True); pathlib.Path(" + repr(str(marker)) + ").write_text('ran')\n"
             "    assert True\n"
         )
+        # gpu-sim-vuoq: the two guards below are what this test exists to check,
+        # so assert they were actually EMITTED.  Without this, a mutation that
+        # drops them from the generated probe is invisible (the old registered
+        # mutation "bit" only by breaking the module's syntax).
+        assert "assert pytestconfig._dirty_at_start is not None" in probe_body, (
+            "the generated probe lost its conftest-ran guard")
         r = _run_probe(sandbox, probe_body)
         out = r.stdout + r.stderr
         # the probe must actually have RUN: otherwise the assertions below are
