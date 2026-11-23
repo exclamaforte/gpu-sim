@@ -486,7 +486,7 @@
     "not_modelled": "No physical NIC or DMA, no GDR/dmabuf registration (7q3w.6, NOT EXERCISED by design), no second GPU and therefore no B300 compute time (a collective's compute time is this 5090's). No 8-way collective or training step here, and no performance claim (ae2v).",
     "model_defect_found_and_fixed": "Inbound records used to be delivered only inside poll_cq, so a sender spinning on the peer-written host FIFO could never be progressed; then the progress thread itself was started lazily from poll_cq, which a p2p-alone sender never calls. Both are measured: C and D wedge, B does not."
   },
-  "gate": "scripts/gate.sh --fast at the submitted tip; gate logs .lab/gate-logs/8507c720-20261123T015541Z. Only what that directory shows is claimed there.",
+  "gate": "scripts/gate.sh --fast GATE OK at code tip 8507c720: 15 hard stages passed, 0 failed, 1 skipped (the suite, which --fast skips). Gate logs .lab/gate-logs/8507c720-20261123T015541Z. The only commit after it changes this directory (metrics/artifact only, no code, no run.sh), which is why the cited tip and this file's capture can differ. An earlier gate at 03202cc4 was 13/15: the red that was mine was append-only ledger row v5l3_pin_coverage (missing numeric-thread pins in run.sh, fixed in 8507c720's history); the other, libfakegpu freshness, did not reproduce here and is red at main 4d166230 in a clean worktree, so it is tree-state, not this diff.",
   "evidence": {
     "run_sh": "experiments/gpu-sim-7q3w.5/run.sh",
     "control_sh": "experiments/gpu-sim-7q3w.5/control_p2p.sh",
