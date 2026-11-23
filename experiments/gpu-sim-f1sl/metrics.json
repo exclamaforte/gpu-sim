@@ -1,0 +1,28 @@
+{
+  "bead": "gpu-sim-f1sl",
+  "captured_at_utc": "2026-11-22T23:37:28.329766+00:00",
+  "scope": "CPU-only test fix: two scratch-worktree fixtures now fail loudly with the git error instead of pytest.skip; both files also prove the failure path with a monkeypatched worktree-add failure.",
+  "gate": "none -- CPU-only test fix; the final gate result is recorded in the submission comment",
+  "result": {
+    "exit_code": 0,
+    "tests_passed": 8,
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "worktree_skip_sites_remaining": 0,
+    "skip_allowlist_entries_remaining": 0,
+    "checks": {
+      "replay_exit_zero": true,
+      "eight_passed": true,
+      "zero_skipped": true,
+      "zero_failed": true,
+      "no_skip_sites_in_source": true,
+      "no_skip_allowlist_entry": true
+    }
+  },
+  "evidence": {
+    "run_sh": "experiments/gpu-sim-f1sl/run.sh",
+    "capture_py": "experiments/gpu-sim-f1sl/capture.py",
+    "output_log": "experiments/gpu-sim-f1sl/output.log",
+    "job_json": "experiments/gpu-sim-f1sl/job.json"
+  }
+}
