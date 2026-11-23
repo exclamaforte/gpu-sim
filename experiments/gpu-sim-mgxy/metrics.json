@@ -1,0 +1,62 @@
+{
+  "bead": "gpu-sim-mgxy",
+  "captured_at_utc": "2026-11-23T03:13:39.178769+00:00",
+  "tip": "79284429ba0ba2152ac156c684cb6cc065152c4f",
+  "scope": "The NULL cell, re-measured at this tip on the real RTX 5090 through the GPU queue. The SAME empty binary is run twice and treated as (scale, empty): a null cell cannot be faster than itself, so any negative kernel_us there is the estimator's own noise. Reported per estimator over 20 repeats: how many readings are negative. No admission-threshold change and no kernel_us clamping is claimed.",
+  "substituted_input": {
+    "declared": "The provenance log used prebuilt 8zqr binaries including empty_16_1_1_64_1_1.out (grid 16x64). That build directory is not in the tree; building the divergent_branch family regenerates the baseline as grid 4x64, which is what this arm uses.",
+    "empty_binary": "experiments/gpu-sim-8zqr/build/bin/empty_4_1_1_64_1_1.out",
+    "scale_binary": "experiments/gpu-sim-8zqr/build/bin/k_divergent_branch_0000.out",
+    "consequence": "The RATE of negative null readings is baseline- and run-dependent: the prebuilt 16x64 pair gave 10/20 in the provenance log, this arm measured 3/20 in one run at the old tip and 7/20 at this tip. The SIGN defect is present in every run; the exact count is not reproducible and is not asserted."
+  },
+  "result": {
+    "n_repeats": 20,
+    "null_median": {
+      "median_us": 0.232,
+      "min_us": -0.88,
+      "max_us": 2.416,
+      "negative": 7,
+      "n": 20
+    },
+    "null_warm_min": {
+      "median_us": 0.608,
+      "min_us": -0.064,
+      "max_us": 3.872,
+      "negative": 1,
+      "n": 20
+    },
+    "real_median": {
+      "median_us": 0.536,
+      "min_us": -0.48,
+      "max_us": 2.672,
+      "negative": 4,
+      "n": 20
+    },
+    "real_warm_min": {
+      "median_us": 1.2,
+      "min_us": 0.48,
+      "max_us": 2.464,
+      "negative": 0,
+      "n": 20
+    },
+    "wall_s": 9.2
+  },
+  "reading": {
+    "finding": "The shipped median estimator returns a NEGATIVE kernel_us for a cell that is the same binary as its own floor, so a negative reading is the estimator's noise and carries no information about the kernel. The warm-min floor removes nearly all of them; the real tiny kernel stays non-negative.",
+    "not_claimed": "No claim that any specific row's kernel_us is correct, no change to the admission threshold, and the negative is never clamped to 0 (7m60's flagging stays the safety net)."
+  },
+  "evidence": {
+    "run_sh": "experiments/gpu-sim-mgxy/run.sh",
+    "capture_py": "experiments/gpu-sim-mgxy/capture.py",
+    "instrument_py": "experiments/gpu-sim-mgxy/instrument_null.py",
+    "output_log": "experiments/gpu-sim-mgxy/output.log",
+    "job_json": "experiments/gpu-sim-mgxy/job.json",
+    "arm_sources_sha256": {
+      "run.sh": "4f811998c4289c76cc659139da071f40715d9b873ba6615ce824a6ef0bce3bba",
+      "capture.py": "651acea2709f9b40b5270dc0852f123ef5627ba829234f0088819f32cb85ee72",
+      "instrument_null.py": "5cb8167e8368f58cdd3af26414a05e8d60af4f26d09008d5cfed7940ed1fa7c7"
+    },
+    "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-mgxy/.lab/tmp/mgxy-20261122T191253"
+  },
+  "gate": "cited in the submission comment; no gate is claimed here"
+}
