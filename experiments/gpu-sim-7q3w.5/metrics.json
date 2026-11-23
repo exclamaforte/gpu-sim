@@ -1,22 +1,193 @@
 {
   "bead": "gpu-sim-7q3w.5",
-  "captured_at_utc": "2026-11-23T00:08:42.327827+00:00",
-  "scope": "FIRST EXPERIMENT ONLY: 2 genuine NCCL ranks, 1 MiB float32 allreduce, rank r fills with r+1 so the exact sum is 3.0; exact comparison (0 elements wrong, max_abs_err 0.0), not a tolerance. The 4096-byte send/recv arm is present but deferred (NUMERICS_P2P=1); the first p2p attempt sat in the fabric poll loop, so this artifact makes no p2p claim.",
-  "shape": {
-    "ranks": 2,
-    "n_float32": 262144,
-    "bytes": 1048576,
-    "fill": "rank r fills every element with r+1",
-    "expected_exact_sum": 3.0
+  "captured_at_utc": "2026-11-23T00:39:44.745896+00:00",
+  "scope": "2 genuine NCCL ranks on this box's one real GPU behind the 7q3w.4 aliased-device shims, over the modelled IB wire (libibverbs shim + MAP_SHARED rings). Acceptance shape A measures BOTH: an allreduce of a 1 MiB float32 vector where rank r fills r+1 (exact sum 3.0) must be EXACT -- 0 elements wrong, max_abs_err 0.0, not a tolerance -- and a 4096-byte ncclSend/ncclRecv whose received bytes must be BYTE-IDENTICAL (mismatches=0). Phase B re-runs the p2p arm with no prior collective. Phase C is the negative control: the same p2p arm with the asynchronous inbound pump disabled must wedge, which is how the 7q3w.3 shape failed.",
+  "shape_chosen": {
+    "answer": "neither (a) host compute nor (b) kernel execution",
+    "why": "The 7q3w.4 aliasing shims present virtual B300s that alias the one real GPU and forward everything they do not override to the real driver, so KERNEL LAUNCHES ARE REAL: NCCL's allreduce and p2p kernels execute on the real GPU and the arithmetic is real float32. Only the transport between the two processes is modelled."
   },
-  "transport": {
-    "chosen": "NCCL NET/IB",
-    "hca": "mlx5_0",
-    "socket_fallback": false,
-    "devices": "one aliased real GPU per rank via the landed 7q3w.4 vdev shims; ECE verbs return success with zeroed options"
+  "phases": {
+    "A": {
+      "rc": 0,
+      "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T163548",
+      "log": "A-acceptance.log",
+      "rank_rc": {
+        "0": 0,
+        "1": 0
+      },
+      "counters": {
+        "0": {
+          "rank": 0,
+          "dmabuf_registrations": 0,
+          "dmabuf_attempts": 1,
+          "reg_mr_calls": 26,
+          "post_send_calls": 49,
+          "post_recv_calls": 16,
+          "completions": 35,
+          "bytes_written": 4200512,
+          "bytes_read": 0,
+          "writes": 98,
+          "reads": 0,
+          "sends": 0,
+          "recvs": 0,
+          "qp_transition_refusals": 0,
+          "rnr_drops": 0,
+          "remote_access_errors": 0,
+          "cq_full_drops": 0,
+          "ring_out": 49,
+          "ring_in": 49,
+          "ring_stall_drops": 0
+        },
+        "1": {
+          "rank": 1,
+          "dmabuf_registrations": 0,
+          "dmabuf_attempts": 1,
+          "reg_mr_calls": 25,
+          "post_send_calls": 49,
+          "post_recv_calls": 17,
+          "completions": 36,
+          "bytes_written": 4200512,
+          "bytes_read": 0,
+          "writes": 98,
+          "reads": 0,
+          "sends": 0,
+          "recvs": 0,
+          "qp_transition_refusals": 0,
+          "rnr_drops": 0,
+          "remote_access_errors": 0,
+          "cq_full_drops": 0,
+          "ring_out": 49,
+          "ring_in": 49,
+          "ring_stall_drops": 0
+        }
+      },
+      "allreduce": {
+        "0": {
+          "n": 262144,
+          "expected": 3.0,
+          "value": 3.0,
+          "max_abs_err": 0.0,
+          "bad": 0
+        },
+        "1": {
+          "n": 262144,
+          "expected": 3.0,
+          "value": 3.0,
+          "max_abs_err": 0.0,
+          "bad": 0
+        }
+      },
+      "p2p": {
+        "0": {
+          "nbytes": 4096,
+          "raw": "sent=1"
+        },
+        "1": {
+          "nbytes": 4096,
+          "raw": "mismatches=0",
+          "mismatches": 0
+        }
+      },
+      "nccl_named_ib_device": true,
+      "socket_fallback": false,
+      "wedge_signature": false
+    },
+    "B": {
+      "rc": 0,
+      "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T163552",
+      "log": "B-p2p-only.log",
+      "rank_rc": {
+        "0": 0,
+        "1": 0
+      },
+      "counters": {
+        "0": {
+          "rank": 0,
+          "dmabuf_registrations": 0,
+          "dmabuf_attempts": 1,
+          "reg_mr_calls": 4,
+          "post_send_calls": 1,
+          "post_recv_calls": 0,
+          "completions": 1,
+          "bytes_written": 4160,
+          "bytes_read": 0,
+          "writes": 2,
+          "reads": 0,
+          "sends": 0,
+          "recvs": 0,
+          "qp_transition_refusals": 0,
+          "rnr_drops": 0,
+          "remote_access_errors": 0,
+          "cq_full_drops": 0,
+          "ring_out": 1,
+          "ring_in": 1,
+          "ring_stall_drops": 0
+        },
+        "1": {
+          "rank": 1,
+          "dmabuf_registrations": 0,
+          "dmabuf_attempts": 1,
+          "reg_mr_calls": 3,
+          "post_send_calls": 1,
+          "post_recv_calls": 1,
+          "completions": 2,
+          "bytes_written": 4160,
+          "bytes_read": 0,
+          "writes": 2,
+          "reads": 0,
+          "sends": 0,
+          "recvs": 0,
+          "qp_transition_refusals": 0,
+          "rnr_drops": 0,
+          "remote_access_errors": 0,
+          "cq_full_drops": 0,
+          "ring_out": 1,
+          "ring_in": 1,
+          "ring_stall_drops": 0
+        }
+      },
+      "allreduce": {},
+      "p2p": {
+        "0": {
+          "nbytes": 4096,
+          "raw": "sent=1"
+        },
+        "1": {
+          "nbytes": 4096,
+          "raw": "mismatches=0",
+          "mismatches": 0
+        }
+      },
+      "nccl_named_ib_device": true,
+      "socket_fallback": false,
+      "wedge_signature": false
+    },
+    "C": {
+      "rc": 1,
+      "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T163555",
+      "log": "C-no-pump.log",
+      "rank_rc": {
+        "0": 124,
+        "1": 124
+      },
+      "counters": {
+        "0": null,
+        "1": null
+      },
+      "allreduce": {},
+      "p2p": {
+        "0": {
+          "nbytes": 4096,
+          "raw": "sent=1"
+        }
+      },
+      "nccl_named_ib_device": true,
+      "socket_fallback": false,
+      "wedge_signature": true
+    }
   },
   "result": {
-    "allreduce": {
+    "A_allreduce": {
       "0": {
         "n": 262144,
         "expected": 3.0,
@@ -32,80 +203,56 @@
         "bad": 0
       }
     },
-    "counters": {
+    "A_p2p": {
       "0": {
-        "rank": 0,
-        "dmabuf_registrations": 0,
-        "dmabuf_attempts": 1,
-        "reg_mr_calls": 22,
-        "post_send_calls": 48,
-        "post_recv_calls": 16,
-        "completions": 34,
-        "bytes_written": 4196352,
-        "bytes_read": 0,
-        "writes": 96,
-        "reads": 0,
-        "sends": 0,
-        "recvs": 0,
-        "qp_transition_refusals": 0,
-        "rnr_drops": 0,
-        "remote_access_errors": 0,
-        "cq_full_drops": 0,
-        "ring_out": 48,
-        "ring_in": 48,
-        "ring_stall_drops": 0
+        "nbytes": 4096,
+        "raw": "sent=1"
       },
       "1": {
-        "rank": 1,
-        "dmabuf_registrations": 0,
-        "dmabuf_attempts": 1,
-        "reg_mr_calls": 22,
-        "post_send_calls": 48,
-        "post_recv_calls": 16,
-        "completions": 34,
-        "bytes_written": 4196352,
-        "bytes_read": 0,
-        "writes": 96,
-        "reads": 0,
-        "sends": 0,
-        "recvs": 0,
-        "qp_transition_refusals": 0,
-        "rnr_drops": 0,
-        "remote_access_errors": 0,
-        "cq_full_drops": 0,
-        "ring_out": 48,
-        "ring_in": 48,
-        "ring_stall_drops": 0
+        "nbytes": 4096,
+        "raw": "mismatches=0",
+        "mismatches": 0
       }
     },
-    "rank_exit_codes": {
-      "0": 0,
-      "1": 0
+    "C_control_rank_rc": {
+      "0": 124,
+      "1": 124
     },
     "checks": {
-      "both_ranks_have_allreduce": true,
-      "expected_sum_is_3": true,
-      "value_is_exactly_3": true,
-      "zero_elements_wrong": true,
-      "max_abs_err_is_zero": true,
-      "both_ranks_exit_zero": true,
-      "both_ranks_posted_sends": true,
-      "both_ranks_posted_recvs": true,
-      "nccl_named_our_ib_device": true,
-      "no_socket_fallback": true,
-      "no_p2p_claim_in_this_arm": true
+      "A_ranks_exit_zero": true,
+      "A_allreduce_is_exact_on_both_ranks": true,
+      "A_p2p_payload_is_byte_identical": true,
+      "A_no_rnr_drop_or_remote_access_error": true,
+      "A_nccl_named_our_ib_device": true,
+      "A_no_socket_fallback": true,
+      "B_p2p_alone_is_byte_identical": true,
+      "B_both_ranks_exit_zero": true,
+      "B_has_no_allreduce_claim": true,
+      "B_no_rnr_drop_or_remote_access_error": true,
+      "C_without_pump_fails": true,
+      "C_rank1_hit_the_rank_timeout": true,
+      "C_rank1_received_nothing": true,
+      "C_rank1_wedged_in_poll_loop": true
     }
   },
   "error_budget": {
-    "real": "NCCL's own IB transport selected mlx5_0; its real GPU kernels computed the allreduce through the 7q3w.4 aliased device; both ranks post real WRs and move bytes on the shim rings.",
-    "modelled": "The fabric is the libibverbs shim plus MAP_SHARED rings; the bytes cross a modelled wire, not a physical NIC.",
-    "not_modelled": "No 8-node/8-GPU topology, no 8-way collective, no training step, and no p2p result in this first arm."
+    "measured_real": "NCCL 2.32.6 chose our mlx5_0 (NET/IB, no Socket fallback); its own kernels ran on the real GPU; both ranks posted real verbs WRs and the payload bytes crossed the modelled wire (counters: post_send_calls > 0, bytes_written > 0, ring records in/out > 0).",
+    "modelled": "The wire: libibverbs is a shim and the 'fabric' is a MAP_SHARED byte ring per rank pair, with modelled bandwidth/latency applied to completion readiness. The GPU identity is one real device seen through N aliases. Delivery is asynchronous (pump thread); the pump interval (default 50 us) is added real latency, not modelled wire time.",
+    "not_modelled": "No physical NIC, no DMA/PCIe transfer, no GDR/dmabuf registration (7q3w.6), no second GPU, and therefore no B300 compute time: a collective's COMPUTE time is this 5090's, while its TRANSPORT time is the D1 model. No 8-way collective and no training step here; no performance claim (that is gpu-sim-ae2v).",
+    "model_defect_found_and_fixed": "Inbound records used to be delivered only inside poll_cq, so a sender spinning on the peer-written host FIFO could never be progressed (rank1 wedged with rings out=49 in=48). The pump thread models the NIC writing memory on its own; phase C is that control."
   },
   "gate": "none -- the final gate result is cited in the submission comment; no earlier gate is claimed here",
   "evidence": {
     "run_sh": "experiments/gpu-sim-7q3w.5/run.sh",
+    "control_sh": "experiments/gpu-sim-7q3w.5/control_p2p.sh",
     "capture_py": "experiments/gpu-sim-7q3w.5/capture.py",
     "output_log": "experiments/gpu-sim-7q3w.5/output.log",
+    "phase_logs": [
+      "A-acceptance.log",
+      "B-p2p-only.log",
+      "C-no-pump.log"
+    ],
+    "manifest": "experiments/gpu-sim-7q3w.5/manifest.json",
     "job_json": "experiments/gpu-sim-7q3w.5/job.json"
   }
 }

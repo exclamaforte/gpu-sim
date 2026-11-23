@@ -39,9 +39,14 @@ def job_status(job_id):
     raise SystemExit(f"job {job_id} not in gpqueue status")
 
 
-def counters(run_dir, rank):
+def counters(run_dir, rank, optional=False):
     path = Path(run_dir) / f"counters-rank{rank}.json"
     if not path.exists():
+        # A phase whose ranks were killed by the rank timeout never reaches the
+        # shim's destructor, so it has no counters file; that is expected only
+        # for the negative control, and it is never read for a wire claim.
+        if optional:
+            return None
         raise SystemExit(f"missing counters: {path}")
     return json.loads(path.read_text())
 
@@ -53,7 +58,7 @@ def rank_rc(run_dir, rank):
     return int(path.read_text().strip())
 
 
-def phase_evidence(name, phase, parse_p2p=True):
+def phase_evidence(name, phase, parse_p2p=True, need_counters=True):
     """One phase's measured facts, read from ITS run dir and ITS log only."""
     run_dir = phase["run_dir"]
     if not run_dir or not Path(run_dir).is_dir():
@@ -83,7 +88,8 @@ def phase_evidence(name, phase, parse_p2p=True):
         "run_dir": run_dir,
         "log": phase["log"],
         "rank_rc": {str(r): rank_rc(run_dir, r) for r in (0, 1)},
-        "counters": {str(r): counters(run_dir, r) for r in (0, 1)},
+        "counters": {str(r): counters(run_dir, r, optional=not need_counters)
+                     for r in (0, 1)},
         "allreduce": {str(k): v for k, v in allreduce.items()},
         "p2p": {str(k): v for k, v in p2p.items()},
         "nccl_named_ib_device": "NET/IB : Using [0]mlx5_0" in text,
@@ -121,7 +127,7 @@ def main():
 
     A = phase_evidence("A", phases["A"])
     B = phase_evidence("B", phases["B"])
-    C = phase_evidence("C", phases["C"])
+    C = phase_evidence("C", phases["C"], need_counters=False)
 
     # Copy the phase logs + manifest next to this script: the control dir lives
     # under .lab/tmp (gitignored, reaped), the artifact must not.

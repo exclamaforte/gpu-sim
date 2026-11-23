@@ -1,21 +1,21 @@
 {
   "bead": "gpu-sim-7q3w.5",
   "gpu_used": true,
-  "job_id": "20261123t000811-190b5e6c",
-  "description": "7q3w.5 2-rank NCCL allreduce, transport evidence",
+  "job_id": "20261123t003548-ae52da64",
+  "description": "7q3w.5 p2p acceptance + negative control",
   "gpu_index": "0",
   "command": [
     "bash",
-    "experiments/gpu-sim-7q3w.5/run.sh"
+    "experiments/gpu-sim-7q3w.5/control_p2p.sh"
   ],
-  "started_at_utc": "2026-11-23T00:08:11+00:00",
-  "finished_at_utc": "2026-11-23T00:08:17+00:00",
-  "wall_s": 6.0,
+  "started_at_utc": "2026-11-23T00:35:48+00:00",
+  "finished_at_utc": "2026-11-23T00:36:43+00:00",
+  "wall_s": 55.0,
   "max_runtime_seconds": 600.0,
   "state": "finished",
   "exit_code": 0,
-  "job_log": "/home/gabe/.local/state/gpqueue/jobs/20261123t000811-190b5e6c.log",
-  "run_dir": "/home/gabe/Documents/gpu-sim/.lab/wt/gpu-sim-7q3w.5/.lab/tmp/build-7q3w5-numerics/run-20261122T160811",
+  "job_log": "/home/gabe/.local/state/gpqueue/jobs/20261123t003548-ae52da64.log",
+  "control_dir": ".lab/tmp/build-7q3w5-numerics/control-20261122T163548",
   "run_sh": "experiments/gpu-sim-7q3w.5/run.sh",
   "capture_py": "experiments/gpu-sim-7q3w.5/capture.py"
 }
