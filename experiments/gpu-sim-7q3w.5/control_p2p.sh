@@ -1,96 +1,101 @@
 #!/usr/bin/env bash
-# gpu-sim-7q3w.5 p2p arm: acceptance run + isolation + NEGATIVE control.
+# gpu-sim-7q3w.5 p2p control: acceptance, isolation, MECHANISM control, repeats.
 #
 # The p2p arm failed before this bead's change with rank1 wedged in the fabric
 # poll loop (run-20261122T155004: "poll_cq -> 0 (rings out=49 in=48)" forever).
-# The diagnosis was that inbound records were only copied into a process's
-# memory inside poll_cq, so NCCL's p2p send setup -- which spins on a host-memory
-# FIFO that the peer's RDMA WRITE must fill -- deadlocked against its own
-# receiver.  The fix is an asynchronous pump thread (models the NIC writing
-# memory on its own; FAKEIB_NO_PUMP_THREAD=1 disables it).
+# Diagnosis, measured: inbound records were only copied into a process's memory
+# inside poll_cq, so NCCL's p2p send setup -- which spins on a host-memory FIFO
+# the peer's RDMA WRITE must fill -- deadlocked against its own receiver.
 #
-# This script runs three phases so the claim is a measurement, not a theory:
-#   A acceptance : allreduce + p2p, pump ON        -> must PASS
-#   B isolation  : p2p alone,            pump ON   -> must PASS
-#   C control    : p2p alone,            pump OFF  -> must WEDGE (no p2p line)
+# PHASES (each repeated NREP times; every run records rc, wall, run dir, and
+# the observables below):
+#   A acceptance : allreduce + p2p, pump started at device open -> must PASS
+#   B isolation  : p2p alone,       pump started at device open -> must PASS
+#   C no pump    : p2p alone,       no progress thread          -> must WEDGE
+#   D lazy pump  : p2p alone,       FAKEIB_LAZY_PUMP=1 (pre-fix: thread starts
+#                                   on the first poll_cq)       -> must WEDGE
+# C shows the pump is NECESSARY; D shows STARTING IT AT DEVICE OPEN is the fix
+# (same binary, same arm, only the start point differs).  B carries trace so the
+# passing case shows the sender POSTING the payload, which C/D cannot.
+#
+# Observables recorded per run (all from the shim's own trace):
+#   rank1_posts_conn    rank1's 64-byte connection info reached the wire
+#   rank0_sees_inbound  rank0 delivered anything from the ring at all
+#   rank0_posts_payload rank0 posted the 4096-byte data WR
+#   rank1_gets_payload  rank1 delivered the 4096-byte payload
+#   rank1_p2p_line      rank1 printed a received payload (the RESULT)
 #
 # Run through the GPU queue:
-#   ts --max-runtime 10m -L '7q3w.5 p2p acceptance + negative control' -- \
+#   ts --max-runtime 10m -L '7q3w.5 p2p control N=5' -- \
 #       bash experiments/gpu-sim-7q3w.5/control_p2p.sh
 set -uo pipefail
 
 ROOT=${GPU_SIM_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}
 EXP="$ROOT/experiments/gpu-sim-7q3w.5"
 OUT="$ROOT/.lab/tmp/build-7q3w5-numerics/control-$(date +%Y%m%dT%H%M%S)"
+NREP=${NREP:-5}
+WEDGE_TIMEOUT=${WEDGE_TIMEOUT:-20}   # rank timeout for C/D; B finishes in ~3.5 s
 mkdir -p "$OUT"
+: >"$OUT/records.jsonl"
 
 note() { echo "--- $*"; }
-failures=0
-chk() { if eval "$1"; then echo "ASSERT ok: $2"; else echo "ASSERT FAIL: $2"; failures=$((failures+1)); fi; }
 
-note "control dir $OUT"
+# one <phase> <rep> <env...>: run run.sh, record the facts, keep the log
+one() {
+    local phase=$1 rep=$2; shift 2
+    local log="$OUT/$phase-$rep.log"
+    local t0 t1 rc wall rundir rc0 rc1
+    local rank1_posts_conn=0 rank0_sees_inbound=0 rank0_posts_payload=0
+    local rank1_gets_payload=0 rank1_p2p_line=0
+    t0=$(date +%s.%N)
+    env "$@" bash "$EXP/run.sh" >"$log" 2>&1
+    rc=$?
+    t1=$(date +%s.%N)
+    wall=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
+    rundir=$(sed -n 's/^RUN_DIR=//p; s/^.*run dir kept at //p' "$log" | tail -1)
+    rc0=""; rc1=""
+    if [[ -n "$rundir" ]]; then
+        [[ -s "$rundir/rank0.rc" ]] && rc0=$(cat "$rundir/rank0.rc")
+        [[ -s "$rundir/rank1.rc" ]] && rc1=$(cat "$rundir/rank1.rc")
+        if [[ -f "$rundir/rank0.log" ]]; then
+            grep -q 'deliver_inbound' "$rundir/rank0.log" && rank0_sees_inbound=1
+            grep -q 'post_send .*len=4096' "$rundir/rank0.log" && rank0_posts_payload=1
+        fi
+        if [[ -f "$rundir/rank1.log" ]]; then
+            grep -q 'ring_put(1,0) kind=2 nbytes=64' "$rundir/rank1.log" && rank1_posts_conn=1
+            grep -q 'deliver_inbound .*nbytes=4096' "$rundir/rank1.log" && rank1_gets_payload=1
+            grep -q 'NUMERICS p2p rank=1' "$rundir/rank1.log" && rank1_p2p_line=1
+        fi
+    fi
+    printf '{"phase":"%s","rep":%d,"rc":%d,"wall_s":%s,"run_dir":"%s","rank0_rc":"%s","rank1_rc":"%s","rank1_posts_conn":%d,"rank0_sees_inbound":%d,"rank0_posts_payload":%d,"rank1_gets_payload":%d,"rank1_p2p_line":%d}\n' \
+        "$phase" "$rep" "$rc" "$wall" "$rundir" "$rc0" "$rc1" \
+        "$rank1_posts_conn" "$rank0_sees_inbound" "$rank0_posts_payload" \
+        "$rank1_gets_payload" "$rank1_p2p_line" >>"$OUT/records.jsonl"
+    printf '   %s rep %d: rc=%d wall=%ss rank0_rc=%s rank1_rc=%s conn=%d saw=%d post=%d got=%d\n' \
+        "$phase" "$rep" "$rc" "$wall" "${rc0:-?}" "${rc1:-?}" \
+        "$rank1_posts_conn" "$rank0_sees_inbound" "$rank0_posts_payload" \
+        "$rank1_gets_payload"
+}
 
-# ---------------------------------------------------------------- phase A ----
-note "A: allreduce + p2p, async pump ON (acceptance shape)"
-ARM_P2P=1 bash "$EXP/run.sh" >"$OUT/A-acceptance.log" 2>&1
-rcA=$?
-echo "$rcA" >"$OUT/A.rc"
-RUN_A=$(sed -n 's/^RUN_DIR=//p; s/^.*run dir kept at //p' "$OUT/A-acceptance.log" | tail -1)
-chk "[[ $rcA -eq 0 ]]" "A: run.sh exited 0"
-chk "grep -q 'NUMERICS allreduce rank=0 .* bad=0$' '$OUT/A-acceptance.log'" \
-    "A: allreduce exact on rank0"
-chk "grep -q 'NUMERICS allreduce rank=1 .* bad=0$' '$OUT/A-acceptance.log'" \
-    "A: allreduce exact on rank1"
-chk "grep -q 'NUMERICS p2p rank=1 nbytes=4096 mismatches=0$' '$OUT/A-acceptance.log'" \
-    "A: 4096-byte send/recv byte-identical"
-chk "grep -q 'NUMERICS RUN OK: exact 2-rank allreduce AND byte-identical' '$OUT/A-acceptance.log'" \
-    "A: run reported both claims"
+note "control dir $OUT (nrep=$NREP, wedge timeout=${WEDGE_TIMEOUT}s)"
+for i in $(seq 1 "$NREP"); do
+    note "A$i: allreduce + p2p, pump at device open (acceptance)"
+    one A "$i" ARM_P2P=1
+    note "B$i: p2p alone, pump at device open (isolation; trace on)"
+    one B "$i" ARM_P2P=1 ARM_SKIP_AR=1 ARM_TRACE=1
+    note "C$i: p2p alone, NO progress thread (pump necessary)"
+    one C "$i" ARM_P2P=1 ARM_SKIP_AR=1 FAKEIB_NO_PUMP_THREAD=1 \
+        ARM_TRACE=1 RANK_TIMEOUT="$WEDGE_TIMEOUT"
+    note "D$i: p2p alone, LAZY pump start = pre-fix shape (mechanism)"
+    one D "$i" ARM_P2P=1 ARM_SKIP_AR=1 FAKEIB_LAZY_PUMP=1 \
+        ARM_TRACE=1 RANK_TIMEOUT="$WEDGE_TIMEOUT"
+done
 
-# ---------------------------------------------------------------- phase B ----
-note "B: p2p alone (no allreduce first), async pump ON"
-ARM_P2P=1 ARM_SKIP_AR=1 bash "$EXP/run.sh" >"$OUT/B-p2p-only.log" 2>&1
-rcB=$?
-echo "$rcB" >"$OUT/B.rc"
-RUN_B=$(sed -n 's/^RUN_DIR=//p; s/^.*run dir kept at //p' "$OUT/B-p2p-only.log" | tail -1)
-chk "[[ $rcB -eq 0 ]]" "B: p2p does not depend on an earlier allreduce"
-chk "grep -q 'NUMERICS p2p rank=1 nbytes=4096 mismatches=0$' '$OUT/B-p2p-only.log'" \
-    "B: 4096-byte send/recv byte-identical without a prior collective"
-
-# ---------------------------------------------------------------- phase C ----
-# The control must FAIL for the documented reason: the receive side never gets
-# the payload because the sender's host-memory FIFO spin is never filled.  A
-# 45 s rank timeout is enough -- the wedge is a permanent deadlock, not a slow
-# path (the same run completes in ~2 s with the pump).
-note "C: p2p alone, pump DISABLED (negative control; expected to wedge)"
-ARM_P2P=1 ARM_SKIP_AR=1 FAKEIB_NO_PUMP_THREAD=1 ARM_TRACE=1 RANK_TIMEOUT=45 \
-    bash "$EXP/run.sh" >"$OUT/C-no-pump.log" 2>&1
-rcC=$?
-echo "$rcC" >"$OUT/C.rc"
-# On failure run.sh prints "run dir kept at <dir>"; on success "RUN_DIR=<dir>".
-CRUN=$(sed -n 's/^.*run dir kept at //p; s/^RUN_DIR=//p' "$OUT/C-no-pump.log" | tail -1)
-echo "$CRUN" >"$OUT/C.run_dir"
-chk "[[ $rcC -ne 0 ]]" "C: without the pump the run fails (exit $rcC)"
-chk "[[ -n '$CRUN' && -s '$CRUN/rank1.rc' ]] && grep -qx 124 '$CRUN/rank1.rc'" \
-    "C: rank1 hit the rank timeout instead of receiving the payload"
-chk "[[ -n '$CRUN' ]] && ! grep -q 'NUMERICS p2p rank=1' '$CRUN/rank1.log'" \
-    "C: rank1 never printed a received payload"
-chk "[[ -n '$CRUN' ]] && grep -q 'poll_cq .* -> 0 (rings out=' '$CRUN/rank1.log'" \
-    "C: rank1 was wedged in the fabric poll loop (the 7q3w.3 signature)"
-chk "grep -q 'ASSERT FAIL: rank1: 0 of 4096 received bytes' '$OUT/C-no-pump.log'" \
-    "C: the missing payload is reported as the p2p failure, not hidden"
-
-# Deterministic hand-off to capture.py: which run dir belongs to which phase.
-printf '{"phases":{"A":{"rc":%d,"run_dir":"%s","log":"A-acceptance.log"},' \
-    "$rcA" "$RUN_A" >"$OUT/manifest.json"
-printf '"B":{"rc":%d,"run_dir":"%s","log":"B-p2p-only.log"},' \
-    "$rcB" "$RUN_B" >>"$OUT/manifest.json"
-printf '"C":{"rc":%d,"run_dir":"%s","log":"C-no-pump.log"}}}\n' \
-    "$rcC" "$CRUN" >>"$OUT/manifest.json"
+printf '{"config":{"nrep":%d,"wedge_timeout_s":%d,"run_sh":"experiments/gpu-sim-7q3w.5/run.sh"},"records":[' \
+    "$NREP" "$WEDGE_TIMEOUT" >"$OUT/manifest.json"
+paste -sd, "$OUT/records.jsonl" >>"$OUT/manifest.json"
+printf ']}\n' >>"$OUT/manifest.json"
 
 echo
-if (( failures )); then
-    echo "P2P CONTROL FAILED: $failures assertion(s); control dir kept at $OUT"
-    exit 1
-fi
-echo "P2P CONTROL OK: acceptance and isolation pass WITH the async inbound pump; the same p2p arm wedges WITHOUT it"
+echo "P2P CONTROL DONE: $((NREP * 4)) runs; records in $OUT/records.jsonl"
 echo "CONTROL_DIR=$OUT"

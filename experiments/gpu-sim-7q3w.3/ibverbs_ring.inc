@@ -323,6 +323,13 @@ static void pump_thread_start(void) {
  * at all (it logged not one FAKEIB line) and the 64-byte connection write sat in
  * the ring forever.  Every rank opens its device, so that is the eager hook. */
 static void fakeib_pump_ensure(void) {
+    /* FAKEIB_LAZY_PUMP=1 restores the pre-fix shape exactly: this hook does
+     * nothing and the progress thread is started by the first poll_cq
+     * (pump_rings).  That is the MECHANISM control -- phase D.  Without it,
+     * "the pump is necessary" (phase C, thread absent) is measured, but
+     * "starting it at device open is what fixes a p2p-alone sender" is only a
+     * hypothesis consistent with the data. */
+    if (getenv("FAKEIB_LAZY_PUMP")) return;
     pthread_once(&g_rings_once, rings_init);
     pthread_once(&g_pump_once, pump_thread_start);
 }
