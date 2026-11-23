@@ -13,7 +13,10 @@ pytest node, collects >=1 test, executes successfully, and (when a mutation
 function is registered) fails when its mutation is applied and passes when
 restored. No externally settable opt-out; recursion is broken structurally.
 """
-import json, subprocess, sys, os, argparse, ast, signal, atexit
+import json, subprocess, sys, os, argparse, ast, signal, atexit, re, difflib
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from plant_verify import (collection_failure, non_assertion_failure,
+                          mutation_diff)  # gpu-sim-vuoq
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -688,6 +691,22 @@ def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
             try:
                 backup, mutated_path = apply_fn(root)
                 _APPLIED_MUTATIONS.append((backup, mutated_path))
+                # gpu-sim-vuoq (requirement 1): require the mutated target to be
+                # COLLECTED before reading anything into a failing run.  A
+                # syntax-breaking mutation "fails" every test it never loads.
+                mdiff = mutation_diff(backup, mutated_path)
+                rcol = _run_pytest(
+                    [sys.executable, "-m", "pytest", "--collect-only", "-q", target],
+                    root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env(no_bytecode=True))
+                unparseable = collection_failure(rcol)
+                if unparseable:
+                    errors.append(
+                        f"ledger row {name!r}: mutation left the test module unparseable: "
+                        f"{unparseable} (mutation {mutation!r}, bound target {target!r}) -- a "
+                        f"plant must fail as a TEST OUTCOME, not as a collection/import error, "
+                        f"so this row says NOTHING about the rule it was meant to blind "
+                        f"(gpu-sim-vuoq). The mutation span was:\n{mdiff}")
+                    continue
                 rmut = _run_pytest(
                     [sys.executable, "-m", "pytest", "-q", target],
                     root, ROW_TIMEOUTS.get(name, COLLECT_ONLY_TIMEOUT), _child_env(no_bytecode=True))
@@ -706,6 +725,13 @@ def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
                     continue
                 if rmut.returncode == 0:
                     errors.append(f"ledger row {name!r}: mutation {mutation!r} did not fail (rc=0)")
+                    continue
+                wrong_kind = non_assertion_failure(rmut)
+                if wrong_kind:
+                    errors.append(
+                        f"ledger row {name!r}: mutation {mutation!r} failed as {wrong_kind}, "
+                        f"not as a test outcome for {target!r}; that certifies nothing about the "
+                        f"rule it was meant to blind (gpu-sim-vuoq). The mutation span was:\n{mdiff}")
                     continue
             except subprocess.TimeoutExpired:
                 _restore_one(backup, mutated_path)
@@ -744,6 +770,8 @@ def check_ledger_test_ids(root, only_rows=None, resolve_only=False):
             if rrest.returncode != 0:
                 errors.append(f"ledger row {name!r}: restored target did not pass (rc={rrest.returncode})")
                 continue
+            if mdiff:
+                print(f"  plant {name} ({mutation}) bit; replaced span:\n{mdiff}", flush=True)
             positive_done = True
 
         if target in seen:
@@ -884,6 +912,7 @@ def _startup_dirty_check(dirty_ok=False):
         print("REFUSE: working tree is dirty; restore before running:", file=sys.stderr)
         print("\n".join(tracked_dirty), file=sys.stderr)
         sys.exit(2)
+
 
 
 
