@@ -35,6 +35,7 @@ note "A: allreduce + p2p, async pump ON (acceptance shape)"
 ARM_P2P=1 bash "$EXP/run.sh" >"$OUT/A-acceptance.log" 2>&1
 rcA=$?
 echo "$rcA" >"$OUT/A.rc"
+RUN_A=$(sed -n 's/^RUN_DIR=//p; s/^.*run dir kept at //p' "$OUT/A-acceptance.log" | tail -1)
 chk "[[ $rcA -eq 0 ]]" "A: run.sh exited 0"
 chk "grep -q 'NUMERICS allreduce rank=0 .* bad=0$' '$OUT/A-acceptance.log'" \
     "A: allreduce exact on rank0"
@@ -50,6 +51,7 @@ note "B: p2p alone (no allreduce first), async pump ON"
 ARM_P2P=1 ARM_SKIP_AR=1 bash "$EXP/run.sh" >"$OUT/B-p2p-only.log" 2>&1
 rcB=$?
 echo "$rcB" >"$OUT/B.rc"
+RUN_B=$(sed -n 's/^RUN_DIR=//p; s/^.*run dir kept at //p' "$OUT/B-p2p-only.log" | tail -1)
 chk "[[ $rcB -eq 0 ]]" "B: p2p does not depend on an earlier allreduce"
 chk "grep -q 'NUMERICS p2p rank=1 nbytes=4096 mismatches=0$' '$OUT/B-p2p-only.log'" \
     "B: 4096-byte send/recv byte-identical without a prior collective"
@@ -76,6 +78,14 @@ chk "[[ -n '$CRUN' ]] && grep -q 'poll_cq .* -> 0 (rings out=' '$CRUN/rank1.log'
     "C: rank1 was wedged in the fabric poll loop (the 7q3w.3 signature)"
 chk "grep -q 'ASSERT FAIL: rank1: 0 of 4096 received bytes' '$OUT/C-no-pump.log'" \
     "C: the missing payload is reported as the p2p failure, not hidden"
+
+# Deterministic hand-off to capture.py: which run dir belongs to which phase.
+printf '{"phases":{"A":{"rc":%d,"run_dir":"%s","log":"A-acceptance.log"},' \
+    "$rcA" "$RUN_A" >"$OUT/manifest.json"
+printf '"B":{"rc":%d,"run_dir":"%s","log":"B-p2p-only.log"},' \
+    "$rcB" "$RUN_B" >>"$OUT/manifest.json"
+printf '"C":{"rc":%d,"run_dir":"%s","log":"C-no-pump.log"}}}\n' \
+    "$rcC" "$CRUN" >>"$OUT/manifest.json"
 
 echo
 if (( failures )); then
